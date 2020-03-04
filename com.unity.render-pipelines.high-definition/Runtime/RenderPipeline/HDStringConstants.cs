@@ -742,8 +742,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Iteration                      = Shader.PropertyToID("_Iteration");
         public static readonly int _Integral                       = Shader.PropertyToID("_Integral");
         public static readonly int _MinMax                         = Shader.PropertyToID("_MinMax");
-        public static readonly int _PDF                            = Shader.PropertyToID("_PDF");
-        public static readonly int _CDF                            = Shader.PropertyToID("_CDF");
+
+        public static readonly int _PDF                                 = Shader.PropertyToID("_PDF");
+        public static readonly int _CDF                                 = Shader.PropertyToID("_CDF");
+        public static readonly int _Marginal                            = Shader.PropertyToID("_Marginal");
+        public static readonly int _ConditionalMarginal                 = Shader.PropertyToID("_ConditionalMarginal");
+        public static readonly int _SkyTextureImportanceSamplerReady    = Shader.PropertyToID("_SkyTextureImportanceSamplerReady");
+        public static readonly int _SkyTextureIntegrals                 = Shader.PropertyToID("_SkyTextureIntegrals");
+        public static readonly int _SkyTextureMarginals                 = Shader.PropertyToID("_SkyTextureMarginals");
+        public static readonly int _SkyTextureConditionalMarginals      = Shader.PropertyToID("_SkyTextureConditionalMarginals");
 
         public static readonly int _TargetScale                    = Shader.PropertyToID("_TargetScale");
         public static readonly int _Params                         = Shader.PropertyToID("_Params");

@@ -1,0 +1,56 @@
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel CSMainH      HORIZONTAL  KerName=CSMainH
+#pragma kernel CSMainV      VERTICAL    KerName=CSMainV
+#pragma kernel CSMainS      SINGLE      KerName=CSMainS
+#pragma kernel CSMainValue  VALUE       KerName=CSMainValue
+
+#pragma multi_compile _ READ_WRITE
+#pragma multi_compile _ VALUE
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+
+#ifdef VALUE
+            float4  _MinMax;
+#else
+  Texture2D<float4> _MinMax;
+#endif
+
+#ifdef READ_WRITE
+RWTexture2D<float4> _Output;
+#define _Input      _Output
+#else
+  Texture2D<float4> _Input;
+RWTexture2D<float4> _Output;
+#endif
+
+uint4 _Sizes; // xy: InputSize; zw: OutputSize
+
+#define _InputSize  _Sizes.xy
+#define _OutputSize _Sizes.zw
+
+[numthreads(8, 8, 1)]
+void KerName(uint3 id : SV_DispatchThreadID)
+{
+    if (all(id.xy < _OutputSize))
+    {
+#ifndef VALUE
+    #ifdef HORIZONTAL
+        const float2 minMax = _MinMax[uint2(0, id.y)].xy;
+    #elif defined(VERTICAL)
+        const float2 minMax = _MinMax[uint2(id.x, 0)].xy;
+    #else //if defined(SINGLE)
+        const float2 minMax = _MinMax[uint2(0, 0)].xy;
+    #endif
+#else
+        const float2 minMax = _MinMax.xy;
+#endif
+        const float  minVal = minMax.x;
+        const float  maxVal = minMax.y;
+
+        _Output[id.xy] = saturate(((_Input[id.xy].x - minVal)/(maxVal - minVal))).xxxx;
+    }
+}

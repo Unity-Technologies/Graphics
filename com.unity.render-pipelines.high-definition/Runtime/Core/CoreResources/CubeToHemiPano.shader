@@ -95,7 +95,7 @@ float GetScale(float angle)
 
     if (_preMultiplyByJacobian == 1)
     {
-        scale *= sin(angle);
+        scale *= sin(angle); // Spherical Jacobian
     }
     if (_preMultiplyByCosTheta == 1)
     {
@@ -103,7 +103,8 @@ float GetScale(float angle)
     }
     if (_preMultiplyBySolidAngle == 1)
     {
-        scale *= 0.25f*pi*pi*_Sizes.z*_Sizes.w;
+        scale *= _Sizes.z*_Sizes.w;
+        scale *= pi*pi*0.25f;
     }
 
     return scale;

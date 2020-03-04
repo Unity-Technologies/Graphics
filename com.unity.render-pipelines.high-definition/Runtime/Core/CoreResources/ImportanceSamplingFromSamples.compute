@@ -1,0 +1,67 @@
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel CSMain
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+//TextureCube<float4> _Cubemap;
+
+TEXTURECUBE(_Cubemap);
+SAMPLER(sampler_Cubemap);
+
+Texture2D<float4>   _Samples;
+RWTexture2D<float4> _Output;
+
+Texture2D<float4>   _Integral;
+
+float4               _Sizes;
+
+#define SamplesCount    _Sizes.z
+#define OutputSize      _Sizes.xy
+
+
+float3 SphericalTexCoordinateToDirection222(float2 sphTexCoord)
+{
+    float pi    = 3.1415926535897932384626433832795f;
+    float theta = (1.0f - sphTexCoord.x)*(2.0f*pi);
+    float phi   = (sphTexCoord.y - 0.5f)*pi;
+
+    float csTh, siTh, csPh, siPh;
+    sincos(theta, siTh, csTh);
+    sincos(phi, siPh, csPh);
+
+    // theta is 0 at negative Z (backwards). Coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
+    return float3(siTh*csPh, siPh, -csTh*csPh);
+}
+
+[numthreads(8, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (all(id.xy < (uint2)OutputSize))
+    {
+        uint2 pos = uint2(id.x, 0);
+
+        float4 input = _Samples[pos];
+
+        float2 latLongUV    = input.xy;
+        float  pdf          = input.z/_Integral[uint2(0, 0)].w;
+
+        float3 dir  = SphericalTexCoordinateToDirection222(latLongUV);
+        float  sin0 = sin(latLongUV.y*PI);
+
+        //float3 value = 4.0f*_Integral[uint2(0, 0)].w*SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb
+        //                        /(sin0*2.0f*PI*PI)/_Integral[uint2(0, 0)].w;
+        float3 value = /*2.0f*PI*/sin0*SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+
+        if (pdf == 0.0f)// || sin0 < 1e-6f)
+            value = 0.0f;
+        else
+            value /= pdf;
+
+        _Output[pos] = float4(value.rgb, max(value.r, max(value.g, value.b)));
+    }
+}

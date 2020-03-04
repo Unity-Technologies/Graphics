@@ -3,6 +3,9 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
+using System;
+using System.Collections.Generic;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
@@ -30,6 +33,9 @@ namespace UnityEditor.Rendering.HighDefinition
         RTHandle m_IntensityTexture;
         Texture2D m_ReadBackTexture;
         Material m_CubeToHemiLatLong;
+        Material m_CubeToLatLong;
+        Material m_IntegrateSphereHDRISky;
+        ComputeShader m_ImportanceSamplingFromSamples;
 
         public override bool hasAdvancedMode => true;
 
@@ -65,7 +71,10 @@ namespace UnityEditor.Rendering.HighDefinition
             var hdrp = HDRenderPipeline.defaultAsset;
             if (hdrp != null)
             {
-                m_CubeToHemiLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToHemiPanoPS);
+                m_CubeToHemiLatLong         = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToHemiPanoPS);
+                m_CubeToLatLong             = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
+                m_IntegrateSphereHDRISky    = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
+                m_ImportanceSamplingFromSamples = hdrp.renderPipelineResources.shaders.ImportanceSamplingFromSamplesCS;
             }
             m_ReadBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
         }
@@ -78,6 +87,18 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ReadBackTexture = null;
         }
 
+        void WriteEXR(string name, Texture2D img)
+        {
+            byte[] bytes0 = ImageConversion.EncodeToEXR(img, Texture2D.EXRFlags.CompressZIP);
+            string path = @"C:\UProjects\" + name + ".exr";
+            if (System.IO.File.Exists(path))
+            {
+                System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
+                System.IO.File.Delete(path);
+            }
+            System.IO.File.WriteAllBytes(path, bytes0);
+        }
+
         // Compute the lux value in the upper hemisphere of the HDRI skybox
         public void GetUpperHemisphereLuxValue()
         {
@@ -85,7 +106,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdri == null || m_CubeToHemiLatLong == null)
                 return;
 
-            // Render LatLong
             RTHandle latLongMap = RTHandles.Alloc(  4*hdri.width, hdri.width,
                                                     colorFormat: GraphicsFormat.R32G32B32A32_SFloat,
                                                     enableRandomWrite: true);
@@ -107,6 +127,9 @@ namespace UnityEditor.Rendering.HighDefinition
             flatten.ReadPixels(new Rect(0.0f, 0.0f, latLongMap.rt.width, latLongMap.rt.height), 0, 0);
             RenderTexture.active = null;
 
+            //WriteEXR("CubeToPano", flatten);
+            //WriteEXR("CubeToHemiPano", flatten);
+
             RTHandle totalRows = GPUScan.ComputeOperation(latLongMap, null, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, latLongMap.rt.graphicsFormat);
             RTHandle totalCols = GPUScan.ComputeOperation(totalRows,  null, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   latLongMap.rt.graphicsFormat);
             RTHandleDeleter.ScheduleRelease(totalRows);
@@ -118,9 +141,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             Color hdriIntensity = m_ReadBackTexture.GetPixel(0, 0);
 
-            m_UpperHemisphereLuxValue.value.floatValue =          Mathf.PI*Mathf.PI*Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b)
-                                                        / // ----------------------------------------------------------------------------------------
-                                                                            (4.0f*(float)(latLongMap.rt.width*latLongMap.rt.height));
+            //float coef   = 1.0f;//((float)(latLongMap.rt.width*latLongMap.rt.height));
+            float coef   = Mathf.PI*Mathf.PI*0.25f/((float)(latLongMap.rt.width*latLongMap.rt.height));
+            float ref3   = (hdriIntensity.r + hdriIntensity.g + hdriIntensity.b)/3.0f;
+            float maxRef = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
+
+            //Debug.Log(String.Format("SKCode - Hemi - Integral - Ref: {0} --- {1}", coef*ref3, coef*maxRef));
+
+            m_UpperHemisphereLuxValue.value.floatValue = coef*ref3;
 
             float max = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
             if (max == 0.0f)
@@ -128,6 +156,120 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/max, hdriIntensity.g/max, hdriIntensity.b/max);
             m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 50% to not have too dark or too bright shadow
+        }
+
+        public void DoIt()
+        {
+            Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
+            int hdriSkyID = ImportanceSamplers.GetIdentifier(hdri);
+            if (ImportanceSamplers.ExistAndReady(hdriSkyID))
+            {
+                /*
+                RTHandle integral = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true);
+                RTHandleDeleter.ScheduleRelease(integral);
+                m_IntegrateSphereHDRISky.SetTexture(HDShaderIDs._Cubemap, hdri);
+                Graphics.Blit(Texture2D.whiteTexture, integral.rt, m_IntegrateSphereHDRISky, 1);
+
+                Texture2D flatten = new Texture2D(1, 1, integral.rt.graphicsFormat, TextureCreationFlags.None);
+                RenderTexture.active = integral.rt;
+                flatten.ReadPixels(new Rect(0.0f, 0.0f, 1.0f, 1.0f), 0, 0);
+                RenderTexture.active = null;
+
+                Color hdriIntensity = flatten.GetPixel(0, 0);
+
+                //float fIntegral =
+                //        Mathf.PI*Mathf.PI*Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b)
+                /// // ----------------------------------------------------------------------------------------
+                //                    (4.0f*(float)(latLongMap.rt.width*latLongMap.rt.height));
+
+                //float coef = 1.0f;
+
+                Debug.Log(String.Format("SKCode - Sphere - Integral - IS: {0} --- {1}", (hdriIntensity.r + hdriIntensity.g + hdriIntensity.r)/3.0f, hdriIntensity.a));
+                //*/
+                //ImportanceSamplersSystem.MarginalTextures marginals = ImportanceSamplers.GetMarginals(hdriSkyID);
+                /*
+                // Render LatLong
+                RTHandle latLongMap = RTHandles.Alloc(  4*hdri.width, 2*hdri.width,
+                                                        colorFormat: GraphicsFormat.R32G32B32A32_SFloat,
+                                                        enableRandomWrite: true);
+                RTHandleDeleter.ScheduleRelease(latLongMap);
+                m_CubeToLatLong.SetTexture  ("_srcCubeTexture",             hdri);
+                m_CubeToLatLong.SetInt      ("_cubeMipLvl",                 0);
+                m_CubeToLatLong.SetInt      ("_cubeArrayIndex",             0);
+                m_CubeToLatLong.SetInt      ("_buildPDF",                   0);
+                m_CubeToLatLong.SetInt      ("_preMultiplyByJacobian",      1);
+                m_CubeToLatLong.SetInt      ("_preMultiplyByCosTheta",      0);
+                m_CubeToLatLong.SetInt      ("_preMultiplyBySolidAngle",    0);
+                m_CubeToLatLong.SetVector   (HDShaderIDs._Sizes, new Vector4(      (float)latLongMap.rt.width,        (float)latLongMap.rt.height,
+                                                                             1.0f/((float)latLongMap.rt.width), 1.0f/((float)latLongMap.rt.height)));
+                Graphics.Blit(Texture2D.whiteTexture, latLongMap.rt, m_CubeToLatLong, 0);
+                //Texture2D flatten2 = new Texture2D(latLongMap.rt.width, latLongMap.rt.height, latLongMap.rt.graphicsFormat, TextureCreationFlags.None);
+                //RenderTexture.active = latLongMap.rt;
+                //flatten2.ReadPixels(new Rect(0.0f, 0.0f, latLongMap.rt.width, latLongMap.rt.height), 0, 0);
+                //RenderTexture.active = null;
+                //WriteEXR("CubeToPano", flatten2);
+
+                RTHandle totalRows = GPUScan.ComputeOperation(latLongMap, null, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, latLongMap.rt.graphicsFormat);
+                RTHandle totalCols = GPUScan.ComputeOperation(totalRows,  null, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   latLongMap.rt.graphicsFormat);
+                RTHandleDeleter.ScheduleRelease(totalRows);
+                RTHandleDeleter.ScheduleRelease(totalCols);
+                //////
+                Texture2D flatten = new Texture2D(1, 1, latLongMap.rt.graphicsFormat, TextureCreationFlags.None);
+                RenderTexture.active = totalCols.rt;
+                flatten.ReadPixels(new Rect(0.0f, 0.0f, 1.0f, 1.0f), 0, 0);
+                RenderTexture.active = null;
+
+                Color hdriIntensity = flatten.GetPixel(0, 0);
+
+                float coef   = Mathf.PI*Mathf.PI*0.5f/((float)(latLongMap.rt.width*latLongMap.rt.height));
+                float ref3   = (hdriIntensity.r + hdriIntensity.g + hdriIntensity.b)/3.0f;
+                float maxRef = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
+
+                //float fIntegral =
+                //        Mathf.PI*Mathf.PI*Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b)
+                /// // ----------------------------------------------------------------------------------------
+                //                    (4.0f*(float)(latLongMap.rt.width*latLongMap.rt.height));
+
+                //float coef = 4.0f/((float)(latLongMap.rt.width*latLongMap.rt.height));
+                Debug.Log(String.Format("SKCode - Sphere - Integral - Ref: {0} --- {1}", coef*ref3, coef*maxRef));
+                //Debug.Log(String.Format("SKCode - Sphere - Integral: {0} --- {1}", coef*(hdriIntensity.r + hdriIntensity.g + hdriIntensity.r)/3.0f, coef*hdriIntensity.a));
+                //*/
+
+                ImportanceSamplersSystem.MarginalTextures marginals = ImportanceSamplers.GetMarginals(hdriSkyID);
+
+                int   samplesCount  = 4096;
+                float fSamplesCount = (float)samplesCount;
+
+                RTHandle samples = ImportanceSampler2D.GenerateSamples((uint)samplesCount, marginals.marginal, marginals.conditionalMarginal, GPUScan.Direction.Horizontal, null);
+                RTHandle output  = RTHandles.Alloc(samples.rt.width, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true);
+                RTHandleDeleter.ScheduleRelease(output);
+                RTHandleDeleter.ScheduleRelease(samples);
+
+                m_ImportanceSamplingFromSamples.SetTexture(0, HDShaderIDs._Samples,     samples);
+                m_ImportanceSamplingFromSamples.SetTexture(0, HDShaderIDs._Cubemap,     hdri);
+                m_ImportanceSamplingFromSamples.SetTexture(0, HDShaderIDs._Output,      output);
+                m_ImportanceSamplingFromSamples.SetTexture(0, HDShaderIDs._Integral,    marginals.integral);
+                m_ImportanceSamplingFromSamples.SetFloats (   HDShaderIDs._Sizes,       output.rt.width, output.rt.height, samples.rt.width, 1.0f);
+
+                int numTilesX = (samples.rt.width + (8 - 1))/8;
+                m_ImportanceSamplingFromSamples.Dispatch(0, numTilesX, 1, 1);
+
+                RTHandle sum = GPUScan.ComputeOperation(output, null, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, output.rt.graphicsFormat);
+                RTHandleDeleter.ScheduleRelease(sum);
+
+                Texture2D flatten = new Texture2D(1, 1, sum.rt.graphicsFormat, TextureCreationFlags.None);
+                RenderTexture.active = sum.rt;
+                flatten.ReadPixels(new Rect(0.0f, 0.0f, 1.0f, 1.0f), 0, 0);
+                RenderTexture.active = null;
+
+                Color hdriIntensity = flatten.GetPixel(0, 0);
+
+                float coef   = 1.0f/fSamplesCount;
+                float ref3   = (hdriIntensity.r + hdriIntensity.g + hdriIntensity.b)/3.0f;
+                float maxRef = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
+
+                Debug.Log(String.Format("SKCode - Sphere - Integral - IS: {0} --- {1}", coef*ref3, coef*maxRef));
+            }
         }
 
         public override void OnInspectorGUI()
@@ -142,6 +284,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 GetUpperHemisphereLuxValue();
                 updateDefaultShadowTint = true;
+                Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
+                int hdriSkyID = ImportanceSamplers.GetIdentifier(hdri);
+                ImportanceSamplers.ScheduleMarginalGeneration(hdriSkyID, hdri);
+
+                DoIt();
             }
 
             if (isInAdvancedMode)
