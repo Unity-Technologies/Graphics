@@ -130,7 +130,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
         float3 prevPositionRWS = positionRWS;
         float3 prevNormalWS = normalWS;
         float prevTimeDelta = -unity_DeltaTime.x;
-        ApplyVertexModification(input, prevNormalWS, prevPositionRWS, prevTimeDelta.xxxx);
+        ApplyVertexModification(input, prevNormalWS, prevPositionRWS, prevTimeDelta.xxx);
     #endif
 
     ApplyVertexModification(input, normalWS, positionRWS, _TimeParameters.xyz);
