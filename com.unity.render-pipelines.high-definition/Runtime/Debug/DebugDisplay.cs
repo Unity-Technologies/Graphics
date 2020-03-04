@@ -59,6 +59,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldCoc,
         /// <summary>Display Transparency Overdraw.</summary>
         TransparencyOverdraw,
+        /// <summary>Display Virtual Texturing resolver feedback.</summary>
+        VirtualTexturingFeedback,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
@@ -149,6 +151,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint screenSpaceShadowIndex = 0;
             /// <summary>Display ray tracing ray count per frame.</summary>
             public bool countRays = false;
+            /// <summary>Toggle focus on mips vs VT tilesets</summary>
+            public bool highlightMips = false;
 
             /// <summary>Index of the camera to freeze for visibility.</summary>
             public int debugCameraToFreeze = 0;
@@ -981,6 +985,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     children =
                     {
                         new DebugUI.FloatField {displayName = "Max Pixel Cost", getter = () => data.transparencyDebugSettings.maxPixelCost, setter = value => data.transparencyDebugSettings.maxPixelCost = value, min = () => 0.25f, max = () => 2048.0f}
+                    }
+                });
+            }
+
+            if (data.fullScreenDebugMode == FullScreenDebugMode.VirtualTexturingFeedback)
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.BoolField {displayName = "Focus on mips = true, focus on tileset = false", getter = () => data.highlightMips, setter = value => data.highlightMips = value}
                     }
                 });
             }
