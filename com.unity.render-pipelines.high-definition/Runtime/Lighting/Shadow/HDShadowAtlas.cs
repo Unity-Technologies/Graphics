@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (holeWithRightSize >= 0)
                 {
-                    m_ListOfCachedShadowRequests[holeWithRightSize] = request;
+                    m_ListOfCachedShadowRequests[holeWithRightSize] = request.ShallowCopy();
                     return holeWithRightSize;
                 }
                 else
