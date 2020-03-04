@@ -409,6 +409,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix Inf source in LTC for area lights.
 - Fix issue with AO being misaligned when multiple view are visible.
 - Fix issue that caused the clamp of camera rotation motion for motion blur to be ineffective.
+- Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
