@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
         protected override bool AcceptsElement(GraphElement element, ref int proposedIndex, int maxIndex)
         {
             return element.userData is BlockNode blockNode &&
-                blockNode.contextStage == contextData.contextStage;
+                blockNode.descriptor.contextStage == contextData.contextStage;
         }
     }
 }

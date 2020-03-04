@@ -194,14 +194,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public ConditionalField[] GetConditionalFields(PassDescriptor pass)
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks)
         {
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(Fields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
-                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
-                                                                        IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
+                new ConditionalField(Fields.GraphVertex,         blocks.Contains(BlockFields.VertexDescription.Position) ||
+                                                                    blocks.Contains(BlockFields.VertexDescription.Normal) ||
+                                                                    blocks.Contains(BlockFields.VertexDescription.Tangent)),
                 new ConditionalField(Fields.GraphPixel,          true),
                 
                 // Surface Type
@@ -215,10 +215,8 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(Fields.BlendPremultiply,    surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
 
                 // Misc
-                new ConditionalField(Fields.AlphaClip,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
-                                                                        FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
-                new ConditionalField(Fields.AlphaTest,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
-                                                                        FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
+                new ConditionalField(Fields.AlphaClip,           alphaClip.isOn),
+                new ConditionalField(Fields.AlphaTest,           alphaClip.isOn),
                 new ConditionalField(Fields.VelocityPrecomputed, addPrecomputedVelocity.isOn),
                 new ConditionalField(Fields.DoubleSided,         twoSided.isOn),
             };
@@ -275,6 +273,20 @@ namespace UnityEditor.ShaderGraph
                 validSlots.Add(slots[i]);
             }
             return validSlots.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
+        }
+
+        // TODO: Temporary
+        // TODO: Required to prevent duplicate properties now they are also taken from Blocks
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            return;
+        }
+
+        // TODO: Temporary
+        // TODO: Required to prevent duplicate properties now they are also taken from Blocks
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        {
+            return;
         }
     }
 }

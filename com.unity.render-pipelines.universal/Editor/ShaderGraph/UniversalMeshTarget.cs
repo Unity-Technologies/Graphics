@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             supportedBlocks.Add(BlockFields.VertexDescription.Position);
             supportedBlocks.Add(BlockFields.VertexDescription.Normal);
             supportedBlocks.Add(BlockFields.VertexDescription.Tangent);
-            supportedBlocks.Add(BlockFields.SurfaceDescription.Color);
+            supportedBlocks.Add(BlockFields.SurfaceDescription.BaseColor);
 
             // Lit Blocks
             if(masterNode is PBRMasterNode pbrMasterNode)

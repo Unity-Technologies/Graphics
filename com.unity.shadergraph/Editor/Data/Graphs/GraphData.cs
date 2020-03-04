@@ -241,8 +241,15 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         ContextData m_FragmentContext;
 
+        // We build this once and cache it as it uses reflection
+        // This list is used to build the Create Node menu entries for Blocks
+        // as well as when deserializing descriptor fields on serialized Blocks
+        [NonSerialized]
+        List<BlockFieldDescriptor> m_BlockFieldDescriptors;
+
         public ContextData vertexContext => m_VertexContext;
         public ContextData fragmentContext => m_FragmentContext;
+        public List<BlockFieldDescriptor> blockFieldDescriptors => m_BlockFieldDescriptors;
 
         #endregion
 
@@ -346,6 +353,31 @@ namespace UnityEditor.ShaderGraph
         public GraphData()
         {
             m_GroupItems[Guid.Empty] = new List<IGroupItem>();
+            GetBlockFieldDescriptors();
+        }
+
+        void GetBlockFieldDescriptors()
+        {
+            m_BlockFieldDescriptors = new List<BlockFieldDescriptor>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var nestedType in assembly.GetTypes().SelectMany(t => t.GetNestedTypes()))
+                {
+                    var attrs = nestedType.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
+                    if (attrs == null || attrs.Length <= 0)
+                        continue;
+
+                    // Get all fields that are BlockFieldDescriptor
+                    // If field and context stages match add to list
+                    foreach (var fieldInfo in nestedType.GetFields())
+                    {
+                        if(fieldInfo.GetValue(nestedType) is BlockFieldDescriptor blockFieldDescriptor)
+                        {
+                            m_BlockFieldDescriptors.Add(blockFieldDescriptor);
+                        }
+                    }
+                }
+            }
         }
 
         public void ClearChanges()
@@ -1232,7 +1264,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(node is BlockNode blockNode)
                 {
-                    var contextData = blockNode.contextStage == ContextStage.Vertex ? vertexContext : fragmentContext;
+                    var contextData = blockNode.descriptor.contextStage == ContextStage.Vertex ? vertexContext : fragmentContext;
                     AddBlockNoValidate(blockNode, contextData, blockNode.index);
                 }
                 else
@@ -1437,7 +1469,7 @@ namespace UnityEditor.ShaderGraph
             for(int i = 0; i < vertexBlockCount; i++)
             {
                 var vertexBlock = GetNodeFromGuid<BlockNode>(m_VertexContext.blockGuids[i]);
-                vertexBlock.contextStage = ContextStage.Vertex;
+                vertexBlock.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == vertexBlock.serializedDescriptor);
                 vertexBlock.contextData = m_VertexContext;
                 vertexBlock.index = i;
             }
@@ -1446,7 +1478,7 @@ namespace UnityEditor.ShaderGraph
             for(int i = 0; i < fragmentBlockCount; i++)
             {
                 var fragmentBlock = GetNodeFromGuid<BlockNode>(m_FragmentContext.blockGuids[i]);
-                fragmentBlock.contextStage = ContextStage.Fragment;
+                fragmentBlock.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == fragmentBlock.serializedDescriptor);
                 fragmentBlock.contextData = m_FragmentContext;
                 fragmentBlock.index = i;
             }

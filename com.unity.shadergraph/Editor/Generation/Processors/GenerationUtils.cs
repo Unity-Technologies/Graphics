@@ -812,17 +812,17 @@ namespace UnityEditor.ShaderGraph
         {
             if (rootNode is IMasterNode)
             {
-                var usedSlots = slots ?? rootNode.GetInputSlots<MaterialSlot>();
-                foreach (var input in usedSlots)
+                foreach (var input in slots)
                 {
                     if (input != null)
                     {
+                        var node = input.owner;
                         var foundEdges = graph.GetEdges(input.slotReference).ToArray();
                         var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
                         if (foundEdges.Any())
-                            surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision)};");
+                            surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {node.GetSlotValue(input.id, mode, node.concretePrecision)};");
                         else
-                            surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {input.GetDefaultValue(mode, rootNode.concretePrecision)};");
+                            surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {input.GetDefaultValue(mode, node.concretePrecision)};");
                     }
                 }
             }

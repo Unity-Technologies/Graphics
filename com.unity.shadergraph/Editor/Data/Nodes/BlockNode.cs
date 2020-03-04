@@ -6,7 +6,18 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     class BlockNode : AbstractMaterialNode
+        , IMayRequireNormal
+        , IMayRequireTangent
+        , IMayRequireBitangent
+        , IMayRequireMeshUV
+        , IMayRequireScreenPosition
+        , IMayRequireViewDirection
+        , IMayRequirePosition
+        , IMayRequireVertexColor
     {
+        [SerializeField]
+        string m_SerializedDescriptor;
+
         [NonSerialized]
         ContextData m_Context;
 
@@ -14,10 +25,23 @@ namespace UnityEditor.ShaderGraph
         int m_Index;
 
         [NonSerialized]
-        ContextStage m_ContextStage;
+        BlockFieldDescriptor m_Descriptor;
 
         public BlockNode()
         {
+            // TODO: Temporary. Remove.
+            RegisterCallback(OnNodeChanged);
+        }
+
+        // TODO: Temporary hack to update previews 
+        // TODO: Can be removed when preview manager no longer requires Master nodes
+        void OnNodeChanged(AbstractMaterialNode inNode, ModificationScope scope)
+        {
+            if(owner != null)
+            {
+                var outputNode = owner.outputNode;
+                outputNode?.Dirty(scope);
+            }
         }
 
         public ContextData contextData
@@ -32,23 +56,29 @@ namespace UnityEditor.ShaderGraph
             set => m_Index = value;
         }
 
-        public ContextStage contextStage
+        // Because the GraphData is deserialized after its child elements
+        // the descriptor list is not built (and owner is not set)
+        // at the time of node deserialization
+        // Therefore we need to deserialize this element at GraphData.OnAfterDeserialize
+        public string serializedDescriptor => m_SerializedDescriptor;
+
+        public BlockFieldDescriptor descriptor
         {
-            get => m_ContextStage;
-            set => m_ContextStage = value;
+            get => m_Descriptor;
+            set => m_Descriptor = value;
         }
 
         public void Init(BlockFieldDescriptor fieldDescriptor)
         {
             name = $"{fieldDescriptor.tag}.{fieldDescriptor.name}";
-            m_ContextStage = fieldDescriptor.contextStage;
-            AddSlot(fieldDescriptor);
+            m_Descriptor = fieldDescriptor;
+            AddSlot();
         }
 
-        void AddSlot(BlockFieldDescriptor descriptor)
+        void AddSlot()
         {
             var displayName = descriptor.name;
-            var referenceName = $"{descriptor.tag}.{descriptor.name}";
+            var referenceName = descriptor.name;
             switch(descriptor.control)
             {
                 case ObjectSpacePositionControl objectSpacePositionControl:
@@ -79,13 +109,80 @@ namespace UnityEditor.ShaderGraph
 
         ShaderStageCapability GetStageCapability()
         {
-            switch(m_ContextStage)
-            {
-                case ContextStage.Vertex:
-                    return ShaderStageCapability.Vertex;
-                default:
-                    return ShaderStageCapability.Fragment;
-            }
+            if(m_Descriptor != null && m_Descriptor.contextStage == ContextStage.Vertex)
+                return ShaderStageCapability.Vertex;
+
+            return ShaderStageCapability.Fragment;
+        }
+
+        public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
+        {
+            if(stageCapability != GetStageCapability())
+                return NeededCoordinateSpace.None;
+            
+            return m_Descriptor.requirements.requiresNormal;
+        }
+
+        public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
+        {
+            if(stageCapability != GetStageCapability())
+                return NeededCoordinateSpace.None;
+
+            return m_Descriptor.requirements.requiresViewDir;
+        }
+
+        public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
+        {
+            if(stageCapability != GetStageCapability())
+                return NeededCoordinateSpace.None;
+            
+            return m_Descriptor.requirements.requiresPosition;
+        }
+
+        public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
+        {
+            if(stageCapability != GetStageCapability())
+                return NeededCoordinateSpace.None;
+            
+            return m_Descriptor.requirements.requiresTangent;
+        }
+
+        public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
+        {
+            if(stageCapability != GetStageCapability())
+                return NeededCoordinateSpace.None;
+            
+            return m_Descriptor.requirements.requiresBitangent;
+        }
+
+        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
+        {
+            if(stageCapability != GetStageCapability())
+                return false;
+            
+            return m_Descriptor.requirements.requiresMeshUVs.Contains(channel);
+        }
+
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
+        {
+            if(stageCapability != GetStageCapability())
+                return false;
+            
+            return m_Descriptor.requirements.requiresScreenPosition;
+        }
+
+        public bool RequiresVertexColor(ShaderStageCapability stageCapability)
+        {
+            if(stageCapability != GetStageCapability())
+                return false;
+            
+            return m_Descriptor.requirements.requiresVertexColor;
+        }
+
+        public override void OnBeforeSerialize()
+        {
+            m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}";
+            base.OnBeforeSerialize();
         }
     }
 }

@@ -261,7 +261,26 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PreviewProperties.Clear();
             m_PropertyNodes.Clear();
 
-            m_PropertyNodes.Add(node);
+            // TODO: Temporary. Remove
+            // TODO: While Master nodes still exist, branch and collect Blocks instead
+            if(node is IMasterNode masterNode)
+            {
+                foreach(var vertexBlockGuid in m_Graph.vertexContext.blockGuids)
+                {
+                    var block = m_Graph.GetNodeFromGuid<BlockNode>(vertexBlockGuid);
+                    m_PropertyNodes.Add(block);
+                }
+                foreach(var fragmentBlockGuid in m_Graph.fragmentContext.blockGuids)
+                {
+                    var block = m_Graph.GetNodeFromGuid<BlockNode>(fragmentBlockGuid);
+                    m_PropertyNodes.Add(block);
+                }
+            }
+            else
+            {
+                m_PropertyNodes.Add(node);
+            }
+
             PropagateNodeList(m_PropertyNodes, PropagationDirection.Upstream);
 
             foreach (var propNode in m_PropertyNodes)
@@ -346,6 +365,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity);
 
             var renderMasterPreview = masterRenderData != null && m_NodesToDraw.Contains(masterRenderData.shaderData.node);
+
+            // TODO: Temporary. Remove
+            // TODO: Hook to dirty master preview if required to draw any Block nodes
+            if(m_NodesToDraw.Where(x => x is BlockNode).ToList().Count > 0)
+                renderMasterPreview = true; 
+            
             if (renderMasterPreview)
             {
                 CollectShaderProperties(masterRenderData.shaderData.node, masterRenderData);
@@ -439,6 +464,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_NodesToUpdate)
             {
+                // TODO: Temporary. Remove.
+                // TODO: Hook to update master preview if any Blocks are dirty
+                // TODO: This causes multiple compilations on multiple dirty blocks?
+                if(node is BlockNode blockNode)
+                {
+                    UpdateMasterNodeShader();
+                    continue;
+                }
+                
                 if (node is IMasterNode && node == masterRenderData.shaderData.node && !(node is VfxMasterNode))
                 {
                     UpdateMasterNodeShader();

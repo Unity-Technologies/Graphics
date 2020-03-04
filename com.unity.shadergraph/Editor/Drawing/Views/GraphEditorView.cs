@@ -759,11 +759,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (nodeView?.node != null)
                     {
                         nodesToUpdate.Add(nodeView);
-                    }
 
-                    // Update active state for connected Nodes
-                    var outputNodeView = (MaterialNodeView)edgeView.output.node;
-                    NodeUtils.UpdateNodeActiveOnEdgeChange(outputNodeView?.node);
+                        // Update active state for connected Nodes
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(nodeView?.node);
+                    }
 
                     edgeView.output.Disconnect(edgeView);
                     edgeView.input.Disconnect(edgeView);
@@ -779,11 +778,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var edgeView = AddEdge(edge);
                 if (edgeView != null)
-                    nodesToUpdate.Add((IShaderNodeView)edgeView.input.node);
+                {
+                    var outputNodeView = (IShaderNodeView)edgeView.output.node;
+                    nodesToUpdate.Add(outputNodeView);
 
-                // Update active state for connected Nodes
-                var outputNodeView = (MaterialNodeView)edgeView.output.node;
-                NodeUtils.UpdateNodeActiveOnEdgeChange(outputNodeView?.node);
+                    // Update active state for connected Nodes
+                    NodeUtils.UpdateNodeActiveOnEdgeChange(outputNodeView?.node);
+                }
             }
 
             foreach (var node in nodesToUpdate)

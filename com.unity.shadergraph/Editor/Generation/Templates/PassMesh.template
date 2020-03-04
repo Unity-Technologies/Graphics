@@ -55,6 +55,22 @@ Pass
     $Varyings.fogFactorAndVertexLight:  #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
     $Varyings.cullFace:                 #define VARYINGS_NEED_CULLFACE
     $features.graphVertex:              #define FEATURES_GRAPH_VERTEX
+    $features.graphPixel:               #define FEATURES_GRAPH_PIXEL
+
+    $VertexDescription.Position:          #define VERTEXDESCRIPTION_POSITION
+    $VertexDescription.Normal:            #define VERTEXDESCRIPTION_NORMAL
+    $VertexDescription.Tangent:           #define VERTEXDESCRIPTION_TANGENT
+    $SurfaceDescription.BaseColor:        #define SURFACEDESCRIPTION_BASECOLOR
+    $SurfaceDescription.Normal:           #define SURFACEDESCRIPTION_NORMAL
+    $SurfaceDescription.Metallic:         #define SURFACEDESCRIPTION_METALLIC
+    $SurfaceDescription.Specular:         #define SURFACEDESCRIPTION_SPECULAR
+    $SurfaceDescription.Smoothness:       #define SURFACEDESCRIPTION_SMOOTHNESS
+    $SurfaceDescription.Occlusion:        #define SURFACEDESCRIPTION_OCCLUSION
+    $SurfaceDescription.Emission:         #define SURFACEDESCRIPTION_EMISSION
+    $SurfaceDescription.Alpha:            #define SURFACEDESCRIPTION_ALPHA
+    $SurfaceDescription.ClipThreshold:    #define SURFACEDESCRIPTION_CLIPTHRESHOLD
+    $SurfaceDescription.SpriteMask:       #define SURFACEDESCRIPTION_SPRITEMASK
+    
     $splice(PassInstancing)
     $splice(GraphDefines)
     $splice(DotsInstancingVars)

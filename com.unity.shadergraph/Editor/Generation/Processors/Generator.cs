@@ -61,12 +61,12 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass)
+        public static ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<BlockFieldDescriptor> blocks)
         {
             var activeFields = new ActiveFields();
             if(outputNode is IMasterNode masterNode)
             {
-                var fields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
+                var fields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass, blocks));
                 foreach(FieldDescriptor field in fields)
                     activeFields.baseInstance.Add(field);
             }
@@ -137,7 +137,18 @@ namespace UnityEditor.ShaderGraph
 
                 foreach(PassCollection.Item pass in descriptor.passes)
                 {
-                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor);
+                    var blocks = new List<BlockFieldDescriptor>();
+                    foreach(var vertexBlockGuid in m_GraphData.vertexContext.blockGuids)
+                    {
+                        var block = m_GraphData.GetNodeFromGuid<BlockNode>(vertexBlockGuid);
+                        blocks.Add(block.descriptor);
+                    }
+                    foreach(var fragmentBlockGuid in m_GraphData.fragmentContext.blockGuids)
+                    {
+                        var block = m_GraphData.GetNodeFromGuid<BlockNode>(fragmentBlockGuid);
+                        blocks.Add(block.descriptor);
+                    }
+                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, blocks);
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
                     if(m_Mode == GenerationMode.Preview) 
@@ -178,7 +189,64 @@ namespace UnityEditor.ShaderGraph
             // Get upstream nodes from ShaderPass port mask
             List<AbstractMaterialNode> vertexNodes;
             List<AbstractMaterialNode> pixelNodes;
-            GenerationUtils.GetUpstreamNodesForShaderPass(m_OutputNode, pass, out vertexNodes, out pixelNodes);
+
+            // Get Port references from ShaderPass
+            var pixelSlots = new List<MaterialSlot>();
+            var vertexSlots = new List<MaterialSlot>();
+
+            if(m_OutputNode is IMasterNode masterNode)
+            {
+                // Update supported block list for current target implementation
+                var supportedBlockTypes = m_TargetImplementations[targetIndex].GetSupportedBlocks(masterNode);
+
+                vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
+                foreach(var vertexBlockGuid in m_GraphData.vertexContext.blockGuids)
+                {
+                    var block = m_GraphData.GetNodeFromGuid<BlockNode>(vertexBlockGuid);
+
+                    // Add nodes and slots from supported vertex blocks
+                    if(supportedBlockTypes.Contains(block.descriptor))
+                    {
+                        vertexSlots.Add(block.FindSlot<MaterialSlot>(0));
+                        NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, block, NodeUtils.IncludeSelf.Include);
+                        block.CollectShaderProperties(propertyCollector, m_Mode);
+                        activeFields.baseInstance.Add(block.descriptor);
+                    }
+                }
+
+                pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
+                foreach(var fragmentBlockGuid in m_GraphData.fragmentContext.blockGuids)
+                {
+                    var block = m_GraphData.GetNodeFromGuid<BlockNode>(fragmentBlockGuid);
+
+                    // Add slots from supported fragment blocks
+                    if(supportedBlockTypes.Contains(block.descriptor))
+                    {
+                        NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, block, NodeUtils.IncludeSelf.Include);
+                        pixelSlots.Add(block.FindSlot<MaterialSlot>(0));
+                        block.CollectShaderProperties(propertyCollector, m_Mode);
+                        activeFields.baseInstance.Add(block.descriptor);
+                    }
+                }
+            }
+            else if(m_OutputNode is SubGraphOutputNode)
+            {
+                GenerationUtils.GetUpstreamNodesForShaderPass(m_OutputNode, pass, out vertexNodes, out pixelNodes);
+                pixelSlots = new List<MaterialSlot>()
+                {
+                    m_OutputNode.GetInputSlots<MaterialSlot>().FirstOrDefault(),
+                };
+                vertexSlots = new List<MaterialSlot>();
+            }
+            else
+            {
+                GenerationUtils.GetUpstreamNodesForShaderPass(m_OutputNode, pass, out vertexNodes, out pixelNodes);
+                pixelSlots = new List<MaterialSlot>()
+                {
+                    new Vector4MaterialSlot(0, "Out", "Out", SlotType.Output, Vector4.zero) { owner = m_OutputNode },
+                };
+                vertexSlots = new List<MaterialSlot>();
+            }
 
             // Track permutation indices for all nodes
             List<int>[] vertexNodePermutations = new List<int>[vertexNodes.Count];
@@ -193,31 +261,6 @@ namespace UnityEditor.ShaderGraph
 
             // Get active fields from ShaderPass
             GenerationUtils.AddRequiredFields(pass.requiredFields, activeFields.baseInstance);
-
-            // Get Port references from ShaderPass
-            List<MaterialSlot> pixelSlots;
-            List<MaterialSlot> vertexSlots;
-            if(m_OutputNode is IMasterNode)
-            {
-                pixelSlots = GenerationUtils.FindMaterialSlotsOnNode(pass.pixelPorts, m_OutputNode);
-                vertexSlots = GenerationUtils.FindMaterialSlotsOnNode(pass.vertexPorts, m_OutputNode);
-            }
-            else if(m_OutputNode is SubGraphOutputNode)
-            {
-                pixelSlots = new List<MaterialSlot>()
-                {
-                    m_OutputNode.GetInputSlots<MaterialSlot>().FirstOrDefault(),
-                };
-                vertexSlots = new List<MaterialSlot>();
-            }
-            else
-            {
-                pixelSlots = new List<MaterialSlot>()
-                {
-                    new Vector4MaterialSlot(0, "Out", "Out", SlotType.Output, Vector4.zero) { owner = m_OutputNode },
-                };
-                vertexSlots = new List<MaterialSlot>();
-            }
 
             // Function Registry
             var functionBuilder = new ShaderStringBuilder();

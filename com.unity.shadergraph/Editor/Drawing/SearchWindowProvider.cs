@@ -66,36 +66,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             List<NodeEntry> nodeEntries = new List<NodeEntry>();
             
             if(target is ContextView contextView)
-            {
-                // Iterate all nested types looking for GenerateBlocks attributes
-                var fields = new List<BlockFieldDescriptor>();
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {                
+                // Iterate all BlockFieldDescriptors currently cached on GraphData
+                foreach(var field in m_Graph.blockFieldDescriptors)
                 {
-                    foreach (var nestedType in assembly.GetTypes().SelectMany(t => t.GetNestedTypes()))
-                    {
-                        var attrs = nestedType.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
-                        if (attrs == null || attrs.Length <= 0)
-                            continue;
+                    // Test stage
+                    if(field.contextStage != contextView.contextData.contextStage)
+                        continue;
 
-                        // Get all fields that are BlockFieldDescriptor
-                        // If field and context stages match add to list
-                        foreach (var fieldInfo in nestedType.GetFields())
-                        {
-                            if(fieldInfo.GetValue(nestedType) is BlockFieldDescriptor blockFieldDescriptor)
-                            {
-                                if(blockFieldDescriptor.contextStage == contextView.contextData.contextStage)
-                                {
-                                    fields.Add(blockFieldDescriptor);
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                // Iterate all field descriptors matching search criteria
-                // Create and initialize BlockNode instance then add entry
-                foreach(var field in fields)
-                {
+                    // Create and initialize BlockNode instance then add entry
                     var node = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
                     node.Init(field);
                     AddEntries(node, new string[]{ field.name }, nodeEntries);
