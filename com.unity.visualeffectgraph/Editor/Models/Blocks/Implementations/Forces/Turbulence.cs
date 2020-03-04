@@ -54,15 +54,11 @@ namespace UnityEditor.VFX.Block
             {
                 foreach (var input in GetExpressionsFromSlots(this))
                 {
-                    if (input.name == "octaves") continue;
-
                     if (input.name == "FieldTransform")
                         yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(input.exp), "InvFieldTransform");
                     yield return input;
                 }
 
-                // Clamp (1..10) for octaves (TODO: Add a Range attribute that works with int instead of doing that
-                yield return new VFXNamedExpression(new VFXExpressionCastFloatToInt(VFXOperatorUtility.Clamp(new VFXExpressionCastIntToFloat(inputSlots[4].GetExpression()), VFXValue.Constant(1.0f), VFXValue.Constant(10.0f))), "octaves");
                 yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
             }
         }

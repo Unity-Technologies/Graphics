@@ -58,11 +58,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
-        [Obsolete("The use of the Post-processing Stack V2 is deprecated in the Universal Render Pipeline. Use the builtin post-processing effects instead.")]
-        public static UnityEngine.Rendering.PostProcessing.PostProcessRenderContext postProcessRenderContext => null;
-#endif
-
         internal static bool useStructuredBuffer
         {
             // There are some performance issues with StructuredBuffers in some platforms.
@@ -88,15 +83,32 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (s_ErrorMaterial == null)
-                    s_ErrorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
+                {
+                    // TODO: When importing project, AssetPreviewUpdater::CreatePreviewForAsset will be called multiple times.
+                    // This might be in a point that some resources required for the pipeline are not finished importing yet.
+                    // Proper fix is to add a fence on asset import.
+                    try
+                    {
+                        s_ErrorMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/FallbackError"));
+                    }
+                    catch { }
+                }
 
                 return s_ErrorMaterial;
             }
         }
 
+        // This is used to render materials that contain built-in shader passes not compatible with URP. 
+        // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         internal static void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
         {
+            // TODO: When importing project, AssetPreviewUpdater::CreatePreviewForAsset will be called multiple times.
+            // This might be in a point that some resources required for the pipeline are not finished importing yet.
+            // Proper fix is to add a fence on asset import.
+            if (errorMaterial == null)
+                return;
+            
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
             DrawingSettings errorSettings = new DrawingSettings(m_LegacyShaderPassNames[0], sortingSettings)
             {
@@ -133,6 +145,144 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return support;
+        }
+
+        /// <summary>
+        /// Return the last colorBuffer index actually referring to an existing RenderTarget
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        internal static int GetLastValidColorBufferIndex(RenderTargetIdentifier[] colorBuffers)
+        {
+            int i = colorBuffers.Length - 1;
+            for(; i>=0; --i)
+            {
+                if (colorBuffers[i] != 0)
+                    break;
+            }
+            return i;
+        }
+
+        /// <summary>
+        /// Return the number of items in colorBuffers actually referring to an existing RenderTarget
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        internal static uint GetValidColorBufferCount(RenderTargetIdentifier[] colorBuffers)
+        {
+            uint nonNullColorBuffers = 0;
+            if (colorBuffers != null)
+            {
+                foreach (var identifier in colorBuffers)
+                {
+                    if (identifier != 0)
+                        ++nonNullColorBuffers;
+                }
+            }
+            return nonNullColorBuffers;
+        }
+
+        /// <summary>
+        /// Return true if colorBuffers is an actual MRT setup
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        internal static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
+        {
+            return GetValidColorBufferCount(colorBuffers) > 1;
+        }
+
+        /// <summary>
+        /// Return true if value can be found in source (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static bool Contains(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        {
+            foreach (var identifier in source)
+            {
+                if (identifier == value)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Return the index where value was found source. Otherwise, return -1. (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static int IndexOf(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        {
+            for (int i = 0; i < source.Length; ++i)
+            {
+                if (source[i] == value)
+                    return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Return the number of RenderTargetIdentifiers in "source" that are valid (not 0) and different from "value" (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static uint CountDistinct(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        {
+            uint count = 0;
+            for (int i = 0; i < source.Length; ++i)
+            {
+                if (source[i] != value && source[i] != 0)
+                    ++count;
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// Return the index of last valid (i.e different from 0) RenderTargetIdentifiers in "source" (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        internal static int LastValid(RenderTargetIdentifier[] source)
+        {
+            for (int i = source.Length-1; i >= 0; --i)
+            {
+                if (source[i] != 0)
+                    return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Return true if ClearFlag a contains ClearFlag b
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        internal static bool Contains(ClearFlag a, ClearFlag b)
+        {
+            return (a & b) == b;
+        }
+
+        /// <summary>
+        /// Return true if "left" and "right" are the same (without recurring to Linq)
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        internal static bool SequenceEqual(RenderTargetIdentifier[] left, RenderTargetIdentifier[] right)
+        {
+            if (left.Length != right.Length)
+                return false;
+
+            for (int i = 0; i < left.Length; ++i)
+                if (left[i] != right[i])
+                    return false;
+
+            return true;
         }
     }
 }

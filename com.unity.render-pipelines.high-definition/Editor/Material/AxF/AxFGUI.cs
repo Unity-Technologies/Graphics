@@ -24,10 +24,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Unlit),
+            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveSSR),
             new AxfSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
         };
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -67,50 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool ssrEnabled = material.HasProperty(kEnableSSR) && material.GetFloat(kEnableSSR) > 0.0f;
             CoreUtils.SetKeyword(material, "_DISABLE_SSR", ssrEnabled == false);
 
-            // Set the reference values for the stencil test
-
-            // Stencil usage rules:
-            // DoesntReceiveSSR and DecalsForwardOutputNormalBuffer need to be tagged during depth prepass
-            // LightingMask need to be tagged during either GBuffer or Forward pass
-            // ObjectMotionVectors need to be tagged in motion vectors pass.
-            // As motion vectors pass can be use as a replacement of depth prepass it also need to have DoesntReceiveSSR and DecalsForwardOutputNormalBuffer
-            // Object motion vectors is always render after a full depth buffer (if there is no depth prepass for GBuffer all object motion vectors are render after GBuffer)
-            // so we have a guarantee than when we write object motion vectors no other object will be draw on top (and so would have require to overwrite motion vectors).
-            // Final combination is:
-            // Prepass: DoesntReceiveSSR,  DecalsForwardOutputNormalBuffer
-            // Motion vectors: DoesntReceiveSSR,  DecalsForwardOutputNormalBuffer, ObjectMotionVectors
-            // GBuffer: LightingMask, DecalsForwardOutputNormalBuffer, ObjectMotionVectors
-            // Forward: LightingMask
-
-            int stencilRef = (int)StencilLightingUsage.RegularLighting;
-            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
-            int stencilRefDepth = 0;
-            int stencilWriteMaskDepth = 0;
-            int stencilRefMV = (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors;
-            int stencilWriteMaskMV = (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors;
-
-            if (!ssrEnabled)
-            {
-                stencilRefDepth |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-                stencilRefMV |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            }
-
-            if (decalsEnabled)
-            {
-                stencilRefDepth |= (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
-                stencilRefMV |= (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
-            }
-
-            stencilWriteMaskDepth |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
-            stencilWriteMaskMV |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
-
-            // As we tag both during motion vector pass and Gbuffer pass we need a separate state and we need to use the write mask
-            material.SetInt(kStencilRef, stencilRef);
-            material.SetInt(kStencilWriteMask, stencilWriteMask);
-            material.SetInt(kStencilRefDepth, stencilRefDepth);
-            material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
-            material.SetInt(kStencilRefMV, stencilRefMV);
-            material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
+            BaseLitGUI.SetupStencil(material, receivesSSR: ssrEnabled, useSplitLighting: false);
 
             if (material.HasProperty(kAddPrecomputedVelocity))
             {

@@ -1,7 +1,16 @@
 namespace UnityEngine.Rendering
 {
+    /// <summary>Utility for tiles layout</summary>
     public static class TileLayoutUtils
     {
+        /// <summary>Try decompose the givent rect into tiles given the parameter</summary>
+        /// <param name="src">The rect to split</param>
+        /// <param name="tileSize">The size of the tiles</param>
+        /// <param name="main">Computed main area</param>
+        /// <param name="topRow">Computed top row area</param>
+        /// <param name="rightCol">Computed right column area</param>
+        /// <param name="topRight">Computed top right corner area</param>
+        /// <returns>If true, the tiles decomposition is a success</returns>
         public static bool TryLayoutByTiles(
             RectInt src,
             uint tileSize,
@@ -12,10 +21,10 @@ namespace UnityEngine.Rendering
         {
             if (src.width < tileSize || src.height < tileSize)
             {
-                main = RectInt.zero;
-                topRow = RectInt.zero;
-                rightCol = RectInt.zero;
-                topRight = RectInt.zero;
+                main = new RectInt(0, 0, 0, 0);
+                topRow = new RectInt(0, 0, 0, 0);
+                rightCol = new RectInt(0, 0, 0, 0);
+                topRight = new RectInt(0, 0, 0, 0);
                 return false;
             }
 
@@ -56,6 +65,12 @@ namespace UnityEngine.Rendering
             return true;
         }
 
+        /// <summary>Try decompose the givent rect into rows given the parameter</summary>
+        /// <param name="src">The rect to split</param>
+        /// <param name="tileSize">The size of the tiles</param>
+        /// <param name="main">Computed main area</param>
+        /// <param name="other">Computed other area</param>
+        /// <returns>If true, the tiles decomposition is a success</returns>
         public static bool TryLayoutByRow(
             RectInt src,
             uint tileSize,
@@ -64,8 +79,8 @@ namespace UnityEngine.Rendering
         {
             if (src.height < tileSize)
             {
-                main = RectInt.zero;
-                other = RectInt.zero;
+                main = new RectInt(0, 0, 0, 0);
+                other = new RectInt(0, 0, 0, 0);
                 return false;
             }
 
@@ -90,6 +105,12 @@ namespace UnityEngine.Rendering
             return true;
         }
 
+        /// <summary>Try decompose the givent rect into columns given the parameter</summary>
+        /// <param name="src">The rect to split</param>
+        /// <param name="tileSize">The size of the tiles</param>
+        /// <param name="main">Computed main area</param>
+        /// <param name="other">Computed other area</param>
+        /// <returns>If true, the tiles decomposition is a success</returns>
         public static bool TryLayoutByCol(
             RectInt src,
             uint tileSize,
@@ -98,8 +119,8 @@ namespace UnityEngine.Rendering
         {
             if (src.width < tileSize)
             {
-                main = RectInt.zero;
-                other = RectInt.zero;
+                main = new RectInt(0, 0, 0, 0);
+                other = new RectInt(0, 0, 0, 0);
                 return false;
             }
 

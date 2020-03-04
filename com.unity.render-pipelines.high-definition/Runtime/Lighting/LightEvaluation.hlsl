@@ -9,7 +9,7 @@
 //  cookieIndex, the index of the cookie texture in the Texture2DArray
 //  L, the 4 local-space corners of the area light polygon transformed by the LTC M^-1 matrix
 //  F, the *normalized* vector irradiance
-float3 SampleAreaLightCookie(int cookieIndex, float4x3 L, float3 F)
+float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
 {
     // L[0..3] : LL UL UR LR
 
@@ -53,11 +53,11 @@ float3 SampleAreaLightCookie(int cookieIndex, float4x3 L, float3 F)
     //          mix of up into right that needs to be subtracted from simple projection on right vector
     //
     float   u = (dot(hitPosition, right) - upRightMixing * v) * recSqLengthRight;
-    // Currently the texture happens to be reversed when comparing it to the area light emissive mesh itself. This needs
-    // Further investigation to solve the problem. So for the moment we simply decided to inverse the x coordinate of hitUV
-    // as a temporary solution
-    // TODO: Invesigate more!
-    float2  hitUV = float2(1.0 - u, v);
+    // We create automatic quad emissive mesh for area light. For those to be displayed in the direction
+    // of the light when they are single sided, we need to reverse the winding order.
+    // Because of this reverse of winding order, to get a matching area light reflection,
+    // we need to flip the x axis.
+    float2  hitUV = float2(1 - u, v);
 
     // Assuming the original cosine lobe distribution Do is enclosed in a cone of 90 deg  aperture,
     //  following the idea of orthogonal projection upon the area light's plane we find the intersection
@@ -71,10 +71,70 @@ float3 SampleAreaLightCookie(int cookieIndex, float4x3 L, float3 F)
     // From this, we find the mip level as: mip = log2( sqrt( A_covered ) ) = log2( A_covered ) / 2
     // Also, assuming that A_sqTexels is of the form 2^n * 2^n we get the simplified expression: mip = log2( Pi.d^2 / A ) / 2 + n
     //
-    const float COOKIE_MIPS_COUNT = _CookieSizePOT;
-    float   mipLevel = 0.5 * log2(1e-8 + PI * hitDistance*hitDistance * rsqrt(sqArea)) + COOKIE_MIPS_COUNT;
+    // Compute the cookie mip count using the cookie size in the atlas
+    float   cookieWidth = cookieScaleOffset.x * _CookieAtlasSize.x; // cookies and atlas are guaranteed to be POT
+    float   cookieMipCount = round(log2(cookieWidth));
+    float   mipLevel = 0.5 * log2(1e-8 + PI * hitDistance*hitDistance * rsqrt(sqArea)) + cookieMipCount;
+    mipLevel = clamp(mipLevel, 0, cookieMipCount);
 
-    return SAMPLE_TEXTURE2D_ARRAY_LOD(_AreaCookieTextures, s_trilinear_clamp_sampler, hitUV, cookieIndex, mipLevel).xyz;
+    return SampleCookie2D(saturate(hitUV), cookieScaleOffset, mipLevel);
+}
+
+// This function transforms a rectangular area light according the the barn door inputs defined by the user.
+void RectangularLightApplyBarnDoor(inout LightData lightData, float3 pointPosition)
+{
+    // If we are above 89° or the depth is smaller than 5cm this is not worth it.
+    if (lightData.size.z > 0.017f && lightData.size.w > 0.05f)
+    {
+        // Compute the half size of the light source
+        float halfWidth  = lightData.size.x * 0.5;
+        float halfHeight = lightData.size.y * 0.5;
+
+        // Transform the point to light source space. First position then orientation
+        float3 lightRelativePointPos = -(lightData.positionRWS - pointPosition);
+        float3 pointLS = float3(dot(lightRelativePointPos, lightData.right), dot(lightRelativePointPos, lightData.up), dot(lightRelativePointPos, lightData.forward));
+        
+        // Compute the depth of the point in the pyramid space
+        float pointDepth = min(pointLS.z, lightData.size.z * lightData.size.w);
+
+        // Compute the ratio between the point's depth and the maximal depth of the pyramid
+        float pointDepthRatio = pointDepth / (lightData.size.z * lightData.size.w);
+        float sinTheta = sqrt(1 - max(0, lightData.size.z * lightData.size.z));
+
+        // Compute the barn door projection
+        float barnDoorProjection = sinTheta * lightData.size.w * pointDepthRatio;
+        
+        // Compute the sign of the point when in the local light space
+        float2 pointSign = sign(pointLS.xy);
+        // Clamp the point to the closest edge
+        pointLS.xy = float2(pointSign.x, pointSign.y) * max(abs(pointLS.xy), float2(halfWidth, halfHeight) + barnDoorProjection.xx);
+        
+        // Compute the closest rect lignt corner, offset by the barn door size
+        float3 closestLightCorner = float3(pointSign.x * (halfWidth + barnDoorProjection), pointSign.y * (halfHeight + barnDoorProjection), pointDepth);
+            
+        // Compute the point projection onto the edge and deduce the size that should be removed from the light dimensions
+        float3 pointProjection  = pointLS - closestLightCorner;
+        // Phi being the angle between the point projection point and the forward vector of the light source
+        float  cosPhi = max(0, pointProjection.z);
+        // If the angle is too perpendicular, we make the point infinitely far
+        float2 tanPhi = cosPhi > 0.001f ? abs(pointProjection.xy) / cosPhi : 99999.0f;
+        float2 projectionDistance = pointDepth * tanPhi;
+
+        // Compute the positions of the new vertices of the culled light
+        float2 topRight = float2(-halfWidth, halfWidth);
+        float2 bottomLeft = float2(-halfHeight, halfHeight);
+        topRight += (projectionDistance.x - barnDoorProjection) * float2(max(0, -pointSign.x), -max(0, pointSign.x));
+        bottomLeft += (projectionDistance.y - barnDoorProjection) * float2(max(0, -pointSign.y), -max(0, pointSign.y));
+        topRight = clamp(topRight, -halfWidth, halfWidth);
+        bottomLeft = clamp(bottomLeft, -halfHeight, halfHeight);
+        
+        // Compute the offset that needs to be applied to the origin points to match the culling of the barn door
+        float2 lightCenterOffset = 0.5f * float2(topRight.x + topRight.y, bottomLeft.x + bottomLeft.y);
+
+        // Change the input data of the light to adjust the rectangular area light
+        lightData.size.xy = float2(topRight.y - topRight.x, bottomLeft.y - bottomLeft.x);
+        lightData.positionRWS = lightData.positionRWS + lightData.right * lightCenterOffset.x + lightData.up * lightCenterOffset.y;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -96,8 +156,12 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
     // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
     float2 positionNDC = positionCS * 0.5 + 0.5;
 
+    // Tile texture for cookie in repeat mode
+    if (light.cookieMode == COOKIEMODE_REPEAT)
+        positionNDC = frac(positionNDC);
+
     // We let the sampler handle clamping to border.
-    return SampleCookie2D(lightLoopContext, positionNDC, light.cookieIndex, light.tileCookie);
+    return SampleCookie2D(positionNDC, light.cookieScaleOffset);
 }
 
 // Returns unassociated (non-premultiplied) color with alpha (attenuation).
@@ -109,16 +173,17 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
 
     float3 L = -light.forward;
 
-    float3 oDepth = 0;
-
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
     // Height fog attenuation.
     {
         // TODO: should probably unify height attenuation somehow...
-        float cosZenithAngle = L.y;
-        float fragmentHeight = posInput.positionWS.y;
-        oDepth += OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
-                                        _HeightFogExponents, cosZenithAngle, fragmentHeight);
+        float  cosZenithAngle = L.y;
+        float  fragmentHeight = posInput.positionWS.y;
+        float3 oDepth = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                                              _HeightFogExponents, cosZenithAngle, fragmentHeight);
+        // Cannot do this once for both the sky and the fog because the sky may be desaturated. :-(
+        float3 transm = TransmittanceFromOpticalDepth(oDepth);
+        color.rgb *= transm;
     }
 #endif
 
@@ -135,7 +200,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
         // TODO: should probably unify height attenuation somehow...
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
-        float3 X = GetAbsolutePositionWS(posInput.positionWS) * 0.001; // Convert m to km
+        float3 X = GetAbsolutePositionWS(posInput.positionWS);
         float3 C = _PlanetCenterPosition;
 
         float r        = distance(X, C);
@@ -144,20 +209,23 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
 
         if (cosTheta >= cosHoriz) // Above horizon
         {
-            oDepth += ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+            float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+            // Cannot do this once for both the sky and the fog because the sky may be desaturated. :-(
+            float3 transm  = TransmittanceFromOpticalDepth(oDepth);
+            float3 opacity = 1 - transm;
+            color.rgb *= 1 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
         }
         else
         {
             // return 0; // Kill the light. This generates a warning, so can't early out. :-(
-            oDepth = FLT_INF;
+           color = 0;
         }
     }
+
 #endif
 
-    color.rgb *= TransmittanceFromOpticalDepth(oDepth);
-
 #ifndef LIGHT_EVALUATION_NO_COOKIE
-    if (light.cookieIndex >= 0)
+    if (light.cookieMode != COOKIEMODE_NONE)
     {
         float3 lightToSample = posInput.positionWS - light.positionRWS;
         float3 cookie = EvaluateCookie_Directional(lightLoopContext, light, lightToSample);
@@ -169,11 +237,11 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     return color;
 }
 
-float EvaluateShadow_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
+DirectionalShadowType EvaluateShadow_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
                                  DirectionalLightData light, BuiltinData builtinData, float3 N)
 {
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
-    float shadow     = 1.0;
+    DirectionalShadowType shadow = 1.0;
     float shadowMask = 1.0;
     float NdotL      = dot(N, -light.forward); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
 
@@ -216,7 +284,7 @@ float EvaluateShadow_Directional(LightLoopContext lightLoopContext, PositionInpu
 
     // Transparents have no contact shadow information
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(LIGHT_EVALUATION_NO_CONTACT_SHADOWS)
-    shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask) : 1.0);
+    shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
 #endif
 
 #ifdef DEBUG_DISPLAY
@@ -286,7 +354,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
     UNITY_BRANCH if (lightType == GPULIGHTTYPE_POINT)
     {
-        cookie.rgb = SampleCookieCube(lightLoopContext, positionLS, light.cookieIndex);
+        cookie.rgb = SampleCookieCube(positionLS, light.cookieIndex);
         cookie.a   = 1;
     }
     else
@@ -294,13 +362,13 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         // Perform orthographic or perspective projection.
         float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1.0;
         float2 positionCS   = positionLS.xy / perspectiveZ;
-        bool   isInBounds   = Max3(abs(positionCS.x), abs(positionCS.y), 1.0 - positionLS.z) <= 1.0;
+        bool   isInBounds   = Max3(abs(positionCS.x), abs(positionCS.y), 1.0 - positionLS.z) <= light.boxLightSafeExtent;
 
         // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
         float2 positionNDC = positionCS * 0.5 + 0.5;
 
         // Manually clamp to border (black).
-        cookie.rgb = SampleCookie2D(lightLoopContext, positionNDC, light.cookieIndex, false);
+        cookie.rgb = SampleCookie2D(positionNDC, light.cookieScaleOffset);
         cookie.a   = isInBounds ? 1.0 : 0.0;
     }
 
@@ -322,7 +390,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         // Perform orthographic or perspective projection.
         float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1.0;
         float2 positionCS   = positionLS.xy / perspectiveZ;
-        bool   isInBounds   = Max3(abs(positionCS.x), abs(positionCS.y), 1.0 - positionLS.z) <= 1.0;
+        bool   isInBounds   = Max3(abs(positionCS.x), abs(positionCS.y), 1.0 - positionLS.z) <= light.boxLightSafeExtent;
 
         // Manually clamp to border (black).
         cookie.a = isInBounds ? 1.0 : 0.0;
@@ -359,7 +427,7 @@ float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs 
     // Projector lights (box, pyramid) always have cookies, so we can perform clipping inside the if().
     // Thus why we don't disable the code here based on LIGHT_EVALUATION_NO_COOKIE but we do it
     // inside the EvaluateCookie_Punctual call
-    if (light.cookieIndex >= 0)
+    if (light.cookieMode != COOKIEMODE_NONE)
     {
         float3 lightToSample = posInput.positionWS - light.positionRWS;
         float4 cookie = EvaluateCookie_Punctual(lightLoopContext, light, lightToSample);
@@ -387,7 +455,7 @@ float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs 
 #endif
 
 #if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
-    if(light.screenSpaceShadowIndex >= 0)
+    if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
     {
         shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
     }
@@ -413,7 +481,7 @@ float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs 
 
     // Transparents have no contact shadow information
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(LIGHT_EVALUATION_NO_CONTACT_SHADOWS)
-    shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask) : 1.0);
+    shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
 #endif
 
 #ifdef DEBUG_DISPLAY
@@ -476,5 +544,24 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     // Smooth weighting
     weight = Smoothstep01(weight);
     weight *= light.weight;
+}
+
+void InversePreExposeSsrLighting(inout float4 ssrLighting)
+{
+    float prevExposureInvMultiplier = GetInversePreviousExposureMultiplier();
+
+#if SHADEROPTIONS_RAYTRACING
+    if (!_UseRayTracedReflections)
+#endif
+    ssrLighting.rgb *= prevExposureInvMultiplier;
+}
+
+void ApplyScreenSpaceReflectionWeight(inout float4 ssrLighting)
+{
+    // Note: RGB is already premultiplied by A for SSR
+#if SHADEROPTIONS_RAYTRACING
+    if (_UseRayTracedReflections)
+        ssrLighting.rgb *= ssrLighting.a;
+#endif
 }
 #endif

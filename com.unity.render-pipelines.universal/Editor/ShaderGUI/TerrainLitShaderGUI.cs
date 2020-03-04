@@ -10,6 +10,8 @@ namespace UnityEditor.Rendering.Universal
     {
         private class StylesLayer
         {
+            public readonly GUIContent warningHeightBasedBlending = new GUIContent("Height-based blending is disabled if you have more than four TerrainLayer materials!");
+
             public readonly GUIContent enableHeightBlend = new GUIContent("Enable Height-based Blend", "Blend terrain layers based on height values.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
             public readonly GUIContent enableInstancedPerPixelNormal = new GUIContent("Enable Per-pixel Normal", "Enable per-pixel normal when the terrain uses instanced rendering.");
@@ -49,9 +51,6 @@ namespace UnityEditor.Rendering.Universal
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
-        MaterialProperty numLayers = null;
-        const string kNumLayerCount = "_NumLayersCount";
-
         // Per-pixel Normal (while instancing)
         MaterialProperty enableInstancedPerPixelNormal = null;
         const string kEnableInstancedPerPixelNormal = "_EnableInstancedPerPixelNormal";
@@ -78,13 +77,11 @@ namespace UnityEditor.Rendering.Universal
             enableHeightBlend = FindProperty(kEnableHeightBlend, props, false);
             heightTransition = FindProperty(kHeightTransition, props, false);
             enableInstancedPerPixelNormal = FindProperty(kEnableInstancedPerPixelNormal, props, false);
-            numLayers = FindProperty(kNumLayerCount, props, false);
         }
 
         static public void SetupMaterialKeywords(Material material)
         {
-            bool shouldDisableHeightBlend = material.HasProperty(kNumLayerCount) && material.GetFloat(kNumLayerCount) > 4;
-            bool enableHeightBlend = !shouldDisableHeightBlend && (material.HasProperty(kEnableHeightBlend) && material.GetFloat(kEnableHeightBlend) > 0);
+            bool enableHeightBlend = (material.HasProperty(kEnableHeightBlend) && material.GetFloat(kEnableHeightBlend) > 0);
             CoreUtils.SetKeyword(material, "_TERRAIN_BLEND_HEIGHT", enableHeightBlend);
 
             bool enableInstancedPerPixelNormal = material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
@@ -110,29 +107,18 @@ namespace UnityEditor.Rendering.Universal
             bool optionsChanged = false;
             EditorGUI.BeginChangeCheck();
             {
-                bool canUseHeightBlend = true;
-                if (numLayers != null) { canUseHeightBlend = (numLayers.floatValue <= 4); }
-                if (enableHeightBlend != null && canUseHeightBlend)
+                if (enableHeightBlend != null)
                 {
                     EditorGUI.indentLevel++;
                     materialEditorIn.ShaderProperty(enableHeightBlend, styles.enableHeightBlend);
                     if (enableHeightBlend.floatValue > 0)
                     {
                         EditorGUI.indentLevel++;
+                        EditorGUILayout.HelpBox(styles.warningHeightBasedBlending.text, MessageType.Info);
                         materialEditorIn.ShaderProperty(heightTransition, styles.heightTransition);
                         EditorGUI.indentLevel--;
                     }
                     EditorGUI.indentLevel--;
-                }
-                else if (enableHeightBlend != null && !canUseHeightBlend)
-                {
-                    // Setting to zero will ensure that it's disabled in the shader
-                    // Make sure we update the shader state to reflect this (though that's
-                    // only necessary if we started out with it enabled).
-                    GUIStyle warnStyle = new GUIStyle(GUI.skin.label);
-                    warnStyle.fontStyle = FontStyle.BoldAndItalic;
-                    warnStyle.wordWrap = true;
-                    GUILayout.Label("WARNING : Height-based blending will not work properly with high layer counts!", warnStyle);
                 }
 
                 EditorGUILayout.Space();

@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new DecalSortingInputsUIBlock((MaterialUIBlock.Expandable)Expandable.Sorting),
         };
 
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             // always instanced
             SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
@@ -30,12 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
                 uiBlocks.OnGUI(materialEditor, props);
-
-                if (changed.changed)
-                {
-                    foreach (var material in uiBlocks.materials)
-                        SetupMaterialKeywordsAndPassInternal(material);
-                }
+                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
             }
 
             // We should always do this call at the end

@@ -3,8 +3,13 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Helpers to manipulate <see cref="MigrationDescription{TVersion, TTarget}"/></summary>
-    public static class MigrationDescription
+    static class MigrationDescription
     {
+        public static T LastVersion<T>() where T : struct, IConvertible
+        {
+            return TypeInfo.GetEnumLastValue<T>();
+        }
+
         /// <summary>Create a new migration description.</summary>
         /// <typeparam name="TVersion">An enum identifying the version.</typeparam>
         /// <typeparam name="TTarget">The type to migrate.</typeparam>
@@ -20,43 +25,45 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    // Moving the example here as it seems to not be parsed correctly by the doc validation tool...
+    // <example>
+    // <code>
+    //
+    // class MyComponent : MonoBehaviour, IVersionable<MyComponent.Version>
+    // {
+    //     enum Version
+    //     {
+    //         First,
+    //         Second
+    //     }
+    //
+    //     static readonly MigrationDescription<Version, MyComponent> k_MigrationDescription
+    //         = MigrationDescription.New(
+    //             MigrationStep.New(Version.First, (MyComponent target) =>
+    //             {
+    //                 // Migration code for first version
+    //             }),
+    //             MigrationStep.New(Version.Second, (MyComponent target) =>
+    //             {
+    //                 // Migration code for second version
+    //             })
+    //         );
+    //
+    //     [SerializeField]
+    //     Version m_Version;
+    //     Version IVersionable<Version>.Version { get { return m_Version; } set { m_Version = value; } }
+    //
+    //     void Awake()
+    //     {
+    //         k_MigrationDescription.Migrate(this);
+    //     }
+    // }
+    // </code>
+    // </example>
+
     /// <summary>Describe migration steps to perform when upgrading from one version of an object to another.</summary>
     /// <typeparam name="TVersion">An enum identifying the version.</typeparam>
     /// <typeparam name="TTarget">The type to migrate.</typeparam>
-    /// <example>
-    /// <code>
-    ///
-    /// class MyComponent : MonoBehaviour, IVersionable<MyComponent.Version>
-    /// {
-    ///     enum Version
-    ///     {
-    ///         First,
-    ///         Second
-    ///     }
-    ///
-    ///     static readonly MigrationDescription<Version, MyComponent> k_MigrationDescription
-    ///         = MigrationDescription.New(
-    ///             MigrationStep.New(Version.First, (MyComponent target) =>
-    ///             {
-    ///                 // Migration code for first version
-    ///             }),
-    ///             MigrationStep.New(Version.Second, (MyComponent target) =>
-    ///             {
-    ///                 // Migration code for second version
-    ///             })
-    ///         );
-    ///
-    ///     [SerializeField]
-    ///     Version m_Version;
-    ///     Version IVersionable<Version>.Version { get { return m_Version; } set { m_Version = value; } }
-    ///
-    ///     void Awake()
-    ///     {
-    ///         k_MigrationDescription.Migrate(this);
-    ///     }
-    /// }
-    /// </code>
-    /// </example>
     public struct MigrationDescription<TVersion, TTarget>
         where TVersion : struct, IConvertible
         where TTarget : class, IVersionable<TVersion>
@@ -106,6 +113,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
+        /// <summary>
+        /// Execute a migration step.
+        /// </summary>
+        /// <param name="target">Target.</param>
+        /// <param name="stepVersion">Step version.</param>
         public void ExecuteStep(TTarget target, TVersion stepVersion)
         {
             for (int i = 0; i < Steps.Length; ++i)

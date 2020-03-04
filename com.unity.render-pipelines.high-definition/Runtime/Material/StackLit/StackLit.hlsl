@@ -629,7 +629,7 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
     {
         normalData.normalWS = surfaceData.coatNormalWS;
-        normalData.perceptualRoughness = surfaceData.coatPerceptualSmoothness;
+        normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness);
     }
     else
     {
@@ -3905,6 +3905,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
     float3 positionWS = posInput.positionWS;
 
+#if SHADEROPTIONS_BARN_DOOR
+    // Apply the barn door modification to the light data
+    RectangularLightApplyBarnDoor(lightData, positionWS);
+#endif
+
 #ifdef STACK_LIT_DISPLAY_REFERENCE_AREA
     IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
@@ -3979,12 +3984,20 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
     // Calculate the L irradiance (ltcValue) first for the diffuse part and transmission,
     // then for the specular base layer and finishing with the coat.
-    float ltcValue;
+    float3 ltcValue;
 
     // Evaluate the diffuse part
     // Polygon irradiance in the transformed configuration.
-    ltcValue  = PolygonIrradiance(mul(localLightVerts, preLightData.ltcTransformDiffuse));
+    float4x3 LD = mul(localLightVerts, preLightData.ltcTransformDiffuse);
+    ltcValue  = PolygonIrradiance(LD);
     ltcValue *= lightData.diffuseDimmer;
+    // Only apply cookie if there is one
+    if ( lightData.cookieMode != COOKIEMODE_NONE )
+    {
+        // Compute the cookie data for the diffuse term
+        float3 formFactorD =  PolygonFormFactor(LD);
+        ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LD, formFactorD);
+    }
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     lighting.diffuse = preLightData.diffuseFGD * preLightData.diffuseEnergy * ltcValue;
 
@@ -4001,9 +4014,16 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
         // Polygon irradiance in the transformed configuration.
         // TODO: double evaluation is very inefficient! This is a temporary solution.
-        ltcValue  = PolygonIrradiance(mul(localLightVerts, ltcTransform));
+        float4x3 LTD = mul(localLightVerts, ltcTransform);
+        ltcValue  = PolygonIrradiance(LTD);
         ltcValue *= lightData.diffuseDimmer;
-
+        // Only apply cookie if there is one
+        if ( lightData.cookieMode != COOKIEMODE_NONE )
+        {
+            // Compute the cookie data for the transmission diffuse term
+            float3 formFactorTD = PolygonFormFactor(LTD);
+            ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LTD, formFactorTD);
+        }
         // VLAYERED_DIFFUSE_ENERGY_HACKED_TERM:
         // In Lit with Lambert, there's no diffuseFGD, it is one. In our case, we also
         // need a diffuse energy term when vlayered.
@@ -4023,7 +4043,16 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEA_IDX]));
         }
         // Polygon irradiance in the transformed configuration.
-        ltcValue  = PolygonIrradiance(mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEA_IDX]));
+        float4x3 LAS = mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEA_IDX]);
+        ltcValue  = PolygonIrradiance(LAS);
+        // Only apply cookie if there is one
+        if ( lightData.cookieMode != COOKIEMODE_NONE )
+        {
+            // Compute the cookie data for the specular term
+            float3 formFactorAS =  PolygonFormFactor(LAS);
+            ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LAS, formFactorAS);
+        }
+
         // See EvaluateBSDF_Env TODOENERGY:
         lighting.specular += preLightData.energyCompensationFactor[BASE_LOBEA_IDX] * preLightData.specularFGD[BASE_LOBEA_IDX] * ltcValue;
     }
@@ -4035,7 +4064,16 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             // local canonical frames we have lobe specific frames because of the anisotropic hack:
             localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEB_IDX]));
         }
-        ltcValue  = PolygonIrradiance(mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEB_IDX]));
+        float4x3 LS = mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEB_IDX]);
+        ltcValue  = PolygonIrradiance(LS);
+        // Only apply cookie if there is one
+        if ( lightData.cookieMode != COOKIEMODE_NONE )
+        {
+            // Compute the cookie data for the specular term
+            float3 formFactorS =  PolygonFormFactor(LS);
+            ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
+        }
+
         lighting.specular += preLightData.energyCompensationFactor[BASE_LOBEB_IDX] * preLightData.specularFGD[BASE_LOBEB_IDX] * ltcValue;
     }
 
@@ -4053,7 +4091,15 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         }
         IF_DEBUG( if ( _DebugLobeMask.x != 0.0) )
         {
-            ltcValue  = PolygonIrradiance(mul(localLightVerts, preLightData.ltcTransformSpecular[COAT_LOBE_IDX]));
+            float4x3 LSCC = mul(localLightVerts, preLightData.ltcTransformSpecular[COAT_LOBE_IDX]);
+            ltcValue  = PolygonIrradiance(LSCC);
+            // Only apply cookie if there is one
+            if ( lightData.cookieMode != COOKIEMODE_NONE )
+            {
+                // Compute the cookie data for the specular term
+                float3 formFactorS =  PolygonFormFactor(LSCC);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LSCC, formFactorS);
+            }
             lighting.specular += preLightData.energyCompensationFactor[COAT_LOBE_IDX] * preLightData.specularFGD[COAT_LOBE_IDX] * ltcValue;
         }
     }
@@ -4063,6 +4109,14 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     // Save ALU by applying 'lightData.color' only once.
     lighting.diffuse *= lightData.color;
     lighting.specular *= lightData.color;
+
+#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    float shadow = 1.0;
+    if ((lightData.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
+        shadow = GetScreenSpaceShadow(posInput, lightData.screenSpaceShadowIndex);
+    lighting.diffuse *= shadow;
+    lighting.specular *= shadow;
+#endif // defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
 
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
@@ -4111,6 +4165,10 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
 
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
     float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
+    InversePreExposeSsrLighting(ssrLighting);
+
+    // Apply the weight on the ssr contribution (if required)
+    ApplyScreenSpaceReflectionWeight(ssrLighting);
 
     // For performance reasons, SSR doesn't allow us to be discriminating per lobe, ie wrt direction, roughness,
     // anisotropy, etc. 
@@ -4148,7 +4206,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     }
 
     // Note: RGB is already premultiplied by A.
-    lighting.specularReflected = ssrLighting.rgb /* * ssrLighting.a */ * reflectanceFactor;
+    lighting.specularReflected = ssrLighting.rgb * reflectanceFactor;
     reflectionHierarchyWeight  = ssrLighting.a;
 
     return lighting;

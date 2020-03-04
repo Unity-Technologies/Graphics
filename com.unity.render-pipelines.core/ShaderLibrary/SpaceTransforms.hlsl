@@ -89,7 +89,7 @@ float4 TransformWViewToHClip(float3 positionVS)
 real3 TransformObjectToWorldDir(real3 dirOS)
 {
     // Normalize to support uniform scaling
-    return normalize(mul((real3x3)GetObjectToWorldMatrix(), dirOS));
+    return SafeNormalize(mul((real3x3)GetObjectToWorldMatrix(), dirOS));
 }
 
 real3 TransformWorldToObjectDir(real3 dirWS)
@@ -116,7 +116,18 @@ float3 TransformObjectToWorldNormal(float3 normalOS)
     return TransformObjectToWorldDir(normalOS);
 #else
     // Normal need to be multiply by inverse transpose
-    return normalize(mul(normalOS, (float3x3)GetWorldToObjectMatrix()));
+    return SafeNormalize(mul(normalOS, (float3x3)GetWorldToObjectMatrix()));
+#endif
+}
+
+// Transforms normal from world to object space
+float3 TransformWorldToObjectNormal(float3 normalWS)
+{
+#ifdef UNITY_ASSUME_UNIFORM_SCALING
+    return TransformWorldToObjectDir(normalWS);
+#else
+    // Normal need to be multiply by inverse transpose
+    return SafeNormalize(mul(normalWS, (float3x3)GetObjectToWorldMatrix()));
 #endif
 }
 
@@ -138,22 +149,38 @@ real3 TransformTangentToWorld(real3 dirTS, real3x3 tangentToWorld)
 real3 TransformWorldToTangent(real3 dirWS, real3x3 tangentToWorld)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
-    // Use transpose transformation to go from "tangent to world" to "world to tangent" as the matrix is orthogonal
-    return mul(tangentToWorld, dirWS);
+    float3 row0 = tangentToWorld[0];
+	float3 row1 = tangentToWorld[1];
+	float3 row2 = tangentToWorld[2];
+
+	// these are the columns of the inverse matrix but scaled by the determinant
+	float3 col0 = cross(row1, row2);
+	float3 col1 = cross(row2, row0);
+	float3 col2 = cross(row0, row1);
+
+	float determinant = dot(row0, col0);
+	float sgn = determinant<0.0 ? (-1.0) : 1.0;
+
+	// inverse transposed but scaled by determinant
+	real3x3 matTBN_I_T = real3x3(col0, col1, col2);
+
+	// remove transpose part by using matrix as the first arg in mul()
+	// this makes it the exact inverse of what TransformTangentToWorld() does.
+	return SafeNormalize( sgn * mul(matTBN_I_T, dirWS) );
 }
 
 real3 TransformTangentToObject(real3 dirTS, real3x3 tangentToWorld)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
-    real3 normalWS = mul(dirTS, tangentToWorld);
-    return mul((real3x3)GetWorldToObjectMatrix(), normalWS);
+	real3 normalWS = TransformTangentToWorld(dirTS, tangentToWorld);
+	return TransformWorldToObjectNormal(normalWS);
 }
 
 real3 TransformObjectToTangent(real3 dirOS, real3x3 tangentToWorld)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
-    // Use transpose transformation to go from "tangent to world" to "world to tangent" as the matrix is orthogonal
-    return mul(tangentToWorld, TransformObjectToWorldDir(dirOS));
+	float3 normalWS = TransformObjectToWorldNormal(dirOS);
+	return TransformWorldToTangent(normalWS, tangentToWorld);
 }
 
 #endif

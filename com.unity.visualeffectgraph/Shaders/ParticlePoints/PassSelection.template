@@ -1,0 +1,13 @@
+// Depth pass
+Pass
+{		
+	Tags { "LightMode"="SceneSelectionPass" }
+	
+	ZWrite On
+	Blend Off
+
+	HLSLPROGRAM
+	#define VFX_PASSDEPTH VFX_PASSDEPTH_SELECTION
+	${VFXInclude("Shaders/ParticlePoints/PassDepthOrMV.template")}
+	ENDHLSL
+}

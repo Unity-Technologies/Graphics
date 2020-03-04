@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected SerializedDataParameter m_MaxFogDistance;
         protected SerializedDataParameter m_ColorMode;
         protected SerializedDataParameter m_Color;
+        protected SerializedDataParameter m_Tint;
         protected SerializedDataParameter m_MipFogNear;
         protected SerializedDataParameter m_MipFogFar;
         protected SerializedDataParameter m_MipFogMaxMip;
@@ -24,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected SerializedDataParameter m_EnableVolumetricFog;
         protected SerializedDataParameter m_DepthExtent;
         protected SerializedDataParameter m_SliceDistributionUniformity;
+        protected SerializedDataParameter m_Filter;
 
         static GUIContent s_Enabled = new GUIContent("Enable", "Check this to enable fog in your scene.");
         static GUIContent s_AlbedoLabel = new GUIContent("Albedo", "Specifies the color this fog scatters light to.");
@@ -46,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Fog Color
             m_ColorMode = Unpack(o.Find(x => x.colorMode));
             m_Color = Unpack(o.Find(x => x.color));
+            m_Tint = Unpack(o.Find(x => x.tint));
             m_MipFogNear = Unpack(o.Find(x => x.mipFogNear));
             m_MipFogFar = Unpack(o.Find(x => x.mipFogFar));
             m_MipFogMaxMip = Unpack(o.Find(x => x.mipFogMaxMip));
@@ -58,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_EnableVolumetricFog = Unpack(o.Find(x => x.enableVolumetricFog));
             m_DepthExtent = Unpack(o.Find(x => x.depthExtent));
             m_SliceDistributionUniformity = Unpack(o.Find(x => x.sliceDistributionUniformity));
-
+            m_Filter = Unpack(o.Find(x => x.filter));
         }
 
         public override void OnInspectorGUI()
@@ -84,6 +87,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
+                PropertyField(m_Tint);
+
                 if (isInAdvancedMode)
                 {
                     PropertyField(m_MipFogNear);
@@ -112,6 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         PropertyField(m_DepthExtent);
                         PropertyField(m_SliceDistributionUniformity);
+                        PropertyField(m_Filter);
                     }
 
                     EditorGUI.indentLevel--;

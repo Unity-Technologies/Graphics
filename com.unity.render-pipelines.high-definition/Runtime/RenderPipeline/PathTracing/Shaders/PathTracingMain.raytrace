@@ -58,26 +58,19 @@ void Miss(inout RayIntersection rayIntersection : SV_RayPayload)
 void RayGen()
 {
     uint2 LaunchIndex = DispatchRaysIndex();
-    uint2 LaunchDim = DispatchRaysDimensions();
 
-    // Pixel coordinate of the current pixel
+    // Get the current pixel coordinates
     uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchIndex.y);
 
-    // Get the current sample count
-    uint sampleCount = _AccumulatedFrameTexture[currentPixelCoord].w;
-
-    // Grab motion blur information (FIXME: should be replaced by something else notifying of a change in the scene)
-    float2 velocity;
-    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, currentPixelCoord), velocity);
-
     // Have we reached max sampling?
-    if (sampleCount >= _RaytracingNumSamples && !any(velocity))
+    uint sampleCount = _RaytracingFrameIndex;
+    if (sampleCount >= _RaytracingNumSamples)
     {
-        _CameraColorTextureRW[currentPixelCoord] = float4(_AccumulatedFrameTexture[currentPixelCoord].xyz, 1.0);
+        _CameraColorTextureRW[currentPixelCoord] = float4(_AccumulatedFrameTexture[currentPixelCoord].xyz * GetCurrentExposureMultiplier(), 1.0);
         return;
     }
 
-    // Get jittered pixel coordinates
+    // Jitter them
     float3 jitteredPixelCoord = float3(currentPixelCoord, 1.0);
     jitteredPixelCoord.x += GetSample(currentPixelCoord, _RaytracingFrameIndex, 254);
     jitteredPixelCoord.y += GetSample(currentPixelCoord, _RaytracingFrameIndex, 255);
@@ -98,34 +91,29 @@ void RayGen()
     rayIntersection.remainingDepth = _RaytracingMaxRecursion;
     rayIntersection.pixelCoord = currentPixelCoord;
     rayIntersection.maxRoughness = 0.001;
-    rayIntersection.rayCount = sampleCount;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
-    rayIntersection.cone.width = 0.0f;
+    rayIntersection.cone.width = 0.0;
 
     // Evaluate the ray intersection
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_FORCE_OPAQUE, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, rayDescriptor, rayIntersection);
 
-    // FIXME: should be based on another criterion than velocity
     // Accumulate the result
-    if (any(velocity))
-    {
-        sampleCount = 1; // Reset sample count
-    }
-    else
-    {
-        sampleCount++;
+    if (sampleCount++)
         rayIntersection.color = (_AccumulatedFrameTexture[currentPixelCoord].xyz * (sampleCount - 1) + rayIntersection.color) / sampleCount;
-    }
-    _AccumulatedFrameTexture[currentPixelCoord] = float4(rayIntersection.color, sampleCount);
+    _AccumulatedFrameTexture[currentPixelCoord] = float4(rayIntersection.color, 1.0);
 
-    // Add a little convergence cue to our result (FIXME: definitely not the right way to do it!!)
+    // Apply exposure modifier
+    rayIntersection.color *= GetCurrentExposureMultiplier();
+
+    // Add a little convergence cue to our result
     AddConvergenceCue(currentPixelCoord, sampleCount, rayIntersection.color);
 
     _CameraColorTextureRW[currentPixelCoord] = float4(rayIntersection.color, 1.0);
 }
 
+// This should never be called, return magenta just in case
 [shader("closesthit")]
 void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {

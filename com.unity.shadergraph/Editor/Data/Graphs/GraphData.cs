@@ -316,7 +316,7 @@ namespace UnityEditor.ShaderGraph
 
         public bool didActiveOutputNodeChange { get; set; }
 
-        internal delegate void SaveGraphDelegate(Shader shader);
+        internal delegate void SaveGraphDelegate(Shader shader, object context);
         internal static SaveGraphDelegate onSaveGraph;
 
         public GraphData()
@@ -360,7 +360,7 @@ namespace UnityEditor.ShaderGraph
                 // If adding a Sub Graph node whose asset contains Keywords
                 // Need to restest Keywords against the variant limit
                 if(node is SubGraphNode subGraphNode &&
-                    subGraphNode.asset != null && 
+                    subGraphNode.asset != null &&
                     subGraphNode.asset.keywords.Count > 0)
                 {
                     OnKeywordChangedNoValidate();
@@ -1201,12 +1201,21 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 AbstractMaterialNode abstractMaterialNode = (AbstractMaterialNode)node;
+
+                // If the node has a group guid and no group has been copied, reset the group guid.
                 // Check if the node is inside a group
-                if (groupGuidMap.ContainsKey(abstractMaterialNode.groupGuid))
+                if (abstractMaterialNode.groupGuid != Guid.Empty)
                 {
-                    var absNode = pastedNode as AbstractMaterialNode;
-                    absNode.groupGuid = groupGuidMap[abstractMaterialNode.groupGuid];
-                    pastedNode = absNode;
+                    if (groupGuidMap.ContainsKey(abstractMaterialNode.groupGuid))
+                    {
+                        var absNode = pastedNode as AbstractMaterialNode;
+                        absNode.groupGuid = groupGuidMap[abstractMaterialNode.groupGuid];
+                        pastedNode = absNode;
+                    }
+                    else
+                    {
+                        pastedNode.groupGuid = Guid.Empty;
+                    }
                 }
 
                 var drawState = node.drawState;
@@ -1270,9 +1279,7 @@ namespace UnityEditor.ShaderGraph
             m_SerializableNodes = SerializationHelper.Serialize(nodes.AsEnumerable());
             m_Edges.Sort();
             m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
-            m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
-            m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }

@@ -4,8 +4,8 @@ Shader "Universal Render Pipeline/Simple Lit"
     // Keep properties of StandardSpecular shader for upgrade reasons.
     Properties
     {
-        _BaseColor("Base Color", Color) = (0.5, 0.5, 0.5, 1)
-        _BaseMap("Base Map (RGB) Smoothness / Alpha (A)", 2D) = "white" {}
+        [MainTexture] _BaseColor("Base Color", Color) = (0.5, 0.5, 0.5, 1)
+        [MainColor]   _BaseMap("Base Map (RGB) Smoothness / Alpha (A)", 2D) = "white" {}
 
         _Cutoff("Alpha Clipping", Range(0.0, 1.0)) = 0.5
 
@@ -211,6 +211,6 @@ Shader "Universal Render Pipeline/Simple Lit"
             ENDHLSL
         }
     }
-    Fallback "Hidden/InternalErrorShader"
+    Fallback "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.SimpleLitShader"
 }

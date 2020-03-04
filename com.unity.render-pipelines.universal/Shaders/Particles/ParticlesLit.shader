@@ -4,8 +4,8 @@ Shader "Universal Render Pipeline/Particles/Lit"
 {
     Properties
     {
-        _BaseMap("Base Map", 2D) = "white" {}
-        _BaseColor("Base Color", Color) = (1,1,1,1)
+        [MainTexture] _BaseMap("Base Map", 2D) = "white" {}
+        [MainColor]   _BaseColor("Base Color", Color) = (1,1,1,1)
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
@@ -18,7 +18,8 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
         _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
-
+        _ReceiveShadows("Receive Shadows", Float) = 1.0
+        
         // -------------------------------------
         // Particle specific
         _SoftParticlesNearFadeDistance("Soft Particles Near Fade", Float) = 0.0

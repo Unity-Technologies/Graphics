@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty supportShadowMask;
         public SerializedProperty supportSSR;
+        public SerializedProperty supportSSRTransparent;
         public SerializedProperty supportSSAO;
         public SerializedProperty supportSubsurfaceScattering;
         [UnityEngine.Serialization.FormerlySerializedAs("enableUltraQualitySSS")]
@@ -48,7 +49,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportDitheringCrossFade;
         public SerializedProperty supportTerrainHole;
         public SerializedProperty supportRayTracing;
-        public SerializedProperty supportedRaytracingTier;
         public SerializedProperty supportDistortion;
         public SerializedProperty supportTransparentBackface;
         public SerializedProperty supportTransparentDepthPrepass;
@@ -63,6 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedLowResTransparencySettings lowresTransparentSettings;
         public SerializedXRSettings xrSettings;
         public SerializedPostProcessingQualitySettings postProcessQualitySettings;
+        public SerializedLightingQualitySettings lightingQualitySettings;
 
         public SerializedLightSettings lightSettings;
         public SerializedScalableSetting lodBias;
@@ -74,6 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             supportShadowMask               = root.Find((RenderPipelineSettings s) => s.supportShadowMask);
             supportSSR                      = root.Find((RenderPipelineSettings s) => s.supportSSR);
+            supportSSRTransparent           = root.Find((RenderPipelineSettings s) => s.supportSSRTransparent);
             supportSSAO                     = root.Find((RenderPipelineSettings s) => s.supportSSAO);
             supportSubsurfaceScattering     = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
             increaseSssSampleCount          = root.Find((RenderPipelineSettings s) => s.increaseSssSampleCount);
@@ -92,20 +94,19 @@ namespace UnityEditor.Rendering.HighDefinition
             customBufferFormat              = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
             supportCustomPass               = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
-
+            
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
-            MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
+            MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);                        
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
             supportDitheringCrossFade       = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
-            supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);
+            supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);            
             supportDistortion               = root.Find((RenderPipelineSettings s) => s.supportDistortion);
             supportTransparentBackface      = root.Find((RenderPipelineSettings s) => s.supportTransparentBackface);
             supportTransparentDepthPrepass  = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);
             supportTransparentDepthPostpass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPostpass);
 
             supportRayTracing               = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
-            supportedRaytracingTier         = root.Find((RenderPipelineSettings s) => s.supportedRaytracingTier);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));
@@ -119,6 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             lightSettings = new SerializedLightSettings(root.Find((RenderPipelineSettings s) => s.lightSettings));
             lodBias = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.lodBias));
             maximumLODLevel = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.maximumLODLevel));
+            lightingQualitySettings = new SerializedLightingQualitySettings(root.Find((RenderPipelineSettings s) => s.lightingQualitySettings));
         }
     }
 }

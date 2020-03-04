@@ -46,15 +46,15 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
             int shadowSplitIndex = EvalShadow_GetSplitIndex(context.shadowContext, _DirectionalShadowIndex, posInput.positionWS, alpha, cascadeCount);
             if (shadowSplitIndex >= 0)
             {
-                float shadow = 1.0;
+                DirectionalShadowType shadow = 1.0;
                 if (_DirectionalShadowIndex >= 0)
                 {
                     DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
 #if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
-                    if(light.screenSpaceShadowIndex >= 0)
+                    if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
                     {
-                        shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+                        shadow = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex);
                     }
                     else
 #endif
@@ -126,9 +126,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
 #if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
-            if(light.screenSpaceShadowIndex >= 0)
+            if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
             {
-                context.shadowValue = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+                context.shadowValue = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex);
             }
             else
 #endif
@@ -246,7 +246,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         //  3. Sky Reflection / Refraction
 
         // Apply SSR.
-    #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR)
+    #if (defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_TRANSPARENT_SSR)) || (!defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR))
         {
             IndirectLighting indirect = EvaluateBSDF_ScreenSpaceReflection(posInput, preLightData, bsdfData,
                                                                            reflectionHierarchyWeight);
@@ -383,6 +383,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             {
                 lightData.lightType = GPULIGHTTYPE_TUBE; // Enforce constant propagation
                 lightData.cookieIndex = -1;              // Enforce constant propagation
+                lightData.cookieMode = COOKIEMODE_NONE;  // Enforce constant propagation
 
                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
                 {

@@ -2,7 +2,7 @@
 
 Path tracing is a ray tracing algorithm that sends rays from the Camera and, when a ray hits a reflective or refractive surface, recurses the process until it reaches a light source. The series of rays from the Camera to the Light forms a "path".
 
-It enables HDRP to compute many different effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in one single unified process. 
+It enables HDRP to compute many different effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in one single unified process.
 
 A notable downside to path tracing is noise. However, noise vanishes as more paths accumulate, and eventually converges toward a clean image.
 
@@ -14,11 +14,11 @@ Noisy image with **Maximum Samples** set to 1
 
 Clean image with **Maximum Samples** set to 256
 
-The current implementation for path tracing in the High Definition Render Pipeline (HDRP) accumulates paths for every pixel up to a maximum count, unless the Camera moves. If the Camera moves, HDRP restarts the path accumulation. Path tracing only supports diffuse and specular reflections, area lights, and environment lights.
+The current implementation for path tracing in the High Definition Render Pipeline (HDRP) accumulates paths for every pixel up to a maximum count, unless the Camera moves. If the Camera moves, HDRP restarts the path accumulation. Path tracing supports Lit, LayeredLit and Unlit materials, and area, point, directional and environment lights.
 
 ## Set up path tracing
 
-Path tracing shares the general requirements and setup as other ray tracing effects, so for information on hardware requirements and set up, see [getting started with ray tracing](Ray-Tracing-Getting-Started.html). The only difference is that you need to set the [Ray Tracing Tier](Ray-Tracing-Getting-Started.html#TierTable) to 3. You must carry out this setup before you can add path tracing to your Scene.
+Path tracing shares the general requirements and setup as other ray tracing effects, so for information on hardware requirements and set up, see [getting started with ray tracing](Ray-Tracing-Getting-Started.html). You must carry out this setup before you can add path tracing to your Scene.
 
 ## Add path tracing to your Scene
 

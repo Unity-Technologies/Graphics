@@ -6,6 +6,7 @@ using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -24,6 +25,22 @@ namespace UnityEditor.ShaderGraph
         public override PreviewMode previewMode
         {
             get { return PreviewMode.Preview3D; }
+        }
+
+        [SerializeField]
+        bool m_DOTSInstancing = false;
+
+        public ToggleData dotsInstancing
+        {
+            get { return new ToggleData(m_DOTSInstancing); }
+            set
+            {
+                if (m_DOTSInstancing == value.isOn)
+                    return;
+
+                m_DOTSInstancing = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
         }
 
         public abstract string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null);
@@ -45,9 +62,11 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
+        public virtual object saveContext => null;
+
         public virtual void ProcessPreviewMaterial(Material Material) {}
     }
-    
+
     [Serializable]
     abstract class MasterNode<T> : MasterNode
         where T : class, ISubShader
@@ -87,7 +106,7 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
         {
-            var activeNodeList = ListPool<AbstractMaterialNode>.Get();
+            var activeNodeList = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
 
             var shaderProperties = new PropertyCollector();
@@ -101,7 +120,7 @@ namespace UnityEditor.ShaderGraph
             if(owner.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
                 owner.AddValidationError(tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
-                
+
                 configuredTextures = shaderProperties.GetConfiguredTexutres();
                 return ShaderGraphImporter.k_ErrorShader;
             }
@@ -121,7 +140,7 @@ namespace UnityEditor.ShaderGraph
                         finalShader.AppendLines(subShader.GetSubshader(this, mode, sourceAssetDependencyPaths));
                 }
 
-                finalShader.AppendLine(@"FallBack ""Hidden/InternalErrorShader""");
+                finalShader.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
             }
             configuredTextures = shaderProperties.GetConfiguredTexutres();
             return finalShader.ToString();

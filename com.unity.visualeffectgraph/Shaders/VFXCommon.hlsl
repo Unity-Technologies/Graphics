@@ -51,6 +51,14 @@ struct VFXSamplerCubeArray
     SamplerState s;
 };
 
+#if !VFX_WORLD_SPACE && !VFX_LOCAL_SPACE
+#error VFXCommon.hlsl should be included after space defines
+#endif
+
+#if VFX_WORLD_SPACE && VFX_LOCAL_SPACE
+#error VFX_WORLD_SPACE & VFX_LOCAL_SPACE are both enabled
+#endif
+
 #ifdef VFX_WORLD_SPACE
 float3 TransformDirectionVFXToWorld(float3 dir)             { return dir; }
 float3 TransformPositionVFXToWorld(float3 pos)              { return pos; }
@@ -71,7 +79,7 @@ float3x3 GetVFXToViewRotMatrix()                            { return mul(VFXGetW
 float3 GetViewVFXPosition()                                 { return mul(VFXGetWorldToObjectMatrix(),float4(VFXGetViewWorldPosition(),1.0f)).xyz; }
 #endif
 
-#define VFX_SAMPLER(name) GetVFXSampler(##name,sampler##name)
+#define VFX_SAMPLER(name) GetVFXSampler(name,sampler##name)
 
 float4 SampleTexture(VFXSampler2D s,float2 coords,float level = 0.0f)
 {
@@ -104,6 +112,11 @@ float4 LoadTexture(VFXSampler2D s, int3 pixelCoords)
 }
 
 float4 LoadTexture(VFXSampler2DArray s, int4 pixelCoords)
+{
+    return s.t.Load(pixelCoords);
+}
+
+float4 LoadTexture(VFXSampler3D s, int4 pixelCoords)
 {
     return s.t.Load(pixelCoords);
 }

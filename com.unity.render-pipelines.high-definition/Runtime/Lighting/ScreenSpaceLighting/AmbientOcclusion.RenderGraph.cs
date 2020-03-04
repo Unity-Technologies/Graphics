@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public RenderGraphResource Render(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthPyramid, RenderGraphResource motionVectors, int frameCount)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
             RenderGraphResource result;
             // AO has side effects (as it uses an imported history buffer)
@@ -22,10 +22,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     EnsureRTSize(settings, hdCamera);
 
-                    var aoParameters = PrepareRenderAOParameters(hdCamera, renderGraph.rtHandleProperties, frameCount);
-
-                    var currentHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion));
+                    var historyRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
+                    var currentHistory = renderGraph.ImportTexture(historyRT);
                     var outputHistory = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion));
+
+                    Vector2 historySize = new Vector2(historyRT.referenceSize.x * historyRT.scaleFactor.x,
+                                  historyRT.referenceSize.y * historyRT.scaleFactor.y);
+                    var rtScaleForHistory = hdCamera.historyRTHandleProperties.rtHandleScale;
+
+                    var aoParameters = PrepareRenderAOParameters(hdCamera, renderGraph.rtHandleProperties, historySize * rtScaleForHistory, frameCount);
 
                     var packedData = RenderAO(renderGraph, aoParameters, depthPyramid);
                     result = DenoiseAO(renderGraph, aoParameters, motionVectors, packedData, currentHistory, outputHistory);
@@ -47,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RenderGraphResource RenderAO(RenderGraph renderGraph, in RenderAOParameters parameters, RenderGraphResource depthPyramid)
         {
-            using (var builder = renderGraph.AddRenderPass<RenderAOPassData>("GTAO Horizon search and integration", out var passData, CustomSamplerId.RenderSSAO.GetSampler()))
+            using (var builder = renderGraph.AddRenderPass<RenderAOPassData>("GTAO Horizon search and integration", out var passData, ProfilingSampler.Get(HDProfileId.HorizonSSAO)))
             {
                 builder.EnableAsyncCompute(parameters.runAsync);
 
@@ -55,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = parameters;
                 passData.packedData = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
-                    { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed data" }));
+                { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed data" }));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
 
                 builder.SetRenderFunc(
@@ -139,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RenderGraphResource UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, RenderGraphResource input)
         {
-            using (var builder = renderGraph.AddRenderPass<UpsampleAOPassData>("Upsample GTAO", out var passData, CustomSamplerId.ResolveSSAO.GetSampler()))
+            using (var builder = renderGraph.AddRenderPass<UpsampleAOPassData>("Upsample GTAO", out var passData, ProfilingSampler.Get(HDProfileId.UpSampleSSAO)))
             {
                 builder.EnableAsyncCompute(parameters.runAsync);
 

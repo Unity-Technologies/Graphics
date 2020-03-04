@@ -6,13 +6,13 @@
 
 Vector Fields and Signed Distance Fields are 3D Fields containing values stored in voxels. These are available as 3D Textures in Visual Effect Graph and can be imported using the Volume File (`.vf`) file format.
 
-Volume File is an [Open Source specification](https://github.com/peeweek/VectorFieldFile/blob/master/README.md) that contains basic structure for storing floating point data. The VF Files are automatically imported in unity as 3D Textures and can be used in Visual Effect Graph blocks and operators that input 3D Textures (such as Vector Field or Signed Distance Field Blocks).
+Volume File is an [Open Source specification](https://github.com/peeweek/VectorFieldFile/blob/master/README.md) that contains basic structure for storing floating point data. The VF Files are automatically imported in unity as 3D Textures and can be used in Visual Effect Graph Blocks and operators that input 3D Textures (such as Vector Field or Signed Distance Field Blocks).
 
 ## Vector Field Importer
 
 ![](Images/VectorFieldInspector.png)
 
-When importing VF Files, unity provides the following settings in the inspector:
+When importing VF Files, unity provides the following settings in the Inspector:
 
 * **Output Format :** Precision of the Output 3D Texture
   * Half : Floating Point with 16-bit Half Precision

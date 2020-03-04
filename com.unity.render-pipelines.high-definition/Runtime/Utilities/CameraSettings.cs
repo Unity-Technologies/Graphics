@@ -3,33 +3,59 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// A bit flag for each camera settings.
+    /// </summary>
     [Flags]
     public enum CameraSettingsFields
     {
+        /// <summary>No field</summary>
         none = 0,
+        /// <summary>BufferClear.clearColorMode</summary>
         bufferClearColorMode = 1 << 1,
+        /// <summary>BufferClear.backgroundColorHDR</summary>
         bufferClearBackgroundColorHDR = 1 << 2,
+        /// <summary>BufferClear.clearDepth</summary>
         bufferClearClearDepth = 1 << 3,
+        /// <summary>volumes.layerMask</summary>
         volumesLayerMask = 1 << 4,
+        /// <summary>volumes.anchorOverride</summary>
         volumesAnchorOverride = 1 << 5,
+        /// <summary>frustum.mode</summary>
         frustumMode = 1 << 6,
+        /// <summary>frustum.aspect</summary>
         frustumAspect = 1 << 7,
+        /// <summary>frustum.farClipPlane</summary>
         frustumFarClipPlane = 1 << 8,
+        /// <summary>frustum.nearClipPlane</summary>
         frustumNearClipPlane = 1 << 9,
+        /// <summary>frustum.fieldOfView</summary>
         frustumFieldOfView = 1 << 10,
+        /// <summary>frustum.projectionMatrix</summary>
         frustumProjectionMatrix = 1 << 11,
+        /// <summary>culling.useOcclusionCulling</summary>
         cullingUseOcclusionCulling = 1 << 12,
+        /// <summary>culling.cullingMask</summary>
         cullingCullingMask = 1 << 13,
+        /// <summary>culling.invertFaceCulling</summary>
         cullingInvertFaceCulling = 1 << 14,
+        /// <summary>culling.renderingSettings</summary>
         customRenderingSettings = 1 << 15,
+        /// <summary>flipYMode</summary>
         flipYMode = 1 << 16,
+        /// <summary>frameSettings</summary>
         frameSettings = 1 << 17,
+        /// <summary>probeLayerMask</summary>
         probeLayerMask = 1 << 18
     }
 
+    /// <summary>The overriden fields of a camera settings.</summary>
     [Serializable]
     public struct CameraSettingsOverride
     {
+        /// <summary>
+        /// Backed value.
+        /// </summary>
         public CameraSettingsFields camera;
     }
 
@@ -42,12 +68,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct BufferClearing
         {
             /// <summary>Default value.</summary>
-            public static readonly BufferClearing @default = new BufferClearing
-            {
-                clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky,
-                backgroundColorHDR = new Color32(6, 18, 48, 0),
-                clearDepth = true
-            };
+            [Obsolete("Since 2019.3, use BufferClearing.NewDefault() instead.")]
+            public static readonly BufferClearing @default = default;
+            /// <summary>Default value.</summary>
+            /// <returns>The default value.</returns>
+            public static BufferClearing NewDefault() => new BufferClearing
+                {
+                    clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky,
+                    backgroundColorHDR = new Color32(6, 18, 48, 0),
+                    clearDepth = true
+                };
 
             /// <summary>Define the source for the clear color.</summary>
             public HDAdditionalCameraData.ClearColorMode clearColorMode;
@@ -66,11 +96,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct Volumes
         {
             /// <summary>Default value.</summary>
-            public static readonly Volumes @default = new Volumes
-            {
-                layerMask = -1,
-                anchorOverride = null
-            };
+            [Obsolete("Since 2019.3, use Volumes.NewDefault() instead.")]
+            public static readonly Volumes @default = default;
+            /// <summary>Default value.</summary>
+            /// <returns>The default value.</returns>
+            public static Volumes NewDefault() => new Volumes
+                {
+                    layerMask = -1,
+                    anchorOverride = null
+                };
 
             /// <summary>The <see cref="LayerMask"/> to use for the volumes.</summary>
             public LayerMask layerMask;
@@ -83,16 +117,28 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable]
         public struct Frustum
         {
+            // Below 1e-5, it causes errors
+            // in `ScriptableShadowsUtility::GetPSSMSplitMatricesAndCulling`: "Expanding invalid MinMaxAABB"
+            // So we use 1e-5 as the minimum value.
+            /// <summary>The near clip plane value will be above this value.</summary>
+            public const float MinNearClipPlane = 1e-5f;
+            /// <summary> The far clip plane value will be at least above <c><see cref="nearClipPlane"/> + <see cref="MinFarClipPlane"/></c></summary>
+            public const float MinFarClipPlane = 1e-4f;
+
             /// <summary>Default value.</summary>
-            public static readonly Frustum @default = new Frustum
-            {
-                mode = Mode.ComputeProjectionMatrix,
-                aspect = 1.0f,
-                farClipPlane = 1000.0f,
-                nearClipPlane = 0.1f,
-                fieldOfView = 90.0f,
-                projectionMatrix = Matrix4x4.identity
-            };
+            [Obsolete("Since 2019.3, use Frustum.NewDefault() instead.")]
+            public static readonly Frustum @default = default;
+            /// <summary>Default value.</summary>
+            /// <returns>The default value.</returns>
+            public static Frustum NewDefault() => new Frustum
+                {
+                    mode = Mode.ComputeProjectionMatrix,
+                    aspect = 1.0f,
+                    farClipPlaneRaw = 1000.0f,
+                    nearClipPlaneRaw = 0.1f,
+                    fieldOfView = 90.0f,
+                    projectionMatrix = Matrix4x4.identity
+                };
 
             /// <summary>Defines how the projection matrix is computed.</summary>
             public enum Mode
@@ -112,10 +158,44 @@ namespace UnityEngine.Rendering.HighDefinition
             public Mode mode;
             /// <summary>Aspect ratio of the frustum (width/height).</summary>
             public float aspect;
-            /// <summary>Far clip plane distance.</summary>
-            public float farClipPlane;
-            /// <summary>Near clip plane distance.</summary>
-            public float nearClipPlane;
+
+            /// <summary>
+            /// Far clip plane distance.
+            ///
+            /// Value that will be stored for the far clip plane distance.
+            /// IF you need the effective far clip plane distance, use <see cref="farClipPlane"/>.
+            /// </summary>
+            [FormerlySerializedAs("farClipPlane")]
+            public float farClipPlaneRaw;
+            /// <summary>
+            /// Near clip plane distance.
+            ///
+            /// Value that will be stored for the near clip plane distance.
+            /// IF you need the effective near clip plane distance, use <see cref="nearClipPlane"/>.
+            /// </summary>
+            [FormerlySerializedAs("nearClipPlane")]
+            public float nearClipPlaneRaw;
+
+            /// <summary>
+            /// Effective far clip plane distance.
+            ///
+            /// Use this value to compute the projection matrix.
+            ///
+            /// This value is valid to compute a projection matrix.
+            /// If you need the raw stored value, see <see cref="farClipPlaneRaw"/> instead.
+            /// </summary>
+            public float farClipPlane => Mathf.Max(nearClipPlaneRaw + MinFarClipPlane, farClipPlaneRaw);
+
+            /// <summary>
+            /// Effective near clip plane distance.
+            ///
+            /// Use this value to compute the projection matrix.
+            ///
+            /// This value is valid to compute a projection matrix.
+            /// If you need the raw stored value, see <see cref="nearClipPlaneRaw"/> instead.
+            /// </summary>
+            public float nearClipPlane => Mathf.Max(MinNearClipPlane, nearClipPlaneRaw);
+
             /// <summary>Field of view for perspective matrix (for y axis, in degree).</summary>
             [Range(1, 179.0f)]
             public float fieldOfView;
@@ -130,6 +210,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return Matrix4x4.Perspective(HDUtils.ClampFOV(fieldOfView), aspect, nearClipPlane, farClipPlane);
             }
 
+            /// <summary>
+            /// Get the projection matrix used depending on the projection mode.
+            /// </summary>
+            /// <returns>The projection matrix</returns>
             public Matrix4x4 GetUsedProjectionMatrix()
             {
                 switch (mode)
@@ -146,12 +230,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct Culling
         {
             /// <summary>Default value.</summary>
-            public static readonly Culling @default = new Culling
-            {
-                cullingMask = -1,
-                useOcclusionCulling = true,
-                sceneCullingMaskOverride = 0
-            };
+            [Obsolete("Since 2019.3, use Culling.NewDefault() instead.")]
+            public static readonly Culling @default = default;
+            /// <summary>Default value.</summary>
+            /// <returns>The default value.</returns>
+            public static Culling NewDefault() => new Culling
+                {
+                    cullingMask = -1,
+                    useOcclusionCulling = true,
+                    sceneCullingMaskOverride = 0
+                };
 
             /// <summary>True when occlusion culling will be performed during rendering, false otherwise.</summary>
             public bool useOcclusionCulling;
@@ -162,29 +250,41 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Default value.</summary>
-        public static readonly CameraSettings @default = new CameraSettings
-        {
-            bufferClearing = BufferClearing.@default,
-            culling = Culling.@default,
-            renderingPathCustomFrameSettings = FrameSettings.defaultCamera,
-            frustum = Frustum.@default,
-            customRenderingSettings = false,
-            volumes = Volumes.@default,
-            flipYMode = HDAdditionalCameraData.FlipYMode.Automatic,
-            invertFaceCulling = false,
-            probeLayerMask = ~0,
-            probeRangeCompressionFactor = 1.0f
-        };
+        [Obsolete("Since 2019.3, use CameraSettings.defaultCameraSettingsNonAlloc instead.")]
+        public static readonly CameraSettings @default = default;
+        /// <summary>Default value.</summary>
+        /// <returns>The default value and allocate ~250B of garbage.</returns>
+        public static CameraSettings NewDefault() => new CameraSettings
+            {
+                bufferClearing = BufferClearing.NewDefault(),
+                culling = Culling.NewDefault(),
+                renderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera(),
+                frustum = Frustum.NewDefault(),
+                customRenderingSettings = false,
+                volumes = Volumes.NewDefault(),
+                flipYMode = HDAdditionalCameraData.FlipYMode.Automatic,
+                invertFaceCulling = false,
+                probeLayerMask = ~0,
+                probeRangeCompressionFactor = 1.0f
+            };
 
+        /// <summary>Default camera settings.</summary>
+        public static readonly CameraSettings defaultCameraSettingsNonAlloc = NewDefault();
+
+        /// <summary>
+        /// Extract the CameraSettings from an HDCamera
+        /// </summary>
+        /// <param name="hdCamera">The camera to extract from</param>
+        /// <returns>The CameraSettings</returns>
         public static CameraSettings From(HDCamera hdCamera)
         {
-            var settings = @default;
+            var settings = defaultCameraSettingsNonAlloc;
             settings.culling.cullingMask = hdCamera.camera.cullingMask;
             settings.culling.useOcclusionCulling = hdCamera.camera.useOcclusionCulling;
             settings.culling.sceneCullingMaskOverride = HDUtils.GetSceneCullingMaskFromCamera(hdCamera.camera);
             settings.frustum.aspect = hdCamera.camera.aspect;
-            settings.frustum.farClipPlane = hdCamera.camera.farClipPlane;
-            settings.frustum.nearClipPlane = hdCamera.camera.nearClipPlane;
+            settings.frustum.farClipPlaneRaw = hdCamera.camera.farClipPlane;
+            settings.frustum.nearClipPlaneRaw = hdCamera.camera.nearClipPlane;
             settings.frustum.fieldOfView = hdCamera.camera.fieldOfView;
             settings.frustum.mode = Frustum.Mode.UseProjectionMatrixField;
             settings.frustum.projectionMatrix = hdCamera.camera.projectionMatrix;
@@ -250,10 +350,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Marked as internal as it is here just for propagation purposes, the correct way to edit this value is through the probe itself.
         internal float probeRangeCompressionFactor;
 
-        [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For data migration")]
+        [SerializeField][FormerlySerializedAs("renderingPath")][Obsolete("For data migration")]
         internal int m_ObsoleteRenderingPath;
 #pragma warning disable 618 // Type or member is obsolete
-        [SerializeField, FormerlySerializedAs("frameSettings"), Obsolete("For data migration")]
+        [SerializeField][FormerlySerializedAs("frameSettings")][Obsolete("For data migration")]
         internal ObsoleteFrameSettings m_ObsoleteFrameSettings;
 #pragma warning restore 618
     }

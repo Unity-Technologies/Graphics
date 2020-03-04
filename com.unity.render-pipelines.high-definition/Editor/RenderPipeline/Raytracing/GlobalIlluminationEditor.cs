@@ -12,14 +12,13 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_RayTracing;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_ClampValue;
+        SerializedDataParameter m_Mode;
 
-        // Tier 1
-        SerializedDataParameter m_DeferredMode;
-        SerializedDataParameter m_RayBinning;
+        // Performance
         SerializedDataParameter m_FullResolution;
         SerializedDataParameter m_UpscaleRadius;
 
-        // Tier 2
+        // Quality
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_BounceCount;
 
@@ -38,14 +37,13 @@ namespace UnityEditor.Rendering.HighDefinition
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
             m_ClampValue = Unpack(o.Find(x => x.clampValue));
+            m_Mode = Unpack(o.Find(x => x.mode));
 
-            // Tier 1
-            m_DeferredMode = Unpack(o.Find(x => x.deferredMode));
-            m_RayBinning = Unpack(o.Find(x => x.rayBinning));
+            // Performance
             m_FullResolution = Unpack(o.Find(x => x.fullResolution));
             m_UpscaleRadius = Unpack(o.Find(x => x.upscaleRadius));
 
-            // Tier 2
+            // Quality
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
             m_BounceCount = Unpack(o.Find(x => x.bounceCount));
 
@@ -66,48 +64,50 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.HelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, wide: true);
                 return;
             }
-#if ENABLE_RAYTRACING
 
-            PropertyField(m_RayTracing);
-
-            if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+            // If ray tracing is supported display the content of the volume component
+            if (HDRenderPipeline.pipelineSupportsRayTracing)
             {
-                EditorGUI.indentLevel++;
-                PropertyField(m_LayerMask);
-                PropertyField(m_RayLength);
-                PropertyField(m_ClampValue);
+                PropertyField(m_RayTracing);
 
-                RenderPipelineSettings.RaytracingTier currentTier = currentAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
-                switch (currentTier)
-                {
-                    case RenderPipelineSettings.RaytracingTier.Tier1:
-                    {
-                        PropertyField(m_DeferredMode);
-                        PropertyField(m_RayBinning);
-                        PropertyField(m_FullResolution);
-                        PropertyField(m_UpscaleRadius);
-                    }
-                    break;
-                    case RenderPipelineSettings.RaytracingTier.Tier2:
-                    {
-                        PropertyField(m_SampleCount);
-                        PropertyField(m_BounceCount);
-                    }
-                    break;
-                }
-
-                PropertyField(m_Denoise);
+                if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
                 {
                     EditorGUI.indentLevel++;
-                    PropertyField(m_HalfResolutionDenoiser);
-                    PropertyField(m_DenoiserRadius);
-                    PropertyField(m_SecondDenoiserPass);
-                    PropertyField(m_SecondDenoiserRadius);
+                    PropertyField(m_LayerMask);
+                    PropertyField(m_RayLength);
+                    PropertyField(m_ClampValue);
+                    PropertyField(m_Mode);
+
+                    EditorGUI.indentLevel++;
+                    switch (m_Mode.value.GetEnumValue<RayTracingMode>())
+                    {
+                        case RayTracingMode.Performance:
+                            {
+                                PropertyField(m_FullResolution);
+                                PropertyField(m_UpscaleRadius);
+                            }
+                            break;
+                        case RayTracingMode.Quality:
+                            {
+                                PropertyField(m_SampleCount);
+                                PropertyField(m_BounceCount);
+                            }
+                            break;
+                    }
+                    EditorGUI.indentLevel--;
+
+                    PropertyField(m_Denoise);
+                    {
+                        EditorGUI.indentLevel++;
+                        PropertyField(m_HalfResolutionDenoiser);
+                        PropertyField(m_DenoiserRadius);
+                        PropertyField(m_SecondDenoiserPass);
+                        PropertyField(m_SecondDenoiserRadius);
+                        EditorGUI.indentLevel--;
+                    }
                     EditorGUI.indentLevel--;
                 }
-                EditorGUI.indentLevel--;
             }
-#endif
         }
     }
 }

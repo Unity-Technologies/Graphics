@@ -6,6 +6,9 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
+    /// <summary>
+    /// An utility Class that Accelerates caching of both string properties and their integer values based on Shader.PropertyToID()
+    /// </summary>
     [Serializable]
     public class ExposedProperty
     {
@@ -15,16 +18,28 @@ namespace UnityEngine.VFX.Utility
         private int m_Id;
 #endif
 
+        /// <summary>
+        /// Creates a new ExposedProperty from a string.
+        /// </summary>
+        /// <param name="name">the string desired name</param>
         public static implicit operator ExposedProperty(string name)
         {
             return new ExposedProperty(name);
         }
 
+        /// <summary>
+        /// Converts automatically an ExposedProperty to a string
+        /// </summary>
+        /// <param name="parameter"></param>
         public static explicit operator string(ExposedProperty parameter)
         {
             return parameter.m_Name;
         }
 
+        /// <summary>
+        /// Converts automatically an ExposedProperty to an int (based on Shader.PropertyToID())
+        /// </summary>
+        /// <param name="parameter"></param>
         public static implicit operator int(ExposedProperty parameter)
         {
 #if UNITY_EDITOR
@@ -36,7 +51,7 @@ namespace UnityEngine.VFX.Utility
             //In Runtime, there isn't any undo/redo and SerializedObject is only available in UnityEditor namespace
             return Shader.PropertyToID(parameter.m_Name);
 #else
-            if (parameter.m_Id == 0)
+            if (parameter.m_Id == 0 && !string.IsNullOrEmpty(parameter.m_Name))
                 throw new InvalidOperationException("Unexpected constructor has been called");
 
             if (parameter.m_Id == -1)
@@ -46,11 +61,20 @@ namespace UnityEngine.VFX.Utility
 #endif
         }
 
+        /// <summary>
+        /// Implicit string concatenation Operator
+        /// </summary>
+        /// <param name="self"></param>
+        /// <param name="other"></param>
+        /// <returns></returns>
         public static ExposedProperty operator+(ExposedProperty self, ExposedProperty other)
         {
             return new ExposedProperty(self.m_Name + other.m_Name);
         }
 
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
         public ExposedProperty()
         {
 #if !UNITY_EDITOR
@@ -66,6 +90,10 @@ namespace UnityEngine.VFX.Utility
 #endif
         }
 
+        /// <summary>
+        /// The string value of this ExposedProperty
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return m_Name;

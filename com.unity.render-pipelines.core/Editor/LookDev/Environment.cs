@@ -14,6 +14,8 @@ namespace UnityEditor.Rendering.LookDev
         string m_CubemapGUID;
         Cubemap m_Cubemap;
 
+        internal bool isCubemapOnly { get; private set; } = false;
+
         /// <summary>
         /// Offset on the longitude. Affect both sky and sun position in Shadow part
         /// </summary>
@@ -125,6 +127,22 @@ namespace UnityEditor.Rendering.LookDev
                 longitudeOffset = rotation,
                 exposure = exposure
             };
+
+        internal static Environment GetTemporaryEnvironmentForCubemap(Cubemap cubemap)
+        {
+            Environment result = ScriptableObject.CreateInstance<Environment>();
+            result.cubemap = cubemap;
+            result.isCubemapOnly = true;
+            return result;
+        }
+
+        internal bool HasCubemapAssetChanged(Cubemap cubemap)
+        {
+            if (cubemap == null)
+                return !String.IsNullOrEmpty(m_CubemapGUID);
+
+            return m_CubemapGUID != AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(cubemap));
+        }
     }
 
     [CustomEditor(typeof(Environment))]
@@ -352,9 +370,7 @@ namespace UnityEditor.Rendering.LookDev
             skyCubemapField.RegisterValueChangedCallback(evt =>
             {
                 var tmp = environment.cubemap;
-                RegisterChange(ref tmp, evt.newValue as Cubemap);
-                environment.cubemap = tmp;
-                latlong.image = GetLatLongThumbnailTexture(environment, k_SkyThumbnailWidth);
+                RegisterChange(ref tmp, evt.newValue as Cubemap, updatePreview: true, customResync: () => environment.cubemap = tmp);
             });
             foldout.Add(skyCubemapField);
 
@@ -392,9 +408,11 @@ namespace UnityEditor.Rendering.LookDev
                 var tmpNewValue = new Vector2(
                     Environment.ClampLongitude(evt.newValue.x),
                     Environment.ClampLatitude(evt.newValue.y));
-                RegisterChange(ref tmpContainer, tmpNewValue, sunPosition);
-                environment.sunLongitude = tmpContainer.x;
-                environment.sunLatitude = tmpContainer.y;
+                RegisterChange(ref tmpContainer, tmpNewValue, sunPosition, customResync: () =>
+                {
+                    environment.sunLongitude = tmpContainer.x;
+                    environment.sunLatitude = tmpContainer.y;
+                });
             });
             foldout.Add(sunPosition);
 
@@ -433,12 +451,13 @@ namespace UnityEditor.Rendering.LookDev
             return inspector;
         }
 
-        void RegisterChange<TValueType>(ref TValueType reflectedVariable, TValueType newValue, BaseField<TValueType> resyncField = null, bool updatePreview = false)
+        void RegisterChange<TValueType>(ref TValueType reflectedVariable, TValueType newValue, BaseField<TValueType> resyncField = null, bool updatePreview = false, Action customResync = null)
         {
             if (environment == null || environment.Equals(null))
                 return;
             reflectedVariable = newValue;
             resyncField?.SetValueWithoutNotify(newValue);
+            customResync?.Invoke();
             if (updatePreview && latlong != null && !latlong.Equals(null))
                 latlong.image = GetLatLongThumbnailTexture(environment, k_SkyThumbnailWidth);
             EditorUtility.SetDirty(environment);

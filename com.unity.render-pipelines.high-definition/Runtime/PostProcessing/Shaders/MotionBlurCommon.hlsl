@@ -12,7 +12,7 @@ TEXTURE2D_X(_MotionVecAndDepth);
 
 #ifdef GEN_PASS
 RW_TEXTURE2D_X(uint, _TileToScatterMax);
-RW_TEXTURE2D_X(uint, _TileToScatterMin);
+RW_TEXTURE2D_X(float, _TileToScatterMin);
 RW_TEXTURE2D_X(float3, _TileMinMaxMotionVec);
 #else
 TEXTURE2D_X(_TileMinMaxMotionVec);
@@ -21,7 +21,7 @@ TEXTURE2D_X(_TileMinMaxMotionVec);
 
 #if NEIGHBOURHOOD_PASS
 RW_TEXTURE2D_X(uint, _TileToScatterMax);
-RW_TEXTURE2D_X(uint, _TileToScatterMin);
+RW_TEXTURE2D_X(float, _TileToScatterMin);
 #endif
 
 
@@ -44,6 +44,7 @@ CBUFFER_END
 #define _SampleCount                        uint(_MotionBlurParams2.x)
 #define _TileSize                           uint(_MotionBlurParams2.y)
 #define _DepthScale                         _MotionBlurParams2.z
+#define _DisableCameraMotion                (_MotionBlurParams2.w > 0.0f)
 
 
 #if defined(USING_STEREO_MATRICES)

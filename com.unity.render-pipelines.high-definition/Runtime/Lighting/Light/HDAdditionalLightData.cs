@@ -11,106 +11,6 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-
-    // This enum extent the original LightType enum with new light type from HD
-    public enum LightTypeExtent
-    {
-        Punctual, // Fallback on LightShape type
-        Rectangle,
-        Tube,
-        // Sphere,
-        // Disc,
-    };
-
-    public enum SpotLightShape { Cone, Pyramid, Box };
-
-    public enum LightUnit
-    {
-        Lumen,      // lm = total power/flux emitted by the light
-        Candela,    // lm/sr = flux per steradian
-        Lux,        // lm/m² = flux per unit area
-        Luminance,  // lm/m²/sr = flux per unit area and per steradian
-        Ev100,      // ISO 100 Exposure Value (https://en.wikipedia.org/wiki/Exposure_value)
-    }
-
-    internal enum DirectionalLightUnit
-    {
-        Lux = LightUnit.Lux,
-    }
-
-    internal enum AreaLightUnit
-    {
-        Lumen = LightUnit.Lumen,
-        Luminance = LightUnit.Luminance,
-        Ev100 = LightUnit.Ev100,
-    }
-
-    internal enum PunctualLightUnit
-    {
-        Lumen = LightUnit.Lumen,
-        Candela = LightUnit.Candela,
-        Lux = LightUnit.Lux,
-        Ev100 = LightUnit.Ev100
-    }
-
-    /// <summary>
-    /// Shadow Update mode
-    /// </summary>
-    public enum ShadowUpdateMode
-    {
-        EveryFrame = 0,
-        OnEnable,
-        OnDemand
-    }
-
-
-    // Light layering
-    public enum LightLayerEnum
-    {
-        Nothing = 0,   // Custom name for "Nothing" option
-        LightLayerDefault = 1 << 0,
-        LightLayer1 = 1 << 1,
-        LightLayer2 = 1 << 2,
-        LightLayer3 = 1 << 3,
-        LightLayer4 = 1 << 4,
-        LightLayer5 = 1 << 5,
-        LightLayer6 = 1 << 6,
-        LightLayer7 = 1 << 7,
-        Everything = 0xFF, // Custom name for "Everything" option
-    }
-
-    // Note: do not use internally, this enum only exists for the user API to set the light type
-    /// <summary>
-    /// Type of an HDRP Light
-    /// </summary>
-    public enum HDLightType
-    {
-        Point,
-        BoxSpot,
-        PyramidSpot,
-        ConeSpot,
-        Directional,
-        Rectangle,
-        Tube,
-    }
-
-    public static class HDLightTypeExtension
-    {
-        /// <summary>
-        /// Returns true if the hd light type is a spot light
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static bool IsSpot(this HDLightType type) => type == HDLightType.BoxSpot || type == HDLightType.PyramidSpot || type == HDLightType.ConeSpot;
-
-        /// <summary>
-        /// Returns true if the hd light type is an area light
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static bool IsArea(this HDLightType type) => type == HDLightType.Tube || type == HDLightType.Rectangle;
-    }
-
     // This structure contains all the old values for every recordable fields from the HD light editor
     // so we can force timeline to record changes on other fields from the LateUpdate function (editor only)
     struct TimelineWorkaround
@@ -126,6 +26,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
+    /// <summary>
+    /// HDRP Additional light data component. It contains the light API and fields used by HDRP.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
@@ -341,9 +244,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_LightUnit == value)
                     return;
 
-                if (!IsValidLightUnitForType(legacyLight.type, m_LightTypeExtent, m_SpotLightShape, value))
+                if (!IsValidLightUnitForType(type, m_SpotLightShape, value))
                 {
-                    var supportedTypes = String.Join(", ", GetSupportedLightUnits(legacyLight.type, m_LightTypeExtent, m_SpotLightShape));
+                    var supportedTypes = String.Join(", ", GetSupportedLightUnits(type, m_SpotLightShape));
                     Debug.LogError($"Set Light Unit '{value}' to a {GetLightTypeName()} is not allowed, only {supportedTypes} are supported.");
                     return;
                 }
@@ -426,54 +329,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [SerializeField, FormerlySerializedAs("lightTypeExtent")]
-        LightTypeExtent m_LightTypeExtent = LightTypeExtent.Punctual;
-        /// <summary>
-        /// Control the area light type. When set to an area Light type, also set the Light.type to Point.
-        /// </summary>
-        public LightTypeExtent lightTypeExtent
-        {
-            get => m_LightTypeExtent;
-            set
-            {
-                // Here we don't have self assignation protection because the light type is stored in two
-                // fields, this one and the legacyLight.type. So if the legacy light type changes we can't
-                // know if it's useless or not to run the code below.
-
-                if (IsAreaLight(value))
-                {
-                    legacyLight.type = LightType.Point;
-                }
-
-                var supportedUnits = GetSupportedLightUnits(legacyLight.type, value, m_SpotLightShape);
-                // If the current light unit is not supported by the new light type, we change it
-                if (!supportedUnits.Any(u => u == lightUnit))
-                    lightUnit = supportedUnits.First();
-
-                m_LightTypeExtent = value;
-                UpdateAllLightValues();
-            }
-        }
-
-        // Only for Spotlight, should be hide for other light
-        [SerializeField, FormerlySerializedAs("spotLightShape")]
-        SpotLightShape m_SpotLightShape = SpotLightShape.Cone;
-        /// <summary>
-        /// Control the shape of the spot light.
-        /// </summary>
-        public SpotLightShape spotLightShape
-        {
-            get => m_SpotLightShape;
-            set
-            {
-                if (m_SpotLightShape == value)
-                    return;
-
-                m_SpotLightShape = value;
-                UpdateAllLightValues();
-            }
-        }
-
         // Only for Rectangle/Line/box projector lights.
         [SerializeField, FormerlySerializedAs("shapeWidth")]
         float m_ShapeWidth = 0.5f;
@@ -488,7 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShapeWidth == value)
                     return;
 
-                if (IsAreaLight(m_LightTypeExtent))
+                if (type == HDLightType.Area)
                     m_ShapeWidth = Mathf.Clamp(value, k_MinAreaWidth, float.MaxValue);
                 else
                     m_ShapeWidth = Mathf.Clamp(value, 0, float.MaxValue);
@@ -510,7 +365,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShapeHeight == value)
                     return;
 
-                if (IsAreaLight(m_LightTypeExtent))
+                if (type == HDLightType.Area)
                     m_ShapeHeight = Mathf.Clamp(value, k_MinAreaWidth, float.MaxValue);
                 else
                     m_ShapeHeight = Mathf.Clamp(value, 0, float.MaxValue);
@@ -552,6 +407,24 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_ShapeRadius = Mathf.Clamp(value, 0, float.MaxValue);
+                UpdateAllLightValues();
+            }
+        }
+
+        [SerializeField]
+        float m_SoftnessScale = 1.0f;
+        /// <summary>
+        /// Get/Set the scale factor applied to shape radius or angular diameter for the softness calculation.
+        /// </summary>
+        public float softnessScale
+        {
+            get => m_SoftnessScale;
+            set
+            {
+                if (m_SoftnessScale == value)
+                    return;
+
+                m_SoftnessScale = Mathf.Clamp(value, 0, float.MaxValue);
                 UpdateAllLightValues();
             }
         }
@@ -727,7 +600,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
         [SerializeField, FormerlySerializedAs("angularDiameter")]
-        float m_AngularDiameter = 0;
+        float m_AngularDiameter = 0.5f;
         /// <summary>
         /// Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees).
         /// Used to render the sun/moon disk.
@@ -740,12 +613,97 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_AngularDiameter == value)
                     return;
 
-                m_AngularDiameter = Mathf.Clamp(value, 0, 360);
+                m_AngularDiameter = value; // Serialization code clamps
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("flareSize")]
+        float m_FlareSize = 2.0f;
+        /// <summary>
+        /// Size the flare around the celestial body (in degrees).
+        /// </summary>
+        public float flareSize
+        {
+            get => m_FlareSize;
+            set
+            {
+                if (m_FlareSize == value)
+                    return;
+
+                m_FlareSize = value; // Serialization code clamps
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("flareTint")]
+        Color m_FlareTint = Color.white;
+        /// <summary>
+        /// Tints the flare of the celestial body.
+        /// </summary>
+        public Color flareTint
+        {
+            get => m_FlareTint;
+            set
+            {
+                if (m_FlareTint == value)
+                    return;
+
+                m_FlareTint = value;
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("flareFalloff")]
+        float m_FlareFalloff = 4.0f;
+        /// <summary>
+        /// The falloff rate of flare intensity as the angle from the light increases.
+        /// </summary>
+        public float flareFalloff
+        {
+            get => m_FlareFalloff;
+            set
+            {
+                if (m_FlareFalloff == value)
+                    return;
+
+                m_FlareFalloff = value; // Serialization code clamps
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("surfaceTexture")]
+        Texture2D m_SurfaceTexture = null;
+        /// <summary>
+        /// 2D (disk) texture of the surface of the celestial body. Acts like a multiplier.
+        /// </summary>
+        public Texture2D surfaceTexture
+        {
+            get => m_SurfaceTexture;
+            set
+            {
+                if (m_SurfaceTexture == value)
+                    return;
+
+                m_SurfaceTexture = value;
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("surfaceTint")]
+        Color m_SurfaceTint = Color.white;
+        /// <summary>
+        /// Tints the surface of the celestial body.
+        /// </summary>
+        public Color surfaceTint
+        {
+            get => m_SurfaceTint;
+            set
+            {
+                if (m_SurfaceTint == value)
+                    return;
+
+                m_SurfaceTint = value;
             }
         }
 
         [SerializeField, FormerlySerializedAs("distance")]
-        float m_Distance = 150000000.0f; // Sun to Earth
+        float m_Distance = 150000000000; // Sun to Earth
         /// <summary>
         /// Distance from the camera to the emissive celestial body represented by the light.
         /// </summary>
@@ -757,11 +715,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Distance == value)
                     return;
 
-                m_Distance = value;
+                m_Distance = value; // Serialization code clamps
             }
         }
 
-#if ENABLE_RAYTRACING
         [SerializeField, FormerlySerializedAs("useRayTracedShadows")]
         bool m_UseRayTracedShadows = false;
         /// <summary>
@@ -866,7 +823,40 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LightShadowRadius = Mathf.Max(value, 0.001f);
             }
         }
-#endif
+
+        [SerializeField]
+        bool m_SemiTransparentShadow = false;
+        /// <summary>
+        /// Enable semi-transparent shadows on the light.
+        /// </summary>
+        public bool semiTransparentShadow
+        {
+            get => m_SemiTransparentShadow;
+            set
+            {
+                if (m_SemiTransparentShadow == value)
+                    return;
+
+                m_SemiTransparentShadow = value;
+            }
+        }
+
+        [SerializeField]
+        bool m_ColorShadow = true;
+        /// <summary>
+        /// Enable color shadows on the light.
+        /// </summary>
+        public bool colorShadow
+        {
+            get => m_ColorShadow;
+            set
+            {
+                if (m_ColorShadow == value)
+                    return;
+
+                m_ColorShadow = value;
+            }
+        }
 
         [Range(k_MinEvsmExponent, k_MaxEvsmExponent)]
         [SerializeField, FormerlySerializedAs("evsmExponent")]
@@ -980,6 +970,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 
+        /// <summary>
+        /// Returns a mask of shadow light layers as uint and handle the case of Everything as being 0xFF and not -1
+        /// </summary>
+        /// <returns></returns>
+        public uint GetShadowLayers()
+        {
+            int value = RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask);
+            return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
+        }
+
         // Shadow Settings
         [SerializeField, FormerlySerializedAs("shadowNearPlane")]
         float    m_ShadowNearPlane = 0.1f;
@@ -999,24 +999,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // PCSS settings
-        [Range(0, 1.0f)]
-        [SerializeField, FormerlySerializedAs("shadowSoftness")]
-        float    m_ShadowSoftness = .5f;
-        /// <summary>
-        /// Controls how much softness you want for PCSS shadows.
-        /// </summary>
-        public float shadowSoftness
-        {
-            get => m_ShadowSoftness;
-            set
-            {
-                if (m_ShadowSoftness == value)
-                    return;
-
-                m_ShadowSoftness = Mathf.Clamp01(value);
-            }
-        }
-
         [Range(1, 64)]
         [SerializeField, FormerlySerializedAs("blockerSampleCount")]
         int      m_BlockerSampleCount = 24;
@@ -1053,9 +1035,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [Range(0, 0.001f)]
+        [Range(0, 1.0f)]
         [SerializeField, FormerlySerializedAs("minFilterSize")]
-        float m_MinFilterSize = 0.00001f;
+        float m_MinFilterSize = 0.1f;
         /// <summary>
         /// Controls the minimum filter size of PCSS shadows.
         /// </summary>
@@ -1067,7 +1049,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_MinFilterSize == value)
                     return;
 
-                m_MinFilterSize = Mathf.Clamp(value, 0.0f, 0.001f);
+                m_MinFilterSize = Mathf.Clamp(value, 0.0f, 1.0f);
             }
         }
 
@@ -1159,6 +1141,10 @@ namespace UnityEngine.Rendering.HighDefinition
             @override = k_DefaultShadowResolution,
             useOverride = true,
         };
+
+        /// <summary>
+        /// Retrieve the scalable setting for shadow resolution. Use the SetShadowResolution function to set a custom resolution.
+        /// </summary>
         public IntScalableSettingValue shadowResolution => m_ShadowResolution;
 
         [Range(0.0f, 1.0f)]
@@ -1216,7 +1202,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         BoolScalableSettingValue m_UseContactShadow = new BoolScalableSettingValue { useOverride = true };
+
+        /// <summary>
+        /// Retrieve the scalable setting to use/ignore contact shadows. Toggle the use contact shadow using @override property of the ScalableSetting.
+        /// </summary>
         public BoolScalableSettingValue useContactShadow => m_UseContactShadow;
+
+        [SerializeField]
+        bool m_RayTracedContactShadow = false;
+        /// <summary>
+        /// Controls if we want to ray trace the contact shadow.
+        /// </summary>
+        public bool rayTraceContactShadow
+        {
+            get => m_RayTracedContactShadow;
+            set
+            {
+                if (m_RayTracedContactShadow == value)
+                    return;
+
+                m_RayTracedContactShadow = value;
+            }
+        }
 
         [SerializeField]
         Color m_ShadowTint = Color.black;
@@ -1233,6 +1240,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_ShadowTint = value;
+            }
+        }
+
+        [SerializeField]
+        bool m_PenumbraTint = false;
+        /// <summary>
+        /// Controls if we want to ray trace the contact shadow.
+        /// </summary>
+        public bool penumbraTint
+        {
+            get => m_PenumbraTint;
+            set
+            {
+                if (m_PenumbraTint == value)
+                    return;
+
+                m_PenumbraTint = value;
             }
         }
 
@@ -1255,20 +1279,20 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        float m_ConstantBias = 0.15f;
+        float m_SlopeBias = 0.5f;
         /// <summary>
-        /// Get/Set the constant bias of the shadow maps.
+        /// Get/Set the slope bias of the shadow maps.
         /// </summary>
         /// <value></value>
-        public float constantBias
+        public float slopeBias
         {
-            get => m_ConstantBias;
+            get => m_SlopeBias;
             set
             {
-                if (m_ConstantBias == value)
+                if (m_SlopeBias == value)
                     return;
 
-                m_ConstantBias = value;
+                m_SlopeBias = value;
             }
         }
 
@@ -1288,6 +1312,54 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_ShadowUpdateMode = value;
             }
+        }
+
+        // Only for Rectangle area lights.
+        [Range(0.0f, 90.0f)]
+        [SerializeField]
+        float m_BarnDoorAngle = 90.0f;
+        /// <summary>
+        /// Get/Set the angle so that it behaves like a barn door.
+        /// </summary>
+        public float barnDoorAngle
+        {
+            get => m_BarnDoorAngle;
+            set
+            {
+                if (m_BarnDoorAngle == value)
+                    return;
+
+                m_BarnDoorAngle = Mathf.Clamp(value, 0.0f, 90.0f);
+                UpdateAllLightValues();
+            }
+        }
+
+        // Only for Rectangle area lights
+        [SerializeField]
+        float m_BarnDoorLength = 0.05f;
+        /// <summary>
+        /// Get/Set the length for the barn door sides.
+        /// </summary>
+        public float barnDoorLength
+        {
+            get => m_BarnDoorLength;
+            set
+            {
+                if (m_BarnDoorLength == value)
+                    return;
+
+                m_BarnDoorLength = Mathf.Clamp(value, 0.0f, float.MaxValue);
+                UpdateAllLightValues();
+            }
+        }
+
+        /// <summary>
+        /// True if the light affects volumetric fog, false otherwise 
+        /// </summary>
+        public bool affectsVolumetric
+        {
+            get => useVolumetric;
+            set => useVolumetric = value;
         }
 
 #endregion
@@ -1351,9 +1423,7 @@ namespace UnityEngine.Rendering.HighDefinition
         HDShadowRequest[]   shadowRequests;
         bool                m_WillRenderShadowMap;
         bool                m_WillRenderScreenSpaceShadow;
-#if ENABLE_RAYTRACING
         bool                m_WillRenderRayTracedShadow;
-#endif
         int[]               m_ShadowRequestIndices;
         bool                m_ShadowMapRenderedSinceLastRequest = false;
 
@@ -1369,21 +1439,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
 
-        #if ENABLE_RAYTRACING
+        // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
+        [System.NonSerialized] internal Matrix4x4 previousTransform = new Matrix4x4();
         // Temporary index that stores the current shadow index for the light
-        [System.NonSerialized] internal int shadowIndex;
-        #endif
-
-        [System.NonSerialized] HDShadowSettings    _ShadowSettings = null;
-        HDShadowSettings    m_ShadowSettings
-        {
-            get
-            {
-                if (_ShadowSettings == null)
-                    _ShadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
-                return _ShadowSettings;
-            }
-        }
+        [System.NonSerialized] internal int shadowIndex = -1;
 
         // Runtime datas used to compute light intensity
         Light m_Light;
@@ -1428,9 +1487,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (WillRenderShadowMap() && !ShadowIsUpdatedEveryFrame())
             {
-                ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
-                                              (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
-
                 HDShadowManager.instance.MarkCachedShadowSlotsAsEmpty(shadowMapType, GetInstanceID());
                 HDShadowManager.instance.PruneEmptyCachedSlots(shadowMapType);  // We invalidate it all to be sure.
                 m_ShadowMapRenderedSinceLastRequest = false;
@@ -1456,9 +1512,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        int GetShadowRequestCount()
+        int GetShadowRequestCount(HDShadowSettings shadowSettings)
         {
-            return (legacyLight.type == LightType.Point && lightTypeExtent == LightTypeExtent.Punctual) ? 6 : (legacyLight.type == LightType.Directional) ? m_ShadowSettings.cascadeShadowSplitCount.value : 1;
+            HDLightType lightType = type;
+            return lightType == HDLightType.Point
+                ? 6
+                : lightType == HDLightType.Directional
+                    ? shadowSettings.cascadeShadowSplitCount.value
+                    : 1;
         }
 
         /// <summary>
@@ -1488,10 +1549,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return shadowUpdateMode == ShadowUpdateMode.EveryFrame;
         }
 
-        internal void EvaluateShadowState(HDCamera hdCamera, CullingResults cullResults, FrameSettings frameSettings, int lightIndex)
+        internal void EvaluateShadowState(HDCamera hdCamera, in ProcessedLightData processedLight, CullingResults cullResults, FrameSettings frameSettings, int lightIndex)
         {
             Bounds bounds;
-            float cameraDistance = Vector3.Distance(hdCamera.camera.transform.position, transform.position);
 
             m_WillRenderShadowMap = legacyLight.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.ShadowMaps);
 
@@ -1499,41 +1559,43 @@ namespace UnityEngine.Rendering.HighDefinition
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
             m_WillRenderShadowMap &= shadowDimmer > 0;
             // If the shadow is too far away, we don't render it
-            m_WillRenderShadowMap &= legacyLight.type == LightType.Directional || cameraDistance < shadowFadeDistance;
+            m_WillRenderShadowMap &= type == HDLightType.Directional || processedLight.distanceToCamera < shadowFadeDistance;
 
             // First we reset the ray tracing and screen space shadow data
             m_WillRenderScreenSpaceShadow = false;
-#if ENABLE_RAYTRACING
             m_WillRenderRayTracedShadow = false;
-#endif
 
             // If this camera does not allow screen space shadows we are done, set the target parameters to false and leave the function
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) || !m_WillRenderShadowMap)
                 return;
 
-#if ENABLE_RAYTRACING
-            LightCategory lightCategory = LightCategory.Count;
-            GPULightType gpuLightType = GPULightType.Point;
-            LightVolumeType lightVolumeType = LightVolumeType.Count;
-            HDRenderPipeline.EvaluateGPULightType(legacyLight.type, lightTypeExtent, spotLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
-
             // Flag the ray tracing only shadows
-            if (m_UseRayTracedShadows && (gpuLightType == GPULightType.Rectangle || gpuLightType == GPULightType.Point || (gpuLightType == GPULightType.Spot && lightVolumeType == LightVolumeType.Cone)))
+            if (frameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_UseRayTracedShadows)
             {
-                m_WillRenderScreenSpaceShadow = true;
-                m_WillRenderRayTracedShadow = true;
+                bool validShadow = false;
+                if (processedLight.gpuLightType == GPULightType.Point
+                        || processedLight.gpuLightType == GPULightType.Rectangle
+                        || (processedLight.gpuLightType == GPULightType.Spot && processedLight.lightVolumeType == LightVolumeType.Cone))
+                {
+                    validShadow = true;
+                }
+
+                if (validShadow)
+                {
+                    m_WillRenderScreenSpaceShadow = true;
+                    m_WillRenderRayTracedShadow = true;
+                }
             }
 
             // Flag the directional shadow
-            if (useScreenSpaceShadows && gpuLightType == GPULightType.Directional)
+            if (useScreenSpaceShadows && processedLight.gpuLightType == GPULightType.Directional)
             {
                 m_WillRenderScreenSpaceShadow = true;
-                if (m_UseRayTracedShadows)
+                if (frameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_UseRayTracedShadows)
                 {
                     m_WillRenderRayTracedShadow = true;
                 }
             }
-#endif
         }
 
         private int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
@@ -1551,7 +1613,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters, Rect screenRect)
+        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDShadowInitParameters initParameters, Rect screenRect)
         {
             if (!m_WillRenderShadowMap)
                 return;
@@ -1570,9 +1632,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Reserver wanted resolution in the shadow atlas
-            ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
-                                          (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
-
             int resolution = GetResolutionFromSettings(shadowMapType, initParameters);
             Vector2 viewportSize = new Vector2(resolution, resolution);
 
@@ -1607,11 +1666,11 @@ namespace UnityEngine.Rendering.HighDefinition
             viewportSize = Vector2.Max(viewportSize, new Vector2(HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MinShadowMapResolution));
 
             // Update the directional shadow atlas size
-            if (legacyLight.type == LightType.Directional)
-                shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, m_ShadowSettings.cascadeShadowSplitCount.value);
+            if (type == HDLightType.Directional)
+                shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, shadowSettings.cascadeShadowSplitCount.value);
 
-            int count = GetShadowRequestCount();
-            bool needsCachedSlotsInAtlas = shadowsAreCached && !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
+            int count = GetShadowRequestCount(shadowSettings);
+            bool needsCachedSlotsInAtlas = shadowsAreCached && !(ShadowIsUpdatedEveryFrame() || type == HDLightType.Directional);
 
             for (int index = 0; index < count; index++)
             {
@@ -1629,12 +1688,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_WillRenderScreenSpaceShadow;
         }
 
-#if ENABLE_RAYTRACING
         internal bool WillRenderRayTracedShadow()
         {
             return m_WillRenderRayTracedShadow;
         }
-#endif
 
         // This offset shift the position of the spotlight used to approximate the area light shadows. The offset is the minimum such that the full
         // area light shape is included in the cone spanned by the spot light.
@@ -1648,39 +1705,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return -offset;
         }
 
-        private float GetDirectionalConstantBias(int index, float sphereRadius, float resolution)
-        {
-            // TODO: Heuristics here can possibly be improved with more data points.
-
-            const float baseBias = 2.0f;
-            float range = 0.0f;
-            if (index == 0)
-            {
-                range = m_ShadowSettings.cascadeShadowSplits[0];
-            }
-            else if (index == 3)
-            {
-                range = 1 - m_ShadowSettings.cascadeShadowSplits[2];
-            }
-            else
-            {
-                range = m_ShadowSettings.cascadeShadowSplits[index] - m_ShadowSettings.cascadeShadowSplits[index - 1];
-            }
-
-            range *= m_ShadowSettings.maxShadowDistance.value;
-            float texelScale = (sphereRadius * sphereRadius) / resolution;
-
-            return Math.Min(0.02f, constantBias * texelScale * baseBias / range);
-        }
-
-        private void UpdateDirectionalShadowRequest(HDShadowManager manager, VisibleLight visibleLight, CullingResults cullResults, Vector2 viewportSize, int requestIndex, int lightIndex, Vector3 cameraPos, HDShadowRequest shadowRequest, out Matrix4x4 invViewProjection)
+        private void UpdateDirectionalShadowRequest(HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight, CullingResults cullResults, Vector2 viewportSize, int requestIndex, int lightIndex, Vector3 cameraPos, HDShadowRequest shadowRequest, out Matrix4x4 invViewProjection)
         {
             Vector4 cullingSphere;
             float nearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
 
             HDShadowUtils.ExtractDirectionalLightData(
-                visibleLight, viewportSize, (uint)requestIndex, m_ShadowSettings.cascadeShadowSplitCount.value,
-                m_ShadowSettings.cascadeShadowSplits, nearPlaneOffset, cullResults, lightIndex,
+                visibleLight, viewportSize, (uint)requestIndex, shadowSettings.cascadeShadowSplitCount.value,
+                shadowSettings.cascadeShadowSplits, nearPlaneOffset, cullResults, lightIndex,
                 out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
                 out shadowRequest.deviceProjection, out shadowRequest.splitData
             );
@@ -1695,23 +1727,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 cullingSphere.z -= cameraPos.z;
             }
 
-			shadowRequest.constantBias = GetDirectionalConstantBias(requestIndex, cullingSphere.w, viewportSize.x);
-            manager.UpdateCascade(requestIndex, cullingSphere, m_ShadowSettings.cascadeShadowBorders[requestIndex]);
+            manager.UpdateCascade(requestIndex, cullingSphere, shadowSettings.cascadeShadowBorders[requestIndex]);
         }
 
         // Must return the first executed shadow request
-        internal int UpdateShadowRequest(HDCamera hdCamera, HDShadowManager manager, VisibleLight visibleLight, CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, out int shadowRequestCount)
+        internal int UpdateShadowRequest(HDCamera hdCamera, HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight, CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, out int shadowRequestCount)
         {
             int                 firstShadowRequestIndex = -1;
             Vector3             cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
             shadowRequestCount = 0;
 
-            int count = GetShadowRequestCount();
+            int count = GetShadowRequestCount(shadowSettings);
             bool shadowIsCached = !ShouldRenderShadows() && !lightingDebugSettings.clearShadowAtlas;
             bool isUpdatedEveryFrame = ShadowIsUpdatedEveryFrame();
-
-            ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
-              (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
 
             bool hasCachedSlotInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
 
@@ -1733,7 +1761,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 Vector2 viewportSize = resolutionRequest.resolution;
-
+                HDLightType lightType = type;
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -1744,9 +1772,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowRequest.shouldUseCachedShadow = true;
 
                     // If directional we still need to calculate the split data.
-                    if (legacyLight.type == LightType.Directional)
-                        UpdateDirectionalShadowRequest(manager, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
-
+                    if (lightType == HDLightType.Directional)
+                        UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
                 }
                 else
                 {
@@ -1754,41 +1781,44 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowRequest.shouldUseCachedShadow = false;
                     m_ShadowMapRenderedSinceLastRequest = true;
 
-                    if (lightTypeExtent == LightTypeExtent.Rectangle)
+                    // Write per light type matrices, splitDatas and culling parameters
+                    switch (lightType)
                     {
-                        Vector2 shapeSize = new Vector2(shapeWidth, m_ShapeHeight);
-                        float offset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
-                        Vector3 shadowOffset = offset * visibleLight.GetForward();
-                        HDShadowUtils.ExtractAreaLightData(hdCamera, visibleLight, lightTypeExtent, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.deviceProjection, out shadowRequest.splitData);
-                    }
-                    else
-                    {
-                        // Write per light type matrices, splitDatas and culling parameters
-                        switch (legacyLight.type)
-                        {
-                            case LightType.Point:
-                                HDShadowUtils.ExtractPointLightData(
-                                    hdCamera, legacyLight.type, visibleLight, viewportSize, shadowNearPlane,
-                                    normalBias, (uint)index, out shadowRequest.view,
-                                    out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                                    out shadowRequest.deviceProjection, out shadowRequest.splitData
-                                );
-                            	shadowRequest.constantBias = Math.Max(0.0003f, 10.0f * constantBias / (legacyLight.range * viewportSize.x));
-                                break;
-                            case LightType.Spot:
-                                float spotAngleForShadows = useCustomSpotLightShadowCone ? Math.Min(customSpotLightShadowCone, visibleLight.light.spotAngle)  : visibleLight.light.spotAngle;
-                                HDShadowUtils.ExtractSpotLightData(
-                                    hdCamera, legacyLight.type, spotLightShape, spotAngleForShadows, shadowNearPlane, aspectRatio, shapeWidth,
-                                    shapeHeight, visibleLight, viewportSize, normalBias,
-                                    out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                                    out shadowRequest.deviceProjection, out shadowRequest.splitData
-                                );
-                            	shadowRequest.constantBias = Math.Max(0.0003f, 20.0f * constantBias / (legacyLight.range * viewportSize.x));
-                                break;
-                            case LightType.Directional:
-                                UpdateDirectionalShadowRequest(manager, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
-                                break;
-                        }
+                        case HDLightType.Point:
+                            HDShadowUtils.ExtractPointLightData(
+                                visibleLight, viewportSize, shadowNearPlane,
+                                normalBias, (uint)index, out shadowRequest.view,
+                                out invViewProjection, out shadowRequest.deviceProjectionYFlip,
+                                out shadowRequest.deviceProjection, out shadowRequest.splitData
+                            );
+                            break;
+                        case HDLightType.Spot:
+                            float spotAngleForShadows = useCustomSpotLightShadowCone ? Math.Min(customSpotLightShadowCone, visibleLight.light.spotAngle)  : visibleLight.light.spotAngle;
+                            HDShadowUtils.ExtractSpotLightData(
+                                spotLightShape, spotAngleForShadows, shadowNearPlane, aspectRatio, shapeWidth,
+                                shapeHeight, visibleLight, viewportSize, normalBias,
+                                out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
+                                out shadowRequest.deviceProjection, out shadowRequest.splitData
+                            );
+                            break;
+                        case HDLightType.Directional:
+                            UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
+                            break;
+                        case HDLightType.Area:
+                            switch (areaLightShape)
+                            {
+                                case AreaLightShape.Rectangle:
+                                    Vector2 shapeSize = new Vector2(shapeWidth, m_ShapeHeight);
+                                    float offset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
+                                    Vector3 shadowOffset = offset * visibleLight.GetForward();
+                                    HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.deviceProjection, out shadowRequest.splitData);
+                                    break;
+                                case AreaLightShape.Tube:
+                                    //Tube do not cast shadow at the moment.
+                                    //They should not call this method.
+                                    break;
+                            }
+                            break;
                     }
 
 
@@ -1818,7 +1848,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // zBuffer param to reconstruct depth position (for transmission)
             float f = legacyLight.range;
             float n = shadowNearPlane;
-            shadowRequest.zBufferParam = new Vector4((f-n)/n, 1.0f, (f-n)/n*f, 1.0f/f);
+            shadowRequest.zBufferParam = new Vector4((f-n)/n, 1.0f, (f-n)/(n*f), 1.0f/f);
             shadowRequest.worldTexelSize = 2.0f / shadowRequest.deviceProjectionYFlip.m00 / viewportSize.x * Mathf.Sqrt(2.0f);
             shadowRequest.normalBias = normalBias;
 
@@ -1833,20 +1863,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 invViewProjection = translation * invViewProjection;
             }
 
-            if (legacyLight.type == LightType.Directional || (legacyLight.type == LightType.Spot && spotLightShape == SpotLightShape.Box))
+            HDLightType lightType = type;
+            if (lightType == HDLightType.Directional || lightType == HDLightType.Spot && spotLightShape == SpotLightShape.Box)
                 shadowRequest.position = new Vector3(shadowRequest.view.m03, shadowRequest.view.m13, shadowRequest.view.m23);
             else
                 shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? transform.position - cameraPos : transform.position;
 
             shadowRequest.shadowToWorld = invViewProjection.transpose;
-            shadowRequest.zClip = (legacyLight.type != LightType.Directional);
+            shadowRequest.zClip = (lightType != HDLightType.Directional);
             shadowRequest.lightIndex = lightIndex;
             // We don't allow shadow resize for directional cascade shadow
-            if (legacyLight.type == LightType.Directional)
+            if (lightType == HDLightType.Directional)
             {
                 shadowRequest.shadowMapType = ShadowMapType.CascadedDirectional;
             }
-            else if (lightTypeExtent == LightTypeExtent.Rectangle)
+            else if (lightType == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle)
             {
                 shadowRequest.shadowMapType = ShadowMapType.AreaLightAtlas;
             }
@@ -1854,8 +1885,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 shadowRequest.shadowMapType = ShadowMapType.PunctualAtlas;
             }
-
-            shadowRequest.lightType = (int) legacyLight.type;
 
             // shadow clip planes (used for tessellation clipping)
             GeometryUtility.CalculateFrustumPlanes(viewProjection, m_ShadowFrustumPlanes);
@@ -1872,11 +1901,54 @@ namespace UnityEngine.Rendering.HighDefinition
                 );
             }
 
+
+            float softness = 0.0f;
+            if (lightType == HDLightType.Directional)
+            {
+                var devProj = shadowRequest.deviceProjection;
+                float frustumExtentZ = Vector4.Dot(new Vector4(devProj.m32, -devProj.m32, -devProj.m22, devProj.m22), new Vector4(devProj.m22, devProj.m32, devProj.m23, devProj.m33)) /
+                        (devProj.m22 * (devProj.m22 - devProj.m32));
+
+                // We use the light view frustum derived from view projection matrix and angular diameter to work out a filter size in
+                // shadow map space, essentially figuring out the footprint of the cone subtended by the light on the shadow map
+                float halfAngleTan = Mathf.Tan(0.5f * Mathf.Deg2Rad * (softnessScale * m_AngularDiameter) / 2);
+                softness = Mathf.Abs(halfAngleTan * frustumExtentZ / (2.0f * shadowRequest.splitData.cullingSphere.w));
+                float range = 2.0f * (1.0f / devProj.m22);
+                float rangeScale = Mathf.Abs(range)  / 100.0f;
+                shadowRequest.zBufferParam.x = rangeScale;
+            }
+            else
+            {
+                // This derivation has been fitted with quartic regression checking against raytracing reference and with a resolution of 512
+                float x = m_ShapeRadius * softnessScale;
+                float x2 = x * x;
+                softness = 0.02403461f + 3.452916f * x - 1.362672f * x2 + 0.6700115f * x2 * x + 0.2159474f * x2 * x2;
+                softness /= 100.0f;
+            }
+
+            softness *= (shadowRequest.atlasViewport.width / 512);  // Make it resolution independent whereas the baseline is 512
+
+            // Bias
+            // This base bias is a good value if we expose a [0..1] since values within [0..5] are empirically shown to be sensible for the slope-scale bias with the width of our PCF.
+            float baseBias = 5.0f;
+            // If we are PCSS, the blur radius can be quite big, hence we need to tweak up the slope bias
+            if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality == HDShadowFilteringQuality.High)
+            {
+                if(softness > 0.01f)
+                {
+                    // maxBaseBias is an empirically set value, also the lerp stops at a shadow softness of 0.05, then is clamped.
+                    float maxBaseBias = 18.0f;
+                    baseBias = Mathf.Lerp(baseBias, maxBaseBias, Mathf.Min(1.0f, (softness * 100) / 5));
+                }
+            }
+
+            shadowRequest.slopeBias = HDShadowUtils.GetSlopeBias(baseBias, slopeBias);
+
             // Shadow algorithm parameters
-            shadowRequest.shadowSoftness = shadowSoftness / 100f;
+            shadowRequest.shadowSoftness = softness;
             shadowRequest.blockerSampleCount = blockerSampleCount;
             shadowRequest.filterSampleCount = filterSampleCount;
-            shadowRequest.minFilterSize = minFilterSize;
+            shadowRequest.minFilterSize = minFilterSize * 0.001f; // This divide by 1000 is here to have a range [0...1] exposed to user
 
             shadowRequest.kernelSize = (uint)kernelSize;
             shadowRequest.lightAngle = (lightAngle * Mathf.PI / 180.0f);
@@ -1983,7 +2055,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Same check for light angle to update intensity using spot angle
-            if (legacyLight.type == LightType.Spot && (timelineWorkaround.oldSpotAngle != legacyLight.spotAngle))
+            if (type == HDLightType.Spot && (timelineWorkaround.oldSpotAngle != legacyLight.spotAngle))
             {
                 UpdateLightIntensity();
                 timelineWorkaround.oldSpotAngle = legacyLight.spotAngle;
@@ -2023,7 +2095,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.affectDiffuse = affectDiffuse;
             data.m_AffectSpecular = m_AffectSpecular;
             data.nonLightmappedOnly = nonLightmappedOnly;
-            data.lightTypeExtent = lightTypeExtent;
+            data.m_PointlightHDType = m_PointlightHDType;
             data.spotLightShape = spotLightShape;
             data.shapeWidth = shapeWidth;
             data.m_ShapeHeight = m_ShapeHeight;
@@ -2038,6 +2110,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;
             data.angularDiameter = angularDiameter;
+            data.flareSize = flareSize;
+            data.flareTint = flareTint;
+            data.surfaceTexture = surfaceTexture;
+            data.surfaceTint = surfaceTint;
             data.distance = distance;
 
             shadowResolution.CopyTo(data.shadowResolution);
@@ -2045,7 +2121,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.volumetricShadowDimmer = volumetricShadowDimmer;
             data.shadowFadeDistance = shadowFadeDistance;
             useContactShadow.CopyTo(data.useContactShadow);
-            data.constantBias = constantBias;
+            data.slopeBias = slopeBias;
             data.normalBias = normalBias;
             data.shadowCascadeRatios = new float[shadowCascadeRatios.Length];
             shadowCascadeRatios.CopyTo(data.shadowCascadeRatios, 0);
@@ -2075,39 +2151,38 @@ namespace UnityEngine.Rendering.HighDefinition
             var light = lightData.gameObject.GetComponent<Light>();
 
             // Set light intensity and unit using its type
-            switch (light.type)
+            //note: requiring type convert Rectangle and Disc to Area and correctly set areaLight
+            switch (lightData.type)
             {
-                case LightType.Directional:
+                case HDLightType.Directional:
                     lightData.lightUnit = LightUnit.Lux;
                     lightData.intensity = k_DefaultDirectionalLightIntensity;
                     break;
-                case LightType.Rectangle: // Rectangle by default when light is created
-                    lightData.lightUnit = LightUnit.Lumen;
-                    lightData.intensity = k_DefaultAreaLightIntensity;
-                    light.shadows = LightShadows.None;
+                case HDLightType.Area: // Rectangle by default when light is created
+                    switch (lightData.areaLightShape)
+                    {
+                        case AreaLightShape.Rectangle:
+                            lightData.lightUnit = LightUnit.Lumen;
+                            lightData.intensity = k_DefaultAreaLightIntensity;
+                            light.shadows = LightShadows.None;
+                            break;
+                        case AreaLightShape.Disc:
+                            //[TODO: to be defined]
+                            break;
+                    }
                     break;
-                case LightType.Point:
-                case LightType.Spot:
+                case HDLightType.Point:
+                case HDLightType.Spot:
                     lightData.lightUnit = LightUnit.Lumen;
                     lightData.intensity = k_DefaultPunctualLightIntensity;
                     break;
             }
 
-            // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknown  reasons we recreate additional data on an existing line)
-            if (light.type == LightType.Rectangle && lightData.lightTypeExtent == LightTypeExtent.Punctual)
-            {
-                lightData.lightTypeExtent = LightTypeExtent.Rectangle;
-                light.type = LightType.Point; // Same as in HDLightEditor
-#if UNITY_EDITOR
-                light.lightmapBakeType = LightmapBakeType.Realtime;
-#endif
-            }
-
             // We don't use the global settings of shadow mask by default
             light.lightShadowCasterMode = LightShadowCasterMode.Everything;
 
-            lightData.constantBias         = 0.15f;
             lightData.normalBias           = 0.75f;
+            lightData.slopeBias            = 0.5f;
         }
 
         void OnValidate()
@@ -2121,18 +2196,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void SetLightIntensityPunctual(float intensity)
         {
-            switch (legacyLight.type)
+            switch (type)
             {
-                case LightType.Directional:
+                case HDLightType.Directional:
                     legacyLight.intensity = intensity; // Always in lux
                     break;
-                case LightType.Point:
+                case HDLightType.Point:
                     if (lightUnit == LightUnit.Candela)
                         legacyLight.intensity = intensity;
                     else
                         legacyLight.intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
                     break;
-                case LightType.Spot:
+                case HDLightType.Spot:
                     if (lightUnit == LightUnit.Candela)
                     {
                         // When using candela, reflector don't have any effect. Our intensity is candela = lumens/steradian and the user
@@ -2174,25 +2249,29 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (lightUnit == LightUnit.Lumen)
             {
-                if (lightTypeExtent == LightTypeExtent.Punctual)
+                if (m_PointlightHDType == PointLightHDType.Punctual)
                     SetLightIntensityPunctual(intensity);
                 else
-                    legacyLight.intensity = LightUtils.ConvertAreaLightLumenToLuminance(lightTypeExtent, intensity, shapeWidth, m_ShapeHeight);
+                    legacyLight.intensity = LightUtils.ConvertAreaLightLumenToLuminance(areaLightShape, intensity, shapeWidth, m_ShapeHeight);
             }
             else if (lightUnit == LightUnit.Ev100)
             {
                 legacyLight.intensity = LightUtils.ConvertEvToLuminance(m_Intensity);
             }
-            else if ((legacyLight.type == LightType.Spot || legacyLight.type == LightType.Point) && lightUnit == LightUnit.Lux)
-            {
-                // Box are local directional light with lux unity without at distance
-                if ((legacyLight.type == LightType.Spot) && (spotLightShape == SpotLightShape.Box))
-                    legacyLight.intensity = m_Intensity;
-                else
-                    legacyLight.intensity = LightUtils.ConvertLuxToCandela(m_Intensity, luxAtDistance);
-            }
             else
-                legacyLight.intensity = m_Intensity;
+            {
+                HDLightType lightType = type;
+                if ((lightType == HDLightType.Spot || lightType == HDLightType.Point) && lightUnit == LightUnit.Lux)
+                {
+                    // Box are local directional light with lux unity without at distance
+                    if ((lightType == HDLightType.Spot) && (spotLightShape == SpotLightShape.Box))
+                        legacyLight.intensity = m_Intensity;
+                    else
+                        legacyLight.intensity = LightUtils.ConvertLuxToCandela(m_Intensity, luxAtDistance);
+                }
+                else
+                    legacyLight.intensity = m_Intensity;
+            }
 
 #if UNITY_EDITOR
             legacyLight.SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
@@ -2201,7 +2280,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UpdateAreaLightEmissiveMesh()
         {
-            bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && displayAreaLightEmissiveMesh;
+            bool displayEmissiveMesh = type == HDLightType.Area && displayAreaLightEmissiveMesh;
 
             // Ensure that the emissive mesh components are here
             if (displayEmissiveMesh)
@@ -2231,7 +2310,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 lightSize = new Vector3(m_ShapeWidth, m_ShapeHeight, transform.localScale.z);
 
-            if (lightTypeExtent == LightTypeExtent.Tube)
+            if (areaLightShape == AreaLightShape.Tube)
                 lightSize.y = k_MinAreaWidth;
             lightSize.z = k_MinAreaWidth;
 
@@ -2258,13 +2337,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             legacyLight.transform.localScale = lossyToLocalScale;
 
-            switch (lightTypeExtent)
+            switch (areaLightShape)
             {
-                case LightTypeExtent.Rectangle:
+                case AreaLightShape.Rectangle:
                     m_ShapeWidth = lightSize.x;
                     m_ShapeHeight = lightSize.y;
                     break;
-                case LightTypeExtent.Tube:
+                case AreaLightShape.Tube:
                     m_ShapeWidth = lightSize.x;
                     break;
                 default:
@@ -2302,11 +2381,21 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null);
         }
 
-        void UpdateAreaLightBounds()
+        void UpdateRectangleLightBounds()
         {
             legacyLight.useShadowMatrixOverride = false;
             legacyLight.useBoundingSphereOverride = true;
-            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, legacyLight.range);
+            float halfWidth = m_ShapeWidth * 0.5f;
+            float halfHeight = m_ShapeHeight * 0.5f;
+            float diag = Mathf.Sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
+            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, Mathf.Max(range, diag));
+        }
+
+        void UpdateTubeLightBounds()
+        {
+            legacyLight.useShadowMatrixOverride = false;
+            legacyLight.useBoundingSphereOverride = true;
+            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, Mathf.Max(range, m_ShapeWidth * 0.5f));
         }
 
         void UpdateBoxLightBounds()
@@ -2336,30 +2425,38 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateBounds()
         {
-            if (lightTypeExtent == LightTypeExtent.Punctual && legacyLight.type == LightType.Spot)
+            switch (type)
             {
-                switch (spotLightShape)
-                {
-                    case SpotLightShape.Box:
-                        UpdateBoxLightBounds();
-                        break;
-                    case SpotLightShape.Pyramid:
-                        UpdatePyramidLightBounds();
-                        break;
-                    default: // Cone
-                        legacyLight.useBoundingSphereOverride = false;
-                        legacyLight.useShadowMatrixOverride = false;
-                        break;
-                }
-            }
-            else if (lightTypeExtent == LightTypeExtent.Rectangle || lightTypeExtent == LightTypeExtent.Tube)
-            {
-                UpdateAreaLightBounds();
-            }
-            else
-            {
-                legacyLight.useBoundingSphereOverride = false;
-                legacyLight.useShadowMatrixOverride = false;
+                case HDLightType.Spot:
+                    switch (spotLightShape)
+                    {
+                        case SpotLightShape.Box:
+                            UpdateBoxLightBounds();
+                            break;
+                        case SpotLightShape.Pyramid:
+                            UpdatePyramidLightBounds();
+                            break;
+                        default: // Cone
+                            legacyLight.useBoundingSphereOverride = false;
+                            legacyLight.useShadowMatrixOverride = false;
+                            break;
+                    }
+                    break;
+                case HDLightType.Area:
+                    switch (areaLightShape)
+                    {
+                        case AreaLightShape.Rectangle:
+                            UpdateRectangleLightBounds();
+                            break;
+                        case AreaLightShape.Tube:
+                            UpdateTubeLightBounds();
+                            break;
+                    }
+                    break;
+                default:
+                    legacyLight.useBoundingSphereOverride = false;
+                    legacyLight.useShadowMatrixOverride = false;
+                    break;
             }
         }
 
@@ -2410,7 +2507,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Toggle the usage of color temperature.
         /// </summary>
-        /// <param name="hdLight"></param>
         /// <param name="enable"></param>
         public void EnableColorTemperature(bool enable)
         {
@@ -2447,85 +2543,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Set the type of the light.
-        /// Note: this will also change the unit of the light if the current one is not supported by the new light type.
+        /// Set light cookie. Note that the texture must have a power of two size.
         /// </summary>
-        /// <param name="type"></param>
-        public void SetLightType(HDLightType type)
-        {
-            switch (type)
-            {
-                case HDLightType.BoxSpot:
-                    legacyLight.type = LightType.Spot;
-                    spotLightShape = SpotLightShape.Box;
-                    lightTypeExtent = LightTypeExtent.Punctual;
-                    break;
-                case HDLightType.PyramidSpot:
-                    legacyLight.type = LightType.Spot;
-                    spotLightShape = SpotLightShape.Pyramid;
-                    lightTypeExtent = LightTypeExtent.Punctual;
-                    break;
-                case HDLightType.ConeSpot:
-                    legacyLight.type = LightType.Spot;
-                    spotLightShape = SpotLightShape.Cone;
-                    lightTypeExtent = LightTypeExtent.Punctual;
-                    break;
-                case HDLightType.Directional:
-                    legacyLight.type = LightType.Directional;
-                    lightTypeExtent = LightTypeExtent.Punctual;
-                    break;
-                case HDLightType.Rectangle:
-                    legacyLight.type = LightType.Point;
-                    lightTypeExtent = LightTypeExtent.Rectangle;
-                    break;
-                case HDLightType.Tube:
-                    legacyLight.type = LightType.Point;
-                    lightTypeExtent = LightTypeExtent.Tube;
-                    break;
-                case HDLightType.Point:
-                    legacyLight.type = LightType.Point;
-                    lightTypeExtent = LightTypeExtent.Punctual;
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Get the HD light type.
-        /// </summary>
-        /// <returns></returns>
-        public HDLightType GetLightType()
-        {
-            if (lightTypeExtent == LightTypeExtent.Rectangle)
-                return HDLightType.Rectangle;
-            else if (lightTypeExtent == LightTypeExtent.Tube)
-                return HDLightType.Tube;
-            else
-            {
-                switch (legacyLight.type)
-                {
-                    case LightType.Spot:
-                        switch (spotLightShape)
-                        {
-                            case SpotLightShape.Box: return HDLightType.BoxSpot;
-                            case SpotLightShape.Pyramid: return HDLightType.PyramidSpot;
-                            default:
-                            case SpotLightShape.Cone: return HDLightType.ConeSpot;
-                        }
-                    case LightType.Directional: return HDLightType.Directional;
-                    default:
-                    case LightType.Point: return HDLightType.Point;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Set light cookie.
-        /// </summary>
-        /// <param name="cookie2D">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
+        /// <param name="cookie">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
         /// <param name="directionalLightCookieSize">area light </param>
         public void SetCookie(Texture cookie, Vector2 directionalLightCookieSize)
         {
-            if (IsAreaLight(lightTypeExtent))
+            HDLightType lightType = type;
+            if (lightType == HDLightType.Area)
             {
                 if (cookie.dimension != TextureDimension.Tex2D)
                 {
@@ -2536,17 +2561,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                if (legacyLight.type == LightType.Point && cookie.dimension != TextureDimension.Cube)
+                if (lightType == HDLightType.Point && cookie.dimension != TextureDimension.Cube)
                 {
                     Debug.LogError("Texture dimension " + cookie.dimension + " is not supported for point lights.");
                     return ;
                 }
-                else if (legacyLight.type != LightType.Point && cookie.dimension != TextureDimension.Tex2D) // Only 2D cookie are supported for Directional and Spot lights
+                else if ((lightType == HDLightType.Directional || lightType == HDLightType.Spot) && cookie.dimension != TextureDimension.Tex2D) // Only 2D cookie are supported for Directional and Spot lights
                 {
                     Debug.LogError("Texture dimension " + cookie.dimension + " is not supported for Directional/Spot lights.");
                     return ;
                 }
-                if (legacyLight.type == LightType.Directional)
+                if (lightType == HDLightType.Directional)
                 {
                     shapeWidth = directionalLightCookieSize.x;
                     shapeHeight = directionalLightCookieSize.y;
@@ -2558,7 +2583,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set light cookie.
         /// </summary>
-        /// <param name="cookie2D">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
+        /// <param name="cookie">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
         public void SetCookie(Texture cookie) => SetCookie(cookie, Vector2.zero);
 
         /// <summary>
@@ -2575,8 +2600,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the dimmer for light and volumetric light.
         /// </summary>
-        /// <param name="dimmer"></param>
-        /// <param name="volumetricLightDimmer"></param>
+        /// <param name="dimmer">Dimmer for the light</param>
+        /// <param name="volumetricDimmer">Dimmer for the volumetrics</param>
         public void SetLightDimmer(float dimmer = 1, float volumetricDimmer = 1)
         {
             this.lightDimmer = dimmer;
@@ -2586,7 +2611,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the light unit.
         /// </summary>
-        /// <param name="unit"></param>
+        /// <param name="unit">Unit of the light</param>
         public void SetLightUnit(LightUnit unit) => lightUnit = unit;
 
         /// <summary>
@@ -2610,7 +2635,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set whether the shadow resolution use the override value.
         /// </summary>
-        /// <param name="@override">True to use the override value, false otherwise.</param>
+        /// <param name="useOverride">True to use the override value, false otherwise.</param>
         public void SetShadowResolutionOverride(bool useOverride) => shadowResolution.useOverride = useOverride;
 
         /// <summary>
@@ -2622,23 +2647,23 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set parameters for PCSS shadows.
         /// </summary>
-        /// <param name="softness">How soft the shadow will be, between 0 and 1</param>
         /// <param name="blockerSampleCount">Number of samples used to detect blockers</param>
         /// <param name="filterSampleCount">Number of samples used to filter the shadow map</param>
-        /// <param name="minFilterSize">Minimum filter size</param>
-        public void SetPCSSParams(float softness, int blockerSampleCount = 16, int filterSampleCount = 24, float minFilterSize = 0.00001f)
+        /// <param name="minFilterSize">Minimum filter intensity</param>
+        /// <param name="radiusScaleForSoftness">Scale applied to shape radius or angular diameter in the softness calculations.</param>
+        public void SetPCSSParams(int blockerSampleCount = 16, int filterSampleCount = 24, float minFilterSize = 0.01f, float radiusScaleForSoftness = 1)
         {
-            this.shadowSoftness = softness;
             this.blockerSampleCount = blockerSampleCount;
             this.filterSampleCount = filterSampleCount;
             this.minFilterSize = minFilterSize;
+            this.softnessScale = radiusScaleForSoftness;
         }
 
         /// <summary>
         /// Set the light layer and shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
         /// </summary>
-        /// <param name="lightLayerMask"></param>
-        /// <param name="shadowLightLayerMask"></param>
+        /// <param name="lightLayerMask">Layer mask for receiving light</param>
+        /// <param name="shadowLayerMask">Layer mask for shadow rendering</param>
         public void SetLightLayer(LightLayerEnum lightLayerMask, LightLayerEnum shadowLayerMask)
         {
             // disable the shadow / light layer link
@@ -2688,7 +2713,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
         /// </summary>
-        /// <param name="lightLayerMask"></param>
+        /// <param name="shadowLayerMask"></param>
         public void SetShadowLightLayer(LightLayerEnum shadowLayerMask) => legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)shadowLayerMask, (int)legacyLight.renderingLayerMask);
 
         /// <summary>
@@ -2708,7 +2733,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Get the list of supported light units depending on the current light type.
         /// </summary>
         /// <returns></returns>
-        public LightUnit[] GetSupportedLightUnits() => GetSupportedLightUnits(legacyLight.type, m_LightTypeExtent, m_SpotLightShape);
+        public LightUnit[] GetSupportedLightUnits() => GetSupportedLightUnits(type, m_SpotLightShape);
 
         /// <summary>
         /// Set the area light size.
@@ -2716,7 +2741,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="size"></param>
         public void SetAreaLightSize(Vector2 size)
         {
-            if (IsAreaLight(lightTypeExtent))
+            if (type == HDLightType.Area)
             {
                 m_ShapeWidth = size.x;
                 m_ShapeHeight = size.y;
@@ -2730,70 +2755,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="size"></param>
         public void SetBoxSpotSize(Vector2 size)
         {
-            if (legacyLight.type == LightType.Spot)
+            if (type == HDLightType.Spot)
             {
                 shapeWidth = size.x;
                 shapeHeight = size.y;
             }
         }
-
-#endregion
-
-#region Utils
-
-        bool IsValidLightUnitForType(LightType type, LightTypeExtent typeExtent, SpotLightShape spotLightShape, LightUnit unit)
-        {
-            LightUnit[] allowedUnits = GetSupportedLightUnits(type, typeExtent, spotLightShape);
-
-            return allowedUnits.Any(u => u == unit);
-        }
-
-        [System.NonSerialized]
-        static Dictionary<int, LightUnit[]>  supportedLightTypeCache = new Dictionary<int, LightUnit[]>();
-        static LightUnit[] GetSupportedLightUnits(LightType type, LightTypeExtent typeExtent, SpotLightShape spotLightShape)
-        {
-            LightUnit[]     supportedTypes;
-
-            // Combine the two light types to access the dictionary
-            int cacheKey = ((int)type & 0xFF) << 0;
-            cacheKey |= ((int)typeExtent & 0xFF) << 8;
-            cacheKey |= ((int)spotLightShape & 0xFF) << 16;
-
-            // We cache the result once they are computed, it avoid garbage generated by Enum.GetValues and Linq.
-            if (supportedLightTypeCache.TryGetValue(cacheKey, out supportedTypes))
-                return supportedTypes;
-
-            if (IsAreaLight(typeExtent))
-                supportedTypes = Enum.GetValues(typeof(AreaLightUnit)).Cast<LightUnit>().ToArray();
-            else if (type == LightType.Directional || (type == LightType.Spot && spotLightShape == SpotLightShape.Box))
-                supportedTypes = Enum.GetValues(typeof(DirectionalLightUnit)).Cast<LightUnit>().ToArray();
-            else
-                supportedTypes = Enum.GetValues(typeof(PunctualLightUnit)).Cast<LightUnit>().ToArray();
-
-            supportedLightTypeCache[cacheKey] = supportedTypes;
-
-            return supportedTypes;
-        }
-
-        string GetLightTypeName()
-        {
-            if (IsAreaLight(lightTypeExtent))
-                return lightTypeExtent.ToString();
-            else
-                return legacyLight.type.ToString();
-        }
-
-        internal static bool IsAreaLight(LightTypeExtent lightType)
-        {
-            return lightType != LightTypeExtent.Punctual;
-        }
-
-#if UNITY_EDITOR
-        internal static bool IsAreaLight(SerializedProperty lightType)
-        {
-            return IsAreaLight((LightTypeExtent)lightType.enumValueIndex);
-        }
-#endif
 
 #endregion
 
@@ -2823,5 +2790,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         internal static int RenderingLayerMaskToLightLayer(int renderingLayerMask)
             => (byte)renderingLayerMask;
+
+        ShadowMapType shadowMapType
+            => (type == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle)
+            ? ShadowMapType.AreaLightAtlas
+            : type != HDLightType.Directional
+                ? ShadowMapType.PunctualAtlas
+                : ShadowMapType.CascadedDirectional;
     }
 }

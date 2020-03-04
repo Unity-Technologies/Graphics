@@ -1,7 +1,8 @@
 using UnityEngine;
-using UnityEditor.Rendering;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.HighDefinition;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -9,45 +10,6 @@ namespace UnityEditor.Rendering.HighDefinition
     [CanEditMultipleObjects]
     partial class HDCameraEditor : Editor
     {
-        [MenuItem("CONTEXT/Camera/Remove Component", false, 0)]
-        static void RemoveCamera(MenuCommand menuCommand)
-        {
-            GameObject go = ((Camera)menuCommand.context).gameObject;
-
-            Assert.IsNotNull(go);
-
-            Camera camera = go.GetComponent<Camera>();
-            HDAdditionalCameraData cameraAdditionalData = go.GetComponent<HDAdditionalCameraData>();
-
-            Assert.IsNotNull(camera);
-            Assert.IsNotNull(cameraAdditionalData);
-
-            Undo.SetCurrentGroupName("Remove HD Camera");
-            Undo.DestroyObjectImmediate(camera);
-            Undo.DestroyObjectImmediate(cameraAdditionalData);
-        }
-
-        [MenuItem("CONTEXT/Camera/Reset", false, 0)]
-        static void ResetCamera(MenuCommand menuCommand)
-        {
-            GameObject go = ((Camera)menuCommand.context).gameObject;
-
-            Assert.IsNotNull(go);
-
-            Camera camera = go.GetComponent<Camera>();
-            HDAdditionalCameraData cameraAdditionalData = go.GetComponent<HDAdditionalCameraData>();
-
-            Assert.IsNotNull(camera);
-            Assert.IsNotNull(cameraAdditionalData);
-
-            Undo.SetCurrentGroupName("Reset HD Camera");
-            Undo.RecordObjects(new UnityEngine.Object[] { camera, cameraAdditionalData }, "Reset HD Camera");
-            camera.Reset();
-            // To avoid duplicating init code we copy default settings to Reset additional data
-            // Note: we can't call this code inside the HDAdditionalCameraData, thus why we don't wrap it in a Reset() function
-            HDUtils.s_DefaultHDAdditionalCameraData.CopyTo(cameraAdditionalData);
-        }
-
         SerializedHDCamera m_SerializedCamera;
 
         RenderTexture m_PreviewTexture;
@@ -98,6 +60,51 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_PreviewTexture.Create();
             }
             return m_PreviewTexture;
+        }
+    }
+    
+    [ScriptableRenderPipelineExtension(typeof(HDRenderPipelineAsset))]
+    class HDCameraContextualMenu : IRemoveAdditionalDataContextualMenu<Camera>
+    {
+        //The call is delayed to the dispatcher to solve conflict with other SRP
+        public void RemoveComponent(Camera camera, IEnumerable<Component> dependencies)
+        {
+            // do not use keyword is to remove the additional data. It will not work
+            dependencies = dependencies.Where(c => c.GetType() != typeof(HDAdditionalCameraData));
+            if (dependencies.Count() > 0)
+            {
+                EditorUtility.DisplayDialog("Can't remove component", $"Can't remove Camera because {dependencies.First().GetType().Name} depends on it.", "Ok");
+                return;
+            }
+
+            Undo.SetCurrentGroupName("Remove HD Camera");
+            var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+            if (additionalCameraData)
+            {
+                Undo.DestroyObjectImmediate(additionalCameraData);
+            }
+            Undo.DestroyObjectImmediate(camera);
+        }
+        
+        [MenuItem("CONTEXT/Camera/Reset", false, 0)]
+        static void ResetCamera(MenuCommand menuCommand)
+        {
+            GameObject go = ((Camera)menuCommand.context).gameObject;
+
+            Assert.IsNotNull(go);
+
+            Camera camera = go.GetComponent<Camera>();
+            HDAdditionalCameraData cameraAdditionalData = go.GetComponent<HDAdditionalCameraData>();
+
+            Assert.IsNotNull(camera);
+            Assert.IsNotNull(cameraAdditionalData);
+
+            Undo.SetCurrentGroupName("Reset HD Camera");
+            Undo.RecordObjects(new UnityEngine.Object[] { camera, cameraAdditionalData }, "Reset HD Camera");
+            camera.Reset();
+            // To avoid duplicating init code we copy default settings to Reset additional data
+            // Note: we can't call this code inside the HDAdditionalCameraData, thus why we don't wrap it in a Reset() function
+            HDUtils.s_DefaultHDAdditionalCameraData.CopyTo(cameraAdditionalData);
         }
     }
 }

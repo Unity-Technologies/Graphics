@@ -29,7 +29,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderGraphResource depthStencilBuffer;
             public RenderGraphResource depthTexture;
             public RenderGraphMutableResource cameraFilteringBuffer;
-            public RenderGraphMutableResource hTileBuffer;
             public RenderGraphResource sssBuffer;
         }
 
@@ -39,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<SubsurfaceScaterringPassData>("Subsurface Scattering", out var passData, CustomSamplerId.SubsurfaceScattering.GetSampler()))
+            using (var builder = renderGraph.AddRenderPass<SubsurfaceScaterringPassData>("Subsurface Scattering", out var passData, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
             {
                 passData.parameters = PrepareSubsurfaceScatteringParameters(hdCamera);
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
@@ -47,9 +46,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.sssBuffer = builder.ReadTexture(lightingBuffers.sssBuffer);
-                passData.hTileBuffer = builder.WriteTexture(renderGraph.CreateTexture(
-                        new TextureDesc(size => new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8), true, true)
-                        { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "SSSHtile" }));
                 if (passData.parameters.needTemporaryBuffer)
                 {
                     passData.cameraFilteringBuffer = builder.WriteTexture(renderGraph.CreateTexture(
@@ -66,7 +62,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     resources.depthStencilBuffer = context.resources.GetTexture(data.depthStencilBuffer);
                     resources.depthTexture = context.resources.GetTexture(data.depthTexture);
                     resources.cameraFilteringBuffer = context.resources.GetTexture(data.cameraFilteringBuffer);
-                    resources.hTileBuffer = context.resources.GetTexture(data.hTileBuffer);
                     resources.sssBuffer = context.resources.GetTexture(data.sssBuffer);
 
                     RenderSubsurfaceScattering(data.parameters, resources, context.cmd);
