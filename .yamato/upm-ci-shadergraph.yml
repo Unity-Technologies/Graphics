@@ -333,12 +333,15 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     {% endif %}
 
     - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }}Linux64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+  dependencies:
+    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
+      rerun: {{ editor.rerun_strategy }}
+    - path: .yamato/upm-ci-universal.yml#Build_{{ project.name }}_Linux_Vulkan_Player_{{ editor.version }}
+      rerun: {{ editor.rerun_strategy }}
   artifacts:
     logs:
       paths:
         - "**/test-results/**"
-  dependencies:
-    - .yamato/upm-ci-shadergraph.yml#Build_{{ project.name }}_Linux_Vulkan_Player_{{ editor.version }}
   
 Build_{{ project.name }}_Linux_Vulkan_Player_{{ editor.version }}:
   name : Build {{ project.name }} on Linux_Vulkan_Player on version {{ editor.version }}
@@ -363,6 +366,9 @@ Build_{{ project.name }}_Linux_Vulkan_Player_{{ editor.version }}:
     {% endif %}
 
     - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }}Linux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200 --player-save-path=../../players --build-only
+  dependencies:
+    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
+      rerun: {{ editor.rerun_strategy }}
   artifacts:
     logs:
       paths:
@@ -403,7 +409,7 @@ Build_{{ project.name }}_Linux_Vulkan_Player_{{ editor.version }}:
       paths:
         - "**/upm-ci~/test-results/**/*" 
 {% endif %}
-{% endfor %}   
+{% endfor %}
 
 
 {% endif %}
