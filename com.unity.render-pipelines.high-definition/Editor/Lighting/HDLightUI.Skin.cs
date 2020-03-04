@@ -102,8 +102,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shadowResolution = new GUIContent("Resolution", "Sets the rendered resolution of the shadow maps. A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage.");
             public readonly GUIContent shadowFadeDistance = new GUIContent("Fade Distance", "Sets the distance at which Shadows fade before HDRP culls them completely. This minimizes popping.");
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Dims the shadows this Light casts.");
-            public readonly GUIContent shadowTint = new GUIContent("Tint", "Tint the shadows. This option affect dynamic shadows, contact shadows and shadow mask. It don't affect baked shadows.");
-            public readonly GUIContent penumbraTint = new GUIContent("Penumbra Tint", "Defines if the tint should only affect the penumbra. This option affect dynamic shadows, contact shadows and shadow mask. It don't affect baked shadows.");
+            public readonly GUIContent shadowTint = new GUIContent("Tint", "Specifies the color and transparency that HDRP tints this Light's shadows to. The tint affects dynamic shadows, Contact Shadows, and ShadowMask. It does not affect baked shadows.");
+            public readonly GUIContent penumbraTint = new GUIContent("Penumbra Tint", "When enabled, the tint only affects the shadow's penumbra.");
             public readonly GUIContent contactShadows = new GUIContent("Enable", "Enable support for Contact Shadows on this Light. This is better for lights with a lot of visible shadows.");
             public readonly GUIContent rayTracedContactShadow = new GUIContent("Ray Tracing", "Uses ray tracing to compute the contact shadow for a light.");
             public readonly GUIContent shadowUpdateMode = new GUIContent("Update Mode", "Specifies when HDRP updates the shadow map.");
