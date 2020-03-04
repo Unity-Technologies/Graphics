@@ -16,12 +16,12 @@ Unity automatically assigns a default Asset to this property that contains the r
 
 ![The 2D Renderer Data Asset property settings](Images/2D/Default_Material_Type.png)
 
-When created, a sprite will be assigned the selected default material type. 
+When created, a Sprite will be assigned the selected default Material type. 
 
-__Lit__ -  Uses the Sprite-Lit-Default material. This material can be lit by 2D lights
+__Lit__ -  Uses the Sprite-Lit-Default material. This Material can be lit by 2D lights
 
-__Unlit__ - Uses the Sprite-Unlit-Default material. This material is unaffected by lighting.
+__Unlit__ - Uses the Sprite-Unlit-Default material. This Material is unaffected by lighting.
 
 ![The 2D Renderer Data Asset property settings](Images/2D/Default_Custom_Material.png)
 
-__Custom__ - Uses the material specified in the Default Custom Material field    
+__Custom__ - Uses the Material specified in __Default Custom Material__.    
