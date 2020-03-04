@@ -88,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public override void SetFeatureColorTarget(RenderTargetHandle color)
         {
-            renderObjectsPass.ConfigureColorAttachment(color);
+            renderObjectsPass.ConfigureTarget(color);
         }
 
         public override void SetFeatureDepthTarget(RenderTargetHandle depth)
