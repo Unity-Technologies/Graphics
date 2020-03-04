@@ -84,9 +84,13 @@ void KERNEL_NAME(uint3 groupId          : SV_GroupID,
 
 #endif
 
+    //This temp is needed outside the if(isFirstThread) condition to workaround a DXC DXIL codegen
+    // issue https://github.com/microsoft/DirectXShaderCompiler/issues/2743 until it's fixed
+    uint perThreadCoarseStencilValue = coarseStencilValue;
+
     if (isFirstThread)
     {
         uint addressIndex = Get1DAddressFromPixelCoord(groupId.xy, _CoarseStencilBufferSize.xy, groupId.z);
-        _CoarseStencilBuffer[addressIndex] = coarseStencilValue;
+        _CoarseStencilBuffer[addressIndex] = perThreadCoarseStencilValue;
     }
 }
