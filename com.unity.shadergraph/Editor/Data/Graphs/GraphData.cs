@@ -534,6 +534,39 @@ namespace UnityEditor.ShaderGraph
             {
                 contextData.blockGuids.Insert(index, blockNode.guid);
             }
+
+            // Update support Blocks
+            UpdateSupportedBlocks();
+        }
+
+        public void UpdateSupportedBlocks()
+        {
+            // Get list of supported Block types
+            // TODO: This should be calculated by Settings object for the Target
+            var supportedBlockTypes = ListPool<string>.Get();
+            var masterNode = GetNodeFromGuid<AbstractMaterialNode>(activeOutputNodeGuid) as IMasterNode;
+            foreach(var implementation in validImplementations)
+            {
+                supportedBlockTypes.AddRange(implementation.GetSupportedBlocks(masterNode).Select(x => $"{x.tag}.{x.name}"));
+            }
+
+            // Set Blocks as active based on supported Block list
+            foreach(var vertexBlockGuid in vertexContext.blockGuids)
+            {
+                var block = GetNodeFromGuid<BlockNode>(vertexBlockGuid);
+                if(block == null)
+                    continue;
+
+                block.isActive = supportedBlockTypes.Contains(block.name);
+            }
+            foreach(var fragmentBlockGuid in fragmentContext.blockGuids)
+            {
+                var block = GetNodeFromGuid<BlockNode>(fragmentBlockGuid);
+                if(block == null)
+                    continue;
+
+                block.isActive = supportedBlockTypes.Contains(block.name);
+            }
         }
 
         void AddNodeNoValidate(AbstractMaterialNode node)
@@ -1503,6 +1536,8 @@ namespace UnityEditor.ShaderGraph
             m_ValidTargets = foundTargets;
             m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
             
+            // Update block compatibility
+            UpdateSupportedBlocks();
         }
     }
 

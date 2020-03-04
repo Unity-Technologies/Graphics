@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph.Internal
+namespace UnityEditor.ShaderGraph
 {
     public enum ContextStage
     {
@@ -38,6 +38,16 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             this.value = value;
             this.hdr = hdr;
+        }
+    }
+
+    public class ColorRGBAControl : IControl
+    {
+        public Color value { get; private set; }
+
+        public ColorRGBAControl(Color value)
+        {
+            this.value = value;
         }
     }
 

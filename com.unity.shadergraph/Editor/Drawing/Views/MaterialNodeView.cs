@@ -58,6 +58,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             viewDataKey = node.guid.ToString();
             UpdateTitle();
 
+            // Add disabled overlay
+            Add(new VisualElement() { name = "disabledOverlay", pickingMode = PickingMode.Ignore });
+
             // Add controls container
             var controlsContainer = new VisualElement { name = "controls" };
             {
@@ -216,6 +219,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_TitleContainer.Add(m_ButtonContainer);
             }
 
+            // Update active state
+            SetActive(node.isActive);
+
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
@@ -236,6 +242,28 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             Add(badge);
             badge.AttachTo(m_TitleContainer, SpriteAlignment.RightCenter);
+        }
+
+        public void SetActive(bool state)
+        {
+            // Setup
+            var disabledString = "disabled";
+            var inputViews = m_PortInputContainer.Children().OfType<PortInputView>();
+
+            if (!state)
+            {
+                // Add elements to disabled class list
+                AddToClassList(disabledString);
+                foreach(var inputView in inputViews)
+                    inputView.AddToClassList(disabledString);
+            }
+            else
+            {
+                // Remove elements from disabled class list
+                RemoveFromClassList(disabledString);
+                foreach(var inputView in inputViews)
+                    inputView.RemoveFromClassList(disabledString);
+            }
         }
 
         public void ClearMessage()
@@ -532,6 +560,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void OnModified(ModificationScope scope)
         {
             UpdateTitle();
+            SetActive(node.isActive);
             if (node.hasPreview)
                 UpdatePreviewExpandedState(node.previewExpanded);
 
@@ -645,6 +674,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
                     m_PortInputContainer.Add(portInputView);
                     SetPortInputPosition(port, portInputView);
+
+                    // Update active state
+                    if(node.isActive)
+                    {
+                        portInputView.RemoveFromClassList("disabled");
+                    }
+                    else
+                    {
+                        portInputView.AddToClassList("disabled");
+                    }
                 }
 
                 port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);

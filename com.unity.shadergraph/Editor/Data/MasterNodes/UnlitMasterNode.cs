@@ -75,6 +75,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // TODO: This was added specifically to test block compatibility
+        // TODO: Will be moved to Settings object
+        [SerializeField]
+        bool m_AlphaClip;
+        public ToggleData alphaClip
+        {
+            get { return new ToggleData(m_AlphaClip); }
+            set
+            {
+                if (m_AlphaClip == value.isOn)
+                    return;
+                m_AlphaClip = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
         [SerializeField]
         bool m_AddPrecomputedVelocity = false;
 
@@ -109,8 +125,20 @@ namespace UnityEditor.ShaderGraph
         public UnlitMasterNode()
         {
             UpdateNodeAfterDeserialization();
+
+            // TODO: Remove, temporary.
+            RegisterCallback(OnNodeChanged);
         }
 
+        // TODO: This should be based on callbacks/bindings to the Settings object
+        // TODO: For now this data lived on the master node so we do this for simplicity
+        void OnNodeChanged(AbstractMaterialNode inNode, ModificationScope scope)
+        {
+            if(owner != null)
+            {
+                owner.UpdateSupportedBlocks();
+            }
+        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

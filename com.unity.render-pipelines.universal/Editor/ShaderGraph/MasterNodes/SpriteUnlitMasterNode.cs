@@ -30,8 +30,20 @@ namespace UnityEditor.Experimental.Rendering.Universal
         public SpriteUnlitMasterNode()
         {
             UpdateNodeAfterDeserialization();
+
+            // TODO: Remove, temporary.
+            RegisterCallback(OnNodeChanged);
         }
 
+        // TODO: This should be based on callbacks/bindings to the Settings object
+        // TODO: For now this data lived on the master node so we do this for simplicity
+        void OnNodeChanged(AbstractMaterialNode inNode, ModificationScope scope)
+        {
+            if(owner != null)
+            {
+                owner.UpdateSupportedBlocks();
+            }
+        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
