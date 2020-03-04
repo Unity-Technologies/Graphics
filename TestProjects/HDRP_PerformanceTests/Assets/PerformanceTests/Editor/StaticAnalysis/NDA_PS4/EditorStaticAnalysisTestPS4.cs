@@ -3,7 +3,7 @@ using NUnit.Framework;
 using Unity.PerformanceTesting;
 using UnityEditor;
 
-public class EditorStaticAnalysisTestXboxOne
+public class EditorStaticAnalysisTestPS4
 {
     static IEnumerable<EditorStaticAnalysisTests.StaticAnalysisEntry> GetStaticAnalysisEntriesPS4() => EditorStaticAnalysisTests.GetStaticAnalysisEntries(BuildTarget.PS4);
 
