@@ -165,7 +165,7 @@ void TEMPORAL_ACCUMULATION_COLOR(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float3 minimum = min(bottomRight, topLeft) - nudge;
     float3 maximum = max(topLeft, bottomRight) + nudge;
 
-    history = Map(history);
+    history = FastTonemap(history);
 
     // Clip history samples
     history = DirectClipToAABB(history, minimum, maximum);

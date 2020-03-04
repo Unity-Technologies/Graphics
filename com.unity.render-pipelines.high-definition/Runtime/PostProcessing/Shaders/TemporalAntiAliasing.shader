@@ -1,4 +1,10 @@
-Shader "Hidden/HDRP/TemporalAntialiasing"
+// ---------------- TODO LIST
+// - Instead of exclude from TAA use reduced contribution of history?
+// - IMPORTANT: TODO_FCC: Read quad across to have less samples. (reduce 2 sample in each neighbourhood that includes across X, across Y
+//                        and 1 extra reduction if read in diagonal.
+
+
+Shader "Hidden/HDRP/TAA2"
 {
     Properties
     {
@@ -11,6 +17,11 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
         #pragma target 4.5
         #pragma multi_compile_local _ ORTHOGRAPHIC
         #pragma multi_compile_local _ ENABLE_ALPHA
+        #pragma multi_compile_local _ FORCE_BILINEAR_HISTORY
+        #pragma multi_compile_local _ ENABLE_MV_REJECTION
+        #pragma multi_compile_local _ ANTI_RINGING
+        #pragma multi_compile_local LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY
+
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -18,11 +29,73 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
+
+
+        // ---------------------------------------------------
+        // Tier definitions
+        // ---------------------------------------------------
+
+#ifdef LOW_QUALITY
+     // Currently this is around 0.6ms/PS4 @ 1080p
+    #define YCOCG 0
+    #define HISTORY_SAMPLING_METHOD BILINEAR
+    #define WIDE_NEIGHBOURHOOD 0
+    #define NEIGHBOUROOD_CORNER_METHOD MINMAX
+    #define CENTRAL_FILTERING NO_FILTERING
+    #define HISTORY_CLIP SIMPLE_CLAMP
+    #define ANTI_FLICKER 0
+    #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
+    #define PERCEPTUAL_SPACE 0
+    #define PERCEPTUAL_SPACE_ONLY_END 1 && (PERCEPTUAL_SPACE == 0)
+
+#elif defined(MEDIUM_QUALITY)
+    // Currently this is around 0.89ms/PS4 @ 1080p, 0.85ms/XboxOne @ 900p 
+    #define YCOCG 1
+    #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
+    #define WIDE_NEIGHBOURHOOD 0
+    #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
+    #define CENTRAL_FILTERING NO_FILTERING
+    #define HISTORY_CLIP DIRECT_CLIP
+    #define ANTI_FLICKER 1
+    #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
+    #define PERCEPTUAL_SPACE 1
+    #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+
+
+#elif defined(HIGH_QUALITY) // TODO: We can do better in term of quality here (e.g. subpixel changes etc) and can be optimized a bit more
+    #define YCOCG 1
+    #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
+    #define WIDE_NEIGHBOURHOOD 1
+    #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
+    #define CENTRAL_FILTERING BLACKMAN_HARRIS
+    #define HISTORY_CLIP DIRECT_CLIP
+    #define ANTI_FLICKER 1
+    #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
+    #define PERCEPTUAL_SPACE 1
+    #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+
+#endif
+
+
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
 
+        TEXTURE2D_X(_DepthTexture);
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
         RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture);
+
+
+        #define _HistorySharpening _TaaPostParameters.x
+        #define _AntiFlickerIntensity _TaaPostParameters.y
+        #define _SpeedRejectionIntensity _TaaPostParameters.z
+
+
+        TEXTURE2D_X(_InputVelocityMagnitudeHistory);
+        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory);
+
+        float4 _TaaPostParameters;
+        float4 _TaaHistorySize;
+        float4 _TaaFilterWeights;
 
         struct Attributes
         {
@@ -47,6 +120,8 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             return output;
         }
 
+    // ------------------------------------------------------------------
+
         void FragTAA(Varyings input, out CTYPE outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -54,85 +129,97 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             float sharpenStrength = _TaaFrameInfo.x;
             float2 jitter = _TaaJitterStrength.zw;
 
-    #if defined(ORTHOGRAPHIC)
-            // Don't dilate in ortho
-            float2 closest = input.positionCS.xy;
-    #else
-            float2 closest = GetClosestFragment(input.positionCS.xy);
-    #endif
-
-            float2 motionVector;
-            DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), motionVector);
-            float motionVecLength = length(motionVector);
-
             float2 uv = input.texcoord - jitter;
 
+            // --------------- Get closest motion vector ---------------
+            float2 motionVector;
+
+#if ORTHOGRAPHIC
+            float2 closest = input.positionCS.xy;
+#else
+            float2 closest = GetClosestFragment(_DepthTexture, int2(input.positionCS.xy));
+#endif
+            DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), motionVector);
+            // --------------------------------------------------------
+
+            // --------------- Get resampled history ---------------
+            float2 prevUV = input.texcoord - motionVector;
+
+            CTYPE history = GetFilteredHistory(_InputHistoryTexture, prevUV, _HistorySharpening, _TaaHistorySize);
+            bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (2.0 * _TaaHistorySize.zw)));
+            history.xyz *= PerceptualWeight(history);
+            // -----------------------------------------------------
+
+            // --------------- Gather neigbourhood data --------------- 
             CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
-            CTYPE history = Fetch4(_InputHistoryTexture, input.texcoord - motionVector, 0.0, _RTHandleScaleHistory.zw).CTYPE_SWIZZLE;
+            color = clamp(color, 0, CLAMP_MAX);
+            color = ConvertToWorkingSpace(color);
 
-            CTYPE topLeft = Fetch4(_InputTexture, uv, -RADIUS, _RTHandleScale.xy).CTYPE_SWIZZLE;
-            CTYPE bottomRight = Fetch4(_InputTexture, uv, RADIUS, _RTHandleScale.xy).CTYPE_SWIZZLE;
+            NeighbourhoodSamples samples;
+            GatherNeighbourhood(_InputTexture, uv, input.positionCS.xy, color, samples);
+            // --------------------------------------------------------
 
-            CTYPE corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
+            // --------------- Filter central sample ---------------
+            CTYPE filteredColor = FilterCentralColor(samples, _TaaFilterWeights);
+            // ------------------------------------------------------
 
-            // Sharpen output
-    #if SHARPEN
-            CTYPE topRight = Fetch4(_InputTexture, uv, float2(RADIUS, -RADIUS), _RTHandleScale.xy).CTYPE_SWIZZLE;
-            CTYPE bottomLeft = Fetch4(_InputTexture, uv, float2(-RADIUS, RADIUS), _RTHandleScale.xy).CTYPE_SWIZZLE;
-            CTYPE blur = (topLeft + topRight + bottomLeft + bottomRight) * 0.25;
-            color += (color - blur) * sharpenStrength;
-    #endif
+            if (offScreen)
+                history = filteredColor;
 
-            color.xyz = clamp(color.xyz, 0.0, CLAMP_MAX);
+            // --------------- Get neighbourhood information and clamp history --------------- 
+            float colorLuma = GetLuma(filteredColor);
+            float historyLuma = GetLuma(history);
+            GetNeighbourhoodCorners(samples, historyLuma, colorLuma, _AntiFlickerIntensity);
 
-            float3 average = Map((corners.xyz + color.xyz) / 7.0);
+            history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
+            filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
+            // ------------------------------------------------------------------------------
 
-            topLeft.xyz = Map(topLeft.xyz);
-            bottomRight.xyz = Map(bottomRight.xyz);
-            color.xyz = Map(color.xyz);
+            // --------------- Compute blend factor for history ---------------
+            float blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour));
+            // --------------------------------------------------------
 
-            float colorLuma = Luminance(color.xyz);
-            float averageLuma = Luminance(average);
-            float nudge = lerp(4.0, 0.25, saturate(motionVecLength * 100.0)) * abs(averageLuma - colorLuma);
-
-            CTYPE minimum = min(bottomRight, topLeft) - nudge;
-            CTYPE maximum = max(topLeft, bottomRight) + nudge;
-
-            history.xyz = Map(history.xyz);
-
-            // Clip history samples
-    #if CLIP_AABB
-            history = ClipToAABB(history, minimum, maximum);
-    #else
-            history = clamp(history, minimum, maximum);
-    #endif
-
-            // Blend color & history
-            // Feedback weight from unbiased luminance diff (Timothy Lottes)
-            float historyLuma = Luminance(history.xyz);
-            float diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
-            float weight = 1.0 - diff;
-            float feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
-
-    #if defined(ENABLE_ALPHA)
+            // ------------------- Alpha handling ---------------------------
+#if defined(ENABLE_ALPHA)
             // Compute the antialiased alpha value
-            color.w = lerp(color.w, history.w, feedback);
+            filteredColor.w = lerp(history.w, filteredColor.w, blendFactor);
             // TAA should not overwrite pixels with zero alpha. This allows camera stacking with mixed TAA settings (bottom camera with TAA OFF and top camera with TAA ON).
             CTYPE unjitteredColor = Fetch4(_InputTexture, input.texcoord - color.w * jitter, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
-            color.xyz = lerp(Map(unjitteredColor.xyz), color.xyz, color.w);
+            unjitteredColor = ConvertToWorkingSpace(unjitteredColor);
+            unjitteredColor.xyz *= PerceptualWeight(unjitteredColor);
+            filteredColor.xyz = lerp(unjitteredColor.xyz, filteredColor.xyz, filteredColor.w);
+            blendFactor = color.w > 0 ? blendFactor : 1;
+#endif
+            // ---------------------------------------------------------------
+
+            // --------------- Blend to final value and output ---------------
+
+#if VELOCITY_REJECTION
+            float lengthMV = length(motionVector) * 10;
+            blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity);
+#endif
+
+            CTYPE finalColor;
+
+#if PERCEPTUAL_SPACE_ONLY_END
+            finalColor.xyz = lerp(ReinhardToneMap(history), ReinhardToneMap(filteredColor), blendFactor);
+            finalColor = InverseReinhardToneMap(finalColor);
+#else
+            finalColor.xyz = lerp(history, filteredColor, blendFactor);
+            finalColor.xyz *= PerceptualInvWeight(finalColor);
+#endif
 
 
+            color.xyz = ConvertToOutputSpace(finalColor.xyz);
+            color.xyz = clamp(color.xyz, 0, CLAMP_MAX);
 
+            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
+            outColor = color.CTYPE_SWIZZLE;
 
-            feedback *= color.w;
-    #endif
-            color.xyz = Unmap(lerp(color.xyz, history.xyz, feedback));
-            color.xyz = clamp(color.xyz, 0.0, CLAMP_MAX);
-
-            //color = colorLuma;
-            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
-            outColor = color;
-           // outColor = abs(averageLuma - colorLuma);
+#if VELOCITY_REJECTION
+            _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = lengthMV;
+#endif
+            // -------------------------------------------------------------
         }
 
         void FragExcludedTAA(Varyings input, out CTYPE outColor : SV_Target0)

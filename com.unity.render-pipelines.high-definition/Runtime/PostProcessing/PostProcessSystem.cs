@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearBlackMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.clearBlackPS);
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.SMAAPS);
             m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.temporalAntialiasingPS);
-            m_TemporalAAMaterial2 = CoreUtils.CreateEngineMaterial(m_Resources.shaders.temporalAntialiasing2PS);
+            m_TemporalAAMaterial2 = CoreUtils.CreateEngineMaterial(m_Resources.shaders.oldTAA);
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
@@ -909,7 +909,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DoTemporalAntialiasing(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, RTHandle depthBuffer, RTHandle depthMipChain)
         {
-            Material TAAMat = camera.oldTAA ? m_TemporalAAMaterial : m_TemporalAAMaterial2;
+            Material TAAMat = camera.oldTAA ? m_TemporalAAMaterial2 : m_TemporalAAMaterial;
 
             GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory);
             GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);

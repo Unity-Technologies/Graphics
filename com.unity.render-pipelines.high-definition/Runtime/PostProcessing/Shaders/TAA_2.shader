@@ -29,7 +29,73 @@ Shader "Hidden/HDRP/TAA2"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing2.hlsl"
+
+
+        // ---------------------------------------------------
+        // Tier definitions
+        // ---------------------------------------------------
+
+#ifdef LOW_QUALITY
+     // Currently this is around 0.6ms/PS4 @ 1080p
+    #define YCOCG 0
+    #define HISTORY_SAMPLING_METHOD BILINEAR
+    #define WIDE_NEIGHBOURHOOD 0
+    #define NEIGHBOUROOD_CORNER_METHOD MINMAX
+    #define CENTRAL_FILTERING NO_FILTERING
+    #define HISTORY_CLIP SIMPLE_CLAMP
+    #define ANTI_FLICKER 0
+    #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
+    #define PERCEPTUAL_SPACE 0
+    #define PERCEPTUAL_SPACE_ONLY_END 1 && (PERCEPTUAL_SPACE == 0)
+
+#elif defined(MEDIUM_QUALITY)
+    // Currently this is around 0.89ms/PS4 @ 1080p, 0.85ms/XboxOne @ 900p 
+    #define YCOCG 1
+    #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
+    #define WIDE_NEIGHBOURHOOD 0
+    #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
+    #define CENTRAL_FILTERING NO_FILTERING
+    #define HISTORY_CLIP DIRECT_CLIP
+    #define ANTI_FLICKER 1
+    #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
+    #define PERCEPTUAL_SPACE 1
+    #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+
+
+#elif defined(HIGH_QUALITY) // TODO: We can do better in term of quality here (e.g. subpixel changes etc) and can be optimized a bit more
+    #define YCOCG 1
+    #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
+    #define WIDE_NEIGHBOURHOOD 1
+    #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
+    #define CENTRAL_FILTERING BLACKMAN_HARRIS
+    #define HISTORY_CLIP DIRECT_CLIP
+    #define ANTI_FLICKER 1
+    #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
+    #define PERCEPTUAL_SPACE 0
+    #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+
+#endif
+
+
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
+
+        TEXTURE2D_X(_DepthTexture);
+        TEXTURE2D_X(_InputTexture);
+        TEXTURE2D_X(_InputHistoryTexture);
+        RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture);
+
+
+        #define _HistorySharpening _TaaPostParameters.x
+        #define _AntiFlickerIntensity _TaaPostParameters.y
+        #define _SpeedRejectionIntensity _TaaPostParameters.z
+
+
+        TEXTURE2D_X(_InputVelocityMagnitudeHistory);
+        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory);
+
+        float4 _TaaPostParameters;
+        float4 _TaaHistorySize;
+        float4 _TaaFilterWeights;
 
         struct Attributes
         {
@@ -71,7 +137,7 @@ Shader "Hidden/HDRP/TAA2"
 #if ORTHOGRAPHIC
             float2 closest = input.positionCS.xy;
 #else
-            float2 closest = GetClosestFragment(int2(input.positionCS.xy));
+            float2 closest = GetClosestFragment(_DepthTexture, int2(input.positionCS.xy));
 #endif
             DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), motionVector);
             // --------------------------------------------------------
@@ -79,7 +145,7 @@ Shader "Hidden/HDRP/TAA2"
             // --------------- Get resampled history ---------------
             float2 prevUV = input.texcoord - motionVector;
 
-            CTYPE history = GetFilteredHistory(prevUV);
+            CTYPE history = GetFilteredHistory(_InputHistoryTexture, prevUV, _HistorySharpening, _TaaHistorySize);
             bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (2.0 * _TaaHistorySize.zw)));
             history.xyz *= PerceptualWeight(history);
             // -----------------------------------------------------
@@ -90,11 +156,11 @@ Shader "Hidden/HDRP/TAA2"
             color = ConvertToWorkingSpace(color);
 
             NeighbourhoodSamples samples;
-            GatherNeighbourhood(uv, input.positionCS.xy, color, samples);
+            GatherNeighbourhood(_InputTexture, uv, input.positionCS.xy, color, samples);
             // --------------------------------------------------------
 
             // --------------- Filter central sample ---------------
-            CTYPE filteredColor = FilterCentralColor(samples);
+            CTYPE filteredColor = FilterCentralColor(samples, _TaaFilterWeights);
             // ------------------------------------------------------
 
             if (offScreen)
@@ -103,10 +169,10 @@ Shader "Hidden/HDRP/TAA2"
             // --------------- Get neighbourhood information and clamp history --------------- 
             float colorLuma = GetLuma(filteredColor);
             float historyLuma = GetLuma(history);
-            GetNeighbourhoodCorners(samples, historyLuma, colorLuma);
+            GetNeighbourhoodCorners(samples, historyLuma, colorLuma, _AntiFlickerIntensity);
 
             history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
-            filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
+       //     filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
             // ------------------------------------------------------------------------------
 
             // --------------- Compute blend factor for history ---------------
@@ -130,7 +196,7 @@ Shader "Hidden/HDRP/TAA2"
 
 #if VELOCITY_REJECTION
             float lengthMV = length(motionVector) * 10;
-            blendFactor = ModifyBlendWithMotionVectorRejection(lengthMV, prevUV, blendFactor);
+            blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity);
 #endif
 
             CTYPE finalColor;

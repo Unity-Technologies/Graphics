@@ -166,10 +166,9 @@ MonoBehaviour:
     finalPassPS: {fileID: 4800000, guid: 5ac9ef0c50282754b93c7692488e7ee7, type: 3}
     clearBlackPS: {fileID: 4800000, guid: 3330c1503ea8c6d4d9408df3f64227eb, type: 3}
     SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
-    temporalAntialiasingPS: {fileID: 4800000, guid: d22a37b5c800a0040a87b2a58de74e13,
+    temporalAntialiasingPS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179,
       type: 3}
-    temporalAntialiasing2PS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179,
-      type: 3}
+    oldTAA: {fileID: 4800000, guid: 99827a460dd878d409e0914eb789ce05, type: 3}
     contrastAdaptiveSharpenCS: {fileID: 7200000, guid: 560896aec2f412c48995be35551a4ac6,
       type: 3}
   textures:

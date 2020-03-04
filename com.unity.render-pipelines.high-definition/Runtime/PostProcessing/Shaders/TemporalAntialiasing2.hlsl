@@ -3,26 +3,21 @@
 
 #define CLAMP_MAX       65472.0 // HALF_MAX minus one (2 - 2^-9) * 2^15
 
+// Legacy defines, DON'T USE IN NEW PASSES THAT USE TEMPORAL AA
+#define RADIUS              0.75
+
 #if !defined(CTYPE)
     #define CTYPE float3
+    #define CTYPE_SWIZZLE xyz
 #endif
+
 
 #if UNITY_REVERSED_Z
     #define COMPARE_DEPTH(a, b) step(b, a)
 #else
     #define COMPARE_DEPTH(a, b) step(a, b)
 #endif
-TEXTURE2D_X(_DepthTexture);
-TEXTURE2D_X(_InputTexture);
-TEXTURE2D_X(_InputHistoryTexture);
-RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture);
 
-TEXTURE2D_X(_InputVelocityMagnitudeHistory);
-RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory);
-
-float4 _TaaPostParameters;
-float4 _TaaHistorySize;
-float4 _TaaFilterWeights;
 
 float3 Fetch(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
@@ -70,49 +65,41 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
 #define SIMPLE_CLAMP 2
 
 
-// ---------------------------------------------------
-// Tier definitions
-// ---------------------------------------------------
+// Set defines in case not set outside the include
+#ifndef YCOCG
+    #define YCOCG 1
+#endif
 
-#ifdef LOW_QUALITY
-     // Currently this is around 0.6ms/PS4 @ 1080p
-    #define YCOCG 0
+#ifndef HISTORY_SAMPLING_METHOD
     #define HISTORY_SAMPLING_METHOD BILINEAR
-    #define WIDE_NEIGHBOURHOOD 0
-    #define NEIGHBOUROOD_CORNER_METHOD MINMAX
-    #define CENTRAL_FILTERING NO_FILTERING
-    #define HISTORY_CLIP SIMPLE_CLAMP
-    #define ANTI_FLICKER 0
-    #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
-    #define PERCEPTUAL_SPACE 0
-    #define PERCEPTUAL_SPACE_ONLY_END 1 && (PERCEPTUAL_SPACE == 0)
+#endif
 
-#elif defined(MEDIUM_QUALITY)
-    // Currently this is around 0.89ms/PS4 @ 1080p, 0.85ms/XboxOne @ 900p 
-    #define YCOCG 1
-    #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
-    #define WIDE_NEIGHBOURHOOD 0
+#ifndef NEIGHBOUROOD_CORNER_METHOD
     #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
+#endif
+
+#ifndef WIDE_NEIGHBOURHOOD
+    #define WIDE_NEIGHBOURHOOD 0
+#endif
+
+#ifndef CENTRAL_FILTERING
     #define CENTRAL_FILTERING NO_FILTERING
-    #define HISTORY_CLIP DIRECT_CLIP
+#endif
+
+#ifndef CENTRAL_FILTERING
+    #define CENTRAL_FILTERING DIRECT_CLIP
+#endif
+
+#ifndef ANTI_FLICKER
     #define ANTI_FLICKER 1
-    #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
+#endif
+
+#ifndef VELOCITY_REJECTION
+    #define VELOCITY_REJECTION 0
+#endif
+
+#ifndef PERCEPTUAL_SPACE
     #define PERCEPTUAL_SPACE 1
-    #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
-
-
-#elif defined(HIGH_QUALITY) // TODO: We can do better in term of quality here (e.g. subpixel changes etc) and can be optimized a bit more
-    #define YCOCG 1
-    #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
-    #define WIDE_NEIGHBOURHOOD 1
-    #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
-    #define CENTRAL_FILTERING BLACKMAN_HARRIS
-    #define HISTORY_CLIP DIRECT_CLIP
-    #define ANTI_FLICKER 1
-    #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
-    #define PERCEPTUAL_SPACE 1
-    #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
-
 #endif
 
 // ---------------------------------------------------
@@ -268,7 +255,7 @@ float3 ConvertToOutputSpace(float3 color)
 // ---------------------------------------------------
 
 // Front most neighbourhood velocity ([Karis 2014])
-float2 GetClosestFragment(int2 positionSS)
+float2 GetClosestFragment(TEXTURE2D_X(DepthTexture), int2 positionSS)
 {
     float center = LoadCameraDepth(positionSS);
 
@@ -279,9 +266,9 @@ float2 GetClosestFragment(int2 positionSS)
     int2 offset2 = int2(quadOffset.x, -quadOffset.y);
     int2 offset3 = quadOffset;
 
-    float s3 = LOAD_TEXTURE2D_X_LOD(_DepthTexture, positionSS + offset3, 0).r;
-    float s2 = LOAD_TEXTURE2D_X_LOD(_DepthTexture, positionSS + offset2, 0).r;
-    float s1 = LOAD_TEXTURE2D_X_LOD(_DepthTexture, positionSS + offset1, 0).r;
+    float s3 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + offset3, 0).r;
+    float s2 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + offset2, 0).r;
+    float s1 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + offset1, 0).r;
     float s0 = QuadReadAcrossDiagonal(center, positionSS);
 
     float3 closest = float3(0.0, 0.0, center);
@@ -313,28 +300,18 @@ float2 GetClosestFragmentCompute(float2 positionSS)
     return positionSS + closest.xy;
 }
 
-float EncodeMVMagnitude(float mvLength)
-{
-    return mvLength;
-    return (1.0 - exp2(-mvLength * 0.5));
-}
-float DecodeMVMagnitude(float encodedVal)
-{
-    return encodedVal;
-    return -2.0 * log2(1.0 - (encodedVal));
-}
 
-float ModifyBlendWithMotionVectorRejection(float2 mvLen, float2 prevUV, float blendFactor)
+float ModifyBlendWithMotionVectorRejection(TEXTURE2D_X(VelocityMagnitudeTexture), float mvLen, float2 prevUV, float blendFactor, float speedRejectionFactor)
 {
     // TODO: This needs some refinement, it can lead to some annoying flickering coming back on strong camera movement.
 #if VELOCITY_REJECTION
 
-    float prevMVLen = Fetch(_InputVelocityMagnitudeHistory, prevUV, 0, _RTHandleScaleHistory.xy);
+    float prevMVLen = Fetch(VelocityMagnitudeTexture, prevUV, 0, _RTHandleScaleHistory.xy).x;
     float diff = abs(mvLen - prevMVLen);
 
     // We don't start rejecting until we have the equivalent of around 40 texels in 1080p
     diff -= 0.015935382;
-    float val = saturate(diff * _TaaPostParameters.z);
+    float val = saturate(diff * speedRejectionFactor);
     return lerp(blendFactor, 1.0, val*val);
 
 #else
@@ -349,19 +326,17 @@ float GetMVRejection(float mvLength, float2 prevUV)
 // History sampling 
 // ---------------------------------------------------
 
-CTYPE HistoryBilinear(float2 UV)
+CTYPE HistoryBilinear(TEXTURE2D_X(HistoryTexture), float2 UV)
 {
-    CTYPE color = Fetch4(_InputHistoryTexture, UV, 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
+    CTYPE color = Fetch4(HistoryTexture, UV, 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
     return color;
 }
 
 // From Filmic SMAA presentation[Jimenez 2016]
 // A bit more verbose that it needs to be, but makes it a bit better at latency hiding
-CTYPE HistoryBicubic5Tap(float2 UV)
+CTYPE HistoryBicubic5Tap(TEXTURE2D_X(HistoryTexture), float2 UV, float sharpening, float4 historyBufferInfo)
 {
-    const float sharpening = _TaaPostParameters.x;
-
-    float2 samplePos = UV * _TaaHistorySize.xy;
+    float2 samplePos = UV * historyBufferInfo.xy;
     float2 tc1 = floor(samplePos - 0.5) + 0.5;
     float2 f = samplePos - tc1;
     float2 f2 = f * f;
@@ -375,15 +350,15 @@ CTYPE HistoryBicubic5Tap(float2 UV)
     float2 w3 = c          * f3 - c                * f2;
 
     float2 w12 = w1 + w2;
-    float2 tc0 = _TaaHistorySize.zw   * (tc1 - 1.0);
-    float2 tc3 = _TaaHistorySize.zw   * (tc1 + 2.0);
-    float2 tc12 = _TaaHistorySize.zw  * (tc1 + w2 / w12);
+    float2 tc0 = historyBufferInfo.zw   * (tc1 - 1.0);
+    float2 tc3 = historyBufferInfo.zw   * (tc1 + 2.0);
+    float2 tc12 = historyBufferInfo.zw  * (tc1 + w2 / w12);
 
-    CTYPE s0 = Fetch4(_InputHistoryTexture, float2(tc12.x, tc0.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
-    CTYPE s1 = Fetch4(_InputHistoryTexture, float2(tc0.x, tc12.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
-    CTYPE s2 = Fetch4(_InputHistoryTexture, float2(tc12.x, tc12.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
-    CTYPE s3 = Fetch4(_InputHistoryTexture, float2(tc3.x, tc0.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
-    CTYPE s4 = Fetch4(_InputHistoryTexture, float2(tc12.x, tc3.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
+    CTYPE s0 = Fetch4(HistoryTexture, float2(tc12.x, tc0.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
+    CTYPE s1 = Fetch4(HistoryTexture, float2(tc0.x, tc12.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
+    CTYPE s2 = Fetch4(HistoryTexture, float2(tc12.x, tc12.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
+    CTYPE s3 = Fetch4(HistoryTexture, float2(tc3.x, tc0.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
+    CTYPE s4 = Fetch4(HistoryTexture, float2(tc12.x, tc3.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
 
     float cw0 = (w12.x * w0.y);
     float cw1 = (w0.x * w12.y);
@@ -420,14 +395,14 @@ CTYPE HistoryBicubic5Tap(float2 UV)
 }
 
 
-CTYPE GetFilteredHistory(float2 UV)
+CTYPE GetFilteredHistory(TEXTURE2D_X(HistoryTexture), float2 UV, float sharpening, float4 historyBufferInfo)
 {
     CTYPE history = 0;
 
 #if (HISTORY_SAMPLING_METHOD == BILINEAR || defined(FORCE_BILINEAR_HISTORY))
-    history = HistoryBilinear(UV);
+    history = HistoryBilinear(HistoryTexture, UV);
 #elif HISTORY_SAMPLING_METHOD == BICUBIC_5TAP
-    history = HistoryBicubic5Tap(UV);
+    history = HistoryBicubic5Tap(HistoryTexture, UV, sharpening, historyBufferInfo);
 #endif
 
     history = clamp(history, 0, CLAMP_MAX);
@@ -470,7 +445,7 @@ void ConvertNeighboursToPerceptualSpace(inout NeighbourhoodSamples samples)
     samples.central.xyz       *= PerceptualWeight(samples.central);
 }
 
-void GatherNeighbourhood(float2 UV, float2 positionSS, CTYPE centralColor, out NeighbourhoodSamples samples)
+void GatherNeighbourhood(TEXTURE2D_X(InputTexture), float2 UV, float2 positionSS, CTYPE centralColor, out NeighbourhoodSamples samples)
 {
     samples = (NeighbourhoodSamples)0;
 
@@ -481,8 +456,8 @@ void GatherNeighbourhood(float2 UV, float2 positionSS, CTYPE centralColor, out N
 #if WIDE_NEIGHBOURHOOD
 
     // Plus shape
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, float2(0.0f, quadOffset.y), _RTHandleScale.xy).CTYPE_SWIZZLE);
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, float2(quadOffset.x, 0.0f), _RTHandleScale.xy).CTYPE_SWIZZLE);
+    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0.0f, quadOffset.y), _RTHandleScale.xy).CTYPE_SWIZZLE);
+    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(quadOffset.x, 0.0f), _RTHandleScale.xy).CTYPE_SWIZZLE);
     samples.neighbours[2] = QuadReadColorAcrossX(centralColor, positionSS);
     samples.neighbours[3] = QuadReadColorAcrossY(centralColor, positionSS);
 
@@ -493,17 +468,17 @@ void GatherNeighbourhood(float2 UV, float2 positionSS, CTYPE centralColor, out N
     int2 offset3 = quadOffset;
 
 
-    samples.neighbours[4] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset1, _RTHandleScale.xy).CTYPE_SWIZZLE);
-    samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset2, _RTHandleScale.xy).CTYPE_SWIZZLE);
-    samples.neighbours[6] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset3, _RTHandleScale.xy).CTYPE_SWIZZLE);
+    samples.neighbours[4] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset1, _RTHandleScale.xy).CTYPE_SWIZZLE);
+    samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset2, _RTHandleScale.xy).CTYPE_SWIZZLE);
+    samples.neighbours[6] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset3, _RTHandleScale.xy).CTYPE_SWIZZLE);
     samples.neighbours[7] = QuadReadColorAcrossDiagonal(centralColor, positionSS);
 
 #else // !WIDE_NEIGHBOURHOOD
 
 #if SMALL_NEIGHBOURHOOD_SHAPE == PLUS
 
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, float2(0.0f, quadOffset.y), _RTHandleScale.xy).CTYPE_SWIZZLE);
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, float2(quadOffset.x, 0.0f), _RTHandleScale.xy).CTYPE_SWIZZLE);
+    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(0.0f, quadOffset.y), _RTHandleScale.xy).CTYPE_SWIZZLE);
+    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, float2(quadOffset.x, 0.0f), _RTHandleScale.xy).CTYPE_SWIZZLE);
     samples.neighbours[2] = QuadReadColorAcrossX(centralColor, positionSS);
     samples.neighbours[3] = QuadReadColorAcrossY(centralColor, positionSS);
 
@@ -514,9 +489,9 @@ void GatherNeighbourhood(float2 UV, float2 positionSS, CTYPE centralColor, out N
     int2 offset2 = int2(quadOffset.x, -quadOffset.y);
     int2 offset3 = quadOffset;
 
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset1, _RTHandleScale.xy).CTYPE_SWIZZLE);
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset2, _RTHandleScale.xy).CTYPE_SWIZZLE);
-    samples.neighbours[2] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset3, _RTHandleScale.xy).CTYPE_SWIZZLE);
+    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset1, _RTHandleScale.xy).CTYPE_SWIZZLE);
+    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset2, _RTHandleScale.xy).CTYPE_SWIZZLE);
+    samples.neighbours[2] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset3, _RTHandleScale.xy).CTYPE_SWIZZLE);
     samples.neighbours[3] = QuadReadColorAcrossDiagonal(centralColor, positionSS);
 
 #endif // SMALL_NEIGHBOURHOOD_SHAPE == 4
@@ -554,7 +529,7 @@ void MinMaxNeighbourhood(inout NeighbourhoodSamples samples)
     samples.avgNeighbour *= rcp(NEIGHBOUR_COUNT);
 }
 
-void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma)
+void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float antiFlicker)
 {
     CTYPE moment1 = 0;
     CTYPE moment2 = 0;
@@ -581,7 +556,6 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
     // are extended artificially more.
 #if ANTI_FLICKER
     stDevMultiplier = 1.3;
-    float antiFlicker = _TaaPostParameters.y;
     float temporalContrast = saturate(abs(colorLuma - historyLuma) / Max3(0.2, colorLuma, historyLuma));
     stDevMultiplier += lerp(0.0, antiFlicker, smoothstep(0.1, 0.7, temporalContrast));
 #endif
@@ -590,12 +564,12 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
     samples.maxNeighbour = moment1 + stDevMultiplier * stdDev;
 }
 
-void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma)
+void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float antiFlicker)
 {
 #if NEIGHBOUROOD_CORNER_METHOD == MINMAX
     MinMaxNeighbourhood(samples);
 #else
-    VarianceNeighbourhood(samples, historyLuma, colorLuma);
+    VarianceNeighbourhood(samples, historyLuma, colorLuma, antiFlicker);
 #endif
 }
 
@@ -603,7 +577,7 @@ void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLu
 // Filter main color
 // ---------------------------------------------------
 
-CTYPE FilterCentralColor(NeighbourhoodSamples samples)
+CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterWeights)
 {
 #if CENTRAL_FILTERING == NO_FILTERING
 
@@ -620,10 +594,10 @@ CTYPE FilterCentralColor(NeighbourhoodSamples samples)
 
 #elif CENTRAL_FILTERING == BLACKMAN_HARRIS
 
-    CTYPE filtered = samples.central * _TaaFilterWeights.x;
-    filtered += (samples.neighbours[0] + samples.neighbours[1] + samples.neighbours[2] + samples.neighbours[3]) * _TaaFilterWeights.y;
+    CTYPE filtered = samples.central * filterWeights.x;
+    filtered += (samples.neighbours[0] + samples.neighbours[1] + samples.neighbours[2] + samples.neighbours[3]) * filterWeights.y;
 #if WIDE_NEIGHBOURHOOD
-    filtered += (samples.neighbours[4] + samples.neighbours[5] + samples.neighbours[6] + samples.neighbours[7]) * _TaaFilterWeights.z;
+    filtered += (samples.neighbours[4] + samples.neighbours[5] + samples.neighbours[6] + samples.neighbours[7]) * filterWeights.z;
 #endif
     return filtered;
 
@@ -650,6 +624,8 @@ float DistanceToClamp(float historyLuma, float minNeighbourLuma, float maxNeighb
 
 float GetBlendFactor(float colorLuma, float historyLuma, float minNeighbourLuma, float maxNeighbourLuma)
 {
+    // TODO: Investigate factoring in the speed in this computation.
+
     return HistoryContrast(historyLuma, minNeighbourLuma, maxNeighbourLuma);
 }
 
