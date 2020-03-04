@@ -94,6 +94,10 @@ namespace UnityEngine.Rendering
         /// Generate structure declaration or not.
         /// </summary>
         public bool omitStructDeclaration;
+        /// <summary>
+        /// Generate constant buffer declaration or not.
+        /// </summary>
+        public bool generateCBuffer;
 
         /// <summary>
         /// GenerateHLSL attribute constructor.
@@ -105,7 +109,7 @@ namespace UnityEngine.Rendering
         /// <param name="paramDefinesStart">Start value of debug defines.</param>
         /// <param name="omitStructDeclaration">Omit structure declaration.</param>
         /// <param name="containsPackedFields">Contains packed fields.</param>
-        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needSetters = false, bool needParamDebug = false, int paramDefinesStart = 1, bool omitStructDeclaration = false, bool containsPackedFields = false)
+        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needSetters = false, bool needParamDebug = false, int paramDefinesStart = 1, bool omitStructDeclaration = false, bool containsPackedFields = false, bool generateCBuffer = false)
         {
             packingRules = rules;
             this.needAccessors = needAccessors;
@@ -114,6 +118,7 @@ namespace UnityEngine.Rendering
             this.paramDefinesStart = paramDefinesStart;
             this.omitStructDeclaration = omitStructDeclaration;
             this.containsPackedFields = containsPackedFields;
+            this.generateCBuffer = generateCBuffer;
         }
     }
 
@@ -183,7 +188,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Size of the array.
         /// </summary>
-        public int  arraySize;
+        public int arraySize;
         /// <summary>
         /// Type of the array elements.
         /// </summary>

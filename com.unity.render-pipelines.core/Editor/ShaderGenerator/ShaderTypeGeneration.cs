@@ -407,7 +407,13 @@ namespace UnityEditor.Rendering
 
             shaderText += "// Generated from " + type.FullName + "\n";
             shaderText += "// PackingRules = " + attr.packingRules.ToString() + "\n";
-            if (!attr.omitStructDeclaration)
+
+            if (attr.generateCBuffer)
+            {
+                shaderText += "cbuffer " + type.Name + "\n";
+                shaderText += "{\n";
+            }
+            else if (!attr.omitStructDeclaration)
             {
                 shaderText += "struct " + type.Name + "\n";
                 shaderText += "{\n";
@@ -418,7 +424,7 @@ namespace UnityEditor.Rendering
                 shaderText += "    " + shaderFieldInfo.ToString() + "\n";
             }
 
-            if (!attr.omitStructDeclaration)
+            if (attr.generateCBuffer || !attr.omitStructDeclaration)
             {
                 shaderText += "};\n";
             }
