@@ -583,7 +583,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Let's create the MSAA textures
-            if (m_Asset.currentPlatformRenderPipelineSettings.supportMSAA)
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportMSAA && m_Asset.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
             {
                 m_CameraColorMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraColorMSAA");
                 m_OpaqueAtmosphericScatteringMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "OpaqueAtmosphericScatteringMSAA");
@@ -662,7 +662,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightProbeProxyVolumes = true,
                 motionVectors = true,
                 receiveShadows = false,
-                reflectionProbes = true,
+                reflectionProbes = false,
                 rendererPriority = true,
                 overridesFog = true,
                 overridesOtherLightingSettings = true,
@@ -671,9 +671,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 , enlighten = false
                 , overridesLODBias = true
                 , overridesMaximumLODLevel = true
-#if UNITY_2020_1_OR_NEWER
                 , terrainDetailUnsupported = true
-#endif
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
