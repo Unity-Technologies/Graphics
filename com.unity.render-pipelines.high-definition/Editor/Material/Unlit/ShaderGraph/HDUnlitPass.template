@@ -1,74 +1,32 @@
 Pass
-{
-    // based on HDUnlitPass.template
-    Name "$splice(PassName)"
-    Tags { "LightMode" = "$splice(LightMode)" }
+{ 
+    $splice(PassName)
+    Tags 
+    { 
+        $splice(LightMode)
+    }
 
-    //-------------------------------------------------------------------------------------
-    // Render Modes (Blend, Cull, ZTest, Stencil, etc)
-    //-------------------------------------------------------------------------------------
-    $splice(Blending)
-    $splice(Culling)
-    $splice(ZTest)
-    $splice(ZWrite)
-    $splice(ZClip)
-    $splice(Stencil)
-    $splice(ColorMask)
-    //-------------------------------------------------------------------------------------
-    // End Render Modes
-    //-------------------------------------------------------------------------------------
+    // Render State
+    $splice(RenderState)
+
+    // Debug
+    $splice(Debug)
+    
+    // --------------------------------------------------
+    // Pass
 
     HLSLPROGRAM
 
-    #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-    //#pragma enable_d3d11_debug_symbols
+    // Pragmas
+    $splice(PassPragmas)
 
-    //-------------------------------------------------------------------------------------
-    // Graph Defines
-    //-------------------------------------------------------------------------------------
-    $splice(Defines)
-    //-------------------------------------------------------------------------------------
-    // End Defines
-    //-------------------------------------------------------------------------------------
+    // Keywords
+    $splice(PassKeywords)
+    $splice(GraphKeywords)
 
-    //-------------------------------------------------------------------------------------
-    // Variant
-    //-------------------------------------------------------------------------------------
-
-    // #pragma shader_feature_local _DOUBLESIDED_ON - We have no lighting, so no need to have this combination for shader, the option will just disable backface culling
-
-    // Keyword for transparent
-    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-    #pragma shader_feature_local _ALPHATEST_ON
-
-    #pragma shader_feature_local        _ENABLE_FOG_ON_TRANSPARENT
-    $AddPrecomputedVelocity:            #define _ADD_PRECOMPUTED_VELOCITY
-    $EnableShadowMatte:                 #define _ENABLE_SHADOW_MATTE
-
-    //enable GPU instancing support
-    #pragma multi_compile_instancing
-
-    //-------------------------------------------------------------------------------------
-    // End Variant Definitions
-    //-------------------------------------------------------------------------------------
-
-    //-------------------------------------------------------------------------------------
-    // Shader stages
-    //-------------------------------------------------------------------------------------
-    $splice(ShaderStages)
-
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
-
-    //-------------------------------------------------------------------------------------
-    // Active Field Defines
-    //-------------------------------------------------------------------------------------
-
-    // this translates the new dependency tracker into the old preprocessor definitions for the existing HDRP shader code
+    // Defines
+    $AddPrecomputedVelocity:                #define _ADD_PRECOMPUTED_VELOCITY
+    $EnableShadowMatte:                     #define _ENABLE_SHADOW_MATTE
     $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL
     $AttributesMesh.tangentOS:              #define ATTRIBUTES_NEED_TANGENT
     $AttributesMesh.uv0:                    #define ATTRIBUTES_NEED_TEXCOORD0
@@ -84,86 +42,56 @@ Pass
     $VaryingsMeshToPS.texCoord3:            #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:                #define VARYINGS_NEED_COLOR
     $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
-    $features.modifyMesh:                   #define HAVE_MESH_MODIFICATION
+    $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
+    $splice(GraphDefines)
 
     #if defined(_ENABLE_SHADOW_MATTE) && SHADERPASS == SHADERPASS_FORWARD_UNLIT
         #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         #define HAS_LIGHTLOOP
         #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
-
-        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowContext.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadowLoop.hlsl"
     #endif
 
-    //-------------------------------------------------------------------------------------
-    // End Defines
-    //-------------------------------------------------------------------------------------
-    $splice(DotsInstancedVars)
-#if !defined(SHADER_STAGE_RAY_TRACING)
+    // Dots Instancing
+    $splice(DotsInstancingOptions)
 
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
-#else
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
-
-#if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl"
-#else
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
-#endif
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
-#if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl"
-#endif
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl"
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
-#endif
+    // Includes
+    $splice(PreGraphIncludes)
 
     // Used by SceneSelectionPass
     int _ObjectId;
     int _PassValue;
 
-    //-------------------------------------------------------------------------------------
-    // Interpolator Packing And Struct Declarations
-    //-------------------------------------------------------------------------------------
-    $buildType(AttributesMesh)
-    $buildType(VaryingsMeshToPS)
-    $buildType(VaryingsMeshToDS)
-    //-------------------------------------------------------------------------------------
-    // End Interpolator Packing And Struct Declarations
-    //-------------------------------------------------------------------------------------
+    // --------------------------------------------------
+    // Structs and Packing
 
-    //-------------------------------------------------------------------------------------
-    // Graph generated code
-    //-------------------------------------------------------------------------------------
-    $splice(Graph)
-    //-------------------------------------------------------------------------------------
-    // End graph generated code
-    //-------------------------------------------------------------------------------------
+    $splice(PassStructs)
 
-$features.modifyMesh:   $include("VertexAnimation.template.hlsl")
+    $splice(InterpolatorPack)
 
-$include("SharedCode.template.hlsl")
+    // --------------------------------------------------
+    // Graph
+
+    // Graph Properties
+    $splice(GraphProperties)
+    $splice(DotsInstancedProperties)
+
+    // Graph Functions
+    $splice(GraphFunctions)
+
+    // Graph Vertex
+    $splice(GraphVertex)
+    
+    // Graph Pixel
+    $splice(GraphPixel)
+
+    // --------------------------------------------------
+    // Build Graph Inputs
+
+    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
+    $features.graphPixel:   $include("SharedCode.template.hlsl")
+
+    // --------------------------------------------------
+    // Build Surface Data
 
     void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData)
     {
@@ -173,12 +101,12 @@ $include("SharedCode.template.hlsl")
         // copy across graph values, if defined
         $SurfaceDescription.Color: surfaceData.color = surfaceDescription.Color;
 
-#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
-        if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-        {
-            // TODO
-        }
-#endif
+        #if defined(DEBUG_DISPLAY)
+            if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+            {
+                // TODO
+            }
+        #endif
     }
 
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
@@ -188,9 +116,9 @@ $include("SharedCode.template.hlsl")
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky.
-#ifdef _ALPHATEST_ON
-        $AlphaTest: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
-#endif
+        #ifdef _ALPHATEST_ON
+            $AlphaTest: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+        #endif
 
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
 
@@ -226,20 +154,16 @@ $include("SharedCode.template.hlsl")
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
-#if (SHADERPASS == SHADERPASS_DISTORTION)
-        builtinData.distortion = surfaceDescription.Distortion;
-        builtinData.distortionBlur = surfaceDescription.DistortionBlur;
-#endif
-        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
+        #if (SHADERPASS == SHADERPASS_DISTORTION)
+            builtinData.distortion = surfaceDescription.Distortion;
+            builtinData.distortionBlur = surfaceDescription.DistortionBlur;
+        #endif
     }
 
-    //-------------------------------------------------------------------------------------
-    // Pass Includes
-    //-------------------------------------------------------------------------------------
-$splice(Includes)
-    //-------------------------------------------------------------------------------------
-    // End Pass Includes
-    //-------------------------------------------------------------------------------------
+    // --------------------------------------------------
+    // Main
+
+    $splice(PostGraphIncludes)
 
     ENDHLSL
 }

@@ -165,7 +165,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Precision");
                     graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
-                    GUILayout.Space(4);
                     if (EditorGUI.EndChangeCheck())
                     {
                         var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();

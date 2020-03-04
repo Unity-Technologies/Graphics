@@ -13,6 +13,26 @@ MonoBehaviour:
   m_Name: TestCaseFilters
   m_EditorClassIdentifier: 
   filters:
+  - FilteredScene: {fileID: 102900000, guid: e23c793ace3c4a146a73360af1600fbd, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    Reason: 'Baking issue: scene 005'
+  - FilteredScene: {fileID: 102900000, guid: 169aede566e462449812f4bfb3f8d20d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    Reason: 'Known issue: expected less than or equal to 0.00100000005f but was 0.00588090625f'
+  - FilteredScene: {fileID: 102900000, guid: 245a2b08a4f72437193b06846a5c8e33, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    Reason: 'Baking issue: scene 017'
+  - FilteredScene: {fileID: 102900000, guid: 7a8ef7ce062f0465b9e493dd5730cecb, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    Reason: 'Known issue: expected less than or equal to 0.00100000005f but was 0.00277045905f'
   - FilteredScene: {fileID: 102900000, guid: c4dab86134e72034aac45c19df32ceb7, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
