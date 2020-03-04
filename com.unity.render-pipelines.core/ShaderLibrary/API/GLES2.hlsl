@@ -26,7 +26,7 @@
 
 #define uint int
 
-#define rcp(x) 1.0 / x
+#define rcp(x) 1.0 / (x)
 #define ddx_fine ddx
 #define ddy_fine ddy
 #define asfloat
