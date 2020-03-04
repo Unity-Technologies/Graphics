@@ -51,11 +51,9 @@ all_project_ci_{{ editor.version }}:
     - path: .yamato/upm-ci-packages.yml#all_package_ci_{{ editor.version }}
       rerun: always
   {% if editor.version == "fast-2020.1" %}
+  # run abv for non-draft PRs that are not docs
   triggers:
-    pull_requests:
-      - targets:
-          only:
-            - "8.x.x/release"
+    expression: pull_request.target eq "8.x.x/release" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
   {% endif %}
 {% endfor %}
 
