@@ -8,6 +8,7 @@
     "com.unity.render-pipelines.high-definition-config": "file:../../../com.unity.render-pipelines.high-definition-config",
     "com.unity.scriptablebuildpipeline": "1.6.4-preview",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
+    "com.unity.shaderanalysis": "file:../../../com.unity.shaderanalysis",
     "com.unity.test-framework": "1.1.11",
     "com.unity.test-framework.performance": "2.0.7-preview",
     "com.unity.ugui": "1.0.0",
