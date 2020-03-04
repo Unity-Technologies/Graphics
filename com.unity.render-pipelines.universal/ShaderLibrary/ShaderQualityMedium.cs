@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering.Universal
     public struct ShaderOptionsMedium
     {
         public static int reflectionProbe = 1;
-        public static int blendReflectionProbe = 0;
+        public static int blendReflectionProbe = 1;
         public static int bumpScale = 0;
     }
 }
