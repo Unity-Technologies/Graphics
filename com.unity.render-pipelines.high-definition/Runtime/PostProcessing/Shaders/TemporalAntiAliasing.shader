@@ -36,7 +36,6 @@ Shader "Hidden/HDRP/TAA2"
         // ---------------------------------------------------
 
 #ifdef LOW_QUALITY
-     // Currently this is around 0.6ms/PS4 @ 1080p
     #define YCOCG 0
     #define HISTORY_SAMPLING_METHOD BILINEAR
     #define WIDE_NEIGHBOURHOOD 0
@@ -49,7 +48,6 @@ Shader "Hidden/HDRP/TAA2"
     #define PERCEPTUAL_SPACE_ONLY_END 1 && (PERCEPTUAL_SPACE == 0)
 
 #elif defined(MEDIUM_QUALITY)
-    // Currently this is around 0.89ms/PS4 @ 1080p, 0.85ms/XboxOne @ 900p 
     #define YCOCG 1
     #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
     #define WIDE_NEIGHBOURHOOD 0
@@ -209,7 +207,6 @@ Shader "Hidden/HDRP/TAA2"
             finalColor.xyz = lerp(history, filteredColor, blendFactor);
             finalColor.xyz *= PerceptualInvWeight(finalColor);
 #endif
-
 
             color.xyz = ConvertToOutputSpace(finalColor.xyz);
             color.xyz = clamp(color.xyz, 0, CLAMP_MAX);
