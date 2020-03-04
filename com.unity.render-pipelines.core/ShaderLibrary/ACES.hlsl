@@ -315,7 +315,12 @@ half rgb_2_yc(half3 rgb)
     half r = rgb.x;
     half g = rgb.y;
     half b = rgb.z;
-    half chroma = sqrt(b * (b - g) + g * (g - r) + r * (r - b));
+    half k = b * (b - g) + g * (g - r) + r * (r - b);
+#if defined(SHADER_API_SWITCH)
+    half chroma = k == 0.0 ? 0.0 : sqrt(k); // Fix NaN on Nintendo Switch (should not happen in theory).
+#else
+    half chroma = sqrt(k);
+#endif
     return (b + g + r + ycRadiusWeight * chroma) / 3.0;
 }
 

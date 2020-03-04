@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev SunPosition button position
 - Fix LookDev EnvironmentLibrary tab when asset is deleted
 - Fix LookDev used Cubemap when asset is deleted
+- Fixed the definition of `rcp()` for GLES2.
 
 ### Changed
 - Updated macros to be compatible with the new shader preprocessor.
