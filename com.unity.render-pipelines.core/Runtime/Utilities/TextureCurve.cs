@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering
     /// A wrapper around <c>AnimationCurve</c> to automatically bake it into a texture.
     /// </summary>
     [Serializable]
-    public class TextureCurve : IDisposable
+    public class TextureCurve
     {
         const int k_Precision = 128; // Edit LutBuilder3D if you change this value
         const float k_Step = 1f / k_Precision;
@@ -57,6 +57,7 @@ namespace UnityEngine.Rendering
         /// <param name="zeroValue">The default value to use when the curve doesn't have any key.</param>
         /// <param name="loop">Should the curve automatically loop in the given <paramref name="bounds"/>?</param>
         /// <param name="bounds">The boundaries of the curve.</param>
+
         public TextureCurve(AnimationCurve baseCurve, float zeroValue, bool loop, in Vector2 bounds)
             : this(baseCurve.keys, zeroValue, loop, bounds) { }
 
@@ -78,23 +79,9 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Finalizer.
+        /// Releases the internal texture resource.
         /// </summary>
-        ~TextureCurve()
-        {
-            ReleaseUnityResources();
-        }
-
-        /// <summary>
-        /// Cleans up the internal texture resource.
-        /// </summary>
-        public void Dispose()
-        {
-            ReleaseUnityResources();
-            GC.SuppressFinalize(this);
-        }
-
-        void ReleaseUnityResources()
+        public void Release()
         {
             CoreUtils.Destroy(m_Texture);
             m_Texture = null;
@@ -253,6 +240,11 @@ namespace UnityEngine.Rendering
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public TextureCurveParameter(TextureCurve value, bool overrideState = false)
             : base(value, overrideState) { }
+
+        public override void Release()
+        {
+            m_Value.Release();
+        }
 
         // TODO: TextureCurve interpolation
     }

@@ -209,5 +209,16 @@ namespace UnityEngine.Rendering
                 return hash;
             }
         }
+
+        void OnDestroy() => Release();
+
+        /// <summary>
+        /// Releases all the allocated resources.
+        /// </summary>
+        public void Release()
+        {
+            for (int i = 0; i < parameters.Count; i++)
+                parameters[i].Release();
+        }
     }
 }

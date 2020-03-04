@@ -336,6 +336,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CachedSkyContexts[i].Cleanup();
 
             m_StaticLightingSky.Cleanup();
+            lightingOverrideVolumeStack.Dispose();
 
 #if UNITY_EDITOR
             CoreUtils.Destroy(m_DefaultPreviewSky);
