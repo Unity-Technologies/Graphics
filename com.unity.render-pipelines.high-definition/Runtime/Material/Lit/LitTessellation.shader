@@ -235,7 +235,7 @@ Shader "HDRP/LitTessellation"
 
 //forest-begin: Added vertex animation
 		[Enum(None, 0, Single Pivot Color, 3, Hierarchy Pivot, 4, Procedural Animation, 6)]
-        [ToggleUI]  _EnableWind("Enable Wind", Float) = 0.0
+        _EnableWind("Enable Wind", Float) = 0.0
 
 		_WindHeightScale("Wind Height Scale", Range(0.1, 100.0)) = 2.0
 		_WindHeightIntensity("Wind Height Intensity", Range(0.0, 1.0)) = 0.1
