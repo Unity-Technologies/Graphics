@@ -33,6 +33,9 @@ EditorBuildSettings:
     path: Assets/Scenes/009_AdditionalLightsShadows.unity
     guid: fe73f67a2bc4933468c714f164c6596d
   - enabled: 1
+    path: Assets/Scenes/010_AdditionalLightsSorted.unity
+    guid: 169aede566e462449812f4bfb3f8d20d
+  - enabled: 1
     path: Assets/Scenes/011_UnlitSprites.unity
     guid: c1aed1727cd63dd42882f4c9ebb99cf4
   - enabled: 1
@@ -218,4 +221,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/122_RenderUICustomRendererFXAA.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Scenes/126_RendererFeatureActive.unity
+    guid: 92276052d376244eb94e9548db46b27f
   m_configObjects: {}
