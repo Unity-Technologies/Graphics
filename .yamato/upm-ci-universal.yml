@@ -334,7 +334,7 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
     # Copy across players folder?
     - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r ../ScriptableRenderPipeline/players bokken@$BOKKEN_DEVICE_IP:~/ScriptableRenderPipeline/players
 
-    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only'
+    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/ScriptableRenderPipeline/unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only'
     
     - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results --timeout=3600 --player-load-path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/players --player-connection-ip=auto'
 
