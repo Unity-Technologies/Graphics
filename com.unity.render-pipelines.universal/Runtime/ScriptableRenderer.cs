@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.Universal
         private const string k_RenderPass = "Execute Render pass";
         const string k_ReleaseResourcesTag = "Release Resources";
 
-        static List<RenderTargetHandle> m_ActiveColorAttachments = new List<RenderTargetHandle>();
+        static RenderTargetHandle[] m_ActiveColorAttachments = new RenderTargetHandle[]{ RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, };
         static RenderTargetHandle m_ActiveDepthAttachment;
         static bool m_InsideStereoRenderBlock;
 
@@ -157,8 +157,8 @@ namespace UnityEngine.Rendering.Universal
             RenderTargetHandle depthAttachment)
         {
             m_ActiveColorAttachments[0] = colorAttachment;
-            for (int i = 1; i < m_ActiveColorAttachments.Count; ++i)
-                m_ActiveColorAttachments.RemoveAt(i);
+            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
+                m_ActiveColorAttachments[i] = RenderTargetHandle.Empty;
 
             m_ActiveDepthAttachment = depthAttachment;
         }
@@ -470,8 +470,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Clear(CameraRenderType cameraType)
         {
-            m_ActiveColorAttachments.Clear();
-            m_ActiveColorAttachments.Add(RenderTargetHandle.CameraTarget);
+            m_ActiveColorAttachments[0] = RenderTargetHandle.CameraTarget;
+            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
+                m_ActiveColorAttachments[i] = RenderTargetHandle.Empty;
 
             m_ActiveDepthAttachment = RenderTargetHandle.CameraTarget;
 
@@ -509,15 +510,15 @@ namespace UnityEngine.Rendering.Universal
                 {
                     int depthAttachmentIdx = -1;
                     var desc = renderPass.renderPassDescriptor;
-
+                    var colorCount = RenderingUtils.GetValidColorBufferCount(renderPass.colorAttachments);
                     NativeArray<int> indices =
-                        new NativeArray<int>(renderPass.colorAttachments.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                        new NativeArray<int>((int)colorCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                     NativeArray<int> inputIndices =
                         new NativeArray<int>(renderPass.inputAttachments.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                     CommandBuffer cmd = CommandBufferPool.Get(k_NativeRenderPass);
 
 
-                    // Run once to get all the attachments
+                    // Run once to get all the attachments at the beginning of the block
                     if (asSingleRenderPass && !renderPassStarted)
                     {
                         for (int rpIdx = blockRanges[blockIndex]; rpIdx < endIndex; ++rpIdx)
@@ -527,20 +528,18 @@ namespace UnityEngine.Rendering.Universal
                             if (!rp.useNativeRenderPass)
                                 continue;
 
-                            for (int i = 0; i < rp.colorAttachments.Count; i++)
+                            for (int i = 0; i < rp.colorAttachments.Length; i++)
                             {
-                                if (rp.colorAttachments[i].targetDescriptor.graphicsFormat != GraphicsFormat.None
-                                    && rp.colorAttachments[i].targetDescriptor.format != RenderTextureFormat.Depth)
-                                {
-                                    attachmentSet.Add(rp.colorAttachments[i].targetDescriptor);
-                                }
+                                if (rp.colorAttachments[i].id == -2) //First invalid means we are done with the attachments
+                                    break;
+
+                                attachmentSet.Add(rp.colorAttachments[i].targetDescriptor);
                             }
 
                             if (rp.depthAttachment.targetDescriptor.graphicsFormat != GraphicsFormat.None)
                             {
-
-                                    attachmentSet.Add(rp.depthAttachment.targetDescriptor);
-
+                                attachmentSet.Add(rp.depthAttachment.targetDescriptor);
+                                depthAttachmentIdx = attachmentSet.Count - 1;
                             }
                         }
                     }
@@ -557,19 +556,31 @@ namespace UnityEngine.Rendering.Universal
                         AttachmentDescriptor[] descs = new AttachmentDescriptor[attachmentSet.Count];
                         attachmentSet.CopyTo(descs);
 
-                        depthAttachmentIdx = Array.FindIndex(descs, attachment => attachment == renderPass.depthAttachment.targetDescriptor);
 
-                        for (int i = 0; i < renderPass.colorAttachments.Count; i++)
+                        for (int i = 0; i < colorCount; i++)
                         {
-                            indices[i] = Array.FindIndex(descs, attachment => attachment == renderPass.colorAttachments[i].targetDescriptor);
+                            for (int j = 0; j < descs.Length; j++)
+                            {
+                                if (renderPass.colorAttachments[i].targetDescriptor == descs[j])
+                                {
+                                    indices[i] = j;
+                                    break;
+                                }
+                            }
                         }
 
                         if (renderPass.hasInputAttachment)
                         {
                             for (int i = 0; i < renderPass.inputAttachments.Count; i++)
                             {
-                                inputIndices[i] = Array.FindIndex(descs,
-                                    attachment => attachment == renderPass.inputAttachments[i].targetDescriptor);
+                                for (int j = 0; j < descs.Length; j++)
+                                {
+                                    if (renderPass.inputAttachments[i].targetDescriptor == descs[j])
+                                    {
+                                        inputIndices[i] = j;
+                                        break;
+                                    }
+                                }
                             }
                         }
 
@@ -710,9 +721,9 @@ namespace UnityEngine.Rendering.Universal
                     if ((renderPass.clearFlag & ClearFlag.Color) != 0)
                     {
                         uint otherTargetsCount = RenderingUtils.CountDistinct(renderPass.colorAttachments, m_CameraColorTarget);
-                        var nonCameraAttachments = new List<RenderTargetHandle>();
+                        var nonCameraAttachments = new RenderTargetHandle[renderPass.colorAttachments.Length];
                         int writeIndex = 0;
-                        for (int readIndex = 0; readIndex < renderPass.colorAttachments.Count; ++readIndex)
+                        for (int readIndex = 0; readIndex < renderPass.colorAttachments.Length; ++readIndex)
                         {
                             if (renderPass.colorAttachments[readIndex]!= m_CameraColorTarget && renderPass.colorAttachments[readIndex].Identifier() != 0)
                             {
@@ -738,9 +749,9 @@ namespace UnityEngine.Rendering.Universal
                     if (lastValidRTindex >= 0)
                     {
                         int rtCount = lastValidRTindex + 1;
-                        var trimmedAttachments = new List<RenderTargetHandle>();//m_TrimmedColorAttachmentCopies[rtCount];
+                        var trimmedAttachments = new RenderTargetHandle[rtCount];
                         for (int i = 0; i < rtCount; ++i)
-                            trimmedAttachments.Insert(i, renderPass.colorAttachments[i]);
+                            trimmedAttachments[i] = renderPass.colorAttachments[i];
                         SetRenderTarget(cmd, trimmedAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
                     }
                 }
@@ -871,8 +882,8 @@ namespace UnityEngine.Rendering.Universal
         {
             var activeAttachment = m_ActiveColorAttachments[0];
             activeAttachment.identifier = colorAttachment;
-            for (int i = 1; i < m_ActiveColorAttachments.Count; ++i)
-                m_ActiveColorAttachments.RemoveAt(i);
+            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
+                m_ActiveColorAttachments[i] = RenderTargetHandle.Empty;
             m_ActiveColorAttachments[0] = activeAttachment;
             m_ActiveDepthAttachment.identifier = depthAttachment;
 
@@ -930,7 +941,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void SetRenderTarget(CommandBuffer cmd, List<RenderTargetHandle> colorAttachments, RenderTargetHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
+        static void SetRenderTarget(CommandBuffer cmd, RenderTargetHandle[] colorAttachments, RenderTargetHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments = colorAttachments;
             m_ActiveDepthAttachment = depthAttachment;

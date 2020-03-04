@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public RenderPassEvent renderPassEvent { get; set; }
 
-        public List<RenderTargetHandle> colorAttachments
+        public RenderTargetHandle[] colorAttachments
         {
             get => m_ColorAttachments;
         }
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool hasInputAttachment;
         internal bool useNativeRenderPass;
 
-        internal List<RenderTargetHandle> m_ColorAttachments = new List<RenderTargetHandle>(0);
+        internal RenderTargetHandle[] m_ColorAttachments = new RenderTargetHandle[] { RenderTargetHandle.CameraTarget };
         internal List<RenderTargetHandle> m_InputAttachments = new List<RenderTargetHandle>(0);
         RenderTargetHandle m_DepthAttachment;// = RenderTargetHandle.CameraTarget;
         RenderPassDescriptor m_RenderPassDescriptor;
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            m_ColorAttachments = new List<RenderTargetHandle> { RenderTargetHandle.CameraTarget };
+            m_ColorAttachments = new RenderTargetHandle[] { RenderTargetHandle.CameraTarget, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty };
             //m_DepthAttachment = RenderTargetHandle.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        public void ConfigureTarget(List<RenderTargetHandle> colorAttachments, RenderTargetHandle depthAttachment)
+        public void ConfigureTarget(RenderTargetHandle[] colorAttachments, RenderTargetHandle depthAttachment)
         {
             overrideCameraTarget = true;
 
@@ -152,9 +152,9 @@ namespace UnityEngine.Rendering.Universal
         {
             overrideCameraTarget = true;
 
-            m_ColorAttachments.Insert(0, colorAttachment);
-            for (int i = 1; i < m_ColorAttachments.Count; ++i)
-                m_ColorAttachments.RemoveAt(i);
+            m_ColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ColorAttachments.Length; ++i)
+                m_ColorAttachments[i] = RenderTargetHandle.Empty;
         }
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        public void ConfigureTarget(List<RenderTargetHandle> colorAttachments)
+        public void ConfigureTarget(RenderTargetHandle[] colorAttachments)
         {
             ConfigureTarget(colorAttachments, RenderTargetHandle.CameraTarget);
         }

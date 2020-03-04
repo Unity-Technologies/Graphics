@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal
 
         public RenderTargetIdentifier identifier { set; get; }
         public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle {id = -1, identifier = BuiltinRenderTextureType.CameraTarget};
+        public static readonly RenderTargetHandle Empty = new RenderTargetHandle{id = -2};
 
         public void Init(string shaderProperty)
         {

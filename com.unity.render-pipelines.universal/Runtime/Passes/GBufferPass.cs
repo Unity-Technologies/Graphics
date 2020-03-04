@@ -78,9 +78,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (int gbufferIndex = 0; gbufferIndex < DeferredRenderer.k_GBufferSlicesCount; ++gbufferIndex)
                 cmd.GetTemporaryRT(m_ColorAttachments[gbufferIndex].id, m_GBufferDescriptors[gbufferIndex]);
 
-            List<RenderTargetHandle> colorAttachmentHandles = new List<RenderTargetHandle>();
+            RenderTargetHandle[] colorAttachmentHandles = new RenderTargetHandle[m_ColorAttachments.Length];
             for (int gbufferIndex = 0; gbufferIndex < m_ColorAttachments.Length; ++gbufferIndex)
-                colorAttachmentHandles.Insert(gbufferIndex, m_ColorAttachments[gbufferIndex]);
+                colorAttachmentHandles[gbufferIndex] = m_ColorAttachments[gbufferIndex];
 
             ConfigureTarget(colorAttachmentHandles, m_DepthBufferAttachment);
 
@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.ReleaseTemporaryRT(m_ColorAttachments[gbufferIndex].id);
 
             cmd.ReleaseTemporaryRT(m_DepthBufferAttachment.id);
-            base.m_ColorAttachments = new List<RenderTargetHandle> {RenderTargetHandle.CameraTarget};
+            base.m_ColorAttachments = new RenderTargetHandle[] { RenderTargetHandle.CameraTarget };
             // Note: a special case might be required if(m_CameraDepthTexture==RenderTargetHandle.CameraTarget) - see reference in DepthOnlyPass.Execute
         }
     }
