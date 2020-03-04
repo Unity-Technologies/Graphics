@@ -67,7 +67,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 rect.height += Styles.defaultLineSpace;
                 rect.height += Styles.defaultLineSpace;
+                rect.height += Styles.defaultLineSpace;
                 EditorGUI.HelpBox(rect, "Settings will be taken from SSAO volumes. Make sure you have a Volume in your scene with a Screen Space Ambient Occlusion override.", MessageType.Info);
+                rect.y += Styles.defaultLineSpace;
                 rect.y += Styles.defaultLineSpace;
                 rect.y += Styles.defaultLineSpace;
             }
@@ -98,7 +100,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            float height = Styles.defaultLineSpace * 5f;
+            float height = Styles.defaultLineSpace * 8f;
 
             if (m_properties.Contains(property.serializedObject))
             {
