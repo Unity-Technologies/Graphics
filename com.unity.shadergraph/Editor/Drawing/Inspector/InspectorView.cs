@@ -12,6 +12,34 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
+    class EnumPropertyDrawer
+    {
+        private Enum _fieldToDraw;
+        private string _fieldLabel;
+        private Enum _fieldDefaultValue;
+
+        public delegate void EnumValueSetter(Enum newValue);
+
+        public EnumPropertyDrawer(Enum fieldToDraw, string fieldLabel, Enum fieldDefaultValue)
+        {
+            this._fieldToDraw = fieldToDraw;
+            this._fieldLabel = fieldLabel;
+            this._fieldDefaultValue = fieldDefaultValue;
+        }
+
+        public PropertyRow CreatePropertyRowForField(EnumValueSetter valueChangedCallback)
+        {
+            var row = new PropertyRow(new Label(this._fieldLabel));
+            row.Add(new EnumField(this._fieldDefaultValue), (field) =>
+            {
+                field.value = this._fieldToDraw;
+                field.RegisterValueChangedCallback(evt => valueChangedCallback(evt.newValue));
+            });
+
+            return row;
+        }
+    }
+
     class InspectorView : VisualElement
     {
         // References
@@ -158,23 +186,58 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            if(selection.FirstOrDefault() is IInspectable inspectable)
-            {
-                m_ContextTitle.text = inspectable.displayName;
-                m_PropertyContainer.Add(inspectable.GetInspectorContent());
-            }
-
+            //if (selection.FirstOrDefault() is IInspectable inspectable)
+            //{
+            //    m_ContextTitle.text = inspectable.displayName;
+            //    m_PropertyContainer.Add(inspectable.GetInspectorContent());
+            //}
             // These would require SG specific view implementations
             // For now just handle manually
-            else if(selection.FirstOrDefault() is UnityEditor.Experimental.GraphView.Edge edge)
+            //else if(selection.FirstOrDefault() is UnityEditor.Experimental.GraphView.Edge edge)
+            //{
+            //    m_ContextTitle.text = "(Edge)";
+            //}
+            //else if(selection.FirstOrDefault() is UnityEditor.Experimental.GraphView.Group group)
+            //{
+            //    m_ContextTitle.text = "(Group)";
+            //}
+
+            var propertySheet = new PropertySheet();
+
+            foreach (var selectable in selection)
             {
-                m_ContextTitle.text = "(Edge)";
-            }
-            else if(selection.FirstOrDefault() is UnityEditor.Experimental.GraphView.Group group)
-            {
-                m_ContextTitle.text = "(Group)";
+                // #TODO : Need to remove SG dependency here as VFX Graph has their own node structure
+                var nodeView = (MaterialNodeView) selectable;
+
+                if (nodeView == null)
+                    return;
+                var node = nodeView.node;
+
+                PropertyInfo[] properties = node.GetType().GetProperties();
+
+                foreach (var propertyInfo in properties)
+                {
+                    var attribute = propertyInfo.GetCustomAttribute<Inspectable>();
+                    if (attribute == null)
+                        return;
+                    var propertyType = propertyInfo.PropertyType;
+
+                    // Based on property type call the appropriate property type drawer
+                    if (propertyType.IsEnum)
+                    {
+                        var enumPropertyDrawer = new EnumPropertyDrawer(
+                            (Enum) propertyInfo.GetValue(node),
+                            attribute._labelName,
+                            (Enum) attribute._defaultValue);
+
+                        var newPropertyRow = enumPropertyDrawer.CreatePropertyRowForField(newEnumValue =>
+                            propertyInfo.GetSetMethod(true).Invoke(node, new object[] {newEnumValue}));
+                        propertySheet.Add(newPropertyRow);
+                    }
+                }
             }
 
+            m_PropertyContainer.Add(propertySheet);
             m_PropertyContainer.MarkDirtyRepaint();
         }
 

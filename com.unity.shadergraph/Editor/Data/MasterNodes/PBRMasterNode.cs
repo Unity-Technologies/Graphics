@@ -49,6 +49,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         Model m_Model = Model.Metallic;
 
+        [Inspectable("Workflow", PBRMasterNode.Model.Metallic)]
         public Model model
         {
             get { return m_Model; }
@@ -57,6 +58,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_Model == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Work Flow Change");
                 m_Model = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -66,6 +68,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         SurfaceType m_SurfaceType;
 
+        [Inspectable("Surface", SurfaceType.Opaque)]
         public SurfaceType surfaceType
         {
             get { return m_SurfaceType; }
@@ -74,6 +77,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_SurfaceType == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Surface Change");
                 m_SurfaceType = value;
                 Dirty(ModificationScope.Graph);
             }
@@ -82,6 +86,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         AlphaMode m_AlphaMode;
 
+        [Inspectable("Blend", AlphaMode.Additive)]
         public AlphaMode alphaMode
         {
             get { return m_AlphaMode; }
@@ -90,6 +95,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_AlphaMode == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Alpha Mode Change");
                 m_AlphaMode = value;
                 Dirty(ModificationScope.Graph);
             }
@@ -98,6 +104,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         bool m_TwoSided;
 
+        [Inspectable("Two Sided", true)]
         public ToggleData twoSided
         {
             get { return new ToggleData(m_TwoSided); }
@@ -105,9 +112,18 @@ namespace UnityEditor.ShaderGraph
             {
                 if (m_TwoSided == value.isOn)
                     return;
+
+                this.owner.owner.RegisterCompleteObjectUndo("Two Sided Change");
                 m_TwoSided = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
+        }
+
+        void ChangeTwoSided(ChangeEvent<bool> evt)
+        {
+            ToggleData td = this.twoSided;
+            td.isOn = evt.newValue;
+            this.twoSided = td;
         }
 
         public PBRMasterNode()
