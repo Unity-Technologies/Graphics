@@ -31,17 +31,25 @@ testplatforms:
 {% for editor in editors %}
 all_project_ci_{{ editor.version }}:
   name: _ABV for SRP repository - {{ editor.version }}
+  agent:
+    type: Unity::VM
+    image: cds-ops/ubuntu-18.04-agent:stable
+    flavor: b1.small
+  commands:
+    - dir
   dependencies:
   {% for project in projects %}
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_{{ editor.version }}
       rerun: always
   {% endfor %}
+  artifacts:
+    logs:
+      paths:
+        - "**/test-results/**"
   {% if editor.version == "fast-2019.3" %}
+  # run abv for non-draft PRs that are not docs
   triggers:
-    pull_requests:
-      - targets:
-          only:
-            - "7.x.x/release"
+    expression: pull_request.target eq "7.x.x/release" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
   {% endif %}
 {% endfor %}
 
