@@ -589,9 +589,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HorizonZenithShiftPower           = Shader.PropertyToID("_HorizonZenithShiftPower");
         public static readonly int _HorizonZenithShiftScale           = Shader.PropertyToID("_HorizonZenithShiftScale");
 
-        //Virtual Texturing debug
-        public static readonly int _VTFocusMips                       = Shader.PropertyToID("_VTFocusMips");
-
         // Raytracing variables
         public static readonly int _RaytracingRayBias               = Shader.PropertyToID("_RaytracingRayBias");
         public static readonly int _RayTracingLayerMask             = Shader.PropertyToID("_RayTracingLayerMask");
