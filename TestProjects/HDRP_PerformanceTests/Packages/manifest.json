@@ -10,7 +10,7 @@
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
     "com.unity.shaderanalysis": "file:../../../com.unity.shaderanalysis",
     "com.unity.test-framework": "1.1.11",
-    "com.unity.test-framework.performance": "2.0.7-preview",
+    "com.unity.test-framework.performance": "2.0.8-preview",
     "com.unity.ugui": "1.0.0",
     "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
     "com.unity.xr.legacyinputhelpers": "1.3.7",

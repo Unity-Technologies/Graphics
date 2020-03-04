@@ -163,8 +163,8 @@ public class PerformanceTests : IPrebuildSetup
 
         // Report data
         foreach (var result in results)
-            Measure.Custom(new SampleGroup(FormatSampleGroupName(kMemory, result.name), SampleUnit.Byte, false), result.size);
-        Measure.Custom(new SampleGroup(FormatSampleGroupName(kTotalMemory, testDescription.assetType.Name), SampleUnit.Byte, false), totalMemory);
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(kMemory, result.name), SampleUnit.Undefined, false), result.size);
+        Measure.Custom(new SampleGroup(FormatSampleGroupName(kTotalMemory, testDescription.assetType.Name), SampleUnit.Undefined, false), totalMemory);
     }
 
     [Version("1"), UnityTest]
