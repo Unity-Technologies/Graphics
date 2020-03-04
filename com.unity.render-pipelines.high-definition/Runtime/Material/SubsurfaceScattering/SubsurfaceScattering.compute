@@ -110,7 +110,7 @@ float4 LoadSample(int2 pixelCoord, int2 cacheOffset)
     int2 cacheCoord = pixelCoord - cacheOffset;
     bool isInCache  = max((uint)cacheCoord.x, (uint)cacheCoord.y) < TEXTURE_CACHE_SIZE_1D;
 
-    UNITY_BRANCH if (isInCache)
+    if (isInCache)
     {
         return LoadSampleFromCacheMemory(cacheCoord);
     }
@@ -252,7 +252,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     uint2 pixelCoord  = groupOffset + groupCoord;
     int2  cacheOffset = (int2)groupOffset - TEXTURE_CACHE_BORDER;
 
-    UNITY_BRANCH if (groupThreadId == 0)
+    if (groupThreadId == 0)
     {
         uint stencilRef = STENCILUSAGE_SUBSURFACE_SCATTERING;
 
@@ -275,7 +275,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     // Wait for the LDS.
     GroupMemoryBarrierWithGroupSync();
 
-    UNITY_BRANCH if (!processGroup) { return; }
+    if (!processGroup) { return; }
 
     float3 centerIrradiance  = LOAD_TEXTURE2D_X(_IrradianceSource, pixelCoord).rgb;
     float  centerDepth       = 0;
@@ -283,7 +283,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     bool   passedStencilTest = TestLightingForSSS(centerIrradiance);
 
     // Save some bandwidth by only loading depth values for SSS pixels.
-    UNITY_BRANCH if (passedStencilTest)
+    if (passedStencilTest)
     {
         centerDepth = LOAD_TEXTURE2D_X(_DepthTexture, pixelCoord).r;
         centerViewZ = LinearEyeDepth(centerDepth, _ZBufferParams);
@@ -297,7 +297,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     uint numBorderQuadsPerWave = TEXTURE_CACHE_SIZE_1D / 2 - 1;
     uint halfCacheWidthInQuads = TEXTURE_CACHE_SIZE_1D / 4;
 
-    UNITY_BRANCH if (quadIndex < numBorderQuadsPerWave)
+    if (quadIndex < numBorderQuadsPerWave)
     {
         // Fetch another texel into the LDS.
         uint2 startQuad = halfCacheWidthInQuads * DeinterleaveQuad(waveIndex);
@@ -334,7 +334,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
         float  viewZ2      = 0;
 
         // Save some bandwidth by only loading depth values for SSS pixels.
-        UNITY_BRANCH if (TestLightingForSSS(irradiance2))
+        if (TestLightingForSSS(irradiance2))
         {
             viewZ2 = LinearEyeDepth(LOAD_TEXTURE2D_X(_DepthTexture, pixelCoord2).r, _ZBufferParams);
         }
@@ -347,7 +347,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    UNITY_BRANCH if (!passedStencilTest) { return; }
+    if (!passedStencilTest) { return; }
 
     PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw);
 
@@ -385,7 +385,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     uint   texturingMode = GetSubsurfaceScatteringTexturingMode(profileIndex);
     float3 albedo        = ApplySubsurfaceScatteringTexturingMode(texturingMode, sssData.diffuseColor);
 
-    UNITY_BRANCH if (distScale == 0 || sampleCount < 1)
+    if (distScale == 0 || sampleCount < 1)
     {
     #if SSS_DEBUG_LOD
         float3 green = float3(0, 1, 0);
