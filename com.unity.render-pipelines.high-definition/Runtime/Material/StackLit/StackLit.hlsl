@@ -881,6 +881,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.soFixupStrengthFactor = surfaceData.soFixupStrengthFactor;
     bsdfData.soFixupMaxAddedRoughness = surfaceData.soFixupMaxAddedRoughness;
 
+//forest-begin: sky occlusion
+    bsdfData.skyOcclusion = surfaceData.skyOcclusion;
+//forest-end:
+
     ApplyDebugToBSDFData(bsdfData);
     return bsdfData;
 }

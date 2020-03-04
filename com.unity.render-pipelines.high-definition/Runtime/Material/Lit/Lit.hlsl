@@ -456,7 +456,11 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 #endif
 
 //forest-begin: sky occlusion
+#if (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT || SHADERPASS == SHADERPASS_RAYTRACING_FORWARD || SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER || SHADERPASS == SHADERPASS_RAYTRACING_VISIBILITY || SHADERPASS == SHADERPASS_PATH_TRACING)
+    bsdfData.skyOcclusion = 1;
+#else
     bsdfData.skyOcclusion = surfaceData.skyOcclusion;
+#endif
 //forest-end:
 
     ApplyDebugToBSDFData(bsdfData);
