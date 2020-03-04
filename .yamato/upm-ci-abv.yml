@@ -54,11 +54,9 @@ all_project_ci_{{ editor.version }}:
       paths:
         - "**/test-results/**"
   {% if editor.version == "fast-2020.1" %}
+  # run abv for non-draft PRs that are not docs
   triggers:
-    branches:
-      only:
-        - trying
-        - staging
+    expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
   {% endif %}
 {% endfor %}
 
