@@ -36,13 +36,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Made MaterialDescriptionPreprocessors private.
 - UniversalRenderPipelineAsset no longer supports presets [case 1197020](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-on-preset-of-universalrenderpipelineassets)
 - The number of maximum visible lights is now determined by whether the platform is mobile or not.
-- Exposed setting the main light rendering mode in the universal render pipeline asset
-- Exposed setting the main light shadow casting in the universal render pipeline asset
-- Exposed setting the main light shadow map resolution in the universal render pipeline asset
-- Exposed setting the additional light rendering mode in the universal render pipeline asset
-- Exposed setting the additional light shadow casting in the universal render pipeline asset
-- Exposed setting the additional light shadow map resolution in the universal render pipeline asset
-- Exposed setting the soft shadows setting in the universal render pipeline asset
+- Exposed setting the split value for two cascade shadows
+- Exposed setting the split values for four cascade shadows
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
