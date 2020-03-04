@@ -38,6 +38,7 @@ float _DebugExposure;
 int _MatcapMixAlbedo;
 int _MatcapViewScale;
 uint _DebugContactShadowLightIndex;
+int _DebugSingleShadowIndex;
 CBUFFER_END
 
 // Local shader variables

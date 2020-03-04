@@ -17,6 +17,9 @@
     #define _WorldSpaceCameraPos            _XRWorldSpaceCameraPos[unity_StereoEyeIndex].xyz
     #define _WorldSpaceCameraPosViewOffset  _XRWorldSpaceCameraPosViewOffset[unity_StereoEyeIndex].xyz
     #define _PrevCamPosRWS                  _XRPrevWorldSpaceCameraPos[unity_StereoEyeIndex].xyz
+#else
+    #define _WorldSpaceCameraPos            _WorldSpaceCameraPos_Internal
+    #define _PrevCamPosRWS                  _PrevCamPosRWS_Internal
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
@@ -32,7 +35,7 @@
 
 #if defined(SHADER_STAGE_RAY_TRACING)
 // FXC Supports the naïve "recursive" concatenation, while DXC and C do not https://github.com/pfultz2/Cloak/wiki/C-Preprocessor-tricks,-tips,-and-idioms
-// However, FXC does not support the proper pattern (the one bellow), so we only override it in the case of ray tracing subshaders for the moment. 
+// However, FXC does not support the proper pattern (the one bellow), so we only override it in the case of ray tracing subshaders for the moment.
 // Note that this should be used for all shaders when DX12 used DXC for vert/frag shaders (which it does not for the moment)
 #undef MERGE_NAME
 #define MERGE_NAME_CONCAT(Name, ...) Name ## __VA_ARGS__
@@ -145,145 +148,19 @@ TEXTURE2D(_ExposureTexture);
 TEXTURE2D(_PrevExposureTexture);
 
 // ----------------------------------------------------------------------------
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.cs.hlsl"
 
-// Define that before including all the sub systems ShaderVariablesXXX.hlsl files in order to include constant buffer properties.
-#define SHADER_VARIABLES_INCLUDE_CB
+// TODO: these are only used for reprojection.
+// Once reprojection is performed in a separate pass, we should probably
+// move these to a dedicated CBuffer to avoid polluting the global one.
+// $$$ Volumetric only?
+float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
+float  _GlobalFogAnisotropy;
 
-// Important: please use macros or functions to access the CBuffer data.
-// The member names and data layout can (and will) change!
-CBUFFER_START(UnityGlobal)
-    // ================================
-    //     PER VIEW CONSTANTS
-    // ================================
-    // TODO: all affine matrices should be 3x4.
-    float4x4 _ViewMatrix;
-    float4x4 _InvViewMatrix;
-    float4x4 _ProjMatrix;
-    float4x4 _InvProjMatrix;
-    float4x4 _ViewProjMatrix;
-    float4x4 _CameraViewProjMatrix;
-    float4x4 _InvViewProjMatrix;
-    float4x4 _NonJitteredViewProjMatrix;
-    float4x4 _PrevViewProjMatrix;       // non-jittered
-    float4x4 _PrevInvViewProjMatrix;       // non-jittered
-
-    // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
-    // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
-#ifndef USING_STEREO_MATRICES
-    float3 _WorldSpaceCameraPos;
-    float  _Pad0;
-    float3 _PrevCamPosRWS;
-    float  _Pad1;
-#endif
-    float4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
-
-    // Those two uniforms are specific to the RTHandle system
-    float4 _RTHandleScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
-    float4 _RTHandleScaleHistory; // Same as above but the RTHandle handle size is that of the history buffer
-
-    // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
-    // x = 1 - f/n
-    // y = f/n
-    // z = 1/f - 1/n
-    // w = 1/n
-    // or in case of a reversed depth buffer (UNITY_REVERSED_Z is 1)
-    // x = -1 + f/n
-    // y = 1
-    // z = -1/n + -1/f
-    // w = 1/f
-    float4 _ZBufferParams;
-
-    // x = 1 or -1 (-1 if projection is flipped)
-    // y = near plane
-    // z = far plane
-    // w = 1/far plane
-    float4 _ProjectionParams;
-
-    // x = orthographic camera's width
-    // y = orthographic camera's height
-    // z = unused
-    // w = 1.0 if camera is ortho, 0.0 if perspective
-    float4 unity_OrthoParams;
-
-    // x = width
-    // y = height
-    // z = 1 + 1.0/width
-    // w = 1 + 1.0/height
-    float4 _ScreenParams;
-
-    float4 _FrustumPlanes[6];           // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
-    float4 _ShadowFrustumPlanes[6];     // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
-
-    // TAA Frame Index ranges from 0 to 7.
-    float4 _TaaFrameInfo;               // { taaSharpenStrength, unused, taaFrameIndex, taaEnabled ? 1 : 0 }
-
-    // Current jitter strength (0 if TAA is disabled)
-    float4 _TaaJitterStrength;          // { x, y, x/width, y/height }
-
-    // t = animateMaterials ? Time.realtimeSinceStartup : 0.
-    // We keep all those time value for compatibility with legacy unity but prefer _TimeParameters instead.
-    float4 _Time;                       // { t/20, t, t*2, t*3 }
-    float4 _SinTime;                    // { sin(t/8), sin(t/4), sin(t/2), sin(t) }
-    float4 _CosTime;                    // { cos(t/8), cos(t/4), cos(t/2), cos(t) }
-    float4 unity_DeltaTime;             // { dt, 1/dt, smoothdt, 1/smoothdt }
-    float4 _TimeParameters;             // { t, sin(t), cos(t) }
-    float4 _LastTimeParameters;         // { t, sin(t), cos(t) }
-
-    // Volumetric lighting.
-    float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
-
-    float3 _HeightFogBaseScattering;
-    float  _HeightFogBaseExtinction;
-
-    float2 _HeightFogExponents;         // { 1/H, H }
-    float  _HeightFogBaseHeight;
-    float  _GlobalFogAnisotropy;
-
-    float4 _VBufferViewportSize;           // { w, h, 1/w, 1/h }
-    uint   _VBufferSliceCount;
-    float  _VBufferRcpSliceCount;
-    float  _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
-
-    float  _ContactShadowOpacity;
-    float4 _VBufferSharedUvScaleAndLimit;  // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
-
-    float4 _VBufferDistanceEncodingParams; // See the call site for description
-    float4 _VBufferDistanceDecodingParams; // See the call site for description
-
-    // TODO: these are only used for reprojection.
-    // Once reprojection is performed in a separate pass, we should probably
-    // move these to a dedicated CBuffer to avoid polluting the global one.
-    float4 _VBufferPrevViewportSize;
-    float4 _VBufferHistoryPrevUvScaleAndLimit;
-    float4 _VBufferPrevDepthEncodingParams;
-    float4 _VBufferPrevDepthDecodingParams;
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ShaderVariablesLightLoop.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceLighting.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/ShaderVariablesAtmosphericScattering.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/ShaderVariablesSubsurfaceScattering.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderVariablesDecal.hlsl"
-
-    #define DEFAULT_LIGHT_LAYERS 0xFF
-    uint _EnableLightLayers;
-    float _ReplaceDiffuseForIndirect;
-    uint _EnableSkyReflection;
-
-    uint _EnableSSRefraction;
-
-    uint _OffScreenRendering;
-    uint _OffScreenDownsampleFactor;
-
-    uint _XRViewCount;
-    int  _FrameCount;
-
-    float _ProbeExposureScale;
-    int  _UseRayTracedReflections;
-    int  _RaytracingFrameIndex;
-
-    float4 _CoarseStencilBufferSize;
-
-CBUFFER_END
+float4 _VBufferPrevViewportSize;
+float4 _VBufferHistoryPrevUvScaleAndLimit;
+float4 _VBufferPrevDepthEncodingParams;
+float4 _VBufferPrevDepthDecodingParams;
 
 // Custom generated by HDRP, not from Unity Engine (passed in via HDCamera)
 #if defined(USING_STEREO_MATRICES)
@@ -491,13 +368,10 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
 // This is located after the include of UnityInstancing.hlsl so it can be used for declaration
-// Undef in order to include all textures and buffers declarations
-#undef SHADER_VARIABLES_INCLUDE_CB
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ShaderVariablesLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/ShaderVariablesAtmosphericScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderVariablesDecal.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/ShaderVariablesSubsurfaceScattering.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
