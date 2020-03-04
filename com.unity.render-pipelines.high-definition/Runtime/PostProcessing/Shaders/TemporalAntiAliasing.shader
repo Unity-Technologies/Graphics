@@ -1,9 +1,3 @@
-// ---------------- TODO LIST
-// - Instead of exclude from TAA use reduced contribution of history?
-// - IMPORTANT: TODO_FCC: Read quad across to have less samples. (reduce 2 sample in each neighbourhood that includes across X, across Y
-//                        and 1 extra reduction if read in diagonal.
-
-
 Shader "Hidden/HDRP/TAA2"
 {
     Properties
