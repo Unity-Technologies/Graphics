@@ -274,6 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Material GetBlitMaterial(bool useTexArray, bool singleSlice) { return useTexArray ? (singleSlice ? m_BlitTexArraySingleSlice : m_BlitTexArray) : m_Blit; }
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
+        internal ComputeBuffer depthPyramidMipLevelOffsetsBuffer { get { return m_DepthPyramidMipLevelOffsetsBuffer; } }
 
         ScriptableCullingParameters frozenCullingParams;
         bool frozenCullingParamAvailable = false;
@@ -462,7 +463,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 InitRayTracingManager();
                 InitRayTracedReflections();
-                InitRayTracedIndirectDiffuse();
                 InitRaytracingDeferred();
                 InitRecursiveRenderer();
                 InitPathTracing();
@@ -471,6 +471,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Initialize screen space shadows
+            InitIndirectDiffuse();
             InitializeScreenSpaceShadows();
 
             CameraCaptureBridge.enabled = true;
@@ -818,13 +819,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             base.Dispose(disposing);
 
+            ReleaseIndirectDiffuse();
             ReleaseScreenSpaceShadows();
 
             if (m_RayTracingSupported)
             {
                 ReleaseRecursiveRenderer();
                 ReleaseRayTracingDeferred();
-                ReleaseRayTracedIndirectDiffuse();
                 ReleaseRayTracedReflections();
                 ReleasePathTracing();
                 ReleaseRayTracingManager();
@@ -1014,11 +1015,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_SkyManager.SetGlobalSkyData(cmd, hdCamera);
 
+                bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
+                cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, validIndirectDiffuse ? 1 : 0);
+
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
-                    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
-                    cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, validIndirectDiffuse ? 1 : 0);
-
                     // Bind the camera's ray tracing frame index
                     cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, RayTracingFrameIndex(hdCamera));
                 }
@@ -2138,6 +2139,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
+
                 if (!hdCamera.frameSettings.SSRRunsAsync())
                 {
                     // Needs the depth pyramid and motion vectors, as well as the render of the previous frame.
@@ -2159,6 +2161,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     BuildGPULightLists(hdCamera, cmd);
+                }
+
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                {
+                    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
+                    if (validIndirectDiffuse)
+                    {
+                        RenderScreenSpaceIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
+                        PropagateIndirectDiffuseData(hdCamera, cmd, renderContext, m_FrameCount);
+                    }
                 }
 
                 if (!hdCamera.frameSettings.SSAORunsAsync())
@@ -4488,7 +4500,7 @@ namespace UnityEngine.Rendering.HighDefinition
             VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
             needNormalBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0);
             needDepthBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Depth) != 0);
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState())
+            //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState())
             {
                 needNormalBuffer = true;
                 needDepthBuffer = true;

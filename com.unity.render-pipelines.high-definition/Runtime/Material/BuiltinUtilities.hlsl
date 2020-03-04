@@ -37,8 +37,8 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     ZERO_INITIALIZE(BuiltinData, builtinData);
 
     builtinData.opacity = alpha;
-
-#if RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)
+/*
+//#if RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)
     if (_RaytracedIndirectDiffuse == 1)
     {
         #if SHADERPASS == SHADERPASS_GBUFFER
@@ -52,8 +52,8 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
         #endif
     }
     else
-#endif
-
+//#endif
+*/
     // Sample lightmap/lightprobe/volume proxy
     builtinData.bakeDiffuseLighting = SampleBakedGI(posInput.positionWS, normalWS, texCoord1.xy, texCoord2.xy);
     // We also sample the back lighting in case we have transmission. If not use this will be optimize out by the compiler

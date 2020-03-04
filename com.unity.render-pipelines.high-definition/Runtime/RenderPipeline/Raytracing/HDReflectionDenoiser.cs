@@ -17,9 +17,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
+        public void Init(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
         {
-            m_ReflectionDenoiserCS = rpRTResources.reflectionDenoiserCS;
+            m_ReflectionDenoiserCS = rpResources.shaders.reflectionDenoiserCS;
             m_ReflectionFilterMapping = rpRTResources.reflectionFilterMapping;
             m_SharedRTManager = sharedRTManager;
             m_RenderPipeline = renderPipeline;

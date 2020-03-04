@@ -1,10 +1,9 @@
-#pragma only_renderers d3d11
 
 // Temporal Filtering kernels
 #pragma kernel TemporalAccumulationSingle       TEMPORAL_ACCUMULATION_SINGLE=TemporalAccumulationSingle          SINGLE_CHANNEL
 #pragma kernel TemporalAccumulationSingleArray  TEMPORAL_ACCUMULATION_SINGLE=TemporalAccumulationSingleArray     SINGLE_CHANNEL     HISTORY_IS_ARRAY
 
-#pragma kernel TemporalAccumulationColor    TEMPORAL_ACCUMULATION_COLOR=TemporalAccumulationColor      HISTORY_IS_ARRAY
+#pragma kernel TemporalAccumulationColor    TEMPORAL_ACCUMULATION_COLOR=TemporalAccumulationColor
 
 #pragma kernel CopyHistorySingle            COPY_HISTORY=CopyHistorySingle SINGLE_CHANNEL
 #pragma kernel CopyHistorySingleArray       COPY_HISTORY=CopyHistorySingleArray HISTORY_IS_ARRAY SINGLE_CHANNEL
@@ -16,8 +15,6 @@
 
 #pragma kernel BilateralFilterHColor        BILATERAL_FILTER=BilateralFilterHColor
 #pragma kernel BilateralFilterVColor        BILATERAL_FILTER=BilateralFilterVColor     FINAL_PASS
-
-#pragma only_renderers d3d11
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -36,14 +33,14 @@ int _DenoiserFilterRadius;
 
 #ifdef HISTORY_IS_ARRAY
 int _DenoisingHistorySlot;
-Texture2DArray<float4> _HistoryBuffer;
+TEXTURE2D_ARRAY(_HistoryBuffer);
 #else
 TEXTURE2D_X(_HistoryBuffer);
 #endif
 
 #if SINGLE_CHANNEL
     #ifdef HISTORY_IS_ARRAY
-    RWTexture2DArray<float> _DenoiseOutputTextureRW;
+    RW_TEXTURE2D_ARRAY(float, _DenoiseOutputTextureRW);
     #else
     RW_TEXTURE2D_X(float, _DenoiseOutputTextureRW);
     #endif
@@ -205,6 +202,9 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
     #endif
 }
 
+RW_TEXTURE2D_X(float4, _BilateralOutputTextureRW);
+
+
 // Separated bilateral filter (two passes, each with 2*Radius taps)
 [numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
 void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -254,9 +254,9 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     // Store the intermediate result
     #if SINGLE_CHANNEL
     float finalColor = colorSum / wSum;
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = finalColor;
+    _BilateralOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = finalColor;
     #else
     float3 finalColor = colorSum / wSum;
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(finalColor, 1.0);
+    _BilateralOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(finalColor, 1.0);
     #endif
 }

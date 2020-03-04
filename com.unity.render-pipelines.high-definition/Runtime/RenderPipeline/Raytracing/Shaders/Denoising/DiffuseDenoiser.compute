@@ -1,10 +1,8 @@
-#pragma kernel BilateralFilterSingle        BILATERAL_FILTER=BilateralFilterSingle     SINGLE_CHANNEL
-#pragma kernel BilateralFilterColor         BILATERAL_FILTER=BilateralFilterColor
+#pragma kernel BilateralFilterSingle            BILATERAL_FILTER=BilateralFilterSingle          SINGLE_CHANNEL
+#pragma kernel BilateralFilterSingleHalfRes     BILATERAL_FILTER=BilateralFilterSingleHalfRes   SINGLE_CHANNEL HALF_RES
 
-#pragma kernel GatherSingle                 GATHER_FILTER=GatherSingle     SINGLE_CHANNEL
-#pragma kernel GatherColor                  GATHER_FILTER=GatherColor
-
-#pragma only_renderers d3d11
+#pragma kernel BilateralFilterColor             BILATERAL_FILTER=BilateralFilterColor
+#pragma kernel BilateralFilterColorHalfRes      BILATERAL_FILTER=BilateralFilterColorHalfRes    HALF_RES
 
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -78,7 +76,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     #endif
 
     // Define the sample count for this pixel. 16 samples per pixels if it is a full res or 4 if half resolution
-    int numSamples = _HalfResolutionFilter ? 4 : 16;
+    int numSamples = _HalfResolutionFilter ? 2 : 8;
 
     // Compute the radius of the filter. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
     const float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(center.position);
@@ -123,6 +121,10 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
 
         // Tap the data for this pixel
         uint2 tapCoord = nDC * _ScreenSize.xy;
+        #if HALF_RES
+        tapCoord = tapCoord / 2;
+        #endif
+
         const BilateralData tapData = TapBilateralData(tapCoord);
 
         // If the tapped pixel is a background pixel or too far from the center pixel
@@ -160,33 +162,5 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = colorSum / wSum;
     #else
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(colorSum / wSum, 1.0);
-    #endif
-}
-
-// TODO: This needs to check depth before upscale to avoid artifacts
-[numthreads(DIFFUSE_DENOISER_TILE_SIZE, DIFFUSE_DENOISER_TILE_SIZE, 1)]
-void GATHER_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    // Fetch the current pixel coordinate
-    uint2 centerCoord = groupId * DIFFUSE_DENOISER_TILE_SIZE + groupThreadId;
-
-    uint2 corner = centerCoord - uint2(centerCoord.x & 1, centerCoord.y & 1);
-    // TODO: The data is read 4 times while it should only be done once
-    #if SINGLE_CHANNEL
-    float color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner).x;
-    color += LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner + uint2(1, 0)).x;
-    color += LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner + uint2(0, 1)).x;
-    color += LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner + uint2(1, 1)).x;
-    color *= 0.25;
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = color;
-    #else
-    float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner).xyz;
-    color += LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner + uint2(1, 0)).xyz;
-    color += LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner + uint2(0, 1)).xyz;
-    color += LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner + uint2(1, 1)).xyz;
-    color *= 0.25;
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, 1.0);
     #endif
 }

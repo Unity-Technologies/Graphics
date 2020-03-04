@@ -469,6 +469,7 @@ MonoBehaviour:
   m_FilterSizeTraced: 3
   m_SunLightConeAngle: 0.5
   m_LightShadowRadius: 0.5
+  m_SemiTransparentShadow: 0
   m_ColorShadow: 1
   m_EvsmExponent: 15
   m_EvsmLightLeakBias: 0

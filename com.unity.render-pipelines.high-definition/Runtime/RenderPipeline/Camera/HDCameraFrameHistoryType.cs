@@ -33,6 +33,14 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracedIndirectDiffuseHF,
         /// <summary>Ray traced indirect diffuse LF buffer.</summary>
         RaytracedIndirectDiffuseLF,
+        /// <summary>Ray traced indirect diffuse 0 buffer.</summary>
+        RaytracedIndirectDiffuse0,
+        /// <summary>Ray traced indirect diffuse 1 buffer.</summary>
+        RaytracedIndirectDiffuse1,
+        /// <summary>Ray traced indirect diffuse 2 buffer.</summary>
+        RaytracedIndirectDiffuse2,
+        /// <summary>Ray traced indirect diffuse 3 buffer.</summary>
+        RaytracedIndirectDiffuse3,
         /// <summary>Ray traced subsurface buffer.</summary>
         RayTracedSubSurface,
         /// <summary>Path tracing buffer.</summary>

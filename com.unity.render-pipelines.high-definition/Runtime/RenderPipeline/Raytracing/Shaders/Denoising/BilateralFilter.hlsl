@@ -36,23 +36,40 @@ BilateralData TapBilateralData(uint2 coordSS)
     BilateralData key;
     PositionInputs posInput;
 
+    #if HALF_RES
+    int2 fullResCoord = coordSS * 2;
+    #endif
+
     if (DEPTH_WEIGHT > 0.0 || PLANE_WEIGHT > 0.0)
     {
+        #if HALF_RES
+        posInput.deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, fullResCoord).r;
+        #else
         posInput.deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, coordSS).r;
+        #endif
         key.z01 = Linear01Depth(posInput.deviceDepth, _ZBufferParams);
         key.zNF = LinearEyeDepth(posInput.deviceDepth, _ZBufferParams);
     }
 
     if (PLANE_WEIGHT > 0.0)
     {
+        #if HALF_RES
+        posInput = GetPositionInput(fullResCoord, _ScreenSize.zw, posInput.deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+        #else
         posInput = GetPositionInput(coordSS, _ScreenSize.zw, posInput.deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+        #endif
         key.position = posInput.positionWS;
     }
 
     if ((NORMAL_WEIGHT > 0.0) || (PLANE_WEIGHT > 0.0))
     {
         NormalData normalData;
+        #if HALF_RES
+        const float4 normalBuffer = LOAD_TEXTURE2D_X(_NormalBufferTexture, fullResCoord);
+        #else
         const float4 normalBuffer = LOAD_TEXTURE2D_X(_NormalBufferTexture, coordSS);
+        #endif
+
         DecodeFromNormalBuffer(normalBuffer, coordSS, normalData);
         key.normal = normalData.normalWS;
     #ifdef BILATERAL_ROUGHNESS

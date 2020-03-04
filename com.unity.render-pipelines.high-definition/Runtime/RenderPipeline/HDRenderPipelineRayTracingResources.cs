@@ -51,16 +51,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RayTracingSubSurface.raytrace")]
         public RayTracingShader subSurfaceRayTracing;
 
-        // Denoising
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/TemporalFilter.compute")]
-        public ComputeShader temporalFilterCS;
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/SimpleDenoiser.compute")]
-        public ComputeShader simpleDenoiserCS;
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseDenoiser.compute")]
-        public ComputeShader diffuseDenoiserCS;
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReflectionDenoiser.compute")]
-        public ComputeShader reflectionDenoiserCS;
-
         // Deferred Lighting
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingGBuffer.raytrace")]
         public RayTracingShader gBufferRaytracingRT;

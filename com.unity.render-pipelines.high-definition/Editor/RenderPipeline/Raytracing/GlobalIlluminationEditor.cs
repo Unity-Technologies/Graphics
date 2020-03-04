@@ -8,6 +8,13 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(GlobalIllumination))]
     class GlobalIlluminatorEditor : VolumeComponentEditor
     {
+        SerializedDataParameter m_DepthBufferThickness;
+        SerializedDataParameter m_RaySteps;
+        SerializedDataParameter m_MaximalRadius;
+        SerializedDataParameter m_UseProbeAsFallback;
+        SerializedDataParameter m_ProbeFallbackBias;
+        SerializedDataParameter m_PyramidBias;
+
         SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_RayTracing;
         SerializedDataParameter m_RayLength;
@@ -33,6 +40,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var o = new PropertyFetcher<GlobalIllumination>(serializedObject);
 
+            m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
+            m_RaySteps = Unpack(o.Find(x => x.raySteps));
+            m_MaximalRadius = Unpack(o.Find(x => x.maximalRadius));
+            m_UseProbeAsFallback = Unpack(o.Find(x => x.useProbeAsFallback));
+            m_ProbeFallbackBias = Unpack(o.Find(x => x.probeFallbackBias));
+            m_PyramidBias = Unpack(o.Find(x => x.pyramidBias));
+
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
@@ -57,27 +71,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, wide: true);
-                return;
-            }
-
             // If ray tracing is supported display the content of the volume component
             if (HDRenderPipeline.pipelineSupportsRayTracing)
             {
                 PropertyField(m_RayTracing);
+            }
 
+            bool rayTracingSettingsDisplayed = false;
+
+            EditorGUI.indentLevel++;
+            if (HDRenderPipeline.pipelineSupportsRayTracing)
+            {
                 if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
                 {
-                    EditorGUI.indentLevel++;
+                    rayTracingSettingsDisplayed = true;
                     PropertyField(m_LayerMask);
                     PropertyField(m_RayLength);
                     PropertyField(m_ClampValue);
                     PropertyField(m_Mode);
-
                     EditorGUI.indentLevel++;
                     switch (m_Mode.value.GetEnumValue<RayTracingMode>())
                     {
@@ -95,7 +106,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             break;
                     }
                     EditorGUI.indentLevel--;
-
                     PropertyField(m_Denoise);
                     {
                         EditorGUI.indentLevel++;
@@ -105,9 +115,28 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_SecondDenoiserRadius);
                         EditorGUI.indentLevel--;
                     }
+                }
+            }
+
+            if (!rayTracingSettingsDisplayed)
+            {
+                PropertyField(m_FullResolution);
+                PropertyField(m_ClampValue);
+                PropertyField(m_DepthBufferThickness);
+                PropertyField(m_RaySteps);
+                PropertyField(m_MaximalRadius);
+                PropertyField(m_PyramidBias);
+                PropertyField(m_Denoise);
+                {
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_HalfResolutionDenoiser);
+                    PropertyField(m_SecondDenoiserPass);
+                    PropertyField(m_DenoiserRadius);
                     EditorGUI.indentLevel--;
                 }
             }
+
+            EditorGUI.indentLevel--;
         }
     }
 }

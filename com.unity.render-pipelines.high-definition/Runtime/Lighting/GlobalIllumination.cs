@@ -3,9 +3,9 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
-    /// A volume component that holds settings for the ray traced global illumination.
+    /// A volume component that holds settings for the global illumination (screen space and ray traced).
     /// </summary>
-    [Serializable, VolumeComponentMenu("Ray Tracing/Global Illumination (Preview)")]
+    [Serializable, VolumeComponentMenu("Lighting/Global Illumination")]
     public sealed class GlobalIllumination : VolumeComponent
     {
         /// <summary>
@@ -13,6 +13,37 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Enable ray traced global illumination.")]
         public BoolParameter rayTracing = new BoolParameter(false);
+
+        // GI Data
+        /// <summary>
+        /// Controls the distance at which HDRP fades out GI near the edge of the screen.
+        /// </summary>
+        public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.01f, 0, 1);
+
+        /// <summary>
+        /// TODO: WRITE ME
+        /// </summary>
+        public ClampedIntParameter raySteps = new ClampedIntParameter(32, 1, 128);
+
+        /// <summary>
+        /// TODO: WRITE ME
+        /// </summary>
+        public ClampedFloatParameter maximalRadius = new ClampedFloatParameter(2.0f, 0.01f, 50.0f);
+
+        /// <summary>
+        /// Enable ray traced global illumination.
+        /// </summary>
+        public BoolParameter useProbeAsFallback = new BoolParameter(true);
+
+        /// <summary>
+        /// Enable ray traced global illumination.
+        /// </summary>
+        public ClampedIntParameter probeFallbackBias = new ClampedIntParameter(2, 0, 7);
+
+        /// <summary>
+        /// Enable ray traced global illumination.
+        /// </summary>
+        public ClampedIntParameter pyramidBias = new ClampedIntParameter(2, 0, 7);
 
         /// <summary>
         /// Defines the layers that GI should include.

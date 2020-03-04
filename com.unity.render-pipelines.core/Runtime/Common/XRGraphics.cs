@@ -1,5 +1,7 @@
+#undef ENABLE_VR
 using System;
 using UnityEditor;
+
 
 #if ENABLE_VR && ENABLE_VR_MODULE
 using UnityEngine.XR;

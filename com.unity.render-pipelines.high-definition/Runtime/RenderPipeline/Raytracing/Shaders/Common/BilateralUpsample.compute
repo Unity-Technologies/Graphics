@@ -1,0 +1,104 @@
+#pragma kernel BilateralUpSampleSingle    BILATERAL_UPSAMPLE=BilateralUpSampleSingle SINGLE_CHANNEL
+#pragma kernel BilateralUpSampleColor     BILATERAL_UPSAMPLE=BilateralUpSampleColor
+
+//#pragma enable_d3d11_debug_symbols
+
+#define BILATERAL_UPSAMPLE_TILE_SIZE 8
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
+
+#define _UpsampleTolerance 1e-7f
+#define _NoiseFilterStrength 0.99999f
+
+float3 BilUpColor(float HiDepth, float4 LowDepths, float3 lowValue0, float3 lowValue1, float3 lowValue2, float3 lowValue3)
+{
+    float4 weights = float4(9, 3, 1, 3) / (abs(HiDepth - LowDepths) + _UpsampleTolerance);
+    float TotalWeight = dot(weights, 1) + _NoiseFilterStrength;
+    float3 WeightedSum = lowValue0 * weights.x 
+                        + lowValue1 * weights.y 
+                        + lowValue2 * weights.z 
+                        + lowValue3 * weights.w 
+                        + _NoiseFilterStrength;
+    return WeightedSum / TotalWeight;
+}
+
+float BilUpSingle(float HiDepth, float4 LowDepths, float4 lowValue)
+{
+    float4 weights = float4(9, 3, 1, 3) / (abs(HiDepth - LowDepths) + _UpsampleTolerance);
+    float TotalWeight = dot(weights, 1) + _NoiseFilterStrength;
+    float WeightedSum = dot(lowValue, weights) + _NoiseFilterStrength;
+    return WeightedSum / TotalWeight;
+}
+
+TEXTURE2D_X(_LowResolutionTexture);
+TEXTURE2D_X(_DepthTexture);
+RW_TEXTURE2D_X(float4, _OutputUpscaledTexture);
+StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
+
+[numthreads(BILATERAL_UPSAMPLE_TILE_SIZE, BILATERAL_UPSAMPLE_TILE_SIZE, 1)]
+void BILATERAL_UPSAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 outputCoord = groupId * BILATERAL_UPSAMPLE_TILE_SIZE + groupThreadId;
+
+    // Read the depth value as early as possible
+    float hiResDepth = LOAD_TEXTURE2D_X(_DepthTexture, outputCoord).x;
+
+    // Define what is the half resolution of this pixel
+    int2 halfResolution = (int2)(outputCoord / 2);
+
+    // Define what is the half resolution of this pixel
+    int2 coordRepresenatative = halfResolution * 2;
+    
+    // Compute the shift within the half res
+    int2 halfResShift = outputCoord - coordRepresenatative;
+
+    // Compute the shift of the pixel in the group
+    int shiftIndex = halfResShift.y * 2 + halfResShift.x;
+
+    // Compute the shift in the upscale table
+    int offsetInCoordTable = shiftIndex * 4;
+
+#if SINGLE_CHANNEL
+    float value = 0.0;
+#else
+    float3 value = 0.0;
+#endif
+
+    float w = 0.0;
+
+    // Loop through the four pixels we are supposed to make contribute
+    int2 halfResTap0 = clamp(0, halfResolution + UpscaleBilateralPixels[offsetInCoordTable], _ScreenSize.xy * 0.49);
+    int2 halfResTap1 = clamp(0, halfResolution + UpscaleBilateralPixels[offsetInCoordTable + 1], _ScreenSize.xy * 0.49);
+    int2 halfResTap2 = clamp(0, halfResolution + UpscaleBilateralPixels[offsetInCoordTable + 2], _ScreenSize.xy * 0.49);
+    int2 halfResTap3 = clamp(0, halfResolution + UpscaleBilateralPixels[offsetInCoordTable + 3], _ScreenSize.xy * 0.49);
+
+    // Fetch the mipoffset for the second mip (half res)
+    int2 mipOffset =  _DepthPyramidMipLevelOffsets[1];
+
+    float4 lowDepths = float4(LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + halfResTap0).x
+                            , LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + halfResTap1).x
+                            , LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + halfResTap2).x
+                            , LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + halfResTap3).x);
+
+#if SINGLE_CHANNEL
+    float4 lowRes = float4(_LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap0)].x
+                            , _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap1)].x
+                            , _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap2)].x
+                            , _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap3)].x);
+    float upscaledValue = BilUpSingle(hiResDepth, lowDepths, lowRes);
+    _OutputUpscaledTexture[COORD_TEXTURE2D_X(outputCoord)] = upscaledValue;
+#else
+    float3 lowResCol0 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap0)].xyz);
+    float3 lowResCol1 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap1)].xyz);
+    float3 lowResCol2 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap2)].xyz);
+    float3 lowResCol3 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap3)].xyz);
+    float3 upscaledColor = BilUpColor(hiResDepth, lowDepths, lowResCol0, lowResCol1, lowResCol2, lowResCol3);
+    _OutputUpscaledTexture[COORD_TEXTURE2D_X(outputCoord)] = float4(upscaledColor, 1.0f);
+#endif
+}
