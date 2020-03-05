@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        public static void PasteBlocks(VFXViewController viewController, object data, VFXContext targetModelContext, int targetIndex, List<VFXBlockController> blocksInTheSameOrder)
+        public static void PasteBlocks(VFXViewController viewController, object data, VFXContext targetModelContext, int targetIndex, List<VFXBlockController> blocksInTheSameOrder = null)
         {    
             if (s_Instance == null)
                 s_Instance = new VFXPaste();
