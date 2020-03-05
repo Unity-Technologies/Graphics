@@ -419,10 +419,15 @@ CTYPE GetFilteredHistory(TEXTURE2D_X(HistoryTexture), float2 UV, float sharpenin
 struct NeighbourhoodSamples
 {
 #if WIDE_NEIGHBOURHOOD
-    CTYPE neighbours[8];
+    CTYPE  neighbours[8];
 #else
     CTYPE neighbours[4];
 #endif
+
+#ifdef UPSAMPLING
+    float2 neighbourOffset[8];
+#endif
+
     CTYPE central;
     CTYPE minNeighbour;
     CTYPE maxNeighbour;
@@ -467,11 +472,22 @@ void GatherNeighbourhood(TEXTURE2D_X(InputTexture), float2 UV, float2 positionSS
     int2 offset2 = int2(quadOffset.x, -quadOffset.y);
     int2 offset3 = quadOffset;
 
-
     samples.neighbours[4] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset1, _RTHandleScale.xy).CTYPE_SWIZZLE);
     samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset2, _RTHandleScale.xy).CTYPE_SWIZZLE);
     samples.neighbours[6] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset3, _RTHandleScale.xy).CTYPE_SWIZZLE);
     samples.neighbours[7] = QuadReadColorAcrossDiagonal(centralColor, positionSS);
+
+#ifdef UPSAMPLING
+    samples.neighbourOffset[0] = float2(0.0f, quadOffset.y);
+    samples.neighbourOffset[1] = float2(quadOffset.x, 0.0f);
+    samples.neighbourOffset[2] = float2(-quadOffset.x, 0.0f);
+    samples.neighbourOffset[3] = float2(0.0f, -quadOffset.y);
+    samples.neighbourOffset[4] = offset1;
+    samples.neighbourOffset[5] = offset2;
+    samples.neighbourOffset[6] = offset3;
+    samples.neighbourOffset[7] = fastOffset;
+#endif
+
 
 #else // !WIDE_NEIGHBOURHOOD
 
@@ -576,6 +592,42 @@ void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLu
 // ---------------------------------------------------
 // Filter main color
 // ---------------------------------------------------
+
+float SampleWeight(float2 sampleOffset, float sigmaScale, float invSourceRes)
+{
+    // by default is a very sharp filter (almost selection)
+    // as we get less confident in our history, the filter gets more like a blurrying filter
+    float stdDev = 0.3 * sigmaScale; 
+    float stdDev2 = stdDev * stdDev;
+    float x2 = dot(sampleOffset, sampleOffset) * invSourceRes * invSourceRes;
+    return exp(-x2 / (2 * stdDev2));
+}
+
+// Important UV needs to be jittered
+CTYPE FilterForUpsampling(float2 UV, NeighbourhoodSamples samples)
+{
+
+    // TODO_FCC: IMPORTANT VERIFY THIS FOR PIXEL....
+    // Essentially what we need is the vector from the jittered position from input (LOW RES) to the center of the output pixel (HIGH RES)
+    // Note that we are running with UV that are in OUTPUT space (HIGH RES).
+
+    float2 inputLoc_i = floor(outputLoc_i) + 0.5;
+    float2 outputLocationInInput = UV * _ScreenSize.xy;
+
+    // Vector between the location in input and output space
+    float2 deltaInputOutput = outputLocationInInput - (0.5 + floor(outputLocationInInput));
+
+    // TODO_FCC: FILL DATA HERE Compute sigma scale here.
+    float sigmaScale = 1;
+    float invSourceRes = 1;
+
+
+    // Start with central
+    float w = SampleWeight(deltaInputOutput, sigmaScale, invSourceRes);
+
+    float3 filteredOutput = samples.central * 
+    for(int i=0; )
+}
 
 CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterWeights)
 {
