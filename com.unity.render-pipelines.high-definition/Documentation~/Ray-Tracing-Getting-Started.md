@@ -160,7 +160,7 @@ To enable ray tracing for a specific Camera:
 HDRP uses ray tracing to replace some of its screen space effects, shadowing techniques, and Mesh rendering techniques.
 
 - [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.html) replaces [screen space ambient occlusion](Override-Ambient-Occlusion.html) with a more accurate, ray-traced, ambient occlusion technique that can use off screen data.
-- [Ray-Traced Contact Shadows](Ray-Tracing-Contact-Shadows.html) replaces [contact shadows](Override-Contact-Shadows) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
+- [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.html) replaces [contact shadows](Override-Contact-Shadows) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
 - [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.html) is an alternative to Light Probes and lightmaps in HDRP.
 - [Ray-Traced Reflections](Ray-Traced-Reflections.html) is a replacement for [screen space reflection](Override-Screen-Space-Reflection) that uses a ray-traced reflection technique that can use off-screen data.
 - [Ray-Traced Shadows](Ray-Traced-Shadows.html) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.html).
