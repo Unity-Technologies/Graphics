@@ -344,7 +344,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float scaleFactor = (parameters.runningRes.x * parameters.runningRes.y) / (540.0f * 960.0f);
             float radInPixels = Mathf.Max(16, settings.maximumRadiusInPixels * Mathf.Sqrt(scaleFactor));
 
-            
+
 
             parameters.aoParams2 = new Vector4(
                 historySize.x,
@@ -592,13 +592,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void PushGlobalParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal void UpdateShaderVariableGlobalCB(ConstantBuffer<ShaderVariablesGlobal> cb, HDCamera hdCamera)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(hdCamera, settings))
-                cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, settings.directLightingStrength.value));
+                cb.data._AmbientOcclusionParam = new Vector4(0f, 0f, 0f, settings.directLightingStrength.value);
             else
-                cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
+                cb.data._AmbientOcclusionParam = Vector4.zero;
         }
 
         internal void PostDispatchWork(CommandBuffer cmd, HDCamera camera)

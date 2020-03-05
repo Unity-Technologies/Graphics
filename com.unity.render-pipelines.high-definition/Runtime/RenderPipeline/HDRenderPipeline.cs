@@ -142,7 +142,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_BlitTexArraySingleSlice;
         MaterialPropertyBlock m_BlitPropertyBlock = new MaterialPropertyBlock();
 
-
         RenderTargetIdentifier[] m_MRTCache2 = new RenderTargetIdentifier[2];
 
         // 'm_CameraColorBuffer' does not contain diffuse lighting of SSS materials until the SSS pass. It is stored within 'm_CameraSssDiffuseLightingBuffer'.
@@ -167,6 +166,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Lazy<RTHandle> m_CustomPassColorBuffer;
         Lazy<RTHandle> m_CustomPassDepthBuffer;
+
+        // Constant Buffers
+        ConstantBuffer<ShaderVariablesGlobal> m_ShaderVariablesGlobalCB;
 
         // The current MSAA count
         MSAASamples m_MSAASamples;
@@ -482,6 +484,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializePrepass(m_Asset);
             m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.colorResolvePS);
+
+            InitializeConstantBuffers();
         }
 
 #if UNITY_EDITOR
@@ -796,6 +800,16 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
+        void InitializeConstantBuffers()
+        {
+            m_ShaderVariablesGlobalCB = new ConstantBuffer<ShaderVariablesGlobal>();
+        }
+
+        void DestroyConstantBuffers()
+        {
+            m_ShaderVariablesGlobalCB.Release();
+        }
+
         /// <summary>
         /// Disposable pattern implementation.
         /// </summary>
@@ -886,6 +900,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CleanupPrepass();
             CoreUtils.Destroy(m_ColorResolveMaterial);
 
+            DestroyConstantBuffers();
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
@@ -950,34 +965,54 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void UpdateShaderVariablesGlobalCB(HDCamera hdCamera)
+        {
+            /*
+            _ShadowFrustumPlanes
+            */
+
+            hdCamera.UpdateShaderVariableGlobalCB(m_ShaderVariablesGlobalCB, m_FrameCount);
+            Fog.UpdateShaderVariablesGlobalCB(m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesGlobalSubsurface(m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesGlobalDecal(m_ShaderVariablesGlobalCB, hdCamera);
+
+            // Misc
+            MicroShadowing microShadowingSettings = hdCamera.volumeStack.GetComponent<MicroShadowing>();
+            m_ShaderVariablesGlobalCB.data._MicroShadowOpacity = microShadowingSettings.enable.value ? microShadowingSettings.opacity.value : 0.0f;
+
+            HDShadowSettings shadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
+            m_ShaderVariablesGlobalCB.data._DirectionalTransmissionMultiplier = shadowSettings.directionalTransmissionMultiplier.value;
+
+            ScreenSpaceRefraction ssRefraction = hdCamera.volumeStack.GetComponent<ScreenSpaceRefraction>();
+            m_ShaderVariablesGlobalCB.data._SSRefractionInvScreenWeightDistance = 1.0f / ssRefraction.screenFadeDistance.value;
+
+            m_ShaderVariablesGlobalCB.data._IndirectLightingMultiplier = new Vector4(hdCamera.volumeStack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity.value, 0, 0, 0);
+            m_ShaderVariablesGlobalCB.data._OffScreenRendering = 0;
+            m_ShaderVariablesGlobalCB.data._ReplaceDiffuseForIndirect = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReplaceDiffuseForIndirect) ? 1.0f : 0.0f;
+            m_ShaderVariablesGlobalCB.data._EnableSkyReflection = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SkyReflection) ? 1u : 0u;
+            m_ShaderVariablesGlobalCB.data._ContactShadowOpacity = m_ContactShadows.opacity.value;
+
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+            {
+                m_ShaderVariablesGlobalCB.data._RaytracedIndirectDiffuse = ValidIndirectDiffuseState(hdCamera) ? 1 : 0;
+                m_ShaderVariablesGlobalCB.data._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
+            }
+        }
+
         void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushGlobalParameters)))
             {
-                // Set up UnityPerFrame CBuffer.
-                PushSubsurfaceScatteringGlobalParams(hdCamera, cmd);
+                UpdateShaderVariablesGlobalCB(hdCamera);
 
-                PushDecalsGlobalParams(hdCamera, cmd);
 
-                Fog.PushFogShaderParameters(hdCamera, cmd);
+
+
 
                 PushVolumetricLightingGlobalParams(hdCamera, cmd, m_FrameCount);
 
-                SetMicroShadowingSettings(hdCamera, cmd);
-
-                HDShadowSettings shadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
-                cmd.SetGlobalFloat(HDShaderIDs._DirectionalTransmissionMultiplier, shadowSettings.directionalTransmissionMultiplier.value);
-
-                m_AmbientOcclusionSystem.PushGlobalParameters(hdCamera, cmd);
-
-                var ssRefraction = hdCamera.volumeStack.GetComponent<ScreenSpaceRefraction>()
-                    ?? ScreenSpaceRefraction.defaultInstance;
-                ssRefraction.PushShaderParameters(cmd);
-
                 // Set up UnityPerView CBuffer.
                 hdCamera.SetupGlobalParams(cmd, m_FrameCount);
-
-                cmd.SetGlobalVector(HDShaderIDs._IndirectLightingMultiplier, new Vector4(hdCamera.volumeStack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity.value, 0, 0, 0));
 
                 // It will be overridden for transparent pass.
                 cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, (int)UnityEngine.Rendering.ColorWriteMask.All);
@@ -1005,22 +1040,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, TextureXR.GetClearTexture());
 
-                // Off screen rendering is disabled for most of the frame by default.
-                cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
-                cmd.SetGlobalFloat(HDShaderIDs._ReplaceDiffuseForIndirect, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReplaceDiffuseForIndirect) ? 1.0f : 0.0f);
-                cmd.SetGlobalInt(HDShaderIDs._EnableSkyReflection, hdCamera.frameSettings.IsEnabled(FrameSettingsField.SkyReflection) ? 1 : 0);
 
                 m_SkyManager.SetGlobalSkyData(cmd, hdCamera);
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
-                {
-                    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
-                    cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, validIndirectDiffuse ? 1 : 0);
-
-                    // Bind the camera's ray tracing frame index
-                    cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, RayTracingFrameIndex(hdCamera));
-                }
-                cmd.SetGlobalFloat(HDShaderIDs._ContactShadowOpacity, m_ContactShadows.opacity.value);
             }
         }
 
@@ -1101,12 +1123,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.DispatchCompute(cs, kernel, coarseStencilWidth, coarseStencilHeight, hdCamera.viewCount);
             }
-        }
-
-        void SetMicroShadowingSettings(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            MicroShadowing microShadowingSettings = hdCamera.volumeStack.GetComponent<MicroShadowing>();
-            cmd.SetGlobalFloat(HDShaderIDs._MicroShadowOpacity, microShadowingSettings.enable.value ? microShadowingSettings.opacity.value : 0.0f);
         }
 
         void ConfigureKeywords(bool enableBakeShadowMask, HDCamera hdCamera, CommandBuffer cmd)
@@ -3156,16 +3172,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return desc;
         }
 
-        static void PushDecalsGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
+        void UpdateShaderVariablesGlobalDecal(ConstantBuffer<ShaderVariablesGlobal> cb, HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
-                cmd.SetGlobalInt(HDShaderIDs._EnableDecals, 1);
-                cmd.SetGlobalVector(HDShaderIDs._DecalAtlasResolution, new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight));
+                cb.data._EnableDecals  = 1;
+                cb.data._DecalAtlasResolution = new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight);
             }
             else
             {
-                cmd.SetGlobalInt(HDShaderIDs._EnableDecals, 0);
+                cb.data._EnableDecals = 0;
             }
         }
 

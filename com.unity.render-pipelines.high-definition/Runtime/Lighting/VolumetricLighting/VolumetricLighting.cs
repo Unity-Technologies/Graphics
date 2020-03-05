@@ -474,14 +474,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.IsVolumetricReprojectionEnabled())
             {
                 var historyRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
-
                 historyBufferSize = new Vector2Int(historyRT.rt.width, historyRT.rt.height);
-
-                // Handle case of first frame. When we are on the first frame, we reuse the value of original frame.
-                if (historyBufferSize.x == 0.0f && historyBufferSize.y == 0.0f)
-                {
-                    historyBufferSize = sharedBufferSize;
-                }
             }
 
             var cvp = currFrameParams.viewportSize;

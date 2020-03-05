@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector4[]                   m_SSSDisabledTransmissionTintsAndFresnel0;
         Vector4[]                   m_SSSWorldScales;
         Vector4[]                   m_SSSFilterKernels;
-        float[]                     m_SSSDiffusionProfileHashes;
+        uint[]                      m_SSSDiffusionProfileHashes;
         int[]                       m_SSSDiffusionProfileUpdate;
         DiffusionProfileSettings[]  m_SSSSetDiffusionProfiles;
         DiffusionProfileSettings    m_SSSDefaultDiffusionProfile;
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSDisabledTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSWorldScales = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSFilterKernels = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD];
-            m_SSSDiffusionProfileHashes = new float[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+            m_SSSDiffusionProfileHashes = new uint[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSDiffusionProfileUpdate = new int[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSSetDiffusionProfiles = new DiffusionProfileSettings[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
         }
@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_SSSFilterKernels[n * index + j].w = settings.profile.filterKernelFarField[j].y;
                 }
             }
-            m_SSSDiffusionProfileHashes[index] = HDShadowUtils.Asfloat(settings.profile.hash);
+            m_SSSDiffusionProfileHashes[index] = settings.profile.hash;
 
             // Erase previous value (This need to be done here individually as in the SSS editor we edit individual component)
             uint mask = 1u << index;
@@ -192,32 +192,30 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSDiffusionProfileUpdate[index] = settings.updateCount;
         }
 
-        void PushSubsurfaceScatteringGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
+        unsafe void UpdateShaderVariablesGlobalSubsurface(ConstantBuffer<ShaderVariablesGlobal> cb, HDCamera hdCamera)
         {
             UpdateCurrentDiffusionProfileSettings(hdCamera);
 
-            cmd.SetGlobalInt(HDShaderIDs._DiffusionProfileCount, m_SSSActiveDiffusionProfileCount);
-
-            if (m_SSSActiveDiffusionProfileCount == 0)
-                return ;
+            cb.data._DiffusionProfileCount = (uint)m_SSSActiveDiffusionProfileCount;
 
             // Broadcast SSS parameters to all shaders.
-            cmd.SetGlobalInt(HDShaderIDs._EnableSubsurfaceScattering, hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering) ? 1 : 0);
-            unsafe
+            cb.data._EnableSubsurfaceScattering = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering) ? 1u : 0u;
+            cb.data._TexturingModeFlags = m_SSSTexturingModeFlags;
+            cb.data._TransmissionFlags = m_SSSTransmissionFlags;
+
+            for (int i = 0; i < m_SSSActiveDiffusionProfileCount; ++i)
             {
-                // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
-                // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
-                uint texturingModeFlags = this.m_SSSTexturingModeFlags;
-                uint transmissionFlags = this.m_SSSTransmissionFlags;
-                cmd.SetGlobalFloat(HDShaderIDs._TexturingModeFlags, *(float*)&texturingModeFlags);
-                cmd.SetGlobalFloat(HDShaderIDs._TransmissionFlags, *(float*)&transmissionFlags);
+                for (int c = 0; c < 4; ++c) // Vector4 component
+                {
+                    cb.data._ThicknessRemaps[i * 4 + c] = m_SSSThicknessRemaps[i][c];
+                    cb.data._ShapeParams[i * 4 + c] = m_SSSShapeParams[i][c];
+                    // To disable transmission, we simply nullify the transmissionTint
+                    cb.data._TransmissionTintsAndFresnel0[i * 4 + c] = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Transmission) ? m_SSSTransmissionTintsAndFresnel0[i][c] : m_SSSDisabledTransmissionTintsAndFresnel0[i][c];
+                    cb.data._WorldScales[i * 4 + c] = m_SSSWorldScales[i][c];
+                }
+
+                cb.data._DiffusionProfileHashTable[i] = m_SSSDiffusionProfileHashes[i];
             }
-            cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps, m_SSSThicknessRemaps);
-            cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams, m_SSSShapeParams);
-            // To disable transmission, we simply nullify the transmissionTint
-            cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTintsAndFresnel0, hdCamera.frameSettings.IsEnabled(FrameSettingsField.Transmission) ? m_SSSTransmissionTintsAndFresnel0 : m_SSSDisabledTransmissionTintsAndFresnel0);
-            cmd.SetGlobalVectorArray(HDShaderIDs._WorldScales, m_SSSWorldScales);
-            cmd.SetGlobalFloatArray(HDShaderIDs._DiffusionProfileHashTable, m_SSSDiffusionProfileHashes);
         }
 
         static bool NeedTemporarySubsurfaceBuffer()

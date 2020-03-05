@@ -95,11 +95,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _LastTimeParameters;         // { t, sin(t), cos(t) }
 
         // Volumetric lighting.
+        public Vector4 _FogColor; // color in rgb
+        public Vector4 _MipFogParameters;
         public Vector3 _HeightFogBaseScattering;
         public float _HeightFogBaseExtinction;
-
-        public Vector2 _HeightFogExponents;         // { 1/H, H }
+        public int _FogEnabled;
+        public int _PBRFogEnabled;
+        public float _MaxFogDistance;
+        public float _FogColorMode;
+        public float _SkyTextureMipCount;
+        public Vector2 _HeightFogExponents; // { 1/H, H }
         public float _HeightFogBaseHeight;
+        public float _GlobalFogAnisotropy;
 
         public Vector4 _VBufferViewportSize;           // { w, h, 1/w, 1/h }
 
@@ -115,8 +122,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float _VBufferLastSliceDist;       // The distance to the middle of the last slice
         public int _EnableVolumetricFog;           // bool...
-
-
 
         // Light Loop
         public const int s_MaxEnv2DLight = 32;
@@ -188,16 +193,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Screen space refraction
         public float _SSRefractionInvScreenWeightDistance; // Distance for screen space smoothstep with fallback
 
-        // Atmospheric scattering
-        // Common
-        public int _FogEnabled;
-        public int _PBRFogEnabled;
-        public float _MaxFogDistance;
-        public float _FogColorMode;
-        public float _SkyTextureMipCount;
-        public Vector4 _FogColor; // color in rgb
-        public Vector4 _MipFogParameters;
-
         // Subsurface scattering
         // Use float4 to avoid any packing issue between compute and pixel shaders
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
@@ -208,14 +203,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _TransmissionTintsAndFresnel0[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];  // RGB = 1/4 * color, A = fresnel0
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
         public fixed float _WorldScales[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];        // X = meters per world unit; Y = world units per meter
-        [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(float))]
+        [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(uint))]
         public fixed uint _DiffusionProfileHashTable[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT]; // TODO: constant
 
-        // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
-        // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
         public uint _EnableSubsurfaceScattering; // Globally toggles subsurface and transmission scattering on/off
-        public float _TexturingModeFlags;         // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-        public float _TransmissionFlags;          // 1 bit/profile; 0 = regular, 1 = thin
+        public uint _TexturingModeFlags;         // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
+        public uint _TransmissionFlags;          // 1 bit/profile; 0 = regular, 1 = thin
         public uint _DiffusionProfileCount;
 
         // Decals

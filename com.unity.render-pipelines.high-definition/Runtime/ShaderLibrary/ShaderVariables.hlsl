@@ -155,7 +155,6 @@ TEXTURE2D(_PrevExposureTexture);
 // move these to a dedicated CBuffer to avoid polluting the global one.
 // $$$ Volumetric only?
 float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
-float  _GlobalFogAnisotropy;
 
 float4 _VBufferPrevViewportSize;
 float4 _VBufferHistoryPrevUvScaleAndLimit;
