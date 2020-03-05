@@ -8,35 +8,76 @@ using UnityEditor.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class EnumPropertyDrawer
-    {
-        private Enum _fieldToDraw;
-        private string _fieldLabel;
-        private Enum _fieldDefaultValue;
 
+    interface IPropertyDrawer
+    {
+        PropertyRow HandleProperty(PropertyInfo propertyInfo, object actualObject,
+            Inspectable attribute);
+    }
+
+    [SGPropertyDrawer(typeof(Enum))]
+    class EnumPropertyDrawer : IPropertyDrawer
+    {
         public delegate void EnumValueSetter(Enum newValue);
 
-        public EnumPropertyDrawer(Enum fieldToDraw, string fieldLabel, Enum fieldDefaultValue)
-        {
-            this._fieldToDraw = fieldToDraw;
-            this._fieldLabel = fieldLabel;
-            this._fieldDefaultValue = fieldDefaultValue;
-        }
+        public EnumPropertyDrawer() {}
 
-        public PropertyRow CreatePropertyRowForField(EnumValueSetter valueChangedCallback)
+        public PropertyRow CreatePropertyRowForField(EnumValueSetter valueChangedCallback, Enum fieldToDraw, string labelName, Enum defaultValue)
         {
-            var row = new PropertyRow(new Label(this._fieldLabel));
-            row.Add(new EnumField(this._fieldDefaultValue), (field) =>
+            var row = new PropertyRow(new Label(labelName));
+            row.Add(new EnumField(defaultValue), (field) =>
             {
-                field.value = this._fieldToDraw;
+                field.value = fieldToDraw;
                 field.RegisterValueChangedCallback(evt => valueChangedCallback(evt.newValue));
             });
 
             return row;
+        }
+
+        public PropertyRow HandleProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        {
+            var newPropertyRow = this.CreatePropertyRowForField(newEnumValue =>
+                propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newEnumValue}),
+                (Enum) propertyInfo.GetValue(actualObject),
+                attribute._labelName,
+                (Enum) attribute._defaultValue);
+
+            return newPropertyRow;
+        }
+    }
+
+    [SGPropertyDrawer(typeof(ToggleData))]
+    class BoolPropertyDrawer : IPropertyDrawer
+    {
+        public delegate void BoolValueSetter(ToggleData newValue);
+
+        public BoolPropertyDrawer() {}
+
+        public PropertyRow CreatePropertyRowForField(BoolValueSetter valueChangedCallback, ToggleData fieldToDraw, string labelName)
+        {
+            var row = new PropertyRow(new Label(labelName));
+            row.Add(new Toggle(), (toggle) =>
+            {
+                toggle.value = fieldToDraw.isOn;
+                toggle.OnToggleChanged(evt => valueChangedCallback(new ToggleData(evt.newValue)));
+            });
+
+            return row;
+        }
+
+        public PropertyRow HandleProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        {
+            var newPropertyRow = this.CreatePropertyRowForField(newBoolValue =>
+                propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newBoolValue}),
+                (ToggleData) propertyInfo.GetValue(actualObject),
+                attribute._labelName);
+
+            return newPropertyRow;
         }
     }
 
@@ -72,6 +113,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         Vector2 m_PreviewScrollPosition;
         Vector2 m_ExpandedPreviewSize = new Vector2(256f, 256f);
         Mesh m_PreviousPreviewMesh;
+
+        IList<Type> m_PropertyDrawerList = new List<Type>();
+
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
 
         // Passing both the manager and the data here is really bad
@@ -85,6 +129,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PreviewRenderData = previewManager.masterRenderData;
             if (m_PreviewRenderData != null)
                 m_PreviewRenderData.onPreviewChanged += OnPreviewChanged;
+
+            // Register property drawer types here
+            RegisterPropertyDrawer(typeof(BoolPropertyDrawer));
+            RegisterPropertyDrawer(typeof(EnumPropertyDrawer));
 
             BuildView();
             DeserializeLayout();
@@ -164,12 +212,43 @@ namespace UnityEditor.ShaderGraph.Drawing
             BuildPreview(container);
         }
 
+        void RegisterPropertyDrawer(Type propertyDrawerType)
+        {
+            var customAttribute = propertyDrawerType.GetCustomAttribute<SGPropertyDrawer>();
+            if(customAttribute != null)
+                m_PropertyDrawerList.Add(propertyDrawerType);
+            else
+                Console.WriteLine("Attempted to register a property drawer that isn't properly marked up with the SGPropertyDrawer attribute!");
+        }
+
+        bool IsPropertyTypeHandled(Type typeOfProperty, out Type propertyDrawerToUse)
+        {
+            // Check to see if a property drawer has been registered that handles this type
+            foreach (var propertyDrawerType in m_PropertyDrawerList)
+            {
+                var typeHandledByPropertyDrawer = propertyDrawerType.GetCustomAttribute<SGPropertyDrawer>();
+                if (typeHandledByPropertyDrawer._propertyType == typeOfProperty)
+                {
+                    propertyDrawerToUse = propertyDrawerType;
+                    return true;
+                }
+                // Enums are weird and need to be handled explicitly as done below as their runtime type isn't the same as System.Enum
+                else if (typeHandledByPropertyDrawer._propertyType == typeOfProperty.BaseType)
+                {
+                    propertyDrawerToUse = propertyDrawerType;
+                    return true;
+                }
+            }
+
+            propertyDrawerToUse = null;
+            return false;
+        }
+
         public void UpdateSelection(List<ISelectable> selection)
         {
             // Remove current properties
-            var propertyItemCount = m_PropertyContainer.childCount;
-            for(int i = 0; i < propertyItemCount; i++)
-                m_PropertyContainer.RemoveAt(0);
+            //var propertyItemCount = m_PropertyContainer.childCount;
+            m_PropertyContainer.Clear();
 
             if(selection.Count == 0)
             {
@@ -183,6 +262,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var sheet = new PropertySheet();
                 sheet.Add(new PropertyRow(new Label("Multi-editing not supported.")));
                 m_PropertyContainer.Add(sheet);
+                m_PropertyContainer.MarkDirtyRepaint();
                 return;
             }
 
@@ -203,42 +283,92 @@ namespace UnityEditor.ShaderGraph.Drawing
             //}
 
             var propertySheet = new PropertySheet();
-
-            foreach (var selectable in selection)
+            try
             {
-                // #TODO : Need to remove SG dependency here as VFX Graph has their own node structure
-                var nodeView = (MaterialNodeView) selectable;
-
-                if (nodeView == null)
-                    return;
-                var node = nodeView.node;
-
-                PropertyInfo[] properties = node.GetType().GetProperties();
-
-                foreach (var propertyInfo in properties)
+                foreach (var selectable in selection)
                 {
-                    var attribute = propertyInfo.GetCustomAttribute<Inspectable>();
-                    if (attribute == null)
-                        return;
-                    var propertyType = propertyInfo.PropertyType;
+                    // #TODO : Need to remove SG dependency here as VFX Graph has their own node structure
+                    GetPropertyInfoFromSelection(selectable, out var properties, out var dataObject);
 
-                    // Based on property type call the appropriate property type drawer
-                    if (propertyType.IsEnum)
+                    if (dataObject == null)
+                        continue;
+
+                    foreach (var propertyInfo in properties)
                     {
-                        var enumPropertyDrawer = new EnumPropertyDrawer(
-                            (Enum) propertyInfo.GetValue(node),
-                            attribute._labelName,
-                            (Enum) attribute._defaultValue);
+                        var attribute = propertyInfo.GetCustomAttribute<Inspectable>();
+                        if (attribute == null)
+                            continue;
+                        var propertyType = propertyInfo.PropertyType;
+                        var actualType = propertyInfo.ReflectedType;
+                        var actualObject = Convert.ChangeType(dataObject, actualType);
 
-                        var newPropertyRow = enumPropertyDrawer.CreatePropertyRowForField(newEnumValue =>
-                            propertyInfo.GetSetMethod(true).Invoke(node, new object[] {newEnumValue}));
-                        propertySheet.Add(newPropertyRow);
+                        if (IsPropertyTypeHandled(propertyType, out var propertyDrawerTypeToUse))
+                        {
+                            var propertyDrawerInstance = (IPropertyDrawer)Activator.CreateInstance(propertyDrawerTypeToUse);
+                            var propertyRow = propertyDrawerInstance.HandleProperty(propertyInfo, actualObject, attribute);
+                            propertySheet.Add(propertyRow);
+                            //HandlePropertyType(propertyType, propertyInfo, actualObject, attribute, propertySheet);
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
             }
 
             m_PropertyContainer.Add(propertySheet);
             m_PropertyContainer.MarkDirtyRepaint();
+        }
+
+        //private static void HandlePropertyType(Type propertyType, PropertyInfo propertyInfo, object actualObject,
+        //    Inspectable attribute, PropertySheet propertySheet)
+        //{
+        //    // Based on property type call the appropriate property type drawer
+        //    if (propertyType.IsEnum)
+        //    {
+        //        var enumPropertyDrawer = new EnumPropertyDrawer(
+        //            (Enum) propertyInfo.GetValue(actualObject),
+        //            attribute._labelName,
+        //            (Enum) attribute._defaultValue);
+        //
+        //        var newPropertyRow = enumPropertyDrawer.CreatePropertyRowForField(newEnumValue =>
+        //            propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newEnumValue}));
+        //        propertySheet.Add(newPropertyRow);
+        //    }
+        //    else if (propertyType == typeof(ToggleData))
+        //    {
+        //        var boolPropertyDrawer = new BoolPropertyDrawer(
+        //            (ToggleData) propertyInfo.GetValue(actualObject),
+        //            attribute._labelName);
+        //
+        //        var newPropertyRow = boolPropertyDrawer.CreatePropertyRowForField(newBoolValue =>
+        //            propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newBoolValue}));
+        //        propertySheet.Add(newPropertyRow);
+        //    }
+        //}
+
+        // Meant to be overriden by whichever graph needs to use this inspector and fetch the appropriate property data from it as they see suitable
+        // #TODO : Move to a child class that inherits from InspectorView, InspectorViewSG maybe?
+        protected virtual void GetPropertyInfoFromSelection(ISelectable selectable, out PropertyInfo[] properties, out object dataObject)
+        {
+            properties = new PropertyInfo[] {};
+            dataObject = null;
+
+            if ((selectable is MaterialNodeView) == false)
+                return;
+
+            var nodeView = (MaterialNodeView) selectable;
+
+            if (nodeView == null)
+            {
+                return;
+            }
+
+            var node = nodeView.node;
+            dataObject = node;
+            properties = node.GetType().GetProperties();
         }
 
         void SetSelectionToGraph()

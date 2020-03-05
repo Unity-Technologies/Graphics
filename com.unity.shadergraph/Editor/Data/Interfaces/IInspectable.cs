@@ -15,6 +15,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
 
+    [AttributeUsage(AttributeTargets.Class)]
+    public class SGPropertyDrawer : Attribute
+    {
+        public Type _propertyType;
+        public SGPropertyDrawer(Type _propertyType)
+        {
+            this._propertyType = _propertyType;
+        }
+    }
+
+
     interface IInspectable
     {
         string displayName { get; }
