@@ -326,11 +326,7 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git -b staging TestProjects/{{ project.folder }}/utr
     
-    {% if editor.version == 'CUSTOM-REVISION' %}
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmdposix }} -c editor --wait --published
-    {% else %}
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
-    {% endif %}
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only  
 
     - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }}Linux64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
   dependencies:
@@ -359,11 +355,8 @@ Build_{{ project.name }}_Linux_Vulkan_Player_{{ editor.version }}:
     - sudo npm install upm-ci-utils@0.16.0 --registry https://api.bintray.com/npm/unity/unity-npm -g
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git -b staging TestProjects/{{ project.folder }}/utr
     
-    {% if editor.version == 'CUSTOM-REVISION' %}
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmdposix }} -c editor --wait --published
-    {% else %}
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
-    {% endif %}
+
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only  
 
     - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }}Linux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200 --player-save-path=../../players --build-only
   dependencies:
@@ -399,7 +392,7 @@ Build_{{ project.name }}_Linux_Vulkan_Player_{{ editor.version }}:
     - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - sudo npm install upm-ci-utils@0.16.0 --registry https://api.bintray.com/npm/unity/unity-npm -g
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
-    - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
     - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr --extra-editor-arg="-force-vulkan"  {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
