@@ -11,7 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ChannelNodes.unity
     guid: cc3d7893409e1a34fa72839a8a0655b8
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/InputNodes.unity
     guid: 1c45ab02ee5353c44b809073fe83edf7
   - enabled: 1

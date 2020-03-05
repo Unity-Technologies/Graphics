@@ -409,6 +409,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix Inf source in LTC for area lights.
 - Fix issue with AO being misaligned when multiple view are visible.
 - Fix issue that caused the clamp of camera rotation motion for motion blur to be ineffective.
+- Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
+- Fixed culling of lights with XR SDK
+- Fixed memory stomp in shadow caching code, leading to overflow of Shadow request array and runtime errors.
+- Fixed an issue related to transparent objects reading the ray traced indirect diffuse buffer
+- Fixed an issue with filtering ray traced area lights when the intensity is high or there is an exposure.
+- Fixed ill-formed include path in Depth Of Field shader.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

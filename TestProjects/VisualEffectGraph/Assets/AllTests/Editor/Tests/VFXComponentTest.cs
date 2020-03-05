@@ -206,15 +206,17 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CreateComponent_And_Graph_Modify_It_To_Generate_Expected_Exception()
         {
             var graph = CreateGraph_And_System();
-            yield return null;
 
+            yield return null;
+        
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
             Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
-            yield return null;
 
+            yield return null;
+        
             //Plug a GPU instruction on bounds, excepting an exception while recompiling
             var getPositionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.modelType == typeof(VFXAttributeParameter) && o.name.Contains(VFXAttribute.Position.name));
             var getPosition = getPositionDesc.CreateInstance();
