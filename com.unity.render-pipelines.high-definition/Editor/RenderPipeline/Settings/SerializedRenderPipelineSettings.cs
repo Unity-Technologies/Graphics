@@ -1,4 +1,5 @@
-using UnityEditor.Rendering;
+using System;
+using UnityEngine.Serialization;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -22,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportSSAO;
         public SerializedProperty supportSubsurfaceScattering;
         public SerializedScalableSetting sssSampleBudget;
-        [UnityEngine.Serialization.FormerlySerializedAs("supportVolumetric")]
+        [FormerlySerializedAs("supportVolumetric")]
         public SerializedProperty supportVolumetrics;
         public SerializedProperty supportLightLayers;
         public SerializedProperty lightLayerName0;
@@ -65,6 +66,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedLightSettings lightSettings;
         public SerializedScalableSetting lodBias;
         public SerializedScalableSetting maximumLODLevel;
+
+    #pragma warning disable 618 // Type or member is obsolete
+        [FormerlySerializedAs("enableUltraQualitySSS"), FormerlySerializedAs("increaseSssSampleCount"), Obsolete("For data migration")]
+        SerializedProperty m_ObsoleteincreaseSssSampleCount;
+    #pragma warning restore 618
 
         public SerializedRenderPipelineSettings(SerializedProperty root)
         {
@@ -116,6 +122,10 @@ namespace UnityEditor.Rendering.HighDefinition
             lodBias = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.lodBias));
             maximumLODLevel = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.maximumLODLevel));
             lightingQualitySettings = new SerializedLightingQualitySettings(root.Find((RenderPipelineSettings s) => s.lightingQualitySettings));
+
+        #pragma warning disable 618 // Type or member is obsolete
+            m_ObsoleteincreaseSssSampleCount = root.Find((RenderPipelineSettings s) => s.m_ObsoleteincreaseSssSampleCount);
+        #pragma warning restore 618
         }
     }
 }

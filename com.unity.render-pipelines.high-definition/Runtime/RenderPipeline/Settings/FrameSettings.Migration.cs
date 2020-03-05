@@ -417,15 +417,15 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.Tonemapping, true);
         }
 
-        internal static void MigrateSubsurfaceParams(ref FrameSettings fs)
+        internal static void MigrateSubsurfaceParams(ref FrameSettings fs, bool previouslyHighQuality)
         {
             // SSS moved from 25 to 46.
             fs.SetEnabled((FrameSettingsField)25, false);
             fs.SetEnabled(FrameSettingsField.SubsurfaceScattering, true);
             // Set the defaults.
-            fs.sssQualityMode        = SssQualityMode.FromQualitySettings;
+            fs.sssQualityMode        = previouslyHighQuality ? SssQualityMode.OverrideQualitySettings : SssQualityMode.FromQualitySettings;
             fs.sssQualityLevel       = 0;
-            fs.sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low;
+            fs.sssCustomSampleBudget = previouslyHighQuality ? 55 : (int)DefaultSssSampleBudgetForQualityLevel.Low;
         }
     }
 }

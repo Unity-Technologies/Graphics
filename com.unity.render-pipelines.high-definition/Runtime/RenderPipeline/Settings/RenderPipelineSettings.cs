@@ -213,5 +213,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Global lighting quality settings.</summary>
         public GlobalLightingQualitySettings lightingQualitySettings;
+
+    #pragma warning disable 618 // Type or member is obsolete
+        [Obsolete("For data migration")]
+        internal bool m_ObsoleteincreaseSssSampleCount;
+    #pragma warning restore 618
     }
 }
