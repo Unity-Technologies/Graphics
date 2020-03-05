@@ -47,9 +47,21 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             public Texture          input               = null;
             /// <summary>
-            /// Informations needed to performe Importance Sampling
+            /// Informations needed to perform Importance Sampling
             /// </summary>
             public MarginalTextures marginals           = null;
+            /// <summary>
+            /// Current slice progressed (information used only if inProgress is true)
+            /// </summary>
+            public int              currentSlice        = 0;
+            /// <summary>
+            /// Current mip progressed (information used only if inProgress is true)
+            /// </summary>
+            public int              currentMip          = 0;
+            /// <summary>
+            /// Current age of Marginal Generation scheduled (schedule generation when age is 0)
+            /// </summary>
+            public int              age                 = -32;
             /// <summary>
             /// Indicator if the Marginals are available for binding
             /// </summary>
@@ -62,14 +74,6 @@ namespace UnityEngine.Rendering.HighDefinition
             /// true to build hemisphere cosine weighted hemisphere
             /// </summary>
             public bool             buildHemisphere     = false;
-            /// <summary>
-            /// Current slice progressed (information used only if inProgress is true)
-            /// </summary>
-            public int              currentSlice        = 0;
-            /// <summary>
-            /// Current mip progressed (information used only if inProgress is true)
-            /// </summary>
-            public int              currentMip          = 0;
         }
 
         internal static Dictionary<int, MarginalInfos>  m_InternalData = null;
@@ -178,14 +182,15 @@ namespace UnityEngine.Rendering.HighDefinition
             toGenerate.marginals.marginal               = null;
             toGenerate.marginals.conditionalMarginal    = null;
             toGenerate.marginals.integral               = null;
+            toGenerate.currentSlice                     = 0;
+            toGenerate.currentMip                       = 0;
+            toGenerate.age                              = -32;
             toGenerate.isReady                          = false;
             toGenerate.inProgress                       = false;
             if (pdfTexture.dimension == TextureDimension.Tex2D || pdfTexture.dimension == TextureDimension.Tex2DArray)
                 toGenerate.buildHemisphere  = false;
             else
                 toGenerate.buildHemisphere  = buildHemisphere;
-            toGenerate.currentSlice                     = 0;
-            toGenerate.currentMip                       = 0;
             m_InternalData.Add(identifier, toGenerate);
 
             return true;
@@ -236,12 +241,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var cur in m_InternalData)
             {
+                ++cur.Value.age;
                 if (cur.Value.isReady == false || cur.Value.inProgress)
-                //if (cur.Value.input != null && cur.Value.input.isReadable)
                 {
                     // Do only one per frame
                     //      One slice & one mip per frame
-                    GenerateMarginals(cur, cmd);
+                    if (cur.Value.age >= 0)
+                    {
+                        GenerateMarginals(cur, cmd);
+                    }
                     break;
                 }
             }
@@ -353,7 +361,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: Octahedral (Compute: Jacobian), Octahedral_ConstArea vs Octahedral_Isotropic
                 width   = 4*value.input.width;
                 if (value.buildHemisphere)
-                    height = value.input.width;
+                    height =   value.input.width;
                 else
                     height = 2*value.input.width;
 
@@ -371,11 +379,11 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle rtInput = RTHandles.Alloc(value.input);
             RTHandleDeleter.ScheduleRelease(rtInput);
 
-            RTHandle marginal = null;
-            RTHandle conditionalMarginal = null;
-            RTHandle integral   = null;
+            RTHandle marginal               = null;
+            RTHandle conditionalMarginal    = null;
+            RTHandle integral               = null;
 
-            using (new ProfilingScope(cmd, new ProfilingSampler("BuildMarginalsInternal")))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildMaginalInternal)))
             {
                 // Compute one slice & one mip per frame, we allocate the marginals once
                 if (value.marginals.marginal == null)
@@ -478,37 +486,42 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Begin: Integrate to have the proper PDF
                     if (current.Value.currentMip == 0)
                     {
-                        GPUArithmetic.ComputeOperation(
-                                        latLongMap1, latLongMap1,
-                                        new Vector4(4096.0f, 4096.0f, 4096.0f, 4096.0f),
-                                        cmd,
-                                        GPUArithmetic.Operation.Div);
+                        //float rescale = 1.0f;
+                        //GPUArithmetic.ComputeOperation(
+                        //                latLongMap1, latLongMap1,
+                        //                new Vector4(1.0f/rescale, 1.0f/rescale, 1.0f/rescale, 1.0f/rescale),
+                        //                cmd,
+                        //                GPUArithmetic.Operation.Mult);
 
                         RTHandle totalRows = GPUScan.ComputeOperation(latLongMap1, cmd, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, format1);
                                  integral  = GPUScan.ComputeOperation(totalRows,   cmd, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   format1);
                         RTHandleDeleter.ScheduleRelease(totalRows);
                         RTHandleDeleter.ScheduleRelease(integral);
 
-                        float coef = Mathf.PI*Mathf.PI/((float)(latLongMap.rt.width*latLongMap.rt.height));
+                        float coef = Mathf.PI*Mathf.PI/((float)(latLongMap1.rt.width*latLongMap1.rt.height));
                         if (current.Value.buildHemisphere)
-                            coef *= 0.25f;
+                            coef *= 1.0f;
                         else
-                            coef *= 0.5f;
+                            coef *= 2.0f;
 
-                        GPUArithmetic.ComputeOperation(integral, integral, new Vector4(coef, coef, coef, coef), cmd, GPUArithmetic.Operation.Div);
-                        GPUArithmetic.ComputeOperation(
-                                        latLongMap1, latLongMap1,
-                                        new Vector4(4096.0f, 4096.0f, 4096.0f, 4096.0f),
-                                        cmd,
-                                        GPUArithmetic.Operation.Mult);
+                        Debug.Log(String.Format("SKCode: Importance Sampler: {0}", current.Value.buildHemisphere ? "Hemi" : "Sphere"));
 
-                        cmd.RequestAsyncReadback(integral, delegate (AsyncGPUReadbackRequest request)
+                        GPUArithmetic.ComputeOperation(integral, integral, new Vector4(coef, coef, coef, coef), cmd, GPUArithmetic.Operation.Mult);
+                        //GPUArithmetic.ComputeOperation(
+                        //                latLongMap1, latLongMap1,
+                        //                new Vector4(rescale, rescale, rescale, rescale),
+                        //                cmd,
+                        //                GPUArithmetic.Operation.Mult);
+                        if (dumpFile)
                         {
-                            DefaultDumper(
-                                    request, "___Integral_" + current.Key.ToString() +
-                                    "_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip,
-                                    latLongMap.rt.graphicsFormat);
-                        });
+                            cmd.RequestAsyncReadback(integral, delegate (AsyncGPUReadbackRequest request)
+                            {
+                                DefaultDumper(
+                                        request, "___Integral_" + current.Key.ToString() +
+                                        "_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip,
+                                        latLongMap.rt.graphicsFormat);
+                            });
+                        }
                     }
                     // End: Integrate Equirectangular Map
 

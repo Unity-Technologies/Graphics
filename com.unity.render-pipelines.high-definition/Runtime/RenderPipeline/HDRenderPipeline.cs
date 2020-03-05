@@ -1706,7 +1706,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Ideally once each frame
                         {
                             var cmd = CommandBufferPool.Get("");
-                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
+                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildMaginals)))
                             {
                                 // Generate Marginals texture for importance sampling
                                 ImportanceSamplers.Update(cmd);

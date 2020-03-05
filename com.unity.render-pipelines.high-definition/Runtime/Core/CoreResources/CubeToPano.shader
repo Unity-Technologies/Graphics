@@ -97,9 +97,8 @@ float GetScale(float angle)
 
 float4 frag(v2f i) : SV_Target
 {
-    uint2 pixCoord = (uint2)i.vertex.xy;
-
-    float3 dir = GetDir(i.texcoord.xy);
+    uint2  pixCoord = (uint2)i.vertex.xy;
+    float3 dir     = GetDir(i.texcoord.xy);
 
     float3 output;
     if (_buildPDF == 1)
@@ -118,9 +117,8 @@ float4 frag(v2f i) : SV_Target
 
 float4 fragArray(v2f i) : SV_Target
 {
-    uint2 pixCoord = ((uint2) i.vertex.xy);
-
-    float3 dir = GetDir(i.texcoord.xy);
+    uint2  pixCoord = (uint2)i.vertex.xy;
+    float3 dir      = GetDir(i.texcoord.xy);
 
     float3 output;
     if (_buildPDF == 1)
@@ -133,9 +131,6 @@ float4 fragArray(v2f i) : SV_Target
     float angle = (1.0f - i.texcoord.y)*pi;
 
     output *= GetScale(angle);
-
-    //if (i.texcoord.y > 0.5f)
-    //    output *= 0.0f;
 
     return float4(output.rgb, max(output.r, max(output.g, output.b)));
 }

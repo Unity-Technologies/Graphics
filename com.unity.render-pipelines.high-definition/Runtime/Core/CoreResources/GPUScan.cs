@@ -214,7 +214,7 @@ namespace UnityEngine.Rendering
             kernel = scanCS.FindKernel("CSMainFloat" + addon + dirAddOn);
             RTHandle ping = temp0;
             RTHandle pong = temp1;
-            for (uint i = 0; i < iteration; ++i)
+            for (uint i = 1; i < iteration; ++i)
             {
                 if (cmd != null)
                 {

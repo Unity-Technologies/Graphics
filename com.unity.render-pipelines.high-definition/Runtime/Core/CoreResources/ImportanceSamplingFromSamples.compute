@@ -38,30 +38,37 @@ float3 SphericalTexCoordinateToDirection222(float2 sphTexCoord)
     return float3(siTh*csPh, siPh, -csTh*csPh);
 }
 
+float SSin(float x)
+{
+    return
+                     (16.0f*(PI - x)*x)
+        / //----------------------------------
+              (5.0f*PI*PI + 4.0f*x*(x - PI));
+}
+
 [numthreads(8, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     if (all(id.xy < (uint2)OutputSize))
     {
-        uint2 pos = uint2(id.x, 0);
-
-        float4 input = _Samples[pos];
+        uint2  pos      = uint2(id.x, 0);
+        float  integral = _Integral[uint2(0, 0)].r;
+        float4 input    = _Samples[pos];
 
         float2 latLongUV    = input.xy;
-        float  pdf          = input.z/_Integral[uint2(0, 0)].w;
+        float3 dir          = SphericalTexCoordinateToDirection222(latLongUV);
+        float  sin0         = sin(latLongUV.y*PI);
 
-        float3 dir  = SphericalTexCoordinateToDirection222(latLongUV);
-        float  sin0 = sin(latLongUV.y*PI);
+        float3 signal = sin0*SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
 
-        //float3 value = 4.0f*_Integral[uint2(0, 0)].w*SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb
-        //                        /(sin0*2.0f*PI*PI)/_Integral[uint2(0, 0)].w;
-        float3 value = /*2.0f*PI*/sin0*SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+        float  density = SampleToPDFMeasure(signal);
+        float  pdf     = density/integral;
 
-        if (pdf == 0.0f)// || sin0 < 1e-6f)
-            value = 0.0f;
+        if (pdf == 0.0f || sin0 < 1e-6f)
+            signal  = 0.0f;
         else
-            value /= pdf;
+            signal /= pdf;
 
-        _Output[pos] = float4(value.rgb, max(value.r, max(value.g, value.b)));
+        _Output[pos] = float4(signal.rgb, max(signal.r, max(signal.g, signal.b)));
     }
 }

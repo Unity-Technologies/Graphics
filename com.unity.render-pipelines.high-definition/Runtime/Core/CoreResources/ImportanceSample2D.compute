@@ -21,14 +21,14 @@ RWTexture2D<float4> _Output;
 float4               _Sizes;
 
 #define _SizeInfos      _Sizes.xyz
-#define _SamplesCount   _Sizes.w
+#define _SamplesCount   ((uint)_Sizes.w)
 
 [numthreads(8, 1, 1)]
 void KerName(uint3 id : SV_DispatchThreadID)
 {
-    if (all(id.x < (uint)_SamplesCount.x))
+    if (all(id.x < _SamplesCount.x))
     {
-        float2 xi = Hammersley2dSeq(id.x, (uint)_SamplesCount);
+        float2 xi = Hammersley2dSeq(id.x, _SamplesCount);
 
         float2 latLongUV;
         float3 sampleDir;
