@@ -767,6 +767,11 @@ namespace UnityEngine.Rendering
             return rth;
         }
 
+        /// <summary>
+        /// Allocate a RTHandle from a regular render target identifier.
+        /// </summary>
+        /// <param name="texture">Input render target identifier.</param>
+        /// <returns>A new RTHandle referencing the input render target identifier.</returns>
         public RTHandle Alloc(RenderTargetIdentifier texture)
         {
             var rth = new RTHandle(this);

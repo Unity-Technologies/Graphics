@@ -103,20 +103,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             internal abstract void Release(RenderGraphContext renderGraphContext);
             internal abstract bool HasRenderFunc();
 
-            internal string                         name;
-            internal int                            index;
-            internal ProfilingSampler               customSampler;
+            internal string                           name;
+            internal int                              index;
+            internal ProfilingSampler                 customSampler;
             internal List<TextureHandle>            resourceReadList = new List<TextureHandle>();
             internal List<TextureHandle>            resourceWriteList = new List<TextureHandle>();
             internal List<RendererListHandle>       usedRendererListList = new List<RendererListHandle>();
-            internal bool                           enableAsyncCompute;
+            internal bool                             enableAsyncCompute;
             internal TextureHandle                  depthBuffer { get { return m_DepthBuffer; } }
             internal TextureHandle[]                colorBuffers { get { return m_ColorBuffers; } }
-            internal int                            colorBufferMaxIndex { get { return m_MaxColorBufferIndex; } }
+            internal int                              colorBufferMaxIndex { get { return m_MaxColorBufferIndex; } }
 
             protected TextureHandle[]               m_ColorBuffers = new TextureHandle[kMaxMRTCount];
             protected TextureHandle                 m_DepthBuffer;
-            protected int                           m_MaxColorBufferIndex = -1;
+            protected int                             m_MaxColorBufferIndex = -1;
 
             internal void Clear()
             {
@@ -247,6 +247,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources.ImportTexture(rt, shaderProperty);
         }
 
+        /// <summary>
+        /// Import the final backbuffer to render graph.
+        /// </summary>
+        /// <param name="rt">Backbuffer render target identifier.</param>
+        /// <returns>A new TextureHandle for the backbuffer.</returns>
         public TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
         {
             return m_Resources.ImportBackbuffer(rt);
