@@ -6,6 +6,33 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
+    
+
+    class PBRUniversalMeshTarget : UniversalMeshTarget
+    {
+        public override void SetupTarget(ref TargetSetupContext context)
+        {
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("ac9e1a400a9ce404c8f26b9c1238417e")); // UniversalMeshTarget
+
+            switch(context.masterNode)
+            {
+                case PBRMasterNode pbrMasterNode:
+                    context.SetupSubShader(UniversalSubShaders.DOTSPBR);
+                    break;
+                case UnlitMasterNode unlitMasterNode:
+                    context.SetupSubShader(UniversalSubShaders.DOTSUnlit);
+                    break;
+                case SpriteLitMasterNode spriteLitMasterNode:
+                    context.SetupSubShader(UniversalSubShaders.SpriteLit);
+                    break;
+                case SpriteUnlitMasterNode spriteUnlitMasterNode:
+                    context.SetupSubShader(UniversalSubShaders.SpriteUnlit);
+                    break;
+            }
+        }
+    }
+    
     class UniversalMeshTarget : ITargetImplementation
     {
         public Type targetType => typeof(MeshTarget);
@@ -26,7 +53,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return currentPipeline is UniversalRenderPipelineAsset;
         }
 
-        public void SetupTarget(ref TargetSetupContext context)
+        public virtual void SetupTarget(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("ac9e1a400a9ce404c8f26b9c1238417e")); // UniversalMeshTarget

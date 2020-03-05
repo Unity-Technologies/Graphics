@@ -78,7 +78,7 @@ Shader "Universal Render Pipeline/Lit"
             // Required to compile gles 2.0 with standard SRP library
             // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
             // -------------------------------------
@@ -136,7 +136,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
             // -------------------------------------
@@ -169,7 +169,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
@@ -201,7 +201,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
@@ -232,7 +232,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
             #pragma vertex vert
@@ -271,7 +271,7 @@ Shader "Universal Render Pipeline/Lit"
             // Required to compile gles 2.0 with standard SRP library
             // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma include_renderers gles gles3
             #pragma target 2.0
 
             // -------------------------------------
@@ -324,7 +324,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma include_renderers gles gles3
             #pragma target 2.0
 
             // -------------------------------------
@@ -353,7 +353,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma include_renderers gles gles3
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex
@@ -380,7 +380,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma include_renderers gles gles3
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMeta
@@ -410,7 +410,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma include_renderers gles gles3
 
             #pragma vertex vert
             #pragma fragment frag

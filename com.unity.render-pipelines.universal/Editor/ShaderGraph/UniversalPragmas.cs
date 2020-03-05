@@ -7,8 +7,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Default = new PragmaCollection
         {
             { Pragma.Target(2.0) },
-            { Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 }) },
-            { Pragma.PreferHlslCC(new Platform[]{ Platform.GLES }) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES }) },
+            { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -16,9 +16,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
             { Pragma.Target(2.0) },
-            { Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 }) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES }) },
             { Pragma.MultiCompileInstancing },
-            { Pragma.PreferHlslCC(new Platform[]{ Platform.GLES }) },
+            { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -26,10 +26,40 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
             { Pragma.Target(2.0) },
-            { Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 }) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
-            { Pragma.PreferHlslCC(new Platform[]{ Platform.GLES }) },
+            { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
+        };
+        
+        public static readonly PragmaCollection DOTSDefault = new PragmaCollection
+        {
+            { Pragma.Target(4.5) },
+            { Pragma.ExcludeRenderers(new[]{ Platform.D3D9, Platform.GLES }) },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
+        };
+        
+        public static readonly PragmaCollection DOTSInstanced = new PragmaCollection
+        {
+            { Pragma.Target(4.5) },
+            { Pragma.ExcludeRenderers(new[]{ Platform.D3D9, Platform.GLES }) },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.DOTSInstancing },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
+        };
+
+        public static readonly PragmaCollection DOTSForward = new PragmaCollection
+        {
+            { Pragma.Target(4.5) },
+            { Pragma.ExcludeRenderers(new[]{ Platform.D3D9, Platform.GLES }) },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.MultiCompileFog },
+            { Pragma.DOTSInstancing },
+            { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
