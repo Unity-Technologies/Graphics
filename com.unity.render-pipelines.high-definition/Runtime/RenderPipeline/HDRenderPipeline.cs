@@ -1702,6 +1702,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
                     {
+                        // Time sliced marginals build
+                        // Ideally once each frame
+                        {
+                            var cmd = CommandBufferPool.Get("");
+                            // Release a RTHandle when their lifetime counter scheduled became 0
+                            RTHandleDeleter.Update();
+
+                            renderContext.ExecuteCommandBuffer(cmd);
+                            CommandBufferPool.Release(cmd);
+                            renderContext.Submit();
+                        }
+
                         // Execute render request graph, in reverse order
                         for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)
                         {
