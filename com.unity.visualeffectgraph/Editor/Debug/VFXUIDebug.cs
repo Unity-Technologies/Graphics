@@ -11,7 +11,7 @@ using Object = System.Object;
 namespace UnityEditor.VFX.UI
 {
 
-    class VFXUIDebug : VFXObject
+    class VFXUIDebug
     {
         public enum Modes
         {
