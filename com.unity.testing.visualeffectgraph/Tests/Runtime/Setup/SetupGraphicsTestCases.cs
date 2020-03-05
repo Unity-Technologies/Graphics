@@ -13,6 +13,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
     public static void RebuildVisualEffectAsset(VisualEffectAsset vfx)
     {
     }
+
     private static string GetAssetBundleBasePath()
     {
         var basePath = System.IO.Directory.GetCurrentDirectory();

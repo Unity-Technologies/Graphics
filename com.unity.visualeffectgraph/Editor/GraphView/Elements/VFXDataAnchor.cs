@@ -280,7 +280,7 @@ namespace UnityEditor.VFX.UI
                 if (parameterDesc != null)
                 {
                     Vector2 pos = view.contentViewContainer.GlobalToBound(position) - new Vector2(140, 20);
-                    VFXParameter parameter = viewController.AddVFXParameter(pos, parameterDesc,false);
+                    VFXParameter parameter = viewController.AddVFXParameter(pos, parameterDesc, false);
                     parameter.SetSettingValue("m_Exposed", true);
                     startSlot.Link(parameter.outputSlots[0]);
 
@@ -291,7 +291,7 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                if( direction == Direction.Input)
+                if (direction == Direction.Input)
                     VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter)}));
                 else
                     VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
@@ -330,11 +330,11 @@ namespace UnityEditor.VFX.UI
                 if (container == null)
                     return false;
 
-                if (    direction == Direction.Output
+                if (direction == Direction.Output
                     &&  mySlot != null
                     && container is VFXOperatorDynamicOperand
                     && (container as VFXOperatorDynamicOperand).validTypes.Contains(mySlot.property.type))
-                        return true;
+                    return true;
             }
 
             IEnumerable<Type> validTypes = null;
