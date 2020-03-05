@@ -73,6 +73,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a fallback for ray traced area light shadows in case the material is forward or the lit mode is forward.
 - Added a new debug mode for light layers.
 - Added an "enable" toggle to the SSR volume component.
+- Added support for anisotropic specular lobes in path tracing.
+- Added support for alpha clipping in path tracing.
+- Added support for light cookies in path tracing.
+- Added support for transparent shadows in path tracing.
+- Added support for iridescence in path tracing.
+- Added support for background color in path tracing.
+- Added a path tracing test to the test suite.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -506,6 +513,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Transform result from CIE XYZ to sRGB color space in EvalSensitivity for iridescence.
 - Moved BeginCameraRendering callback right before culling.
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
+- Improved behaviour of transmission color on transparent surfaces in path tracing.
 
 ## [7.1.1] - 2019-09-05
 
