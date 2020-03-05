@@ -19,7 +19,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         bool m_IsValid;
         internal int handle { get; private set; }
         internal TextureHandle(int handle) { this.handle = handle; m_IsValid = true; }
+        /// <summary>
+        /// Conversion to int.
+        /// </summary>
+        /// <param name="handle">Texture handle to convert.</param>
+        /// <returns>The integer representation of the handle.</returns>
         public static implicit operator int(TextureHandle handle) { return handle.handle; }
+        /// <summary>
+        /// Return true if the handle is valid.
+        /// </summary>
+        /// <returns>True if the handle is valid.</returns>
         public bool IsValid() => m_IsValid;
     }
 
@@ -32,7 +41,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         bool m_IsValid;
         internal int handle { get; private set; }
         internal RendererListHandle(int handle) { this.handle = handle; m_IsValid = true; }
+        /// <summary>
+        /// Conversion to int.
+        /// </summary>
+        /// <param name="handle">Renderer List handle to convert.</param>
+        /// <returns>The integer representation of the handle.</returns>
         public static implicit operator int(RendererListHandle handle) { return handle.handle; }
+        /// <summary>
+        /// Return true if the handle is valid.
+        /// </summary>
+        /// <returns>True if the handle is valid.</returns>
         public bool IsValid() => m_IsValid;
     }
 

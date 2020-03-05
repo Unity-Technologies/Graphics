@@ -247,6 +247,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources.ImportTexture(rt, shaderProperty);
         }
 
+        /// <summary>
+        /// Import the final backbuffer to render graph.
+        /// </summary>
+        /// <param name="rt">Backbuffer render target identifier.</param>
+        /// <returns>A new TextureHandle for the backbuffer.</returns>
         public TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
         {
             return m_Resources.ImportBackbuffer(rt);
