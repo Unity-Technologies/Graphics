@@ -16,6 +16,10 @@ platforms:
     components:
       - editor
       - il2cpp
+  - os: ios
+    components:
+      - editor
+      - iOS
   - os: android
     components:
       - editor
