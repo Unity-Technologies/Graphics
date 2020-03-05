@@ -44,7 +44,6 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
         float u1 = saturate(_CDF[id.xy].x);
         _Output[id.xy] = float4(0.0f,
                                 _PDF[id.xy].x,
-                                //_PDF[uint2(0, id.y)],
                                 _CDF[id.xy].x,
                                 1.0f);
     }
@@ -53,7 +52,6 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
         float u1 = saturate(_CDF[id.xy].x);
         _Output[id.xy] = float4(1.0f,
                                 _PDF[id.xy].x,
-                                //_PDF[uint2(_InputSize.x - 1, id.y)],
                                 _CDF[id.xy].x,
                                 1.0f);
     }
@@ -63,7 +61,6 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
         float u1 = saturate(_CDF[id.xy].x);
         _Output[id.xy] = float4(0.0f,
                                 _PDF[id.xy].x,
-                                //_PDF[uint2(id.x, 0)],
                                 _CDF[id.xy].x,
                                 1.0f);
     }
@@ -72,7 +69,6 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
         float u1 = saturate(_CDF[id.xy].x);
         _Output[uint2(id.x, _OutputSize.x - 1)] = float4(   1.0f,
                                                             _PDF[id.xy].x,
-                                                            //_PDF[uint2(id.x, _InputSize.y - 1)],
                                                             _CDF[id.xy].x,
                                                             1.0f);
     }
@@ -95,7 +91,6 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
             _Output[uint2(u1*_InputSize.x, id.y)] = float4(
                                                         saturate(float(id.x)*dp),
                                                         _PDF[uint2(u1*_InputSize.x, id.y)].x,
-                                                        //_PDF[uint2(u1*_InputSize.x, id.y)],
                                                         _CDF[uint2(u1*_InputSize.x, id.y)].x,
                                                         1.0f);
         }
@@ -122,8 +117,6 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
                 _Output[uint2(xi, id.y)] = float4(
                                                 saturate(a*float(xi) + b),
                                                 _PDF[uint2(xi, id.y)].x,
-                                                //_PDF[uint2(xi, id.y)],
-                                                //saturate(_CDF[uint2(/*xi*/uint(u0*_InputSize.x + Rescale(i, 1, maxIter, maxIter, 1)), id.y)].x),
                                                 _CDF[uint2(xi, id.y)].x,
                                                 1.0f);
             }
@@ -137,7 +130,6 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
             _Output[uint2(id.x, u1*_InputSize.y)] = float4(
                                                         saturate(float(id.y)*dp),
                                                         _PDF[uint2(id.x, u1*_InputSize.y)].x,
-                                                        //_PDF[uint2(id.x, u1*_InputSize.y)],
                                                         _CDF[uint2(id.x, u1*_InputSize.y)].x,
                                                         1.0f);
         }
@@ -164,8 +156,6 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
                 _Output[uint2(id.x, xi)] = float4(
                                                 saturate(a*float(xi) + b),
                                                 _PDF[uint2(id.x, xi)].x,
-                                                //_PDF[uint2(id.x, xi)],
-                                                //saturate(_CDF[uint2(/*xi*/uint(u0*_InputSize.y + Rescale(i, 1, maxIter, maxIter, 1)), id.y)].x),
                                                 _CDF[uint2(xi, id.y)].x,
                                                 1.0f);
             }
