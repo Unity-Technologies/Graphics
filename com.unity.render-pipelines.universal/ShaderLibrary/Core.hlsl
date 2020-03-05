@@ -136,12 +136,12 @@ bool IsPerspectiveProjection()
 }
 
 // Computes the world space view direction (pointing towards the viewer).
-float3 GetWorldSpaceViewDir(float3 positionRWS)
+float3 GetWorldSpaceViewDir(float3 positionWS)
 {
     if (IsPerspectiveProjection())
     {
         // Perspective
-        return GetCameraPositionWS() - positionRWS;
+        return GetCameraPositionWS() - positionWS;
     }
     else
     {
@@ -150,9 +150,9 @@ float3 GetWorldSpaceViewDir(float3 positionRWS)
     }
 }
 
-float3 GetWorldSpaceNormalizeViewDir(float3 positionRWS)
+float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
-    return normalize(GetWorldSpaceViewDir(positionRWS));
+    return normalize(GetWorldSpaceViewDir(positionWS));
 }
 
 // A word on normalization of normals:
