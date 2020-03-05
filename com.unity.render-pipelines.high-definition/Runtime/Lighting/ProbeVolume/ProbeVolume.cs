@@ -228,8 +228,17 @@ namespace UnityEngine.Rendering.HighDefinition
         private Mesh m_DebugMesh = null;
         private List<Matrix4x4[]> m_DebugProbeMatricesList;
         private List<Mesh> m_DebugProbePointMeshList;
-        private ProbeVolumeSettingsKey m_DebugProbeInputKey = new ProbeVolumeSettingsKey();
         public bool dataUpdated = false;
+        private ProbeVolumeSettingsKey bakeKey = new ProbeVolumeSettingsKey
+        {
+            id = 0,
+            position = Vector3.zero,
+            rotation = Quaternion.identity,
+            size = Vector3.zero,
+            resolutionX = 0,
+            resolutionY = 0,
+            resolutionZ = 0
+        };
 
         public ProbeVolumeAsset probeVolumeAsset = null;
         public ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
@@ -237,6 +246,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public int GetID()
         {
             return GetInstanceID();
+        }
+
+        private void BakeKeyClear()
+        {
+            bakeKey = new ProbeVolumeSettingsKey
+            {
+                id = 0,
+                position = Vector3.zero,
+                rotation = Quaternion.identity,
+                size = Vector3.zero,
+                resolutionX = 0,
+                resolutionY = 0,
+                resolutionZ = 0
+            };
         }
 
         public (SphericalHarmonicsL1[], float[], float[]) GetData()
@@ -308,18 +331,17 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         protected void Update()
         {
-            if (transform.hasChanged)
-            {
-                OnValidate();
-                transform.hasChanged = false;
-            }
+            OnValidate();
         }
 
         protected void OnValidate()
         {
+            ProbeVolumeSettingsKey bakeKeyCurrent = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
+            if (ProbeVolumeSettingsKeyEquals(ref bakeKey, ref bakeKeyCurrent)) { return; }
+
             parameters.Constrain();
 
-            Key = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
+            bakeKey = bakeKeyCurrent;
 
             if (probeVolumeAsset)
             {
@@ -334,7 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 dataUpdated = true;
             }
 
-            SetupPositions();
+            SetupProbePositions();
         }
 
         public bool IsAssetCompatible()
@@ -349,13 +371,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        protected void OnLightingDataCleared()
+        internal void OnLightingDataCleared()
         {
             probeVolumeAsset = null;
             dataUpdated = true;
+            BakeKeyClear();
         }
 
-        protected void OnLightingDataAssetCleared()
+        internal void OnLightingDataAssetCleared()
         {
             if (probeVolumeAsset == null)
                 return;
@@ -366,9 +389,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UnityEditor.AssetDatabase.DeleteAsset(assetPath);
             UnityEditor.AssetDatabase.Refresh();
+            BakeKeyClear();
         }
 
-        protected void OnProbesBakeCompleted()
+        internal void OnProbesBakeCompleted()
         {
             if (this.gameObject == null || !this.gameObject.activeInHierarchy)
                 return;
@@ -423,7 +447,7 @@ namespace UnityEngine.Rendering.HighDefinition
             octahedralDepth.Dispose();
         }
 
-        public void OnBakeCompleted()
+        internal void OnBakeCompleted()
         {
             if (!probeVolumeAsset)
                 return;
@@ -432,7 +456,7 @@ namespace UnityEngine.Rendering.HighDefinition
             dataUpdated = true;
         }
 
-        public void DisableBaking()
+        internal void DisableBaking()
         {
             if (ShaderConfig.s_ProbeVolumes == 0)
                 return;
@@ -447,7 +471,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetID(), null);
         }
 
-        public void EnableBaking()
+        internal void EnableBaking()
         {
             if (ShaderConfig.s_ProbeVolumes == 0)
                 return;
@@ -458,33 +482,12 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
             UnityEditor.Lightmapping.lightingDataAssetCleared += OnLightingDataAssetCleared;
 
-            // Reset matrices key to recreate all positions
-            m_DebugProbeInputKey = new ProbeVolumeSettingsKey
-            {
-                id = 0,
-                position = Vector3.zero,
-                rotation = Quaternion.identity,
-                size = Vector3.zero,
-                resolutionX = 0,
-                resolutionY = 0,
-                resolutionZ = 0
-            };
-
-            SetupPositions();
+            // Reset matrices key to force recreation of all positions data.
+            BakeKeyClear();
+            OnValidate();
         }
 
-        public ProbeVolumeSettingsKey Key { get; private set; } = new ProbeVolumeSettingsKey
-        {
-            id = 0,
-            position = Vector3.zero,
-            rotation = Quaternion.identity,
-            size = Vector3.zero,
-            resolutionX = 0,
-            resolutionY = 0,
-            resolutionZ = 0
-        };
-
-        public static ProbeVolumeSettingsKey ComputeProbeVolumeSettingsKeyFromProbeVolume(ProbeVolume probeVolume)
+        private static ProbeVolumeSettingsKey ComputeProbeVolumeSettingsKeyFromProbeVolume(ProbeVolume probeVolume)
         {
             return new ProbeVolumeSettingsKey
             {
@@ -498,7 +501,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        public static bool ProbeVolumeSettingsKeyEquals(ref ProbeVolumeSettingsKey a, ref ProbeVolumeSettingsKey b)
+        private static bool ProbeVolumeSettingsKeyEquals(ref ProbeVolumeSettingsKey a, ref ProbeVolumeSettingsKey b)
         {
             return (a.id == b.id)
                 && (a.position == b.position)
@@ -509,16 +512,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 && (a.resolutionZ == b.resolutionZ);
         }
 
-        protected void SetupPositions()
+        private void SetupProbePositions()
         {
             if (!this.gameObject.activeInHierarchy)
                 return;
 
             float debugProbeSize = Gizmos.probeSize;
-
-            ProbeVolumeSettingsKey debugProbeInputKeyCurrent = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
-            if (ProbeVolumeSettingsKeyEquals(ref m_DebugProbeInputKey, ref debugProbeInputKeyCurrent))
-                return;
 
             int probeCount = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
             Vector3[] positions = new Vector3[probeCount];
@@ -598,12 +597,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            m_DebugProbeInputKey = debugProbeInputKeyCurrent;
-
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetID(), positions);
         }
 
-        protected static bool ShouldDrawGizmos(ProbeVolume probeVolume)
+        private static bool ShouldDrawGizmos(ProbeVolume probeVolume)
         {
             UnityEditor.SceneView sceneView = UnityEditor.SceneView.currentDrawingSceneView;
 
@@ -620,12 +617,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [UnityEditor.DrawGizmo(UnityEditor.GizmoType.NotInSelectionHierarchy)]
-        protected static void DrawProbes(ProbeVolume probeVolume, UnityEditor.GizmoType gizmoType)
+        private static void DrawProbes(ProbeVolume probeVolume, UnityEditor.GizmoType gizmoType)
         {
             if (!ShouldDrawGizmos(probeVolume))
                 return;
 
-            probeVolume.SetupPositions();
+            probeVolume.OnValidate();
 
             var pointMeshList = probeVolume.m_DebugProbePointMeshList;
 
@@ -634,12 +631,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 Graphics.DrawMeshNow(debugMesh, Matrix4x4.identity);
         }
 
-        public void DrawSelectedProbes()
+        internal void DrawSelectedProbes()
         {
             if (!ShouldDrawGizmos(this))
                 return;
 
-            SetupPositions();
+            OnValidate();
 
             int layer = 0;
 
