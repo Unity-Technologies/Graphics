@@ -122,7 +122,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             Color hdriIntensity = m_ReadBackTexture.GetPixel(0, 0);
 
-            float coef   = (/*2.0f**/Mathf.PI*Mathf.PI)/((float)(latLongMap.rt.width*latLongMap.rt.height));
+            float coef   =                (Mathf.PI*Mathf.PI) // (2.0f*PI)*(0.5f*PI) == (PI^2)
+                    / // ------------------------------------------------------
+                           ((float)(latLongMap.rt.width*latLongMap.rt.height));
             float ref3   = (hdriIntensity.r + hdriIntensity.g + hdriIntensity.b)/3.0f;
             float maxRef = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
 
