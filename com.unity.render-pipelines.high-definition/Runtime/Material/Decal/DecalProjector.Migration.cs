@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Translate the decal to half its size in z so it will remain at same position
                 Vector3 translationValue = (decal.m_Offset - new Vector3(0f, 0f, decal.m_Size.z * 0.5f));
                 decal.transform.Translate(translationValue);
-                
+
                 // Update pivot position to -z face
                 decal.m_Offset.x = 0f;
                 decal.m_Offset.y = 0f;
@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
         );
 
         [SerializeField]
-        Version m_Version;
+        Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
         void Awake() => k_Migration.Migrate(this);

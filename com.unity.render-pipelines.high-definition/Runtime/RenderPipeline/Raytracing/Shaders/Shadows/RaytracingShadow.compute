@@ -44,6 +44,7 @@
 
 // Tile size of this compute
 #define RAYTRACING_SHADOW_TILE_SIZE 8
+#define AREA_SHADOW_CLAMP_VALUE 10.0
 
 // The target acceleration structure that we will evaluate the reflexion in
 TEXTURE2D_X(_DepthTexture);
@@ -136,14 +137,14 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     LightLoopContext context;
     // Given that the approximation used for LTC is completely different from what we would get from a real integration, we only rely on the not textured intensity.
     // To acheive that, we set cookie index to -1 so that the evaluatebsdf_rect function to not use any cookie. We also keep track of that cookie value to restore it after the evaluation.
-    int cookieIndex = lightData.cookieIndex;
-    lightData.cookieIndex = -1;
+    int cookieMode = lightData.cookieMode;
+    lightData.cookieMode = COOKIEMODE_NONE;
     DirectLighting lighting = EvaluateBSDF_Rect(context, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
     lighting.diffuse = lighting.diffuse * bsdfData.diffuseColor;
-    lightData.cookieIndex = cookieIndex;
+    lightData.cookieMode = cookieMode;
 
     // Compute the non-occluded analytic luminance value
-    float U = Luminance(lighting.diffuse + lighting.specular);
+    float U = clamp(Luminance(lighting.diffuse + lighting.specular) * GetCurrentExposureMultiplier(), 0.0, AREA_SHADOW_CLAMP_VALUE);
 
     // NOTE: Due to a VGPR optimisation in we need to restore the previous value (position, dimmer, and other thing are overriden)
     lightData = _LightDatas[_RaytracingTargetAreaLight];
@@ -192,7 +193,9 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float3 lightColor = lightData.color;
     if (lightData.cookieIndex >= 0)
     {
-        lightColor *= SAMPLE_TEXTURE2D_ARRAY_LOD(_AreaCookieTextures, s_trilinear_clamp_sampler, misOutput.sampleUV, lightData.cookieIndex, bsdfData.perceptualRoughness *  _CookieSizePOT).xyz;
+        float   cookieWidth = lightData.cookieScaleOffset.x * _CookieAtlasSize.x;
+        float   cookieSizePOT = round(LOG2_E * log(cookieWidth));
+        lightColor *= SampleCookie2D(misOutput.sampleUV, lightData.cookieScaleOffset, bsdfData.perceptualRoughness * cookieSizePOT);
     }
 
     diffuseLighting *= bsdfData.diffuseColor * lightData.diffuseDimmer * lightColor;
@@ -203,7 +206,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float3 radiance = misPDF > 0.0 ? (diffuseLighting + specularLighting) / misPDF : 0.0;
 
     // Accumulate
-    float3 Un = radiance;
+    float3 Un = clamp(radiance * GetCurrentExposureMultiplier(), 0.0, AREA_SHADOW_CLAMP_VALUE);
 
     // Compute luminance of Un
     float UnL = Luminance(Un) / _RaytracingNumSamples;
@@ -330,7 +333,9 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     float3 lightColor = lightData.color;
     if (lightData.cookieIndex >= 0)
     {
-        lightColor *= SAMPLE_TEXTURE2D_ARRAY_LOD(_AreaCookieTextures, s_trilinear_clamp_sampler, misOutput.sampleUV, lightData.cookieIndex, bsdfData.perceptualRoughness *  _CookieSizePOT).xyz;
+        float   cookieWidth = lightData.cookieScaleOffset.x * _CookieAtlasSize.x;
+        float   cookieSizePOT = round(LOG2_E * log(cookieWidth));
+        lightColor *= SampleCookie2D(misOutput.sampleUV, lightData.cookieScaleOffset, bsdfData.perceptualRoughness * cookieSizePOT);
     }
 
     diffuseLighting *= bsdfData.diffuseColor * lightData.diffuseDimmer * lightColor;
@@ -341,7 +346,7 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     float3 radiance = misPDF > 0.0 ? (diffuseLighting + specularLighting) / misPDF : 0.0;
 
     // Accumulate
-    float3 Un = radiance;
+    float3 Un = clamp(radiance * GetCurrentExposureMultiplier(), 0.0, AREA_SHADOW_CLAMP_VALUE);
 
     // Compute luminance of Un
     float UnL = Luminance(Un) / _RaytracingNumSamples;
@@ -404,7 +409,8 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(-lightData.forward);
 
-    float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(lightData.angularDiameter));
+    // We need to convert the diameter to a radius for our sampling
+    float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(lightData.angularDiameter * 0.5));
 
     float3 wsDir = mul(localDir, localToWorld); 
 

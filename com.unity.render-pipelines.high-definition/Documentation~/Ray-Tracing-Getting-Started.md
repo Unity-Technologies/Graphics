@@ -17,10 +17,11 @@ This document covers:
 Ray tracing hardware acceleration is only available on certain graphics cards. The graphics cards with full support are:
 
 - NVIDIA Volta (Titan X)
-- NVIDIA Turing (2060, 2070, 2080, and their TI variants)
+- NVIDIA Turing RTX (2060, 2070, 2080, and their TI variants)
 
-NVIDIA also provides a ray tracing fallback for some previous generation graphics cards:
+NVIDIA also provides a ray tracing fallback for some other generation graphics cards:
 
+- NVIDIA Turing GTX (1660 and 1660 Ti)
 - NVIDIA Pascal (1060, 1070, 1080 and their TI variants)
 
 If your computer has one of these graphics cards, it can run ray tracing in Unity.
@@ -95,14 +96,6 @@ Now that Unity is running in DirectX 12, and you have disabled [static batching]
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
 2. In the Rendering section, enable Realtime Ray Tracing. This triggers a recompilation, which makes ray tracing available in your HDRP Project.
-3. You can now configure ray tracing to suit your application. Click the Ray Tracing Tier drop-down and select the tier that matches your use case. See the table below for information on what each tier supports.
-
-<a name="TierTable"></a>
-
-| Tier       | Description                                                  |
-| ---------- | ------------------------------------------------------------ |
-| **Tier 1** | Balances performance with quality. Use this tier for games and other high-frame rate applications. This tier does not support multiple bounces for lighting effects and you can only use non-recursive effects.|
-| **Tier 2** | A ray tracing implementation that is significantly more resource-intensive than Tier 1. This tier allows for effects with higher image quality, supports multiple bounces for lighting effects, and supports recursive effects. It also enables the path tracer. The path tracer casts rays from the Camera and traces them until they hit a reflective or refractive surface. It then changes the ray's direction according to the surface's properties and then recurses the process until the ray reaches a light source. The series of rays from the Camera to the Light forms a "path". This is the most resource intensive ray tracing method in HDRP. Use this tier for automotive, production, or graphics demos. |
 
 <a name="ManualSetup-RayTracingResources"></a>
 
@@ -167,8 +160,8 @@ To enable ray tracing for a specific Camera:
 HDRP uses ray tracing to replace some of its screen space effects, shadowing techniques, and Mesh rendering techniques.
 
 - [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.html) replaces [screen space ambient occlusion](Override-Ambient-Occlusion.html) with a more accurate, ray-traced, ambient occlusion technique that can use off screen data.
-- [Ray-Traced Contact Shadows](Ray-Tracing-Contact-Shadows.html) replaces [contact shadows](Override-Contact-Shadows) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
-- [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.html) is an alternative to Light Probes and lightmaps in HDRP. It includes a different set of properties for [Tier 1](#TierTable) and [Tier 2](#TierTable) ray tracing.
+- [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.html) replaces [contact shadows](Override-Contact-Shadows) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
+- [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.html) is an alternative to Light Probes and lightmaps in HDRP.
 - [Ray-Traced Reflections](Ray-Traced-Reflections.html) is a replacement for [screen space reflection](Override-Screen-Space-Reflection) that uses a ray-traced reflection technique that can use off-screen data.
 - [Ray-Traced Shadows](Ray-Traced-Shadows.html) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.html).
 - [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.html) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.

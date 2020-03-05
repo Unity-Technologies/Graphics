@@ -1,0 +1,214 @@
+Pass
+{
+    $splice(PassName)
+    Tags 
+    { 
+        $splice(LightMode)
+    }
+
+    // Render State
+    $splice(RenderState)
+
+    // Debug
+    $splice(Debug)
+
+    // --------------------------------------------------
+    // Pass
+
+    HLSLPROGRAM
+
+    // Pragmas
+    $splice(PassPragmas)
+
+    // Keywords
+    $splice(PassKeywords)
+    $splice(GraphKeywords)
+
+    // Defines
+    $SpecularSetup:                         #define _MATERIAL_FEATURE_SPECULAR_COLOR 1
+    $SurfaceType.Transparent:               #define _SURFACE_TYPE_TRANSPARENT 1
+    $BlendMode.Alpha:                       #define _BLENDMODE_ALPHA 1
+    $BlendMode.Add:                         #define _BLENDMODE_ADD 1
+    $BlendMode.Premultiply:                 #define _BLENDMODE_PRE_MULTIPLY 1
+    $DoubleSided:                           #define _DOUBLESIDED_ON 1
+    $DoubleSided:                           #define VARYINGS_NEED_CULLFACE
+    $NormalDropOffTS:                       #define _NORMAL_DROPOFF_TS 1
+    $NormalDropOffOS:                       #define _NORMAL_DROPOFF_OS 1
+    $NormalDropOffWS:                       #define _NORMAL_DROPOFF_WS 1
+    $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL
+    $AttributesMesh.tangentOS:              #define ATTRIBUTES_NEED_TANGENT
+    $AttributesMesh.uv0:                    #define ATTRIBUTES_NEED_TEXCOORD0
+    $AttributesMesh.uv1:                    #define ATTRIBUTES_NEED_TEXCOORD1
+    $AttributesMesh.uv2:                    #define ATTRIBUTES_NEED_TEXCOORD2
+    $AttributesMesh.uv3:                    #define ATTRIBUTES_NEED_TEXCOORD3
+    $AttributesMesh.color:                  #define ATTRIBUTES_NEED_COLOR
+    $VaryingsMeshToPS.positionRWS:          #define VARYINGS_NEED_POSITION_WS
+    $VaryingsMeshToPS.normalWS:             #define VARYINGS_NEED_TANGENT_TO_WORLD
+    $VaryingsMeshToPS.texCoord0:            #define VARYINGS_NEED_TEXCOORD0
+    $VaryingsMeshToPS.texCoord1:            #define VARYINGS_NEED_TEXCOORD1
+    $VaryingsMeshToPS.texCoord2:            #define VARYINGS_NEED_TEXCOORD2
+    $VaryingsMeshToPS.texCoord3:            #define VARYINGS_NEED_TEXCOORD3
+    $VaryingsMeshToPS.color:                #define VARYINGS_NEED_COLOR
+    $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
+    $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
+    $splice(GraphDefines)
+
+    #ifdef DEBUG_DISPLAY
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+    #else
+        // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
+        // Don't do it with debug display mode as it is possible there is no depth prepass in this case
+        #if !defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ALPHATEST)
+            #if SHADERPASS == SHADERPASS_FORWARD
+            #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
+            #elif SHADERPASS == SHADERPASS_GBUFFER
+            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
+            #endif
+        #endif
+    #endif
+
+    // Includes
+    $splice(PreGraphIncludes)
+
+    // Used by SceneSelectionPass
+    int _ObjectId;
+    int _PassValue;
+
+    // --------------------------------------------------
+    // Structs and Packing
+
+    $splice(PassStructs)
+
+    $splice(InterpolatorPack)
+
+
+    // --------------------------------------------------
+    // Graph
+
+    // Graph Properties
+    $splice(GraphProperties)
+    $splice(DotsInstancedProperties)
+
+    // Graph Functions
+    $splice(GraphFunctions)
+
+    // Graph Vertex
+    $splice(GraphVertex)
+    
+    // Graph Pixel
+    $splice(GraphPixel)
+
+    // --------------------------------------------------
+    // Build Graph Inputs
+
+    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
+    $features.graphPixel:   $include("SharedCode.template.hlsl")
+
+    // --------------------------------------------------
+    // Build Surface Data
+
+    void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData)
+    {
+        ZERO_INITIALIZE(SurfaceData, surfaceData);
+        
+        surfaceData.ambientOcclusion = 1.0;
+        surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
+
+        $SurfaceDescription.Albedo:               surfaceData.baseColor = surfaceDescription.Albedo;
+        $SurfaceDescription.Smoothness:           surfaceData.perceptualSmoothness = surfaceDescription.Smoothness;
+        $SurfaceDescription.Occlusion:            surfaceData.ambientOcclusion = surfaceDescription.Occlusion;
+        $SurfaceDescription.Metallic:             surfaceData.metallic = surfaceDescription.Metallic;
+        $SurfaceDescription.Specular:             surfaceData.specularColor = surfaceDescription.Specular;
+
+        // These static material feature allow compile time optimization
+        surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
+
+        #ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
+            surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
+        #endif
+
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
+        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+
+        // normal delivered to master node
+        float3 normalSrc = float3(0.0f, 0.0f, 1.0f);
+        $SurfaceDescription.Normal: normalSrc = surfaceDescription.Normal;
+
+        // compute world space normal
+        #if _NORMAL_DROPOFF_TS
+            GetNormalWS(fragInputs, normalSrc, surfaceData.normalWS, doubleSidedConstants);
+        #elif _NORMAL_DROPOFF_OS
+            surfaceData.normalWS = TransformObjectToWorldNormal(normalSrc);
+        #elif _NORMAL_DROPOFF_WS
+            surfaceData.normalWS = normalSrc;
+        #endif
+
+        surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
+        surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+
+        #if HAVE_DECALS
+        if (_EnableDecals)
+        {
+            // Both uses and modifies 'surfaceData.normalWS'.
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
+            ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+        }
+        #endif
+
+        surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+
+        // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion as PBR master node don't have any option
+        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+
+        #ifdef DEBUG_DISPLAY
+            if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+            {
+                // TODO: need to update mip info
+                surfaceData.metallic = 0;
+            }
+
+            // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+            // as it can modify attribute use for static lighting
+            ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
+        #endif
+    }
+
+    void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+    {
+        #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+            uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
+            LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
+        #endif
+
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
+        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+
+        ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
+
+        SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
+        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+
+        // Perform alpha test very early to save performance (a killed pixel will not sample textures)
+        // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
+        $AlphaTest:     DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+
+        BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
+
+        // Builtin Data
+        // For back lighting we use the oposite vertex normal 
+        InitBuiltinData(posInput, surfaceDescription.Alpha, surfaceData.normalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+
+        $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
+
+        PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+    }
+
+    // --------------------------------------------------
+    // Main
+
+    $splice(PostGraphIncludes)
+
+    ENDHLSL
+}

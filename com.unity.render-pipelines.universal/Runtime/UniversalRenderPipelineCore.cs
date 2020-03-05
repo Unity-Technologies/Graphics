@@ -24,8 +24,11 @@ namespace UnityEngine.Rendering.Universal
         public PostProcessingData postProcessingData;
         public bool supportsDynamicBatching;
         public PerObjectData perObjectData;
-        [Obsolete("killAlphaInFinalBlit is deprecated in the Universal Render Pipeline since it is no longer needed on any supported platform.")]
-        public bool killAlphaInFinalBlit;
+
+        /// <summary>
+        /// True if post-processing effect is enabled while rendering the camera stack.
+        /// </summary>
+        public bool postProcessingEnabled;
         internal bool resolveFinalTarget;
     }
 
@@ -69,11 +72,6 @@ namespace UnityEngine.Rendering.Universal
 
         public float maxShadowDistance;
         public bool postProcessEnabled;
-
-#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
-        [Obsolete("The use of the Post-processing Stack V2 is deprecated in the Universal Render Pipeline. Use the builtin post-processing effects instead.")]
-        public UnityEngine.Rendering.PostProcessing.PostProcessLayer postProcessLayer;
-#endif
 
         public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> captureActions;
 
@@ -132,8 +130,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
-        [Obsolete("The _KILL_ALPHA shader keyword is deprecated in the Universal Render Pipeline.")]
-        public static readonly string KillAlpha = "_KILL_ALPHA";
 
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
@@ -189,6 +185,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Returns the current render pipeline asset for the current quality setting.
+        /// If no render pipeline asset is assigned in QualitySettings, then returns the one assigned in GraphicsSettings.
+        /// </summary>
+        public static UniversalRenderPipelineAsset asset
+        {
+            get => GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+        }
+
+        /// <summary>
         /// Checks if a camera is rendering in MultiPass stereo mode.
         /// </summary>
         /// <param name="camera">Camera to check state from.</param>
@@ -198,7 +203,7 @@ namespace UnityEngine.Rendering.Universal
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
-#if ENABLE_VR
+#if ENABLE_VR && ENABLE_VR_MODULE
             return IsStereoEnabled(camera) && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass;
 #else
             return false;

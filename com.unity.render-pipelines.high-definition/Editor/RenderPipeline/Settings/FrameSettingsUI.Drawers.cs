@@ -99,8 +99,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     ),
                 CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
                     CED.Group(206, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
-                    )
-                );
+                    ),
+                CED.Group((serialized, owner) =>
+                {
+                    RenderPipelineSettings hdrpSettings = GetHDRPAssetFor(owner).currentPlatformRenderPipelineSettings;
+                    if (hdrpSettings.supportRayTracing)
+                    {
+                        if (serialized.IsEnabled(FrameSettingsField.AsyncCompute) ?? false)
+                            EditorGUILayout.HelpBox("With Raytracing, the Asynchronous Execution will be forced to false", MessageType.Warning);
+                    }
+                }));
 
         static HDRenderPipelineAsset GetHDRPAssetFor(Editor owner)
         {

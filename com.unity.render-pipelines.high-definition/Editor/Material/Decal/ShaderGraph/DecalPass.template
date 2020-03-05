@@ -1,56 +1,34 @@
 Pass
 { 
-    // based on DecalPass.template
-    Name "$splice(PassName)"
-    Tags { "LightMode" = "$splice(LightMode)" }
+    $splice(PassName)
+    Tags 
+    { 
+        $splice(LightMode)
+    }
 
-    //-------------------------------------------------------------------------------------
-    // Render Modes (Blend, Cull, ZTest, Stencil, etc)
-    //-------------------------------------------------------------------------------------
-    $splice(Blending)
-    $splice(Culling)
-    $splice(ZTest)
-    $splice(ZWrite)
-    $splice(ZClip)
-    $splice(Stencil)
-    $splice(ColorMask)
-    //-------------------------------------------------------------------------------------
-    // End Render Modes
-    //-------------------------------------------------------------------------------------
+    // Render State
+    $splice(RenderState)
+
+    // Debug
+    $splice(Debug)
+
+    // --------------------------------------------------
+    // Pass
 
     HLSLPROGRAM
 
-    #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-    //#pragma enable_d3d11_debug_symbols
+    // Pragmas
+    $splice(PassPragmas)
 
-    #pragma multi_compile_instancing
+    // Keywords
+    $splice(PassKeywords)
+    $splice(GraphKeywords)
 
-    //-------------------------------------------------------------------------------------
-    // Variant Definitions (active field translations to HDRP defines)
-    //-------------------------------------------------------------------------------------
-    $Material.AffectsAlbedo:     #define _MATERIAL_AFFECTS_ALBEDO 1
-    $Material.AffectsNormal:     #define _MATERIAL_AFFECTS_NORMAL 1
-    $Material.AffectsMaskMap:    #define _MATERIAL_AFFECTS_MASKMAP 1
-    $Material.AffectsEmission:   #define _MATERIAL_AFFECTS_EMISSION 1
-
-    //-------------------------------------------------------------------------------------
-    // End Variant Definitions
-    //-------------------------------------------------------------------------------------
-
-    #pragma vertex Vert
-    #pragma fragment Frag
-
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
-
-    //-------------------------------------------------------------------------------------
     // Defines
-    //-------------------------------------------------------------------------------------
-    $splice(Defines)
-
-    // this translates the new dependency tracker into the old preprocessor definitions for the existing HDRP shader code
+    $Material.AffectsAlbedo:                #define _MATERIAL_AFFECTS_ALBEDO 1
+    $Material.AffectsNormal:                #define _MATERIAL_AFFECTS_NORMAL 1
+    $Material.AffectsMaskMap:               #define _MATERIAL_AFFECTS_MASKMAP 1
+    $Material.AffectsEmission:              #define _MATERIAL_AFFECTS_EMISSION 1
     $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL
     $AttributesMesh.tangentOS:              #define ATTRIBUTES_NEED_TANGENT
     $AttributesMesh.uv0:                    #define ATTRIBUTES_NEED_TEXCOORD0
@@ -66,126 +44,127 @@ Pass
     $VaryingsMeshToPS.texCoord3:            #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:                #define VARYINGS_NEED_COLOR
     $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
-    $features.modifyMesh:                   #define HAVE_MESH_MODIFICATION
+    $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
+    $splice(GraphDefines)
 
-    //-------------------------------------------------------------------------------------
-    // End Defines
-    //-------------------------------------------------------------------------------------
-	$splice(DotsInstancedVars)
+    #ifdef DEBUG_DISPLAY
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+    #endif
 
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#ifdef DEBUG_DISPLAY
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-#endif
+    // Includes
+    $splice(PreGraphIncludes)
 
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
-    #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl" 
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+    // --------------------------------------------------
+    // Structs and Packing
 
-    //-------------------------------------------------------------------------------------
-    // Interpolator Packing And Struct Declarations
-    //-------------------------------------------------------------------------------------
-    $buildType(AttributesMesh)
-    $buildType(VaryingsMeshToPS)
-    $buildType(VaryingsMeshToDS)
-    //-------------------------------------------------------------------------------------
-    // End Interpolator Packing And Struct Declarations
-    //-------------------------------------------------------------------------------------
+    $splice(PassStructs)
 
-    //-------------------------------------------------------------------------------------
-    // Graph generated code
-    //-------------------------------------------------------------------------------------
-    $splice(Graph)
-    //-------------------------------------------------------------------------------------
-    // End graph generated code
-    //-------------------------------------------------------------------------------------
+    $splice(InterpolatorPack)
 
-$features.modifyMesh:   $include("VertexAnimation.template.hlsl")
+    // --------------------------------------------------
+    // Graph
 
-$include("SharedCode.template.hlsl")
+    // Graph Properties
+    $splice(GraphProperties)
+    $splice(DotsInstancedProperties)
+
+    // Graph Functions
+    $splice(GraphFunctions)
+
+    // Graph Vertex
+    $splice(GraphVertex)
+    
+    // Graph Pixel
+    $splice(GraphPixel)
+
+    // --------------------------------------------------
+    // Build Graph Inputs
+
+    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
+    $features.graphPixel:   $include("SharedCode.template.hlsl")
+
+    // --------------------------------------------------
+    // Build Surface Data
 
     void GetSurfaceData(FragInputs fragInputs, float3 V, PositionInputs posInput, out DecalSurfaceData surfaceData)
     {
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
-        float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
-        float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f);
-        float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
-        float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
-        fragInputs.texCoord0.xy = fragInputs.texCoord0.xy * scale + offset;
-        fragInputs.texCoord1.xy = fragInputs.texCoord1.xy * scale + offset;
-        fragInputs.texCoord2.xy = fragInputs.texCoord2.xy * scale + offset;
-        fragInputs.texCoord3.xy = fragInputs.texCoord3.xy * scale + offset;
-#else
-        float fadeFactor = 1.0;
-#endif
+        #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
+            float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
+            float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f);
+            float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
+            float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
+            fragInputs.texCoord0.xy = fragInputs.texCoord0.xy * scale + offset;
+            fragInputs.texCoord1.xy = fragInputs.texCoord1.xy * scale + offset;
+            fragInputs.texCoord2.xy = fragInputs.texCoord2.xy * scale + offset;
+            fragInputs.texCoord3.xy = fragInputs.texCoord3.xy * scale + offset;
+        #else
+            float fadeFactor = 1.0;
+        #endif
+
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 
-#if _MATERIAL_AFFECTS_EMISSION
-        $SurfaceDescription.Emission:                   surfaceData.emissive.rgb = surfaceDescription.Emission.rgb * fadeFactor;
-#endif
+        #if _MATERIAL_AFFECTS_EMISSION
+            $SurfaceDescription.Emission:                   surfaceData.emissive.rgb = surfaceDescription.Emission.rgb * fadeFactor;
+        #endif
 
         // copy across graph values, if defined
-#if _MATERIAL_AFFECTS_ALBEDO
-        $SurfaceDescription.Albedo:                     surfaceData.baseColor.xyz = surfaceDescription.Albedo;
-        $SurfaceDescription.AlphaAlbedo:                surfaceData.baseColor.w = surfaceDescription.AlphaAlbedo * fadeFactor;
-        if(surfaceData.baseColor.w > 0)
-        {
-            surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
-        }
-#endif
+        #if _MATERIAL_AFFECTS_ALBEDO
+            $SurfaceDescription.Albedo:                     surfaceData.baseColor.xyz = surfaceDescription.Albedo;
+            $SurfaceDescription.AlphaAlbedo:                surfaceData.baseColor.w = surfaceDescription.AlphaAlbedo * fadeFactor;
+            if(surfaceData.baseColor.w > 0)
+            {
+                surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
+            }
+        #endif
 
-#if _MATERIAL_AFFECTS_NORMAL
-    #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) 
-        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.Normal);
-    #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW)
-        // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
-        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.Normal, fragInputs.tangentToWorld));
-    #endif
-        $SurfaceDescription.AlphaNormal:                surfaceData.normalWS.w = surfaceDescription.AlphaNormal * fadeFactor;
-        if(surfaceData.normalWS.w > 0)
-        {
-            surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
-        }
-#else
-    #if (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Default to vertex normal
-        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(float3(0.0, 0.0, 0.1), fragInputs.tangentToWorld));
-    #endif
-#endif
+        #if _MATERIAL_AFFECTS_NORMAL
+            #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) 
+                $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.Normal);
+            #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW)
+                // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
+                $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.Normal, fragInputs.tangentToWorld));
+            #endif
 
-#if _MATERIAL_AFFECTS_MASKMAP
-        $SurfaceDescription.Smoothness:                 surfaceData.mask.z = surfaceDescription.Smoothness;                                    
-    #ifdef DECALS_4RT
-        $SurfaceDescription.Metallic:                   surfaceData.mask.x = surfaceDescription.Metallic;
-        $SurfaceDescription.Occlusion:                  surfaceData.mask.y = surfaceDescription.Occlusion;
-    #endif
+            $SurfaceDescription.AlphaNormal:                surfaceData.normalWS.w = surfaceDescription.AlphaNormal * fadeFactor;
+            if(surfaceData.normalWS.w > 0)
+            {
+                surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
+            }
+        #else
+            #if (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Default to vertex normal
+                $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(float3(0.0, 0.0, 0.1), fragInputs.tangentToWorld));
+            #endif
+        #endif
 
-        $SurfaceDescription.MAOSOpacity:                surfaceData.mask.w = surfaceDescription.MAOSOpacity * fadeFactor;
-    #ifdef DECALS_4RT
-        $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.x = surfaceDescription.MAOSOpacity * fadeFactor;
-        $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.y = surfaceDescription.MAOSOpacity * fadeFactor;
-    #endif
+        #if _MATERIAL_AFFECTS_MASKMAP
+            $SurfaceDescription.Smoothness:                 surfaceData.mask.z = surfaceDescription.Smoothness;
+            $SurfaceDescription.MAOSOpacity:                surfaceData.mask.w = surfaceDescription.MAOSOpacity * fadeFactor;
 
-    if (surfaceData.mask.w > 0)
-    {
-        surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
-    }                                                        
-#endif
+            #ifdef DECALS_4RT
+                $SurfaceDescription.Metallic:                   surfaceData.mask.x = surfaceDescription.Metallic;
+                $SurfaceDescription.Occlusion:                  surfaceData.mask.y = surfaceDescription.Occlusion;
+            #endif
 
+            #ifdef DECALS_4RT
+                $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.x = surfaceDescription.MAOSOpacity * fadeFactor;
+                $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.y = surfaceDescription.MAOSOpacity * fadeFactor;
+            #endif
+
+            if (surfaceData.mask.w > 0)
+            {
+                surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
+            }                                                        
+        #endif
     }
 
-    //-------------------------------------------------------------------------------------
-    // Pass Includes
-    //-------------------------------------------------------------------------------------
-$splice(Includes)
-    //-------------------------------------------------------------------------------------
-    // End Pass Includes
-    //-------------------------------------------------------------------------------------
+    // --------------------------------------------------
+    // Main
+
+    $splice(PostGraphIncludes)
 
     ENDHLSL
 }

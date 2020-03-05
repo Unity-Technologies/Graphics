@@ -2,9 +2,6 @@ Shader "HDRP/Decal"
 {
     Properties
     {
-        // Versioning of material to help for upgrading
-        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
-
 		_BaseColor("_BaseColor", Color) = (1,1,1,1)
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
@@ -33,8 +30,8 @@ Shader "HDRP/Decal"
 
 
         // Stencil state
-        [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 8
-        [HideInInspector] _DecalStencilWriteMask("_DecalStencilWriteMask", Int) = 8
+        [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 16
+        [HideInInspector] _DecalStencilWriteMask("_DecalStencilWriteMask", Int) = 16
 
         // Remapping
         [HideInInspector] _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
@@ -101,8 +98,8 @@ Shader "HDRP/Decal"
 
             Stencil
             {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
+                WriteMask [_DecalStencilWriteMask]
+                Ref [_DecalStencilRef]
                 Comp Always
                 Pass Replace
             }

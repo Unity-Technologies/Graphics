@@ -25,7 +25,26 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         var fnRecompileIfNeeded = graph.GetType().GetMethod("RecompileIfNeeded");
         fnRecompileIfNeeded.Invoke(graph, new object[] { false, false });
     }
+    private static string GetAssetBundleBasePath()
+    {
+        var basePath = System.IO.Directory.GetCurrentDirectory();
 
+        var args = System.Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i].ToLower() == "-logfile" && i != args.Length - 1)
+            {
+                var testResultID = "test-results"; //Find a nice path for yamato output
+                var logPath = args[i + 1];
+                if (logPath.Contains(testResultID))
+                {
+                    basePath = logPath.Substring(0, logPath.IndexOf(testResultID) + testResultID.Length);
+                }
+                break;
+            }
+        }
+        return System.IO.Path.Combine(basePath, "VFX_Bundle_Test");
+    }
 
     public void Setup()
     {
@@ -49,11 +68,14 @@ public class SetupGraphicsTestCases : IPrebuildSetup
             EditorUtility.ClearProgressBar();
         }
 
-        var bundlePath = Unity.Testing.VisualEffectGraph.LoadVFXFromAssetBundle.GetAssetBundleBasePath();
+        var bundlePath = GetAssetBundleBasePath();
         if (!Directory.Exists(bundlePath))
         {
             Directory.CreateDirectory(bundlePath);
         }
         UnityEditor.BuildPipeline.BuildAssetBundles(bundlePath, UnityEditor.BuildAssetBundleOptions.None, UnityEditor.BuildTarget.StandaloneWindows64);
+        if (!Directory.Exists("Assets/StreamingAssets"))
+            Directory.CreateDirectory("Assets/StreamingAssets");
+        File.WriteAllText("Assets/StreamingAssets/AssetBundlePath.txt", bundlePath);
     }
 }

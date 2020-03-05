@@ -16,6 +16,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
     int _HasGroundAlbedoTexture;    // bool...
     int _HasGroundEmissionTexture;  // bool...
@@ -127,16 +128,18 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                         {
                             tFrag = lightDist;
 
-                            if (light.surfaceTextureIndex != -1)
+                            if (light.surfaceTextureScaleOffset.x > 0)
                             {
                                 // The cookie code de-normalizes the axes.
                                 float2 proj   = float2(dot(-V, normalize(light.right)), dot(-V, normalize(light.up)));
                                 float2 angles = HALF_PI - acos(proj);
                                 float2 uv     = angles * rcp(radInner) * 0.5 + 0.5;
 
-                                color *= SAMPLE_TEXTURE2D_ARRAY(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex).rgb;
-                                color *= light.surfaceTint;
+                                color *= SampleCookie2D(uv, light.surfaceTextureScaleOffset);
+                                // color *= SAMPLE_TEXTURE2D_ARRAY(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex).rgb;
                             }
+                            
+                            color *= light.surfaceTint;
                         }
                         else // Flare region.
                         {

@@ -4,8 +4,8 @@ Shader "Universal Render Pipeline/Simple Lit"
     // Keep properties of StandardSpecular shader for upgrade reasons.
     Properties
     {
-        _BaseColor("Base Color", Color) = (0.5, 0.5, 0.5, 1)
-        _BaseMap("Base Map (RGB) Smoothness / Alpha (A)", 2D) = "white" {}
+        [MainTexture] _BaseColor("Base Color", Color) = (1, 1, 1, 1)
+        [MainColor]   _BaseMap("Base Map (RGB) Smoothness / Alpha (A)", 2D) = "white" {}
 
         _Cutoff("Alpha Clipping", Range(0.0, 1.0)) = 0.5
 
@@ -29,15 +29,15 @@ Shader "Universal Render Pipeline/Simple Lit"
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
 
-        [ToogleOff] _ReceiveShadows("Receive Shadows", Float) = 1.0
+        [ToggleOff] _ReceiveShadows("Receive Shadows", Float) = 1.0
 
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
-        [HideInInspector] _Smoothness("SMoothness", Float) = 0.5
+        [HideInInspector] _Smoothness("Smoothness", Float) = 0.5
 
         // ObsoleteProperties
         [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
-        [HideInInspector] _Color("Base Color", Color) = (0.5, 0.5, 0.5, 1)
+        [HideInInspector] _Color("Base Color", Color) = (1, 1, 1, 1)
         [HideInInspector] _Shininess("Smoothness", Float) = 0.0
         [HideInInspector] _GlossinessSource("GlossinessSource", Float) = 0.0
         [HideInInspector] _SpecSource("SpecularHighlights", Float) = 0.0

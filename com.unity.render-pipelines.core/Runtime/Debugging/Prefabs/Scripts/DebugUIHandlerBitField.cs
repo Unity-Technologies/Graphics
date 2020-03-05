@@ -4,7 +4,7 @@ using UnityEngine.UI;
 namespace UnityEngine.Rendering.UI
 {
     /// <summary>
-    /// DebugUIHandler for Bitfield widget.
+    /// DebugUIHandler for Bitfield widget. Require the enum to have a None field set to 0 in it's values.
     /// </summary>
     public class DebugUIHandlerBitField : DebugUIHandlerWidget
     {
@@ -52,18 +52,42 @@ namespace UnityEngine.Rendering.UI
 
         bool GetValue(int index)
         {
-            int intValue = System.Convert.ToInt32(m_Field.GetValue());
-            return (intValue & (1 << index)) != 0;
+            if (index == 0)
+            {
+                // None can't be selected
+                return false;
+            }
+            else
+            {
+                // We need to remove 1 to the index because there is the None element on top of
+                // the enum and it doesn't count in the bit field because it's value is 0
+                index--;
+                int intValue = System.Convert.ToInt32(m_Field.GetValue());
+                return (intValue & (1 << index)) != 0;
+            }
         }
 
         void SetValue(int index, bool value)
         {
-            int intValue = System.Convert.ToInt32(m_Field.GetValue());
-            if (value)
-                intValue |= m_Field.enumValues[index];
+            if (index == 0)
+            {
+                // None was selected so we reset all the bits to false
+                m_Field.SetValue(System.Enum.ToObject(m_Field.enumType, 0));
+                foreach (var toggle in toggles)
+                {
+                    if (toggle.getter != null)
+                        toggle.UpdateValueLabel();
+                }
+            }
             else
-                intValue &= ~m_Field.enumValues[index];
-            m_Field.SetValue(System.Enum.ToObject(m_Field.enumType, intValue));
+            {
+                int intValue = System.Convert.ToInt32(m_Field.GetValue());
+                if (value)
+                    intValue |= m_Field.enumValues[index];
+                else
+                    intValue &= ~m_Field.enumValues[index];
+                m_Field.SetValue(System.Enum.ToObject(m_Field.enumType, intValue));
+            }
         }
 
         /// <summary>

@@ -137,6 +137,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else if (xrEnabled && xrSupported)
                 {
+                    // Disable vsync on the main display when rendering to a XR device
+                    QualitySettings.vSyncCount = 0;
+
                     if (XRGraphics.renderViewportScale != 1.0f)
                     {
                         Debug.LogWarning("RenderViewportScale has no effect with this render pipeline. Use dynamic resolution instead.");
@@ -276,6 +279,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 display.GetRenderPass(renderPassIndex, out var renderPass);
                 display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
+                // Disable legacy stereo culling path
+                cullingParams.cullingOptions &= ~CullingOptions.Stereo;
+
                 if (singlePassAllowed && CanUseSinglePass(renderPass))
                 {
                     var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial);
@@ -414,7 +420,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     projMatrix = camera.projectionMatrix,
                     viewMatrix = camera.worldToCameraMatrix,
-                    viewport = camera.pixelRect,
+                    viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight),
                     textureArraySlice = -1
                 };
 

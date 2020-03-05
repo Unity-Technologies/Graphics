@@ -10,14 +10,14 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Rendering.HighDefinition;
-
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
-    [Title("Master", "HDRP/Decal")]
+    [Title("Master", "Decal (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DecalMasterNode")]
-    class DecalMasterNode : MasterNode<IDecalSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class DecalMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -62,6 +62,21 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string VertexTangentSlotName = "Vertex Tangent";
         public const int VertexTangentSlotID = 11;
 
+        [SerializeField]
+        SurfaceType m_SurfaceType;
+
+        public SurfaceType surfaceType
+        {
+            get { return m_SurfaceType; }
+            set
+            {
+                if (m_SurfaceType == value)
+                    return;
+
+                m_SurfaceType = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
 
         // Just for convenience of doing simple masks. We could run out of bits of course.
         [Flags]
@@ -202,9 +217,48 @@ namespace UnityEditor.Rendering.HighDefinition
             RemoveSlotsNameNotMatching(validSlots, true);
         }
 
-        protected override VisualElement CreateCommonSettingsElement()
+        public VisualElement CreateSettingsElement()
         {
             return new DecalSettingsView(this);
+        }
+
+        public string renderQueueTag
+        {
+            get
+            {
+                return HDRenderQueue.GetShaderTagValue(
+                    HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, drawOrder, false));
+            }
+        }
+
+        public string renderTypeTag => HDRenderTypeTags.Opaque.ToString();
+
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass)
+        {
+            return new ConditionalField[]
+            {
+                // Features
+                new ConditionalField(Fields.GraphVertex,            IsSlotConnected(PositionSlotId) || 
+                                                                        IsSlotConnected(VertexNormalSlotID) || 
+                                                                        IsSlotConnected(VertexTangentSlotID)),
+                new ConditionalField(Fields.GraphPixel,             true),
+                
+                // Material
+                new ConditionalField(HDFields.AffectsAlbedo,        affectsAlbedo.isOn),
+                new ConditionalField(HDFields.AffectsNormal,        affectsNormal.isOn),
+                new ConditionalField(HDFields.AffectsEmission,      affectsEmission.isOn),
+                new ConditionalField(HDFields.AffectsMetal,         affectsMetal.isOn),
+                new ConditionalField(HDFields.AffectsAO,            affectsAO.isOn),
+                new ConditionalField(HDFields.AffectsSmoothness,    affectsSmoothness.isOn),
+                new ConditionalField(HDFields.AffectsMaskMap,       affectsSmoothness.isOn || affectsMetal.isOn || affectsAO.isOn),
+                new ConditionalField(HDFields.DecalDefault,         affectsAlbedo.isOn || affectsNormal.isOn || affectsMetal.isOn ||
+                                                                        affectsAO.isOn || affectsSmoothness.isOn ),
+            };
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
+
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
@@ -378,6 +432,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_DrawOrder == value)
                     return;
                 m_DrawOrder = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_DOTSInstancing = false;
+
+        public ToggleData dotsInstancing
+        {
+            get { return new ToggleData(m_DOTSInstancing); }
+            set
+            {
+                if (m_DOTSInstancing == value.isOn)
+                    return;
+
+                m_DOTSInstancing = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
         }
