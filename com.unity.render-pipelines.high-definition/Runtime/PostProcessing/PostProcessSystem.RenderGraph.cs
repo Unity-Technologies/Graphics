@@ -255,11 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class FinalPassData
         {
-            public FinalPassParameters          parameters;
-            public RenderGraphResource          source;
-            public RenderGraphResource          afterPostProcessTexture;
-            public RenderGraphResource          alphaTexture;
-            public RenderGraphMutableResource   destination;
+            public FinalPassParameters  parameters;
             public TextureHandle        source;
             public TextureHandle        afterPostProcessTexture;
             public TextureHandle        alphaTexture;
