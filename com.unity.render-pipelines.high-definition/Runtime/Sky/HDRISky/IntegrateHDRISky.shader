@@ -1,10 +1,5 @@
 Shader "Hidden/HDRP/IntegrateHDRI"
 {
-    //Properties
-    //{
-    //    [HideInInspector]
-    //    _Cubemap ("", CUBE) = "white" {}
-    //}
     HLSLINCLUDE
 
     #pragma vertex Vert
