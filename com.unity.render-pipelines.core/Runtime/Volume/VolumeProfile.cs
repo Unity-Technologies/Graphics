@@ -32,12 +32,6 @@ namespace UnityEngine.Rendering
             components.RemoveAll(x => x == null);
         }
 
-        void OnDestroy()
-        {
-            foreach (var component in components)
-                component.Release();
-        }
-
         /// <summary>
         /// Resets the dirty state of the Volume Profile. Unity uses this to force-refresh and redraw the
         /// Volume Profile editor when you modify the Asset via script instead of the Inspector.
@@ -124,7 +118,6 @@ namespace UnityEngine.Rendering
 
             if (toRemove >= 0)
             {
-                components[toRemove].Release();
                 components.RemoveAt(toRemove);
                 isDirty = true;
             }
