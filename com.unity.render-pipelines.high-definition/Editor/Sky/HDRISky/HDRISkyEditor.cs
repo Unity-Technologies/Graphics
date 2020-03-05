@@ -69,9 +69,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdrp != null)
             {
                 m_CubeToHemiLatLong         = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToHemiPanoPS);
-                m_CubeToLatLong             = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
-                m_IntegrateSphereHDRISky    = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
-                m_ImportanceSamplingFromSamples = hdrp.renderPipelineResources.shaders.ImportanceSamplingFromSamplesCS;
             }
             m_ReadBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
         }
