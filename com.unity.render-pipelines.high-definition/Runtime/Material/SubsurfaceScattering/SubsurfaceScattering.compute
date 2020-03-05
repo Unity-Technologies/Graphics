@@ -164,7 +164,7 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 #endif
 }
 
-void EvaluateSample(uint i, uint n, float2 centerCoord, int2 cacheOffset,
+void EvaluateSample(uint i, uint n, int2 pixelCoord, int2 cacheOffset,
                     float3 S, float d, float3 centerPosVS, float mmPerUnit, float pixelsPerMm,
                     float phase, float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
@@ -200,7 +200,8 @@ void EvaluateSample(uint i, uint n, float2 centerCoord, int2 cacheOffset,
         position = (int2)(positionNDC * _ScreenSize.xy);
         xy2      = dot(relPosVS.xy, relPosVS.xy);
     #else
-        position = (int2)(centerCoord + vec * pixelsPerMm);
+        // floor((pixelCoord + 0.5) + vec * pixelsPerMm)
+        position = pixelCoord + (int2)(0.5 + vec * pixelsPerMm);
         xy2      = r * r;
     #endif
 
@@ -451,7 +452,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     for (uint i = 0; i < n; i++)
     {
         // Integrate over the image or tangent plane in the view space.
-        EvaluateSample(i, n, pixelCoord + 0.5, cacheOffset,
+        EvaluateSample(i, n, pixelCoord, cacheOffset,
                        S, d, centerPosVS, mmPerUnit, pixelsPerMm,
                        phase, tangentX, tangentY, projMatrix,
                        totalIrradiance, totalWeight);
