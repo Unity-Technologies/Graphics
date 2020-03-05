@@ -184,22 +184,6 @@ half CompareNormal(half3 d1, half3 d2)
     return smoothstep(kGeometryCoeff, 1.0, dot(d1, d2));
 }
 
-// Boundary check for depth sampler
-// (returns a very large value if it lies out of bounds)
-float CheckBounds(float2 uv, float linear01Depth)
-{
-    float ob = any(uv < 0.0) + any(uv > 1.0);
-    
-    #if defined(UNITY_REVERSED_Z)
-        ob += lerp(0.0, 1.0, step(linear01Depth, 0.00001));
-    #else
-        ob += lerp(0.0, 1.0, step(0.99999, linear01Depth));
-    #endif
-    
-    return ob * 1e8;
-}
-
-
 // Try reconstructing normal accurately from depth buffer.
 // input DepthBuffer: stores linearized depth in range (0, 1).
 // 5 taps on each direction: | z | x | * | y | w |, '*' denotes the center sample.
@@ -302,7 +286,7 @@ float CalculateDepthFromTextureSample(float4 textureValue, float2 uv)
         float depth = textureValue.x;
     #endif
 
-    return depth + CheckBounds(uv, Linear01Depth(depth, _ZBufferParams));
+    return depth;
 }
 
 float4 SampleTexture(float2 uv)
@@ -345,11 +329,9 @@ float3 SampleNormal(float4 uv)
     #endif
 }
 
-//
 // Distance-based AO estimator based on Morgan 2011
 // "Alchemy screen-space ambient obscurance algorithm"
 // http://graphics.cs.williams.edu/papers/AlchemyHPG11/
-//
 float4 SSAO(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -395,10 +377,10 @@ float4 SSAO(Varyings input) : SV_Target
     }
 
     // Intensity normalization
-    ao *= RADIUS; 
+    ao *= RADIUS;
 
     // Apply contrast
-    ao = 1.0 - PositivePow(ao * INTENSITY / SAMPLE_COUNT, kContrast);
+    ao = PositivePow(ao * INTENSITY / SAMPLE_COUNT, kContrast);
 
     return PackAONormal(ao, norm_o);
 }
@@ -522,7 +504,7 @@ float4 FragComposition(Varyings input) : SV_Target
     float2 delta = _BaseMap_TexelSize.xy / DOWNSAMPLE;
     half ao = BlurSmall(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), uv, delta);
 
-    return EncodeAO(ao);
+    return EncodeAO(1.0 - ao);
 }
 
 
