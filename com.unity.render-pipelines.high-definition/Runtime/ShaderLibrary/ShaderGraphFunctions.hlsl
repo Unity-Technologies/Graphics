@@ -40,13 +40,15 @@ float3 shadergraph_HDLoadSceneColor(float2 uv, float lod)
     float numberOfLevels;
     _ColorPyramidTexture.GetDimensions(0, width0, height0, elements, numberOfLevels);
     _ColorPyramidTexture.GetDimensions(lod, widthLod, heightLod, elements, numberOfLevels);
-    float2 scale = float2(widthLod / width0, heightLod / height0);
+    float2 screenScale = float2(_ScreenSize.x / width0, _ScreenSize.y / height0);
 #if defined(BLIT_PASS)
-    return LoadCameraColor(uv * scale, lod) * GetInverseCurrentExposureMultiplier();
+    float2 lodScale = float2(widthLod / width0, heightLod / height0);
+    return LoadCameraColor(uv * lodScale * screenScale, lod) * GetInverseCurrentExposureMultiplier();
 #else
 #if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT) 
     // We always remove the pre-exposure when we sample the scene color
-    return LoadCameraColor(uv * scale, lod) * GetInverseCurrentExposureMultiplier();
+    float2 lodScale = float2(widthLod, heightLod); 
+    return LoadCameraColor(uv * lodScale * screenScale, lod) * GetInverseCurrentExposureMultiplier();
 #endif
     return float3(0, 0, 0);
 #endif
