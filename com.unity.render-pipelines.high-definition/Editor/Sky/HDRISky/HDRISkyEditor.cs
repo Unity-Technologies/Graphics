@@ -182,7 +182,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 ImportanceSamplersSystem.MarginalTextures marginals = ImportanceSamplers.GetMarginals(hdriSkyID);
 
-                int   samplesCount  = 16;
+                int   samplesCount  = 256;
                 float fSamplesCount = (float)samplesCount;
 
                 WriteEXR("usedMarginal",            marginals.marginal);
@@ -203,16 +203,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 int numTilesX = (samplesCount + (8 - 1))/8;
                 m_ImportanceSamplingFromSamples.Dispatch(0, numTilesX, 1, 1);
 
-                WriteEXR("usedSamples", output);
-
                 RTHandle sum = GPUScan.ComputeOperation(output, null, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, output.rt.graphicsFormat);
                 RTHandleDeleter.ScheduleRelease(sum);
 
                 RTHandle add = GPUScan.ComputeOperation(output, null, GPUScan.Operation.Add, GPUScan.Direction.Horizontal, output.rt.graphicsFormat);
                 RTHandleDeleter.ScheduleRelease(add);
-
-                WriteEXR("usedSum",   add);
-                WriteEXR("usedTotal", sum);
 
                 Texture2D flatten = new Texture2D(1, 1, sum.rt.graphicsFormat, TextureCreationFlags.None);
                 RenderTexture.active = sum.rt;
@@ -262,7 +257,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     outputDebug2D.SetInts   (HDShaderIDs._Sizes,
                                                latLongMap.rt.width, latLongMap.rt.height, samples.rt.width, 1);
                     outputDebug2D.Dispatch(kernel, (samplesCount + (8 - 1))/8, 1, 1);
-                    WriteEXR("usedOutputDebug", pdfCopyRGBA);
                 }
             }
         }
@@ -279,11 +273,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 GetUpperHemisphereLuxValue();
                 updateDefaultShadowTint = true;
-                Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
-                int hdriSkyID = ImportanceSamplers.GetIdentifier(hdri);
-                ImportanceSamplers.ScheduleMarginalGeneration(hdriSkyID, hdri);
-
-                DoIt();
+                //Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
+                //int hdriSkyID = ImportanceSamplers.GetIdentifier(hdri);
+                //ImportanceSamplers.ScheduleMarginalGeneration(hdriSkyID, hdri);
+                //
+                //DoIt();
             }
 
             if (isInAdvancedMode)

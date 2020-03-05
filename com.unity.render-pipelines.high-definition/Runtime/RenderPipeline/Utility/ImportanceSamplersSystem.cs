@@ -77,7 +77,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal static Dictionary<int, MarginalInfos>  m_InternalData = null;
-        internal static int _Idx = 0;
         MaterialPropertyBlock m_MaterialBlock = null;
 
         /// <summary>
@@ -85,9 +84,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public ImportanceSamplersSystem()
         {
-            m_InternalData = new Dictionary<int, MarginalInfos>();
+            m_InternalData  = new Dictionary<int, MarginalInfos>();
             m_MaterialBlock = new MaterialPropertyBlock();
-            _Idx = 0;
         }
 
         /// <summary>
@@ -320,6 +318,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool hasMip = value.input.mipmapCount > 1;
             bool isFullPrecision;
             //if (HDUtils.GetFormatMaxPrecisionBits(current.Value.input.graphicsFormat) == 32)
+            // Full precision Mandatory
             {
                 isFullPrecision = true;
             }
@@ -329,17 +328,12 @@ namespace UnityEngine.Rendering.HighDefinition
             //}
 
             GraphicsFormat format1 = GetFormat(1, isFullPrecision);
-            GraphicsFormat format2 = GetFormat(2, isFullPrecision);
             GraphicsFormat format4 = GetFormat(4, isFullPrecision);
 
             int width       = -1;
             int height      = -1;
             int slicesCount =  1;
 
-            bool dumpFile =
-                false;
-                //true;
-                //value.currentMip == 0 && value.currentSlice == 0;
             bool buildMarginalArray = false;
 
             if (value.input.dimension == TextureDimension.Tex2D ||
@@ -429,7 +423,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandleDeleter.ScheduleRelease(texCopy);
                     GPUArithmetic.ComputeOperation(texCopy, rtInput, null, cmd, GPUArithmetic.Operation.Mean);
 
-                    ImportanceSampler2D.GenerateMarginals(out marginal, out conditionalMarginal, texCopy, cmd, dumpFile, _Idx);
+                    ImportanceSampler2D.GenerateMarginals(out marginal, out conditionalMarginal, texCopy, cmd);
                 }
                 else if (value.input.dimension == TextureDimension.Cube ||
                          value.input.dimension == TextureDimension.CubeArray)
@@ -466,33 +460,15 @@ namespace UnityEngine.Rendering.HighDefinition
                                                                          1.0f/((float)latLongMap.rt.width), 1.0f/((float)latLongMap.rt.height)));
 
                     cmd.Blit(Texture2D.whiteTexture, latLongMap, usedMat, value.input.dimension == TextureDimension.Cube ? 0 : 1);
-                    if (dumpFile)
-                    {
-                        cmd.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
-                        {
-                            DefaultDumper(
-                                    request, "___FirstInput_" + current.Key.ToString() +
-                                    "_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip,
-                                    latLongMap.rt.graphicsFormat);
-                        });
-                    }
 
                     RTHandle latLongMap1 = RTHandles.Alloc( curWidth, curHeight,
                                                             colorFormat: format1,
                                                             enableRandomWrite: true);
                     GPUArithmetic.ComputeOperation(latLongMap1, latLongMap, null, cmd, GPUArithmetic.Operation.Mean);
 
-                    // Begin: Integrate Equirectangular Map
                     // Begin: Integrate to have the proper PDF
                     if (current.Value.currentMip == 0)
                     {
-                        //float rescale = 1.0f;
-                        //GPUArithmetic.ComputeOperation(
-                        //                latLongMap1, latLongMap1,
-                        //                new Vector4(1.0f/rescale, 1.0f/rescale, 1.0f/rescale, 1.0f/rescale),
-                        //                cmd,
-                        //                GPUArithmetic.Operation.Mult);
-
                         RTHandle totalRows = GPUScan.ComputeOperation(latLongMap1, cmd, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, format1);
                                  integral  = GPUScan.ComputeOperation(totalRows,   cmd, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   format1);
                         RTHandleDeleter.ScheduleRelease(totalRows);
@@ -504,62 +480,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             coef *= 2.0f;
 
-                        Debug.Log(String.Format("SKCode: Importance Sampler: {0}", current.Value.buildHemisphere ? "Hemi" : "Sphere"));
-
                         GPUArithmetic.ComputeOperation(integral, integral, new Vector4(coef, coef, coef, coef), cmd, GPUArithmetic.Operation.Mult);
-                        //GPUArithmetic.ComputeOperation(
-                        //                latLongMap1, latLongMap1,
-                        //                new Vector4(rescale, rescale, rescale, rescale),
-                        //                cmd,
-                        //                GPUArithmetic.Operation.Mult);
-                        if (dumpFile)
-                        {
-                            cmd.RequestAsyncReadback(integral, delegate (AsyncGPUReadbackRequest request)
-                            {
-                                DefaultDumper(
-                                        request, "___Integral_" + current.Key.ToString() +
-                                        "_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip,
-                                        latLongMap.rt.graphicsFormat);
-                            });
-                        }
+
                     }
                     // End: Integrate Equirectangular Map
 
-                    //GPUArithmetic.ComputeOperation(latLongMap, latLongMap, integral, cmd, GPUArithmetic.Operation.Div);
-                    //if (dumpFile)
-                    //{
-                    //    cmd.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
-                    //    {
-                    //        DefaultDumper(
-                    //                request, "___FirstInputDiv_" + current.Key.ToString() +
-                    //                "_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip,
-                    //                latLongMap.rt.graphicsFormat);
-                    //    });
-                    //}
-                    /*
-                    GPUArithmetic.ComputeOperation(latLongMap, latLongMap, null,     cmd, GPUArithmetic.Operation.Mean);
-                    if (dumpFile)
-                    {
-                        cmd.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
-                        {
-                            DefaultDumper(
-                                    request, "___FirstInputMean_" + current.Key.ToString() +
-                                    "_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip,
-                                    latLongMap.rt.graphicsFormat);
-                        });
-                    }
-
-                    RTHandle latLongMap1 = RTHandles.Alloc( curWidth, curHeight,
-                                                            colorFormat: format1,
-                                                            enableRandomWrite: true);
-                    RTHandleDeleter.ScheduleRelease(latLongMap1);
-                    // RGBA to Single Channel
-                    RTHandle blackRT = RTHandles.Alloc(Texture2D.blackTexture);
-                    GPUArithmetic.ComputeOperation(latLongMap1, latLongMap, blackRT, cmd, GPUArithmetic.Operation.Add);
-                    RTHandleDeleter.ScheduleRelease(blackRT);
-                    */
-
-                    ImportanceSampler2D.GenerateMarginals(out marginal, out conditionalMarginal, latLongMap1, cmd, dumpFile, _Idx);
+                    ImportanceSampler2D.GenerateMarginals(out marginal, out conditionalMarginal, latLongMap1, cmd);
                 }
                 else
                 {
@@ -580,18 +506,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     current.Value.isReady       = true;
                     current.Value.currentMip    = 0;
                     current.Value.currentSlice  = 0;
-                    Debug.Log(String.Format("SKCode - Ready: {0}", current.Key));
-                    if (dumpFile)
-                    {
-                        cmd.RequestAsyncReadback(marginal, delegate (AsyncGPUReadbackRequest request)
-                        {
-                            DefaultDumper(request, "___Marginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip, marginal.rt.graphicsFormat);
-                        });
-                        cmd.RequestAsyncReadback(conditionalMarginal, delegate (AsyncGPUReadbackRequest request)
-                        {
-                            DefaultDumper(request, "___ConditionalMarginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip, conditionalMarginal.rt.graphicsFormat);
-                        });
-                    }
                 }
                 else
                 {
@@ -606,25 +520,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             current.Value.currentMip++;
-            //if (du)
-            //{
-            //    cmd.RequestAsyncReadback(invCDFRows, delegate (AsyncGPUReadbackRequest request)
-            //    {
-            //        //DefaultDumper(request, String.Format("___Marginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
-            //        DefaultDumper(request, "___Marginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip, invCDFRows.rt.graphicsFormat);
-            //    });
-            //    cmd.RequestAsyncReadback(invCDFFull, delegate (AsyncGPUReadbackRequest request)
-            //    {
-            //        //DefaultDumper(request, String.Format("___ConditionalMarginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
-            //        DefaultDumper(request, "___ConditionalMarginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip, invCDFFull.rt.graphicsFormat);
-            //    });
-            //}
             if (current.Value.currentMip == value.input.mipmapCount)
             {
                 current.Value.currentSlice++;
                 current.Value.currentMip = 0;
             }
-            ++_Idx;
         }
     }
 }

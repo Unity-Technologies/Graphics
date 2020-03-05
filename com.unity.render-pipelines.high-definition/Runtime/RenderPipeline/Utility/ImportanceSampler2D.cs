@@ -9,27 +9,6 @@ namespace UnityEngine.Rendering
 {
     static class ImportanceSampler2D
     {
-
-#if DUMP_IMAGE
-        static private void Default(AsyncGPUReadbackRequest request, string name, GraphicsFormat format)
-        {
-            if (!request.hasError)
-            {
-                Unity.Collections.NativeArray<float> result = request.GetData<float>();
-                float[] copy = new float[result.Length];
-                result.CopyTo(copy);
-                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, format, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
-                string path = @"C:\UProjects\" + name + ".exr";
-                if (System.IO.File.Exists(path))
-                {
-                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
-                    System.IO.File.Delete(path);
-                }
-                System.IO.File.WriteAllBytes(path, bytes0);
-            }
-        }
-#endif
-
         internal static GraphicsFormat GetFormat(uint channelCount, bool isFullPrecision = false)
         {
             if (isFullPrecision)
@@ -63,19 +42,13 @@ namespace UnityEngine.Rendering
         /// <param name="conditionalMarginal">Full resolution marginal texture</param>
         /// <param name="density">Density, not normalized PDF, must be single channel</param>
         /// <param name="cmd">Command Buffer</param>
-        /// <param name="dumpFile"></param>
-        /// <param name="idx"></param>
         public static void GenerateMarginals(
                                 out RTHandle marginal, out RTHandle conditionalMarginal,
                                 RTHandle density,
-                                CommandBuffer cmd,
-                                bool dumpFile, int idx)
+                                CommandBuffer cmd)
         {
             int width   = density.rt.width;
             int height  = density.rt.height;
-
-            marginal            = null;
-            conditionalMarginal = null;
 
             Debug.Assert(HDUtils.GetFormatChannelsCount(density.rt.graphicsFormat) == 1);
 
@@ -85,134 +58,45 @@ namespace UnityEngine.Rendering
             GraphicsFormat format2 = GetFormat(2, isFullPrecision);
             GraphicsFormat format4 = GetFormat(4, isFullPrecision);
 
-#if DUMP_IMAGE
-            string strName = string.Format("{0}S{1}M{1}", idx, 0, 0);
-#endif
-
-            RTHandle pdfCopy = RTHandles.Alloc(density.rt.width, density.rt.height, colorFormat: format1, enableRandomWrite: true, useMipMap: false, autoGenerateMips: false);
-            RTHandleDeleter.ScheduleRelease(pdfCopy);
-            cmd.CopyTexture(density, 0, 0, pdfCopy, 0, 0);
-            if (dumpFile)
-                cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "02_Input" + strName, pdfCopy.rt.graphicsFormat);
-                });
-            // 3. CDF Rows
-            RTHandle cdfFull = GPUScan.ComputeOperation(pdfCopy, cmd, GPUScan.Operation.Add, GPUScan.Direction.Horizontal, format1);
+            // 1. CDF of Rows (density where each rows is a CDF)
+            RTHandle cdfFull = GPUScan.ComputeOperation(density, cmd, GPUScan.Operation.Add, GPUScan.Direction.Horizontal, format1);
             RTHandleDeleter.ScheduleRelease(cdfFull);
-            if (dumpFile)
-                cmd.RequestAsyncReadback(cdfFull, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "03_CDFRows" + strName, cdfFull.rt.graphicsFormat);
-                });
-            // 4. CDF L
+            // 2. CDF L (L: CDF of {Sum of Rows})
             RTHandle sumRows = RTHandles.Alloc(1, height, colorFormat: format1, enableRandomWrite: true);
             RTHandleDeleter.ScheduleRelease(sumRows);
+            // Last columns contains the data we want
             cmd.CopyTexture(cdfFull, 0, 0, width - 1, 0, 1, height, sumRows, 0, 0, 0, 0);
-            if (dumpFile)
-                cmd.RequestAsyncReadback(sumRows, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "04.1_SumOfRows" + strName, sumRows.rt.graphicsFormat);
-                });
+            // Pre-Normalize to avoid overflow
             RTHandle minMaxSumRows = GPUScan.ComputeOperation(sumRows, cmd, GPUScan.Operation.MinMax, GPUScan.Direction.Vertical, format2);
-            if (dumpFile)
-                cmd.RequestAsyncReadback(minMaxSumRows, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "04.2_MinMaxSumRows" + strName, minMaxSumRows.rt.graphicsFormat);
-                });
             RTHandleDeleter.ScheduleRelease(minMaxSumRows);
-            Rescale(sumRows, minMaxSumRows, GPUScan.Direction.Vertical, cmd, true);
-            if (dumpFile)
-                cmd.RequestAsyncReadback(sumRows, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "04.3_SumOfRowsRescaled" + strName, sumRows.rt.graphicsFormat);
-                });
+            Rescale01(sumRows, minMaxSumRows, GPUScan.Direction.Vertical, cmd, true);
             RTHandle cdfL = GPUScan.ComputeOperation(sumRows, cmd, GPUScan.Operation.Add, GPUScan.Direction.Vertical);
             RTHandleDeleter.ScheduleRelease(cdfL);
-            if (dumpFile)
-                cmd.RequestAsyncReadback(cdfL, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "04.4_CDFL" + strName, cdfL.rt.graphicsFormat);
-                });
-            // 5. Min Max Rows
+            // 3. Min Max of each Rows
             RTHandle minMaxRows = GPUScan.ComputeOperation(cdfFull, cmd, GPUScan.Operation.MinMax, GPUScan.Direction.Horizontal);
             RTHandleDeleter.ScheduleRelease(minMaxRows);
-            if (dumpFile)
-                cmd.RequestAsyncReadback(minMaxRows, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "05_MinMaxRows" + strName, minMaxRows.rt.graphicsFormat);
-                });
-            // 6. Min Max L
+            // 4. Min Max of L
             RTHandle minMaxCDFL = GPUScan.ComputeOperation(cdfL, cmd, GPUScan.Operation.MinMax, GPUScan.Direction.Vertical);
             RTHandleDeleter.ScheduleRelease(minMaxCDFL);
-            if (dumpFile)
-                cmd.RequestAsyncReadback(minMaxCDFL, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "06_MinMaxL" + strName, minMaxCDFL.rt.graphicsFormat);
-                });
-            // 7. Rescale CDF Rows
-            Rescale(cdfFull, minMaxRows, GPUScan.Direction.Horizontal, cmd);
-            if (dumpFile)
-                cmd.RequestAsyncReadback(cdfFull, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "07_CDFRowsRescaled" + strName, cdfFull.rt.graphicsFormat);
-                });
-            // 8. Rescale CDF L
-            Rescale(cdfL, minMaxCDFL, GPUScan.Direction.Vertical, cmd, true);
-            if (dumpFile)
-                cmd.RequestAsyncReadback(cdfL, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "08_CDFLRescaled" + strName, minMaxCDFL.rt.graphicsFormat);
-                });
-            // 9. Inv CDF Rows
-            conditionalMarginal = InverseCDF1D.ComputeInverseCDF(cdfFull, pdfCopy, cmd, InverseCDF1D.SumDirection.Horizontal, format4);
-            GraphicsFormat formatfff = conditionalMarginal.rt.graphicsFormat;
-            if (dumpFile)
-                cmd.RequestAsyncReadback(conditionalMarginal, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "09_ConditionalMarginalRows" + strName, formatfff);
-                });
-            // 10. Inv CDF L
-            marginal = InverseCDF1D.ComputeInverseCDF(cdfL,    pdfCopy, cmd, InverseCDF1D.SumDirection.Vertical, format1);
-            GraphicsFormat formatffff = marginal.rt.graphicsFormat;
-            if (dumpFile)
-                cmd.RequestAsyncReadback(marginal, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "10_MarginalL" + strName, formatffff);
-                });
-            // 11. Generate Samples
-            uint samplesCount = 4096;
-            RTHandle samples = GenerateSamples(samplesCount, marginal, conditionalMarginal, GPUScan.Direction.Horizontal, cmd, true);
-            RTHandleDeleter.ScheduleRelease(samples);
-            if (dumpFile)
-                cmd.RequestAsyncReadback(samples, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "11_Samples" + strName, samples.rt.graphicsFormat);
-                });
-            // 12. Generate Output
-            RTHandle pdfCopyRGBA = RTHandles.Alloc(density.rt.width, density.rt.height, colorFormat: format4, enableRandomWrite: true, useMipMap: false, autoGenerateMips: false);
-            RTHandleDeleter.ScheduleRelease(pdfCopyRGBA);
-            RTHandle blackRT = RTHandles.Alloc(Texture2D.blackTexture);
-            RTHandleDeleter.ScheduleRelease(blackRT);
-            GPUArithmetic.ComputeOperation(pdfCopyRGBA, pdfCopy, blackRT, cmd, GPUArithmetic.Operation.Add);
-            var hdrp = HDRenderPipeline.defaultAsset;
-            ComputeShader outputDebug2D = hdrp.renderPipelineResources.shaders.outputDebugCS;
-            int kernel = outputDebug2D.FindKernel("CSMain");
-            cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._PDF,      density);
-            cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._Output,   pdfCopyRGBA);
-            cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._Samples,  samples);
-            cmd.SetComputeIntParams   (outputDebug2D, HDShaderIDs._Sizes,
-                                       pdfCopyRGBA.rt.width, pdfCopyRGBA.rt.height, samples.rt.width, 1);
-            int numTilesX = (samples.rt.width + (8 - 1))/8;
-            cmd.DispatchCompute(outputDebug2D, kernel, numTilesX, 1, 1);
-            if (dumpFile)
-                cmd.RequestAsyncReadback(pdfCopyRGBA, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "12_Debug" + strName, pdfCopyRGBA.rt.graphicsFormat);
-                });
+            // 5. Rescale CDF Rows (to 01)
+            Rescale01(cdfFull, minMaxRows, GPUScan.Direction.Horizontal, cmd);
+            // 6. Rescale CDF L (to 01)
+            Rescale01(cdfL, minMaxCDFL, GPUScan.Direction.Vertical, cmd, true);
+            // 7. Inv CDF Rows
+            conditionalMarginal = InverseCDF1D.ComputeInverseCDF(cdfFull, density, cmd, InverseCDF1D.SumDirection.Horizontal, format4);
+            // 8. Inv CDF L
+            marginal            = InverseCDF1D.ComputeInverseCDF(cdfL, density, cmd, InverseCDF1D.SumDirection.Vertical, format1);
         }
 
-        private static void Rescale(RTHandle tex, RTHandle minMax, GPUScan.Direction direction, CommandBuffer cmd, bool single = false)
+        /// <summary>
+        /// Helper to Rescale a RenderTarget between 0 & 1, with a Given MinMax
+        /// </summary>
+        /// <param name="tex">Render Targer Handle</param>
+        /// <param name="minMax">Renter Target Handle which contains the MinMax</param>
+        /// <param name="direction">Direction: {Vertical, Horizontal}</param>
+        /// <param name="cmd">Constant Buffer</param>
+        /// <param name="single">Single, true if the minMax is a 1x1 texture</param>
+        private static void Rescale01(RTHandle tex, RTHandle minMax, GPUScan.Direction direction, CommandBuffer cmd, bool single = false)
         {
             var hdrp = HDRenderPipeline.defaultAsset;
             ComputeShader rescale01 = hdrp.renderPipelineResources.shaders.rescale01CS;
@@ -245,6 +129,16 @@ namespace UnityEngine.Rendering
             cmd.DispatchCompute(rescale01, kernel, numTilesX, numTilesY, 1);
         }
 
+        /// <summary>
+        /// Helper to generate Importance Sampled samples (RG: UV on Equirectangular Map, G: PDF, B: CDF)
+        /// </summary>
+        /// <param name="samplesCount">Samples Count</param>
+        /// <param name="marginal">Marginal from ImportanceSamplersSystem</param>
+        /// <param name="conditionalMarginal">Conditional Marginal from ImportanceSamplersSystem</param>
+        /// <param name="direction">Direction: {Vertical, Horizontal}</param>
+        /// <param name="cmd">Command Buffer</param>
+        /// <param name="hemiSphere">true if the Marginal was generated for Hemisphere</param>
+        /// <returns></returns>
         public static RTHandle GenerateSamples(uint samplesCount, RTHandle marginal, RTHandle conditionalMarginal, GPUScan.Direction direction, CommandBuffer cmd, bool hemiSphere = false)
         {
             var hdrp = HDRenderPipeline.defaultAsset;

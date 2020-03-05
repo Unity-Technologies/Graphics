@@ -38,14 +38,6 @@ float3 SphericalTexCoordinateToDirection222(float2 sphTexCoord)
     return float3(siTh*csPh, siPh, -csTh*csPh);
 }
 
-float SSin(float x)
-{
-    return
-                     (16.0f*(PI - x)*x)
-        / //----------------------------------
-              (5.0f*PI*PI + 4.0f*x*(x - PI));
-}
-
 [numthreads(8, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
