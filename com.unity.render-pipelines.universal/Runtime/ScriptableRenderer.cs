@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRenderPass"/>
         /// <seealso cref="ScriptableRendererFeature"/>
 
-/*        public virtual void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        public virtual void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
@@ -221,32 +221,7 @@ namespace UnityEngine.Rendering.Universal
                     activeRenderPassQueue.RemoveAt(i);
             }
         }
-        public virtual void Setup(ScriptableRenderContext context, ref RenderingData renderingData, RenderTargetHandle renderFeatureTarget)
-        {
-            for (int i = 0; i < rendererFeatures.Count; ++i)
-            {
-                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
-            }*/
 
-        public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
-        {
-            // Remove null render passes from the list
-            int count = activeRenderPassQueue.Count;
-            for (int i = count - 1; i >= 0; i--)
-            {
-                if(activeRenderPassQueue[i] == null)
-                    activeRenderPassQueue.RemoveAt(i);
-            }
-        }
-
-        public virtual void SetupRendererFeaturesTarget(ref RenderingData renderingData, RenderTargetHandle target, RenderTargetHandle depth)
-        {
-            for (int i = 0; i < rendererFeatures.Count; ++i)
-            {
-                rendererFeatures[i].SetFeatureColorTarget(target);
-                rendererFeatures[i].SetFeatureDepthTarget(depth);
-            }
-        }
         /// <summary>
         /// Override this method to implement the lighting setup for the renderer. You can use this to
         /// compute and upload light CBUFFER for example.

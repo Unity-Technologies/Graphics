@@ -241,13 +241,11 @@ namespace UnityEngine.Rendering.Universal
             m_CameraColorTexture.ConfigureLoadStoreActions(RenderBufferStoreAction.Store, RenderBufferLoadAction.Clear);
             m_CameraDepthAttachment.ConfigureLoadStoreActions(RenderBufferStoreAction.Store, RenderBufferLoadAction.Clear);
 
-
-            base.SetupRendererFeaturesTarget(ref renderingData, m_CameraColorTexture, m_CameraDepthAttachment);
-
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
-                rendererFeatures[i].SetFeatureColorTarget(m_ActiveCameraColorAttachment);
+                rendererFeatures[i].SetFeatureColorTarget(m_CameraColorTexture);
+                rendererFeatures[i].SetFeatureDepthTarget(m_CameraDepthAttachment);
             }
 
             int count = activeRenderPassQueue.Count;
