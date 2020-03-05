@@ -202,8 +202,9 @@ void EvaluateSample(uint i, uint n, int2 pixelCoord, int2 cacheOffset,
     #else
         // floor((pixelCoord + 0.5) + vec * pixelsPerMm)
         // position = pixelCoord + floor(0.5 + vec * pixelsPerMm);
+        // position = pixelCoord + round(vec * pixelsPerMm);
         // Note that (int) truncates towards 0, while floor() truncates towards -Inf!
-        position = pixelCoord + (int2)floor(0.5 + vec * pixelsPerMm);
+        position = pixelCoord + (int2)round((pixelsPerMm * r) * float2(cosPsi, sinPsi));
         xy2      = r * r;
     #endif
 
