@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fix Changelog
 
+### Added
+- If Unity Editor Analytics are enabled, Universal collects anonymous data about usage of Universal. This helps the Universal team focus our efforts on the most common scenarios, and better understand the needs of our customers.
+
 ## [8.0.0] - 2020-05-25
 
 ### Added
