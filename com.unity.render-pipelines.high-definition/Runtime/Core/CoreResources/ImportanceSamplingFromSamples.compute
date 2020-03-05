@@ -54,7 +54,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         float  density = SampleToPDFMeasure(signal);
         float  pdf     = density/integral;
 
-        if (pdf == 0.0f || sin0 < 1e-6f)
+        if (pdf == 0.0f)
             signal  = 0.0f;
         else
             signal /= pdf;

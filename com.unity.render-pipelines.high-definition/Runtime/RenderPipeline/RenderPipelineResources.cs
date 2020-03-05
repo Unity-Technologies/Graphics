@@ -160,8 +160,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader gpuArithmeticsCS;
             [Reload("Runtime/Core/CoreResources/Rescale01.compute")]
             public ComputeShader rescale01CS;
-            [Reload("Runtime/Core/CoreResources/OutputDebug.compute")]
-            public ComputeShader outputDebugCS;
             [Reload("Runtime/Core/CoreResources/ImportanceSample2D.compute")]
             public ComputeShader importanceSample2DCS;
             [Reload("Runtime/Core/CoreResources/ImportanceSamplingFromSamples.compute")]

@@ -33,9 +33,6 @@ namespace UnityEditor.Rendering.HighDefinition
         RTHandle m_IntensityTexture;
         Texture2D m_ReadBackTexture;
         Material m_CubeToHemiLatLong;
-        Material m_CubeToLatLong;
-        Material m_IntegrateSphereHDRISky;
-        ComputeShader m_ImportanceSamplingFromSamples;
 
         public override bool hasAdvancedMode => true;
 
