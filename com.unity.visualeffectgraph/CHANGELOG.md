@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Noise evaluation now performed on CPU when possible
 - Range and Min attributes support on int and uint parameters
 - New Construct Matrix from Vector4 operator
-- Ability to read attribute in spawn context through graph 
+- Ability to read attribute in spawn context through graph
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window

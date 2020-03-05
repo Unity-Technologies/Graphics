@@ -39,10 +39,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void CompileExpressionContext(  IEnumerable<VFXContext> contexts,
-                                                VFXExpressionContextOption options,
-                                                VFXDeviceTarget target,
-                                                VFXExpression.Flags forbiddenFlags = VFXExpression.Flags.None)
+        private void CompileExpressionContext(IEnumerable<VFXContext> contexts,
+            VFXExpressionContextOption options,
+            VFXDeviceTarget target,
+            VFXExpression.Flags forbiddenFlags = VFXExpression.Flags.None)
         {
             var expressionContext = new VFXExpression.Context(options, m_GlobalEventAttributes);
 
@@ -110,8 +110,8 @@ namespace UnityEditor.VFX
             IEnumerable<VFXLayoutElementDesc> globalAttribute = Enumerable.Empty<VFXLayoutElementDesc>();
             foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner))
             {
-                var attributesToStoreFromOutputContext = context.outputContexts   .Select(o => o.GetData()).Where(o => o != null)
-                                                                                  .SelectMany(o => o.GetAttributes().Where(a => (a.mode & VFXAttributeMode.ReadSource) != 0));
+                var attributesToStoreFromOutputContext = context.outputContexts.Select(o => o.GetData()).Where(o => o != null)
+                    .SelectMany(o => o.GetAttributes().Where(a => (a.mode & VFXAttributeMode.ReadSource) != 0));
                 var attributesReadInSpawnContext = context.GetData().GetAttributes().Where(a => (a.mode & VFXAttributeMode.Read) != 0);
                 var attributesInGlobal = attributesToStoreFromOutputContext.Concat(attributesReadInSpawnContext).GroupBy(o => o.attrib.name);
 
@@ -162,20 +162,20 @@ namespace UnityEditor.VFX
 
                 var spawnerContexts = contexts.Where(o => o.contextType == VFXContextType.Spawner);
                 var otherContexts = contexts.Where(o => o.contextType != VFXContextType.Spawner);
-                CompileExpressionContext(   spawnerContexts,
-                                            options | VFXExpressionContextOption.PatchReadToEventAttribute,
-                                            VFXDeviceTarget.CPU,
-                                            VFXExpression.Flags.NotCompilableOnCPU);
+                CompileExpressionContext(spawnerContexts,
+                    options | VFXExpressionContextOption.PatchReadToEventAttribute,
+                    VFXDeviceTarget.CPU,
+                    VFXExpression.Flags.NotCompilableOnCPU);
 
-                CompileExpressionContext(   otherContexts,
-                                            options,
-                                            VFXDeviceTarget.CPU,
-                                            VFXExpression.Flags.NotCompilableOnCPU | VFXExpression.Flags.PerSpawn);
+                CompileExpressionContext(otherContexts,
+                    options,
+                    VFXDeviceTarget.CPU,
+                    VFXExpression.Flags.NotCompilableOnCPU | VFXExpression.Flags.PerSpawn);
 
-                CompileExpressionContext(   contexts,
-                                            options | VFXExpressionContextOption.GPUDataTransformation,
-                                            VFXDeviceTarget.GPU,
-                                            VFXExpression.Flags.PerSpawn);
+                CompileExpressionContext(contexts,
+                    options | VFXExpressionContextOption.GPUDataTransformation,
+                    VFXDeviceTarget.GPU,
+                    VFXExpression.Flags.PerSpawn);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>
                 {

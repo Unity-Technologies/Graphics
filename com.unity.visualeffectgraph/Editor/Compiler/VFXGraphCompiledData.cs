@@ -495,18 +495,17 @@ namespace UnityEditor.VFX
                 var prefix = VFXCodeGeneratorHelper.GeneratePrefix((uint)i);
                 return new[]
                 {
-                                new VFXMapping
-                                {
-                                    name = "start_" + prefix,
-                                    index = o.startIndex
-                                },
-                                new VFXMapping
-                                {
-                                    name = "end_" + prefix,
-                                    index = o.endIndex
-                                }
-                            };
-
+                    new VFXMapping
+                    {
+                        name = "start_" + prefix,
+                        index = o.startIndex
+                    },
+                    new VFXMapping
+                    {
+                        name = "end_" + prefix,
+                        index = o.endIndex
+                    }
+                };
             }).ToArray();
         }
 

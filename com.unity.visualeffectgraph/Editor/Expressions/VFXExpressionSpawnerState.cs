@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
 
         private VFXExpressionOperation m_Operation;
         private VFXSpawnerStateExpression(VFXExpressionOperation op)
-        : base(Flags.InvalidOnGPU | Flags.PerSpawn)
+            : base(Flags.InvalidOnGPU | Flags.PerSpawn)
         {
             m_Operation = op;
         }

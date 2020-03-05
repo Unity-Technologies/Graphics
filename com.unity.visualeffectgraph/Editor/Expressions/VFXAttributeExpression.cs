@@ -336,6 +336,7 @@ namespace UnityEditor.VFX
             var other = (VFXReadEventAttributeExpression)obj;
             return valueType == other.valueType && attributeName == other.attributeName && m_elementOffset == other.elementOffset;
         }
+
         public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
         {
             yield return new VFXAttributeInfo(m_attribute, VFXAttributeMode.Read);
