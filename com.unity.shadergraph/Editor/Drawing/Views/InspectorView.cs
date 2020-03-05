@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing;
@@ -11,11 +12,15 @@ namespace UnityEditor.ShaderGraph.Drawing
     class InspectorView : VisualElement
     {
         GraphData m_GraphData;
+        PropertySheet m_PropertySheet;
+
+        Dictionary<ITargetImplementation, bool> m_ImplementationFoldouts;
 
         public InspectorView(GraphData graphData)
         {
             name = "inspectorView";
             m_GraphData = graphData;
+            m_ImplementationFoldouts = new Dictionary<ITargetImplementation, bool>();
 
             // Styles
             style.width = 270;
@@ -25,15 +30,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             style.top = 0;
             style.backgroundColor = new Color(.17f, .17f, .17f, 1);
 
-            PropertySheet ps = new PropertySheet();
+            Rebuild();
+        }
 
-            CreateTargetSettings(ps);
-            ps.Add(new PropertyRow(new Label("")));
+        void Rebuild()
+        {
+            m_PropertySheet = new PropertySheet();
 
-            CreateImplementationSettings(ps);
-            ps.Add(new PropertyRow(new Label("")));
+            CreateTargetSettings(m_PropertySheet);
+            m_PropertySheet.Add(new PropertyRow(new Label("")));
+
+            CreateImplementationSettings(m_PropertySheet);
+            m_PropertySheet.Add(new PropertyRow(new Label("")));
             
-            Add(ps);
+            Add(m_PropertySheet);
         }
 
         void CreateTargetSettings(PropertySheet ps)
@@ -51,10 +61,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (EditorGUI.EndChangeCheck())
                         {
                             m_GraphData.UpdateTargets();
-                            foreach (var node in m_GraphData.GetNodes<AbstractMaterialNode>())
-                            {
-                                node.Dirty(ModificationScope.Graph);
-                            }
+                            OnChange();
                         }
                     }));
                 });
@@ -68,10 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (EditorGUI.EndChangeCheck())
                         {
                             m_GraphData.UpdateTargets();
-                            foreach (var node in m_GraphData.GetNodes<AbstractMaterialNode>())
-                            {
-                                node.Dirty(ModificationScope.Graph);
-                            }
+                            OnChange();
                         }
                     }));
                 });
@@ -82,6 +86,43 @@ namespace UnityEditor.ShaderGraph.Drawing
             var implementationSettingsLabel =  new Label("Implementation Settings");
             implementationSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             ps.Add(new PropertyRow(implementationSettingsLabel));
+
+            foreach(var implementationData in m_GraphData.activeTargetImplementationDatas)
+            {
+                bool foldoutActive = true;
+                if(!m_ImplementationFoldouts.TryGetValue(implementationData.implementation, out foldoutActive))
+                {
+                    m_ImplementationFoldouts.Add(implementationData.implementation, foldoutActive);
+                }
+
+                var foldout = new Foldout() { text = implementationData.implementation.displayName, value = foldoutActive };
+                foldout.RegisterValueChangedCallback(evt => 
+                {
+                    m_ImplementationFoldouts.Remove(implementationData.implementation);
+                    m_ImplementationFoldouts.Add(implementationData.implementation, evt.newValue);
+                    foldout.value = evt.newValue;
+                    OnChange();
+                });
+
+                ps.Add(foldout);
+
+                if(foldout.value)
+                {
+                    implementationData.GetProperties(ps, this);
+                }
+            }
+        }
+
+        // TODO: Currently I use this to force a recompile
+        // TODO: How will the inspector actually work? (Sai)
+        public void OnChange()
+        {
+            foreach (var node in m_GraphData.GetNodes<AbstractMaterialNode>())
+            {
+                node.Dirty(ModificationScope.Graph);
+            }
+            Remove(m_PropertySheet);
+            Rebuild();
         }
     }
 }

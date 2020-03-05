@@ -7,6 +7,7 @@ namespace UnityEditor.ShaderGraph
     class DefaultVFXTarget : ITargetImplementation
     {
         public Type targetType => typeof(VFXTarget);
+        public Type dataType => typeof(DefaultVFXTargetData);
         public string displayName => "Default";
         public string passTemplatePath => null;
         public string sharedTemplateDirectory => null;
@@ -24,10 +25,33 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
-        // TODO: Calculate supported blocks
         public List<BlockFieldDescriptor> GetSupportedBlocks(IMasterNode masterNode)
         {
-            return null;
+            var supportedBlocks = new List<BlockFieldDescriptor>();
+
+            // Always supported Blocks
+            supportedBlocks.Add(BlockFields.SurfaceDescription.BaseColor);
+            supportedBlocks.Add(BlockFields.SurfaceDescription.Alpha);
+
+            // Lit Blocks
+            if(masterNode is VfxMasterNode vfxMasterNode)
+            {
+                // Alpha Blocks
+                if(vfxMasterNode.alphaTest.isOn)
+                {
+                    supportedBlocks.Add(BlockFields.SurfaceDescription.ClipThreshold);
+                }
+
+                if(vfxMasterNode.lit.isOn)
+                {
+                    supportedBlocks.Add(BlockFields.SurfaceDescription.Metallic);
+                    supportedBlocks.Add(BlockFields.SurfaceDescription.Smoothness);
+                    supportedBlocks.Add(BlockFields.SurfaceDescription.Normal);
+                    supportedBlocks.Add(BlockFields.SurfaceDescription.Emission);
+                }
+            }
+
+            return supportedBlocks;
         }
     }
 }

@@ -1,12 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph
 {
     class DefaultPreviewTarget : ITargetImplementation
     {
         public Type targetType => typeof(PreviewTarget);
+
+        // TODO: How do we handle these special cases?
+        // TODO: PreviewTarget does not require a dataType
+        // TODO: but must return some Type of TargetImplementationData here...
+        public Type dataType => typeof(DefaultPreviewTargetData);
+
         public string displayName => null;
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
@@ -31,6 +38,13 @@ namespace UnityEditor.ShaderGraph
         public List<BlockFieldDescriptor> GetSupportedBlocks(IMasterNode masterNode)
         {
             return null;
+        }
+    }
+
+    internal class DefaultPreviewTargetData : TargetImplementationData
+    {
+        internal override void GetProperties(PropertySheet propertySheet, InspectorView inspectorView)
+        {
         }
     }
 }

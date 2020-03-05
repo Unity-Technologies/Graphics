@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     class UniversalMeshTarget : ITargetImplementation
     {
         public Type targetType => typeof(MeshTarget);
+        public Type dataType => typeof(UniversalMeshTargetData);
         public string displayName => "Universal";
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();

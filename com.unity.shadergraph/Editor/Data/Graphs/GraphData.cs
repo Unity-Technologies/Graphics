@@ -337,6 +337,9 @@ namespace UnityEditor.ShaderGraph
 
         #region Targets
         [NonSerialized]
+        List<ITargetImplementation> m_AllImplementations;
+
+        [NonSerialized]
         List<ITarget> m_ValidTargets = new List<ITarget>();
 
         public List<ITarget> validTargets => m_ValidTargets;
@@ -375,6 +378,25 @@ namespace UnityEditor.ShaderGraph
                     m_ActiveTargetImplementationBitmask) == (1 << m_ValidImplementations.IndexOf(s))).ToList();
             }
         }
+
+        // TODO: Temporary. Remove.
+        // TODO: For now simply serialize the target datas on GraphData
+        // TODO: These will need to be moved to metadata objects later to allow
+        // TODO: HDRP to strip shaders effectively
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializableTargetImplementationDatas = new List<SerializationHelper.JSONSerializedElement>();
+
+        [NonSerialized]
+        List<TargetImplementationData> m_TargetImplementationDatas = new List<TargetImplementationData>();
+
+        // Used to return all target datas that have a currently active matching implementation
+        public IEnumerable<TargetImplementationData> activeTargetImplementationDatas
+        {
+            get
+            {
+                return m_TargetImplementationDatas.Where(s => activeTargetImplementations.Contains(s.implementation));
+            }
+        }
         #endregion
 
         public bool didActiveOutputNodeChange { get; set; }
@@ -386,6 +408,27 @@ namespace UnityEditor.ShaderGraph
         {
             m_GroupItems[Guid.Empty] = new List<IGroupItem>();
             GetBlockFieldDescriptors();
+            GetTargetImplementations();
+        }
+
+        // We need to cache TargetImplementations
+        // This is for numerous reasons:
+        // - Currently we redo this reflection every target update which is wasteful
+        // - We need to have matching implementation instances here and per target data object
+        void GetTargetImplementations()
+        {
+            m_AllImplementations = new List<ITargetImplementation>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypesOrNothing())
+                {
+                    if (!type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type))
+                    {
+                        var implementation = (ITargetImplementation)Activator.CreateInstance(type);
+                        m_AllImplementations.Add(implementation);
+                    }
+                }
+            }
         }
 
         void GetBlockFieldDescriptors()
@@ -1455,6 +1498,14 @@ namespace UnityEditor.ShaderGraph
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
+
+            // Serialize implementation datas
+            // We also serialize their implementation reference here (see OnAfterDeserialize)
+            foreach(var implementationData in m_TargetImplementationDatas)
+            {
+                implementationData.serializedImplementation = implementationData.implementation.GetType().FullName;
+            }
+            m_SerializableTargetImplementationDatas = SerializationHelper.Serialize<TargetImplementationData>(m_TargetImplementationDatas);
         }
 
         public void OnAfterDeserialize()
@@ -1532,6 +1583,16 @@ namespace UnityEditor.ShaderGraph
                     m_ActiveOutputNodeGuid = new Guid(m_ActiveOutputNodeGuidSerialized);
                 }
             }
+
+            // Deserialize implementation datas
+            // Because deserialization of their implementation references requires the implementation list stored here
+            // We simply deserialize them here rather than implementing ISerializationCallbackReceiver on the data object
+            // and handling the GraphData reference there somehow (deserialization order issues)
+            m_TargetImplementationDatas = SerializationHelper.Deserialize<TargetImplementationData>(m_SerializableTargetImplementationDatas, GraphUtil.GetLegacyTypeRemapping());
+            foreach(var implementationData in m_TargetImplementationDatas)
+            {
+                implementationData.implementation = m_AllImplementations.FirstOrDefault(x => x.GetType().FullName == implementationData.serializedImplementation);
+            }
         }
 
         public void OnEnable()
@@ -1558,23 +1619,25 @@ namespace UnityEditor.ShaderGraph
 
             // First get all valid TargetImplementations that are valid with the current graph
             List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach(var implementation in m_AllImplementations)
             {
-                foreach (var type in assembly.GetTypesOrNothing())
+                // dataType property must be of type TargetImplementationData
+                // but we have no way of constraining this so we have to simply return warnings
+                if(!implementation.dataType.IsSubclassOf(typeof(TargetImplementationData)))
                 {
-                    var isImplementation = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
-                    //for subgraph output nodes, preview target is the only valid target
-                    if (outputNode is SubGraphOutputNode && isImplementation && typeof(DefaultPreviewTarget).IsAssignableFrom(type))
-                    {
-                        var implementation = (DefaultPreviewTarget)Activator.CreateInstance(type);
-                        foundImplementations.Add(implementation);
-                    }
-                    else if (isImplementation && !foundImplementations.Any(s => s.GetType() == type) && !typeof(DefaultPreviewTarget).IsAssignableFrom(type))
-                    {
-                        var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
-                        var implementation = (ITargetImplementation)Activator.CreateInstance(type);
-                        foundImplementations.Add(implementation);
-                    }
+                    Debug.LogWarning($"{implementation.GetType().Name} dataType does not derive from Type TargetImplementationData. Will be ignored.");
+                    continue;
+                }
+
+                // TODO: This can probably be optimised. After moving to caching the implementation on ctor
+                // TODO: this section allocs GC just to either remove PreviewTarget or return only PreviewTarget depending on if this is a Subgraph
+                if (outputNode is SubGraphOutputNode && typeof(DefaultPreviewTarget).IsAssignableFrom(implementation.GetType()))
+                {
+                    foundImplementations.Add(implementation);
+                }
+                else if (!foundImplementations.Contains(implementation) && !typeof(DefaultPreviewTarget).IsAssignableFrom(implementation.GetType()))
+                {
+                    foundImplementations.Add(implementation);
                 }
             }
 
@@ -1601,17 +1664,6 @@ namespace UnityEditor.ShaderGraph
                 m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
             }
 
-            // Active Target is no longer valid
-            // Reset all Target selections and return
-            if(!foundTargets.Select(s => s.GetType()).Contains(m_ValidTargets[m_ActiveTargetIndex].GetType()))
-            {
-                m_ActiveTargetIndex = 0; // Default
-                m_ActiveTargetImplementationBitmask = -1; // Everything
-                m_ValidTargets = foundTargets;
-                m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
-                return;
-            }
-
             // Active Target index has changed
             // Still need to validate TargetImplementation bitmask
             if(foundTargets[m_ActiveTargetIndex].GetType() != activeTarget.GetType())
@@ -1624,26 +1676,41 @@ namespace UnityEditor.ShaderGraph
             m_ValidImplementations = foundImplementations.Where(s => s.targetType == activeTarget.GetType()).ToList();
 
             // Nothing or Everything. No need to update bitmask.
-            if(m_ActiveTargetImplementationBitmask == 0 || m_ActiveTargetImplementationBitmask == -1)
-                return;
-
-            // Current ITargetImplementation bitmask is set to Mixed...
-            // We need to build a new bitmask from the indicies in the new Implementation list
-            int newBitmask = 0;
-            foreach(ITargetImplementation implementation in activeTargetImplementations)
+            if(m_ActiveTargetImplementationBitmask != 0 && m_ActiveTargetImplementationBitmask != -1)
             {
-                var implementationInFound = foundImplementations.Where(s => s.GetType() == implementation.GetType()).FirstOrDefault();
-                if(implementationInFound != null)
+                // Current ITargetImplementation bitmask is set to Mixed...
+                // We need to build a new bitmask from the indicies in the new Implementation list
+                int newBitmask = 0;
+                foreach(ITargetImplementation implementation in activeTargetImplementations)
                 {
-                    // If the new Implementation list contains this Implementation
-                    // add its new index to the bitmask
-                    newBitmask = newBitmask | (1 << foundImplementations.IndexOf(implementationInFound));
+                    var implementationInFound = foundImplementations.Where(s => s.GetType() == implementation.GetType()).FirstOrDefault();
+                    if(implementationInFound != null)
+                    {
+                        // If the new Implementation list contains this Implementation
+                        // add its new index to the bitmask
+                        newBitmask = newBitmask | (1 << foundImplementations.IndexOf(implementationInFound));
+                    }
+                }
+                m_ActiveTargetImplementationBitmask = newBitmask;
+            }
+            
+            UpdateSupportedBlocks();
+            UpdateTargetDatas();
+        }
+
+        void UpdateTargetDatas()
+        {
+            // Ensure that all active TargetImplementations have a matching data object
+            // Currently we never remove serialized data objects
+            foreach(var implementation in activeTargetImplementations)
+            {
+                if(!m_TargetImplementationDatas.Any(s => s.implementation == implementation))
+                {
+                    var implementationData = Activator.CreateInstance(implementation.dataType) as TargetImplementationData;
+                    implementationData.Init(implementation);
+                    m_TargetImplementationDatas.Add(implementationData);
                 }
             }
-            m_ActiveTargetImplementationBitmask = newBitmask;
-            
-            // Update block compatibility
-            UpdateSupportedBlocks();
         }
     }
 

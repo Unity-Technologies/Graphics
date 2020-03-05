@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
     internal interface ITargetImplementation
     {
         Type targetType { get; }
+        Type dataType { get; }
         string displayName { get; }
         string passTemplatePath { get; }
         string sharedTemplateDirectory { get; }
