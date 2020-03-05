@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>
             /// Current age of Marginal Generation scheduled (schedule generation when age is 0)
             /// </summary>
-            public int              age                 = -32;
+            public int              age                 = -8;
             /// <summary>
             /// Indicator if the Marginals are available for binding
             /// </summary>
@@ -76,16 +76,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool             buildHemisphere     = false;
         }
 
-        internal static Dictionary<int, MarginalInfos>  m_InternalData = null;
-        MaterialPropertyBlock m_MaterialBlock = null;
+        internal static List<int>                       m_Keys          = new List<int>(4);
+        internal static Dictionary<int, MarginalInfos>  m_InternalData  = new Dictionary<int, MarginalInfos>(4);
+        //MaterialPropertyBlock m_MaterialBlock = null;
 
         /// <summary>
         /// RTHandleSystem constructor.
         /// </summary>
         public ImportanceSamplersSystem()
         {
-            m_InternalData  = new Dictionary<int, MarginalInfos>();
-            m_MaterialBlock = new MaterialPropertyBlock();
+            //m_InternalData  = new Dictionary<int, MarginalInfos>();
+            //m_MaterialBlock = new MaterialPropertyBlock();
         }
 
         /// <summary>
@@ -232,9 +233,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd">Command buffer provided to setup shader constants.</param>
         public void Update(CommandBuffer cmd)
         {
-            foreach(var item in m_InternalData.Where(x => x.Value.input == null).ToList())
+            m_Keys.Clear();
+            m_Keys.InsertRange(0, m_InternalData.Keys);
+            foreach (var key in m_Keys)
             {
-                m_InternalData.Remove(item.Key);
+                if (m_InternalData[key].input == null)
+                {
+                    m_InternalData.Remove(key);
+                }
             }
 
             foreach (var cur in m_InternalData)
