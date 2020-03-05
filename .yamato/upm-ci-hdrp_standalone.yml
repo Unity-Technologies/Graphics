@@ -230,7 +230,7 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
       rerun: {{ editor.rerun_strategy }}
-    - path: .yamato/upm-ci-universal.yml#Build_{{ project.name }}_Linux_Vulkan_Player_{{ editor.version }}
+    - path: .yamato/upm-ci-hdrp_standalone.yml#Build_{{ project.name }}_Linux_Vulkan_Player_{{ editor.version }}
       rerun: {{ editor.rerun_strategy }}
   artifacts:
     logs:
