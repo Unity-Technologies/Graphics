@@ -103,14 +103,6 @@ namespace UnityEditor.Rendering.HighDefinition
                                                                              1.0f/((float)latLongMap.rt.width), 1.0f/((float)latLongMap.rt.height)));
             Graphics.Blit(Texture2D.whiteTexture, latLongMap.rt, m_CubeToHemiLatLong, 0);
 
-            Texture2D flatten = new Texture2D(latLongMap.rt.width, latLongMap.rt.height, latLongMap.rt.graphicsFormat, TextureCreationFlags.None);
-
-            RenderTexture.active = latLongMap.rt;
-            flatten.ReadPixels(new Rect(0.0f, 0.0f, latLongMap.rt.width, latLongMap.rt.height), 0, 0);
-            RenderTexture.active = null;
-
-            CoreUtils.Destroy(flatten);
-
             RTHandle totalRows = GPUScan.ComputeOperation(latLongMap, null, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, latLongMap.rt.graphicsFormat);
             RTHandle totalCols = GPUScan.ComputeOperation(totalRows,  null, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   latLongMap.rt.graphicsFormat);
             RTHandleDeleter.ScheduleRelease(totalRows);
