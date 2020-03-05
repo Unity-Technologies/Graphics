@@ -4487,6 +4487,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Texture normalBuffer = null;
             bool needDepthBuffer = false;
             Texture depthBuffer = null;
+            Texture depthBuffer1 = null;
 
             HDAdditionalCameraData acd = null;
             hdCamera.camera.TryGetComponent<HDAdditionalCameraData>(out acd);
@@ -4532,11 +4533,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: mainDepthBuffer.rt.graphicsFormat, dimension: TextureXR.dimension, enableRandomWrite: mainDepthBuffer.rt.enableRandomWrite, name: $"Depth History Buffer"
                     );
                 }
-
                 depthBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth) ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.Depth, Allocator, 1);
 
                 for (int i = 0; i < hdCamera.viewCount; i++)
                     cmd.CopyTexture(mainDepthBuffer, i, 0, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight, depthBuffer, i, 0, 0, 0);
+
+                RTHandle Allocator1(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+                {
+                    return rtHandleSystem.Alloc(m_SharedRTManager.ComputeDepthBufferMip1Size, TextureXR.slices, colorFormat: mainDepthBuffer.rt.graphicsFormat, dimension: TextureXR.dimension, enableRandomWrite: mainDepthBuffer.rt.enableRandomWrite, name: $"Depth History Buffer Mip 1"
+                    );
+                }
+                var mipchainInfo = m_SharedRTManager.GetDepthBufferMipChainInfo();
+                depthBuffer1 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth1) ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.Depth1, Allocator1, 1);
+                for (int i = 0; i < hdCamera.viewCount; i++)
+                    cmd.CopyTexture(mainDepthBuffer, i, 0, mipchainInfo.mipLevelOffsets[1].x, mipchainInfo.mipLevelOffsets[1].y, mipchainInfo.mipLevelSizes[1].x, mipchainInfo.mipLevelSizes[1].y, depthBuffer1, i, 0, 0, 0);
             }
 
             // Send buffers to client.

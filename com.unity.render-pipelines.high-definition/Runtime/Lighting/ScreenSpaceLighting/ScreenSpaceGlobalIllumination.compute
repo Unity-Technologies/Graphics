@@ -4,37 +4,32 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
-#define USE_FPTL_LIGHTLIST
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 
-// Raytracing includes
+// Raytracing includes (should probably be in generic files)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 
 //#pragma enable_d3d11_debug_symbols
 
-#pragma kernel TraceGlobalIllumination TRACE_GLOBAL_ILLUMINATION=TraceGlobalIllumination GI_TRACE
-#pragma kernel TraceGlobalIlluminationHalf TRACE_GLOBAL_ILLUMINATION=TraceGlobalIlluminationHalf GI_TRACE HALF_RES
-#pragma kernel ReprojectGlobalIllumination REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIllumination GI_REPROJECT
-#pragma kernel ReprojectGlobalIlluminationHalf REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIlluminationHalf GI_REPROJECT HALF_RES
+#pragma kernel TraceGlobalIllumination          TRACE_GLOBAL_ILLUMINATION=TraceGlobalIllumination GI_TRACE
+#pragma kernel TraceGlobalIlluminationHalf      TRACE_GLOBAL_ILLUMINATION=TraceGlobalIlluminationHalf GI_TRACE HALF_RES
+#pragma kernel ReprojectGlobalIllumination      REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIllumination GI_REPROJECT
+#pragma kernel ReprojectGlobalIlluminationHalf  REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIlluminationHalf GI_REPROJECT HALF_RES
 #pragma kernel IndirectDiffuseAccumulation
 
+// The dispatch tile resolution
 #define INDIRECT_DIFFUSE_TILE_SIZE 8
 
-#define GI_TRACE_EPS            0.00024414 // 2^-12, should be good up to 4K
+// Epslon value used for the computation
+#define GI_TRACE_EPS 0.00024414
 
+// Input depth pyramid texture
 TEXTURE2D_X(_DepthTexture);
-
-TEXTURE2D_X_UINT2(_StencilTexture);
-RW_TEXTURE2D_X(float2, _IndirectDiffuseHitPointTextureRW);
-
-TEXTURE2D_X(_IndirectDiffuseHitPointTexture);
-RW_TEXTURE2D_X(float4, _IndirectDiffuseTextureRW);
+// Input texture that holds the offset for every level of the depth pyramid
 StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
+// Output texture that holds the hit point NDC coordinates
+RW_TEXTURE2D_X(float2, _IndirectDiffuseHitPointTextureRW);
 
 CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     int _IndirectDiffuseSteps;
@@ -202,16 +197,14 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 #if HALF_RES
     // Fetch the mipoffset for the second mip (half res)
     int2 mipOffset =  _DepthPyramidMipLevelOffsets[1];
+    // Grab the depth of the half res pixel (better than grabbing a random one across the 4 candidates or averaging)
     float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + currentCoord).x;
-    
-    // Compute which pixel where we will store the result of the raytracing
+    // Compute the full resolution pixel for the inputs that do not have a pyramid
     uint2 fullResCoord = currentCoord * 2;
-
 #else
     // Read the depth value as early as possible
     float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
 #endif
-
     // Initialize the hitpoint texture to a miss
     _IndirectDiffuseHitPointTextureRW[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
 
@@ -223,8 +216,7 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 #else
     DecodeFromNormalBuffer(currentCoord.xy, normalData);
 #endif
-
-    // Create the local ortho basis
+    // Create a local ortho basis
     float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
 
     // Generete a new direction to follow
@@ -232,18 +224,26 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
     newSample.x = GetBNDSequenceSample(currentCoord.xy, _RaytracingFrameIndex, 0);
     newSample.y = GetBNDSequenceSample(currentCoord.xy, _RaytracingFrameIndex, 1);
 
+    // Here to reduce the variance of the integration, we put the first parameter to the square which tighten the lobe but adds bias.
+    newSample.x *= newSample.x;
+
     // Importance sample with a cosine lobe (direction that will be used for ray casting)
     float3 sampleDir = SampleHemisphereCosine(newSample.x, newSample.y, normalData.normalWS);
 
     // Compute the camera position
     float3 camPosWS = GetCurrentViewPosition();
 
-    // If this is a background pixel, we flag the ray as a dead ray (keep the usage of the depth buffer the latest possible)
+    // If this is a background pixel, we flag the ray as a dead ray (we are also trying to keep the usage of the depth buffer the latest possible)
     bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
 
-#if HALF_RES
     // Convert this to a world space position (camera relative)
+#if HALF_RES
+#if 0
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw * 2, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    posInput.positionSS *= 2;
+#else
     PositionInputs posInput = GetPositionInput(fullResCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+#endif
 #else
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 #endif 
@@ -271,7 +271,12 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
     }
 }
 
+// Input hit point texture that holds the NDC position if an intersection was found
+TEXTURE2D_X(_IndirectDiffuseHitPointTexture);
+// Input baked indirect diffuse texture that we use to combine with the ray marched data
 RW_TEXTURE2D_X(float4, _GBufferTexture3);
+// Output indirect diffuse texture 
+RW_TEXTURE2D_X(float4, _IndirectDiffuseTextureRW);
 
 [numthreads(INDIRECT_DIFFUSE_TILE_SIZE, INDIRECT_DIFFUSE_TILE_SIZE, 1)]
 void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -282,12 +287,11 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     uint2 currentCoord = groupId * INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
 
 #if HALF_RES
-    int2 fullResolution = currentCoord * 2;
-    // Fetch the mipoffset for the second mip (half res)
+    // Fetch the mipoffset for the second mip (given that we are in half res)
     int2 mipOffset =  _DepthPyramidMipLevelOffsets[1];
     float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + currentCoord).x;
 #else
-    // Fetch the depth of the current pixel (as early as possible)
+    // Fetch the depth of the current pixel
     float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
 #endif
 
@@ -300,8 +304,8 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     // If this missed, we need to find something else to fallback on
     if (max(hitPositionNDC.x, hitPositionNDC.y) == 0)
         invalid = true;
-    // TODO: it's important to account for occlusion/disocclusion to avoid artifacts in motion.
-    // This would require keeping the depth buffer from the previous frame.
+
+    // Fetch the motion vector of the current target pixel
     float2 motionVectorNDC;
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
 
@@ -323,7 +327,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     else
     {
 #if HALF_RES
-        color = _GBufferTexture3[COORD_TEXTURE2D_X(fullResolution)].rgb;
+        color = _GBufferTexture3[COORD_TEXTURE2D_X(currentCoord * 2)].rgb;
 #else
         color = _GBufferTexture3[COORD_TEXTURE2D_X(currentCoord)].rgb;
 #endif

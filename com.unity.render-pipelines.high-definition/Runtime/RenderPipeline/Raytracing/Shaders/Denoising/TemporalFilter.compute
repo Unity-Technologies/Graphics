@@ -109,8 +109,12 @@ void VALIDATE_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         return;
     }
 
+#if HALF_RES
+    float historyDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, historyTapCoord * 0.5).r;
+#else
     // Fetch the depth of the history pixel. If the history position was a background point, invalidate the history
     float historyDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, historyTapCoord).r;
+#endif
     if (historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;

@@ -2,10 +2,10 @@
 static const uint2 HalfResIndexToCoordinateShift[4] = { uint2(0,0), uint2(1, 0), uint2(0, 1), uint2(1, 1) };
 
 // This table references the set of pixels that are used for bilateral upscale based on its position in the HalfResIndexToCoordinateShift order
-static const int2 UpscaleBilateralPixels[16] = {int2(0, 0), int2(0, -1), int2(-1, 0), int2(-1, -1)
-                                                , int2(0, 0), int2(0, -1), int2(1, 0), int2(1, -1)
-                                                , int2(0, 0) , int2(-1, 0), int2(0, 1), int2(-1, 1)
-                                                , int2(0, 0), int2(1, 0), int2(0, 1), int2(1, 1)};
+static const int2 UpscaleBilateralPixels[16] = {int2(0, 0), int2(0, -1),  int2(-1, -1), int2(-1, 0)
+                                                , int2(0, 0), int2(0, -1),  int2(1, -1), int2(1, 0)
+                                                , int2(0, 0) , int2(-1, 0), int2(-1, 1), int2(0, 1)
+                                                , int2(0, 0), int2(1, 0), int2(1, 1), int2(0, 1), };
 
 // Heuristic mapping from roughness (GGX in particular) to ray spread angle
 float roughnessToSpreadAngle(float roughness)
