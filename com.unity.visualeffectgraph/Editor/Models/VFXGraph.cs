@@ -700,22 +700,28 @@ namespace UnityEditor.VFX
             }
         }
 
+        //Explicit compile must be used if we want to force compilation even if a dependency is needed, which me must not do on a deleted library import.
+        public static bool explicitCompile { get; set; } = false;
+
         public void CompileForImport()
         {
             if (! GetResource().isSubgraph)
             {
 
-                // Don't pursue the compile if one of the depenendecy is not yet loaded
+                // Don't pursue the compile if one of the dependency is not yet loaded
                 // which happen at first import with .pcache
-                HashSet<int> dependentAsset = new HashSet<int>();
-                GetImportDependentAssets(dependentAsset);
-
-                foreach(var instanceID in dependentAsset)
+                if (!explicitCompile)
                 {
-                    if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                    HashSet<int> dependentAsset = new HashSet<int>();
+                    GetImportDependentAssets(dependentAsset);
+
+                    foreach (var instanceID in dependentAsset)
                     {
-                        //Debug.LogWarning("Refusing to compile " + AssetDatabase.GetAssetPath(this) + "because dependency is not yet loaded");
-                        return;
+                        if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                        {
+                            //Debug.LogWarning("Refusing to compile " + AssetDatabase.GetAssetPath(this) + "because dependency is not yet loaded");
+                            return;
+                        }
                     }
                 }
 

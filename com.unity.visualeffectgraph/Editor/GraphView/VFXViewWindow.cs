@@ -262,7 +262,9 @@ namespace  UnityEditor.VFX.UI
                         }
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
+                            VFXGraph.explicitCompile = true;
                             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
+                            VFXGraph.explicitCompile = false;
                         }
                         else
                             graph.RecompileIfNeeded(true, true);
