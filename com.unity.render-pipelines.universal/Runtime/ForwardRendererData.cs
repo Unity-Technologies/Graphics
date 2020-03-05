@@ -50,9 +50,6 @@ namespace UnityEngine.Rendering.Universal
             public Shader fallbackErrorPS;
         }
 
-        [Reload("Runtime/Data/PostProcessData.asset")]
-        public PostProcessData postProcessData = null;
-
         public ShaderResources shaders = null;
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
@@ -67,7 +64,6 @@ namespace UnityEngine.Rendering.Universal
             if (!Application.isPlaying)
             {
                 ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
             }
 #endif
             return new ForwardRenderer(this);
@@ -96,7 +92,6 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
     }

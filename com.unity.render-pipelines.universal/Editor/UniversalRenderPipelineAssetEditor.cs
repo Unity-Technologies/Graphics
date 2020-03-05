@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent qualitySettingsText = EditorGUIUtility.TrTextContent("Quality");
             public static GUIContent lightingSettingsText = EditorGUIUtility.TrTextContent("Lighting");
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows");
-            public static GUIContent postProcessingSettingsText = EditorGUIUtility.TrTextContent("Post Processing");
+            public static GUIContent postProcessingSettingsText = EditorGUIUtility.TrTextContent("Post-processing");
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
 
             // General
@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
 
             // Post-processing
-            public static GUIContent postProcessEnabled = EditorGUIUtility.TrTextContent("Enabled", "Enables or disables postprocessing on all cameras that have post processing setting set to \"Use Pipeline Settings\".");
+            public static GUIContent postProcessEnabled = EditorGUIUtility.TrTextContent("Include", "Includes or removes postprocessing from the pipeline, this includes rendering passes, shaders and texture resources.");
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
             public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");
             public static string colorGradingModeWarning = "HDR rendering is required to use the high dynamic range color grading mode. The low dynamic range will be used instead.";
@@ -84,6 +84,8 @@ namespace UnityEditor.Rendering.Universal
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
+
+        private UniversalRenderPipelineAsset m_Asset;
 
         SavedBool m_GeneralSettingsFoldout;
         SavedBool m_QualitySettingsFoldout;
@@ -151,6 +153,11 @@ namespace UnityEditor.Rendering.Universal
 
         void OnEnable()
         {
+            if (m_Asset == null)
+            {
+                m_Asset = target as UniversalRenderPipelineAsset;
+            }
+
             m_GeneralSettingsFoldout = new SavedBool($"{target.GetType()}.GeneralSettingsFoldout", false);
             m_QualitySettingsFoldout = new SavedBool($"{target.GetType()}.QualitySettingsFoldout", false);
             m_LightingSettingsFoldout = new SavedBool($"{target.GetType()}.LightingSettingsFoldout", false);
@@ -348,17 +355,32 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.indentLevel++;
 
-                EditorGUILayout.PropertyField(m_PostProcessEnabled, Styles.postProcessEnabled);
-                EditorGUILayout.PropertyField(m_ColorGradingMode, Styles.colorGradingMode);
-                if (!isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
-                    EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
-                else if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
-                    EditorGUILayout.HelpBox(Styles.colorGradingModeSpecInfo, MessageType.Info);
+                bool enabled = m_PostProcessEnabled.boolValue;
+                EditorGUI.BeginChangeCheck();
+                enabled = EditorGUILayout.Toggle(Styles.postProcessEnabled, enabled);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(m_Asset, "Include Post-processing");
+                    m_Asset.postProcessEnabled = enabled;
+                    EditorUtility.SetDirty(m_Asset);
+                }
 
-                EditorGUILayout.DelayedIntField(m_ColorGradingLutSize, Styles.colorGradingLutSize);
-                m_ColorGradingLutSize.intValue = Mathf.Clamp(m_ColorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
-                if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && m_ColorGradingLutSize.intValue < 32)
-                    EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
+                EditorGUI.BeginDisabledGroup(!m_PostProcessEnabled.boolValue);
+                {
+                    EditorGUILayout.PropertyField(m_ColorGradingMode, Styles.colorGradingMode);
+                    if (!isHdrOn && m_ColorGradingMode.intValue == (int) ColorGradingMode.HighDynamicRange)
+                        EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
+                    else if (isHdrOn && m_ColorGradingMode.intValue == (int) ColorGradingMode.HighDynamicRange)
+                        EditorGUILayout.HelpBox(Styles.colorGradingModeSpecInfo, MessageType.Info);
+
+                    EditorGUILayout.DelayedIntField(m_ColorGradingLutSize, Styles.colorGradingLutSize);
+                    m_ColorGradingLutSize.intValue = Mathf.Clamp(m_ColorGradingLutSize.intValue,
+                        UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
+                    if (isHdrOn && m_ColorGradingMode.intValue == (int) ColorGradingMode.HighDynamicRange &&
+                        m_ColorGradingLutSize.intValue < 32)
+                        EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
+                }
+                EditorGUI.EndDisabledGroup();
 
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();

@@ -104,6 +104,9 @@ namespace UnityEngine.Rendering.Universal
     {
         Shader m_DefaultShader;
 
+        // Default assets required by Universal Render Pipeline
+        [SerializeField] internal PostProcessData m_PostProcessData;
+
         // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 5;
         [SerializeField] int k_AssetPreviousVersion = 5;
@@ -189,8 +192,11 @@ namespace UnityEngine.Rendering.Universal
                 instance.m_RendererDataList[0] = rendererData;
             else
                 instance.m_RendererDataList[0] = CreateInstance<ForwardRendererData>();
+            // Load pipeline resources
+            instance.m_PostProcessData = LoadResourceFile<PostProcessData>();
             // Initialize default Renderer
-            instance.m_EditorResourcesAsset = LoadResourceFile<UniversalRenderPipelineEditorResources>();
+            if(instance.m_PostProcessEnabled)
+                instance.m_EditorResourcesAsset = LoadResourceFile<UniversalRenderPipelineEditorResources>();
             return instance;
         }
 
@@ -282,6 +288,18 @@ namespace UnityEngine.Rendering.Universal
                 return m_EditorResourcesAsset;
             }
         }
+
+        PostProcessData postProcessingData
+        {
+            get
+            {
+                if (m_PostProcessData == null)
+                    m_PostProcessData = LoadResourceFile<PostProcessData>();
+
+                return m_PostProcessData;
+            }
+            set => m_PostProcessData = value;
+        }
 #endif
 
         public ScriptableRendererData LoadBuiltinRendererData(RendererType type = RendererType.ForwardRenderer)
@@ -313,6 +331,12 @@ namespace UnityEngine.Rendering.Universal
                     this);
                 return null;
             }
+
+#if UNITY_EDITOR
+            // Load pipeline resources if missing
+            if(m_PostProcessData == null && m_PostProcessEnabled)
+                m_PostProcessData = LoadResourceFile<PostProcessData>();
+#endif
 
             return new UniversalRenderPipeline(this);
         }
@@ -557,6 +581,13 @@ namespace UnityEngine.Rendering.Universal
         public bool postProcessEnabled
         {
             get { return m_PostProcessEnabled; }
+            set
+            {
+#if UNITY_EDITOR
+                m_PostProcessData = value ? postProcessingData : null;
+#endif
+                m_PostProcessEnabled = value;
+            }
         }
 
         public ColorGradingMode colorGradingMode

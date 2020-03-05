@@ -30,6 +30,13 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings,
     }
 
+    public enum PostprocessingOverrideOption
+    {
+        Off,
+        On,
+        UsePipelineSettings,
+    }
+
     //[Obsolete("Renderer override is no longer used, renderers are referenced by index on the pipeline asset.")]
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RendererOverrideOption
     {
@@ -132,7 +139,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
 
-        [SerializeField] bool m_RenderPostProcessing = false;
+        [SerializeField] PostprocessingOverrideOption m_RenderPostProcessing = PostprocessingOverrideOption.Off;
         [SerializeField] AntialiasingMode m_Antialiasing = AntialiasingMode.None;
         [SerializeField] AntialiasingQuality m_AntialiasingQuality = AntialiasingQuality.High;
         [SerializeField] bool m_StopNaN = false;
@@ -311,7 +318,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool renderPostProcessing
         {
-            get => m_RenderPostProcessing && UniversalRenderPipeline.asset.postProcessEnabled;
+            get => (m_RenderPostProcessing == PostprocessingOverrideOption.On ||
+                    m_RenderPostProcessing == PostprocessingOverrideOption.UsePipelineSettings) &&
+                   UniversalRenderPipeline.asset.postProcessEnabled;
         }
 
         /// <summary>

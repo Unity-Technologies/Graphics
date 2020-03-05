@@ -72,9 +72,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Shaders/2D/Shadow2DRemoveSelf.shader")]
         Shader m_RemoveSelfShadowShader = null;
 
-        [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
-        PostProcessData m_PostProcessData = null;
-
         public float hdrEmulationScale => m_HDREmulationScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
@@ -86,7 +83,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Shader blitShader => m_BlitShader;
         internal Shader shadowGroupShader => m_ShadowGroupShader;
         internal Shader removeSelfShadowShader => m_RemoveSelfShadowShader;
-        internal PostProcessData postProcessData => m_PostProcessData;
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
 
@@ -96,7 +92,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (!Application.isPlaying)
             {
                 ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
             }
 #endif
             return new Renderer2D(this);
@@ -165,7 +160,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
         }
 
         internal override Material GetDefaultMaterial(DefaultMaterialType materialType)

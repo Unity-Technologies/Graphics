@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Volume Mask", "This camera will only be affected by volumes in the selected scene-layers.");
             public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Volume Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
 
-            public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects.");
+            public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post-Processing", "Enable this to make this camera render post-processing effects.");
             public static GUIContent antialiasing = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
             public static GUIContent antialiasingQuality = EditorGUIUtility.TrTextContent("Quality", "The quality level to use for the selected anti-aliasing method.");
             public static GUIContent stopNaN = EditorGUIUtility.TrTextContent("Stop NaN", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will affect performances and should only be used if you experience NaN issues that you can't fix. Has no effect on GLES2 platforms.");
@@ -52,11 +52,9 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
-            public static readonly string hdrDisabledWarning = "HDR rendering is disabled in the Universal Render Pipeline asset.";
-            public static readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Universal Render Pipeline asset.";
-
             public static readonly string missingRendererWarning = "The currently selected Renderer is missing form the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
+            public static readonly string disabledPostprocessing = "Post-processing is currently disabled on the current Universal Render Pipeline asset.";
 
             public static GUIContent[] cameraBackgroundType =
             {
@@ -586,19 +584,19 @@ namespace UnityEditor.Rendering.Universal
         void DrawPostProcessingOverlay()
         {
             bool hasChanged = false;
-            bool selectedRenderPostProcessing;
+            PostprocessingOverrideOption selectedRenderPostProcessing;
 
             if (m_AdditionalCameraDataSO == null)
             {
-                selectedRenderPostProcessing = false;
+                selectedRenderPostProcessing = PostprocessingOverrideOption.Off;
             }
             else
             {
                 m_AdditionalCameraDataSO.Update();
-                selectedRenderPostProcessing = m_AdditionalCameraDataRenderPostProcessing.boolValue;
+                selectedRenderPostProcessing = (PostprocessingOverrideOption)m_AdditionalCameraDataRenderPostProcessing.intValue;
             }
 
-            hasChanged |= DrawToggle(m_AdditionalCameraDataRenderPostProcessing, ref selectedRenderPostProcessing, Styles.renderPostProcessing);
+            hasChanged |= DrawPostProcessingDropdown(ref selectedRenderPostProcessing);
 
             if (hasChanged)
             {
@@ -608,7 +606,7 @@ namespace UnityEditor.Rendering.Universal
                     init(m_AdditionalCameraData);
                 }
 
-                m_AdditionalCameraDataRenderPostProcessing.boolValue = selectedRenderPostProcessing;
+                m_AdditionalCameraDataRenderPostProcessing.intValue = (int)selectedRenderPostProcessing;
                 m_AdditionalCameraDataSO.ApplyModifiedProperties();
             }
         }
@@ -803,7 +801,7 @@ namespace UnityEditor.Rendering.Universal
         void DrawPostProcessing()
         {
             bool hasChanged = false;
-            bool selectedRenderPostProcessing;
+            PostprocessingOverrideOption selectedRenderPostProcessing;
             AntialiasingMode selectedAntialiasing;
             AntialiasingQuality selectedAntialiasingQuality;
             bool selectedStopNaN;
@@ -811,7 +809,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (m_AdditionalCameraDataSO == null)
             {
-                selectedRenderPostProcessing = false;
+                selectedRenderPostProcessing = PostprocessingOverrideOption.Off;
                 selectedAntialiasing = AntialiasingMode.None;
                 selectedAntialiasingQuality = AntialiasingQuality.High;
                 selectedStopNaN = false;
@@ -820,14 +818,14 @@ namespace UnityEditor.Rendering.Universal
             else
             {
                 m_AdditionalCameraDataSO.Update();
-                selectedRenderPostProcessing = m_AdditionalCameraDataRenderPostProcessing.boolValue;
+                selectedRenderPostProcessing = (PostprocessingOverrideOption)m_AdditionalCameraDataRenderPostProcessing.intValue;
                 selectedAntialiasing = (AntialiasingMode)m_AdditionalCameraDataAntialiasing.intValue;
                 selectedAntialiasingQuality = (AntialiasingQuality)m_AdditionalCameraDataAntialiasingQuality.intValue;
                 selectedStopNaN = m_AdditionalCameraDataStopNaN.boolValue;
                 selectedDithering = m_AdditionalCameraDataDithering.boolValue;
             }
 
-            hasChanged |= DrawToggle(m_AdditionalCameraDataRenderPostProcessing, ref selectedRenderPostProcessing, Styles.renderPostProcessing);
+            hasChanged |= DrawPostProcessingDropdown(ref selectedRenderPostProcessing);
 
             // Draw Final Post-processing
             {
@@ -854,13 +852,45 @@ namespace UnityEditor.Rendering.Universal
                     init(m_AdditionalCameraData);
                 }
 
-                m_AdditionalCameraDataRenderPostProcessing.boolValue = selectedRenderPostProcessing;
+                m_AdditionalCameraDataRenderPostProcessing.intValue = (int)selectedRenderPostProcessing;
                 m_AdditionalCameraDataAntialiasing.intValue = (int)selectedAntialiasing;
                 m_AdditionalCameraDataAntialiasingQuality.intValue = (int)selectedAntialiasingQuality;
                 m_AdditionalCameraDataStopNaN.boolValue = selectedStopNaN;
                 m_AdditionalCameraDataDithering.boolValue = selectedDithering;
                 m_AdditionalCameraDataSO.ApplyModifiedProperties();
             }
+        }
+
+        bool DrawPostProcessingDropdown(ref PostprocessingOverrideOption selectedRenderPostProcessing)
+        {
+            var hasChanged = false;
+            var assetHasPost = m_UniversalRenderPipeline.postProcessEnabled;
+
+            Rect controlRectPost = EditorGUILayout.GetControlRect(true);
+
+            EditorGUI.BeginProperty(controlRectPost, Styles.requireOpaqueTexture, m_AdditionalCameraDataRenderOpaqueProp);
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.BeginDisabledGroup(assetHasPost == false);
+            {
+                selectedRenderPostProcessing = (PostprocessingOverrideOption) EditorGUI.IntPopup(controlRectPost,
+                    Styles.renderPostProcessing, (int) selectedRenderPostProcessing,
+                    Styles.displayedAdditionalDataOptions,
+                    Styles.additionalDataOptions);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_AdditionalCameraDataRenderPostProcessing.intValue = (int) selectedRenderPostProcessing;
+                    hasChanged = true;
+                }
+            }
+            EditorGUI.EndDisabledGroup();
+
+            if (!assetHasPost)
+            {
+                Rect controlRectPostWarning = EditorGUILayout.GetControlRect(false);
+                EditorGUI.HelpBox(controlRectPostWarning, Styles.disabledPostprocessing, MessageType.Warning);
+            }
+
+            return hasChanged;
         }
 
         bool DrawLayerMask(SerializedProperty prop, ref LayerMask mask, GUIContent style)

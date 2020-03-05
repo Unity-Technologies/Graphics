@@ -1,3 +1,4 @@
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
@@ -23,12 +24,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public Renderer2D(Renderer2DData data) : base(data)
         {
+            UniversalRenderPipelineAsset asset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            Assert.IsNotNull(asset, "No Universal Render Pipeline running.");
+
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
 
-            m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
+            if (asset.postProcessEnabled)
+            {
+                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, asset.m_PostProcessData);
+                m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, asset.m_PostProcessData, m_BlitMaterial);
+                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, asset.m_PostProcessData, m_BlitMaterial);
+            }
+
             m_Render2DLightingPass = new Render2DLightingPass(data);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
-            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
@@ -150,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EnqueuePass(m_FinalBlitPass);
             }
         }
-        
+
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
         {
             cullingParameters.cullingOptions = CullingOptions.None;
