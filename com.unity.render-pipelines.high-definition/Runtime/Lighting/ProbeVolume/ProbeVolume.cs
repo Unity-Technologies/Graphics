@@ -21,6 +21,23 @@ namespace UnityEngine.Rendering.HighDefinition
         Subtractive
     }
 
+    // Rather than hashing all the inputs that define a Probe Volume's bake state into a 128-bit int (16-bytes),
+    // we simply store the raw state values (56-bytes)
+    // While this is 3.5x more memory, it's still fairly low, and avoids the runtime cost of string appending garbage creation.
+    // It also means we can never ever have hash collision issues (due to precision loss in string construction, or from hashing),
+    // which means we always detect changes correctly.
+    [Serializable]
+    public struct ProbeVolumeSettingsKey
+    {
+        public int id;
+        public Vector3 position;
+        public Quaternion rotation;
+        public Vector3 size;
+        public int resolutionX;
+        public int resolutionY;
+        public int resolutionZ;
+    }
+
     [Serializable]
     public struct ProbeVolumeArtistParameters
     {
@@ -211,7 +228,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private Mesh m_DebugMesh = null;
         private List<Matrix4x4[]> m_DebugProbeMatricesList;
         private List<Mesh> m_DebugProbePointMeshList;
-        private Hash128 m_DebugProbeInputHash = new Hash128();
+        private ProbeVolumeSettingsKey m_DebugProbeInputKey = new ProbeVolumeSettingsKey();
         public bool dataUpdated = false;
 
         public ProbeVolumeAsset probeVolumeAsset = null;
@@ -302,15 +319,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             parameters.Constrain();
 
-            string inputString =
-                        this.transform.position.ToString() +
-                        this.transform.rotation.ToString() +
-                        parameters.size.ToString() +
-                        parameters.resolutionX.ToString() +
-                        parameters.resolutionY.ToString() +
-                        parameters.resolutionZ.ToString();
-
-            Hash = Hash128.Compute(inputString);
+            Key = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
 
             if (probeVolumeAsset)
             {
@@ -374,7 +383,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             if(UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth))
-            { 
+            {
                 // TODO: Remove this data copy.
                 for (int i = 0, iLen = data.Length; i < iLen; ++i)
                 {
@@ -449,13 +458,56 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
             UnityEditor.Lightmapping.lightingDataAssetCleared += OnLightingDataAssetCleared;
 
-            // Reset matrices hash to recreate all positions
-            m_DebugProbeInputHash = new Hash128();
+            // Reset matrices key to recreate all positions
+            m_DebugProbeInputKey = new ProbeVolumeSettingsKey
+            {
+                id = 0,
+                position = Vector3.zero,
+                rotation = Quaternion.identity,
+                size = Vector3.zero,
+                resolutionX = 0,
+                resolutionY = 0,
+                resolutionZ = 0
+            };
 
             SetupPositions();
         }
 
-        public Hash128 Hash { get; private set; } = new Hash128();
+        public ProbeVolumeSettingsKey Key { get; private set; } = new ProbeVolumeSettingsKey
+        {
+            id = 0,
+            position = Vector3.zero,
+            rotation = Quaternion.identity,
+            size = Vector3.zero,
+            resolutionX = 0,
+            resolutionY = 0,
+            resolutionZ = 0
+        };
+
+        public static ProbeVolumeSettingsKey ComputeProbeVolumeSettingsKeyFromProbeVolume(ProbeVolume probeVolume)
+        {
+            return new ProbeVolumeSettingsKey
+            {
+                id = probeVolume.GetID(),
+                position = probeVolume.transform.position,
+                rotation = probeVolume.transform.rotation,
+                size = probeVolume.parameters.size,
+                resolutionX = probeVolume.parameters.resolutionX,
+                resolutionY = probeVolume.parameters.resolutionY,
+                resolutionZ = probeVolume.parameters.resolutionZ
+            };
+        }
+
+        public static bool ProbeVolumeSettingsKeyEquals(ref ProbeVolumeSettingsKey a, ref ProbeVolumeSettingsKey b)
+        {
+            return (a.id == b.id)
+                && (a.position == b.position)
+                && (a.rotation == b.rotation)
+                && (a.size == b.size)
+                && (a.resolutionX == b.resolutionX)
+                && (a.resolutionY == b.resolutionY)
+                && (a.resolutionZ == b.resolutionZ);
+        }
 
         protected void SetupPositions()
         {
@@ -464,13 +516,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float debugProbeSize = Gizmos.probeSize;
 
-            string inputString = GetID().ToString() + debugProbeSize.ToString();
-            Hash128 debugProbeInputHash = Hash128.Compute(inputString);
-            Hash128 settingsHash = Hash;
-
-            UnityEngine.HashUtilities.AppendHash(ref settingsHash, ref debugProbeInputHash);
-
-            if (m_DebugProbeInputHash == debugProbeInputHash)
+            ProbeVolumeSettingsKey debugProbeInputKeyCurrent = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
+            if (ProbeVolumeSettingsKeyEquals(ref m_DebugProbeInputKey, ref debugProbeInputKeyCurrent))
                 return;
 
             int probeCount = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
@@ -551,7 +598,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            m_DebugProbeInputHash = debugProbeInputHash;
+            m_DebugProbeInputKey = debugProbeInputKeyCurrent;
 
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetID(), positions);
         }
