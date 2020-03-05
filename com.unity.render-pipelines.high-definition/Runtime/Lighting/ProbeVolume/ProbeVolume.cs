@@ -184,15 +184,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ProbeVolumeEngineData data = new ProbeVolumeEngineData();
 
+            data.weight = this.weight;
+
             data.debugColor.x = this.debugColor.r;
             data.debugColor.y = this.debugColor.g;
             data.debugColor.z = this.debugColor.b;
 
             // Clamp to avoid NaNs.
-            float invWeight = 1.0f - this.weight;
-            Vector3 weightFade = new Vector3(invWeight, invWeight, invWeight);
-            Vector3 positiveFade = Vector3.Max(this.positiveFade, weightFade);
-            Vector3 negativeFade = Vector3.Max(this.negativeFade, weightFade);
+            Vector3 positiveFade = Vector3.Max(this.positiveFade, new Vector3(1e-5f, 1e-5f, 1e-5f));
+            Vector3 negativeFade = Vector3.Max(this.negativeFade, new Vector3(1e-5f, 1e-5f, 1e-5f));
 
             data.rcpPosFaceFade.x = Mathf.Min(1.0f / positiveFade.x, float.MaxValue);
             data.rcpPosFaceFade.y = Mathf.Min(1.0f / positiveFade.y, float.MaxValue);

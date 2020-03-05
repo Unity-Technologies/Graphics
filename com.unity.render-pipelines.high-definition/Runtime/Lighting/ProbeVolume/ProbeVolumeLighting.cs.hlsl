@@ -16,6 +16,7 @@
 // PackingRules = Exact
 struct ProbeVolumeEngineData
 {
+    float weight;
     float3 debugColor;
     int payloadIndex;
     float3 rcpPosFaceFade;
@@ -41,6 +42,10 @@ struct SphericalHarmonicsL1
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.ProbeVolumeEngineData
 //
+float GetWeight(ProbeVolumeEngineData value)
+{
+    return value.weight;
+}
 float3 GetDebugColor(ProbeVolumeEngineData value)
 {
     return value.debugColor;
