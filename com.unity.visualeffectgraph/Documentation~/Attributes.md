@@ -4,7 +4,7 @@ An Attribute is a piece of data attached to elements in a System. For example, t
 
 Systems can read from, or write to, Attributes in order to perform custom behavior and differentiate between elements.
 
-A System only stores Attributes when it needs them. This means that the System does not store any unnecessary data and thus saves memory. 
+A System only stores Attributes when it needs them. This means that the System does not store any unnecessary data and thus saves memory.
 
 ## Using Attributes
 
@@ -58,4 +58,3 @@ When you read from a variadic Attribute, it reads from all other implicit compon
 For example, you can express the **scale** of a Quad particle as a **Vector2** (as the width, and length of the quad), whereas, to express the **scale** of a Box particle, you can use a **Vector3** (as the width, length, and depth of the cube). When you set variadic attributes, a drop-down of all channel combinations allows you to write only to the necessary channels.
 
 Another example is for the rotation of a sprite around its normal. You only need the **Z** component of the angle Attribute (**angleZ**), so it is unnecessary to store **angleX**, and **angleY**.
-

@@ -7,7 +7,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 
-#if defined(SHADER_API_MOBILE)
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_GLCORE)
     #define MAX_VISIBLE_LIGHTS 32
 #else
     #define MAX_VISIBLE_LIGHTS 256

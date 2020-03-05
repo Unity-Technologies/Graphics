@@ -43,12 +43,14 @@ namespace UnityEditor.VFX
 
         public int index
         {
-            get;set;
+            get; set;
         }
 
-        public string fileName {
-            get {
-                if(!string.IsNullOrWhiteSpace(title))
+        public string fileName
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(title))
                     return title;
                 int i = this.index;
                 if (i < 0)
@@ -67,7 +69,7 @@ namespace UnityEditor.VFX
             get { return Enumerable.Empty<string>(); }
         }
 
-        public static VFXData CreateDataType(VFXGraph graph,VFXDataType type)
+        public static VFXData CreateDataType(VFXGraph graph, VFXDataType type)
         {
             VFXData newVFXData;
             switch (type)
@@ -125,7 +127,7 @@ namespace UnityEditor.VFX
         {
             base.Sanitize(version);
 
-            if( m_Parent == null)
+            if (m_Parent == null)
             {
                 string assetPath = AssetDatabase.GetAssetPath(this);
                 m_Parent = VisualEffectResource.GetResourceAtPath(assetPath).GetOrCreateGraph();
@@ -149,7 +151,6 @@ namespace UnityEditor.VFX
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
             VFXSystemNames systemNames = null)
-
         {
             // Empty implementation by default
         }
@@ -364,7 +365,7 @@ namespace UnityEditor.VFX
             foreach (var childData in m_DependenciesOut)
             {
                 foreach (var attrib in childData.m_ReadSourceAttributes)
-                { 
+                {
                     if (!m_StoredCurrentAttributes.ContainsKey(attrib))
                     {
                         m_LocalCurrentAttributes.Remove(attrib);

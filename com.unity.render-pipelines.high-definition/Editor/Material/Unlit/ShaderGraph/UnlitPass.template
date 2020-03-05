@@ -1,58 +1,35 @@
 Pass
 {
-    // based on UnlitPass.template
-    Name "$splice(PassName)"
-    Tags { "LightMode" = "$splice(LightMode)" }
+    $splice(PassName)
+    Tags 
+    { 
+        $splice(LightMode)
+    }
+   
+    // Render State
+    $splice(RenderState)
 
-    //-------------------------------------------------------------------------------------
-    // Render Modes (Blend, Cull, ZTest, Stencil, etc)
-    //-------------------------------------------------------------------------------------
-    $splice(Blending)
-    $splice(Culling)
-    $splice(ZTest)
-    $splice(ZWrite)
-    $splice(Stencil)
-    $splice(ColorMask)
-    //-------------------------------------------------------------------------------------
-    // End Render Modes
-    //-------------------------------------------------------------------------------------
+    // Debug
+    $splice(Debug)
+
+    // --------------------------------------------------
+    // Pass
 
     HLSLPROGRAM
 
-    #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-    //#pragma enable_d3d11_debug_symbols
+    // Pragmas
+    $splice(PassPragmas)
 
-    //enable GPU instancing support
-    #pragma multi_compile_instancing
+    // Keywords
+    $splice(PassKeywords)
+    $splice(GraphKeywords)
 
-    //-------------------------------------------------------------------------------------
-    // Variant Definitions (active field translations to HDRP defines)
-    //-------------------------------------------------------------------------------------
-    $SurfaceType.Transparent:            #define _SURFACE_TYPE_TRANSPARENT 1
-    $BlendMode.Alpha:                    #define _BLENDMODE_ALPHA 1
-    $BlendMode.Add:                      #define _BLENDMODE_ADD 1
-    $BlendMode.Premultiply:              #define _BLENDMODE_PRE_MULTIPLY 1
-    $AddPrecomputedVelocity:           #define _ADD_PRECOMPUTED_VELOCITY
-
-    //-------------------------------------------------------------------------------------
-    // End Variant Definitions
-    //-------------------------------------------------------------------------------------
-
-    #pragma vertex Vert
-    #pragma fragment Frag
-
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
-
-    //-------------------------------------------------------------------------------------
     // Defines
-    //-------------------------------------------------------------------------------------
-    $splice(Defines)
-
-    // this translates the new dependency tracker into the old preprocessor definitions for the existing HDRP shader code
+    $SurfaceType.Transparent:               #define _SURFACE_TYPE_TRANSPARENT 1
+    $BlendMode.Alpha:                       #define _BLENDMODE_ALPHA 1
+    $BlendMode.Add:                         #define _BLENDMODE_ADD 1
+    $BlendMode.Premultiply:                 #define _BLENDMODE_PRE_MULTIPLY 1
+    $AddPrecomputedVelocity:                #define _ADD_PRECOMPUTED_VELOCITY
     $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL
     $AttributesMesh.tangentOS:              #define ATTRIBUTES_NEED_TANGENT
     $AttributesMesh.uv0:                    #define ATTRIBUTES_NEED_TEXCOORD0
@@ -68,46 +45,47 @@ Pass
     $VaryingsMeshToPS.texCoord3:            #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:                #define VARYINGS_NEED_COLOR
     $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
-    $features.modifyMesh:                   #define HAVE_MESH_MODIFICATION
+    $features.graphVertex:                   #define HAVE_MESH_MODIFICATION
+    $splice(GraphDefines)
 
-    //-------------------------------------------------------------------------------------
-    // End Defines
-    //-------------------------------------------------------------------------------------
-	$splice(DotsInstancedVars)
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
+    // Includes
+    $splice(PreGraphIncludes)
 
     // Used by SceneSelectionPass
     int _ObjectId;
     int _PassValue;
 
-    //-------------------------------------------------------------------------------------
-    // Interpolator Packing And Struct Declarations
-    //-------------------------------------------------------------------------------------
-    $buildType(AttributesMesh)
-    $buildType(VaryingsMeshToPS)
-    $buildType(VaryingsMeshToDS)
-    //-------------------------------------------------------------------------------------
-    // End Interpolator Packing And Struct Declarations
-    //-------------------------------------------------------------------------------------
+    // --------------------------------------------------
+    // Structs and Packing
 
-    //-------------------------------------------------------------------------------------
-    // Graph generated code
-    //-------------------------------------------------------------------------------------
-    $splice(Graph)
-    //-------------------------------------------------------------------------------------
-    // End graph generated code
-    //-------------------------------------------------------------------------------------
+    $splice(PassStructs)
 
-$features.modifyMesh:   $include("VertexAnimation.template.hlsl")
+    $splice(InterpolatorPack)
 
-$include("SharedCode.template.hlsl")
+    // --------------------------------------------------
+    // Graph
 
+    // Graph Properties
+    $splice(GraphProperties)
+    $splice(DotsInstancedProperties)
+
+    // Graph Functions
+    $splice(GraphFunctions)
+
+    // Graph Vertex
+    $splice(GraphVertex)
+    
+    // Graph Pixel
+    $splice(GraphPixel)
+
+    // --------------------------------------------------
+    // Build Graph Inputs
+
+    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
+    $features.graphPixel:   $include("SharedCode.template.hlsl")
+
+    // --------------------------------------------------
+    // Build Surface Data
 
     void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData)
     {
@@ -117,12 +95,12 @@ $include("SharedCode.template.hlsl")
         // copy across graph values, if defined
         $SurfaceDescription.Color: surfaceData.color = surfaceDescription.Color;
 
-#if defined(DEBUG_DISPLAY)
+        #if defined(DEBUG_DISPLAY)
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
         {
             // TODO
         }
-#endif
+        #endif
     }
 
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
@@ -141,13 +119,10 @@ $include("SharedCode.template.hlsl")
         builtinData.opacity = surfaceDescription.Alpha;
     }
 
-    //-------------------------------------------------------------------------------------
-    // Pass Includes
-    //-------------------------------------------------------------------------------------
-$splice(Includes)
-    //-------------------------------------------------------------------------------------
-    // End Pass Includes
-    //-------------------------------------------------------------------------------------
+    // --------------------------------------------------
+    // Main
+
+    $splice(PostGraphIncludes)
 
     ENDHLSL
 }

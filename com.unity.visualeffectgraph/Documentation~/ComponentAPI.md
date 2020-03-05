@@ -1,7 +1,7 @@
 <div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
 # Visual Effect Component API
 
- [Visual Effect Graphs](VisualEffectGraphAsset.md) are instantiated into scenes using the [Visual Effect Component](VisualEffectComponent.md) . This allows using different instances of effects that you can control independently,  make variations using Property overrides, and control the effect through a C# API. 
+ [Visual Effect Graphs](VisualEffectGraphAsset.md) are instantiated into scenes using the [Visual Effect Component](VisualEffectComponent.md) . This allows using different instances of effects that you can control independently,  make variations using Property overrides, and control the effect through a C# API.
 
 This document present common use cases and good practices in order to use the [Component API](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VisualEffect.html).
 
@@ -44,8 +44,8 @@ You can override this property:
 
 * on the [Visual Effect Inspector](VisualEffectComponent.md) using the **Initial Event Name** field.
 * using the API : `initialEventName = "MyEventName"`
-* using the API : `initialEventID = Shader.PropertyToID("MyEventName")`; 
-* using the [ExposedProperty Helper Class](ExposedPropertyHelper.md) 
+* using the API : `initialEventID = Shader.PropertyToID("MyEventName")`;
+* using the [ExposedProperty Helper Class](ExposedPropertyHelper.md)
 
 ## Random Seed Control
 
@@ -60,7 +60,7 @@ Exposed Properties state and values can be accessed using a variety of methods o
 
 * a `string` property Name : easy to use but less optimized.
 * a `int` property ID that can be generated and cached using `Shader.PropertyToID(string name)`
-* using the [ExposedProperty Helper Class](ExposedPropertyHelper.md) 
+* using the [ExposedProperty Helper Class](ExposedPropertyHelper.md)
 
 #### Checking Properties
 
@@ -144,10 +144,10 @@ static readonly ExposedProperty enteredTriggerEvent = "EnteredTrigger"
 
 void Start()
 {
-	visualEffect = GetComponent<VisualEffect>();   
-	// Caches an Event Attribute matching the
-	// visualEffect.visualEffectAsset graph.
-	eventAttribute = visualEffect.CreateVFXEventAttribute();
+    visualEffect = GetComponent<VisualEffect>();
+    // Caches an Event Attribute matching the
+    // visualEffect.visualEffectAsset graph.
+    eventAttribute = visualEffect.CreateVFXEventAttribute();
 }
 
 void OnTriggerEnter()

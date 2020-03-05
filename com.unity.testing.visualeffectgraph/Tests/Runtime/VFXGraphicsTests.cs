@@ -182,7 +182,6 @@ namespace UnityEngine.VFX.Test
             Time.captureFramerate = m_previousCaptureFrameRate;
             UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
             UnityEngine.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
-
         }
     }
 }
