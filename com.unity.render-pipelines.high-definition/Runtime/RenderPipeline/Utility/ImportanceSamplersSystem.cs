@@ -78,15 +78,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static List<int>                       m_Keys          = new List<int>(4);
         internal static Dictionary<int, MarginalInfos>  m_InternalData  = new Dictionary<int, MarginalInfos>(4);
-        //MaterialPropertyBlock m_MaterialBlock = null;
 
         /// <summary>
         /// RTHandleSystem constructor.
         /// </summary>
         public ImportanceSamplersSystem()
         {
-            //m_InternalData  = new Dictionary<int, MarginalInfos>();
-            //m_MaterialBlock = new MaterialPropertyBlock();
         }
 
         /// <summary>
@@ -183,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
             toGenerate.marginals.integral               = null;
             toGenerate.currentSlice                     = 0;
             toGenerate.currentMip                       = 0;
-            toGenerate.age                              = -32;
+            toGenerate.age                              = -4;
             toGenerate.isReady                          = false;
             toGenerate.inProgress                       = false;
             if (pdfTexture.dimension == TextureDimension.Tex2D || pdfTexture.dimension == TextureDimension.Tex2DArray)
@@ -259,28 +256,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static private void DefaultDumper(AsyncGPUReadbackRequest request, string name, Experimental.Rendering.GraphicsFormat gfxFormat)
-        {
-            if (!request.hasError)
-            {
-                Unity.Collections.NativeArray<float> result = request.GetData<float>();
-                float[] copy = new float[result.Length];
-                result.CopyTo(copy);
-                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(
-                                                    copy,
-                                                    //Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
-                                                    format: gfxFormat,
-                                                    (uint)request.width, (uint)request.height, 0,
-                                                    Texture2D.EXRFlags.CompressZIP);
-                string path = @"C:\UProjects\" + name + ".exr";
-                if (System.IO.File.Exists(path))
-                {
-                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
-                    System.IO.File.Delete(path);
-                }
-                System.IO.File.WriteAllBytes(path, bytes0);
-            }
-        }
 
         /// <summary>
         /// Get the format used for internal process, Internal use only
