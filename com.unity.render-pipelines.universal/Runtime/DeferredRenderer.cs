@@ -164,9 +164,6 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // Injects render passes into the active render pass queue.
-            base.Setup(context, ref renderingData);
-
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -247,7 +244,18 @@ namespace UnityEngine.Rendering.Universal
 
             base.SetupRendererFeaturesTarget(ref renderingData, m_CameraColorTexture, m_CameraDepthAttachment);
 
-            bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+                rendererFeatures[i].SetFeatureColorTarget(m_ActiveCameraColorAttachment);
+            }
+
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if(activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
 
@@ -286,9 +294,7 @@ namespace UnityEngine.Rendering.Universal
                 // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
                 m_DrawSkyboxPass.ConfigureTarget(m_CameraColorTexture);
                 m_DrawSkyboxPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
-
                 EnqueuePass(m_DrawSkyboxPass);
-
             }
 
             // This is useful for refraction effects (particle system).

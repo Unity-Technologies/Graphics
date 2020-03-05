@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // On platforms where the tile dimensions is large (16x16), it may be faster to generate tileDepthInfo texture
         // with an intermediate mip level, as this allows spawning more pixel shaders (avoid GPU starvation).
         // Set to -1 to disable.
-#if UNITY_SWITCH
+#if UNITY_SWITCH || UNITY_IOS
         public const int kTileDepthInfoIntermediateLevel = 1;
 #else
         public const int kTileDepthInfoIntermediateLevel = -1;
