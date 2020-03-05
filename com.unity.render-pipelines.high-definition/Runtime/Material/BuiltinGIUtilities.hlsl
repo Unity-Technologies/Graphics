@@ -24,9 +24,12 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
 #if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
 
 #if defined(SHADEROPTIONS_PROBE_VOLUMES)
-    // ProbeVolumes are incompatible with legacy Light robes
+// SHADEROPTIONS_PROBE_VOLUMES can be defined in ShaderConfig.cs.hlsl but set to 0 for disabled.
+#if SHADEROPTIONS_PROBE_VOLUMES
+    // ProbeVolumes are incompatible with legacy Light probes
     if (_EnableProbeVolumes)
         return UNINITIALIZED_GI;
+#endif
 #endif
 
     if (unity_ProbeVolumeParams.x == 0.0)
