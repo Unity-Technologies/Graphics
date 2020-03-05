@@ -415,6 +415,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue related to transparent objects reading the ray traced indirect diffuse buffer
 - Fixed an issue with filtering ray traced area lights when the intensity is high or there is an exposure.
 - Fixed ill-formed include path in Depth Of Field shader.
+- Fixed shader graph and ray tracing after the shader target PR.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
