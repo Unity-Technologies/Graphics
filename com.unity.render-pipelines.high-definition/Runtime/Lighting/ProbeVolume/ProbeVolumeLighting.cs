@@ -506,7 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
 
-            Debug.Assert(isSlotAllocated, "ProbeVolume: Texture Atlas failed to allocate space for texture { key: " + key + "width: " + width + ", height: " + height);
+            Debug.Assert(isSlotAllocated, "ProbeVolume: Texture Atlas failed to allocate space for octahedral depth texture { key: " + key + " width: " + width + ", height: " + height);
             return false;
         }
 

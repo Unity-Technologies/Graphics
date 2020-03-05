@@ -112,8 +112,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
         	public static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Probe Volume Diffuse Global Illumination", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
-        	public static readonly GUIContent probeVolumeAtlasWidth = EditorGUIUtility.TrTextContent("Atlas width", "Width of the atlas containing visible ProbeVolumes.");
-        	public static readonly GUIContent probeVolumeAtlasHeight = EditorGUIUtility.TrTextContent("Atlas height", "Height of the atlas containing visible ProbeVolumes.");
+        	public static readonly GUIContent probeVolumeAtlasWidth = EditorGUIUtility.TrTextContent("Atlas Width", "Width of the atlas containing visible ProbeVolumes.");
+        	public static readonly GUIContent probeVolumeAtlasHeight = EditorGUIUtility.TrTextContent("Atlas Height", "Height of the atlas containing visible ProbeVolumes.");
+            public static readonly GUIContent probeVolumeAtlasOctahedralDepthWidth = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas width", "Width of the atlas containing visible ProbeVolumes octahedral depth data");
+            public static readonly GUIContent probeVolumeAtlasOctahedralDepthHeight = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas height", "Height of the atlas containing visible ProbeVolumes octahedral depth data.");
+
 
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
             public const string cacheInfoFormat = "Reserving {0} in memory at runtime.";

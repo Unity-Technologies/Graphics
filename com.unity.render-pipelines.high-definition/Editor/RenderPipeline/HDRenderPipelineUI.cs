@@ -872,6 +872,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth, Styles.probeVolumeAtlasWidth);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight, Styles.probeVolumeAtlasHeight);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth, Styles.probeVolumeAtlasOctahedralDepthWidth);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight, Styles.probeVolumeAtlasOctahedralDepthHeight);
                 --EditorGUI.indentLevel;
             }
 
