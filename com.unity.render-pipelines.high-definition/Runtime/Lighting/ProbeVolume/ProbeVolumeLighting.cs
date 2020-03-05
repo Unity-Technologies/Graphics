@@ -537,6 +537,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 return probeVolumes;
 
+            var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
+            bool octahedralDepthOcclusionFilterIsEnabled = settings.leakMitigationMode == LeakMitigationMode.OctahedralDepthOcclusionFilter;
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareProbeVolumeList)))
             {
                 ClearProbeVolumeAtlasIfRequested(cmd);
@@ -621,7 +624,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // 1) To timeslice upload cost across N frames for N volumes.
                 // 2) To avoid creating a sync point between compute buffer upload and each volume upload.
                 const int volumeUploadedToAtlasSHCapacity = 1;
-                const int volumeUploadedToAtlasOctahedralDepthCapacity = 1;
+                int volumeUploadedToAtlasOctahedralDepthCapacity = octahedralDepthOcclusionFilterIsEnabled ? 1 : 0;
                 int volumeUploadedToAtlasSHCount = 0;
                 int volumeUploadedToAtlasOctahedralDepthCount = 0;
 
