@@ -17,7 +17,7 @@ PropertyRow > #container{
 }
 
 PropertyRow > #container > #label {
-    width: 200px;
+    width: 150px;
     height: 24px;
     justify-content: center;
 }

@@ -29,6 +29,9 @@ namespace UnityEditor.ShaderGraph.Drawing
     [Serializable]
     class UserViewSettings
     {
+        // TODO: Temporary Inspector
+        public bool isInspectorVisible = true;
+
         public bool isBlackboardVisible = true;
         public bool isPreviewVisible = true;
         public string colorProvider = NoColors.Title;
@@ -46,6 +49,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         EdgeConnectorListener m_EdgeConnectorListener;
         BlackboardProvider m_BlackboardProvider;
         ColorManager m_ColorManager;
+
+        // TODO: Temporary Inspector
+        InspectorView m_InspectorView;
 
         public BlackboardProvider blackboardProvider
         {
@@ -201,6 +207,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     GUILayout.Label("Color Mode");
                     var newColorIdx = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
                     GUILayout.Space(4);
+
+                    // TODO: Temporary Inspector
+                    m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Inspector", EditorStyles.toolbarButton);
+                    GUILayout.Space(6);
+
                     m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
 
                     GUILayout.Space(6);
@@ -237,6 +248,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_BlackboardProvider = new BlackboardProvider(graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
+
+                // TODO: Temporary Inspector
+                m_InspectorView = new InspectorView(m_Graph);
+                m_GraphView.Add(m_InspectorView);
 
                 CreateMasterPreview();
 
@@ -316,6 +331,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSubWindowsVisibility()
         {
+            // TODO: Temporary Inspector
+            if (m_UserViewSettings.isInspectorVisible)
+                m_GraphView.Insert(m_GraphView.childCount, m_InspectorView);
+            else
+                m_InspectorView.RemoveFromHierarchy();
+            
             if (m_UserViewSettings.isBlackboardVisible)
                 m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
             else
@@ -1162,6 +1183,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSerializedWindowLayout()
         {
+            // TODO: Temporary Inspector
+            m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_InspectorView.layout, m_GraphView.layout);
+            m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
+
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);
             m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
 
