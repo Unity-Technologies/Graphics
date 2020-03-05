@@ -122,7 +122,7 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}:
   dependencies:
     - .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
   {% for dep in package.dependencies %}
-  - {{ dep }}
+    - {{ dep }}
   {% endfor %}
 {% endfor %}
 {% endfor %}
@@ -151,9 +151,9 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}_dependencies:
         - "**/upm-ci~/test-results/**/*"
   dependencies:
     - .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
-  - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_{{ editor.version }}
+    - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_{{ editor.version }}
   {% for dep in package.dependencies %}
-  - {{ dep }}
+    - {{ dep }}
   {% endfor %}
 {% endfor %}
 {% endfor %}
@@ -181,8 +181,8 @@ all_package_ci_{{ editor.version }}:
 
 
 {% for package in packages %}
-publish_{{ package.id }}_{{ editor.version }}:
-  name: z_(do not use) Publish {{ package.name }} - {{ editor.version }}
+publish_{{ package.id }}:
+  name: z_(do not use) Publish {{ package.name }}
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -214,5 +214,5 @@ publish_all:
     - git push origin --tags
   dependencies:
 {% for package in packages %}
-    - .yamato/upm-ci-packages.yml#publish_{{ package.id }}_{{ editor.version }}
+    - .yamato/upm-ci-packages.yml#publish_{{ package.id }}
 {% endfor %}

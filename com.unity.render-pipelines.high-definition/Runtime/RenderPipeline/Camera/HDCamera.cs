@@ -953,6 +953,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Matrix4x4 noTransViewMatrix = gpuView;
             if (ShaderConfig.s_CameraRelativeRendering == 0)
             {
+                // In case we are not camera relative, gpuView contains the camera translation component at this stage, so we need to remove it.
                 noTransViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
 
             }

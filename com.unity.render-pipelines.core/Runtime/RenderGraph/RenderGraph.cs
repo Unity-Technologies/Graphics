@@ -247,6 +247,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources.ImportTexture(rt, shaderProperty);
         }
 
+        public RenderGraphMutableResource ImportBackbuffer(RenderTargetIdentifier rt)
+        {
+            return m_Resources.ImportBackbuffer(rt);
+        }
+
         /// <summary>
         /// Create a new Render Graph Texture resource.
         /// </summary>

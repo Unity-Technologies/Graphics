@@ -230,6 +230,11 @@ namespace UnityEngine.Rendering
             return s_DefaultInstance.Alloc(tex);
         }
 
+        public static RTHandle Alloc(RenderTargetIdentifier tex)
+        {
+            return s_DefaultInstance.Alloc(tex);
+        }
+
         private static RTHandle Alloc(RTHandle tex)
         {
             Debug.LogError("Allocation a RTHandle from another one is forbidden.");

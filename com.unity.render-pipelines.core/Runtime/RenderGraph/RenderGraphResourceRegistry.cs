@@ -268,12 +268,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
         #endregion
+
         DynamicArray<TextureResource>       m_TextureResources = new DynamicArray<TextureResource>();
         Dictionary<int, Stack<RTHandle>>    m_TexturePool = new Dictionary<int, Stack<RTHandle>>();
         DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
         RTHandleSystem                      m_RTHandleSystem = new RTHandleSystem();
         RenderGraphDebugParams              m_RenderGraphDebug;
         RenderGraphLogger                   m_Logger;
+
+        RTHandle                            m_CurrentBackbuffer;
 
         // Diagnostic only
         List<(int, RTHandle)>               m_AllocatedTextures = new List<(int, RTHandle)>();
@@ -340,6 +343,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal RenderGraphMutableResource ImportTexture(RTHandle rt, int shaderProperty = 0)
         {
             int newHandle = m_TextureResources.Add(new TextureResource(rt, shaderProperty));
+            return new RenderGraphMutableResource(newHandle, RenderGraphResourceType.Texture);
+        }
+
+        internal RenderGraphMutableResource ImportBackbuffer(RenderTargetIdentifier rt)
+        {
+            if (m_CurrentBackbuffer != null)
+                m_RTHandleSystem.Release(m_CurrentBackbuffer);
+
+            m_CurrentBackbuffer = m_RTHandleSystem.Alloc(rt);
+
+            int newHandle = m_TextureResources.Add(new TextureResource(m_CurrentBackbuffer, 0));
             return new RenderGraphMutableResource(newHandle, RenderGraphResourceType.Texture);
         }
 
