@@ -3903,7 +3903,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = PrepareSSRParameters(hdCamera);
             RenderSSR(parameters, m_SharedRTManager.GetDepthTexture(), m_SsrHitPointTexture, m_SharedRTManager.GetStencilBuffer(), TextureXR.GetBlackTexture(), previousColorPyramid, m_SsrLightingTexture, cmd, renderContext);
 
-            // If color pyramid was not valid, we bind a black texture 
+            // If color pyramid was not valid, we bind a black texture
             if (!hdCamera.colorPyramidHistoryIsValid)
             {
                 cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, TextureXR.GetClearTexture());
@@ -4029,7 +4029,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", debugDisplayEnabledOrSceneLightingDisabled);
 
             // Setting this all the time due to a strange bug that either reports a (globally) bound texture as not bound or where SetGlobalTexture doesn't behave as expected.
-            // As a workaround we bind it regardless of debug display. Eventually with 
+            // As a workaround we bind it regardless of debug display. Eventually with
             cmd.SetGlobalTexture(HDShaderIDs._DebugMatCapTexture, defaultResources.textures.matcapTex);
 
             if (debugDisplayEnabledOrSceneLightingDisabled ||
@@ -4470,7 +4470,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         CoreUtils.SetRenderTarget(cmd, GetAfterPostProcessOffScreenBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
 
-                    // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
+            // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
                     RenderAfterPostProcess(parameters
                                         , RendererList.Create(parameters.opaqueAfterPPDesc)
                                         , RendererList.Create(parameters.transparentAfterPPDesc)

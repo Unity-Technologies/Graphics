@@ -5,14 +5,14 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     partial class PostProcessSystem
     {
-        public void Render( RenderGraph     renderGraph,
-                            HDCamera        hdCamera,
-                            BlueNoise       blueNoise,
+        public void Render( RenderGraph                 renderGraph,
+                            HDCamera                    hdCamera,
+                            BlueNoise                   blueNoise,
                             TextureHandle   colorBuffer,
                             TextureHandle   afterPostProcessTexture,
                             TextureHandle   depthBuffer,
                             TextureHandle   finalRT,
-                            bool            flipY)
+                            bool                        flipY)
         {
             var dynResHandler = DynamicResolutionHandler.instance;
 
@@ -255,7 +255,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class FinalPassData
         {
-            public FinalPassParameters  parameters;
+            public FinalPassParameters          parameters;
+            public RenderGraphResource          source;
+            public RenderGraphResource          afterPostProcessTexture;
+            public RenderGraphResource          alphaTexture;
+            public RenderGraphMutableResource   destination;
             public TextureHandle        source;
             public TextureHandle        afterPostProcessTexture;
             public TextureHandle        alphaTexture;
