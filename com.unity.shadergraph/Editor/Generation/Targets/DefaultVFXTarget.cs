@@ -25,33 +25,38 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
-        public List<BlockFieldDescriptor> GetSupportedBlocks(IMasterNode masterNode)
+        public List<BlockFieldDescriptor> GetSupportedBlocks(TargetImplementationData data)
         {
+            if(!(data is DefaultVFXTargetData vfxData))
+                return null;
+
             var supportedBlocks = new List<BlockFieldDescriptor>();
 
             // Always supported Blocks
             supportedBlocks.Add(BlockFields.SurfaceDescription.BaseColor);
             supportedBlocks.Add(BlockFields.SurfaceDescription.Alpha);
 
-            // Lit Blocks
-            if(masterNode is VfxMasterNode vfxMasterNode)
+            // Alpha Blocks
+            if(vfxData.alphaTest)
             {
-                // Alpha Blocks
-                if(vfxMasterNode.alphaTest.isOn)
-                {
-                    supportedBlocks.Add(BlockFields.SurfaceDescription.ClipThreshold);
-                }
+                supportedBlocks.Add(BlockFields.SurfaceDescription.ClipThreshold);
+            }
 
-                if(vfxMasterNode.lit.isOn)
-                {
-                    supportedBlocks.Add(BlockFields.SurfaceDescription.Metallic);
-                    supportedBlocks.Add(BlockFields.SurfaceDescription.Smoothness);
-                    supportedBlocks.Add(BlockFields.SurfaceDescription.Normal);
-                    supportedBlocks.Add(BlockFields.SurfaceDescription.Emission);
-                }
+            // Lit Blocks
+            if(vfxData.lit)
+            {
+                supportedBlocks.Add(BlockFields.SurfaceDescription.Metallic);
+                supportedBlocks.Add(BlockFields.SurfaceDescription.Smoothness);
+                supportedBlocks.Add(BlockFields.SurfaceDescription.Normal);
+                supportedBlocks.Add(BlockFields.SurfaceDescription.Emission);
             }
 
             return supportedBlocks;
+        }
+
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks, TargetImplementationData data)
+        {
+            return null;
         }
     }
 }

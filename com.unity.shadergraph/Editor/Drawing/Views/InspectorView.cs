@@ -101,7 +101,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_ImplementationFoldouts.Remove(implementationData.implementation);
                     m_ImplementationFoldouts.Add(implementationData.implementation, evt.newValue);
                     foldout.value = evt.newValue;
-                    OnChange();
+                    Remove(m_PropertySheet);
+                    Rebuild();
                 });
 
                 ps.Add(foldout);

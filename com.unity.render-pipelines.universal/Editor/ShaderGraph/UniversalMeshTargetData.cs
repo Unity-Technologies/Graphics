@@ -115,20 +115,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     });
                 });
 
-            propertySheet.Add(new PropertyRow(new Label("Blend")), (row) =>
-                {
-                    row.Add(new EnumField(AlphaMode.Additive), (field) =>
+            if(surfaceType == SurfaceType.Transparent)
+            {
+                propertySheet.Add(new PropertyRow(new Label("Blend")), (row) =>
                     {
-                        field.value = alphaMode;
-                        field.RegisterValueChangedCallback(evt => {
-                            if (Equals(alphaMode, evt.newValue))
-                                return;
+                        row.Add(new EnumField(AlphaMode.Additive), (field) =>
+                        {
+                            field.value = alphaMode;
+                            field.RegisterValueChangedCallback(evt => {
+                                if (Equals(alphaMode, evt.newValue))
+                                    return;
 
-                            m_AlphaMode = (AlphaMode)evt.newValue;
-                            inspectorView.OnChange();
+                                m_AlphaMode = (AlphaMode)evt.newValue;
+                                inspectorView.OnChange();
+                            });
                         });
                     });
-                });
+            }
 
             propertySheet.Add(new PropertyRow(new Label("Alpha Clip")), (row) =>
                 {

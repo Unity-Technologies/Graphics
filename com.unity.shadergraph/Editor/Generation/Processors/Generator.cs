@@ -61,12 +61,13 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<BlockFieldDescriptor> blocks)
+        public ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<BlockFieldDescriptor> blocks, ITargetImplementation targetImplementation)
         {
             var activeFields = new ActiveFields();
             if(outputNode is IMasterNode masterNode)
             {
-                var fields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass, blocks));
+                var data = m_GraphData.activeTargetImplementationDatas.FirstOrDefault(s => s.implementation == targetImplementation);
+                var fields = GenerationUtils.GetActiveFieldsFromConditionals(targetImplementation.GetConditionalFields(pass, blocks, data));
                 foreach(FieldDescriptor field in fields)
                     activeFields.baseInstance.Add(field);
             }
@@ -109,7 +110,8 @@ namespace UnityEditor.ShaderGraph
                 for(int i = 0; i < m_TargetImplementations.Length; i++)
                 {
                     TargetSetupContext context = new TargetSetupContext();
-                    context.SetMasterNode(m_OutputNode as IMasterNode);
+                    var data = m_GraphData.activeTargetImplementationDatas.FirstOrDefault(s => s.implementation == m_TargetImplementations[i]);
+                    context.SetData(data);
                     m_TargetImplementations[i].SetupTarget(ref context); 
                     GetAssetDependencyPaths(context);
                     GenerateSubShader(i, context.descriptor);
@@ -148,7 +150,8 @@ namespace UnityEditor.ShaderGraph
                         var block = m_GraphData.GetNodeFromGuid<BlockNode>(fragmentBlockGuid);
                         blocks.Add(block.descriptor);
                     }
-                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, blocks);
+
+                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, blocks, m_TargetImplementations[targetIndex]);
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
                     if(m_Mode == GenerationMode.Preview) 
@@ -197,7 +200,8 @@ namespace UnityEditor.ShaderGraph
             if(m_OutputNode is IMasterNode masterNode)
             {
                 // Update supported block list for current target implementation
-                var supportedBlockTypes = m_TargetImplementations[targetIndex].GetSupportedBlocks(masterNode);
+                var data = m_GraphData.activeTargetImplementationDatas.FirstOrDefault(s => s.implementation == m_TargetImplementations[targetIndex]);
+                var supportedBlockTypes = m_TargetImplementations[targetIndex].GetSupportedBlocks(data);
 
                 vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
                 foreach(var vertexBlockGuid in m_GraphData.vertexContext.blockGuids)

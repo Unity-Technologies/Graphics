@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
         bool IsPipelineCompatible(RenderPipelineAsset currentPipeline);
         void SetupTarget(ref TargetSetupContext context);
 
-        // TODO: Argument should be Target specific Settings object
-        List<BlockFieldDescriptor> GetSupportedBlocks(IMasterNode masterNode);
+        List<BlockFieldDescriptor> GetSupportedBlocks(TargetImplementationData data);
+        ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks, TargetImplementationData data);
     }
 }

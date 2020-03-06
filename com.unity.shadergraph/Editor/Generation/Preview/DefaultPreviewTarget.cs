@@ -35,7 +35,12 @@ namespace UnityEditor.ShaderGraph
             context.SetupSubShader(PreviewTargetResources.PreviewSubShader);
         }
 
-        public List<BlockFieldDescriptor> GetSupportedBlocks(IMasterNode masterNode)
+        public List<BlockFieldDescriptor> GetSupportedBlocks(TargetImplementationData data)
+        {
+            return null;
+        }
+
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks, TargetImplementationData data)
         {
             return null;
         }

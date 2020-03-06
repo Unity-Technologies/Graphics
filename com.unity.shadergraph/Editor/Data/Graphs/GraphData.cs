@@ -652,9 +652,10 @@ namespace UnityEditor.ShaderGraph
             // TODO: This should be calculated by Settings object for the Target
             var supportedBlockTypes = ListPool<string>.Get();
             var masterNode = GetNodeFromGuid<AbstractMaterialNode>(activeOutputNodeGuid) as IMasterNode;
-            foreach(var implementation in validImplementations)
+            foreach(var implementation in activeTargetImplementations)
             {
-                supportedBlockTypes.AddRange(implementation.GetSupportedBlocks(masterNode).Select(x => $"{x.tag}.{x.name}"));
+                var data = activeTargetImplementationDatas.FirstOrDefault(s => s.implementation == implementation);
+                supportedBlockTypes.AddRange(implementation.GetSupportedBlocks(data).Select(x => $"{x.tag}.{x.name}"));
             }
 
             // Set Blocks as active based on supported Block list
