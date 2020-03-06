@@ -417,6 +417,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ill-formed include path in Depth Of Field shader.
 - Fixed shader graph and ray tracing after the shader target PR.
 - Fixed a bug in semi-transparent shadows (object further than the light casting shadows)
+- Fix state enabled of default volume profile when in package.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
