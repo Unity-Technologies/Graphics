@@ -300,11 +300,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static internal void ResizeVolumetricBuffer(ref RenderTexture rt, int viewportWidth, int viewportHeight, int viewportDepth)
+        // Do not access 'rt.name', it allocates memory every time...
+        // Have to manually cache and pass the name.
+        static internal void ResizeVolumetricBuffer(ref RenderTexture rt, string name, int viewportWidth, int viewportHeight, int viewportDepth)
         {
             Debug.Assert(rt != null);
 
-            string name   = rt.name;
             int    width  = rt.width;
             int    height = rt.height;
             int    depth  = rt.volumeDepth;
@@ -400,11 +401,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 CreateVolumetricHistoryBuffers(hdCamera, hdCamera.vBufferParams.Length); // Basically, assume it's 2
             }
 
+            string[] names = new string[2]{ "VBufferHistory0", "VBufferHistory1" };
+
             // We only resize the feedback buffer (#0), not the history buffer (#1).
             // We must NOT resize the buffer from the previous frame (#1), as that would invalidate its contents.
-            ResizeVolumetricBuffer(ref hdCamera.volumetricHistoryBuffers[currIdx], currentParams.viewportSize.x,
-                                                                                   currentParams.viewportSize.y,
-                                                                                   currentParams.viewportSize.z);
+            ResizeVolumetricBuffer(ref hdCamera.volumetricHistoryBuffers[currIdx], names[currIdx], currentParams.viewportSize.x,
+                                                                                                   currentParams.viewportSize.y,
+                                                                                                   currentParams.viewportSize.z);
         }
 
         internal void CreateVolumetricLightingBuffers()
@@ -475,12 +478,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var currentParams = hdCamera.vBufferParams[currIdx];
 
-            ResizeVolumetricBuffer(ref m_DensityBuffer,  currentParams.viewportSize.x,
-                                                         currentParams.viewportSize.y,
-                                                         currentParams.viewportSize.z);
-            ResizeVolumetricBuffer(ref m_LightingBuffer, currentParams.viewportSize.x,
-                                                         currentParams.viewportSize.y,
-                                                         currentParams.viewportSize.z);
+            ResizeVolumetricBuffer(ref m_DensityBuffer,  "VBufferDensity",  currentParams.viewportSize.x,
+                                                                            currentParams.viewportSize.y,
+                                                                            currentParams.viewportSize.z);
+            ResizeVolumetricBuffer(ref m_LightingBuffer, "VBufferLighting", currentParams.viewportSize.x,
+                                                                            currentParams.viewportSize.y,
+                                                                            currentParams.viewportSize.z);
         }
 
         void InitializeVolumetricLighting()
