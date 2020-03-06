@@ -424,16 +424,8 @@ namespace UnityEngine.Rendering.Universal
                 msaaSampleCountHasChanged = true;
             }
 
-            // There's no exposed API to control how a backbuffer is created with MSAA
-            // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
-            // We only do this for the main camera and this only takes effect in the beginning of next frame.
-            // This settings should not be changed on a frame basis so that's fine.
-            QualitySettings.antiAliasing = msaaSamples;
-
             if (stereo && msaaSampleCountHasChanged)
                 XR.XRDevice.UpdateEyeTextureMSAASetting();
-#else
-            QualitySettings.antiAliasing = msaaSamples;
 #endif
         }
         bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
