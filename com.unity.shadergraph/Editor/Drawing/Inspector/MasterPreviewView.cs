@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Internal;
 using Object = UnityEngine.Object;
 
 using UnityEditor.UIElements;

@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RemoveAdditionalShadowData,
             AreaLightShapeTypeLogicIsolation,
             PCSSUIUpdate,
+            MoveEmissionMesh,
         }
 
         /// <summary>
@@ -141,8 +142,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // The min filter size is now in the [0..1] range when user facing
                     data.minFilterSize = data.minFilterSize * 1000.0f;
-                })
+                }),
+                MigrationStep.New(Version.MoveEmissionMesh, (HDAdditionalLightData data) =>
+                {
+                    MeshRenderer emissiveMesh = data.GetComponent<MeshRenderer>();
+                    bool emissiveMeshWasHere = emissiveMesh != null;
+                    ShadowCastingMode oldShadowCastingMode = default;
+                    MotionVectorGenerationMode oldMotionVectorMode = default;
+                    if (emissiveMeshWasHere)
+                    {
+                        oldShadowCastingMode = emissiveMesh.shadowCastingMode;
+                        oldMotionVectorMode = emissiveMesh.motionVectorGenerationMode;
+                    }
 
+                    CoreUtils.Destroy(data.GetComponent<MeshFilter>());
+                    CoreUtils.Destroy(emissiveMesh);
+                    
+                    if (emissiveMeshWasHere)
+                    {
+                        data.m_AreaLightEmissiveMeshShadowCastingMode = oldShadowCastingMode;
+                        data.m_AreaLightEmissiveMeshMotionVectorGenerationMode = oldMotionVectorMode;
+                    }
+                })
             );
 #pragma warning restore 0618, 0612
 
@@ -172,8 +193,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // OnValidate might be called before migration but migration is needed to call UpdateBounds() properly so we call it again here to make sure that they are updated properly.
             OnValidate();
         }
-
-        void Awake() => Migrate();
 
         #region Obsolete fields
         // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
