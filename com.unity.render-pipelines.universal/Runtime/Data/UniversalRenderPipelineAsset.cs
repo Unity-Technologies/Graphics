@@ -4,8 +4,10 @@ using UnityEngine.Scripting.APIUpdating;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 using System.IO;
+using UnityEditorInternal;
 #endif
 using System.ComponentModel;
+using System.Linq;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -250,20 +252,23 @@ namespace UnityEngine.Rendering.Universal
         static T LoadResourceFile<T>() where T : ScriptableObject
         {
             T resourceAsset = null;
+            
             var guids = AssetDatabase.FindAssets(typeof(T).Name + " t:scriptableobject", new[] { "Assets" });
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
-                resourceAsset = AssetDatabase.LoadAssetAtPath<T>(path);
+                var objs = InternalEditorUtility.LoadSerializedFileAndForget(path);
+                resourceAsset = objs != null && objs.Length > 0 ? objs.First() as T : null;
+
                 if (resourceAsset != null)
                     break;
             }
-
-            // There's currently an issue that prevents FindAssets from find resources withing the package folder.
+            
             if (resourceAsset == null)
             {
                 string path = packagePath + "/Runtime/Data/" + typeof(T).Name + ".asset";
-                resourceAsset = AssetDatabase.LoadAssetAtPath<T>(path);
+                var objs = InternalEditorUtility.LoadSerializedFileAndForget(path);
+                resourceAsset = objs != null && objs.Length>0 ? objs.First() as T : null;
             }
 
             // Validate the resource file
