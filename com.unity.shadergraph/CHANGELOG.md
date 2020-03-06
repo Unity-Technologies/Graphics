@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
 - Added a drop-down menu to the PBR Master Node that lets you select the final coordinate space of normals delivered from the fragment function. 
 - Added support for users to drag and drop Blackboard Properties from one graph to another.
+- Fixed an issue where Sub Graphs sometimes had duplicate names when you converted nodes into Sub Graphs. 
+- Fixed an issue where the number of ports on Keyword nodes didn't update when you added or removed Enum Keyword entries.
+- Fixed an issue where colors in graphs didn't update when you changed a Blackboard Property's precision while the Color Mode is set to Precision.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
