@@ -353,7 +353,7 @@ namespace UnityEditor.VFX
             return mapper;
         }
 
-        bool IsTexture(PropertyType type)
+        static bool IsTexture(PropertyType type)
         {
             switch (type)
             {
@@ -374,7 +374,9 @@ namespace UnityEditor.VFX
                 RefreshShaderGraphObject();
                 if (shaderGraph != null)
                     foreach (var param in shaderGraph.properties)
-                        yield return param.referenceName;
+                        if (!IsTexture(param.propertyType)) // Remove exposed textures from list of interpolants
+                            yield return param.referenceName;
+
             }
         }
 
