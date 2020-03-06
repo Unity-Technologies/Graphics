@@ -231,7 +231,7 @@ uint FindDiffusionProfileIndex(uint diffusionProfileHash)
     // Fetch the 4 bit index number by looking for the diffusion profile unique ID:
     for (i = 0; i < _DiffusionProfileCount; i++)
     {
-        if (DiffusionProfileHashTable[i] == diffusionProfileHash)
+        if (_DiffusionProfileHashTable[i] == diffusionProfileHash)
         {
             diffusionProfileIndex = i;
             break;

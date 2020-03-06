@@ -32,9 +32,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _PrevInvViewProjMatrix; // non-jittered
 
 #if !USING_STEREO_MATRICES
-        public Vector3 _WorldSpaceCameraPos;
+        public Vector3 _WorldSpaceCameraPos_Internal;
         public float   _Pad0;
-        public Vector3 _PrevCamPosRWS; // $$$
+        public Vector3 _PrevCamPosRWS_Internal; // $$$
         public float _Pad1;
 #endif
         public Vector4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
@@ -103,7 +103,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _PBRFogEnabled;
         public float _MaxFogDistance;
         public float _FogColorMode;
-        public float _SkyTextureMipCount;
         public Vector2 _HeightFogExponents; // { 1/H, H }
         public float _HeightFogBaseHeight;
         public float _GlobalFogAnisotropy;
@@ -180,10 +179,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _RaytracedIndirectDiffuse;
 
         // Buffer pyramid
-        public Vector4 _CameraMotionVectorsSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
         public Vector4 _ColorPyramidScale;             // (x,y) = Screen Scale, z = lod count, w = unused
         public Vector4 _DepthPyramidScale;             // (x,y) = Screen Scale, z = lod count, w = unused
-        public Vector4 _CameraMotionVectorsScale;      // (x,y) = Screen Scale, z = lod count, w = unused
 
         // Ambient occlusion
         public Vector4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght

@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4[]        worldScales;
             public Vector4[]        filterKernels;
             public Vector4[]        shapeParams;
-            public float[]          diffusionProfileHashes;
+            //public float[]          diffusionProfileHashes;
             public ComputeBuffer    coarseStencilBuffer;
 
         }
@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.worldScales = m_SSSWorldScales;
             parameters.filterKernels = m_SSSFilterKernels;
             parameters.shapeParams = m_SSSShapeParams;
-            parameters.diffusionProfileHashes = m_SSSDiffusionProfileHashes;
+            //parameters.diffusionProfileHashes = m_SSSDiffusionProfileHashes;
 
             parameters.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
 
@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._WorldScales, parameters.worldScales);
             cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._FilterKernels, parameters.filterKernels);
             cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._ShapeParams, parameters.shapeParams);
-            cmd.SetComputeFloatParams(parameters.subsurfaceScatteringCS, HDShaderIDs._DiffusionProfileHashTable, parameters.diffusionProfileHashes);
+            //cmd.SetComputeFloatParams(parameters.subsurfaceScatteringCS, HDShaderIDs._DiffusionProfileHashTable, parameters.diffusionProfileHashes);
 
             cmd.SetComputeTextureParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._DepthTexture, resources.depthTexture);
             cmd.SetComputeTextureParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._IrradianceSource, resources.diffuseBuffer);

@@ -440,6 +440,27 @@ namespace UnityEngine.Rendering.HighDefinition
             return (3.0f / (8.0f * Mathf.PI)) * (1.0f - g * g) / (2.0f + g * g);
         }
 
+        void UpdateShaderVariablesGlobalVolumetrics(ConstantBuffer<ShaderVariablesGlobal> cb, in RTHandleProperties sharedRTHandleProperties, HDCamera hdCamera)
+        {
+            var currFrameParams = hdCamera.vBufferParams[0];
+
+            Vector2Int sharedBufferSize = sharedRTHandleProperties.currentRenderTargetSize;
+
+            var cvp = currFrameParams.viewportSize;
+
+            // Adjust slices for XR rendering: VBuffer is shared for all single-pass views
+            int sliceCount = cvp.z / hdCamera.viewCount;
+
+            cb.data._VBufferViewportSize = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
+            cb.data._VBufferSliceCount = (uint)sliceCount;
+            cb.data._VBufferRcpSliceCount = 1.0f / sliceCount;
+            cb.data._VBufferSharedUvScaleAndLimit = currFrameParams.ComputeUvScaleAndLimit(sharedBufferSize);
+            cb.data._VBufferDistanceEncodingParams = currFrameParams.depthEncodingParams;
+            cb.data._VBufferDistanceDecodingParams = currFrameParams.depthDecodingParams;
+            cb.data._VBufferLastSliceDist = currFrameParams.ComputeLastSliceDistance(sliceCount);
+            cb.data._VBufferRcpInstancedViewCount = 1.0f / hdCamera.viewCount;
+        }
+
         void PushVolumetricLightingGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
             if (!Fog.IsVolumetricFogEnabled(hdCamera))
@@ -450,10 +471,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Get the interpolated anisotropy value.
             var fog = hdCamera.volumeStack.GetComponent<Fog>();
-
             SetPreconvolvedAmbientLightProbe(hdCamera, cmd, fog.globalLightProbeDimmer.value, fog.anisotropy.value);
 
-            var currFrameParams = hdCamera.vBufferParams[0];
             var prevFrameParams = hdCamera.vBufferParams[1];
 
             // The lighting & density buffers are shared by all cameras.
@@ -464,33 +483,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // The viewport size is the same for all of these buffers.
             // All of these buffers may have sub-native-resolution viewports.
             // The 3rd dimension (number of slices) is the same for all of these buffers.
-            Vector2Int sharedBufferSize = new Vector2Int(m_LightingBufferHandle.rt.width, m_LightingBufferHandle.rt.height);
-
-            Debug.Assert(m_LightingBufferHandle.rt.width  == m_DensityBufferHandle.rt.width);
-            Debug.Assert(m_LightingBufferHandle.rt.height == m_DensityBufferHandle.rt.height);
-
             Vector2Int historyBufferSize = Vector2Int.zero;
 
             if (hdCamera.IsVolumetricReprojectionEnabled())
             {
-                var historyRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
-                historyBufferSize = new Vector2Int(historyRT.rt.width, historyRT.rt.height);
+                historyBufferSize = ComputeVBufferResolutionXY(hdCamera.historyRTHandleProperties.currentRenderTargetSize);
             }
 
-            var cvp = currFrameParams.viewportSize;
             var pvp = prevFrameParams.viewportSize;
-
-            // Adjust slices for XR rendering: VBuffer is shared for all single-pass views
-            int sliceCount = cvp.z / hdCamera.viewCount;
-
-            cmd.SetGlobalVector(HDShaderIDs._VBufferViewportSize,               new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y));
-            cmd.SetGlobalInt(   HDShaderIDs._VBufferSliceCount,                 sliceCount);
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpSliceCount,              1.0f / sliceCount);
-            cmd.SetGlobalVector(HDShaderIDs._VBufferSharedUvScaleAndLimit,      currFrameParams.ComputeUvScaleAndLimit(sharedBufferSize));
-            cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceEncodingParams,     currFrameParams.depthEncodingParams);
-            cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceDecodingParams,     currFrameParams.depthDecodingParams);
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferLastSliceDist,              currFrameParams.ComputeLastSliceDistance(sliceCount));
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpInstancedViewCount,      1.0f / hdCamera.viewCount);
 
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevViewportSize,           new Vector4(pvp.x, pvp.y, 1.0f / pvp.x, 1.0f / pvp.y));
             cmd.SetGlobalVector(HDShaderIDs._VBufferHistoryPrevUvScaleAndLimit, prevFrameParams.ComputeUvScaleAndLimit(historyBufferSize));

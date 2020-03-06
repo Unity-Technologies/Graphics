@@ -577,8 +577,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.data._NonJitteredViewProjMatrix = mainViewConstants.nonJitteredViewProjMatrix;
             cb.data._PrevViewProjMatrix = mainViewConstants.prevViewProjMatrix;
             cb.data._PrevInvViewProjMatrix = mainViewConstants.prevInvViewProjMatrix;
-            cb.data._WorldSpaceCameraPos = mainViewConstants.worldSpaceCameraPos;
-            cb.data._PrevCamPosRWS = mainViewConstants.prevWorldSpaceCameraPos;
+            cb.data._WorldSpaceCameraPos_Internal = mainViewConstants.worldSpaceCameraPos;
+            cb.data._PrevCamPosRWS_Internal = mainViewConstants.prevWorldSpaceCameraPos;
             cb.data._ScreenSize = screenSize;
             cb.data._RTHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
             cb.data._RTHandleScaleHistory = m_HistoryRTSystem.rtHandleProperties.rtHandleScale;
