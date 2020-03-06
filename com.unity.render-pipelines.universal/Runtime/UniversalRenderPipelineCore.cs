@@ -4,6 +4,7 @@ using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
 
 using UnityEngine.Experimental.GlobalIllumination;
+using UnityEngine.Experimental.Rendering;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
@@ -274,7 +275,7 @@ namespace UnityEngine.Rendering.Universal
             bool isStereoEnabled, bool isHdrEnabled, int msaaSamples, bool needsAlpha)
         {
             RenderTextureDescriptor desc;
-            RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
+            GraphicsFormat renderTextureFormatDefault = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
 
             // NB: There's a weird case about XR and render texture
             // In test framework currently we render stereo tests to target texture
@@ -283,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
             if (isStereoEnabled)
             {
                 desc = XRGraphics.eyeTextureDesc;
-                renderTextureFormatDefault = desc.colorFormat;
+                renderTextureFormatDefault = desc.graphicsFormat;
             }
             else if (camera.targetTexture == null)
             {
