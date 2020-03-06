@@ -2059,7 +2059,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderDebugViewMaterial(cullingResults, hdCamera, renderContext, cmd);
             }
             else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-                     hdCamera.volumeStack.GetComponent<PathTracing>().enable.value)
+                     hdCamera.volumeStack.GetComponent<PathTracing>().enable.value &&
+                     hdCamera.camera.cameraType != CameraType.Preview)
             {
                 // Update the light clusters that we need to update
                 BuildRayTracingLightCluster(cmd, hdCamera);

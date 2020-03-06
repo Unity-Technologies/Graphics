@@ -690,6 +690,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingMaxRecursion          = Shader.PropertyToID("_RaytracingMaxRecursion");
         public static readonly int _RaytracingPrimaryDebug          = Shader.PropertyToID("_RaytracingPrimaryDebug");
         public static readonly int _RaytracingCameraNearPlane       = Shader.PropertyToID("_RaytracingCameraNearPlane");
+        public static readonly int _RaytracingCameraSkyEnabled      = Shader.PropertyToID("_RaytracingCameraSkyEnabled");
+        public static readonly int _RaytracingCameraClearColor      = Shader.PropertyToID("_RaytracingCameraClearColor");
 
         // Indirect diffuse
         public static readonly int _RaytracedIndirectDiffuse            = Shader.PropertyToID("_RaytracedIndirectDiffuse");

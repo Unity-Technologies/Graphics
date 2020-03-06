@@ -35,6 +35,22 @@ struct RayIntersection
 	float velocity;
 };
 
+// Structure that defines the current state of the intersection, for path tracing
+struct PathIntersection
+{
+	float t;
+	// Value that holds the color of the ray
+	float3 color;
+	// Cone representation of the ray
+	RayCone cone;
+	// The remaining available depth for the current Ray
+	uint remainingDepth;
+	// Pixel coordinate from which the initial ray was launched
+	uint2 pixelCoord;
+	// Max roughness (encountered along the path, used in path tracing)
+	float maxRoughness;
+};
+
 struct AttributeData
 {
 	// Barycentric value of the intersection

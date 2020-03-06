@@ -123,8 +123,52 @@ bool PickDistantLights(LightList list, inout float sample)
 
 float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)
 {
-    float4 distances = float4(dist, Sq(dist), 1.0 / dist, -dist * dot(outgoingDir, lightData.forward));
-    return lightData.color * PunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias, lightData.angleScale, lightData.angleOffset);
+    float3 emission = lightData.color;
+
+    // Punctual attenuation
+    float4 distances = float4(dist, Sq(dist), rcp(dist), -dist * dot(outgoingDir, lightData.forward));
+    emission *= PunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias, lightData.angleScale, lightData.angleOffset);
+
+    // Cookie
+    if (lightData.cookieMode != COOKIEMODE_NONE)
+    {
+        LightLoopContext context;
+        emission *= EvaluateCookie_Punctual(context, lightData, -dist * outgoingDir);
+    }
+
+    return emission;
+}
+
+float3 GetDirectionalEmission(DirectionalLightData lightData, float3 outgoingVec)
+{
+    float3 emission = lightData.color;
+
+    // Cookie
+    if (lightData.cookieMode != COOKIEMODE_NONE)
+    {
+        LightLoopContext context;
+        emission *= EvaluateCookie_Directional(context, lightData, -outgoingVec);
+    }
+
+    return emission;
+}
+
+float3 GetAreaEmission(LightData lightData, float centerU, float centerV, float sqDist)
+{
+    float3 emission = lightData.color;
+
+    // Cookie
+    if (lightData.cookieMode != COOKIEMODE_NONE)
+    {
+        float2 uv = float2(0.5 - centerU, 0.5 + centerV);
+        emission *= SampleCookie2D(uv, lightData.cookieScaleOffset);
+    }
+
+    // Range windowing (see LightLoop.cs to understand why it is written this way)
+    if (lightData.rangeAttenuationBias == 1.0)
+        emission *= SmoothDistanceWindowing(sqDist, rcp(Sq(lightData.range)), lightData.rangeAttenuationBias) ;
+
+    return emission;
 }
 
 bool SampleLights(LightList lightList,
@@ -147,12 +191,15 @@ bool SampleLights(LightList lightList,
         if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
         {
             // Generate a point on the surface of the light
+            float centerU = inputSample.x - 0.5;
+            float centerV = inputSample.y - 0.5;
             float3 lightCenter = GetAbsolutePositionWS(lightData.positionRWS);
-            float3 samplePos = lightCenter + (inputSample.x - 0.5) * lightData.size.x * lightData.right + (inputSample.y - 0.5) * lightData.size.y * lightData.up;
+            float3 samplePos = lightCenter + centerU * lightData.size.x * lightData.right + centerV * lightData.size.y * lightData.up;
 
             // And the corresponding direction
             outgoingDir = samplePos - position;
-            dist = length(outgoingDir);
+            float sqDist = Length2(outgoingDir);
+            dist = sqrt(sqDist);
             outgoingDir /= dist;
 
             if (dot(normal, outgoingDir) < 0.001)
@@ -163,8 +210,9 @@ bool SampleLights(LightList lightList,
                 return false;
 
             float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
-            value = lightData.color;
-            pdf = GetLocalLightWeight(lightList) * Sq(dist) / (lightArea * cosTheta);
+
+            value = GetAreaEmission(lightData, centerU, centerV, sqDist);
+            pdf = GetLocalLightWeight(lightList) * sqDist / (lightArea * cosTheta);
         }
         else // Punctual light
         {
@@ -205,18 +253,21 @@ bool SampleLights(LightList lightList,
         // Pick a distant light from the list
         DirectionalLightData lightData = GetDistantLightData(lightList, inputSample.z);
 
+        // The position-to-light unnormalized vector is used for cookie evaluation
+        float3 OutgoingVec = GetAbsolutePositionWS(lightData.positionRWS) - position;
+
         if (lightData.angularDiameter > 0.0)
         {
             SampleCone(inputSample, cos(lightData.angularDiameter * 0.5), outgoingDir, pdf); // computes rcpPdf
-            value = lightData.color / pdf;
+            value = GetDirectionalEmission(lightData, OutgoingVec) / pdf;
             pdf = GetDistantLightWeight(lightList) / pdf;
             outgoingDir = normalize(outgoingDir.x * normalize(lightData.right) + outgoingDir.y * normalize(lightData.up) - outgoingDir.z * lightData.forward);
         }
         else
         {
-            outgoingDir = -lightData.forward;
-            value = lightData.color * DELTA_PDF;
+            value = GetDirectionalEmission(lightData, OutgoingVec) * DELTA_PDF;
             pdf = GetDistantLightWeight(lightList) * DELTA_PDF;
+            outgoingDir = -lightData.forward;
         }
 
         if (dot(normal, outgoingDir) < 0.001)
@@ -257,13 +308,15 @@ void EvaluateLights(LightList lightList,
                 float3 hitVec = rayDescriptor.Origin + t * rayDescriptor.Direction - lightCenter;
 
                 // Then check if we are within the rectangle bounds
-                if (2.0 * abs(dot(hitVec, lightData.right) / Length2(lightData.right)) < lightData.size.x &&
-                    2.0 * abs(dot(hitVec, lightData.up) / Length2(lightData.up)) < lightData.size.y)
+                float centerU = dot(hitVec, lightData.right) / (lightData.size.x * Length2(lightData.right));
+                float centerV = dot(hitVec, lightData.up) / (lightData.size.y * Length2(lightData.up));
+                if (abs(centerU) < 0.5 && abs(centerV) < 0.5)
                 {
-                    value += lightData.color;
+                    float t2 = Sq(t);
+                    value += GetAreaEmission(lightData, centerU, centerV, t2);
 
                     float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
-                    pdf += GetLocalLightWeight(lightList) * Sq(t) / (lightArea * cosTheta);
+                    pdf += GetLocalLightWeight(lightList) * t2 / (lightArea * cosTheta);
 
                     // If we consider that a ray is very unlikely to hit 2 area lights one after another, we can exit the loop
                     break;
@@ -284,7 +337,7 @@ void EvaluateLights(LightList lightList,
             if (cosTheta >= cosHalfAngle)
             {
                 float rcpPdf = TWO_PI * (1.0 - cosHalfAngle);
-                value += lightData.color / rcpPdf;
+                value += GetDirectionalEmission(lightData, rayDescriptor.Direction) / rcpPdf;
                 pdf += GetDistantLightWeight(lightList) / rcpPdf;
             }
         }
