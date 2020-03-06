@@ -12,10 +12,6 @@ namespace UnityEditor.ShaderGraph
         public string passTemplatePath => null;
         public string sharedTemplateDirectory => null;
 
-        public bool IsValid(IMasterNode masterNode)
-        {
-            return masterNode is VfxMasterNode;
-        }
         public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
         {
             return (currentPipeline != null);

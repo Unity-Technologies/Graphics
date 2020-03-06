@@ -150,11 +150,6 @@ namespace UnityEditor.ShaderGraph
         public string renderQueueTag => null;
         public string renderTypeTag => null;
 
-        public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks)
-        {
-            return null;
-        }
-
         public void ProcessPreviewMaterial(Material material)
         {
 

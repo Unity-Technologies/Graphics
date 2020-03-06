@@ -655,6 +655,9 @@ namespace UnityEditor.ShaderGraph
             foreach(var implementation in activeTargetImplementations)
             {
                 var data = activeTargetImplementationDatas.FirstOrDefault(s => s.implementation == implementation);
+                if(data == null)
+                    continue;
+
                 supportedBlockTypes.AddRange(implementation.GetSupportedBlocks(data).Select(x => $"{x.tag}.{x.name}"));
             }
 

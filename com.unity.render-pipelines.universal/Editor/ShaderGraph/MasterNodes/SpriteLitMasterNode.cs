@@ -30,19 +30,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         public SpriteLitMasterNode()
         {
             UpdateNodeAfterDeserialization();
-            
-            // TODO: Remove, temporary.
-            RegisterCallback(OnNodeChanged);
-        }
-
-        // TODO: This should be based on callbacks/bindings to the Settings object
-        // TODO: For now this data lived on the master node so we do this for simplicity
-        void OnNodeChanged(AbstractMaterialNode inNode, ModificationScope scope)
-        {
-            if(owner != null)
-            {
-                owner.UpdateSupportedBlocks();
-            }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -71,24 +58,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         public string renderQueueTag => $"{RenderQueue.Transparent}";
         public string renderTypeTag => $"{RenderType.Transparent}";
-
-        public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks)
-        {
-            return new ConditionalField[]
-            {
-                // Features
-                new ConditionalField(Fields.GraphVertex,         blocks.Contains(BlockFields.VertexDescription.Position) ||
-                                                                    blocks.Contains(BlockFields.VertexDescription.Normal) ||
-                                                                    blocks.Contains(BlockFields.VertexDescription.Tangent)),
-                new ConditionalField(Fields.GraphPixel,          true),
-                
-                // Surface Type
-                new ConditionalField(Fields.SurfaceTransparent,  true),
-                
-                // Blend Mode
-                new ConditionalField(Fields.BlendAlpha,          true),
-            };
-        }
 
         public void ProcessPreviewMaterial(Material material)
         {
@@ -141,20 +110,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 validSlots.Add(slots[i]);
             }
             return validSlots.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
-        }
-
-        // TODO: Temporary
-        // TODO: Required to prevent duplicate properties now they are also taken from Blocks
-        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
-        {
-            return;
-        }
-
-        // TODO: Temporary
-        // TODO: Required to prevent duplicate properties now they are also taken from Blocks
-        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
-        {
-            return;
         }
     }
 }

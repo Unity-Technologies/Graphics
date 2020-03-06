@@ -75,22 +75,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        // TODO: This was added specifically to test block compatibility
-        // TODO: Will be moved to Settings object
-        [SerializeField]
-        bool m_AlphaClip;
-        public ToggleData alphaClip
-        {
-            get { return new ToggleData(m_AlphaClip); }
-            set
-            {
-                if (m_AlphaClip == value.isOn)
-                    return;
-                m_AlphaClip = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
         [SerializeField]
         bool m_AddPrecomputedVelocity = false;
 
@@ -125,19 +109,6 @@ namespace UnityEditor.ShaderGraph
         public UnlitMasterNode()
         {
             UpdateNodeAfterDeserialization();
-
-            // TODO: Remove, temporary.
-            RegisterCallback(OnNodeChanged);
-        }
-
-        // TODO: This should be based on callbacks/bindings to the Settings object
-        // TODO: For now this data lived on the master node so we do this for simplicity
-        void OnNodeChanged(AbstractMaterialNode inNode, ModificationScope scope)
-        {
-            if(owner != null)
-            {
-                owner.UpdateSupportedBlocks();
-            }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -194,34 +165,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks)
-        {
-            return new ConditionalField[]
-            {
-                // Features
-                new ConditionalField(Fields.GraphVertex,         blocks.Contains(BlockFields.VertexDescription.Position) ||
-                                                                    blocks.Contains(BlockFields.VertexDescription.Normal) ||
-                                                                    blocks.Contains(BlockFields.VertexDescription.Tangent)),
-                new ConditionalField(Fields.GraphPixel,          true),
-                
-                // Surface Type
-                new ConditionalField(Fields.SurfaceOpaque,       surfaceType == ShaderGraph.SurfaceType.Opaque),
-                new ConditionalField(Fields.SurfaceTransparent,  surfaceType != ShaderGraph.SurfaceType.Opaque),
-                
-                // Blend Mode
-                new ConditionalField(Fields.BlendAdd,            surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
-                new ConditionalField(Fields.BlendAlpha,          surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
-                new ConditionalField(Fields.BlendMultiply,       surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Multiply),
-                new ConditionalField(Fields.BlendPremultiply,    surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
-
-                // Misc
-                new ConditionalField(Fields.AlphaClip,           alphaClip.isOn),
-                new ConditionalField(Fields.AlphaTest,           alphaClip.isOn),
-                new ConditionalField(Fields.VelocityPrecomputed, addPrecomputedVelocity.isOn),
-                new ConditionalField(Fields.DoubleSided,         twoSided.isOn),
-            };
-        }
-
         public void ProcessPreviewMaterial(Material material)
         {
 
@@ -273,20 +216,6 @@ namespace UnityEditor.ShaderGraph
                 validSlots.Add(slots[i]);
             }
             return validSlots.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
-        }
-
-        // TODO: Temporary
-        // TODO: Required to prevent duplicate properties now they are also taken from Blocks
-        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
-        {
-            return;
-        }
-
-        // TODO: Temporary
-        // TODO: Required to prevent duplicate properties now they are also taken from Blocks
-        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
-        {
-            return;
         }
     }
 }

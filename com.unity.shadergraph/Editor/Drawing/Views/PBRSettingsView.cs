@@ -64,15 +64,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     });
                 });
             
-            ps.Add(new PropertyRow(new Label("Alpha Clip")), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.alphaClip.isOn;
-                        toggle.OnToggleChanged(ChangeAlphaClip);
-                    });
-                });
-            
             ps.Add(new PropertyRow(new Label("DOTS instancing")), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
@@ -119,14 +110,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Normal Space Drop-Off Mode Change");
             m_Node.normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
-        }
-
-        void ChangeAlphaClip(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Clip Change");
-            ToggleData td = m_Node.alphaClip;
-            td.isOn = evt.newValue;
-            m_Node.alphaClip = td;
         }
 
         void ChangeTwoSided(ChangeEvent<bool> evt)

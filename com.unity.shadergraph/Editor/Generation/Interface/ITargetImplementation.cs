@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph
         string passTemplatePath { get; }
         string sharedTemplateDirectory { get; }
 
-        bool IsValid(IMasterNode masterNode);
         bool IsPipelineCompatible(RenderPipelineAsset currentPipeline);
         void SetupTarget(ref TargetSetupContext context);
 

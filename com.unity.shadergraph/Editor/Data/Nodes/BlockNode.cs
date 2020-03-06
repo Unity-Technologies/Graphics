@@ -29,19 +29,6 @@ namespace UnityEditor.ShaderGraph
 
         public BlockNode()
         {
-            // TODO: Temporary. Remove.
-            RegisterCallback(OnNodeChanged);
-        }
-
-        // TODO: Temporary hack to update previews 
-        // TODO: Can be removed when preview manager no longer requires Master nodes
-        void OnNodeChanged(AbstractMaterialNode inNode, ModificationScope scope)
-        {
-            if(owner != null)
-            {
-                var outputNode = owner.outputNode;
-                outputNode?.Dirty(scope);
-            }
         }
 
         public ContextData contextData

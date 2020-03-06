@@ -118,10 +118,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         // TODO: How will the inspector actually work? (Sai)
         public void OnChange()
         {
-            foreach (var node in m_GraphData.GetNodes<AbstractMaterialNode>())
-            {
-                node.Dirty(ModificationScope.Graph);
-            }
+            m_GraphData.UpdateSupportedBlocks();
+            m_GraphData.outputNode.Dirty(ModificationScope.Graph);
             Remove(m_PropertySheet);
             Rebuild();
         }

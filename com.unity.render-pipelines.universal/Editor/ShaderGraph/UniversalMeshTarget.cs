@@ -15,14 +15,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
 
-        public bool IsValid(IMasterNode masterNode)
-        {
-            return (masterNode is PBRMasterNode ||
-                    masterNode is UnlitMasterNode ||
-                    masterNode is SpriteLitMasterNode ||
-                    masterNode is SpriteUnlitMasterNode);
-        }
-
         public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
         {
             return currentPipeline is UniversalRenderPipelineAsset;

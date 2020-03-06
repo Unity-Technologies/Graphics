@@ -18,10 +18,6 @@ namespace UnityEditor.ShaderGraph
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
 
-        public bool IsValid(IMasterNode masterNode)
-        {
-            return false;
-        }
         public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
         {
             return (currentPipeline != null);
