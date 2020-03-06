@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetHandle depthAttachmentHandle)
         {
             this.depthAttachmentHandle = depthAttachmentHandle;
-            baseDescriptor.colorFormat = RenderTextureFormat.R8;
+            baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = kDepthBufferBits;
 
             // Depth-Only pass don't use MSAA
@@ -48,9 +48,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
-//            depthAttachmentHandle.InitDescriptor(RenderTextureFormat.Depth);
-//            ConfigureRenderPassDescriptor(cameraTextureDescriptor.width, cameraTextureDescriptor.height, cameraTextureDescriptor.msaaSamples);
-//            ConfigureDepthAttachment(depthAttachmentHandle, false, true, true);
             ConfigureTarget(depthAttachmentHandle);
             ConfigureClear(ClearFlag.All, Color.black);
         }

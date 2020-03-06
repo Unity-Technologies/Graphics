@@ -28,8 +28,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
-            loadAction = RenderBufferLoadAction.Clear;
-            storeAction = RenderBufferStoreAction.Store;
+            m_LoadAction = RenderBufferLoadAction.Clear;
+            m_StoreAction = RenderBufferStoreAction.Store;
         }
 
         /// <summary>

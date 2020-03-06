@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Profiling;
 using Unity.Collections;
@@ -129,7 +128,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.ReleaseTemporaryRT(m_ColorAttachments[gbufferIndex].id);
 
             cmd.ReleaseTemporaryRT(m_DepthBufferAttachment.id);
-            base.m_ColorAttachments = new RenderTargetHandle[] { RenderTargetHandle.CameraTarget };
             // Note: a special case might be required if(m_CameraDepthTexture==RenderTargetHandle.CameraTarget) - see reference in DepthOnlyPass.Execute
         }
     }

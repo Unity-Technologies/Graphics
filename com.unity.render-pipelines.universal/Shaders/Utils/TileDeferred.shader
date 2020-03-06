@@ -189,10 +189,10 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
     half4 PunctualLightShading(Varyings input) : SV_Target
     {
-        float d        = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;//LOAD_TEXTURE2D_X(_DepthTex, input.positionCS.xy).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
-        half4 gbuffer0 = UNITY_READ_FRAMEBUFFER_INPUT(0, input.positionCS.xy);//LOAD_TEXTURE2D_X(_GBuffer0, input.positionCS.xy);
-        half4 gbuffer1 = UNITY_READ_FRAMEBUFFER_INPUT(1, input.positionCS.xy);//LOAD_TEXTURE2D_X(_GBuffer1, input.positionCS.xy);
-        half4 gbuffer2 = UNITY_READ_FRAMEBUFFER_INPUT(2, input.positionCS.xy);//LOAD_TEXTURE2D_X(_GBuffer2, input.positionCS.xy);
+        float d        = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
+        half4 gbuffer0 = UNITY_READ_FRAMEBUFFER_INPUT(0, input.positionCS.xy);
+        half4 gbuffer1 = UNITY_READ_FRAMEBUFFER_INPUT(1, input.positionCS.xy);
+        half4 gbuffer2 = UNITY_READ_FRAMEBUFFER_INPUT(2, input.positionCS.xy);
 
         #if !defined(USING_STEREO_MATRICES) // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
             float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));

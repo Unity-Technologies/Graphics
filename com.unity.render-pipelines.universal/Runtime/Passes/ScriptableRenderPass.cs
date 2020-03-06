@@ -85,14 +85,14 @@ namespace UnityEngine.Rendering.Universal
         RenderPassDescriptor m_RenderPassDescriptor;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
-        internal RenderBufferLoadAction loadAction = RenderBufferLoadAction.DontCare;
-        internal RenderBufferStoreAction storeAction = RenderBufferStoreAction.DontCare;
+        internal RenderBufferLoadAction m_LoadAction = RenderBufferLoadAction.DontCare;
+        internal RenderBufferStoreAction m_StoreAction = RenderBufferStoreAction.DontCare;
 
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RenderTargetHandle[] { RenderTargetHandle.CameraTarget, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty, RenderTargetHandle.Empty };
-            //m_DepthAttachment = RenderTargetHandle.CameraTarget;
+            m_DepthAttachment = RenderTargetHandle.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -245,8 +245,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void FrameCleanup(CommandBuffer cmd)
         {
-          //  m_ColorAttachments.Clear();
-            m_InputAttachments.Clear();
         }
 
         /// <summary>
@@ -284,7 +282,7 @@ namespace UnityEngine.Rendering.Universal
         }
         public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
         {
-            ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CurrentActive, clearFlag, clearColor);
+            ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
             cmd.Blit(source, destination, material, passIndex);
         }
 

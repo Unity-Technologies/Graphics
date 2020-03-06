@@ -41,15 +41,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             var descriptor = cameraTextureDescriptor;
-            descriptor.colorFormat = RenderTextureFormat.R8;
-            descriptor.depthBufferBits = 0; //TODO: do we really need this. double check;
+            descriptor.colorFormat = RenderTextureFormat.Depth;
+            descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
             if (this.AllocateRT)
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-           // ConfigureTarget(destination);
-           // ConfigureClear(ClearFlag.None, Color.black);
+           ConfigureTarget(destination);
+           ConfigureClear(ClearFlag.None, Color.black);
         }
 
         /// <inheritdoc/>
@@ -95,9 +95,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
                 cmd.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
-
-               // CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
             }
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

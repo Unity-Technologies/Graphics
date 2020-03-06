@@ -34,8 +34,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_RenderStateBlock.mask = RenderStateMask.Stencil;
                 m_RenderStateBlock.stencilState = stencilState;
             }
-            loadAction = load;
-            storeAction = store;
+            m_LoadAction = load;
+            m_StoreAction = store;
         }
 
         public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference, RenderBufferLoadAction load = RenderBufferLoadAction.Clear, RenderBufferStoreAction store = RenderBufferStoreAction.Store)
@@ -57,8 +57,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_RenderStateBlock.mask = RenderStateMask.Stencil;
                 m_RenderStateBlock.stencilState = stencilState;
             }
-            loadAction = load;
-            storeAction = store;
+            m_LoadAction = load;
+            m_StoreAction = store;
         }
 
         /// <inheritdoc/>

@@ -508,12 +508,12 @@ namespace UnityEngine.Rendering.Universal
                             if (!rp.useNativeRenderPass)
                                 continue;
                             //TODO: MRT actions, for the time being it needs to be done per attachment in the *Renderer.cs
-                            if (rp.loadAction != RenderBufferLoadAction.DontCare && rp.storeAction != RenderBufferStoreAction.DontCare)
+                            if (rp.m_LoadAction != RenderBufferLoadAction.DontCare && rp.m_StoreAction != RenderBufferStoreAction.DontCare)
                             {
                                 rp.m_ColorAttachments[0].InitDescriptor(RenderTextureFormat.Default);
-                                rp.m_ColorAttachments[0].ConfigureLoadStoreActions(rp.storeAction, rp.loadAction);
+                                rp.m_ColorAttachments[0].ConfigureLoadStoreActions(rp.m_StoreAction, rp.m_LoadAction);
                                 rp.m_DepthAttachment.InitDescriptor(RenderTextureFormat.Depth);
-                                rp.m_DepthAttachment.ConfigureLoadStoreActions(rp.storeAction, rp.loadAction);
+                                rp.m_DepthAttachment.ConfigureLoadStoreActions(rp.m_StoreAction, rp.m_LoadAction);
                             }
 
                             for (int i = 0; i < rp.colorAttachments.Length; i++)
