@@ -92,11 +92,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // UX team decided that we should always show component in inspector.
             // However already authored scene save this settings, so force the component to be visible
-            // var flags = hide ? HideFlags.HideInInspector : HideFlags.None;
-            var flags = HideFlags.None;
-
             foreach (var t in m_SerializedHDLight.serializedObject.targetObjects)
-                ((HDAdditionalLightData)t).hideFlags = flags;
+                if (((HDAdditionalLightData)t).hideFlags == HideFlags.HideInInspector)
+                    ((HDAdditionalLightData)t).hideFlags = HideFlags.None;
         }
 
         protected override void OnSceneGUI()
