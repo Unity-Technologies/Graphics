@@ -456,7 +456,7 @@ Build_{{ project.name }}_iPhone_Metal_{{ editor.version }}:
   {% endif %}
   commands:
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple 
-    - unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
+    - unity-downloader-cli --source-file $YAMATO_SOURCE_DIR/unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
     - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr-staging --output utr
     - chmod +x ./utr
     - ./utr --suite=playmode --platform=iOS --editor-location=.Editor --testproject=TestProjects/{{ project.folder }} --player-save-path=build/players --artifacts_path=build/logs --build-only
