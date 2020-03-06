@@ -297,7 +297,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         {
             Name "Deferred Directional Light (Lit)"
 
-            ZTest Less
             ZTest NotEqual
             ZWrite Off
             Cull Off
@@ -337,7 +336,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         {
             Name "Deferred Directional Light (SimpleLit)"
 
-            ZTest Less
             ZTest NotEqual
             ZWrite Off
             Cull Off
@@ -377,7 +375,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         {
             Name "Fog"
 
-            ZTest Less
             ZTest NotEqual
             ZWrite Off
             Cull Off
