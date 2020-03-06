@@ -355,15 +355,7 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.indentLevel++;
 
-                bool enabled = m_PostProcessEnabled.boolValue;
-                EditorGUI.BeginChangeCheck();
-                enabled = EditorGUILayout.Toggle(Styles.postProcessEnabled, enabled);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Undo.RecordObject(m_Asset, "Include Post-processing");
-                    m_Asset.postProcessEnabled = enabled;
-                    EditorUtility.SetDirty(m_Asset);
-                }
+                EditorGUILayout.PropertyField(m_PostProcessEnabled, Styles.postProcessEnabled);
 
                 EditorGUI.BeginDisabledGroup(!m_PostProcessEnabled.boolValue);
                 {

@@ -333,9 +333,10 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
-            // Load pipeline resources if missing
-            if(m_PostProcessData == null && m_PostProcessEnabled)
-                m_PostProcessData = LoadResourceFile<PostProcessData>();
+            // Load post-processing resources if missing and needed, otherwise if not needed remove
+            m_PostProcessData = m_PostProcessEnabled
+                ? m_PostProcessData == null ? LoadResourceFile<PostProcessData>() : m_PostProcessData
+                : null;
 #endif
 
             return new UniversalRenderPipeline(this);
@@ -578,7 +579,7 @@ namespace UnityEngine.Rendering.Universal
             set { m_UseSRPBatcher = value; }
         }
 
-        public bool postProcessEnabled
+        internal bool postProcessEnabled
         {
             get { return m_PostProcessEnabled; }
             set
