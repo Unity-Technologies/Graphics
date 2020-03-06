@@ -434,6 +434,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hide reflection probes in the renderer components.
 - Fixed infinite reload loop while displaying Light's Shadow's Link Light Layer in Inspector of Prefab Asset.
 - Fixed the culling was not disposed error in build log.
+- Fixed the cookie atlas size and planar atlas size being too big after an upgrade of the HDRP asset.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
