@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Sub Graphs sometimes had duplicate names when you converted nodes into Sub Graphs. 
 - Fixed an issue where the number of ports on Keyword nodes didn't update when you added or removed Enum Keyword entries.
 - Fixed an issue where colors in graphs didn't update when you changed a Blackboard Property's precision while the Color Mode is set to Precision.
+- Fixed a bug where fog density node always returns 0 in the shader preview window when connected to an Unlit Master node. 
 
 ## [7.2.0] - 2020-02-10
 
