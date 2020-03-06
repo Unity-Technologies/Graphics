@@ -395,7 +395,7 @@ Build_{{ project.name }}_Linux_{{ linux_api.name }}_Player_{{ editor.version }}:
 
 # Separate block for linux, because the linux agents currently need extra configuration
 {{ project.name }}_Linux_{{ linux_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
-  name : {{ project.name }} on Linux_{{ linux_api.name }}{{ testplatform.name }} on version {{ editor.version }}
+  name : {{ project.name }} on Linux_{{ linux_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" %}
     type: Unity::VM
