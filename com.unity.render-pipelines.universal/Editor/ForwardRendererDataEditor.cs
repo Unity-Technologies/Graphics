@@ -10,7 +10,6 @@ namespace UnityEditor.Rendering.Universal
     {
         private static class Styles
         {
-            public static readonly GUIContent RendererTitle = new GUIContent("Forward Renderer", "Custom Forward Renderer for Universal RP.");
             public static readonly GUIContent FilteringLabel = new GUIContent("Filtering", "Controls filter rendering settings for this renderer.");
             public static readonly GUIContent OpaqueMask = new GUIContent("Opaque Layer Mask", "Controls which opaque layers this renderer draws.");
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
@@ -41,12 +40,6 @@ namespace UnityEditor.Rendering.Universal
             serializedObject.Update();
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.RendererTitle, EditorStyles.boldLabel); // Title
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_PostProcessData);
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
-
             EditorGUILayout.LabelField(Styles.FilteringLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_OpaqueLayerMask, Styles.OpaqueMask);
@@ -61,7 +54,9 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Volumes", EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_ShouldUpdateVolumesProp, Styles.shouldUpdateVolumesLabel);
+            EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Overrides", EditorStyles.boldLabel);
