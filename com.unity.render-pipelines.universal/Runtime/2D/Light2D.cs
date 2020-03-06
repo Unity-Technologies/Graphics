@@ -373,7 +373,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 ErrorIfDuplicateGlobalLight();
         }
 
-        internal BoundingSphere GetBoundingSphere()
+        public BoundingSphere GetBoundingSphere()
         {
             return IsShapeLight() ? GetShapeLightBoundingSphere() : GetPointLightBoundingSphere();
         }

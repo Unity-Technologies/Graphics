@@ -14,6 +14,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [AddComponentMenu("Rendering/2D/Shadow Caster 2D (Experimental)")]
     public class ShadowCaster2D : ShadowCasterGroup2D
     {
+
+#if UNITY_EDITOR
+        static bool m_HasPromptedForUpgrader;  // This isn't serialized in case they press no.
+        static bool m_RequiresShadowUpgrade = false;
+#endif
+
         [SerializeField] bool m_HasRenderer = false;
         [SerializeField] bool m_UseRendererSilhouette = true;
         [SerializeField] bool m_CastsShadows = true;
@@ -28,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
 
-        internal Mesh mesh => m_Mesh;
+        public Mesh mesh { get { return m_Mesh; } set { m_Mesh = value; } }
         internal Vector3[] shapePath => m_ShapePath;
         internal int shapePathHash { get { return m_ShapePathHash; } set { m_ShapePathHash = value; } }
 
@@ -84,7 +90,27 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void Awake()
         {
-            if(m_ApplyToSortingLayers == null)
+            //#if UNITY_EDITOR
+            if(!m_HasPromptedForUpgrader)
+            { 
+                if(m_Mesh.colors == null)
+                {
+                    m_RequiresShadowUpgrade = true;
+                }
+
+                if(!Application.isPlaying && m_RequiresShadowUpgrade)
+                {
+                    m_HasPromptedForUpgrader = true;
+                    if (UnityEditor.EditorUtility.DisplayDialog("Deprecated Shadow Mesh", "Deprecated shadow caster mesh found. This requires an upgrade.", "Proceed", "Cancel"))
+                    {
+                        ShadowCaster2DUpgrader.UpgradeShadowCasters();
+                    }
+                }
+            }
+            //#endif
+
+
+            if (m_ApplyToSortingLayers == null)
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
 
             Bounds bounds = new Bounds(transform.position, Vector3.one);
@@ -167,5 +193,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     ShadowCasterGroup2DManager.RemoveGroup(this);
             }
         }
+       
     }
 }
