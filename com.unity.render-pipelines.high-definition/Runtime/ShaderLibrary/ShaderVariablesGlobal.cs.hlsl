@@ -100,8 +100,7 @@ cbuffer ShaderVariablesGlobal
     uint _NumTileClusteredY;
     int _EnvSliceSize;
     int _RaytracedIndirectDiffuse;
-    float4 _ColorPyramidScale;
-    float4 _DepthPyramidScale;
+    float _ColorPyramidLodCount;
     float4 _AmbientOcclusionParam;
     float4 _IndirectLightingMultiplier;
     float _SSRefractionInvScreenWeightDistance;

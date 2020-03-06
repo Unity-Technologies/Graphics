@@ -268,7 +268,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public TextureHandle input;
             public TextureHandle output;
-            public Vector4 scaleBias;
             public int mipIndex;
         }
 
@@ -278,7 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: See how we can make this nicer than a specific functions just for one case.
             if (NeedsFullScreenDebugMode() && m_FullScreenDebugPushed == false)
             {
-                PushFullScreenDebugTexture(renderGraph, input, Vector4.one);
+                PushFullScreenDebugTexture(renderGraph, input);
             }
         }
 
@@ -286,7 +285,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
-                PushFullScreenDebugTexture(renderGraph, input, Vector4.one);
+                PushFullScreenDebugTexture(renderGraph, input);
             }
         }
 
@@ -296,15 +295,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * (lodCount));
 
-                PushFullScreenDebugTexture(renderGraph, input, scaleBias, mipIndex);
+                PushFullScreenDebugTexture(renderGraph, input, mipIndex);
             }
         }
 
-        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, Vector4 scaleBias, int mipIndex = -1)
+        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, int mipIndex = -1)
         {
             using (var builder = renderGraph.AddRenderPass<PushFullScreenDebugPassData>("Push Full Screen Debug", out var passData))
             {
-                passData.scaleBias = mipIndex != -1 ? scaleBias : new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
                 passData.mipIndex = mipIndex;
                 passData.input = builder.ReadTexture(input);
                 passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -313,10 +311,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
                 {
+                    var texture = ctx.resources.GetTexture(passData.input);
+                    var scale = new Vector4(texture.rtHandleProperties.rtHandleScale.x, texture.rtHandleProperties.rtHandleScale.y, 0f, 0f);
                     if (data.mipIndex != -1)
-                        HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(passData.input), ctx.resources.GetTexture(passData.output), data.scaleBias, data.mipIndex);
+                        HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(passData.output), scale, data.mipIndex);
                     else
-                        HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(passData.input), ctx.resources.GetTexture(passData.output));
+                        HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(passData.output));
                 });
 
                 m_DebugFullScreenTexture = passData.output;

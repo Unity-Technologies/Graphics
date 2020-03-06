@@ -3210,7 +3210,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public HDCamera hdCamera;
             public HDShadowManager shadowManager;
-            public int sunLightIndex;
         }
 
         ShadowGlobalParameters PrepareShadowGlobalParameters(HDCamera hdCamera)
@@ -3218,9 +3217,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowGlobalParameters parameters = new ShadowGlobalParameters();
             parameters.hdCamera = hdCamera;
             parameters.shadowManager = m_ShadowManager;
-            HDAdditionalLightData sunLightData = GetHDAdditionalLightData(m_CurrentSunLight);
-            bool sunLightShadow = sunLightData != null && m_CurrentShadowSortedSunLightIndex >= 0;
-            parameters.sunLightIndex = sunLightShadow ? m_CurrentShadowSortedSunLightIndex : -1;
             return parameters;
         }
 
@@ -3228,7 +3224,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public HDCamera                 hdCamera;
             public TileAndClusterData       tileAndClusterData;
-            public float                    clusterScale;
         }
 
         LightLoopGlobalParameters PrepareLightLoopGlobalParameters(HDCamera hdCamera)
@@ -3236,45 +3231,73 @@ namespace UnityEngine.Rendering.HighDefinition
             LightLoopGlobalParameters parameters = new LightLoopGlobalParameters();
             parameters.hdCamera = hdCamera;
             parameters.tileAndClusterData = m_TileAndClusterData;
-            parameters.clusterScale = m_ClusterScale;
             return parameters;
+        }
+
+        unsafe void UpdateShaderVariablesGlobalLightLoop(ConstantBuffer<ShaderVariablesGlobal> cb, HDCamera hdCamera)
+        {
+            // Atlases
+            cb.data._CookieAtlasSize = m_TextureCaches.lightCookieManager.GetCookieAtlasSize();
+            cb.data._CookieAtlasData = m_TextureCaches.lightCookieManager.GetCookieAtlasDatas();
+            cb.data._PlanarAtlasData = m_TextureCaches.reflectionPlanarProbeCache.GetAtlasDatas();
+            cb.data._EnvSliceSize = m_TextureCaches.reflectionProbeCache.GetEnvSliceSize();
+
+            // Planar reflections
+            for (int i = 0; i < asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen; ++i)
+            {
+                for (int j = 0; j < 16; ++j)
+                    cb.data._Env2DCaptureVP[i * 16 + j] = m_TextureCaches.env2DCaptureVP[i][j];
+
+                for (int j = 0; j < 3; ++j)
+                    cb.data._Env2DCaptureForward[i * 3 + j] = m_TextureCaches.env2DCaptureForward[i * 3 + j];
+
+                for (int j = 0; j < 4; ++j)
+                    cb.data._Env2DAtlasScaleOffset[i * 4 + j] = m_TextureCaches.env2DAtlasScaleOffset[i][j];
+            }
+
+            // Light info
+            cb.data._PunctualLightCount = (uint)m_lightList.punctualLightCount;
+            cb.data._AreaLightCount = (uint)m_lightList.areaLightCount;
+            cb.data._EnvLightCount = (uint)m_lightList.envLights.Count;
+            cb.data._DirectionalLightCount = (uint)m_lightList.directionalLights.Count;
+            cb.data._DecalCount = (uint)DecalSystem.m_DecalDatasCount;
+            HDAdditionalLightData sunLightData = GetHDAdditionalLightData(m_CurrentSunLight);
+            bool sunLightShadow = sunLightData != null && m_CurrentShadowSortedSunLightIndex >= 0;
+            cb.data._DirectionalShadowIndex = sunLightShadow ? m_CurrentShadowSortedSunLightIndex : -1;
+            cb.data._EnableLightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? 1u : 0u;
+            cb.data._EnvLightSkyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera) ? 1 : 0;
+
+            // Tile/Cluster
+            cb.data._NumTileFtplX = (uint)GetNumTileFtplX(hdCamera);
+            cb.data._NumTileFtplY = (uint)GetNumTileFtplY(hdCamera);
+            cb.data.g_fClustScale = m_ClusterScale;
+            cb.data.g_fClustBase = k_ClustLogBase;
+            cb.data.g_fNearPlane = hdCamera.camera.nearClipPlane;
+            cb.data.g_fFarPlane = hdCamera.camera.farClipPlane;
+            cb.data.g_iLog2NumClusters = k_Log2NumClusters;
+            cb.data.g_isLogBaseBufferEnabled = k_UseDepthBuffer ? 1 : 0;
+            cb.data._NumTileClusteredX = (uint)GetNumTileClusteredX(hdCamera);
+            cb.data._NumTileClusteredY = (uint)GetNumTileClusteredY(hdCamera);
+
+            // Misc
+            cb.data._EnableSSRefraction = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1u : 0u;
         }
 
         static void PushLightDataGlobalParams(in LightDataGlobalParameters param, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushLightDataGlobalParameters)))
             {
-                Camera camera = param.hdCamera.camera;
-
                 cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, param.textureCaches.lightCookieManager.atlasTexture);
-                cmd.SetGlobalVector(HDShaderIDs._CookieAtlasSize, param.textureCaches.lightCookieManager.GetCookieAtlasSize());
-                cmd.SetGlobalVector(HDShaderIDs._CookieAtlasData, param.textureCaches.lightCookieManager.GetCookieAtlasDatas());
                 cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, param.textureCaches.lightCookieManager.cubeCache);
-
-                cmd.SetGlobalVector(HDShaderIDs._PlanarAtlasData, param.textureCaches.reflectionPlanarProbeCache.GetAtlasDatas());
                 cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, param.textureCaches.reflectionProbeCache.GetTexCache());
-                cmd.SetGlobalInt(HDShaderIDs._EnvSliceSize, param.textureCaches.reflectionProbeCache.GetEnvSliceSize());
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, param.textureCaches.reflectionPlanarProbeCache.GetTexCache());
-                cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, param.textureCaches.env2DCaptureVP);
-                cmd.SetGlobalFloatArray(HDShaderIDs._Env2DCaptureForward, param.textureCaches.env2DCaptureForward);
-                cmd.SetGlobalVectorArray(HDShaderIDs._Env2DAtlasScaleOffset, param.textureCaches.env2DAtlasScaleOffset);
 
-                // Directional lights are made available immediately after PrepareLightsForGPU for the PBR sky.
-                // cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, param.lightData.directionalLightData);
-                // cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, param.lightList.directionalLights.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._LightDatas, param.lightData.lightData);
-                cmd.SetGlobalInt(HDShaderIDs._PunctualLightCount, param.lightList.punctualLightCount);
-                cmd.SetGlobalInt(HDShaderIDs._AreaLightCount, param.lightList.areaLightCount);
                 cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, param.lightData.envLightData);
-                cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, param.lightList.envLights.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, param.lightData.decalData);
-                cmd.SetGlobalInt(HDShaderIDs._DecalCount, DecalSystem.m_DecalDatasCount);
-
-                cmd.SetGlobalInt(HDShaderIDs._EnableSSRefraction, param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1 : 0);
 
                 // Directional lights are made available immediately after PrepareLightsForGPU for the PBR sky.
                 cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, param.lightData.directionalLightData);
-                cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, param.lightList.directionalLights.Count);
             }
         }
 
@@ -3287,7 +3310,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Shadows
                 param.shadowManager.SyncData();
                 param.shadowManager.BindResources(cmd);
-                cmd.SetGlobalInt(HDShaderIDs._DirectionalShadowIndex, param.sunLightIndex);
             }
         }
 
@@ -3300,25 +3322,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(param.hdCamera));
 
-                cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(param.hdCamera));
-                cmd.SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(param.hdCamera));
-
-                cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredX, GetNumTileClusteredX(param.hdCamera));
-                cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredY, GetNumTileClusteredY(param.hdCamera));
-
                 if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, param.tileAndClusterData.bigTileLightList);
 
                 // Cluster
                 {
-                    cmd.SetGlobalFloat(HDShaderIDs.g_fClustScale, param.clusterScale);
-                    cmd.SetGlobalFloat(HDShaderIDs.g_fClustBase, k_ClustLogBase);
-                    cmd.SetGlobalFloat(HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
-                    cmd.SetGlobalFloat(HDShaderIDs.g_fFarPlane, camera.farClipPlane);
-                    cmd.SetGlobalInt(HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
-
-                    cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, k_UseDepthBuffer ? 1 : 0);
-
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, param.tileAndClusterData.perVoxelOffset);
                     if (k_UseDepthBuffer)
                     {

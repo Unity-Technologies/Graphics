@@ -155,7 +155,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // Kajiya kay
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
-        bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);        
+        bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);
         bsdfData.specularTint = surfaceData.specularTint;
         bsdfData.secondarySpecularTint = surfaceData.secondarySpecularTint;
         bsdfData.specularShift = surfaceData.specularShift;
@@ -565,7 +565,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
-        iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+        iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidLodCount - 1, 0));
     }
     else
     {

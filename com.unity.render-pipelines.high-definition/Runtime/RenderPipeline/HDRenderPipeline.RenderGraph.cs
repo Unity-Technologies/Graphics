@@ -582,7 +582,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderLowResTransparentPassData
         {
-            public FrameSettings                frameSettings;
+            public ConstantBuffer<ShaderVariablesGlobal> globalCB;
+            public FrameSettings        frameSettings;
             public RendererListHandle   rendererList;
             public TextureHandle        lowResBuffer;
             public TextureHandle        downsampledDepthBuffer;
@@ -594,6 +595,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var passNames = m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames;
 
+                passData.globalCB = m_ShaderVariablesGlobalCB;
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
                     CreateTransparentRendererListDesc(cullingResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_LowTransparent)));
@@ -605,13 +607,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (RenderLowResTransparentPassData data, RenderGraphContext context) =>
                 {
-                    context.cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 1);
-                    context.cmd.SetGlobalInt(HDShaderIDs._OffScreenDownsampleFactor, 2);
+                    UpdateOffscreenRenderingConstants(data.globalCB, true, 2u);
+                    data.globalCB.Commit(context.cmd, HDShaderIDs._ShaderVariablesGlobal);
 
                     DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings,  context.resources.GetRendererList(data.rendererList));
 
-                    context.cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
-                    context.cmd.SetGlobalInt(HDShaderIDs._OffScreenDownsampleFactor, 1);
+                    UpdateOffscreenRenderingConstants(data.globalCB, false, 1u);
+                    data.globalCB.Commit(context.cmd, HDShaderIDs._ShaderVariablesGlobal);
                 });
 
                 return passData.lowResBuffer;
@@ -869,19 +871,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     var colorPyramid = context.resources.GetTexture(data.colorPyramid);
                     var inputTexture = context.resources.GetTexture(data.inputColor);
                     data.hdCamera.colorPyramidHistoryMipCount = data.mipGenerator.RenderColorGaussianPyramid(context.cmd, pyramidSize, inputTexture, colorPyramid);
-
-                    // TODO : Replace that by _RTHandleScaleHistory in the shaders. Only missing part is lodCount
-                    float scaleX = data.hdCamera.actualWidth / (float)colorPyramid.rt.width;
-                    float scaleY = data.hdCamera.actualHeight / (float)colorPyramid.rt.height;
-                    Vector4 pyramidScaleLod = new Vector4(scaleX, scaleY, data.hdCamera.colorPyramidHistoryMipCount, 0.0f);
-                    // Warning! Danger!
-                    // The color pyramid scale is only correct for the most detailed MIP level.
-                    // For the other MIP levels, due to truncation after division by 2, a row or
-                    // column of texels may be lost. Since this can happen to BOTH the texture
-                    // size AND the viewport, (uv * _ColorPyramidScale.xy) can be off by a texel
-                    // unless the scale is 1 (and it will not be 1 if the texture was resized
-                    // and is of greater size compared to the viewport).
-                    context.cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, pyramidScaleLod);
                 });
             }
 
@@ -896,13 +885,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle        distortionBuffer;
             public TextureHandle        depthStencilBuffer;
             public RendererListHandle   distortionRendererList;
-            public FrameSettings                frameSettings;
+            public FrameSettings        frameSettings;
         }
 
         TextureHandle AccumulateDistortion( RenderGraph     renderGraph,
-                                                    HDCamera                    hdCamera,
+                                            HDCamera        hdCamera,
                                             TextureHandle   depthStencilBuffer,
-                                                    CullingResults              cullResults)
+                                            CullingResults  cullResults)
         {
             using (var builder = renderGraph.AddRenderPass<AccumulateDistortionPassData>("Accumulate Distortion", out var passData, ProfilingSampler.Get(HDProfileId.Distortion)))
             {

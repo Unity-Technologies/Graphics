@@ -48,7 +48,7 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
     bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
     bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
     bool overrideNormal = _DebugLightingNormal.x != 0.0;
-    bool overrideAO = _DebugLightingAmbientOcclusion.x != 0.0;    
+    bool overrideAO = _DebugLightingAmbientOcclusion.x != 0.0;
 
     if (overrideAlbedo)
     {
@@ -135,7 +135,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.diffuseNormalWS = surfaceData.irisNormalWS;
     bsdfData.geomNormalWS = surfaceData.geomNormalWS;
 
-    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness); 
+    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     bsdfData.fresnel0 = IorToFresnel0(surfaceData.IOR).xxx;
     bsdfData.IOR = surfaceData.IOR;
@@ -323,7 +323,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-    // For SSS we need to take into account the state of diffuseColor 
+    // For SSS we need to take into account the state of diffuseColor
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_SUBSURFACE_SCATTERING))
     {
         bsdfData.diffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
@@ -797,7 +797,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
-        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, _ColorPyramidScale.z);
+        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, _ColorPyramidLodCount);
     }
     else
     {

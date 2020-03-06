@@ -14,9 +14,10 @@ namespace UnityEngine.Rendering
             m_GPUConstantBuffer = new ComputeBuffer(1, UnsafeUtility.SizeOf<CBType>(), ComputeBufferType.Constant);
         }
 
-        public void Commit(CommandBuffer cmd)
+        public void Commit(CommandBuffer cmd, int shaderId)
         {
             cmd.SetComputeBufferData(m_GPUConstantBuffer, m_Data);
+            cmd.SetGlobalConstantBuffer(m_GPUConstantBuffer, shaderId, 0, m_GPUConstantBuffer.stride);
         }
 
         public void Release()

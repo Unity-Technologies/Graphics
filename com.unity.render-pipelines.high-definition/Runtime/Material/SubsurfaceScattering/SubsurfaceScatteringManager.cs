@@ -197,8 +197,6 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateCurrentDiffusionProfileSettings(hdCamera);
 
             cb.data._DiffusionProfileCount = (uint)m_SSSActiveDiffusionProfileCount;
-
-            // Broadcast SSS parameters to all shaders.
             cb.data._EnableSubsurfaceScattering = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering) ? 1u : 0u;
             cb.data._TexturingModeFlags = m_SSSTexturingModeFlags;
             cb.data._TransmissionFlags = m_SSSTransmissionFlags;

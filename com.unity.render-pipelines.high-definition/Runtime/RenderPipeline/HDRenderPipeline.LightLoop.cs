@@ -336,8 +336,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ContactShadowsParameters     parameters;
             public LightLoopLightData           lightLoopLightData;
             public TileAndClusterData           tileAndClusterData;
-            public TextureHandle            depthTexture;
-            public TextureHandle            contactShadowsTexture;
+            public TextureHandle                depthTexture;
+            public TextureHandle                contactShadowsTexture;
             public HDShadowManager              shadowManager;
         }
 

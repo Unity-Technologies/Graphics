@@ -591,6 +591,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb.data._FrustumPlanes[i * 4 + j] = frustumPlaneEquations[i][j];
             cb.data._TaaFrameInfo = new Vector4(taaSharpenStrength, 0, taaFrameIndex, taaEnabled ? 1 : 0);
             cb.data._TaaJitterStrength = taaJitter;
+            cb.data._ColorPyramidLodCount = colorPyramidHistoryMipCount;
 
             float ct = time;
             float pt = lastTime;
@@ -604,6 +605,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.data._TimeParameters = new Vector4(ct, Mathf.Sin(ct), Mathf.Cos(ct), 0.0f);
             cb.data._LastTimeParameters = new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f);
             cb.data._FrameCount = frameCount;
+            cb.data._XRViewCount = (uint)viewCount;
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cb.data._ProbeExposureScale  = exposureMultiplierForProbes;
@@ -615,8 +617,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
             if (true)
             {
-                cmd.SetGlobalInt(HDShaderIDs._XRViewCount, viewCount);
-
                 // Convert AoS to SoA for GPU constant buffer until we can use StructuredBuffer via command buffer
                 for (int i = 0; i < viewCount; i++)
                 {

@@ -318,6 +318,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void UpdateShaderVariablesGlobalCB(ConstantBuffer<ShaderVariablesGlobal> cb)
         {
+            cb.data._CascadeShadowCount = (uint)(m_CascadeCount + 1);
             cb.data._ShadowAtlasSize = new Vector4(m_Atlas.width, m_Atlas.height, 1.0f / m_Atlas.width, 1.0f / m_Atlas.height);
             cb.data._CascadeShadowAtlasSize = new Vector4(m_CascadeAtlas.width, m_CascadeAtlas.height, 1.0f / m_CascadeAtlas.width, 1.0f / m_CascadeAtlas.height);
             if (ShaderConfig.s_AreaLights == 1)
@@ -725,7 +726,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // This code must be in sync with HDShadowContext.hlsl
             cmd.SetGlobalBuffer(HDShaderIDs._HDShadowDatas, m_ShadowDataBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._HDDirectionalShadowData, m_DirectionalShadowDataBuffer);
-            cmd.SetGlobalInt(HDShaderIDs._CascadeShadowCount, m_CascadeCount + 1);
         }
 
         public void BindResources(CommandBuffer cmd)

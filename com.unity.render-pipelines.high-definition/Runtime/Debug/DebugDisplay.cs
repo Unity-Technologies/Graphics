@@ -929,54 +929,48 @@ namespace UnityEngine.Rendering.HighDefinition
                                 displayName = "Fullscreen Debug Mip",
                                 getter = () =>
                                     {
-                                        int id;
+                                        float lodCount = 0.0f;
                                         switch (data.fullScreenDebugMode)
                                         {
                                             case FullScreenDebugMode.FinalColorPyramid:
                                             case FullScreenDebugMode.PreRefractionColorPyramid:
-                                                id = HDShaderIDs._ColorPyramidScale;
+                                                //lodCount = hdCamera.colorPyramidHistoryMipCount;
                                                 break;
                                             default:
-                                                id = HDShaderIDs._DepthPyramidScale;
+                                                //lodCount = depthMipChain.mipLevelCount;
                                                 break;
                                         }
-                                        var size = Shader.GetGlobalVector(id);
-                                        float lodCount = size.z;
                                         return (uint)(data.fullscreenDebugMip * lodCount);
                                     },
                                 setter = value =>
                                     {
-                                        int id;
+                                        float lodCount = 0.0f;
                                         switch (data.fullScreenDebugMode)
                                         {
                                             case FullScreenDebugMode.FinalColorPyramid:
                                             case FullScreenDebugMode.PreRefractionColorPyramid:
-                                                id = HDShaderIDs._ColorPyramidScale;
+                                                //lodCount = hdCamera.colorPyramidHistoryMipCount;
                                                 break;
                                             default:
-                                                id = HDShaderIDs._DepthPyramidScale;
+                                                //lodCount = depthMipChain.mipLevelCount;
                                                 break;
                                         }
-                                        var size = Shader.GetGlobalVector(id);
-                                        float lodCount = size.z;
                                         data.fullscreenDebugMip = (float)Convert.ChangeType(value, typeof(float)) / lodCount;
                                     },
                                 min = () => 0u,
                                 max = () =>
                                     {
-                                        int id;
+                                        float lodCount = 0.0f;
                                         switch (data.fullScreenDebugMode)
                                         {
                                             case FullScreenDebugMode.FinalColorPyramid:
                                             case FullScreenDebugMode.PreRefractionColorPyramid:
-                                                id = HDShaderIDs._ColorPyramidScale;
+                                                //lodCount = hdCamera.colorPyramidHistoryMipCount;
                                                 break;
                                             default:
-                                                id = HDShaderIDs._DepthPyramidScale;
+                                                //lodCount = depthMipChain.mipLevelCount;
                                                 break;
                                         }
-                                        var size = Shader.GetGlobalVector(id);
-                                        float lodCount = size.z;
                                         return (uint)lodCount;
                                     }
                             }

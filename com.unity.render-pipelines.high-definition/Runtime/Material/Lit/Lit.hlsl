@@ -1105,7 +1105,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
-    preLightData.transparentSSMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 1.3) * uint(max(_ColorPyramidScale.z - 1, 0));
+    preLightData.transparentSSMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 1.3) * uint(max(_ColorPyramidLodCount - 1, 0));
 #endif
 
     return preLightData;
@@ -1708,7 +1708,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
 
     // Apply the weight on the ssr contribution (if required)
     ApplyScreenSpaceReflectionWeight(ssrLighting);
-    
+
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
     lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
     reflectionHierarchyWeight  = ssrLighting.a;
@@ -1775,7 +1775,7 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     float2 samplingPositionNDC = lerp(posInput.positionNDC, hit.positionNDC, refractionOffsetMultiplier);
     float3 preLD = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler,
                                         // Offset by half a texel to properly interpolate between this pixel and its mips
-                                        samplingPositionNDC * _ColorPyramidScale.xy, preLightData.transparentSSMipLevel).rgb;
+                                        samplingPositionNDC * _RTHandleScaleHistory.xy, preLightData.transparentSSMipLevel).rgb;
 
     // Inverse pre-exposure
     preLD *= GetInverseCurrentExposureMultiplier();
@@ -1873,7 +1873,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
-        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, _ColorPyramidScale.z);
+        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, _ColorPyramidLodCount);
     }
     else
     {

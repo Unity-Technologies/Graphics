@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(s_MaxEnv2DLight * 3, typeof(float))]
         public fixed float _Env2DCaptureForward[s_MaxEnv2DLight * 3];
         [HLSLArray(s_MaxEnv2DLight, typeof(Vector4))]
-        public fixed float _Env2DAtlasScaleOffset[s_MaxEnv2DLight * 3];
+        public fixed float _Env2DAtlasScaleOffset[s_MaxEnv2DLight * 4];
 
         public uint _DirectionalLightCount;
         public uint _PunctualLightCount;
@@ -176,8 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _RaytracedIndirectDiffuse;
 
         // Buffer pyramid
-        public Vector4 _ColorPyramidScale;             // (x,y) = Screen Scale, z = lod count, w = unused
-        public Vector4 _DepthPyramidScale;             // (x,y) = Screen Scale, z = lod count, w = unused
+        public float _ColorPyramidLodCount;
 
         // Ambient occlusion
         public Vector4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
