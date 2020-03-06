@@ -442,6 +442,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateShaderVariablesGlobalVolumetrics(ConstantBuffer<ShaderVariablesGlobal> cb, in RTHandleProperties sharedRTHandleProperties, HDCamera hdCamera)
         {
+            if (!Fog.IsVolumetricFogEnabled(hdCamera))
+            {
+                return;
+            }
+
             var currFrameParams = hdCamera.vBufferParams[0];
 
             Vector2Int sharedBufferSize = sharedRTHandleProperties.currentRenderTargetSize;
