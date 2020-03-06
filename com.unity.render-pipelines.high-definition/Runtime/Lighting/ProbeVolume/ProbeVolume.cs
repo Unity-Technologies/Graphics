@@ -300,6 +300,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnEnable()
         {
+            OnValidate();
+
             ProbeVolumeManager.manager.RegisterVolume(this);
 
             // Signal update
@@ -312,8 +314,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DebugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
             m_DebugMaterial = new Material(Shader.Find("HDRP/Lit"));
-
-            EnableBaking();
 #endif
         }
 
@@ -323,8 +323,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
                 return;
-
-            DisableBaking();
 #endif
         }
 
@@ -334,8 +332,22 @@ namespace UnityEngine.Rendering.HighDefinition
             OnValidate();
         }
 
+        internal void ForceBakingEnabled()
+        {
+            BakeKeyClear();
+            OnValidate();
+        }
+
+        internal void ForceBakingDisabled()
+        {
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetID(), null);
+        }
+
         protected void OnValidate()
         {
+            if (ShaderConfig.s_ProbeVolumes == 0)
+                return;
+
             ProbeVolumeSettingsKey bakeKeyCurrent = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
             if (ProbeVolumeSettingsKeyEquals(ref bakeKey, ref bakeKeyCurrent)) { return; }
 
@@ -454,37 +466,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             probeVolumeAsset.Dilate(parameters.backfaceTolerance, parameters.dilationIterations);
             dataUpdated = true;
-        }
-
-        internal void DisableBaking()
-        {
-            if (ShaderConfig.s_ProbeVolumes == 0)
-                return;
-
-            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnProbesBakeCompleted;
-            UnityEditor.Lightmapping.bakeCompleted -= OnBakeCompleted;
-
-            UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
-            UnityEditor.Lightmapping.lightingDataAssetCleared -= OnLightingDataAssetCleared;
-
-            if (GetID() != -1)
-                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetID(), null);
-        }
-
-        internal void EnableBaking()
-        {
-            if (ShaderConfig.s_ProbeVolumes == 0)
-                return;
-
-            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnProbesBakeCompleted;
-            UnityEditor.Lightmapping.bakeCompleted += OnBakeCompleted;
-
-            UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
-            UnityEditor.Lightmapping.lightingDataAssetCleared += OnLightingDataAssetCleared;
-
-            // Reset matrices key to force recreation of all positions data.
-            BakeKeyClear();
-            OnValidate();
         }
 
         private static ProbeVolumeSettingsKey ComputeProbeVolumeSettingsKeyFromProbeVolume(ProbeVolume probeVolume)

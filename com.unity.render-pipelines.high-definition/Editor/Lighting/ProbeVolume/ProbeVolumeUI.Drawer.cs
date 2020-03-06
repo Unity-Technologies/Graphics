@@ -79,9 +79,9 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.dilationIterations, Styles.s_DilationIterationLabel);
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Bake"))
+            if (GUILayout.Button("Bake Selected"))
             {
-                ProbeVolumeManager.BakeSingle();
+                ProbeVolumeManager.BakeSelected();
             }
             GUILayout.EndHorizontal();
         }

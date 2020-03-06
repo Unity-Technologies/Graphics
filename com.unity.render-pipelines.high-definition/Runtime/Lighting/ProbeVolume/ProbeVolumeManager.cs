@@ -21,9 +21,22 @@ namespace UnityEngine.Rendering.HighDefinition
         private ProbeVolumeManager()
         {
             volumes = new List<ProbeVolume>();
+            volumesSelected = new List<ProbeVolume>();
+
+        #if UNITY_EDITOR
+            SubscribeBakingAPI();
+        #endif
+        }
+
+        ~ProbeVolumeManager()
+        {
+        #if UNITY_EDITOR
+            UnsubscribeBakingAPI();
+        #endif
         }
 
         public List<ProbeVolume> volumes = null;
+        protected List<ProbeVolume> volumesSelected = null;
 
         public void RegisterVolume(ProbeVolume volume)
         {
@@ -43,36 +56,101 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdrp != null)
                 hdrp.ReleaseProbeVolumeFromAtlas(volume);
         }
+
 #if UNITY_EDITOR
-        public void ReactivateProbes()
+        void SubscribeBakingAPI()
         {
-            foreach (ProbeVolume v in volumes)
+            if (ShaderConfig.s_ProbeVolumes == 0)
+                return;
+
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnProbesBakeCompleted;
+            UnityEditor.Lightmapping.bakeCompleted += OnBakeCompleted;
+
+            UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
+            UnityEditor.Lightmapping.lightingDataAssetCleared += OnLightingDataAssetCleared;
+        }
+
+        void UnsubscribeBakingAPI()
+        {
+            if (ShaderConfig.s_ProbeVolumes == 0)
+                return;
+
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnProbesBakeCompleted;
+            UnityEditor.Lightmapping.bakeCompleted -= OnBakeCompleted;
+
+            UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
+            UnityEditor.Lightmapping.lightingDataAssetCleared -= OnLightingDataAssetCleared;
+        }
+
+        void OnProbesBakeCompleted()
+        {
+            var volumesCurrent = (volumesSelected.Count > 0) ? volumesSelected : volumes;
+            foreach (var volume in volumesCurrent)
             {
-                v.EnableBaking();
+                volume.OnProbesBakeCompleted();
+            }
+        }
+
+        void OnBakeCompleted()
+        {
+            var volumesCurrent = (volumesSelected.Count > 0) ? volumesSelected : volumes;
+            foreach (var volume in volumes)
+            {
+                volume.OnBakeCompleted();
             }
 
-            UnityEditor.Lightmapping.bakeCompleted -= ReactivateProbes;
+            if (volumesSelected.Count > 0)
+            {
+                // Go through and reenable all non-selected volumes now so that any following bakes will bake everything.
+                foreach (ProbeVolume v in volumes)
+                {
+                    if (volumesSelected.Contains(v))
+                        continue;
+
+                    v.ForceBakingEnabled();
+                }
+
+                volumesSelected.Clear();
+            }
         }
-        public static void BakeSingle()
+
+        void OnLightingDataCleared()
         {
-            List<ProbeVolume> selectedProbeVolumes = new List<ProbeVolume>();
+            volumesSelected.Clear();
+
+            foreach (var volume in volumes)
+            {
+                volume.OnLightingDataCleared();
+            }
+        }
+
+        void OnLightingDataAssetCleared()
+        {
+            foreach (var volume in volumes)
+            {
+                volume.OnLightingDataAssetCleared();
+            }
+        }
+
+        public static void BakeSelected()
+        {
+            manager.volumesSelected.Clear();
 
             foreach (GameObject go in UnityEditor.Selection.gameObjects)
             {
                 ProbeVolume probeVolume = go.GetComponent<ProbeVolume>();
                 if (probeVolume)
-                    selectedProbeVolumes.Add(probeVolume);
+                    manager.volumesSelected.Add(probeVolume);
             }
 
             foreach (ProbeVolume v in manager.volumes)
             {
-                if (selectedProbeVolumes.Contains(v))
+                if (manager.volumesSelected.Contains(v))
                     continue;
 
-                v.DisableBaking();
+                v.ForceBakingDisabled();
             }
 
-            UnityEditor.Lightmapping.bakeCompleted += manager.ReactivateProbes;
             UnityEditor.Lightmapping.BakeAsync();
         }
 #endif
