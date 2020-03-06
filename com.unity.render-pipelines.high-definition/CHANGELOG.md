@@ -421,6 +421,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue with AO being misaligned when multiple view are visible.
 - Fix issue that caused the clamp of camera rotation motion for motion blur to be ineffective.
 - Fixed a bug related to ray traced area light shadow history.
+- Fixed an issue where fog sky color mode could sample NaNs in the sky cubemap.
 - Fixed a leak in the PBR sky renderer.
 - Added a tooltip to the Ambient Mode parameter in the Visual Envionment volume component.
 - Static lighting sky now takes the default volume into account (this fixes discrepancies between baked and realtime lighting).
