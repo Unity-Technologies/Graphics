@@ -693,14 +693,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class ExecuteCaptureActionsPassData
         {
-            public RenderGraphResource input;
-            public RenderGraphMutableResource tempTexture;
+            public TextureHandle input;
+            public TextureHandle tempTexture;
             public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> recorderCaptureActions;
             public Vector2 viewportScale;
             public Material blitMaterial;
         }
 
-        internal void ExecuteCaptureActions(RenderGraph renderGraph, RenderGraphResource input)
+        internal void ExecuteCaptureActions(RenderGraph renderGraph, TextureHandle input)
         {
             if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
                 return;
