@@ -165,7 +165,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Precision");
                     graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
-                    GUILayout.Space(4);
                     if (EditorGUI.EndChangeCheck())
                     {
                         var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
@@ -995,9 +994,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardRect.width = Mathf.Clamp(blackboardRect.width, 160f, m_GraphView.contentContainer.layout.width);
             blackboardRect.height = Mathf.Clamp(blackboardRect.height, 160f, m_GraphView.contentContainer.layout.height);
 
-            // Make sure that the positionining is on screen.
-            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.width - blackboardRect.width - blackboardRect.width));
-            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.height - blackboardRect.height - blackboardRect.height));
+            // Make sure that the positioning is on screen.
+            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f, Mathf.Max(0f, m_GraphView.contentContainer.layout.width - blackboardRect.width));
+            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(0f, m_GraphView.contentContainer.layout.height - blackboardRect.height));
 
             // Set the processed blackboard layout.
             m_BlackboardProvider.blackboard.SetPosition(blackboardRect);

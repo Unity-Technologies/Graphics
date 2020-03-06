@@ -33,8 +33,11 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1204_Lit_Fog.unity
     guid: bc3f6030b835ecd4c800561f9ff1af15
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/1x_Materials/1205_Lit_Transparent_Refraction.unity
+    path: Assets/GraphicTests/Scenes/1x_Materials/1205_Lit_Transparent_Refraction_a.unity
     guid: 530aef5d08a1569479cc65b219b8f9fb
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1205_Lit_Transparent_Refraction_b.unity
+    guid: a554763837091f74d8372fb37cf885e9
   - enabled: 0
     path: Assets/GraphicTests/Scenes/1x_Materials/1206_Lit_Transparent_Distortion.unity
     guid: fc3cc4c68d873e64ca12fcfc828d7ee4
