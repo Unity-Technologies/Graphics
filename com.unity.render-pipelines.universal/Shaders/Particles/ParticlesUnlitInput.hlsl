@@ -34,9 +34,12 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
 
     AlphaDiscard(albedo.a, _Cutoff);
 
- #if defined(_SOFTPARTICLES_ON)
-     ALBEDO_MUL *= SoftParticles(SOFT_PARTICLE_NEAR_FADE, SOFT_PARTICLE_INV_FADE_DISTANCE, projectedPosition);
- #endif
+
+    albedo.rgb = AlphaModulate(albedo.rgb, albedo.a);
+
+#if defined(_SOFTPARTICLES_ON)
+    albedo = SOFT_PARTICLE_MUL_ALBEDO(albedo, SoftParticles(SOFT_PARTICLE_NEAR_FADE, SOFT_PARTICLE_INV_FADE_DISTANCE, projectedPosition));
+#endif
 
  #if defined(_FADING_ON)
      ALBEDO_MUL *= CameraFade(CAMERA_NEAR_FADE, CAMERA_INV_FADE_DISTANCE, projectedPosition);

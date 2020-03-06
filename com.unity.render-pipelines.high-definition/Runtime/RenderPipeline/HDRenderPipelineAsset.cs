@@ -81,12 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal VolumeProfile defaultLookDevProfile
         {
-            get
-            {
-                if (m_DefaultLookDevProfile == null)
-                    m_DefaultLookDevProfile = renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
-                return m_DefaultLookDevProfile;
-            }
+            get => m_DefaultLookDevProfile;
             set => m_DefaultLookDevProfile = value;
         }
 
@@ -161,8 +156,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("renderPipelineSettings")]
         RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.NewDefault();
 
-        // Return the current use RenderPipelineSettings (i.e for the current platform)
-        internal RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
+        /// <summary>Return the current use RenderPipelineSettings (i.e for the current platform)</summary>
+        public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
 
         [SerializeField]
         internal bool allowShaderVariantStripping = true;

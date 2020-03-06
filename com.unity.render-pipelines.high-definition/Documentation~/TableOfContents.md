@@ -8,6 +8,8 @@
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering)
   * [Exposing More Options](More-Options)
+  * [Sample Content](HDRP-Sample-Content)
+  * [Sample project](HDRP-Sample-Projects)
 * Upgrading HDRP between Unity Versions
   * [Material Upgrade](Material-Upgrade)
   * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
@@ -63,6 +65,7 @@
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Customizing-HDRP-materials-with-Shader-Graph)
     * [Decal](Master-Node-Decal)
+    * [Fabric](Master-Node-Fabric)
     * [Hair](Master-Node-Hair)
     * [Unlit](Master-Node-Unlit)
   * Shader Graph Nodes

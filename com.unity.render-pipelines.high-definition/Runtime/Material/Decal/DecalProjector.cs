@@ -3,6 +3,9 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Decal Projector component.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Decal-Projector" + Documentation.endURL)]
     [ExecuteAlways]
 #if UNITY_EDITOR
@@ -127,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        private Vector3 m_Offset = new Vector3(0, -0.5f, 0);
+        private Vector3 m_Offset = new Vector3(0, 0, 0.5f);
         /// <summary>
         /// Change the offset position.
         /// Do not expose: Could be changed by the inspector when manipulating the gizmo.

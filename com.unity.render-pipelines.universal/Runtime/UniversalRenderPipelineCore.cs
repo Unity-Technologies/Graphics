@@ -24,8 +24,11 @@ namespace UnityEngine.Rendering.Universal
         public PostProcessingData postProcessingData;
         public bool supportsDynamicBatching;
         public PerObjectData perObjectData;
-        [Obsolete("killAlphaInFinalBlit is deprecated in the Universal Render Pipeline since it is no longer needed on any supported platform.")]
-        public bool killAlphaInFinalBlit;
+
+        /// <summary>
+        /// True if post-processing effect is enabled while rendering the camera stack.
+        /// </summary>
+        public bool postProcessingEnabled;
         internal bool resolveFinalTarget;
     }
 
@@ -69,11 +72,6 @@ namespace UnityEngine.Rendering.Universal
 
         public float maxShadowDistance;
         public bool postProcessEnabled;
-
-#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
-        [Obsolete("The use of the Post-processing Stack V2 is deprecated in the Universal Render Pipeline. Use the builtin post-processing effects instead.")]
-        public UnityEngine.Rendering.PostProcessing.PostProcessLayer postProcessLayer;
-#endif
 
         public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> captureActions;
 
@@ -132,8 +130,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
-        [Obsolete("The _KILL_ALPHA shader keyword is deprecated in the Universal Render Pipeline.")]
-        public static readonly string KillAlpha = "_KILL_ALPHA";
 
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
@@ -195,42 +191,6 @@ namespace UnityEngine.Rendering.Universal
         public static UniversalRenderPipelineAsset asset
         {
             get => GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-        }
-
-        /// <summary>
-        /// Returns the current render pipeline instance that is being used to render.
-        /// Returns null if no UniversalRenderPipeline asset is being in use.
-        /// </summary>
-        public static UniversalRenderPipeline currentRenderPipeline
-        {
-            get => RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
-        }
-
-        /// <summary>
-        /// Returns a renderer from the current render pipeline.
-        /// </summary>
-        /// <param name="index">Index to the renderer list in the pipeline asset.</param>
-        /// <returns>If valid index the given renderer from the pipeline asset, otherwise null.</returns>
-        public ScriptableRenderer GetRenderer(int index)
-        {
-            if (renderers == null)
-            {
-                Debug.LogError("RenderPipeline is corrupted. The list of renderers is not valid.");
-                return null;
-            }
-
-            // -1 means default renderer.
-            // In this case we return the default renderer from the asset.
-            if (index < 0)
-                index = m_DefaultRendererIndex;
-
-            if (index < 0 || index >= renderers.Length)
-            {
-                Debug.LogError("Trying to access an invalid renderer");
-                return null;
-            }
-
-            return renderers[index];
         }
 
         /// <summary>

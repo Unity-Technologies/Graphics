@@ -1,0 +1,60 @@
+editors:
+  - version: trunk
+    cmd: -u trunk
+  - version: fast-trunk
+    cmd: -u trunk --fast
+  - version: 2020.1
+    cmd: -u 2020.1/staging
+  - version: fast-2020.1
+    cmd: -u 2020.1/staging --fast
+  - version: CUSTOM-REVISION
+    cmd: -u $CUSTOM_REVISION
+platforms:
+  # Exhaustive list of operating systems and editor components used by all jobs so the preparation jobs
+  # can make sure all editors are cached on cheap vms before starting the heavy duty machines for running tests
+  - os: macos
+    components:
+      - editor
+      - il2cpp
+  - os: windows
+    components:
+      - editor
+      - il2cpp
+  - os: linux
+    components:
+      - editor
+      - il2cpp
+---
+
+{% for platform in platforms %}
+{% for editor in editors %}
+editor:priming:{{ editor.version }}:{{ platform.os }}:
+  name: "[{{ editor.version }},{{ platform.os }}] Editor priming"
+  agent:
+    type: Unity::VM
+    image: 'cds-ops/ubuntu-16.04-base:stable'
+    flavor: b1.small
+  variables:
+    PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+    DISPLAY: ":0"
+    {% if editor.version == 'CUSTOM-REVISION' %}
+    CUSTOM_REVISION: custom_revision_not_set
+    {% endif %}
+  commands:
+    - pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - >
+      unity-downloader-cli
+      {{ editor.cmd }}
+      -o {{ platform.os }}
+      --wait
+      --skip-download
+{% for component in platform.components -%}
+      -c {{ component }}
+{% endfor -%}
+      > unity_revision.txt
+  artifacts:
+    unity_revision.zip:
+      paths:
+        - "unity_revision.txt"
+{% endfor -%}
+{% endfor %}

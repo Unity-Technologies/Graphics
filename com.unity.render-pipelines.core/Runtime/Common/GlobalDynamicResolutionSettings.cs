@@ -34,7 +34,9 @@ namespace UnityEngine.Rendering
         /// Lanczos upscaling filter.
         /// </summary>
         Lanczos,
-        // Difference of Gaussians? [aka unsharp]
+        /// <summary>
+        /// Contrast Adaptive Sharpening upscaling filter.
+        /// </summary>
         ContrastAdaptiveSharpen,
     }
 
