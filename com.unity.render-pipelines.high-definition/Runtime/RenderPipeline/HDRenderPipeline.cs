@@ -976,6 +976,8 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateShaderVariablesGlobalSubsurface(m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalDecal(m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalVolumetrics(m_ShaderVariablesGlobalCB, RTHandles.rtHandleProperties, hdCamera);
+            m_ShadowManager.UpdateShaderVariablesGlobalCB(m_ShaderVariablesGlobalCB);
+
 
             // Misc
             MicroShadowing microShadowingSettings = hdCamera.volumeStack.GetComponent<MicroShadowing>();

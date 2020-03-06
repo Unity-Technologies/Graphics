@@ -30,7 +30,6 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthBits                   m_DepthBufferBits;
         RenderTextureFormat         m_Format;
         string                      m_Name;
-        int                         m_AtlasSizeShaderID;
         int                         m_AtlasShaderID;
         int                         m_MomentAtlasShaderID;
         RenderPipelineResources     m_RenderPipelineResources;
@@ -53,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_HasResizedAtlas = false;
         int frameCounter = 0;
 
-        public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, int atlasSizeShaderID, Material clearMaterial, int maxShadowRequests, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
+        public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
         {
             this.width = width;
             this.height = height;
@@ -63,7 +62,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Name = name;
             m_AtlasShaderID = atlasShaderID;
             m_MomentAtlasShaderID = momentAtlasShaderID;
-            m_AtlasSizeShaderID = atlasSizeShaderID;
             m_ClearMaterial = clearMaterial;
             m_BlurAlgorithm = blurAlgorithm;
             m_RenderPipelineResources = renderPipelineResources;
@@ -468,7 +466,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material                 clearMaterial;
             public bool                     debugClearAtlas;
             public int                      atlasShaderID;
-            public int                      atlasSizeShaderID;
             public BlurAlgorithm            blurAlgorithm;
 
             // EVSM
@@ -486,7 +483,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.clearMaterial = m_ClearMaterial;
             parameters.debugClearAtlas = m_LightingDebugSettings.clearShadowAtlas;
             parameters.atlasShaderID = m_AtlasShaderID;
-            parameters.atlasSizeShaderID = m_AtlasSizeShaderID;
             parameters.blurAlgorithm = m_BlurAlgorithm;
 
             // EVSM
@@ -506,7 +502,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     CommandBuffer           cmd)
         {
             cmd.SetRenderTarget(atlasRenderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            cmd.SetGlobalVector(parameters.atlasSizeShaderID, new Vector4(atlasRenderTexture.rt.width, atlasRenderTexture.rt.height, 1.0f / atlasRenderTexture.rt.width, 1.0f / atlasRenderTexture.rt.height));
 
             // Clear the whole atlas to avoid garbage outside of current request when viewing it.
             if (parameters.debugClearAtlas)
