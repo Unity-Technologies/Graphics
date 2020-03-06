@@ -287,7 +287,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref 32      // 0b00100000
                 WriteMask 0 // 0b00000000
@@ -321,7 +321,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref 64      // 0b01000000
                 WriteMask 0 // 0b00000000

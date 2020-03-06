@@ -244,7 +244,7 @@ namespace UnityEditor.Rendering.Universal
 
             StencilOverride = new List<String>()
             {
-                "// [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit",
+                "// [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit",
                 "// This is an Lit material.",
                 "Stencil",
                 "{",

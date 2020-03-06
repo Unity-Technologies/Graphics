@@ -226,7 +226,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref 48       // 0b00110000
                 WriteMask 16 // 0b00010000
@@ -265,7 +265,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref 80       // 0b01010000
                 WriteMask 16 // 0b00010000
@@ -304,7 +304,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref 32      // 0b00100000
                 WriteMask 0 // 0b00000000
@@ -343,7 +343,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref 64      // 0b01000000
                 WriteMask 0 // 0b00000000
