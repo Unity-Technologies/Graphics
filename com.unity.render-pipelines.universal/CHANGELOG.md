@@ -102,6 +102,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed incorrect light attenuation on Nintendo Switch.
 - Fixed an issue where the Volume System would not use the Cameras Transform when no `Volume Trigger` was set.
 - Fixed an issue where post processing disappeared when using custom renderers and SMAA or no AA
+- Fixed an issue where the 2D Renderer upgrader did not upgrade using the correct default material
 - Fixed an issue with soft particles having dark blending when intersecting with scene geometry [case 1199812](https://issuetracker.unity3d.com/issues/urp-soft-particles-create-dark-blending-artefacts-when-intersecting-with-scene-geometry)
 - Fixed an issue with additive particles blending incorrectly [case 1215713](https://issuetracker.unity3d.com/issues/universal-render-pipeline-additive-particles-not-using-vertex-alpha)
 - Fixed an issue where camera preview window was missing in scene view. [case 1211971](https://issuetracker.unity3d.com/issues/scene-view-urp-camera-preview-window-is-missing-in-the-scene-view)
@@ -118,6 +119,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a Null ref when trying to remove a missing Renderer Feature from the Forward Renderer. [case 1196651](https://issuetracker.unity3d.com/product/unity/issues/guid/1196651/)
 - Fixed data serialization issue when adding a Renderer Feature to teh Forward Renderer. [case 1214779](https://issuetracker.unity3d.com/product/unity/issues/guid/1214779/)
 - Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
+- Fixed an issue where NullReferenceException might be thrown when creating 2D Lights. [case 1219374](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-threw-on-adding-the-light-2d-experimental-component-when-2d-render-data-not-assigned) 
+- Fixed an issue with a blurry settings icon. [case 1201895](https://issuetracker.unity3d.com/issues/urp-setting-icon-blurred-in-universalrendererpipelineasset)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
