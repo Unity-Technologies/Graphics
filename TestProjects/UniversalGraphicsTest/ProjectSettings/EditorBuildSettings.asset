@@ -221,4 +221,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/122_RenderUICustomRendererFXAA.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Scenes/126_RendererFeatureActive.unity
+    guid: 92276052d376244eb94e9548db46b27f
   m_configObjects: {}

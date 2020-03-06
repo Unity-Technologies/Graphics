@@ -46,10 +46,16 @@ namespace UnityEditor.VFX.Test
             UnityEngine.Object.DestroyImmediate(m_camera);
         }
 
+        static VFXModelDescriptor<VFXOperator> GetTotalTimeOperator()
+        {
+            string opName = ObjectNames.NicifyVariableName(VFXExpressionOperation.TotalTime.ToString());
+            return VFXLibrary.GetOperators().First(o => o.name == opName);
+        }
+
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Check_Expected_TotalTime()
         {
-            EditorApplication.ExecuteMenuItem("Window/General/Game");
+            yield return new EnterPlayMode();
             var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
@@ -64,9 +70,7 @@ namespace UnityEditor.VFX.Test
             initContext.LinkTo(outputContext);
 
             var slotRate = constantRate.GetInputSlot(0);
-            string opName = ObjectNames.NicifyVariableName(VFXExpressionOperation.TotalTime.ToString());
-
-            var totalTime = VFXLibrary.GetOperators().First(o => o.name == opName).CreateInstance();
+            var totalTime = GetTotalTimeOperator().CreateInstance();
             slotRate.Link(totalTime.GetOutputSlot(0));
 
             spawnerContext.AddChild(constantRate);
@@ -75,14 +79,14 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
             var expressionIndex = graph.FindReducedExpressionIndexFromSlotCPU(slotRate);
 
-            while (m_gameObject.GetComponent<VisualEffect>() != null) UnityEngine.Object.DestroyImmediate(m_gameObject.GetComponent<VisualEffect>());
+            while (m_gameObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_gameObject.GetComponent<VisualEffect>());
             var vfxComponent = m_gameObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
             {
-
                 yield return null;
             }
             Assert.IsTrue(maxFrame > 0);
@@ -93,6 +97,7 @@ namespace UnityEditor.VFX.Test
                 yield return null;
             }
             Assert.IsTrue(maxFrame > 0);
+            yield return new ExitPlayMode();
         }
 
 #pragma warning disable 0414

@@ -1,52 +1,30 @@
 Pass
 {
-    // based on HDHairPass.template
-    Name "$splice(PassName)"
-    Tags { "LightMode" = "$splice(LightMode)" }
+    $splice(PassName)
+    Tags
+    {
+        $splice(LightMode)
+    }
 
-    //-------------------------------------------------------------------------------------
-    // Render Modes (Blend, Cull, ZTest, Stencil, etc)
-    //-------------------------------------------------------------------------------------
-    $splice(Blending)
-    $splice(Culling)
-    $splice(ZTest)
-    $splice(ZWrite)
-    $splice(ZClip)
-    $splice(Stencil)
-    $splice(ColorMask)
-    //-------------------------------------------------------------------------------------
-    // End Render Modes
-    //-------------------------------------------------------------------------------------
+    // Render State
+    $splice(RenderState)
+
+    // Debug
+    $splice(Debug)
+
+    // --------------------------------------------------
+    // Pass
 
     HLSLPROGRAM
 
-    #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-    //#pragma enable_d3d11_debug_symbols
+    // Pragmas
+    $splice(PassPragmas)
 
-    #pragma multi_compile_instancing
-    #pragma instancing_options renderinglayer
+    // Keywords
+    $splice(PassKeywords)
+    $splice(GraphKeywords)
 
-    $LodCrossFade: #pragma multi_compile _ LOD_FADE_CROSSFADE
-
-    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-    #pragma shader_feature_local _DOUBLESIDED_ON
-    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
-    #pragma shader_feature_local _ALPHATEST_ON
-
-    //-------------------------------------------------------------------------------------
-    // Graph Defines
-    //-------------------------------------------------------------------------------------
-    $splice(Defines)
-    //-------------------------------------------------------------------------------------
-    // End Defines
-    //-------------------------------------------------------------------------------------
-
-    //-------------------------------------------------------------------------------------
-    // Variant Definitions (active field translations to HDRP defines)
-    //-------------------------------------------------------------------------------------
-
+    // Defines
     $Material.KajiyaKay:                #define _MATERIAL_FEATURE_HAIR_KAJIYA_KAY 1
     $Occlusion:                         #define _OCCLUSION 1
     $SpecularOcclusionFromAO:           #define _SPECULAR_OCCLUSION_FROM_AO 1
@@ -60,107 +38,89 @@ Pass
     $DepthOffset:                       #define _DEPTHOFFSET_ON 1
     $UseLightFacingNormal:              #define _USE_LIGHT_FACING_NORMAL 1
     $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
+    $AttributesMesh.normalOS:           #define ATTRIBUTES_NEED_NORMAL
+    $AttributesMesh.tangentOS:          #define ATTRIBUTES_NEED_TANGENT
+    $AttributesMesh.uv0:                #define ATTRIBUTES_NEED_TEXCOORD0
+    $AttributesMesh.uv1:                #define ATTRIBUTES_NEED_TEXCOORD1
+    $AttributesMesh.uv2:                #define ATTRIBUTES_NEED_TEXCOORD2
+    $AttributesMesh.uv3:                #define ATTRIBUTES_NEED_TEXCOORD3
+    $AttributesMesh.color:              #define ATTRIBUTES_NEED_COLOR
+    $VaryingsMeshToPS.positionRWS:      #define VARYINGS_NEED_POSITION_WS
+    $VaryingsMeshToPS.normalWS:         #define VARYINGS_NEED_TANGENT_TO_WORLD
+    $VaryingsMeshToPS.texCoord0:        #define VARYINGS_NEED_TEXCOORD0
+    $VaryingsMeshToPS.texCoord1:        #define VARYINGS_NEED_TEXCOORD1
+    $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
+    $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
+    $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
+    $VaryingsMeshToPS.cullFace:         #define VARYINGS_NEED_CULLFACE
+    $features.graphVertex:              #define HAVE_MESH_MODIFICATION
+    $splice(GraphDefines)
 
-    //-------------------------------------------------------------------------------------
-    // End Variant Definitions
-    //-------------------------------------------------------------------------------------
+    #ifdef DEBUG_DISPLAY
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+    #else
+        // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
+        // Don't do it with debug display mode as it is possible there is no depth prepass in this case
+        #if !defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ALPHATEST)
+            #if SHADERPASS == SHADERPASS_FORWARD
+            #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
+            #elif SHADERPASS == SHADERPASS_GBUFFER
+            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
+            #endif
+        #endif
+    #endif
 
-    #pragma vertex Vert
-    #pragma fragment Frag
+    // We need isFontFace when using double sided
+    #if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
+        #define VARYINGS_NEED_CULLFACE
+    #endif
 
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    //translate transparent motion vector define
+    #if defined(_TRANSPARENT_WRITES_MOTION_VEC) && defined(_SURFACE_TYPE_TRANSPARENT)
+        #define _WRITE_TRANSPARENT_MOTION_VECTOR
+    #endif
 
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
+    // Dots Instancing
+    $splice(DotsInstancingOptions)
 
-    // define FragInputs structure
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+    // Includes
+    $splice(PreGraphIncludes)
 
-    //-------------------------------------------------------------------------------------
-    // Active Field Defines
-    //-------------------------------------------------------------------------------------
-
-    // this translates the new dependency tracker into the old preprocessor definitions for the existing HDRP shader code
-    $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL
-    $AttributesMesh.tangentOS:              #define ATTRIBUTES_NEED_TANGENT
-    $AttributesMesh.uv0:                    #define ATTRIBUTES_NEED_TEXCOORD0
-    $AttributesMesh.uv1:                    #define ATTRIBUTES_NEED_TEXCOORD1
-    $AttributesMesh.uv2:                    #define ATTRIBUTES_NEED_TEXCOORD2
-    $AttributesMesh.uv3:                    #define ATTRIBUTES_NEED_TEXCOORD3
-    $AttributesMesh.color:                  #define ATTRIBUTES_NEED_COLOR
-    $VaryingsMeshToPS.positionRWS:          #define VARYINGS_NEED_POSITION_WS
-    $VaryingsMeshToPS.normalWS:             #define VARYINGS_NEED_TANGENT_TO_WORLD
-    $VaryingsMeshToPS.texCoord0:            #define VARYINGS_NEED_TEXCOORD0
-    $VaryingsMeshToPS.texCoord1:            #define VARYINGS_NEED_TEXCOORD1
-    $VaryingsMeshToPS.texCoord2:            #define VARYINGS_NEED_TEXCOORD2
-    $VaryingsMeshToPS.texCoord3:            #define VARYINGS_NEED_TEXCOORD3
-    $VaryingsMeshToPS.color:                #define VARYINGS_NEED_COLOR
-    $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
-    $features.modifyMesh:                   #define HAVE_MESH_MODIFICATION
-
-// We need isFontFace when using double sided
-#if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
-    #define VARYINGS_NEED_CULLFACE
-#endif
-
-#if defined(_TRANSPARENT_WRITES_MOTION_VEC) && defined(_SURFACE_TYPE_TRANSPARENT)
-    #define _WRITE_TRANSPARENT_MOTION_VECTOR
-#endif
-
-    //-------------------------------------------------------------------------------------
-    // End Defines
-    //-------------------------------------------------------------------------------------
-	$splice(DotsInstancedVars)
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#ifdef DEBUG_DISPLAY
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-#endif
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-
-#if (SHADERPASS == SHADERPASS_FORWARD)
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-
-    #define HAS_LIGHTLOOP
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
-#else
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
-#endif
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
-
-    //Used by SceneSelectionPass
+    // Used by SceneSelectionPass
     int _ObjectId;
     int _PassValue;
 
-    //-------------------------------------------------------------------------------------
-    // Interpolator Packing And Struct Declarations
-    //-------------------------------------------------------------------------------------
-    $buildType(AttributesMesh)
-    $buildType(VaryingsMeshToPS)
-    $buildType(VaryingsMeshToDS)
-    //-------------------------------------------------------------------------------------
-    // End Interpolator Packing And Struct Declarations
-    //-------------------------------------------------------------------------------------
+    // --------------------------------------------------
+    // Structs and Packing
 
-    //-------------------------------------------------------------------------------------
-    // Graph generated code
-    //-------------------------------------------------------------------------------------
-    $splice(Graph)
-    //-------------------------------------------------------------------------------------
-    // End graph generated code
-    //-------------------------------------------------------------------------------------
+    $splice(PassStructs)
 
-$features.modifyMesh:   $include("VertexAnimation.template.hlsl")
+    $splice(InterpolatorPack)
 
-$include("SharedCode.template.hlsl")
+    // --------------------------------------------------
+    // Graph
+
+    // Graph Properties
+    $splice(GraphProperties)
+    $splice(DotsInstancedProperties)
+
+    // Graph Functions
+    $splice(GraphFunctions)
+
+    // Graph Vertex
+    $splice(GraphVertex)
+
+    // Graph Pixel
+    $splice(GraphPixel)
+
+    // --------------------------------------------------
+    // Build Graph Inputs
+
+    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
+    $features.graphPixel:   $include("SharedCode.template.hlsl")
+
+    // --------------------------------------------------
+    // Build Surface Data
 
     void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)
     {
@@ -177,10 +137,10 @@ $include("SharedCode.template.hlsl")
 
         if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_MASK)
         {
-    #ifdef DECALS_4RT // only smoothness in 3RT mode
-            // Don't apply any metallic modification
-            surfaceData.ambientOcclusion = surfaceData.ambientOcclusion * decalSurfaceData.MAOSBlend.y + decalSurfaceData.mask.y;
-    #endif
+            #ifdef DECALS_4RT // only smoothness in 3RT mode
+                // Don't apply any metallic modification
+                surfaceData.ambientOcclusion = surfaceData.ambientOcclusion * decalSurfaceData.MAOSBlend.y + decalSurfaceData.mask.y;
+            #endif
 
             surfaceData.perceptualSmoothness = surfaceData.perceptualSmoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
         }
@@ -209,20 +169,20 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.SecondarySmoothness:            surfaceData.secondaryPerceptualSmoothness = surfaceDescription.SecondarySmoothness;
         $SurfaceDescription.SecondarySpecularTint:          surfaceData.secondarySpecularTint =         surfaceDescription.SecondarySpecularTint;
         $SurfaceDescription.SecondarySpecularShift:         surfaceData.secondarySpecularShift =        surfaceDescription.SecondarySpecularShift;
-     
+
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = 0;
 
         // Transform the preprocess macro into a material feature
-#ifdef _MATERIAL_FEATURE_HAIR_KAJIYA_KAY
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
-#endif
+        #ifdef _MATERIAL_FEATURE_HAIR_KAJIYA_KAY
+            surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
+        #endif
 
-#ifdef _DOUBLESIDED_ON
-    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
-#else
-    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-#endif
+        #ifdef _DOUBLESIDED_ON
+            float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+        #else
+            float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        #endif
 
         // For a typical Unity quad, you have tangent vectors pointing to the right (X axis),
         // and bitangent vectors pointing up (Y axis).
@@ -267,62 +227,62 @@ $include("SharedCode.template.hlsl")
         // compute world space (user-provided) normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-#if HAVE_DECALS
-        if (_EnableDecals)
-        {
-            // Both uses and modifies 'surfaceData.normalWS'.
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
-            ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-        }
-#endif
+        #if HAVE_DECALS
+            if (_EnableDecals)
+            {
+                // Both uses and modifies 'surfaceData.normalWS'.
+                DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
+                ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+            }
+        #endif
 
-    #if (_USE_LIGHT_FACING_NORMAL)
-        float3 viewFacingNormalWS = ComputeViewFacingNormal(V, surfaceData.hairStrandDirectionWS);
-        float3 N = viewFacingNormalWS; // Not affected by decals
-    #else
-        float3 N = surfaceData.normalWS;
-    #endif
+        #if (_USE_LIGHT_FACING_NORMAL)
+            float3 viewFacingNormalWS = ComputeViewFacingNormal(V, surfaceData.hairStrandDirectionWS);
+            float3 N = viewFacingNormalWS; // Not affected by decals
+        #else
+            float3 N = surfaceData.normalWS;
+        #endif
 
         bentNormalWS = N;
 
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
-#if defined(_SPECULAR_OCCLUSION_CUSTOM)
-        // Just use the value passed through via the slot (not active otherwise)
-#elif defined(_SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL)
-        // If we have bent normal and ambient occlusion, process a specular occlusion
-        surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, N, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
-#elif defined(_AMBIENT_OCCLUSION) && defined(_SPECULAR_OCCLUSION_FROM_AO)
-        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(N, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-#endif
+        #if defined(_SPECULAR_OCCLUSION_CUSTOM)
+            // Just use the value passed through via the slot (not active otherwise)
+        #elif defined(_SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL)
+            // If we have bent normal and ambient occlusion, process a specular occlusion
+            surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, N, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
+        #elif defined(_AMBIENT_OCCLUSION) && defined(_SPECULAR_OCCLUSION_FROM_AO)
+            surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(N, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+        #endif
 
-#ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
-        surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.tangentToWorld[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
-#endif
+        #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
+            surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.tangentToWorld[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
+        #endif
 
-#ifdef DEBUG_DISPLAY
-        if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-        {
-            // TODO: need to update mip info
-        }
+        #ifdef DEBUG_DISPLAY
+            if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+            {
+                // TODO: need to update mip info
+            }
 
-        // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
-        // as it can modify attribute use for static lighting
-        ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
-#endif
+            // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+            // as it can modify attribute use for static lighting
+            ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
+        #endif
     }
 
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
     {
-#ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
-#endif
+        #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+            LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
+        #endif
 
-#ifdef _DOUBLESIDED_ON
-    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
-#else
-    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-#endif
+        #ifdef _DOUBLESIDED_ON
+            float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+        #else
+            float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        #endif
 
         ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 
@@ -331,20 +291,20 @@ $include("SharedCode.template.hlsl")
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
-#ifdef _ALPHATEST_ON
-        $AlphaTest:         DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
-        $AlphaTestPrepass:  DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
-        $AlphaTestPostpass: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
-        $AlphaTestShadow:   DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
-#endif
+        #ifdef _ALPHATEST_ON
+            $AlphaTest:         DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+            $AlphaTestPrepass:  DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
+            $AlphaTestPostpass: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
+            $AlphaTestShadow:   DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
+        #endif
 
         $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
 
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
-    
+
         // Builtin Data
-        // For back lighting we use the oposite vertex normal 
+        // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:
@@ -358,13 +318,10 @@ $include("SharedCode.template.hlsl")
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
     }
 
-    //-------------------------------------------------------------------------------------
-    // Pass Includes
-    //-------------------------------------------------------------------------------------
-$splice(Includes)
-    //-------------------------------------------------------------------------------------
-    // End Pass Includes
-    //-------------------------------------------------------------------------------------
+    // --------------------------------------------------
+    // Main
+
+    $splice(PostGraphIncludes)
 
     ENDHLSL
 }
