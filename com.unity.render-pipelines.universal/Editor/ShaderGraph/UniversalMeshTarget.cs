@@ -7,8 +7,7 @@ using UnityEngine.Rendering.Universal;
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     
-
-    class PBRUniversalMeshTarget : UniversalMeshTarget
+    class DOTSUniversalMeshTarget : UniversalMeshTarget
     {
         public override void SetupTarget(ref TargetSetupContext context)
         {
@@ -22,12 +21,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     break;
                 case UnlitMasterNode unlitMasterNode:
                     context.SetupSubShader(UniversalSubShaders.DOTSUnlit);
-                    break;
-                case SpriteLitMasterNode spriteLitMasterNode:
-                    context.SetupSubShader(UniversalSubShaders.SpriteLit);
-                    break;
-                case SpriteUnlitMasterNode spriteUnlitMasterNode:
-                    context.SetupSubShader(UniversalSubShaders.SpriteUnlit);
                     break;
             }
         }

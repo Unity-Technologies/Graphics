@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get
             {
-                var unlit = UniversalPasses.Forward;
+                var unlit = UniversalPasses.Unlit;
                 var shadowCaster = UniversalPasses.ShadowCaster;
                 var depthOnly = UniversalPasses.DepthOnly;
 

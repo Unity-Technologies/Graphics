@@ -12,6 +12,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
+        
+        public static readonly PragmaCollection _2DDefault = new PragmaCollection
+        {
+            { Pragma.Target(2.0) },
+            { Pragma.ExcludeRenderers(new[]{ Platform.D3D9 }) },
+            { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
+        };
 
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
@@ -59,7 +68,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.DOTSInstancing },
-            { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
