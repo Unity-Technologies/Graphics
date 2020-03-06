@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated the zoom level to let you zoom in further.
 - If Unity Editor Analytics are enabled, Shader Graph collects anonymous data about which nodes you use in your graphs. This helps the Shader Graph team focus our efforts on the most common graph scenarios, and better understand the needs of our customers. We don't track edge data and cannot recreate your graphs in any form.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
+- When a Shader Graph or Sub Graph Asset associated with a open window has been deleted, Unity now displays a dialog that asks whether you would like to save the graph as a new Asset or close the window.
 - Added a drop-down menu to the PBR Master Node that lets you select the final coordinate space of normals delivered from the fragment function. 
 - Added support for users to drag and drop Blackboard Properties from one graph to another.
 
