@@ -1,8 +1,8 @@
 #pragma only_renderers d3d11
 
 // Temporal Filtering kernels
-#pragma kernel TemporalAccumulationSingle       TEMPORAL_ACCUMULATION_SINGLE=TemporalAccumulationSingle          SINGLE_CHANNEL HISTORY_IS_ARRAY
-#pragma kernel TemporalAccumulationSingleArray  TEMPORAL_ACCUMULATION_SINGLE=TemporalAccumulationSingleArray     SINGLE_CHANNEL     
+#pragma kernel TemporalAccumulationSingle       TEMPORAL_ACCUMULATION_SINGLE=TemporalAccumulationSingle          SINGLE_CHANNEL
+#pragma kernel TemporalAccumulationSingleArray  TEMPORAL_ACCUMULATION_SINGLE=TemporalAccumulationSingleArray     SINGLE_CHANNEL     HISTORY_IS_ARRAY
 
 #pragma kernel TemporalAccumulationColor    TEMPORAL_ACCUMULATION_COLOR=TemporalAccumulationColor      HISTORY_IS_ARRAY
 
@@ -16,6 +16,8 @@
 
 #pragma kernel BilateralFilterHColor        BILATERAL_FILTER=BilateralFilterHColor
 #pragma kernel BilateralFilterVColor        BILATERAL_FILTER=BilateralFilterVColor     FINAL_PASS
+
+#pragma only_renderers d3d11
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -51,13 +53,15 @@ TEXTURE2D_X(_HistoryBuffer);
 
 #if SINGLE_CHANNEL
 [numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
-void TEMPORAL_ACCUMULATION_SINGLE(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void TEMPORAL_ACCUMULATION_SINGLE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * SPATIO_TEMPORAL_TILE_SIZE + groupThreadId;
 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
-    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, _InvViewProjMatrix, GetWorldToViewMatrix());
+    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     float2 closest = GetClosestFragment(posInputs.positionSS);
 
@@ -69,7 +73,7 @@ void TEMPORAL_ACCUMULATION_SINGLE(uint2 groupThreadId : SV_GroupThreadID, uint2 
 
     float color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).x;
     #ifdef HISTORY_IS_ARRAY
-    float history = Fetch4Array(_HistoryBuffer, _DenoisingHistorySlot, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
+    float history = Fetch4Array(_HistoryBuffer, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlot), posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
     #else
     float history = Fetch4(_HistoryBuffer, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
     #endif
@@ -108,20 +112,26 @@ void TEMPORAL_ACCUMULATION_SINGLE(uint2 groupThreadId : SV_GroupThreadID, uint2 
 
     color = UnmapPerChannel(lerp(color, history, feedback));
     color = clamp(color, 0.0, CLAMP_MAX);
-    
+
+#ifdef HISTORY_IS_ARRAY
+    _DenoiseOutputTextureRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlot))] = color;
+#else
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = color;
+#endif
 }
 
 #else
 
 [numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
-void TEMPORAL_ACCUMULATION_COLOR(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void TEMPORAL_ACCUMULATION_COLOR(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * SPATIO_TEMPORAL_TILE_SIZE + groupThreadId;
 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
-    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, _InvViewProjMatrix, GetWorldToViewMatrix());
+    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     float2 closest = GetClosestFragment(posInputs.positionSS);
 
@@ -182,9 +192,9 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     #ifdef HISTORY_IS_ARRAY
         #ifdef SINGLE_CHANNEL
-        _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, _DenoisingHistorySlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
+        _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlot))] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
         #else
-        _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, _DenoisingHistorySlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+        _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlot))] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
         #endif
     #else
         #ifdef SINGLE_CHANNEL
@@ -197,8 +207,10 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 // Separated bilateral filter (two passes, each with 2*Radius taps)
 [numthreads(SPATIO_TEMPORAL_TILE_SIZE, SPATIO_TEMPORAL_TILE_SIZE, 1)]
-void BILATERAL_FILTER(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * SPATIO_TEMPORAL_TILE_SIZE + groupThreadId;
 
@@ -224,6 +236,10 @@ void BILATERAL_FILTER(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV
     uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
     for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
     {
+        // We should not tap outside of the screen (given that its a unit, if we go below zero we wrap around)
+        if ((int)tapCoord.x > _ScreenSize.x || (int)tapCoord.y > _ScreenSize.y)
+            continue;
+
         // Compute the weight (skip computation for the center)
         const float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0;
 

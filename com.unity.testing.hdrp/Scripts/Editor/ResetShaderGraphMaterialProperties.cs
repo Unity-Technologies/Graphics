@@ -16,9 +16,9 @@ public class ResetMaterialProperties : MonoBehaviour
         "_StencilRefDistortionVec", "_StencilWriteMaskDistortionVec",
         "_StencilWriteMaskGBuffer", "_StencilRefGBuffer", "_ZTestGBuffer",
         "_SurfaceType", "_BlendMode", "_SrcBlend", "_DstBlend", "_AlphaSrcBlend", "_AlphaDstBlend",
-        "_ZWrite", "_CullMode", "_TransparentSortPriority", "_CullModeForward", "_TransparentCullMode",
+        "_ZWrite", "_TransparentZWrite", "_CullMode", "_CullModeForward", "_TransparentCullMode",
         "_ZTestDepthEqualForOpaque", "_ZTestDepthEqualForOpaque",
-        "_AlphaCutoffEnable", "_AlphaCutoff",
+        "_AlphaCutoffEnable",
         "_TransparentSortPriority", "_UseShadowThreshold",
         "_DoubleSidedEnable", "_DoubleSidedNormalMode",
         "_TransparentBackfaceEnable", "_ReceivesSSR", "_RequireSplitLighting"

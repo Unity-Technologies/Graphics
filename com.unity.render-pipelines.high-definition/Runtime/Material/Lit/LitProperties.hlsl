@@ -69,14 +69,14 @@ SAMPLER(sampler_CoatMaskMap);
 // sampler are share by texture type inside a layered material but we need to support that a particualr layer have no texture, so we take the first sampler of available texture as the share one
 // mean we must declare all sampler
 #define PROP_DECL_TEX2D(name)\
-    TEXTURE2D(MERGE_NAME(name, 0)); \
-    SAMPLER(MERGE_NAME(MERGE_NAME(sampler, name), 0)); \
-    TEXTURE2D(MERGE_NAME(name, 1)); \
-    SAMPLER(MERGE_NAME(MERGE_NAME(sampler, name), 1)); \
-    TEXTURE2D(MERGE_NAME(name, 2)); \
-    SAMPLER(MERGE_NAME(MERGE_NAME(sampler, name), 2)); \
-    TEXTURE2D(MERGE_NAME(name, 3)); \
-    SAMPLER(MERGE_NAME(MERGE_NAME(sampler, name), 3))
+    TEXTURE2D(CALL_MERGE_NAME(name, 0)); \
+    SAMPLER(CALL_MERGE_NAME(CALL_MERGE_NAME(sampler, name), 0)); \
+    TEXTURE2D(CALL_MERGE_NAME(name, 1)); \
+    SAMPLER(CALL_MERGE_NAME(CALL_MERGE_NAME(sampler, name), 1)); \
+    TEXTURE2D(CALL_MERGE_NAME(name, 2)); \
+    SAMPLER(CALL_MERGE_NAME(CALL_MERGE_NAME(sampler, name), 2)); \
+    TEXTURE2D(CALL_MERGE_NAME(name, 3)); \
+    SAMPLER(CALL_MERGE_NAME(CALL_MERGE_NAME(sampler, name), 3))
 
 
 PROP_DECL_TEX2D(_BaseColorMap);
@@ -121,13 +121,12 @@ float3 _EmissiveColor;
 float _AlbedoAffectEmissive;
 float _EmissiveExposureWeight;
 
-float _EnableSpecularOcclusion;
+int  _SpecularOcclusionMode;
 
 // Transparency
 float3 _TransmittanceColor;
 float _Ior;
 float _ATDistance;
-float _ThicknessMultiplier;
 
 // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
 // value that exist to identify if the GI emission need to be enabled.

@@ -24,7 +24,8 @@ class VFXExternalShaderProcessor : AssetPostprocessor
     {
         if (!allowExternalization)
             return;
-        if (assetPath.EndsWith(VisualEffectResource.Extension))
+        bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
+        if (isVFX)
         {
             string vfxName = Path.GetFileNameWithoutExtension(assetPath);
             string vfxDirectory = Path.GetDirectoryName(assetPath);
@@ -81,63 +82,6 @@ class VFXExternalShaderProcessor : AssetPostprocessor
             {
                 resource.shaderSources = descs;
             }
-        }
-    }
-
-    static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-    {
-        foreach (var assetPath in deletedAssets)
-        {
-            if (VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath))
-            {
-                VisualEffectResource.DeleteAtPath(assetPath);
-            }
-        }
-
-        if (!allowExternalization)
-            return;
-        HashSet<string> vfxToRefresh = new HashSet<string>();
-        HashSet<string> vfxToRecompile = new HashSet<string>(); // Recompile vfx if a shader is deleted to replace
-        foreach (string assetPath in importedAssets.Concat(deletedAssets).Concat(movedAssets))
-        {
-            if (assetPath.EndsWith(k_ShaderExt))
-            {
-                string shaderDirectory = Path.GetDirectoryName(assetPath);
-                string vfxName = Path.GetFileName(shaderDirectory);
-                string vfxPath = Path.GetDirectoryName(shaderDirectory);
-
-                if (Path.GetFileName(vfxPath) != k_ShaderDirectory)
-                    continue;
-
-                vfxPath = Path.GetDirectoryName(vfxPath) + "/" + vfxName + VisualEffectResource.Extension;
-
-                if (deletedAssets.Contains(assetPath))
-                    vfxToRecompile.Add(vfxPath);
-                else
-                    vfxToRefresh.Add(vfxPath);
-            }
-        }
-
-        foreach (var assetPath in vfxToRecompile)
-        {
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-            if (asset == null)
-                continue;
-
-            // Force Recompilation to restore the previous shaders
-            VisualEffectResource resource = asset.GetResource();
-            if (resource == null)
-                continue;
-            resource.GetOrCreateGraph().SetExpressionGraphDirty();
-            resource.GetOrCreateGraph().RecompileIfNeeded(false,true);
-        }
-
-        foreach (var assetPath in vfxToRefresh)
-        {
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-            if (asset == null)
-                return;
-            AssetDatabase.ImportAsset(assetPath);
         }
     }
 }
@@ -210,10 +154,12 @@ class VisualEffectAssetEditor : Editor
     static Mesh s_CubeWireFrame;
     void OnEnable()
     {
-        VisualEffectAsset target = this.target as VisualEffectAsset;
 
         m_OutputContexts.Clear();
-        m_OutputContexts.AddRange(target.GetResource().GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+        VisualEffectAsset target = this.target as VisualEffectAsset;
+        var resource = target.GetResource();
+        if (resource != null) //Can be null if VisualEffectAsset is in Asset Bundle
+            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
 
         m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
         m_ReorderableList.displayRemove = false;
@@ -295,14 +241,17 @@ class VisualEffectAssetEditor : Editor
             }
         }
 
-
-        resourceObject = new SerializedObject(targets.Cast<VisualEffectAsset>().Select(t => t.GetResource()).Where(t => t != null).ToArray());
+        var targetResources = targets.Cast<VisualEffectAsset>().Select(t => t.GetResource()).Where(t => t != null).ToArray();
+        if (targetResources.Any())
+        {
+            resourceObject = new SerializedObject(targetResources);
         resourceUpdateModeProperty = resourceObject.FindProperty("m_Infos.m_UpdateMode");
         cullingFlagsProperty = resourceObject.FindProperty("m_Infos.m_CullingFlags");
         motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
         prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
         prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
         initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
+    }
     }
 
     PreviewRenderUtility m_PreviewUtility;
@@ -455,7 +404,7 @@ class VisualEffectAssetEditor : Editor
 
         EditorGUI.BeginChangeCheck();
         EditorGUI.showMixedValue = resourceUpdateModeProperty.hasMultipleDifferentValues;
-        VFXUpdateMode newUpdateMode = (VFXUpdateMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Update Mode"), (VFXUpdateMode)resourceUpdateModeProperty.intValue);
+        VFXUpdateMode newUpdateMode = (VFXUpdateMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Update Mode", "Specifies whether particles are updated using a fixed timestep (Fixed Delta Time), or in a frame-rate independent manner (Delta Time)."), (VFXUpdateMode)resourceUpdateModeProperty.intValue);
         if (EditorGUI.EndChangeCheck())
         {
             resourceUpdateModeProperty.intValue = (int)newUpdateMode;
@@ -464,7 +413,7 @@ class VisualEffectAssetEditor : Editor
 
         EditorGUILayout.BeginHorizontal();
         EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
-        EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags"));
+        EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen."));
         EditorGUI.BeginChangeCheck();
         int newOption = EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue), k_CullingOptionsContents);
         if (EditorGUI.EndChangeCheck())
@@ -482,7 +431,7 @@ class VisualEffectAssetEditor : Editor
                 var currentStepCount = prewarmStepCount.intValue;
                 var currentTotalTime = currentDeltaTime * currentStepCount;
                 EditorGUI.BeginChangeCheck();
-                currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time"), currentTotalTime);
+                currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), currentTotalTime);
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (currentStepCount <= 0)
@@ -496,7 +445,7 @@ class VisualEffectAssetEditor : Editor
                 }
 
                 EditorGUI.BeginChangeCheck();
-                currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count"), currentStepCount);
+                currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), currentStepCount);
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (currentStepCount <= 0 && currentTotalTime != 0.0f)
@@ -511,7 +460,7 @@ class VisualEffectAssetEditor : Editor
                 }
 
                 EditorGUI.BeginChangeCheck();
-                currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time"), currentDeltaTime);
+                currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."), currentDeltaTime);
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (currentDeltaTime < k_MinimalCommonDeltaTime)
@@ -552,9 +501,9 @@ class VisualEffectAssetEditor : Editor
                 //Multi selection case, can't resolve total time easily
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
-                EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count"));
+                EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to."));
                 EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
-                EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time"));
+                EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."));
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (prewarmDeltaTime.floatValue < k_MinimalCommonDeltaTime)
@@ -568,7 +517,7 @@ class VisualEffectAssetEditor : Editor
         {
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = initialEventName.hasMultipleDifferentValues;
-            EditorGUILayout.PropertyField(initialEventName);
+            EditorGUILayout.PropertyField(initialEventName, new GUIContent("Initial Event Name", "Sets the name of the event which triggers once the system is activated. Default: ‘OnPlay’."));
             if (EditorGUI.EndChangeCheck())
             {
                 resourceObject.ApplyModifiedProperties();
@@ -587,8 +536,6 @@ class VisualEffectAssetEditor : Editor
 
             VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"),  false, false);
 
-            var shaderSources = resource.shaderSources;
-
             string assetPath = AssetDatabase.GetAssetPath(asset);
             UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);
             string directory = Path.GetDirectoryName(assetPath) + "/" + VFXExternalShaderProcessor.k_ShaderDirectory + "/" + asset.name + "/";
@@ -600,26 +547,21 @@ class VisualEffectAssetEditor : Editor
                     GUILayout.BeginHorizontal();
                     Rect r = GUILayoutUtility.GetRect(0, 18, GUILayout.ExpandWidth(true));
 
-                    int buttonsWidth = VFXExternalShaderProcessor.allowExternalization? 250:200;
+                    int buttonsWidth = VFXExternalShaderProcessor.allowExternalization? 240:160;
 
 
                     Rect labelR = r;
                     labelR.width -= buttonsWidth;
                     GUI.Label(labelR, shader.name);
                     int index = resource.GetShaderIndex(shader);
-                    if (index >= 0 && index < shaderSources.Length)
+                    if (index >= 0)
                     {
-                        if (VFXExternalShaderProcessor.allowExternalization)
+                        if (VFXExternalShaderProcessor.allowExternalization && index < resource.GetShaderSourceCount() )
                         {
-                            string externalPath = directory + shaderSources[index].name;
-                            if (!shaderSources[index].compute)
-                            {
-                                externalPath = directory + shaderSources[index].name.Replace('/', '_') + VFXExternalShaderProcessor.k_ShaderExt;
-                            }
-                            else
-                            {
-                                externalPath = directory + shaderSources[index].name + VFXExternalShaderProcessor.k_ShaderExt;
-                            }
+                            string shaderSourceName = resource.GetShaderSourceName(index);
+                            string externalPath = directory + shaderSourceName;
+
+                            externalPath = directory + shaderSourceName.Replace('/', '_') + VFXExternalShaderProcessor.k_ShaderExt;
 
                             Rect buttonRect = r;
                             buttonRect.xMin = labelR.xMax;
@@ -638,7 +580,7 @@ class VisualEffectAssetEditor : Editor
                                 {
                                     Directory.CreateDirectory(directory);
 
-                                    File.WriteAllText(externalPath, "//" + shaderSources[index].name + "," + index.ToString() + "\n//Don't delete the previous line or this one\n" + shaderSources[index].source);
+                                    File.WriteAllText(externalPath, "//" + shaderSourceName + "," + index.ToString() + "\n//Don't delete the previous line or this one\n" + resource.GetShaderSource(index));
                                 }
                             }
                         }
@@ -652,6 +594,7 @@ class VisualEffectAssetEditor : Editor
                             resource.ShowGeneratedShaderFile(index);
                         }
                     }
+
                     Rect selectButtonR = r;
                     selectButtonR.xMin = labelR.xMax;
                     selectButtonR.width = 50;

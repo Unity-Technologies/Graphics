@@ -6,6 +6,10 @@ Provides access to various parameters of the currently rendering **Object**.
 
 Note: The behaviour of the Position [Port](Port.md) can be defined per Render Pipeline. Different Render Pipelines may produce different results. If you're building a shader in one Render Pipeline that you want to use in both, try checking it in both pipelines before production.
 
+#### Unity Render Pipelines Support
+- Universal Render Pipeline
+- High Definition Render Pipeline
+
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |

@@ -5,7 +5,6 @@ using UnityEditor.Experimental.Rendering.Universal.Path2D;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.UIElements;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
@@ -56,12 +55,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static Texture lightCapBottomRight = Resources.Load<Texture>("LightCapBottomRight");
             public static Texture lightCapUp = Resources.Load<Texture>("LightCapUp");
             public static Texture lightCapDown = Resources.Load<Texture>("LightCapDown");
-            public static Texture parametricLightIcon = Resources.Load("InspectorIcons/ParametricLight") as Texture;
-            public static Texture freeformLightIcon = Resources.Load("InspectorIcons/FreeformLight") as Texture;
-            public static Texture spriteLightIcon = Resources.Load("InspectorIcons/SpriteLight") as Texture;
-            public static Texture pointLightIcon = Resources.Load("InspectorIcons/PointLight") as Texture;
-            public static Texture globalLightIcon = Resources.Load("InspectorIcons/GlobalLight") as Texture;
-            public static Texture[] lightIcons = new Texture[] { parametricLightIcon, freeformLightIcon, spriteLightIcon, pointLightIcon, globalLightIcon };
+
+            public static GUIContent lightTypeParametric = new GUIContent("Parametric", Resources.Load("InspectorIcons/ParametricLight") as Texture);
+            public static GUIContent lightTypeFreeform = new GUIContent("Freeform", Resources.Load("InspectorIcons/FreeformLight") as Texture);
+            public static GUIContent lightTypeSprite = new GUIContent("Sprite", Resources.Load("InspectorIcons/SpriteLight") as Texture);
+            public static GUIContent lightTypePoint = new GUIContent("Point", Resources.Load("InspectorIcons/PointLight") as Texture);
+            public static GUIContent lightTypeGlobal = new GUIContent("Global", Resources.Load("InspectorIcons/GlobalLight") as Texture);
+            public static GUIContent[] lightTypeOptions = new GUIContent[] { lightTypeParametric, lightTypeFreeform, lightTypeSprite, lightTypePoint, lightTypeGlobal };
 
             public static GUIContent generalLightType = EditorGUIUtility.TrTextContent("Light Type", "Specify the light type");
             public static GUIContent generalFalloffSize = EditorGUIUtility.TrTextContent("Falloff", "Specify the falloff of the light");
@@ -93,8 +93,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent shapeLightFalloffOffset = EditorGUIUtility.TrTextContent("Falloff Offset", "Specify the shape's falloff offset");
             public static GUIContent shapeLightAngleOffset = EditorGUIUtility.TrTextContent("Angle Offset", "Adjust the rotation of the object");
 
-            public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in graphics settings", MessageType.Warning);
-            public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset or camera", MessageType.Warning);
+            public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in Graphics Settings or Quality Settings.", MessageType.Warning);
+            public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset or camera.", MessageType.Warning);
         }
 
         const float     k_GlobalLightGizmoSize      = 1.2f;
@@ -142,10 +142,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         Light2D lightObject => target as Light2D;
 
-        int m_LastLightType = 0;
-
-        HeaderModifier m_HeaderModifier;
-
         Analytics.Renderer2DAnalytics m_Analytics;
         HashSet<Light2D> m_ModifiedLights;
 
@@ -160,29 +156,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         m_ModifiedLights.Add(light2d);
                 }
             }
-        }
-
-        public override VisualElement CreateInspectorGUI()
-        {
-            m_HeaderModifier = new HeaderModifier(OnInspectorGUI, () =>
-            {
-                if (Styles.lightIcons != null)
-                {
-                    Color skinColor = EditorGUIUtility.isProSkin ? new Color32(56, 56, 56, 255) : new Color32(194, 194, 194, 255);
-
-                    //GUISkin skin = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector);
-
-                    // Rect iconRect = new Rect(16, 2, 16, 16);  // This needs a version define
-                    Rect iconRect = new Rect(20, 5, 16, 16);  // This needs a version define
-                    EditorGUI.DrawRect(iconRect, skinColor);
-
-                    if (Styles.lightIcons[m_LastLightType])
-                    {
-                        GUI.DrawTexture(iconRect, Styles.lightIcons[m_LastLightType]);
-                    }
-                }
-            });
-            return m_HeaderModifier;
         }
 
         void OnEnable()
@@ -233,13 +206,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     blendStyleIndices.Add(i);
 
                     ref var blendStyle = ref rendererData.lightBlendStyles[i];
-                    if (blendStyle.enabled)
-                    {
-                        blendStyleNames.Add(blendStyle.name);
-                        m_AnyBlendStyleEnabled = true;
-                    }
-                    else
-                        blendStyleNames.Add(blendStyle.name + " (Disabled)");
+                    blendStyleNames.Add(blendStyle.name);
+                    m_AnyBlendStyleEnabled = true;
                 }
             }
             else
@@ -556,13 +524,16 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         List<Vector2> falloffShape = light.GetFalloffShape();
                         Handles.color = Color.white;
 
+
+                        Vector3 falloffOffset = m_ShapeLightFalloffOffset.vector2Value;
+
                         for (int i = 0; i < falloffShape.Count - 1; ++i)
                         {
-                            Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
+                            Handles.DrawLine(t.TransformPoint(falloffShape[i]) + falloffOffset, t.TransformPoint(falloffShape[i + 1]) + falloffOffset);
                             Handles.DrawLine(t.TransformPoint(light.shapePath[i]), t.TransformPoint(light.shapePath[i + 1]));
                         }
 
-                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]) + falloffOffset, t.TransformPoint(falloffShape[0]) + falloffOffset);
                         Handles.DrawLine(t.TransformPoint(light.shapePath[falloffShape.Count - 1]), t.TransformPoint(light.shapePath[0]));
                     }
                     break;
@@ -591,8 +562,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(m_LightType, Styles.generalLightType);
-            m_LastLightType = m_LightType.intValue;
+            Rect lightTypeRect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(lightTypeRect, GUIContent.none, m_LightType);
+            EditorGUI.BeginChangeCheck();
+            int newLightType = EditorGUI.Popup(lightTypeRect, Styles.generalLightType, m_LightType.intValue, Styles.lightTypeOptions);
+            if (EditorGUI.EndChangeCheck())
+                m_LightType.intValue = newLightType;
+            EditorGUI.EndProperty();
 
             switch (m_LightType.intValue)
             {

@@ -1,0 +1,166 @@
+#pragma only_renderers d3d11
+
+#pragma kernel TemporalAccumulation
+#pragma kernel CopyHistory
+#pragma kernel BilateralFilterH        BILATERAL_FILTER=BilateralFilterH
+#pragma kernel BilateralFilterV        BILATERAL_FILTER=BilateralFilterV     FINAL_PASS
+
+#pragma only_renderers d3d11
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
+#define BILATERAL_ROUGHNESS
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/BilateralFilter.hlsl"
+
+// Tile size of this compute
+#define REFLECTION_FILTER_TILE_SIZE 8
+
+TEXTURE2D_X(_DenoiseInputTexture);
+TEXTURE2D_X(_HistoryBuffer);
+RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+// Value that tells us if the current history should be discarded based on scene-level data
+float _HistoryValidity;
+
+[numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
+void TemporalAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * REFLECTION_FILTER_TILE_SIZE + groupThreadId;
+
+    // If the history is flagged as invalid, write the current value and leave right away
+    if (_HistoryValidity == 0.0)
+    {
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord);
+        return;
+    }
+
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
+    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
+
+    float2 closest = GetClosestFragment(posInputs.positionSS);
+
+    float2 velocity;
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
+    float velocityLength = length(velocity);
+
+    float2 uv = posInputs.positionNDC;
+
+    float3 color = Fetch(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
+    float3 history = Fetch(_HistoryBuffer, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy) * GetCurrentExposureMultiplier();
+    float3 topLeft = Fetch(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
+    float3 bottomRight = Fetch(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
+
+    float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
+
+    color = clamp(color, 0.0, CLAMP_MAX);
+
+    float3 average = Map((corners + color) / 7.0);
+
+    topLeft = Map(topLeft);
+    bottomRight = Map(bottomRight);
+    color = Map(color);
+
+    float colorLuma = Luminance(color);
+    float averageLuma = Luminance(average);
+    float nudge = lerp(4.0, 0.25, saturate(velocityLength * 100.0)) * abs(averageLuma - colorLuma);
+
+    float3 minimum = min(bottomRight, topLeft) - nudge;
+    float3 maximum = max(topLeft, bottomRight) + nudge;
+
+    history = Map(history);
+
+    // Clip history samples
+    history = ClipToAABB(history, minimum, maximum);
+
+    // Blend color & history
+    // Feedback weight from unbiased luminance diff (Timothy Lottes)
+    float historyLuma = Luminance(history);
+    float diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
+    float weight = 1.0 - diff;
+    float feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
+
+    color = Unmap(lerp(color, history, feedback));
+    color = clamp(color, 0.0, CLAMP_MAX);
+
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
+}
+
+[numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
+void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
+        return;  // Out of bounds, discard
+
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+}
+
+int _DenoiserFilterRadius;
+float _RaytracingReflectionMinSmoothness;
+TEXTURE2D(_ReflectionFilterMapping);
+
+// Separated bilateral filter (two passes, each with 2*Radius taps)
+[numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
+void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * REFLECTION_FILTER_TILE_SIZE + groupThreadId;
+
+    // Based on which pass of the filter we are doing, adjust the sampling direction
+    #if FINAL_PASS
+    const uint2 passIncr = uint2(1, 0);
+    #else
+    const uint2 passIncr = uint2(0, 1);
+    #endif
+
+    // Tap the central pixel coordinates
+    const BilateralData center = TapBilateralData(centerCoord);
+
+    // Compute the effective radius we should be using for the filtering
+    float3 viewWS = normalize(_WorldSpaceCameraPos - center.position);
+    float2 mappingUV = float2(dot(viewWS, center.normal), center.roughness);
+    float2 radiusScale = SAMPLE_TEXTURE2D_LOD(_ReflectionFilterMapping, s_linear_clamp_sampler, mappingUV, 0.0f).xy;
+    #if FINAL_PASS
+    const float radius = _DenoiserFilterRadius * radiusScale.x;
+    #else
+    const float radius = _DenoiserFilterRadius * radiusScale.y;
+    #endif
+    const float sigma = 0.5 * radius;
+    const int effectiveRadius = min(sigma * 2.0, radius);
+
+    // Store the intermediate result
+    float3 finalColor = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
+
+    // If this pixels does not have ray traced reflections anyway, just skip it.
+    if (_RaytracingReflectionMinSmoothness < PerceptualRoughnessToPerceptualSmoothness(center.roughness))
+    {
+        // Initialize variables for accumulation
+        float3 colorSum = float3(0.0, 0.0, 0.0);
+        float wSum = 0.0;
+
+        uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
+        for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
+        {
+            // Compute the weight (skip computation for the center)
+            const BilateralData tapData = TapBilateralData(tapCoord);
+            float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, tapData) : 1.0;
+            w = _RaytracingReflectionMinSmoothness > PerceptualRoughnessToPerceptualSmoothness(tapData.roughness) ? 0.0 : w;
+            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xyz * w;
+            wSum += w;
+        }
+        // Normalize the result
+        finalColor = colorSum / wSum;
+    }
+
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(finalColor, LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
+}

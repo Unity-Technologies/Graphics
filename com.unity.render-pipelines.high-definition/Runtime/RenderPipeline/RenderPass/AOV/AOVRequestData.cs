@@ -10,18 +10,34 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <param name="buffers">The buffers that has been requested.</param>
     /// <param name="outputProperties">Several properties that were computed for this frame.</param>
     public delegate void FramePassCallback(CommandBuffer cmd, List<RTHandle> buffers, RenderOutputProperties outputProperties);
+    /// <summary>
+    /// Called to allocate a RTHandle for a specific AOVBuffer.
+    /// </summary>
+    /// <param name="aovBufferId">The AOVBuffer to allocatE.</param>
     public delegate RTHandle AOVRequestBufferAllocator(AOVBuffers aovBufferId);
 
     /// <summary>Describes a frame pass.</summary>
     public struct AOVRequestData
     {
         /// <summary>Default frame pass settings.</summary>
-        public static readonly AOVRequestData @default = new AOVRequestData
+        [Obsolete("Since 2019.3, use AOVRequestData.NewDefault() instead.")]
+        public static readonly AOVRequestData @default = default;
+        /// <summary>
+        /// Instantiate a new AOV request data with default values.
+        ///
+        /// Note: Allocates memory by the garbage collector.
+        /// If you intend only to read the default values, you should use <see cref="defaultAOVRequestDataNonAlloc"/>.
+        /// </summary>
+        /// <returns>A new AOV request data with default values.</returns>
+        public static AOVRequestData NewDefault() => new AOVRequestData
         {
-            m_Settings = AOVRequest.@default,
+            m_Settings = AOVRequest.NewDefault(),
             m_RequestedAOVBuffers = new AOVBuffers[] {},
             m_Callback = null
         };
+
+        /// <summary>Default frame pass settings.</summary>
+        public static readonly AOVRequestData defaultAOVRequestDataNonAlloc = NewDefault();
 
         private AOVRequest m_Settings;
         private AOVBuffers[] m_RequestedAOVBuffers;

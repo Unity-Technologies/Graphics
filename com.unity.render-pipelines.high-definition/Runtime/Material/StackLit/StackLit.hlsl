@@ -629,7 +629,7 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
     {
         normalData.normalWS = surfaceData.coatNormalWS;
-        normalData.perceptualRoughness = surfaceData.coatPerceptualSmoothness;
+        normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness);
     }
     else
     {
@@ -1372,7 +1372,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // More details:
 // -----------------------------
 //
-// There’s a couple of choices for formulating the adding equations in ComputeAdding( ).
+// There's a couple of choices for formulating the adding equations in ComputeAdding( ).
 // I discuss that here along with some information on the whole method.
 //
 // If the energy coefficients are intended to be used solely in a split sum IBL context,
@@ -1398,7 +1398,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // light evaluations instead of the full BSDF. However, test empirically, might still be
 // better to use the full BSDF even then.
 // (Using FGD means accounting an average omnidirectional-outgoing / unidirectional-incoming
-// energy transfer, “directional albedo” form. But in analytical lights, dirac vanishes
+// energy transfer, "directional albedo" form. But in analytical lights, dirac vanishes
 // the first FGD integral, and the "LD" part will be very sparse and punctual, hence this
 // might justify using more than D_GGX() ?)
 //
@@ -1421,12 +1421,12 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // propagation operators work: eg see p9 the Symmetric Model: it is as if roughness is not
 // "injected" in the direction of the macrosurface but in the H direction. Although
 // different, empirical results show that it is as valid. Note however that again, this
-// doesn’t change the lobe directions.
+// doesn't change the lobe directions.
 //
 // Offspecular effects:
 //
-// Since the ComputeAdding() method doesn’t really track mean directions but assume symmetry in
-// the incidence plane (perpendicular to the “up” vector of the parametrization - either N or H
+// Since the ComputeAdding() method doesn't really track mean directions but assume symmetry in
+// the incidence plane (perpendicular to the "up" vector of the parametrization - either N or H
 // depending on the given cti param - cos theta incident), only elevation angles are used, but
 // output lobe directions (by symmetry of reflection and symmetry of transmission top-to-bottom
 // + bottom-to-top), since only reflection lobes are outputted, are all in the same direction
@@ -1442,7 +1442,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // tilt still happens but after and based on the whole layered stack stats that have been
 // computed).
 //
-// Again, since we don’t change w_i when instantiating an analytic BSDF, the change in roughness
+// Again, since we don't change w_i when instantiating an analytic BSDF, the change in roughness
 // will incur that additional offspecular deviation naturally.
 // For IBLs however, we take the resulting output (vlayer) roughness and calculate a correction
 // to fetch through the dominant (central direction of the lobe) through GetSpecularDominantDir( )
@@ -1465,14 +1465,14 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 
 // TODO:
 // This creates another performance option: when in VLAYERED_RECOMPUTE_PERLIGHT mode, we
-// don’t recompute for IBLs, but the coefficients for energy compensation would need to get FGD,
+// don't recompute for IBLs, but the coefficients for energy compensation would need to get FGD,
 // and will require FGD fetches for each analytical light. (ie ComputeAdding( ) ideally should
 // always do calculations with FGD and do the fetches, so that even in GetPreLightData, nothing
-// would be done there). For now, and for performance reasons, we don’t provide the option.
+// would be done there). For now, and for performance reasons, we don't provide the option.
 //
 // However, when VLAYERED_RECOMPUTE_PERLIGHT is not used, we actually get usable terms that we
 // will apply to the specular lighting, but these are different, we have one per real interface
-// (so 2 vs the 3 “virtual” layer structure here).
+// (so 2 vs the 3 "virtual" layer structure here).
 // (FGDinf can be obtained from our FGD)
 //
 
@@ -3905,6 +3905,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
     float3 positionWS = posInput.positionWS;
 
+#if SHADEROPTIONS_BARN_DOOR
+    // Apply the barn door modification to the light data
+    RectangularLightApplyBarnDoor(lightData, positionWS);
+#endif
+
 #ifdef STACK_LIT_DISPLAY_REFERENCE_AREA
     IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
@@ -3960,10 +3965,10 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     float4x3 lightVerts;
 
     // TODO: some of this could be precomputed.
-    lightVerts[0] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
-    lightVerts[1] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+    lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
+    lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
+    lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
+    lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
 
     // Rotate the endpoints into the local coordinate system.
     float4x3 localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX]));
@@ -3979,12 +3984,20 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
     // Calculate the L irradiance (ltcValue) first for the diffuse part and transmission,
     // then for the specular base layer and finishing with the coat.
-    float ltcValue;
+    float3 ltcValue;
 
     // Evaluate the diffuse part
     // Polygon irradiance in the transformed configuration.
-    ltcValue  = PolygonIrradiance(mul(localLightVerts, preLightData.ltcTransformDiffuse));
+    float4x3 LD = mul(localLightVerts, preLightData.ltcTransformDiffuse);
+    ltcValue  = PolygonIrradiance(LD);
     ltcValue *= lightData.diffuseDimmer;
+    // Only apply cookie if there is one
+    if ( lightData.cookieMode != COOKIEMODE_NONE )
+    {
+        // Compute the cookie data for the diffuse term
+        float3 formFactorD =  PolygonFormFactor(LD);
+        ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LD, formFactorD);
+    }
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     lighting.diffuse = preLightData.diffuseFGD * preLightData.diffuseEnergy * ltcValue;
 
@@ -4001,9 +4014,16 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
         // Polygon irradiance in the transformed configuration.
         // TODO: double evaluation is very inefficient! This is a temporary solution.
-        ltcValue  = PolygonIrradiance(mul(localLightVerts, ltcTransform));
+        float4x3 LTD = mul(localLightVerts, ltcTransform);
+        ltcValue  = PolygonIrradiance(LTD);
         ltcValue *= lightData.diffuseDimmer;
-
+        // Only apply cookie if there is one
+        if ( lightData.cookieMode != COOKIEMODE_NONE )
+        {
+            // Compute the cookie data for the transmission diffuse term
+            float3 formFactorTD = PolygonFormFactor(LTD);
+            ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LTD, formFactorTD);
+        }
         // VLAYERED_DIFFUSE_ENERGY_HACKED_TERM:
         // In Lit with Lambert, there's no diffuseFGD, it is one. In our case, we also
         // need a diffuse energy term when vlayered.
@@ -4023,7 +4043,16 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEA_IDX]));
         }
         // Polygon irradiance in the transformed configuration.
-        ltcValue  = PolygonIrradiance(mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEA_IDX]));
+        float4x3 LAS = mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEA_IDX]);
+        ltcValue  = PolygonIrradiance(LAS);
+        // Only apply cookie if there is one
+        if ( lightData.cookieMode != COOKIEMODE_NONE )
+        {
+            // Compute the cookie data for the specular term
+            float3 formFactorAS =  PolygonFormFactor(LAS);
+            ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LAS, formFactorAS);
+        }
+
         // See EvaluateBSDF_Env TODOENERGY:
         lighting.specular += preLightData.energyCompensationFactor[BASE_LOBEA_IDX] * preLightData.specularFGD[BASE_LOBEA_IDX] * ltcValue;
     }
@@ -4035,7 +4064,16 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             // local canonical frames we have lobe specific frames because of the anisotropic hack:
             localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEB_IDX]));
         }
-        ltcValue  = PolygonIrradiance(mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEB_IDX]));
+        float4x3 LS = mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEB_IDX]);
+        ltcValue  = PolygonIrradiance(LS);
+        // Only apply cookie if there is one
+        if ( lightData.cookieMode != COOKIEMODE_NONE )
+        {
+            // Compute the cookie data for the specular term
+            float3 formFactorS =  PolygonFormFactor(LS);
+            ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
+        }
+
         lighting.specular += preLightData.energyCompensationFactor[BASE_LOBEB_IDX] * preLightData.specularFGD[BASE_LOBEB_IDX] * ltcValue;
     }
 
@@ -4053,7 +4091,15 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         }
         IF_DEBUG( if ( _DebugLobeMask.x != 0.0) )
         {
-            ltcValue  = PolygonIrradiance(mul(localLightVerts, preLightData.ltcTransformSpecular[COAT_LOBE_IDX]));
+            float4x3 LSCC = mul(localLightVerts, preLightData.ltcTransformSpecular[COAT_LOBE_IDX]);
+            ltcValue  = PolygonIrradiance(LSCC);
+            // Only apply cookie if there is one
+            if ( lightData.cookieMode != COOKIEMODE_NONE )
+            {
+                // Compute the cookie data for the specular term
+                float3 formFactorS =  PolygonFormFactor(LSCC);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LSCC, formFactorS);
+            }
             lighting.specular += preLightData.energyCompensationFactor[COAT_LOBE_IDX] * preLightData.specularFGD[COAT_LOBE_IDX] * ltcValue;
         }
     }
@@ -4111,6 +4157,10 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
 
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
     float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
+    InversePreExposeSsrLighting(ssrLighting);
+
+    // Apply the weight on the ssr contribution (if required)
+    ApplyScreenSpaceReflectionWeight(ssrLighting);
 
     // For performance reasons, SSR doesn't allow us to be discriminating per lobe, ie wrt direction, roughness,
     // anisotropy, etc. 
@@ -4148,7 +4198,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     }
 
     // Note: RGB is already premultiplied by A.
-    lighting.specularReflected = ssrLighting.rgb /* * ssrLighting.a */ * reflectanceFactor;
+    lighting.specularReflected = ssrLighting.rgb * reflectanceFactor;
     reflectionHierarchyWeight  = ssrLighting.a;
 
     return lighting;
@@ -4288,7 +4338,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i]);
         }
 
-        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], iblMipLevel);
+        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], iblMipLevel, lightData.rangeCompressionFactorCompensation);
         // Used by planar reflection to discard pixel:
         tempWeight[i] *= preLD.a;
 

@@ -20,7 +20,7 @@ Pass
 		float3 posWS : TEXCOORD1;
 		#endif
 
-        float pointSize : PSIZE;
+		float pointSize : PSIZE;
 
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
@@ -42,7 +42,8 @@ Pass
 #if USE_EXPOSURE_WEIGHT
 #define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.z
 #endif
-	
+
+	${VFXPassForwardDefine}
 	${VFXInclude("Shaders/ParticlePoints/Pass.template")}	
 		
 	#pragma fragment frag
@@ -56,7 +57,7 @@ Pass
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);
-        o.color = VFXTransformFinalColor(o.color);
+		o.color = VFXTransformFinalColor(o.color);
 		return o;
 	}
 	ENDHLSL

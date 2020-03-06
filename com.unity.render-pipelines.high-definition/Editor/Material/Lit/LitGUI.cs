@@ -21,23 +21,18 @@ namespace UnityEditor.Rendering.HighDefinition
             new TessellationOptionsUIBlock(MaterialUIBlock.Expandable.Tesselation),
             new LitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input, features: litSurfaceFeatures),
             new DetailInputsUIBlock(MaterialUIBlock.Expandable.Detail),
-            new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency),
+            // We don't want distortion in Lit
+            new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency, features: TransparencyUIBlock.Features.All & ~TransparencyUIBlock.Features.Distortion),
             new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance),
         };
 
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
                 uiBlocks.OnGUI(materialEditor, props);
-
-                // Apply material keywords and pass:
-                if (changed.changed)
-                {
-                    foreach (var material in uiBlocks.materials)
-                        SetupMaterialKeywordsAndPassInternal(material);
-                }
+                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
             }
         }
 
@@ -95,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected MaterialProperty useEmissiveIntensity = null;
         protected const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
 
-        protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
+        protected const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
         // transparency params
         protected const string kTransmittanceColorMap = "_TransmittanceColorMap";
@@ -130,8 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else // Object space
                 {
-                    // With details map, we always use a normal map but in case of objects space there is no good default, so the result will be weird until users fix it
-                    CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMapOS) || material.GetTexture(kDetailMap));
+                    CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMapOS));
                     CoreUtils.SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMapOS));
                     CoreUtils.SetKeyword(material, "_BENTNORMALMAP", material.GetTexture(kBentNormalMapOS));
                 }
@@ -147,8 +141,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             }
 
-            if (material.HasProperty(kEnableSpecularOcclusion))
-                CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
+            if (material.HasProperty(kSpecularOcclusionMode))
+            {
+                // For migration of specular occlusion to specular mode we remove previous keyword
+                // _ENABLESPECULAROCCLUSION is deprecated
+                CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", false);
+
+                int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
+                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
+                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", specOcclusionMode == 2);
+            }
             if (material.HasProperty(kHeightMap))
                 CoreUtils.SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
             if (material.HasProperty(kAnisotropyMap))
@@ -202,10 +204,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(kRefractionModel))
             {
                 var refractionModelValue = (ScreenSpaceRefraction.RefractionModel)material.GetFloat(kRefractionModel);
-                // We can't have refraction in pre-refraction queue
-                var canHaveRefraction = !HDRenderQueue.k_RenderQueue_PreRefraction.Contains(material.renderQueue);
+                // We can't have refraction in pre-refraction queue and the material needs to be transparent
+                var canHaveRefraction = material.GetSurfaceType() == SurfaceType.Transparent && !HDRenderQueue.k_RenderQueue_PreRefraction.Contains(material.renderQueue);
                 CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Box) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
+                CoreUtils.SetKeyword(material, "_REFRACTION_THIN", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Thin) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
             }
 

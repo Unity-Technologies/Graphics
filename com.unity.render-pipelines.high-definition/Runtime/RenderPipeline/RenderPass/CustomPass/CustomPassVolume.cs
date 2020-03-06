@@ -7,28 +7,41 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
     /// Unity Monobehavior that manages the execution of custom passes.
-    /// It provides 
+    /// It provides
     /// </summary>
     [ExecuteAlways]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Custom-Pass" + Documentation.endURL)]
     public class CustomPassVolume : MonoBehaviour
     {
         /// <summary>
         /// Whether or not the volume is global. If true, the component will ignore all colliders attached to it
         /// </summary>
-        public bool isGlobal;
+        public bool isGlobal = true;
+
+        /// <summary>
+        /// Distance where the volume start to be rendered, the fadeValue field in C# will be updated to the normalized blend factor for your custom C# passes
+        /// In the fullscreen shader pass and DrawRenderers shaders you can access the _FadeValue
+        /// </summary>
+        [Min(0)]
+        public float fadeRadius;
 
         /// <summary>
         /// List of custom passes to execute
         /// </summary>
-        /// <typeparam name="CustomPass"></typeparam>
-        /// <returns></returns>
         [SerializeReference]
         public List<CustomPass> customPasses = new List<CustomPass>();
 
         /// <summary>
         /// Where the custom passes are going to be injected in HDRP
         /// </summary>
-        public CustomPassInjectionPoint injectionPoint;
+        public CustomPassInjectionPoint injectionPoint = CustomPassInjectionPoint.BeforeTransparent;
+
+        /// <summary>
+        /// Fade value between 0 and 1. it represent how close you camera is from the collider of the custom pass.
+        /// 0 when the camera is outside the volume + fade radius and 1 when it is inside the collider.
+        /// </summary>
+        /// <value>The fade value that should be applied to the custom pass effect</value>
+        public float fadeValue { get; private set; }
 
         // The current active custom pass volume is simply the smallest overlapping volume with the trigger transform
         static HashSet<CustomPassVolume>    m_ActivePassVolumes = new HashSet<CustomPassVolume>();
@@ -37,24 +50,66 @@ namespace UnityEngine.Rendering.HighDefinition
         List<Collider>          m_Colliders = new List<Collider>();
         List<Collider>          m_OverlappingColliders = new List<Collider>();
 
+        static List<CustomPassInjectionPoint> m_InjectionPoints;
+        static List<CustomPassInjectionPoint> injectionPoints
+        {
+            get
+            {
+                if (m_InjectionPoints == null)
+                    m_InjectionPoints = Enum.GetValues(typeof(CustomPassInjectionPoint)).Cast<CustomPassInjectionPoint>().ToList();
+                return m_InjectionPoints;
+            }
+        }
+
         void OnEnable()
         {
+            // Remove null passes in case of something happens during the deserialization of the passes
+            customPasses.RemoveAll(c => c is null);
             GetComponents(m_Colliders);
             Register(this);
         }
 
         void OnDisable() => UnRegister(this);
 
-        internal void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, CustomPass.RenderTargets targets)
+        void OnDestroy() => CleanupPasses();
+
+        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
         {
+            bool executed = false;
+
+            // We never execute volume if the layer is not within the culling layers of the camera
+            if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
+                return false;
+
             Shader.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)injectionPoint);
 
             foreach (var pass in customPasses)
             {
-                if (pass != null && pass.enabled)
-                    using (new ProfilingSample(cmd, pass.name))
-                        pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, targets);
+                if (pass != null && pass.WillBeExecuted(hdCamera))
+                {
+                    pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
+                    executed = true;
+                }
             }
+
+            return executed;
+        }
+
+        internal bool WillExecuteInjectionPoint(HDCamera hdCamera)
+        {
+            bool executed = false;
+
+            // We never execute volume if the layer is not within the culling layers of the camera
+            if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
+                return false;
+
+            foreach (var pass in customPasses)
+            {
+                if (pass != null && pass.WillBeExecuted(hdCamera))
+                    executed = true;
+            }
+
+            return executed;
         }
 
         internal void CleanupPasses()
@@ -67,25 +122,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void UnRegister(CustomPassVolume volume) => m_ActivePassVolumes.Remove(volume);
 
-        internal static void Update(Transform trigger)
+        internal static void Update(HDCamera camera)
         {
-            bool onlyGlobal = trigger == null;
-            var triggerPos = onlyGlobal ? Vector3.zero : trigger.position;
+            var triggerPos = camera.volumeAnchor.position;
 
             m_OverlappingPassVolumes.Clear();
 
             // Traverse all volumes
             foreach (var volume in m_ActivePassVolumes)
             {
+                // Ignore volumes that are not in the camera layer mask
+                if ((camera.volumeLayerMask & (1 << volume.gameObject.layer)) == 0)
+                    continue;
+
                 // Global volumes always have influence
                 if (volume.isGlobal)
                 {
+                    volume.fadeValue = 1.0f;
                     m_OverlappingPassVolumes.Add(volume);
                     continue;
                 }
-
-                if (onlyGlobal)
-                    continue;
 
                 // If volume isn't global and has no collider, skip it as it's useless
                 if (volume.m_Colliders.Count == 0)
@@ -93,11 +149,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 volume.m_OverlappingColliders.Clear();
 
+                float sqrFadeRadius = Mathf.Max(float.Epsilon, volume.fadeRadius * volume.fadeRadius);
+                float minSqrDistance = 1e20f;
+
                 foreach (var collider in volume.m_Colliders)
                 {
                     if (!collider || !collider.enabled)
                         continue;
-                    
+
                     // We don't support concave colliders
                     if (collider is MeshCollider m && !m.convex)
                         continue;
@@ -105,10 +164,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     var closestPoint = collider.ClosestPoint(triggerPos);
                     var d = (closestPoint - triggerPos).sqrMagnitude;
 
+                    minSqrDistance = Mathf.Min(minSqrDistance, d);
+
                     // Update the list of overlapping colliders
-                    if (d <= 0)
+                    if (d <= sqrFadeRadius)
                         volume.m_OverlappingColliders.Add(collider);
                 }
+
+                // update the fade value:
+                volume.fadeValue = 1.0f - Mathf.Clamp01(Mathf.Sqrt(minSqrDistance / sqrFadeRadius));
 
                 if (volume.m_OverlappingColliders.Count > 0)
                     m_OverlappingPassVolumes.Add(volume);
@@ -125,11 +189,45 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (v1.isGlobal && v2.isGlobal) return 0;
-                if (v1.isGlobal) return -1;
-                if (v2.isGlobal) return 1;
-                
+                if (v1.isGlobal) return 1;
+                if (v2.isGlobal) return -1;
+
                 return GetVolumeExtent(v1).CompareTo(GetVolumeExtent(v2));
             });
+        }
+
+        internal void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera)
+        {
+            foreach (var pass in customPasses)
+            {
+                if (pass != null && pass.enabled)
+                    pass.InternalAggregateCullingParameters(ref cullingParameters, hdCamera);
+            }
+        }
+
+        internal static CullingResults? Cull(ScriptableRenderContext renderContext, HDCamera hdCamera)
+        {
+            CullingResults?  result = null;
+
+            // We need to sort the volumes first to know which one will be executed
+            // TODO: cache the results per camera in the HDRenderPipeline so it's not executed twice per camera
+            Update(hdCamera);
+
+            // For each injection points, we gather the culling results for 
+            hdCamera.camera.TryGetCullingParameters(out var cullingParameters);
+
+            // By default we don't want the culling to return any objects
+            cullingParameters.cullingMask = 0;
+            cullingParameters.cullingOptions &= CullingOptions.Stereo; // We just keep stereo if enabled and clear the other flags
+
+            foreach (var injectionPoint in injectionPoints)
+                GetActivePassVolume(injectionPoint)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
+
+            // If we don't have anything to cull or the pass is asking for the same culling layers than the camera, we don't have to re-do the culling
+            if (cullingParameters.cullingMask != 0 && (cullingParameters.cullingMask & hdCamera.camera.cullingMask) != cullingParameters.cullingMask)
+                result = renderContext.Cull(ref cullingParameters);
+
+            return result;
         }
 
         internal static void Cleanup()
@@ -139,10 +237,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 pass.CleanupPasses();
             }
         }
-        
+
+        /// <summary>
+        /// Gets the currently active Custom Pass Volume for a given injection point.
+        /// </summary>
+        /// <param name="injectionPoint">The injection point to get the currently active Custom Pass Volume for.</param>
+        /// <returns>Returns the Custom Pass Volume instance associated with the injection point.</returns>
         public static CustomPassVolume GetActivePassVolume(CustomPassInjectionPoint injectionPoint)
         {
-            return m_OverlappingPassVolumes.FirstOrDefault(v => v.injectionPoint == injectionPoint);
+            foreach (var volume in m_OverlappingPassVolumes)
+                if (volume.injectionPoint == injectionPoint)
+                    return volume;
+            return null;
         }
 
         /// <summary>
@@ -166,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDrawGizmos()
         {
-            if (isGlobal || m_Colliders.Count == 0)
+            if (isGlobal || m_Colliders.Count == 0 || !enabled)
                 return;
 
             var scale = transform.localScale;
@@ -191,12 +297,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     case BoxCollider c:
                         Gizmos.DrawCube(c.center, c.size);
+                        if (fadeRadius > 0)
+                        {
+                            // invert te scale for the fade radius because it's in fixed units
+                            Vector3 s = new Vector3(
+                                (fadeRadius * 2) / scale.x,
+                                (fadeRadius * 2) / scale.y,
+                                (fadeRadius * 2) / scale.z
+                            );
+                            Gizmos.DrawWireCube(c.center, c.size + s);
+                        }
                         break;
                     case SphereCollider c:
                         // For sphere the only scale that is used is the transform.x
                         Matrix4x4 oldMatrix = Gizmos.matrix;
                         Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one * scale.x);
                         Gizmos.DrawSphere(c.center, c.radius);
+                        if (fadeRadius > 0)
+                            Gizmos.DrawWireSphere(c.center, c.radius + fadeRadius / scale.x);
                         Gizmos.matrix = oldMatrix;
                         break;
                     case MeshCollider c:
@@ -206,6 +324,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Mesh pivot should be centered or this won't work
                         Gizmos.DrawMesh(c.sharedMesh);
+
+                        // We don't display the Gizmo for fade distance mesh because the distances would be wrong
                         break;
                     default:
                         // Nothing for capsule (DrawCapsule isn't exposed in Gizmo), terrain, wheel and

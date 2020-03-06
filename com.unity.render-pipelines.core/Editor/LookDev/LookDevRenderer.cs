@@ -5,20 +5,8 @@ using IDataProvider = UnityEngine.Rendering.LookDev.IDataProvider;
 
 namespace UnityEditor.Rendering.LookDev
 {
-    /// <summary>
-    /// The RenderingPass inside the frame.
-    /// Useful for compositing.
-    /// <seealso cref="Renderer.Acquire(RenderingData, RenderingPass)"/>
-    /// </summary>
-    [Flags]
-    public enum RenderingPass
-    {
-        First = 1,
-        Last = 2
-    }
-
     /// <summary>Data container to be used with Renderer class</summary>
-    public class RenderingData : IDisposable
+    class RenderingData : IDisposable
     {
         /// <summary>
         /// Internally set to true when the given RenderTexture <see cref="output"/> was not the good size regarding <see cref="viewPort"/> and needed to be recreated
@@ -32,8 +20,10 @@ namespace UnityEditor.Rendering.LookDev
         public Rect viewPort;
         /// <summary>Render texture handling captured image</summary>
         public RenderTexture output;
-        
-        private bool disposed = false; 
+
+        private bool disposed = false;
+
+        /// <summary>Dispose pattern</summary>
         public void Dispose()
         {
             if (disposed)
@@ -49,24 +39,31 @@ namespace UnityEditor.Rendering.LookDev
     }
 
     /// <summary>Basic renderer to draw scene in texture</summary>
-    public class Renderer
+    class Renderer
     {
+        /// <summary>Use pixel perfect</summary>
         public bool pixelPerfect { get; set; }
 
+        /// <summary>Constructor</summary>
+        /// <param name="pixelPerfect">[Optional] Use pixel perfect</param>
         public Renderer(bool pixelPerfect = false)
             => this.pixelPerfect = pixelPerfect;
 
-        void BeginRendering(RenderingData data, RenderingPass pass = 0)
+        /// <summary>Init for rendering</summary>
+        /// <param name="data">The data to use</param>
+        public void BeginRendering(RenderingData data, IDataProvider dataProvider)
         {
-            data.stage.SetGameObjectVisible(true);
+            data.stage.OnBeginRendering(dataProvider);
             data.updater?.UpdateCamera(data.stage.camera);
             data.stage.camera.enabled = true;
         }
 
-        void EndRendering(RenderingData data)
+        /// <summary>Finish to render</summary>
+        /// <param name="data">The data to use</param>
+        public void EndRendering(RenderingData data, IDataProvider dataProvider)
         {
             data.stage.camera.enabled = false;
-            data.stage.SetGameObjectVisible(false);
+            data.stage.OnEndRendering(dataProvider);
         }
 
         bool CheckWrongSizeOutput(RenderingData data)
@@ -88,21 +85,16 @@ namespace UnityEditor.Rendering.LookDev
         /// Capture image of the scene.
         /// </summary>
         /// <param name="data">Datas required to compute the capture</param>
-        /// <param name="pass">
         /// [Optional] When drawing several time the scene, you can remove First and/or Last to not initialize objects.
         /// Be careful though to always start your frame with a First and always end with a Last.
         /// </param>
-        public void Acquire(RenderingData data, RenderingPass pass = RenderingPass.First | RenderingPass.Last)
+        public void Acquire(RenderingData data)
         {
             if (CheckWrongSizeOutput(data))
                 return;
 
-            if ((pass & RenderingPass.First) != 0)
-                BeginRendering(data, pass);
             data.stage.camera.targetTexture = data.output;
             data.stage.camera.Render();
-            if ((pass & RenderingPass.Last) != 0)
-                EndRendering(data);
         }
 
         internal static void DrawFullScreenQuad(Rect rect)
@@ -125,9 +117,12 @@ namespace UnityEditor.Rendering.LookDev
         }
     }
 
+    /// <summary>Rect extension</summary>
     public static partial class RectExtension
     {
         /// <summary>Return true if the <see cref="Rect"/> is null sized or inverted.</summary>
+        /// <param name="r">The rect</param>
+        /// <returns>True: null or inverted area</returns>
         public static bool IsNullOrInverted(this Rect r)
             => r.width <= 0f || r.height <= 0f
             || float.IsNaN(r.width) || float.IsNaN(r.height);

@@ -6,12 +6,12 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math/Remap")]
     class RemapToNegOnePosOne : VFXOperatorNumericUniform
     {
-        [VFXSetting, SerializeField, Tooltip("Whether the values are clamped to the input/output range")]
+        [VFXSetting, SerializeField, Tooltip("When enabled, the input value is clamped between 0 and 1.")]
         private bool m_Clamp = false;
 
         public class InputProperties
         {
-            [Tooltip("The value to be remapped into the new range.")]
+            [Tooltip("Sets the value to be remapped into the [-1..1] range. If the input value is not clamped, the remapped value can go beyond that range.")]
             public float input = 0.5f;
         }
 

@@ -6,12 +6,12 @@
 void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
 	// The first thing that we should do is grab the intersection vertice
-    IntersectionVertex currentvertex;
-    GetCurrentIntersectionVertex(attributeData, currentvertex);
+    IntersectionVertex currentVertex;
+    GetCurrentIntersectionVertex(attributeData, currentVertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, rayIntersection.incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, rayIntersection.incidentDirection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;
@@ -29,7 +29,8 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
+    bool isVisible;
+    GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
 
     // Compute the bsdf data
     BSDFData bsdfData =  ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
@@ -72,7 +73,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         reflectedIntersection.incidentDirection = rayDescriptor.Direction;
         reflectedIntersection.origin = rayDescriptor.Origin;
         reflectedIntersection.t = -1.0f;
-        reflectedIntersection.remainingDepth = reflectedIntersection.remainingDepth + 1;
+        reflectedIntersection.remainingDepth = rayIntersection.remainingDepth + 1;
         reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
         reflectedIntersection.sampleIndex = rayIntersection.sampleIndex;
         
@@ -81,7 +82,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         reflectedIntersection.cone.width = rayIntersection.cone.width;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, reflectedIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_OPAQUE, 0, 1, 0, rayDescriptor, reflectedIntersection);
 
         // Contribute to the pixel
         builtinData.bakeDiffuseLighting = reflectedIntersection.color;
@@ -117,7 +118,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
             reflectedIntersection.cone.width = rayIntersection.cone.width;
 
             // Evaluate the ray intersection
-            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, reflectedRay, reflectedIntersection);
+            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_OPAQUE, 0, 1, 0, reflectedRay, reflectedIntersection);
 
             // Override the transmitted color
             reflected = reflectedIntersection.color;
@@ -145,13 +146,16 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 [shader("anyhit")]
 void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
+#ifdef _SURFACE_TYPE_TRANSPARENT
+    IgnoreHit();
+#else
     // The first thing that we should do is grab the intersection vertice
-    IntersectionVertex currentvertex;
-    GetCurrentIntersectionVertex(attributeData, currentvertex);
+    IntersectionVertex currentVertex;
+    GetCurrentIntersectionVertex(attributeData, currentVertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, rayIntersection.incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, rayIntersection.incidentDirection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;
@@ -167,11 +171,13 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    bool isVisible = GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
-
+    bool isVisible;
+    GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
+    
     // If this fella should be culled, then we cull it
     if(!isVisible)
     {
         IgnoreHit();
     }
+#endif
 }

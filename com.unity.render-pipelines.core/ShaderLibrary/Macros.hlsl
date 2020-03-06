@@ -4,6 +4,7 @@
 // Some shader compiler don't support to do multiple ## for concatenation inside the same macro, it require an indirection.
 // This is the purpose of this macro
 #define MERGE_NAME(X, Y) X##Y
+#define CALL_MERGE_NAME(X, Y) MERGE_NAME(X, Y)
 
 // These define are use to abstract the way we sample into a cubemap array.
 // Some platform don't support cubemap array so we fallback on 2D latlong
@@ -42,6 +43,21 @@
 #define HALF_MIN 6.103515625e-5  // 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
 #define HALF_MAX 65504.0
 #define UINT_MAX 0xFFFFFFFFu
+
+
+#ifdef SHADER_API_GLES
+
+#define GENERATE_INT_FLOAT_1_ARG(FunctionName, Parameter1, FunctionBody) \
+    float  FunctionName(float  Parameter1) { FunctionBody; } \
+    int    FunctionName(int  Parameter1) { FunctionBody; } 
+#else
+
+#define GENERATE_INT_FLOAT_1_ARG(FunctionName, Parameter1, FunctionBody) \
+    float  FunctionName(float  Parameter1) { FunctionBody; } \
+    uint   FunctionName(uint  Parameter1) { FunctionBody; } \
+    int    FunctionName(int  Parameter1) { FunctionBody; } 
+
+#endif
 
 #define TEMPLATE_1_FLT(FunctionName, Parameter1, FunctionBody) \
     float  FunctionName(float  Parameter1) { FunctionBody; } \

@@ -9,7 +9,9 @@ namespace UnityEditor.Rendering.HighDefinition
         internal enum EditorOnlyData
         {
             None = 0,
-            CaptureSettingsIsAdvanced = 1 << 0
+            CaptureSettingsIsAdvanced = 1 << 0,
+            InfluenceVolumeIsAdvanced = 1 << 1,
+            CustomSettingsIsAdvanced = 1 << 2
         }
 
         internal SerializedObject serializedObject;

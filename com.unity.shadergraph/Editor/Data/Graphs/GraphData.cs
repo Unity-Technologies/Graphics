@@ -202,9 +202,9 @@ namespace UnityEditor.ShaderGraph
         #region Edge data
 
         [NonSerialized]
-        List<IEdge> m_Edges = new List<IEdge>();
+        List<Edge> m_Edges = new List<Edge>();
 
-        public IEnumerable<IEdge> edges
+        public IEnumerable<Edge> edges
         {
             get { return m_Edges; }
         }
@@ -283,6 +283,7 @@ namespace UnityEditor.ShaderGraph
                     m_ActiveOutputNodeGuid = value;
                     m_OutputNode = null;
                     didActiveOutputNodeChange = true;
+                    UpdateTargets();
                 }
             }
         }
@@ -314,9 +315,19 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        #region Targets
+        [NonSerialized]
+        List<ITarget> m_ValidTargets = new List<ITarget>();
+
+        [NonSerialized]
+        List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
+
+        public List<ITargetImplementation> validImplementations => m_ValidImplementations;
+        #endregion
+
         public bool didActiveOutputNodeChange { get; set; }
 
-        internal delegate void SaveGraphDelegate(Shader shader);
+        internal delegate void SaveGraphDelegate(Shader shader, object context);
         internal static SaveGraphDelegate onSaveGraph;
 
         public GraphData()
@@ -360,7 +371,7 @@ namespace UnityEditor.ShaderGraph
                 // If adding a Sub Graph node whose asset contains Keywords
                 // Need to restest Keywords against the variant limit
                 if(node is SubGraphNode subGraphNode &&
-                    subGraphNode.asset != null && 
+                    subGraphNode.asset != null &&
                     subGraphNode.asset.keywords.Count > 0)
                 {
                     OnKeywordChangedNoValidate();
@@ -641,7 +652,7 @@ namespace UnityEditor.ShaderGraph
             e = m_Edges.FirstOrDefault(x => x.Equals(e));
             if (e == null)
                 throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
-            m_Edges.Remove(e);
+            m_Edges.Remove(e as Edge);
 
             List<IEdge> inputNodeEdges;
             if (m_NodeEdges.TryGetValue(e.inputSlot.nodeGuid, out inputNodeEdges))
@@ -1201,12 +1212,21 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 AbstractMaterialNode abstractMaterialNode = (AbstractMaterialNode)node;
+
+                // If the node has a group guid and no group has been copied, reset the group guid.
                 // Check if the node is inside a group
-                if (groupGuidMap.ContainsKey(abstractMaterialNode.groupGuid))
+                if (abstractMaterialNode.groupGuid != Guid.Empty)
                 {
-                    var absNode = pastedNode as AbstractMaterialNode;
-                    absNode.groupGuid = groupGuidMap[abstractMaterialNode.groupGuid];
-                    pastedNode = absNode;
+                    if (groupGuidMap.ContainsKey(abstractMaterialNode.groupGuid))
+                    {
+                        var absNode = pastedNode as AbstractMaterialNode;
+                        absNode.groupGuid = groupGuidMap[abstractMaterialNode.groupGuid];
+                        pastedNode = absNode;
+                    }
+                    else
+                    {
+                        pastedNode.groupGuid = Guid.Empty;
+                    }
                 }
 
                 var drawState = node.drawState;
@@ -1265,8 +1285,11 @@ namespace UnityEditor.ShaderGraph
 
         public void OnBeforeSerialize()
         {
-            m_SerializableNodes = SerializationHelper.Serialize(GetNodes<AbstractMaterialNode>());
-            m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
+            var nodes = GetNodes<AbstractMaterialNode>().ToList();
+            nodes.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            m_SerializableNodes = SerializationHelper.Serialize(nodes.AsEnumerable());
+            m_Edges.Sort();
+            m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
@@ -1305,7 +1328,7 @@ namespace UnityEditor.ShaderGraph
 
             m_SerializableNodes = null;
 
-            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
+            m_Edges = SerializationHelper.Deserialize<Edge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
             m_SerializableEdges = null;
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);
@@ -1336,12 +1359,65 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
+            UpdateTargets();
+
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
         }
 
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
+        }
+
+        public void UpdateTargets()
+        {
+            if(outputNode == null)
+                return;
+
+            // First get all valid TargetImplementations that are valid with the current graph
+            List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypesOrNothing())
+                {
+                    var isImplementation = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
+                    //for subgraph output nodes, preview target is the only valid target
+                    if (outputNode is SubGraphOutputNode && isImplementation && typeof(DefaultPreviewTarget).IsAssignableFrom(type))
+                    {
+                        var implementation = (DefaultPreviewTarget)Activator.CreateInstance(type);
+                        foundImplementations.Add(implementation);
+                    }
+                    else if (isImplementation && !foundImplementations.Any(s => s.GetType() == type))
+                    {
+                        var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
+                        var implementation = (ITargetImplementation)Activator.CreateInstance(type);
+                        if(implementation.IsValid(masterNode))
+                        {
+                            foundImplementations.Add(implementation);
+                        }
+                    }
+                }
+            }
+
+            // Next we get all Targets that have valid TargetImplementations
+            List<ITarget> foundTargets = new List<ITarget>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypesOrNothing())
+                {
+                    var isTarget = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITarget).IsAssignableFrom(type);
+                    if (isTarget && !foundTargets.Any(s => s.GetType() == type))
+                    {
+                        var target = (ITarget)Activator.CreateInstance(type);
+                        if(foundImplementations.Where(s => s.targetType == type).Any())
+                            foundTargets.Add(target);
+                    }
+                }
+            }
+
+            m_ValidTargets = foundTargets;
+            m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
+            
         }
     }
 

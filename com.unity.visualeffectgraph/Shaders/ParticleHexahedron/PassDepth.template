@@ -7,7 +7,7 @@ Pass
 	Blend Off
 	
 	HLSLPROGRAM
-	#define IS_MOTION_VECTORS_PASS 0
+	#define VFX_PASSDEPTH VFX_PASSDEPTH_ACTUAL
 	${VFXInclude("Shaders/ParticleHexahedron/PassDepthOrMV.template")}
 	ENDHLSL
 }

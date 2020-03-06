@@ -7,12 +7,17 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public abstract class CustomPostProcessVolumeComponent : VolumeComponent
     {
-        bool isInitialized = false;
+        bool m_IsInitialized = false;
 
         /// <summary>
         /// Injection point of the custom post process in HDRP.
         /// </summary>
         public virtual CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.AfterPostProcess;
+
+        /// <summary>
+        /// True if you want your custom post process to be visible in the scene view.false False otherwise.
+        /// </summary>
+        public virtual bool visibleInSceneView => true;
 
         /// <summary>
         /// Setup function, called once before render is called.
@@ -33,20 +38,29 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public virtual void Cleanup() {}
 
+        /// <summary>
+        /// Unity calls this method when the object goes out of scope.
+        /// </summary>
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            CleanupInternal();
+        }
+
         internal void CleanupInternal()
         {
-            if (isInitialized)
+            if (m_IsInitialized)
                 Cleanup();
 
-            isInitialized = false;
+            m_IsInitialized = false;
         }
 
         internal void SetupIfNeeded()
         {
-            if (!isInitialized)
+            if (!m_IsInitialized)
             {
                 Setup();
-                isInitialized = true;
+                m_IsInitialized = true;
             }
         }
     }

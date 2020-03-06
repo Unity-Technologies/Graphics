@@ -13,7 +13,7 @@ using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(31, Extension, 3)]
+    [ScriptedImporter(32, Extension, 3)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -63,7 +63,15 @@ Shader ""Hidden/GraphErrorShader2""
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
-            return MinimalGraphData.GetDependencyPaths(assetPath);
+            try
+            {
+                return MinimalGraphData.GetDependencyPaths(assetPath);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return new string[0];
+            }
         }
 
         public override void OnImportAsset(AssetImportContext ctx)
@@ -149,7 +157,10 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
-                shaderString = ((IMasterNode)graph.outputNode).GetShader(GenerationMode.ForReals, shaderName, out configuredTextures, sourceAssetDependencyPaths);
+                var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, shaderName);
+                shaderString = generator.generatedShader;
+                configuredTextures = generator.configuredTextures;
+                sourceAssetDependencyPaths = generator.assetDependencyPaths;
 
                 if (graph.messageManager.nodeMessagesChanged)
                 {

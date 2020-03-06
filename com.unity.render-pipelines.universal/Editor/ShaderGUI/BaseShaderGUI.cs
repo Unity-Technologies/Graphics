@@ -40,7 +40,7 @@ namespace UnityEditor
         {
             // Catergories
             public static readonly GUIContent SurfaceOptions =
-                new GUIContent("Surface Options", "Controls how LWRP renders the Material on a screen.");
+                new GUIContent("Surface Options", "Controls how Universal RP renders the Material on a screen.");
 
             public static readonly GUIContent SurfaceInputs = new GUIContent("Surface Inputs",
                 "These settings describe the look and feel of the surface itself.");
@@ -340,12 +340,17 @@ namespace UnityEditor
             if (emissionMapProp.textureValue != null && !hadEmissionTexture && brightness <= 0f)
                 emissionColorProp.colorValue = Color.white;
 
-            // LW does not support RealtimeEmissive. We set it to bake emissive and handle the emissive is black right.
+            // UniversalRP does not support RealtimeEmissive. We set it to bake emissive and handle the emissive is black right.
             if (emissive)
             {
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                var oldFlags = material.globalIlluminationFlags;
+                var newFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+
                 if (brightness <= 0f)
-                    material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                    newFlags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+
+                if (newFlags != oldFlags)
+                    material.globalIlluminationFlags = newFlags;
             }
         }
 
@@ -382,7 +387,7 @@ namespace UnityEditor
         {
             // Clear all keywords for fresh start
             material.shaderKeywords = null;
-            // Setup blending - consistent across all LWRP shaders
+            // Setup blending - consistent across all Universal RP shaders
             SetupMaterialBlendMode(material);
             // Receive Shadows
             if(material.HasProperty("_ReceiveShadows"))
@@ -461,7 +466,7 @@ namespace UnityEditor
                         material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                         break;
                     case BlendMode.Additive:
-                        material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
                         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                         break;

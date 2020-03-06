@@ -77,15 +77,24 @@ namespace UnityEditor.Rendering
         Material m_Material;
         readonly Color[] m_PolychromeHandleColor;
         readonly HierarchicalBox m_Parent;
+        Color m_MonochromeFillColor;
         Color m_MonochromeHandleColor;
         Color m_WireframeColor;
         Color m_WireframeColorBehind;
         int[] m_ControlIDs = new int[6] { 0, 0, 0, 0, 0, 0 };
         bool m_MonoHandle = true;
 
-        Material material => m_Material == null || m_Material.Equals(null)
-            ? (m_Material = new Material(k_Material))
-            : m_Material;
+        Material material
+        {
+            get
+            {
+                if (m_Material == null || m_Material.Equals(null))
+                    m_Material = new Material(k_Material);
+                //material can be lost when exiting play mode so gather the color again when reconstructing it
+                m_Material.color = m_MonochromeFillColor;   
+                return m_Material;
+            }
+        }
 
         /// <summary>
         /// Allow to switch between the mode where all axis are controlled together or not
@@ -106,7 +115,8 @@ namespace UnityEditor.Rendering
             set
             {
                 value.a = 8f / 255;
-                material.color = value;
+                m_MonochromeFillColor = value;
+                material.color = m_MonochromeFillColor;
                 value.a = 1f;
                 m_MonochromeHandleColor = value;
                 value.a = 0.7f;
@@ -163,6 +173,7 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>Draw the hull which means the boxes without the handles</summary>
+        /// <param name="filled">If true, also fill the faces of the hull</param>
         public void DrawHull(bool filled)
         {
             Color previousColor = Handles.color;

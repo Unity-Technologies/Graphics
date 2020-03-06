@@ -36,5 +36,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static string[] GetEnumNames<TEnum>()
             where TEnum : struct, IConvertible
         { return EnumInfoJITCache<TEnum>.names; }
+
+        public static TEnum GetEnumLastValue<TEnum>()
+            where TEnum : struct, IConvertible
+        { return GetEnumValues<TEnum>()[GetEnumLength<TEnum>() - 1]; }
     }
 }

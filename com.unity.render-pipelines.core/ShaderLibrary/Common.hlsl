@@ -157,9 +157,9 @@
 
 // Include language header
 #if defined(SHADER_API_XBOXONE)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/XBoxOne.hlsl"
+#include "Packages/com.unity.render-pipelines.xboxone/ShaderLibrary/API/XBoxOne.hlsl"
 #elif defined(SHADER_API_PSSL)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/PSSL.hlsl"
+#include "Packages/com.unity.render-pipelines.ps4/ShaderLibrary/API/PSSL.hlsl"
 #elif defined(SHADER_API_D3D11)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl"
 #elif defined(SHADER_API_METAL)
@@ -212,6 +212,8 @@
 #define WaveActiveBitOr ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitOr)
 #define WaveGetLaneCount ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneCount)
 #endif
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonDeprecated.hlsl"
 
 #if !defined(SHADER_API_GLES)
 
@@ -289,6 +291,30 @@ void ToggleBit(inout uint data, uint offset)
     TEMPLATE_3_REAL(Max3, a, b, c, return max(max(a, b), c))
     TEMPLATE_3_INT(Max3, a, b, c, return max(max(a, b), c))
 #endif // INTRINSIC_MINMAX3
+
+TEMPLATE_3_REAL(Avg3, a, b, c, return (a + b + c) * 0.33333333)
+
+#ifndef INTRINSIC_QUAD_SHUFFLE
+    // Important! Only valid in pixel shaders!
+    float QuadReadAcrossX(float value, int2 screenPos)
+    {
+        return value - (ddx_fine(value) * (float(screenPos.x & 1) * 2.0 - 1.0));
+    }
+
+    float QuadReadAcrossY(float value, int2 screenPos)
+    {
+        return value - (ddy_fine(value) * (float(screenPos.y & 1) * 2.0 - 1.0));
+    }
+
+    float QuadReadAcrossDiagonal(float value, int2 screenPos)
+    {
+        float dX = ddx_fine(value);
+        float dY = ddy_fine(value);
+        float2 quadDir = float2(float(screenPos.x & 1) * 2.0 - 1.0, float(screenPos.y & 1) * 2.0 - 1.0);
+        float X = value - (dX * quadDir.x);
+        return X - (ddy_fine(value) * quadDir.y);
+    }
+#endif
 
 TEMPLATE_SWAP(Swap) // Define a Swap(a, b) function for all types
 
@@ -887,7 +913,7 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 t
     ZERO_INITIALIZE(PositionInputs, posInput);
 
     posInput.positionNDC = positionSS;
-#if SHADER_STAGE_COMPUTE || SHADER_STAGE_RAYTRACING
+#if defined(SHADER_STAGE_COMPUTE) || defined(SHADER_STAGE_RAY_TRACING)
     // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
     posInput.positionNDC.xy += float2(0.5, 0.5);
 #endif
@@ -1077,22 +1103,28 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
 // LOD0 must use this function with ditherFactor 1..0
 // LOD1 must use this function with ditherFactor -1..0
 // This is what is provided by unity_LODFade
-void LODDitheringTransition(uint3 fadeMaskSeed, float ditherFactor)
+void LODDitheringTransition(uint2 fadeMaskSeed, float ditherFactor)
 {
-    ditherFactor = ditherFactor < 0.0 ? 1 + ditherFactor : ditherFactor;
-
     // Generate a spatially varying pattern.
     // Unfortunately, varying the pattern with time confuses the TAA, increasing the amount of noise.
     float p = GenerateHashedRandomFloat(fadeMaskSeed);
 
-    // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
-    // this is handled by this test which reverse the pattern
-    // TODO: replace the test (ditherFactor >= 0.5) with (isLod0) to avoid the distracting pattern flip around 0.5.
-    p = (ditherFactor >= 0.5) ? p : 1 - p;
-    clip(ditherFactor - p);
+    // This preserves the symmetry s.t. if LOD 0 has f = x, LOD 1 has f = -x.
+    float f = ditherFactor - CopySign(p, ditherFactor);
+    clip(f);
 }
 
 #endif
 
+// The resource that is bound when binding a stencil buffer from the depth buffer is two channel. On D3D11 the stencil value is in the green channel,
+// while on other APIs is in the red channel. Note that on some platform, always using the green channel might work, but is not guaranteed.
+uint GetStencilValue(uint2 stencilBufferVal)
+{
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE)  
+    return stencilBufferVal.y;
+#else
+    return stencilBufferVal.x;
+#endif
+} 
 
 #endif // UNITY_COMMON_INCLUDED

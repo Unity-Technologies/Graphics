@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 contents.Add(m_PreviewFiller);
 
-                SetPreviewExpandedStateOnSelection(node.previewExpanded);
+                UpdatePreviewExpandedState(node.previewExpanded);
             }
 
             // Add port input container, which acts as a pixel cache for all port inputs
@@ -163,11 +163,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (masterNode != null)
             {
                 AddToClassList("master");
-
-                if (!masterNode.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                bool validTarget = false;
+                foreach(ITargetImplementation activeTarget in node.owner.validImplementations)
                 {
-                    AttachMessage("The current render pipeline is not compatible with this master node.", ShaderCompilerMessageSeverity.Error);
+                    //if we have a valid active target implementation and render pipeline, don't display the error
+                    if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
+                    {
+                        validTarget = true;
+                        break;
+                    }
                 }
+                //if no active target implementations are valid with the current pipeline, display the error
+                if (!validTarget)
+                    AttachMessage("The active Master Node is not compatible with the current Render Pipeline. Assign a Render Pipeline in the graphics settings that is compatible with this Master Node.", ShaderCompilerMessageSeverity.Error);
             }
 
             m_NodeSettingsView = new NodeSettingsView();
@@ -358,11 +366,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         string ConvertToShader(GenerationMode mode)
         {
-            List<PropertyCollector.TextureInfo> textureInfo;
-            if (node is IMasterNode masterNode)
-                return masterNode.GetShader(mode, node.name, out textureInfo);
-
-            return node.owner.GetShader(node, mode, node.name).shader;
+            var generator = new Generator(node.owner, node, mode, node.name);
+            return generator.generatedShader;
         }
 
         void AddDefaultSettings()

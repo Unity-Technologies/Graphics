@@ -14,8 +14,26 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_SkyType;
         SerializedDataParameter m_SkyAmbientMode;
 
-        List<GUIContent> m_SkyClassNames = null;
-        List<int> m_SkyUniqueIDs = null;
+        static List<GUIContent> m_SkyClassNames = null;
+        static List<int> m_SkyUniqueIDs = null;
+
+        public static List<GUIContent> skyClassNames
+        {
+            get
+            {
+                UpdateSkyAndFogIntPopupData();
+                return m_SkyClassNames;
+            }
+        }
+
+        public static List<int> skyUniqueIDs
+        {
+            get
+            {
+                UpdateSkyAndFogIntPopupData();
+                return m_SkyUniqueIDs;
+            }
+        }
 
         public override void OnEnable()
         {
@@ -26,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SkyAmbientMode = Unpack(o.Find(x => x.skyAmbientMode));
         }
 
-        void UpdateSkyAndFogIntPopupData()
+        static void UpdateSkyAndFogIntPopupData()
         {
             if (m_SkyClassNames == null)
             {
@@ -67,7 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_SkyAmbientMode, EditorGUIUtility.TrTextContent("Ambient Mode"));
 
             var staticLightingSky = SkyManager.GetStaticLightingSky();
-            if ((SkyAmbientMode)m_SkyAmbientMode.value.enumValueIndex == SkyAmbientMode.Static)
+            if (m_SkyAmbientMode.value.GetEnumValue<SkyAmbientMode>() == SkyAmbientMode.Static)
             {
                 if (staticLightingSky == null)
                     EditorGUILayout.HelpBox("Current Static Lighting Sky use None of profile None.", MessageType.Info);

@@ -20,13 +20,11 @@ class VFXSlotContainerEditor : Editor
 {
     protected void OnEnable()
     {
-        //SceneView.onSceneGUIDelegate += OnSceneGUI;
         SceneView.duringSceneGui += OnSceneGUI;
     }
 
     protected void OnDisable()
     {
-        //SceneView.onSceneGUIDelegate -= OnSceneGUI;
         SceneView.duringSceneGui -= OnSceneGUI;
     }
 
@@ -93,7 +91,8 @@ class VFXSlotContainerEditor : Editor
                         var controller = view.controller.GetParameterController(slotContainer as VFXParameter);
 
                         m_CurrentController = controller;
-                        controller.DrawGizmos(view.attachedComponent);
+                        if( controller != null)
+                            controller.DrawGizmos(view.attachedComponent);
                     }
                     else
                     {
@@ -136,7 +135,7 @@ class VFXSlotContainerEditor : Editor
             EditorGUI.BeginChangeCheck();
             GUILayout.BeginHorizontal();
             GUI.enabled = gizmoableAnchors.Count > 1;
-            int result = EditorGUILayout.Popup(current, gizmoableAnchors.Select(t => t.name).ToArray(), GUILayout.Width(100));
+            int result = EditorGUILayout.Popup(current, gizmoableAnchors.Select(t => t.name).ToArray());
             GUI.enabled = true;
             if (EditorGUI.EndChangeCheck() && result != current)
             {
@@ -163,7 +162,9 @@ class VFXSlotContainerEditor : Editor
                         VFXView view = VFXViewWindow.currentWindow.graphView;
                         if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
                         {
-                            sceneView.Frame(m_CurrentController.GetGizmoBounds(view.attachedComponent), false);
+                            Bounds b = m_CurrentController.GetGizmoBounds(view.attachedComponent);
+                            if( b.size.sqrMagnitude > Mathf.Epsilon)
+                                sceneView.Frame(b, false);
                         }
                     }
                 }
@@ -179,10 +180,10 @@ class VFXSlotContainerEditor : Editor
 
         if (serializedObject.ApplyModifiedProperties())
         {
-            foreach (VFXModel context in targets.OfType<VFXModel>())
+            foreach (VFXModel slotContainer in targets.OfType<VFXModel>())
             {
                 // notify that something changed.
-                context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+                slotContainer.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
             }
         }
     }

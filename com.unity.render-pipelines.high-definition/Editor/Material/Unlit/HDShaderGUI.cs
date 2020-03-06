@@ -19,23 +19,74 @@ namespace UnityEditor.Rendering.HighDefinition
 
     abstract class HDShaderGUI : ShaderGUI
     {
+        protected bool m_FirstFrame = true;
+
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
         protected abstract void SetupMaterialKeywordsAndPassInternal(Material material);
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
         {
-            // When switching shader, the custom RenderQueue is reset due to shader assignment
-            // To keep the correct render queue we need to save it here, do the change and re-assign it
-            int currentRenderQueue = material.renderQueue;
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
-            material.renderQueue = currentRenderQueue;
+
+            ResetMaterialCustomRenderQueue(material);
 
             SetupMaterialKeywordsAndPassInternal(material);
         }
-        
+
+        protected void ApplyKeywordsAndPassesIfNeeded(bool changed, Material[] materials)
+        {
+            // !!! HACK !!!
+            // When a user creates a new Material from the contextual menu, the material is created from the editor code and the appropriate shader is applied to it.
+            // This means that we never setup keywords and passes for a newly created material. The material is then in an invalid state.
+            // To work around this, as the material is automatically selected when created, we force an update of the keyword at the first "frame" of the editor.
+
+            // Apply material keywords and pass:
+            if (changed || m_FirstFrame)
+            {
+                m_FirstFrame = false;
+
+                foreach (var material in materials)
+                    SetupMaterialKeywordsAndPassInternal(material);
+            }
+        }
+
+        public sealed override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        {
+            if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline))
+            {
+                EditorGUILayout.HelpBox("Editing HDRP materials is only supported when an HDRP asset assigned in the graphic settings", MessageType.Warning);
+            }
+            else
+            {
+                OnMaterialGUI(materialEditor, props);
+            }
+        }
+
+        protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
+
+        protected static void ResetMaterialCustomRenderQueue(Material material)
+        {
+            HDRenderQueue.RenderQueueType targetQueueType;
+            switch (material.GetSurfaceType())
+            {
+                case SurfaceType.Opaque:
+                    targetQueueType = HDRenderQueue.GetOpaqueEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
+                    break;
+                case SurfaceType.Transparent:
+                    targetQueueType = HDRenderQueue.GetTransparentEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
+                    break;
+                default:
+                    throw new ArgumentException("Unknown SurfaceType");
+            }
+
+            float sortingPriority = material.GetFloat(kTransparentSortPriority);
+            bool alphaTest = material.GetFloat(kAlphaCutoffEnabled) > 0.5f;
+            material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)sortingPriority, alphaTest);
+        }
+
         readonly static string[] floatPropertiesToSynchronize = {
-            kAlphaCutoffEnabled, "_AlphaCutoff", "_UseShadowThreshold", kReceivesSSR, kUseSplitLighting
+            "_UseShadowThreshold", kReceivesSSR, kUseSplitLighting
         };
 
         protected static void SynchronizeShaderGraphProperties(Material material)

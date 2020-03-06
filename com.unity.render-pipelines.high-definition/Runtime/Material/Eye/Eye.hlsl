@@ -549,6 +549,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
     float3 positionWS = posInput.positionWS;
 
+#if SHADEROPTIONS_BARN_DOOR
+    // Apply the barn door modification to the light data
+    RectangularLightApplyBarnDoor(lightData, positionWS);
+#endif
+
     float3 unL = lightData.positionRWS - positionWS;
 
     if (dot(lightData.forward, unL) < 0.0001)
@@ -596,10 +601,10 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
              float4x3 lightVerts;
 
              // TODO: some of this could be precomputed.
-            lightVerts[0] = lightData.positionRWS + lightData.right * halfWidth + lightData.up * halfHeight;
-            lightVerts[1] = lightData.positionRWS + lightData.right * halfWidth + lightData.up * -halfHeight;
-            lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-            lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * halfHeight;
+            lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
+            lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
+            lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
+            lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
 
              // Note: We don't have the same normal for diffuse and specular
             // Rotate the endpoints into the local coordinate system.
@@ -614,11 +619,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             ltcValue *= lightData.diffuseDimmer;
 
              // Only apply cookie if there is one
-            if (lightData.cookieIndex >= 0)
+            if (lightData.cookieMode != COOKIEMODE_NONE)
             {
                 // Compute the cookie data for the diffuse term
                 float3 formFactorD = PolygonFormFactor(LD);
-                ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LD, formFactorD);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LD, formFactorD);
             }
 
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
@@ -634,11 +639,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             ltcValue *= lightData.specularDimmer;
 
             // Only apply cookie if there is one
-            if (lightData.cookieIndex >= 0)
+            if (lightData.cookieMode != COOKIEMODE_NONE)
             {
                 // Compute the cookie data for the specular term
                 float3 formFactorS = PolygonFormFactor(LS);
-                ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LS, formFactorS);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
             }
 
             // We need to multiply by the magnitude of the integral of the BRDF
@@ -693,7 +698,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     }
 
  #if RASTERIZED_AREA_LIGHT_SHADOWS || SUPPORTS_RAYTRACED_AREA_SHADOWS
-    float3 shadowColor = ComputeShadowColor(shadow, lightData.shadowTint);
+    float3 shadowColor = ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
     lighting.diffuse *= shadowColor;
     lighting.specular *= shadowColor;
 #endif
@@ -735,10 +740,13 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
 
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
     float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
+    InversePreExposeSsrLighting(ssrLighting);
 
-    // Note: RGB is already premultiplied by A.
+    // Apply the weight on the ssr contribution (if required)
+    ApplyScreenSpaceReflectionWeight(ssrLighting);
+
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
-    lighting.specularReflected = ssrLighting.rgb /* * ssrLighting.a */ * preLightData.specularFGD;
+    lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
     reflectionHierarchyWeight = ssrLighting.a;
 
     return lighting;
@@ -796,7 +804,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
     }
 
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel, lightData.rangeCompressionFactorCompensation);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
     envLighting = F * preLD.rgb;

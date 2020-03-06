@@ -52,8 +52,8 @@ VaryingsEdge VertEdge(Attributes input)
     VaryingsEdge output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-    output.uv = input.uv;
+    output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
+    output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
     SMAAEdgeDetectionVS(output.uv, output.offsets);
     return output;
 }
@@ -81,8 +81,8 @@ VaryingsBlend VertBlend(Attributes input)
     VaryingsBlend output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-    output.uv = input.uv;
+    output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
+    output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
     SMAABlendingWeightCalculationVS(output.uv, output.pixcoord, output.offsets);
     return output;
 }
@@ -109,8 +109,8 @@ VaryingsNeighbor VertNeighbor(Attributes input)
     VaryingsNeighbor output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-    output.uv = input.uv;
+    output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
+    output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
     SMAANeighborhoodBlendingVS(output.uv, output.offset);
     return output;
 }

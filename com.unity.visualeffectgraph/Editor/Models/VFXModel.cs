@@ -68,6 +68,19 @@ namespace UnityEditor.VFX
         public virtual void OnUnknownChange()
         {
         }
+        public virtual void GetSourceDependentAssets(HashSet<string> dependencies)
+        {
+            foreach(var child in children)
+                child.GetSourceDependentAssets(dependencies);
+        }
+        public virtual void GetImportDependentAssets(HashSet<int> dependencies)
+        {
+            //var monoScript = MonoScript.FromScriptableObject(this);
+            //dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(monoScript)));
+
+            foreach(var child in children)
+                child.GetImportDependentAssets(dependencies);
+        }
 
         public virtual void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
         {
@@ -296,7 +309,8 @@ namespace UnityEditor.VFX
 
         public void Invalidate(InvalidationCause cause)
         {
-            Modified();
+            if(cause != InvalidationCause.kExpressionGraphChanged && cause != InvalidationCause.kExpressionInvalidated)
+                Modified();
             string sampleName = GetType().Name + "-" + name + "-" + cause;
             Profiler.BeginSample("VFXEditor.Invalidate" + sampleName);
             try

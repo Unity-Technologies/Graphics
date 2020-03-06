@@ -5,6 +5,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Rendering.HighDefinition;
 using System;
+using System.Linq;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -20,13 +21,10 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Diffusion-Profile-Node"; }
-        }
+        public override string documentationURL => Documentation.GetPageLink("SGNode-Diffusion-Profile");
 
         [SerializeField, Obsolete("Use m_DiffusionProfileAsset instead.")]
-        PopupList m_DiffusionProfile = new PopupList();
+        UnityEditor.ShaderGraph.Drawing.Controls.PopupList m_DiffusionProfile = new UnityEditor.ShaderGraph.Drawing.Controls.PopupList();
 
         // Helper class to serialize an asset inside a shader graph
         [Serializable]
@@ -70,6 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_SerializedDiffusionProfile = EditorJsonUtility.ToJson(serializedProfile, true);
                 m_DiffusionProfileAsset = value;
                 Dirty(ModificationScope.Node);
+                ValidateNode();
             }
         }
 
@@ -109,6 +108,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Note: we don't use the auto precision here because we need a 32 bit to store this value
             sb.AppendLine(string.Format("float {0} = asfloat(uint({1}));", GetVariableNameForSlot(0), hash));
+        }
+
+        public override void ValidateNode()
+        {
+            base.ValidateNode();
+
+            var hdPipelineAsset = HDRenderPipeline.currentAsset;
+
+            if (hdPipelineAsset == null)
+                return;
+
+            if (diffusionProfile != null && !hdPipelineAsset.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
+            {
+                // Debug.LogWarning($"Diffusion profile '{diffusionProfile.name}' is not referenced in the current HDRP asset");
+            }
         }
     }
 }

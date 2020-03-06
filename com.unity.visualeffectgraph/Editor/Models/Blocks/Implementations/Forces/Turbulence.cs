@@ -11,15 +11,15 @@ namespace UnityEditor.VFX.Block
     {
         public class InputProperties
         {
-            [Tooltip("The position, rotation and scale of the turbulence field")]
+            [Tooltip("Sets the transform with which to position, scale, or rotate the field.")]
             public Transform FieldTransform = Transform.defaultValue;
-            [Tooltip("Intensity of the motion vectors")]
+            [Tooltip("Sets the intensity of the field. Higher values increase the particle velocity.")]
             public float Intensity = 1.0f;
         }
 
-        [VFXSetting, SerializeField]
+        [VFXSetting, SerializeField, Tooltip("Specifies whether the added force is relative to the current particle velocity or is an absolute value.")]
         ForceMode Mode = ForceMode.Relative;
-        [VFXSetting, SerializeField]
+        [VFXSetting, SerializeField, Tooltip("Specifies the type of noise used in generating the turbulence.")]
         VFX.Operator.NoiseBase.NoiseType NoiseType = VFX.Operator.NoiseBase.NoiseType.Value;
 
 
@@ -54,15 +54,11 @@ namespace UnityEditor.VFX.Block
             {
                 foreach (var input in GetExpressionsFromSlots(this))
                 {
-                    if (input.name == "octaves") continue;
-
                     if (input.name == "FieldTransform")
                         yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(input.exp), "InvFieldTransform");
                     yield return input;
                 }
 
-                // Clamp (1..10) for octaves (TODO: Add a Range attribute that works with int instead of doing that
-                yield return new VFXNamedExpression(new VFXExpressionCastFloatToInt(VFXOperatorUtility.Clamp(new VFXExpressionCastIntToFloat(inputSlots[4].GetExpression()), VFXValue.Constant(1.0f), VFXValue.Constant(10.0f))), "octaves");
                 yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
             }
         }

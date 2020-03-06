@@ -21,9 +21,14 @@ namespace UnityEditor.Rendering.HighDefinition
             rect.x += 3;
             rect.y += 2;
             rect.width -= 3;
-            var contentRect = EditorGUI.PrefixLabel(rect, title);
 
-            o.levelAndOverride = SerializedScalableSettingValueUI.LevelFieldGUI(contentRect, title, level, useOverride);
+            o.levelAndOverride = SerializedScalableSettingValueUI.LevelFieldGUI(
+                rect,
+                title,
+                ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels),
+                level,
+                useOverride
+            );
             return true;
         }
     }

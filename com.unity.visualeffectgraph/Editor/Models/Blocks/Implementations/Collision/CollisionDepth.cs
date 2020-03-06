@@ -14,10 +14,10 @@ namespace UnityEditor.VFX.Block
             Custom,
         }
 
-        [VFXSetting]
+        [VFXSetting, Tooltip("Specifies which Camera to use for the particles to collide with its depth buffer. Can use the camera tagged 'Main', or a custom camera.")]
         public CameraMode camera;
 
-        [VFXSetting, SerializeField]
+        [VFXSetting, SerializeField, Tooltip("Specifies the thickness mode for the colliding surface. It can have an infinite thickness, or be set to a custom value.")]
         SurfaceThickness surfaceThickness = SurfaceThickness.Infinite;
 
         public override string name { get { return "Collide with Depth Buffer"; } }
@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.Block
             {
                 var expressions = CameraHelper.AddCameraExpressions(base.parameters, camera);
 
-                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions);
+                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions, ((VFXDataParticle)GetData()).space);
 
                 // Filter unused expressions
                 expressions = expressions.Where(t =>

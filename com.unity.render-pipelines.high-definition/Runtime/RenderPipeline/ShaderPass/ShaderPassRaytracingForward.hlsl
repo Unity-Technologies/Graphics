@@ -5,12 +5,12 @@
 void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
 	// The first thing that we should do is grab the intersection vertice
-    IntersectionVertex currentvertex;
-    GetCurrentIntersectionVertex(attributeData, currentvertex);
+    IntersectionVertex currentVertex;
+    GetCurrentIntersectionVertex(attributeData, currentVertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, rayIntersection.incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, rayIntersection.incidentDirection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;
@@ -30,8 +30,9 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
-
+    bool isVisible;
+    GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
+    
     // Compute the bsdf data
     BSDFData bsdfData =  ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
@@ -79,13 +80,14 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         transmittedIntersection.t = 0.0f;
         transmittedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
         transmittedIntersection.rayCount = 1;
+        transmittedIntersection.pixelCoord = rayIntersection.pixelCoord;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         transmittedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
         transmittedIntersection.cone.width = rayIntersection.cone.width;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, transmittedRay, transmittedIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_RECURSIVE_RENDERING, 0, 1, 0, transmittedRay, transmittedIntersection);
 
         // Override the transmitted color
         transmitted = transmittedIntersection.color;
@@ -119,13 +121,14 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         reflectedIntersection.t = 0.0f;
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
         reflectedIntersection.rayCount = 1;
+        reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         reflectedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
         reflectedIntersection.cone.width = rayIntersection.cone.width;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, reflectedRay, reflectedIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_RECURSIVE_RENDERING, 0, 1, 0, reflectedRay, reflectedIntersection);
 
         // Override the transmitted color
         reflected = reflectedIntersection.color;
@@ -153,12 +156,12 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
 void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     // The first thing that we should do is grab the intersection vertice
-    IntersectionVertex currentvertex;
-    GetCurrentIntersectionVertex(attributeData, currentvertex);
+    IntersectionVertex currentVertex;
+    GetCurrentIntersectionVertex(attributeData, currentVertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, rayIntersection.incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, rayIntersection.incidentDirection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;
@@ -174,10 +177,11 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    bool isVisible = GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
+    bool isVisible;
+    GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
 
     // If this fella should be culled, then we cull it
-    if(!isVisible)
+    if (!isVisible)
     {
         IgnoreHit();
     }

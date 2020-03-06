@@ -4,6 +4,8 @@
 #pragma kernel GatherSingle                 GATHER_FILTER=GatherSingle     SINGLE_CHANNEL
 #pragma kernel GatherColor                  GATHER_FILTER=GatherColor
 
+#pragma only_renderers d3d11
+
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
@@ -36,12 +38,17 @@ RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 
 // Radius of the filter (world space)
 float _DenoiserFilterRadius;
+float _PixelSpreadAngleTangent;
+#define PIXEL_RADIUS_TOLERANCE_THRESHOLD 8
+
 // Flag used to do a half resolution filter
 int _HalfResolutionFilter;
 
 [numthreads(DIFFUSE_DENOISER_TILE_SIZE, DIFFUSE_DENOISER_TILE_SIZE, 1)]
-void BILATERAL_FILTER(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * DIFFUSE_DENOISER_TILE_SIZE + groupThreadId;
 
@@ -73,8 +80,14 @@ void BILATERAL_FILTER(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV
     // Define the sample count for this pixel. 16 samples per pixels if it is a full res or 4 if half resolution
     int numSamples = _HalfResolutionFilter ? 4 : 16;
 
+    // Compute the radius of the filter. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
+    const float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(center.position);
+    const float3 viewWS = normalize(-center.position);
+    const float realPixelFootPrint = parallelPixelFootPrint / abs(dot(center.normal, viewWS));
+    const float denoisingRadius = max(_DenoiserFilterRadius, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
+
     // Compute the sigma value
-    const float sigma = 0.5 * _DenoiserFilterRadius;
+    const float sigma = 0.5 * denoisingRadius;
 
     // Index of the pixel in the 2x2 group that are used for the half res filter
     int localIndex = (centerCoord.x & 1) + (centerCoord.y & 1) * 2;
@@ -83,18 +96,18 @@ void BILATERAL_FILTER(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV
     for (uint sampleIndex = 0; sampleIndex < (uint)numSamples; ++sampleIndex)
     {
         // Fetch the noise value for the current sample
-        float2 sample;
-        sample.x = GetLDSequenceSampleFloat(sampleIndex + (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0), 0);
-        sample.y = GetLDSequenceSampleFloat(sampleIndex + (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0), 1);
+        float2 newSample;
+        newSample.x = GetLDSequenceSampleFloat(sampleIndex + (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0), 0);
+        newSample.y = GetLDSequenceSampleFloat(sampleIndex + (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0), 1);
         
         // Convert the sample to a local unit disk
-        sample = SampleDiskUniform(sample.x * sample.x, sample.y);
+        newSample = SampleDiskUniform(newSample.x * newSample.x, newSample.y);
 
         // Distribute them according a square profile
-        sample *= _DenoiserFilterRadius * _DenoiserFilterRadius;
+        newSample *= denoisingRadius * denoisingRadius;
 
         // Convert the point to hemogenous clip space
-        float3 wsPos = center.position + localToWorld[0] * sample.x + localToWorld[1] * sample.y;
+        float3 wsPos = center.position + localToWorld[0] * newSample.x + localToWorld[1] * newSample.y;
         float4 hClip = TransformWorldToHClip(wsPos);
         hClip.xyz /= hClip.w;
 
@@ -117,7 +130,7 @@ void BILATERAL_FILTER(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV
             continue;
 
         // Compute the radius of the sample
-        float r = length(sample);
+        float r = length(newSample);
 
         // Compute the weight (skip computation for the center)
         const float w = r > 0.001f ? gaussian(r, sigma) * ComputeBilateralWeight(center, tapData) : 1.0;
@@ -152,8 +165,10 @@ void BILATERAL_FILTER(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV
 
 // TODO: This needs to check depth before upscale to avoid artifacts
 [numthreads(DIFFUSE_DENOISER_TILE_SIZE, DIFFUSE_DENOISER_TILE_SIZE, 1)]
-void GATHER_FILTER(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void GATHER_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * DIFFUSE_DENOISER_TILE_SIZE + groupThreadId;
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
+using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -8,8 +9,18 @@ namespace UnityEngine.Rendering.HighDefinition
     /// DrawRenderers Custom Pass
     /// </summary>
     [System.Serializable]
-    public class DrawRenderersCustomPass : CustomPass
+    class DrawRenderersCustomPass : CustomPass
     {
+        /// <summary>
+        /// HDRP Shader passes
+        /// </summary>
+        public enum ShaderPass
+        {
+            // Ordered by frame time in HDRP
+            DepthPrepass    = 1,
+            Forward         = 0,
+        }
+
         // Used only for the UI to keep track of the toggle state
         public bool filterFoldout;
         public bool rendererFoldout;
@@ -17,43 +28,64 @@ namespace UnityEngine.Rendering.HighDefinition
         //Filter settings
         public CustomPass.RenderQueueType renderQueueType = CustomPass.RenderQueueType.AllOpaque;
         public string[] passNames = new string[1] { "Forward" };
-        public LayerMask layerMask = -1;
+        public LayerMask layerMask = 1; // Layer mask Default enabled
         public SortingCriteria sortingCriteria = SortingCriteria.CommonOpaque;
 
         // Override material
         public Material overrideMaterial = null;
-        public int overrideMaterialPassIndex = 0;
+        [SerializeField]
+        int overrideMaterialPassIndex = 0;
+        public string overrideMaterialPassName = "Forward";
 
-        Material m_DefaultOverrideMaterial;
-        Material defaultOverrideMaterial
+        public bool overrideDepthState = false;
+        public CompareFunction depthCompareFunction = CompareFunction.LessEqual;
+        public bool depthWrite = true;
+
+        public ShaderPass shaderPass = ShaderPass.Forward;
+
+        int fadeValueId;
+
+        static ShaderTagId[] forwardShaderTags;
+        static ShaderTagId[] depthShaderTags;
+
+        // Cache the shaderTagIds so we don't allocate a new array each frame
+        ShaderTagId[]   cachedShaderTagIDs;
+
+        /// <inheritdoc />
+        protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            get
-            {
-                if (m_DefaultOverrideMaterial == null)
-                {
-                    var res = HDRenderPipeline.defaultAsset.renderPipelineResources;
-                    m_DefaultOverrideMaterial = CoreUtils.CreateEngineMaterial(res.shaders.defaultRendererCustomPass);
-                }
+            fadeValueId = Shader.PropertyToID("_FadeValue");
 
-                return m_DefaultOverrideMaterial;
-            }
+            // In case there was a pass index assigned, we retrieve the name of this pass
+            if (String.IsNullOrEmpty(overrideMaterialPassName) && overrideMaterial != null)
+                overrideMaterialPassName = overrideMaterial.GetPassName(overrideMaterialPassIndex);
+
+            forwardShaderTags = new ShaderTagId[] {
+                HDShaderPassNames.s_ForwardName,            // HD Lit shader
+                HDShaderPassNames.s_ForwardOnlyName,        // HD Unlit shader
+                HDShaderPassNames.s_SRPDefaultUnlitName,    // Cross SRP Unlit shader
+                HDShaderPassNames.s_EmptyName,              // Add an empty slot for the override material
+            };
+
+            depthShaderTags = new ShaderTagId[] {
+                HDShaderPassNames.s_DepthForwardOnlyName,
+                HDShaderPassNames.s_DepthOnlyName,
+                HDShaderPassNames.s_EmptyName,              // Add an empty slot for the override material
+            };
         }
-        
-        static List<ShaderTagId> m_HDRPShaderTags;
-        static List<ShaderTagId> hdrpShaderTags
+
+        /// <inheritdoc />
+        protected override void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera)
         {
-            get
-            {
-                if (m_HDRPShaderTags == null)
-                {
-                    m_HDRPShaderTags = new List<ShaderTagId>() {
-                        HDShaderPassNames.s_ForwardName,            // HD Lit shader
-                        HDShaderPassNames.s_ForwardOnlyName,        // HD Unlit shader
-                        HDShaderPassNames.s_SRPDefaultUnlitName,    // Cross SRP Unlit shader
-                    };
-                }
-                return m_HDRPShaderTags;
-            }
+            cullingParameters.cullingMask |= (uint)(int)layerMask;
+        }
+
+        protected ShaderTagId[] GetShaderTagIds()
+        {
+            if (shaderPass == ShaderPass.DepthPrepass)
+                return depthShaderTags;
+            else
+                return forwardShaderTags;
         }
 
         /// <summary>
@@ -65,11 +97,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cullingResult"></param>
         protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
         {
-            ShaderTagId[] shaderPasses = new ShaderTagId[hdrpShaderTags.Count + ((overrideMaterial != null) ? 1 : 0)];
-            System.Array.Copy(hdrpShaderTags.ToArray(), shaderPasses, hdrpShaderTags.Count);
+            var shaderPasses = GetShaderTagIds();
             if (overrideMaterial != null)
             {
-                shaderPasses[hdrpShaderTags.Count] = new ShaderTagId(overrideMaterial.GetPassName(overrideMaterialPassIndex));
+                shaderPasses[forwardShaderTags.Length - 1] = new ShaderTagId(overrideMaterialPassName);
+                overrideMaterial.SetFloat(fadeValueId, fadeValue);
             }
 
             if (shaderPasses.Length == 0)
@@ -78,48 +110,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            var mask = overrideDepthState ? RenderStateMask.Depth : 0;
+            mask |= overrideDepthState && !depthWrite ? RenderStateMask.Stencil : 0;
+            var stateBlock = new RenderStateBlock(mask)
+            {
+                depthState = new DepthState(depthWrite, depthCompareFunction),
+                // We disable the stencil when the depth is overwritten but we don't write to it, to prevent writing to the stencil.
+                stencilState = new StencilState(false),
+            };
+
+            PerObjectData renderConfig = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
+
             var result = new RendererListDesc(shaderPasses, cullingResult, hdCamera.camera)
             {
-                rendererConfiguration = PerObjectData.None,
+                rendererConfiguration = renderConfig,
                 renderQueueRange = GetRenderQueueRange(renderQueueType),
                 sortingCriteria = sortingCriteria,
-                excludeObjectMotionVectors = true,
-                overrideMaterial = (overrideMaterial != null) ? overrideMaterial : defaultOverrideMaterial,
-                overrideMaterialPassIndex = (overrideMaterial != null) ? overrideMaterialPassIndex : 0,
+                excludeObjectMotionVectors = false,
+                overrideMaterial = overrideMaterial,
+                overrideMaterialPassIndex = (overrideMaterial != null) ? overrideMaterial.FindPass(overrideMaterialPassName) : 0,
+                stateBlock = stateBlock,
                 layerMask = layerMask,
             };
 
             HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(result));
         }
 
-        /// <summary>
-        /// Returns the render queue range associated with the custom render queue type
-        /// </summary>
-        /// <returns></returns>
-        protected RenderQueueRange GetRenderQueueRange(CustomPass.RenderQueueType type)
-        {
-            switch (type)
-            {
-                case CustomPass.RenderQueueType.OpaqueNoAlphaTest: return HDRenderQueue.k_RenderQueue_OpaqueNoAlphaTest;
-                case CustomPass.RenderQueueType.OpaqueAlphaTest: return HDRenderQueue.k_RenderQueue_OpaqueAlphaTest;
-                case CustomPass.RenderQueueType.AllOpaque: return HDRenderQueue.k_RenderQueue_AllOpaque;
-                case CustomPass.RenderQueueType.AfterPostProcessOpaque: return HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque;
-                case CustomPass.RenderQueueType.PreRefraction: return HDRenderQueue.k_RenderQueue_PreRefraction;
-                case CustomPass.RenderQueueType.Transparent: return HDRenderQueue.k_RenderQueue_Transparent;
-                case CustomPass.RenderQueueType.LowTransparent: return HDRenderQueue.k_RenderQueue_LowTransparent;
-                case CustomPass.RenderQueueType.AllTransparent: return HDRenderQueue.k_RenderQueue_AllTransparent;
-                case CustomPass.RenderQueueType.AllTransparentWithLowRes: return HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes;
-                case CustomPass.RenderQueueType.AfterPostProcessTransparent: return HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent;
-                case CustomPass.RenderQueueType.All:
-                default:
-                    return HDRenderQueue.k_RenderQueue_All;
-            }
-        }
-
-        protected override void Cleanup()
-        {
-            if (m_DefaultOverrideMaterial != null)
-                CoreUtils.Destroy(m_DefaultOverrideMaterial);
-        }
+        /// <inheritdoc />
+        public override IEnumerable<Material> RegisterMaterialForInspector() { yield return overrideMaterial; }
     }
 }

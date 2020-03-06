@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                     });
                 });
 
-                ps.Add(new PropertyRow(CreateLabel("ZWrite", indentLevel)), (row) =>
+                ps.Add(new PropertyRow(CreateLabel("Depth Write", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                     });
                 }
 
-                ps.Add(new PropertyRow(CreateLabel("Z Test", indentLevel)), (row) =>
+                ps.Add(new PropertyRow(CreateLabel("Depth Test", indentLevel)), (row) =>
                 {
                     row.Add(new EnumField(m_Node.zTest), (e) =>
                     {
@@ -115,29 +115,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                     toggle.OnToggleChanged(ChangeAlphaTest);
                 });
             });
-
-            if (m_Node.surfaceType == SurfaceType.Transparent && m_Node.alphaTest.isOn)
-            {
-                ++indentLevel;
-                ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff Depth Prepass", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.alphaTestDepthPrepass.isOn;
-                        toggle.OnToggleChanged(ChangeAlphaTestPrepass);
-                    });
-                });
-
-                ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff Depth Postpass", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.alphaTestDepthPostpass.isOn;
-                        toggle.OnToggleChanged(ChangeAlphaTestPostpass);
-                    });
-                });
-                --indentLevel;
-            }
 
             ps.Add(new PropertyRow(CreateLabel("Double-Sided", indentLevel)), (row) =>
             {
@@ -238,6 +215,24 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 {
                     toggle.value = m_Node.depthOffset.isOn;
                     toggle.OnToggleChanged(ChangeDepthOffset);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("DOTS instancing", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.dotsInstancing.isOn;
+                    toggle.OnToggleChanged(ChangeDotsInstancing);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("Support LOD CrossFade", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.supportLodCrossFade.isOn;
+                    toggle.OnToggleChanged(ChangeSupportLODCrossFade);
                 });
             });
 
@@ -342,22 +337,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             m_Node.alphaTest = td;
         }
 
-        void ChangeAlphaTestPrepass(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Prepass Change");
-            ToggleData td = m_Node.alphaTestDepthPrepass;
-            td.isOn = evt.newValue;
-            m_Node.alphaTestDepthPrepass = td;
-        }
-
-        void ChangeAlphaTestPostpass(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Postpass Change");
-            ToggleData td = m_Node.alphaTestDepthPostpass;
-            td.isOn = evt.newValue;
-            m_Node.alphaTestDepthPostpass = td;
-        }
-
         void ChangeDecal(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Decal Change");
@@ -431,6 +410,22 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
             m_Node.zTest = (CompareFunction)evt.newValue;
+        }
+
+        void ChangeDotsInstancing(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("DotsInstancing Change");
+            ToggleData td = m_Node.dotsInstancing;
+            td.isOn = evt.newValue;
+            m_Node.dotsInstancing = td;
+        }
+
+        void ChangeSupportLODCrossFade(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Support LOD CrossFade Change");
+            ToggleData td = m_Node.supportLodCrossFade;
+            td.isOn = evt.newValue;
+            m_Node.supportLodCrossFade = td;
         }
 
         public AlphaMode GetAlphaMode(FabricMasterNode.AlphaModeFabric alphaModeLit)

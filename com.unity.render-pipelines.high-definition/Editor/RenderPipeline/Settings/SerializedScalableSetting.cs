@@ -1,104 +1,140 @@
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class SerializedScalableSetting
+    /// <summary>
+    /// Serialized version of <see cref="ScalableSetting{T}"/>.
+    /// </summary>
+    internal class SerializedScalableSetting
     {
-        public SerializedProperty low;
-        public SerializedProperty medium;
-        public SerializedProperty high;
+        public SerializedProperty values;
+        public SerializedProperty schemaId;
 
         public SerializedScalableSetting(SerializedProperty property)
         {
-            low = property.FindPropertyRelative("m_Low");
-            medium = property.FindPropertyRelative("m_Medium");
-            high = property.FindPropertyRelative("m_High");
+            values = property.FindPropertyRelative("m_Values");
+            schemaId = property.FindPropertyRelative("m_SchemaId.m_Id");
+        }
+
+        /// <summary>Get the value of level <paramref name="level"/>.</summary>
+        /// <typeparam name="T">The type of the scalable setting.</typeparam>
+        /// <param name="level">The level to get.</param>
+        /// <param name="value">
+        /// The value of the level if the level was found.
+        ///
+        /// <c>default(T)</c> when:
+        ///  - The level does not exists (level index is out of range)
+        ///  - The level value has multiple different values
+        /// </param>
+        /// <returns><c>true</c> when the value was evaluated, <c>false</c> when the value could not be evaluated.</returns>
+        public bool TryGetLevelValue<T>(int level, out T value)
+            where T: struct
+        {
+            if (level < values.arraySize && level >= 0)
+            {
+                var levelValue = values.GetArrayElementAtIndex(level);
+                if (levelValue.hasMultipleDifferentValues)
+                {
+                    value = default;
+                    return false;
+                }
+                else
+                {
+                    value = levelValue.GetInline<T>();
+                    return true;
+                }
+            }
+            else
+            {
+                value = default;
+                return false;
+            }
         }
     }
 
-    public static class SerializedScalableSettingUI
+    internal static class SerializedScalableSettingUI
     {
-        private static readonly GUIContent k_ShortLow = new GUIContent("L", "Low");
-        private static readonly GUIContent k_ShortMed = new GUIContent("M", "Medium");
-        private static readonly GUIContent k_ShortHigh = new GUIContent("H", "High");
-
-        private static readonly GUIContent k_Low = new GUIContent("Low", "Low");
-        private static readonly GUIContent k_Med = new GUIContent("Medium", "Medium");
-        private static readonly GUIContent k_High = new GUIContent("High", "High");
-
+        /// <summary>
+        /// Draw the scalable setting as a single line field with multiple values.
+        ///
+        /// There will be one value per level.
+        /// </summary>
+        /// <typeparam name="T">The type of the scalable setting.</typeparam>
+        /// <param name="self">The scalable setting to draw.</param>
+        /// <param name="label">The label of the field.</param>
         public static void ValueGUI<T>(this SerializedScalableSetting self, GUIContent label)
+            where T : struct
         {
-            var rect = GUILayoutUtility.GetRect(0, float.Epsilon, 0, EditorGUIUtility.singleLineHeight);
+            var schema = ScalableSettingSchema.GetSchemaOrNull(new ScalableSettingSchemaId(self.schemaId.stringValue))
+                ?? ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels);
+
+            var rect = GUILayoutUtility.GetRect(0, float.Epsilon, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
             // Magic Number !!
             rect.x += 3;
             rect.width -= 6;
             // Magic Number !!
 
             var contentRect = EditorGUI.PrefixLabel(rect, label);
-            EditorGUI.showMixedValue = self.low.hasMultipleDifferentValues
-                                       || self.medium.hasMultipleDifferentValues
-                                       || self.high.hasMultipleDifferentValues;
+            EditorGUI.showMixedValue = self.values.hasMultipleDifferentValues;
+
+            var count = schema.levelCount;
+
+            if (self.values.arraySize != count)
+                self.values.arraySize = count;
 
             if (typeof(T) == typeof(bool))
-            {
-                GUIContent[] labels = {k_Low, k_Med, k_High};
-                bool[] values =
-                {
-                    self.low.boolValue,
-                    self.medium.boolValue,
-                    self.high.boolValue
-                };
-                EditorGUI.BeginChangeCheck();
-                MultiField(contentRect, labels, values);
-                if(EditorGUI.EndChangeCheck())
-                {
-                    self.low.boolValue = values[0];
-                    self.medium.boolValue = values[1];
-                    self.high.boolValue = values[2];
-                }
-            }
+                LevelValuesFieldGUI<bool>(contentRect, self, count, schema);
             else if (typeof(T) == typeof(int))
-            {
-                GUIContent[] labels = {k_ShortLow, k_ShortMed, k_ShortHigh};
-                int[] values =
-                {
-                    self.low.intValue,
-                    self.medium.intValue,
-                    self.high.intValue
-                };
-                EditorGUI.BeginChangeCheck();
-                MultiField(contentRect, labels, values);
-                if(EditorGUI.EndChangeCheck())
-                {
-                    self.low.intValue = values[0];
-                    self.medium.intValue = values[1];
-                    self.high.intValue = values[2];
-                }
-            }
+                LevelValuesFieldGUI<int>(contentRect, self, count, schema);
             else if (typeof(T) == typeof(float))
-            {
-                GUIContent[] labels = {k_ShortLow, k_ShortMed, k_ShortHigh};
-                float[] values =
-                {
-                    self.low.floatValue,
-                    self.medium.floatValue,
-                    self.high.floatValue
-                };
-                EditorGUI.BeginChangeCheck();
-                MultiField(contentRect, labels, values);
-                if(EditorGUI.EndChangeCheck())
-                {
-                    self.low.floatValue = values[0];
-                    self.medium.floatValue = values[1];
-                    self.high.floatValue = values[2];
-                }
-            }
+                LevelValuesFieldGUI<float>(contentRect, self, count, schema);
 
             EditorGUI.showMixedValue = false;
         }
 
-        internal static void MultiField<T>(Rect position, GUIContent[] subLabels, T[] values)
+        /// <summary>
+        /// Draw the value fields for each levels of the scalable setting.
+        ///
+        /// Assumes that the generic type is the type stored in the <see cref="SerializedScalableSetting"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of the scalable setting.</typeparam>
+        /// <param name="rect">Rect used to draw the GUI.</param>
+        /// <param name="scalableSetting">The scalable setting to draw.</param>
+        /// <param name="count">The number of level to draw.</param>
+        /// <param name="schema">The schema to use when drawing the levels.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void LevelValuesFieldGUI<T>(
+            Rect rect,
+            SerializedScalableSetting scalableSetting,
+            int count,
+            ScalableSettingSchema schema
+        )
+            where T : struct
+        {
+            var labels = new GUIContent[count];
+            Array.Copy(schema.levelNames, labels, count);
+            var values = new T[count];
+            for (var i = 0; i < count; ++i)
+                values[i] = scalableSetting.values.GetArrayElementAtIndex(i).GetInline<T>();
+            EditorGUI.BeginChangeCheck();
+            MultiField(rect, labels, values);
+            if (EditorGUI.EndChangeCheck())
+            {
+                for (var i = 0; i < count; ++i)
+                    scalableSetting.values.GetArrayElementAtIndex(i).SetInline(values[i]);
+            }
+        }
+
+        /// <summary>Draw multiple fields in a single line.</summary>
+        /// <typeparam name="T">The type to render.</typeparam>
+        /// <param name="position">The rect to use to draw the GUI.</param>
+        /// <param name="subLabels">The labels for each sub value field.</param>
+        /// <param name="values">The current values of the fields.</param>
+        static void MultiField<T>(Rect position, GUIContent[] subLabels, T[] values)
+            where T: struct
         {
             var length = values.Length;
             var num = (position.width - (float) (length - 1) * 3f) / (float) length;
@@ -113,18 +149,20 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUIUtility.labelWidth = CalcPrefixLabelWidth(subLabels[index], (GUIStyle) null);
                 if (typeof(T) == typeof(int))
-                    values[index] = (T)(object)EditorGUI.IntField(position1, subLabels[index], (int)(object)values[index]);
+                    values[index] = (T)(object)EditorGUI.DelayedIntField(position1, subLabels[index], (int)(object)values[index]);
                 else if (typeof(T) == typeof(bool))
                     values[index] = (T)(object)EditorGUI.Toggle(position1, subLabels[index], (bool)(object)values[index]);
                 else if (typeof(T) == typeof(float))
                     values[index] = (T)(object)EditorGUI.FloatField(position1, subLabels[index], (float)(object)values[index]);
+                else
+                    throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a supported type for multi field");
                 position1.x += num + 4f;
             }
             EditorGUIUtility.labelWidth = labelWidth;
             EditorGUI.indentLevel = indentLevel;
         }
 
-        internal static float CalcPrefixLabelWidth(GUIContent label, GUIStyle style = null)
+        static float CalcPrefixLabelWidth(GUIContent label, GUIStyle style = null)
         {
             if (style == null)
                 style = EditorStyles.label;

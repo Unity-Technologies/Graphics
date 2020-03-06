@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // If we are in a release build, don't compile debug display variant
             // Also don't compile it if not requested by the render pipeline settings
-            if ((/*!Debug.isDebugBuild || */ !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+            if ((!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                 return true;
 
             if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDitheringCrossFade)
@@ -219,6 +219,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public int callbackOrder { get { return 0; } }
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
         {
+            if (HDRenderPipeline.currentAsset == null)
+                return;
+
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
                 && ShaderBuildPreprocessor.hdrpAssets.Any(hdrpAsset => hdrpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
 
@@ -308,7 +311,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void GetAllValidHDRPAssets()
         {
-            if (_hdrpAssets != null) hdrpAssets.Clear();
+            if (HDRenderPipeline.currentAsset == null)
+                return;
+
+            if (_hdrpAssets != null) _hdrpAssets.Clear();
             else _hdrpAssets = new List<HDRenderPipelineAsset>();
 
             using (ListPool<HDRenderPipelineAsset>.Get(out var tmpAssets))
@@ -351,21 +357,31 @@ namespace UnityEditor.Rendering.HighDefinition
                 .Select(s => s.path);
 
             // Find all HDRP assets that are dependencies of the scenes.
-            _hdrpAssets = scenesPaths.Aggregate( new List<HDRenderPipelineAsset>(),
-                (list, scene) =>
+            var depsArray = AssetDatabase.GetDependencies(scenesPaths.ToArray());
+            HashSet<string> depsHash = new HashSet<string>(depsArray);
+
+            var guidRenderPipelineAssets = AssetDatabase.FindAssets("t:HDRenderPipelineAsset");
+
+            for (int i = 0; i < guidRenderPipelineAssets.Length; ++i)
+            {
+                var curGUID = guidRenderPipelineAssets[i];
+                var curPath = AssetDatabase.GUIDToAssetPath(curGUID);
+                if(depsHash.Contains(curPath))
                 {
-                    list.AddRange(
-                        AssetDatabase.GetDependencies(scene)
-                            .Select(AssetDatabase.LoadAssetAtPath<HDRenderPipelineAsset>)
-                            .Where( a => a != null && !list.Contains(a) )
-                        );
-                    return list;
-                });
+                    _hdrpAssets.Add(AssetDatabase.LoadAssetAtPath<HDRenderPipelineAsset>(curPath));
+                }
+            }
 
             // Add the HDRP assets that are in the Resources folders.
             _hdrpAssets.AddRange(
                 Resources.FindObjectsOfTypeAll<HDRenderPipelineAsset>()
                 .Where( a => !_hdrpAssets.Contains(a) )
+                );
+
+            // Add the HDRP assets that are labeled to be included
+            _hdrpAssets.AddRange(
+                AssetDatabase.FindAssets("t:HDRenderPipelineAsset l:" + HDEditorUtils.HDRPAssetBuildLabel)
+                    .Select(s => AssetDatabase.LoadAssetAtPath<HDRenderPipelineAsset>(AssetDatabase.GUIDToAssetPath(s)))
                 );
 
             // Discard duplicate entries
@@ -379,7 +395,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Prompt a warning if we find 0 HDRP Assets.
             if (_hdrpAssets.Count == 0)
-                if (EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead no VERY long compilation time.", "Ok", "Cancel"))
+                if (EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
                 throw new UnityEditor.Build.BuildFailedException("Build canceled");
 
             /*

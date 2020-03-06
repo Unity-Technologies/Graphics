@@ -40,17 +40,28 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SerializedHDLight = new SerializedHDLight(m_AdditionalLightDatas, settings);
 
             // Update emissive mesh and light intensity when undo/redo
-            Undo.undoRedoPerformed += () =>
+            Undo.undoRedoPerformed += OnUndoRedo;
+        }
+
+        void OnDisable()
+        {
+            // Update emissive mesh and light intensity when undo/redo
+            Undo.undoRedoPerformed -= OnUndoRedo;
+        }
+
+        void OnUndoRedo()
+        {
+            // Serialized object is lossing references after an undo
+            if (m_SerializedHDLight.serializedObject.targetObject != null)
             {
-                // Serialized object is lossing references after an undo
-                if (m_SerializedHDLight.serializedLightDatas.targetObject != null)
-                {
-                    m_SerializedHDLight.serializedLightDatas.ApplyModifiedProperties();
-                    foreach (var hdLightData in m_AdditionalLightDatas)
-                        if (hdLightData != null)
-                            hdLightData.UpdateAreaLightEmissiveMesh();
-                }
-            };
+                m_SerializedHDLight.serializedObject.ApplyModifiedProperties();
+                foreach (var hdLightData in m_AdditionalLightDatas)
+                    if (hdLightData != null)
+                        hdLightData.UpdateAreaLightEmissiveMesh();
+            }
+
+            // if Type or ShowEmissive Mesh undone, we must fetxh again the emissive meshes
+            m_SerializedHDLight.FetchAreaLightEmissiveMeshComponents();
         }
 
         public override void OnInspectorGUI()
@@ -81,7 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var hdLightData in m_AdditionalLightDatas)
             {
                 hdLightData.UpdateAreaLightEmissiveMesh();
-                hdLightData.UpdateEmissiveMeshComponents();
             }
 
             m_SerializedHDLight.needUpdateAreaLightEmissiveMeshComponents = false;
@@ -95,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // var flags = hide ? HideFlags.HideInInspector : HideFlags.None;
             var flags = HideFlags.None;
 
-            foreach (var t in m_SerializedHDLight.serializedLightDatas.targetObjects)
+            foreach (var t in m_SerializedHDLight.serializedObject.targetObjects)
                 ((HDAdditionalLightData)t).hideFlags = flags;
         }
 
@@ -103,12 +113,14 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Each handles manipulate only one light
             // Thus do not rely on serialized properties
-            Light light = target as Light;
-            HDAdditionalLightData additionalLightData = targetAdditionalData;
-            if (additionalLightData.lightTypeExtent == LightTypeExtent.Punctual && (light.type == LightType.Directional || light.type == LightType.Point))
+            HDLightType lightType = targetAdditionalData.type;
+
+            if (lightType == HDLightType.Directional
+                || lightType == HDLightType.Point
+                || lightType == HDLightType.Area && targetAdditionalData.areaLightShape == AreaLightShape.Disc)
                 base.OnSceneGUI();
             else
-                HDLightUI.DrawHandles(additionalLightData, this);
+                HDLightUI.DrawHandles(targetAdditionalData, this);
         }
 
         internal Color legacyLightColor

@@ -14,12 +14,20 @@
 #define GPULIGHTTYPE_PROJECTOR_BOX (4)
 #define GPULIGHTTYPE_TUBE (5)
 #define GPULIGHTTYPE_RECTANGLE (6)
+#define GPULIGHTTYPE_DISC (7)
 
 //
 // UnityEngine.Rendering.HighDefinition.GPUImageBasedLightingType:  static fields
 //
 #define GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION (0)
 #define GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION (1)
+
+//
+// UnityEngine.Rendering.HighDefinition.CookieMode:  static fields
+//
+#define COOKIEMODE_NONE (0)
+#define COOKIEMODE_CLAMP (1)
+#define COOKIEMODE_REPEAT (2)
 
 //
 // UnityEngine.Rendering.HighDefinition.EnvShapeType:  static fields
@@ -40,13 +48,6 @@
 #define ENVCACHETYPE_TEXTURE2D (0)
 #define ENVCACHETYPE_CUBEMAP (1)
 
-//
-// UnityEngine.Rendering.HighDefinition.StencilLightingUsage:  static fields
-//
-#define STENCILLIGHTINGUSAGE_NO_LIGHTING (0)
-#define STENCILLIGHTINGUSAGE_SPLIT_LIGHTING (1)
-#define STENCILLIGHTINGUSAGE_REGULAR_LIGHTING (2)
-
 // Generated from UnityEngine.Rendering.HighDefinition.DirectionalLightData
 // PackingRules = Exact
 struct DirectionalLightData
@@ -56,11 +57,12 @@ struct DirectionalLightData
     float lightDimmer;
     float volumetricLightDimmer;
     float3 forward;
-    int cookieIndex;
+    int cookieMode;
+    float4 cookieScaleOffset;
     float3 right;
-    int tileCookie;
-    float3 up;
     int shadowIndex;
+    float3 up;
+    int contactShadowIndex;
     float3 color;
     int contactShadowMask;
     float3 shadowTint;
@@ -72,8 +74,16 @@ struct DirectionalLightData
     real4 shadowMaskSelector;
     float diffuseDimmer;
     float specularDimmer;
-    float angularDiameter;
+    float penumbraTint;
+    float isRayTracedContactShadow;
     float distanceFromCamera;
+    float angularDiameter;
+    float flareFalloff;
+    float __unused__;
+    float3 flareTint;
+    float flareSize;
+    float3 surfaceTint;
+    float4 surfaceTextureScaleOffset;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightData
@@ -94,9 +104,10 @@ struct LightData
     float rangeAttenuationScale;
     float3 color;
     float rangeAttenuationBias;
+    int cookieMode;
     int cookieIndex;
-    int tileCookie;
     int shadowIndex;
+    float4 cookieScaleOffset;
     int contactShadowMask;
     float3 shadowTint;
     float shadowDimmer;
@@ -105,9 +116,13 @@ struct LightData
     real minRoughness;
     int screenSpaceShadowIndex;
     real4 shadowMaskSelector;
-    real2 size;
+    real4 size;
     float diffuseDimmer;
     float specularDimmer;
+    float isRayTracedContactShadow;
+    float penumbraTint;
+    float3 padding;
+    float boxLightSafeExtent;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.EnvLightData
@@ -137,6 +152,7 @@ struct EnvLightData
     real3 boxSideFadeNegative;
     float weight;
     float multiplier;
+    float rangeCompressionFactorCompensation;
     int envIndex;
 };
 

@@ -28,9 +28,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         const string k_SetupLightConstants = "Setup Light Constants";
         MixedLightingSetup m_MixedLightingSetup;
 
-        Vector4 k_DefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+        // Holds light direction for directional lights or position for punctual lights.
+        // When w is set to 1.0, it means it's a punctual light.
+        Vector4 k_DefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
         Vector4 k_DefaultLightColor = Color.black;
-        Vector4 k_DefaultLightAttenuation = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+
+        // Default light attenuation is setup in a particular way that it causes
+        // directional lights to return 1.0 for both distance and angle attenuation
+        Vector4 k_DefaultLightAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
         Vector4 k_DefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
         Vector4 k_DefaultLightsProbeChannel = new Vector4(-1.0f, 1.0f, -1.0f, -1.0f);
 
@@ -107,7 +112,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (lightData.lightType == LightType.Directional)
             {
                 Vector4 dir = -lightData.localToWorldMatrix.GetColumn(2);
-                lightPos = new Vector4(dir.x, dir.y, dir.z, 1.0f);
+                lightPos = new Vector4(dir.x, dir.y, dir.z, 0.0f);
             }
             else
             {
@@ -141,9 +146,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
                 float oneOverLightRangeSqr = 1.0f / Mathf.Max(0.0001f, lightData.range * lightData.range);
 
-                // On mobile: Use the faster linear smoothing factor.
+                // On mobile and Nintendo Switch: Use the faster linear smoothing factor (SHADER_HINT_NICE_QUALITY).
                 // On other devices: Use the smoothing factor that matches the GI.
-                lightAttenuation.x = Application.isMobilePlatform ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
+                lightAttenuation.x = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
                 lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
             }
 
@@ -230,7 +235,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
                     {
                         VisibleLight light = lights[i];
-                        if (lightData.mainLightIndex != i && light.lightType != LightType.Directional)
+                        if (lightData.mainLightIndex != i)
                         {
                             ShaderInput.LightData data;
                             InitializeLightConstants(lights, i,
@@ -257,7 +262,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
                     {
                         VisibleLight light = lights[i];
-                        if (lightData.mainLightIndex != i && light.lightType != LightType.Directional)
+                        if (lightData.mainLightIndex != i)
                         {
                             InitializeLightConstants(lights, i, out m_AdditionalLightPositions[lightIter],
                                 out m_AdditionalLightColors[lightIter],
@@ -291,7 +296,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             var visibleLights = lightData.visibleLights;
             var perObjectLightIndexMap = cullResults.GetLightIndexMap(Allocator.Temp);
-            int directionalLightsCount = 0;
+            int globalDirectionalLightsCount = 0;
             int additionalLightsCount = 0;
 
             // Disable all directional lights from the perobject light indices
@@ -302,20 +307,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                     break;
 
                 VisibleLight light = visibleLights[i];
-                if (light.lightType == LightType.Directional)
+                if (i == lightData.mainLightIndex)
                 {
                     perObjectLightIndexMap[i] = -1;
-                    ++directionalLightsCount;
+                    ++globalDirectionalLightsCount;
                 }
                 else
                 {
-                    perObjectLightIndexMap[i] -= directionalLightsCount;
+                    perObjectLightIndexMap[i] -= globalDirectionalLightsCount;
                     ++additionalLightsCount;
                 }
             }
 
             // Disable all remaining lights we cannot fit into the global light buffer.
-            for (int i = directionalLightsCount + additionalLightsCount; i < perObjectLightIndexMap.Length; ++i)
+            for (int i = globalDirectionalLightsCount + additionalLightsCount; i < perObjectLightIndexMap.Length; ++i)
                 perObjectLightIndexMap[i] = -1;
 
             cullResults.SetLightIndexMap(perObjectLightIndexMap);

@@ -1,141 +1,137 @@
+<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
 # Contexts
 
-Contexts are the logic containers of the systems, each context handles a pass of processing happening at a different stage of the simulation. Here is a summary of all current contexts.
+Contexts are the main elements of the Graph Workflow logic (vertical) and define the succession and the relationships of operations and simulations. Every context defines one stage of computing, for example computing how many particles need to be spawned, creating new particles or updating all living particles. 
 
-![](Images/contexts.png)
+Context connect to each other when there is meaning : After creating new particles, an Initialize context can connect to a Update Particle context, or directly to a Output Particle Context to render the particles without simulating them.
+
+## Creating and Connecting Contexts
+
+Contexts are Graph elements, so they can be created using the Right Click > Add Node Menu, Spacebar Menu or by making a workflow (vertical) connection from another context (providing only compatible contexts)
+
+Contexts connect to each other using the Ports at the top and the bottom.
+
+## Configuring Contexts
+
+Adjusting Context [Settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector can change the way the Operator looks and behaves. 
+
+> For instance, Changing the UV Mode of a `Quad Output` Context, from *Simple* to *FlipbookMotionBlend* will add Extra *Flipbook Size*, *Motion Vector Map* and *Motion Vector Scale* Properties to the Context Header.
+
+## Flow Compatibility
+
+Not all contexts can be connected altogether, in any order. Some rules apply to keep a consistent workflow:
+
+* Contexts connect by compatible input/output data type.
+* Events can connect to one or many events / initialize contexts.
+* Initialize contexts can have one or many SpawnEvent source or one or many GPUSpawnEvent source, but these data type are mutually exclusive.
+* Only One Initialize can be connected to one Update Context
+* You can connect any Output Contexts to a Initialize / Update context.
+
+ Here is a recap table of the context compatibility:
+
+| Context            | Input Data Type                      | Output Data Type | Specific Comments                                            |
+| ------------------ | ------------------------------------ | ---------------- | ------------------------------------------------------------ |
+| Event              | None                                 | SpawnEvent (1+)  |                                                              |
+| Spawn              | SpawnEvent (1+)                      | SpawnEvent (1+)  | Two input pins, start and stop the spawn context             |
+| GPU Event          | None                                 | SpawnEvent       | Outputs to Initialize Context                                |
+| Initialize         | SpawnEvent (1+) / GPUSpawnEvent (1+) | Particle (1)     | Can output to Particle Update or Particle Output. Input types SpawnEvent/GPUSpawnEvent are mutually exclusive. |
+| Update             | Particle (1)                         | Particle (1+)    | Can output to a Particle Update or Particle Output           |
+| Particle Output    | Particle (1)                         | None             | Can either have input from an Initialize or Update           |
+| Static Mesh Output | None                                 | None             | Standalone Context                                           |
+
+# Context Type Overview
+
+This section covers all the common settings of every kind of context. For more details about specific contexts, see [Context Library]()
 
 ## Event
 
-Event contexts are flow inputs that will turn on and off the spawn of particles, These contexts are simple and only contain a string that will define their names. The `OnPlay` and `OnStop` events are dedicated event names that correspond to the `Play()` and `Stop()` methods of the component, which can be considered as an **intent of start spawning particles**, and another intent of **stop spawning particles**.
-
-Events can also have any custom name defined as a string, and thus can be invoked by the `SendEvent()` method of the Visual Effects component.
-
-![](Images/events.PNG)
-
-## GPU Event
-
-GPU Events are triggered by systems upon certain conditions and can be caught by other systems to spawn new particles. 
-
-A system that triggers a GPU Event will output a GPU Event data that can be connected to the GPU Event Context.
-
-![](Images/gpu-events.PNG)
-
-Event data can be accessed in the child system by reading **Source Attributes** or using the **Inherit Source (attribute)** node
+Event Contexts only display a Name as a string that need to be called on the Component API in order to Send this event to the graph and activate a workflow from this Node.
 
 ## Spawn
 
-Spawn contexts are triggered by **SpawnEvent** data types and can be chained to synchronize themselves. **SpawnEvent**s can be considered as messages containing a **spawn order** with a **spawn count** , and a **state payload**.
+Spawn Contexts are standalone systems that have three States : Playing, Stopped and Delayed. 
 
-Spawn Contexts have two inputs : **Start** and **Stop**. These are implicitly bound to the `OnPlay` and `OnStop` events, which means that the spawning machine will start spawning when some SpawnEvent hits the start flow input, and shutdown when another SpawnEvent hits the stop flow Input.
+* **Looping** (Running) state means that the Blocks are computed and will perform spawn of new particles
+* **Finished** (Idle) state means that the spawn machine is off and will not spawn particles
+* **DelayingBeforeLoop/DelayingAfterLoop** (Waiting) state stops spawning particles until the end of a user-set delay, then restarts spawning particles.
 
-![](Images/implicit-events-spawner.PNG)
+Spawn contexts can be customized using compatible **Blocks**.
 
-Every time the Start input is hit by a SpawnEvent, the Spawn context internal time resets to zero, and spawn resets. So if a Single burst happens at T=0s it will be triggered every frame a spawn event hits the start input.
+You can find Spawn Context API Reference [here](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VFXSpawnerLoopState.html).
 
-#### Spawn and Event State
+### Turning On and Off 
 
-Event state is conveyed through the SpawnEvent flow, from one Spawn context to another, and overwritten into the spawn context every time a SpawnEvent hits the start flow input. 
+Spawn Contexts expose two [Flow Input Slots](GraphLogicAndPhilosophy.md#processing-workflow-vertical-logic): Start and Stop:
 
-> **Special Case :** If two SpawnEvents hits the input at the same frame, only the last event hitting the spawn context will store its state palyoad into it.
+- Start input **Resets** and/or **Start** the Spawn System : if not connected, it is implicitly bound to the `OnPlay` [Event](Events.md) . Hitting Start many times has the same effect as pushing it once.
+- Stop input **Stops** the Spawn System : if not connected, it is implicitly bound to the `OnStop` [Event](Events.md) 
+
+### Looping and Delaying
+
+Spawn contexts contains a state and will perform spawning particles based on a looping system.
+
+* The spawn context can emit during **loops of defined duration** (meaning the internal spawn time will reset at each loop's beginning) . By default the duration is **infinite**.
+  * In order to set the loop mode, select the context in the graph and change the loop duration popup in the Inspector. (Possible Values : Infinite, Constant, Random)
+* Spawn contexts can perform **one**, **many** or an **infinity** of **loops**. 
+  * In order to set this setting, select the spawn context in the graph and change the Loop count popup in the Inspector (Possible Values : Infinite, Constant, Random)
+* Spawn contexts can perform a **delay** **before** and/or a**delay after** each loop. During a delay, the spawn time elapses normally but no spawn is performed.
+  * In order to set these setting, select the spawn context in the graph and change the Delay Before Loop and Delay After Loop popups in the Inspector (Possible Values: None, Constant, Random)
+
+Here is a visual illustration of the Looping and Delay System.
+
+![Figure explaining the Loop/Delay System](Images/LoopDelaySystem.png)
+
+Setting a loop count, loop duration and / or delays will display new connectable properties on the context's header. Evaluation of these values will follow these rules:
+
+* If set : **Loop Count** is evaluated when the Start workflow input of the context is hit.
+* If set : **Loop Duration** is evaluated every time a loop starts
+* If set : **Loop Delay** (Before/After) is evaluated every time a delay starts.
+
+## GPU Event
+
+GPU Event contexts are experimental contexts that connect inputs to output GPU Events from other systems. They differ from Traditional Spawn as they are computed by the GPU.  Only one kind of Spawn can be connected to an Initialize Context (GPU Event and Spawn/Events are mutually Exclusive) 
+
+> GPU Event contexts cannot be customized with Blocks.
 >
-> Also, the spawn context reset will happen twice but the execution only once, by default. As the time will reset to zero once (with the first event), then another time (with the second event), then spawn blocks will be executed.
->
-> If you need to accumulate spawn orders happening at the same frame, see the [Custom Spawners]() section.
 
 ## Initialize
 
-Initialize contexts are the makers of new particles and are executed when a SpawnEvent hits the input. 
+Initialize Contexts will generate new particles based on **SpawnEvent** Data, computed from Events, Spawn or GPU Event contexts.
 
-![](Images/context-initialize.png)
+> For example: upon receiving an order of creation of 200 new particles from a spawn context, the context will be processed and will result in executing the context's Blocks for all 200 new particles.
 
-#### Behavior
+Initialize contexts can be customized using compatible **Blocks**.
 
-The context will create an amount of particles equal to the **spawnCount** of the SpawnEvent data payload. For each new particle, the context blocks will be executed, then the particles inserted into the simulation.
+Initialize contexts are the entry point of new systems. As such, they display information and configuration in their header:
 
-#### Properties/Settings
+| Property/Setting   | Description                                 |
+| ------------------ | ------------------------------------------- |
+| Bounds (Property)  | Controls the Bounding box of the System     |
+| Capacity (Setting) | Controls the allocation count of the System |
 
-- (*Setting*) **Capacity** : the allocation count for particles, It should reflect the expected amount of particles you need for this system. If initialize does not find any room for all new particles in the simulation pool, some or all new particles could be discarded.
-- **Bounds** : The bounding box corresponding to the extents of the system. As this is a property, It can be computed using operators.
+
 
 ## Update
 
-Update contexts updates particles attributes every frame and update their state along time.
+Update contexts update all living particles based on **Particle** Data computed from Initialize and Update Contexts. These contexts are executed every frame and will update every particle.
 
-![](Images/context-update.png)
+Particle Update Contexts also process automatically some computations for particles in order to simplify common editing tasks.
 
-#### Behavior
+Update contexts can be customized using compatible **Blocks**.
 
-Update context processes every particle in the simulation if it is alive, every frame. It can also handle automatically some tasks. such as particle aging and reaping, and the integration of the velocity to the position. These automatic settings can be disabled if you need to perform this tasks in a more custom way.
 
-Update contexts can be skipped if no update is necessary. Connecting an initialize to an output will perform a update-less simulation with particles initialized at start and rendered following their initial state.
+| Setting             | Description                                                  |
+| ------------------- | ------------------------------------------------------------ |
+| Integration         | None : No velocity Integration <br/>Euler : Applies simple Euler velocity integration to the particles positions every frame. |
+| Angular Integration | None : No velocity Integration <br/>Euler : Applies simple Euler angular velocity integration to the particles angles every frame. |
+| Age Particles       | If Age attribute is used, Controls whether update will make particles age over time |
+| Reap Particles      | If Age and Lifetime attributes are used, Control whether update will kill all particles which age is greater than its lifetime. |
 
-#### Properties/Settings
-
-- (*Setting*) **Integration** : (Euler or None) If this option is set to Euler, the positions will be integrated from velocity every frame following the euler model.
-- (*Setting*) **Age Particles** : if Age attribute is set, every particle will age accordingly to the current deltaTime
-- (*Setting*) **Reap Particles** : if Age and Lifetime attribute are set, every particle which age goes beyond Lifetime will be killed.
 
 ## Output
 
-Output contexts are executed every frame and will give shape to the simulated particles for every living particle. Many output contexts exist and have their own specificities.
+Output Contexts renders a system with different modes and settings depending on Particle Data incoming from an **Initialize** or **Update** context. Every element will be rendered using a specific configuration as a specific primitive.
 
-![](Images/context-output.png)
+Output contexts can be customized using compatible **Blocks**.
 
-#### Behavior
-
-Output contexts take, every frame, the simulation data and will render it according to the context configuration. Also, blocks can be used to perform computation before rendering. However, **the output context does not modify the simulated data**, so block operations made in this context can be considered as pre-render operations. 
-
-An Initialize or update block **can be connected to multiple outputs at once**. The simulation data will be shared across these output contexts.
-
-#### Common Settings
-
-Depending on the output context you use, settings are subject to change. See the following for more specific information. Here is a list of commonly used settings (not necessarily used by all output contexts):
-
-| Name (Type)              | Description                                                  |
-| ------------------------ | ------------------------------------------------------------ |
-| Blend Mode (Enum)        | <u>How the particle will render:</u> <br />**- Opaque** is non-blended and will ignore the alpha channel<br />**- Masked** is non-blended and will use a Alpha threshold setting to perform pixel culling<br />**- Alpha** uses standard Alpha blending<br />**- Additive** uses additive blending, (alpha is multiplied by color before blending)<br />**- AlphaPremultiplied** uses Pre-Multiplied alpha blending so both additive and alpha blending can be achieved, |
-| UV Mode (Enum)           | <u>How the UVs will be processed:</u><br />**- Simple**  does no modification to UVs<br />**- Flipbook** uses a uint2 *FlipbookSize* property to define rows and columns, and uses the texIndex attribute to select a cell into the flipbook<br />**- FlipbookBlend** is the same as Flipbook but instead blends between two cells depending on the fractional part of the texIndex attribute<br />**- ScaleAndBias** uses two input properties *UVScale* and *UVBias* to perform tiling and offset to UVs (useful to scroll patterns) |
-| Use Soft Particle (Bool) | Enables testing particle depth vs scene depth for blended particles : adds a *SoftParticleFadeDistance* input property to control the fade distance to the next opaque pixel. |
-| Cull Mode (Enum)         | Selects the Cull Mode render state : Default, Front, Back, Off (Two-sided) |
-| Z Write Mode (Enum)      | Selects whether particles write their own depth : Default, Off, On |
-| Z Test Mode (Enum)       | Select whether particles will clip depending on scene depth: Default, Less, LEqual, Greater, GEqual, Equal, NotEqual, Always<br />As default particles will clip if their depth is Less or equal, using modes Greater or GEqual permits rendering particles only behind opaque geometry, or Always to never clip the particles behind opaque geometry |
-| Sort Priority (int)      | Orders this output compared to other outputs in the system   |
-| Sort (Enum)              | Performs per-particle Sorting (Auto detects if blend mode requires sorting) Sorting |
-| Indirect Draw (Bool)     | Performs an indirect draw call                               |
-| Cast Shadows (Bool)      | Whether the particles will cast shadows                      |
-| Pre-Refraction (Bool)    | Whether the particles will be rendered into the Pre-Refraction render queue of the HD Render Pipeline (useful to refract particles behind glass) |
-
-
-
-### Quad Output
-
-Outputs a textured quad per-particle. By default, the quad is not aligned to anything and will require the **Orient** block to perform camera facing (or any other sort of alignment: velocity, axis rotation, fixed, etc.)
-
-These particles are textured and output color with the following formula : `tex2D(_MainTexture,uv) * float4(color,alpha)` 
-
-### Mesh Output
-
-Outputs a textured mesh per-particle. These particles are textured and output color with the following formula : `tex2D(_MainTexture,uv) * float4(color,alpha)` 
-
-### Sphere Output
-
-Ouputs a billboarded Sphere with corrected depth per-particle. These particles are not textured but insteads uses a color to render.
-
-### Cube Output
-
-Outputs a textured cube per particle : Cubes are textured  and output color with the following formula : `tex2D(_MainTexture,uv) * float4(color,alpha)` 
-
-### Point Output
-
-Ouputs a point primitive (1px) per-particle
-
-### Line Output
-
-Outputs a line per-particle, the line can be defined either using angle, axises or using targetPosition
-
-## Static Mesh
-
-Static mesh output renders a mesh using a shader. Every shader property becomes an inputProperty that can be manipulated by the expression graph.
-
-![](Images/context-staticmesh.png)
-
+For more information, and a comprehensive list of all output contexts and their settings, see [Output Contexts Reference]()

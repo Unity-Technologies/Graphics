@@ -2,13 +2,13 @@
 
 The High Definition Render Pipeline (HDRP) uses a Volume framework. Each Volume can either be global or have local boundaries. They each contain Scene setting property values that HDRP interpolates between, depending on the position of the Camera, in order to calculate a final value. For example, you can use local Volumes to change environment settings, such as fog color and density, to alter the mood of different areas of your Scene. 
 
-You can add a __Volume__ component to any GameObject, including a Camera, although it is good practice to create a dedicated GameObject for each Volume. The Volume component itself contains no actual data itself and instead references a [Volume Profile](Volume-Profile.html) which contains the values to interpolate between. The Volume Profile contains default values for every property and hides them by default. To view or alter these properties, you must add [Volume overrides](Volume-Components.html), which are structures containing overrides for the default values, to the Volume Profile.
+You can add a __Volume__ component to any GameObject, including a Camera, although it is good practice to create a dedicated GameObject for each Volume. The Volume component itself contains no actual data and instead references a [Volume Profile](Volume-Profile.html) which contains the values to interpolate between. The Volume Profile contains default values for every property and hides them by default. To view or alter these properties, you must add [Volume overrides](Volume-Components.html), which are structures containing overrides for the default values, to the Volume Profile.
 
-Volumes also contain properties that control how they interact with other Volumes. A Scene can contain many Volumes. **Global** Volumes affect the Camera wherever the Camera is in the Scene and **Local** Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider.
+A Scene can contain many Volumes so each Volume contains properties that control how it interacts with others in the Scene. **Global** Volumes affect the Camera wherever the Camera is in the Scene and **Local** Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider.
 
-At run time, HDRP looks at all of the enabled Volumes attached to active GameObjects in the Scene and determines each Volume’s contribution to the final Scene settings. HDRP uses the Camera position and the Volume properties described above to calculate this contribution. It then uses all Volumes with a non-zero contribution to calculate interpolated final values for every property in all Volume Components.
+At runtime, HDRP looks at all of the enabled Volumes attached to active GameObjects in the Scene and determines each Volume’s contribution to the final Scene settings. HDRP uses the Camera position and the Volume properties described above to calculate this contribution. It then uses all Volumes with a non-zero contribution to calculate interpolated final values for every property in every Volume override.
 
-Volumes can contain different combinations of Volume Components. For example, one Volume may hold a Procedural Sky Volume Component while other Volumes hold an Exponential Fog Volume Component.
+Volumes can contain different combinations of Volume overrides. For example, one Volume may hold a Physically Based Sky Volume override while other Volumes hold an Exponential Fog Volume override.
 
 ## Properties
 
@@ -20,7 +20,7 @@ Volumes can contain different combinations of Volume Components. For example, on
 | **Blend Distance** | The furthest distance from the Volume’s Collider that HDRP starts blending from. A value of 0 means HDRP applies this Volume’s overrides immediately upon entry.<br />This property only appears when you select **Local** from the **Mode** drop-down. |
 | **Weight** | The amount of influence the Volume has on the Scene. HDRP applies this multiplier to the value it calculates using the Camera position and Blend Distance.  |
 | **Priority** | HDRP uses this value to determine which Volume it uses when Volumes have an equal amount of influence on the Scene. HDRP uses Volumes with higher priorities first. |
-| **Profile** | A Volume Profile Asset that contains the Volume Components that store the properties HDRP uses to handle this Volume. |
+| **Profile** | A Volume Profile Asset that contains the Volume overrides that store the properties HDRP uses to handle this Volume. |
 
 ## Volume Profiles
 

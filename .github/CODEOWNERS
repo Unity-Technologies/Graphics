@@ -2,7 +2,6 @@
 
 # Universal RP General
 /com.unity.render-pipelines.universal/ @Unity-Technologies/universal-rp-team
-/com.unity.render-pipelines.universal/CHANGELOG.md @Unity-Technologies/gfx-docs
 
 # Universal RP 2D Renderer
 /com.unity.render-pipelines.universal/Editor/2D @Unity-Technologies/2d-graphics
@@ -10,8 +9,8 @@
 /com.unity.render-pipelines.universal/Shaders/2D @Unity-Technologies/2d-graphics
 /com.unity.render-pipelines.universal/Editor/ShaderGraph/MasterNodes @Unity-Technologies/2d-graphics
 
-# Shadergraph
-/com.unity.shadergraph/CHANGELOG.md @Unity-Technologies/gfx-docs
+# Shader Graph
+/com.unity.shadergraph/ @Unity-Technologies/shader-graph @Unity-Technologies/gfx-qa-bellevue
 
 # Test systems
 /.yamato/ @Unity-Technologies/gfx-sdets
@@ -20,4 +19,3 @@
 
 # LWRP (Legacy)
 /com.unity.render-pipelines.lightweight/ @Unity-Technologies/universal-rp-team
-/com.unity.render-pipelines.lightweight/CHANGELOG.md @Unity-Technologies/gfx-docs

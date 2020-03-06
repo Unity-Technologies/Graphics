@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
                 if (hdrp != null)
                 {
                     return hdrp.currentPlatformRenderPipelineSettings.decalSettings.drawDistance;
@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
                 if (hdrp != null)
                 {
                     return hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
@@ -353,14 +353,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // Non alloc version of IsHDRenderPipelineDecal (Slower but does not generate garbage)
         static public bool IsHDRenderPipelineDecal(Material material)
         {
-            // Check if the material have the passes of the decal shader
+            // Check if the material has at least one pass from the decal.shader (shader stripping can remove one or more passes)
             foreach (var passName in s_MaterialDecalPassNames)
             {
-                if (material.FindPass(passName) == -1)
-                    return false;
+                if (material.FindPass(passName) != -1)
+                    return true;
             }
 
-            return true;
+            return false;
         }
 
         private class DecalSet
@@ -370,8 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Material == null)
                     return;
 
-                HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-                bool perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
+                bool perChannelMask = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
                 m_IsHDRenderPipelineDecal = IsHDRenderPipelineDecal(m_Material);
 
@@ -1110,7 +1109,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (debugDisplaySettings.data.decalsDebugSettings.displayAtlas)
             {
-                using (new ProfilingSample(cmd, "Display Decal Atlas", CustomSamplerId.DisplayDebugDecalsAtlas.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayDebugDecalsAtlas)))
                 {
                     cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
                     HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.data.decalsDebugSettings.mipLevel, true);

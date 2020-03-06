@@ -12,7 +12,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(10, Extension)]
+    [ScriptedImporter(11, Extension)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -20,7 +20,15 @@ namespace UnityEditor.ShaderGraph
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
-            return MinimalGraphData.GetDependencyPaths(assetPath);
+            try
+            {
+                return MinimalGraphData.GetDependencyPaths(assetPath);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return new string[0];
+            }
         }
 
         public override void OnImportAsset(AssetImportContext ctx)
@@ -156,7 +164,7 @@ namespace UnityEditor.ShaderGraph
 
             registry.ProvideFunction(asset.functionName, sb =>
             {
-                SubShaderGenerator.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
+                GenerationUtils.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
                 sb.AppendNewLine();
 
                 // Generate arguments... first INPUTS

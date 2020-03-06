@@ -26,27 +26,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass),
+            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, 4, SurfaceOptionUIBlock.Features.All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass),
             new TessellationOptionsUIBlock(MaterialUIBlock.Expandable.Tesselation),
             new LitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input, kMaxLayerCount, features: commonLitSurfaceInputsFeatures),
-            new MaterialToCopyUIBlock(MaterialUIBlock.Expandable.MaterialReferences),
+            new LayerListUIBlock(MaterialUIBlock.Expandable.MaterialReferences),
             new LayersUIBlock(),
             new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive, features: emissionFeatures),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance),
         };
 
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
                 uiBlocks.OnGUI(materialEditor, props);
-
-                // Apply material keywords and pass:
-                if (changed.changed)
-                {
-                    foreach (var material in uiBlocks.materials)
-                        SetupMaterialKeywordsAndPassInternal(material);
-                }
+                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
             }
         }
 
@@ -80,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kEmissiveColorMap = "_EmissiveColorMap";
         const string kUVEmissive = "_UVEmissive";
 
-        const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
+        const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
 
@@ -207,8 +201,14 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Planar && material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Triplanar && material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-            CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
 
+            // For migration of specular occlusion to specular mode we remove previous keyword
+            // _ENABLESPECULAROCCLUSION is deprecated
+            CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", false);
+
+            int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
+            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
+            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", specOcclusionMode == 2);
             CoreUtils.SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
             VertexColorMode VCMode = (VertexColorMode)material.GetFloat(kVertexColorMode);

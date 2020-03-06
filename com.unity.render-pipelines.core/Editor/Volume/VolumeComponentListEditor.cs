@@ -7,8 +7,47 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// Unity uses this class to draw the user interface for all the settings
+    /// contained in a <see cref="VolumeProfile"/> in the Inspector.
+    /// </summary>
+    /// <example>
+    /// A minimal example of how to write a custom editor that displays the content of a profile
+    /// in the inspector:
+    /// <code>
+    /// using UnityEngine.Rendering;
+    /// 
+    /// [CustomEditor(typeof(VolumeProfile))]
+    /// public class CustomVolumeProfileEditor : Editor
+    /// {
+    ///     VolumeComponentListEditor m_ComponentList;
+    /// 
+    ///     void OnEnable()
+    ///     {
+    ///         m_ComponentList = new VolumeComponentListEditor(this);
+    ///         m_ComponentList.Init(target as VolumeProfile, serializedObject);
+    ///     }
+    /// 
+    ///     void OnDisable()
+    ///     {
+    ///         if (m_ComponentList != null)
+    ///             m_ComponentList.Clear();
+    ///     }
+    /// 
+    ///     public override void OnInspectorGUI()
+    ///     {
+    ///         serializedObject.Update();
+    ///         m_ComponentList.OnGUI();
+    ///         serializedObject.ApplyModifiedProperties();
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     public sealed class VolumeComponentListEditor
     {
+        /// <summary>
+        /// A direct reference to the <see cref="VolumeProfile"/> this editor displays.
+        /// </summary>
         public VolumeProfile asset { get; private set; }
 
         Editor m_BaseEditor;
@@ -21,12 +60,23 @@ namespace UnityEditor.Rendering
 
         static VolumeComponent s_ClipboardContent;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="VolumeComponentListEditor"/> to use in an
+        /// existing editor.
+        /// </summary>
+        /// <param name="editor">A reference to the parent editor instance</param>
         public VolumeComponentListEditor(Editor editor)
         {
             Assert.IsNotNull(editor);
             m_BaseEditor = editor;
         }
 
+        /// <summary>
+        /// Initializes the editor.
+        /// </summary>
+        /// <param name="asset">A direct reference to the profile Asset.</param>
+        /// <param name="serializedObject">An instance of the <see cref="SerializedObject"/>
+        /// provided by the parent editor.</param>
         public void Init(VolumeProfile asset, SerializedObject serializedObject)
         {
             Assert.IsNotNull(asset);
@@ -108,16 +158,26 @@ namespace UnityEditor.Rendering
             // Remove them
             m_Editors.Clear();
 
+            // Refresh the ref to the serialized components in case the asset got swapped or another
+            // script is editing it while it's active in the inspector
+            m_SerializedObject.Update();
+            m_ComponentsProperty = m_SerializedObject.Find((VolumeProfile x) => x.components);
+            Assert.IsNotNull(m_ComponentsProperty);
+
             // Recreate editors for existing settings, if any
             var components = asset.components;
             for (int i = 0; i < components.Count; i++)
                 CreateEditor(components[i], m_ComponentsProperty.GetArrayElementAtIndex(i));
         }
 
+        /// <summary>
+        /// Cleans up the editor and individual <see cref="VolumeComponentEditor"/> instances. You
+        /// must call this when the parent editor is disabled or destroyed.
+        /// </summary>
         public void Clear()
         {
             if (m_Editors == null)
-                return; // Hasn't been inited yet
+                return; // Hasn't been initialized yet
 
             foreach (var editor in m_Editors)
                 editor.OnDisable();
@@ -129,6 +189,9 @@ namespace UnityEditor.Rendering
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }
 
+        /// <summary>
+        /// Draws the editor.
+        /// </summary>
         public void OnGUI()
         {
             if (asset == null)

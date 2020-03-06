@@ -38,12 +38,6 @@ namespace UnityEditor.Rendering.HighDefinition
         Expandable  m_ExpandableBit;
         int         m_LayerIndex;
 
-        MaterialUIBlockList transparencyBlocks = new MaterialUIBlockList
-        {
-            new RefractionUIBlock(kMaxLayerCount),
-            new DistortionUIBlock(),
-        };
-
         // Density/opacity mode
         MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount];
         const string kOpacityAsDensity = "_OpacityAsDensity";
@@ -73,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnGUI()
         {
             // We're using a subheader here because we know that layering options are only used within layers
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor, colorDot: kLayerColors[m_LayerIndex], subHeader: true))
+            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor, subHeader: true))
             {
                 if (header.expanded)
                 {

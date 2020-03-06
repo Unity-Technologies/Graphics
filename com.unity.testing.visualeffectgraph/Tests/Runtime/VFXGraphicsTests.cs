@@ -21,23 +21,15 @@ namespace UnityEngine.VFX.Test
 {
     public class VFXGraphicsTests
     {
-        static readonly float simulateTime = 6.0f;
-        static readonly int captureFrameRate = 20;
-        static readonly float frequency = 1.0f / (float)captureFrameRate;
-        static readonly int captureSize = 512;
-
         int m_previousCaptureFrameRate;
         float m_previousFixedTimeStep;
         float m_previousMaxDeltaTime;
-        [SetUp]
+        [OneTimeSetUp]
         public void Init()
         {
             m_previousCaptureFrameRate = Time.captureFramerate;
             m_previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
             m_previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
-            Time.captureFramerate = captureFrameRate;
-            UnityEngine.VFX.VFXManager.fixedTimeStep = frequency;
-            UnityEngine.VFX.VFXManager.maxDeltaTime = frequency;
         }
 
         static readonly string[] ExcludedTestsButKeepLoadScene =
@@ -70,6 +62,32 @@ namespace UnityEngine.VFX.Test
             // Always wait one frame for scene load
             yield return null;
 
+            var testSettingsInScene = Object.FindObjectOfType<GraphicsTestSettings>();
+            var vfxTestSettingsInScene = Object.FindObjectOfType<VFXGraphicsTestSettings>();
+
+            //Setup frame rate capture
+            float simulateTime = VFXGraphicsTestSettings.defaultSimulateTime;
+            int captureFrameRate = VFXGraphicsTestSettings.defaultCaptureFrameRate;
+
+            if (vfxTestSettingsInScene != null)
+            {
+                simulateTime = vfxTestSettingsInScene.simulateTime;
+                captureFrameRate = vfxTestSettingsInScene.captureFrameRate;
+            }
+            float frequency = 1.0f / captureFrameRate;
+
+            Time.captureFramerate = captureFrameRate;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = frequency;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = frequency;
+
+            int captureSizeWidth = 512;
+            int captureSizeHeight = 512;
+            if (testSettingsInScene != null)
+            {
+                captureSizeWidth = testSettingsInScene.ImageComparisonSettings.TargetWidth;
+                captureSizeHeight = testSettingsInScene.ImageComparisonSettings.TargetHeight;
+            }
+
             var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
             if (camera)
             {
@@ -86,13 +104,15 @@ namespace UnityEngine.VFX.Test
                     var fnGetResource = visualEffectAssetExt.GetMethod("GetResource");
                     fnGetResource = fnGetResource.MakeGenericMethod(new Type[]{ typeof(VisualEffectAsset)});
                     var resource = fnGetResource.Invoke(null, new object[] { vfx });
+                    if (resource == null)	
+                        continue; //could occurs if VisualEffectAsset is in AssetBundle
                     var fnGetOrCreate = visualEffectAssetExt.GetMethod("GetOrCreateGraph");
                     var graph = fnGetOrCreate.Invoke(null, new object[] { resource }) as VFXGraph;
                     graph.RecompileIfNeeded();
                 }
 #endif
 
-                var rt = RenderTexture.GetTemporary(captureSize, captureSize, 24);
+                var rt = RenderTexture.GetTemporary(captureSizeWidth, captureSizeHeight, 24);
                 camera.targetTexture = rt;
 
                 foreach (var component in vfxComponents)
@@ -136,14 +156,13 @@ namespace UnityEngine.VFX.Test
                 try
                 {
                     camera.targetTexture = null;
-                    actual = new Texture2D(captureSize, captureSize, TextureFormat.RGB24, false);
+                    actual = new Texture2D(captureSizeWidth, captureSizeHeight, TextureFormat.RGB24, false);
                     RenderTexture.active = rt;
-                    actual.ReadPixels(new Rect(0, 0, captureSize, captureSize), 0, 0);
+                    actual.ReadPixels(new Rect(0, 0, captureSizeWidth, captureSizeHeight), 0, 0);
                     RenderTexture.active = null;
                     actual.Apply();
 
                     var imageComparisonSettings = new ImageComparisonSettings() { AverageCorrectnessThreshold = 5e-4f };
-                    var testSettingsInScene = Object.FindObjectOfType<GraphicsTestSettings>();
                     if (testSettingsInScene != null)
                     {
                         imageComparisonSettings.AverageCorrectnessThreshold = testSettingsInScene.ImageComparisonSettings.AverageCorrectnessThreshold;
@@ -171,12 +190,18 @@ namespace UnityEngine.VFX.Test
         [TearDown]
         public void TearDown()
         {
-            Time.captureFramerate = m_previousCaptureFrameRate;
-            UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
-            UnityEngine.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
 #if UNITY_EDITOR
             UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
 #endif
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            Time.captureFramerate = m_previousCaptureFrameRate;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
+
         }
     }
 }

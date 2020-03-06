@@ -21,6 +21,34 @@
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
 
+// This only defines the ray tracing macro on the platforms that support ray tracing this should be dx12
+#if (SHADEROPTIONS_RAYTRACING && (defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12)) && !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL))
+#define RAYTRACING_ENABLED (1)
+#define DirectionalShadowType float3
+#else
+#define RAYTRACING_ENABLED (0)
+#define DirectionalShadowType float
+#endif
+
+#if defined(SHADER_STAGE_RAY_TRACING)
+// FXC Supports the naïve "recursive" concatenation, while DXC and C do not https://github.com/pfultz2/Cloak/wiki/C-Preprocessor-tricks,-tips,-and-idioms
+// However, FXC does not support the proper pattern (the one bellow), so we only override it in the case of ray tracing subshaders for the moment. 
+// Note that this should be used for all shaders when DX12 used DXC for vert/frag shaders (which it does not for the moment)
+#undef MERGE_NAME
+#define MERGE_NAME_CONCAT(Name, ...) Name ## __VA_ARGS__
+#define MERGE_NAME(X, Y) MERGE_NAME_CONCAT(X, Y)
+
+#define RAY_TRACING_OPTIONAL_PARAMETERS , IntersectionVertex intersectionVertex, RayCone rayCone, out bool alphaTestResult
+#define GENERIC_ALPHA_TEST(alphaValue, alphaCutoffValue) DoAlphaTest(alphaValue, alphaCutoffValue, alphaTestResult); if (!alphaTestResult) {alphaTestResult = false; return;}
+#define RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS alphaTestResult = true;
+#else
+#define RAY_TRACING_OPTIONAL_PARAMETERS
+#define GENERIC_ALPHA_TEST(alphaValue, alphaCutoffValue) DoAlphaTest(alphaValue, alphaCutoffValue);
+#define RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
+#endif
+
+
+
 // ----------------------------------------------------------------------------
 
 CBUFFER_START(UnityPerDraw)
@@ -187,8 +215,7 @@ CBUFFER_START(UnityGlobal)
     float4 _ShadowFrustumPlanes[6];     // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
 
     // TAA Frame Index ranges from 0 to 7.
-    // First two channels of this gives you two rotations per cycle.
-    float4 _TaaFrameInfo;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), taaFrame, taaEnabled ? 1 : 0 }
+    float4 _TaaFrameInfo;               // { taaSharpenStrength, unused, taaFrameIndex, taaEnabled ? 1 : 0 }
 
     // Current jitter strength (0 if TAA is disabled)
     float4 _TaaJitterStrength;          // { x, y, x/width, y/height }
@@ -212,20 +239,22 @@ CBUFFER_START(UnityGlobal)
     float  _HeightFogBaseHeight;
     float  _GlobalFogAnisotropy;
 
-    float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
+    float4 _VBufferViewportSize;           // { w, h, 1/w, 1/h }
     uint   _VBufferSliceCount;
     float  _VBufferRcpSliceCount;
     float  _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
-    float  _Pad3;
-    float4 _VBufferUvScaleAndLimit;        // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+
+    float  _ContactShadowOpacity;
+    float4 _VBufferSharedUvScaleAndLimit;  // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+
     float4 _VBufferDistanceEncodingParams; // See the call site for description
     float4 _VBufferDistanceDecodingParams; // See the call site for description
 
     // TODO: these are only used for reprojection.
     // Once reprojection is performed in a separate pass, we should probably
     // move these to a dedicated CBuffer to avoid polluting the global one.
-    float4 _VBufferPrevResolution;
-    float4 _VBufferPrevUvScaleAndLimit;
+    float4 _VBufferPrevViewportSize;
+    float4 _VBufferHistoryPrevUvScaleAndLimit;
     float4 _VBufferPrevDepthEncodingParams;
     float4 _VBufferPrevDepthDecodingParams;
 
@@ -238,7 +267,7 @@ CBUFFER_START(UnityGlobal)
     #define DEFAULT_LIGHT_LAYERS 0xFF
     uint _EnableLightLayers;
     float _ReplaceDiffuseForIndirect;
-    uint _EnableSkyLighting;
+    uint _EnableSkyReflection;
 
     uint _EnableSSRefraction;
 
@@ -247,6 +276,12 @@ CBUFFER_START(UnityGlobal)
 
     uint _XRViewCount;
     int  _FrameCount;
+
+    float _ProbeExposureScale;
+    int  _UseRayTracedReflections;
+    int  _RaytracingFrameIndex;
+
+    float4 _CoarseStencilBufferSize;
 
 CBUFFER_END
 
@@ -303,14 +338,14 @@ float3 SampleCameraColor(float2 uv)
     return SampleCameraColor(uv, 0);
 }
 
-float3 SampleCustomColor(float2 uv)
+float4 SampleCustomColor(float2 uv)
 {
-    return SAMPLE_TEXTURE2D_X_LOD(_CustomColorTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.xy, 0).rgb;
+    return SAMPLE_TEXTURE2D_X_LOD(_CustomColorTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.xy, 0);
 }
 
-float3 LoadCustomColor(uint2 pixelCoords)
+float4 LoadCustomColor(uint2 pixelCoords)
 {
-    return LOAD_TEXTURE2D_X_LOD(_CustomColorTexture, pixelCoords, 0).rgb;
+    return LOAD_TEXTURE2D_X_LOD(_CustomColorTexture, pixelCoords, 0);
 }
 
 float LoadCustomDepth(uint2 pixelCoords)
@@ -370,18 +405,20 @@ void ApplyCameraRelativeXR(inout float3 positionWS)
 float GetCurrentExposureMultiplier()
 {
 #if SHADEROPTIONS_PRE_EXPOSITION
-    return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x;
+    // _ProbeExposureScale is a scale used to perform range compression to avoid saturation of the content of the probes. It is 1.0 if we are not rendering probes.
+    return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x * _ProbeExposureScale;
 #else
-    return 1.0;
+    return _ProbeExposureScale;
 #endif
 }
 
 float GetPreviousExposureMultiplier()
 {
 #if SHADEROPTIONS_PRE_EXPOSITION
-    return LOAD_TEXTURE2D(_PrevExposureTexture, int2(0, 0)).x;
+    // _ProbeExposureScale is a scale used to perform range compression to avoid saturation of the content of the probes. It is 1.0 if we are not rendering probes.
+    return LOAD_TEXTURE2D(_PrevExposureTexture, int2(0, 0)).x * _ProbeExposureScale;
 #else
-    return 1.0;
+    return _ProbeExposureScale;
 #endif
 }
 
@@ -393,7 +430,7 @@ float GetInverseCurrentExposureMultiplier()
 
 float GetInversePreviousExposureMultiplier()
 {
-    float exposure = GetCurrentExposureMultiplier();
+    float exposure = GetPreviousExposureMultiplier();
     return rcp(exposure + (exposure == 0.0)); // zero-div guard
 }
 
@@ -420,6 +457,17 @@ float2 ClampAndScaleUVForBilinear(float2 UV)
 float2 ClampAndScaleUVForPoint(float2 UV)
 {
     return min(UV, 1.0f) * _RTHandleScale.xy;
+}
+
+uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize, uint eye)
+{
+    // We need to shift the index to look up the right eye info.
+    return (pixCoord.y * screenSize.x + pixCoord.x) + eye * (screenSize.x * screenSize.y);
+}
+
+uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
+{
+    return Get1DAddressFromPixelCoord(pixCoord, screenSize, 0);
 }
 
 // Define Model Matrix Macro
