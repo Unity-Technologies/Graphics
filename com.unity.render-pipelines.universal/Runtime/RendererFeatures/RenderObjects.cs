@@ -83,11 +83,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             var desc = renderingData.cameraData.cameraTargetDescriptor;
             renderObjectsPass.ConfigureRenderPassDescriptor(desc.width, desc.height,desc.msaaSamples);
+            
             renderer.EnqueuePass(renderObjectsPass);
         }
 
         public override void SetFeatureColorTarget(RenderTargetHandle color)
         {
+            
             renderObjectsPass.ConfigureTarget(color);
         }
 

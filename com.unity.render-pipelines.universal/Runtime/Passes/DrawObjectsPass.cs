@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
-        public DrawObjectsPass(string profilerTag, ShaderTagId shaderTagId, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
+        public DrawObjectsPass(string profilerTag, ShaderTagId shaderTagId, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference, RenderBufferLoadAction load = RenderBufferLoadAction.Clear, RenderBufferStoreAction store = RenderBufferStoreAction.Store)
         {
             m_ProfilerTag = profilerTag;
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
@@ -28,16 +28,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_IsOpaque = opaque;
-
             if (stencilState.enabled)
             {
                 m_RenderStateBlock.stencilReference = stencilReference;
                 m_RenderStateBlock.mask = RenderStateMask.Stencil;
                 m_RenderStateBlock.stencilState = stencilState;
             }
+            loadAction = load;
+            storeAction = store;
         }
 
-        public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
+        public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference, RenderBufferLoadAction load = RenderBufferLoadAction.Clear, RenderBufferStoreAction store = RenderBufferStoreAction.Store)
         {
             m_ProfilerTag = profilerTag;
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
@@ -56,6 +57,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_RenderStateBlock.mask = RenderStateMask.Stencil;
                 m_RenderStateBlock.stencilState = stencilState;
             }
+            loadAction = load;
+            storeAction = store;
         }
 
         /// <inheritdoc/>

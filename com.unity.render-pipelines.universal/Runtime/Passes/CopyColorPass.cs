@@ -28,6 +28,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
+            loadAction = RenderBufferLoadAction.Clear;
+            storeAction = RenderBufferStoreAction.Store;
         }
 
         /// <summary>
@@ -42,9 +44,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DownsamplingMethod = downsampling;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            RenderTextureDescriptor descriptor = cameraTextureDescripor;
+            RenderTextureDescriptor descriptor = cameraTextureDescriptor;
             descriptor.msaaSamples = 1;
             descriptor.depthBufferBits = 0;
             if (m_DownsamplingMethod == Downsampling._2xBilinear)
@@ -57,6 +59,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 descriptor.width /= 4;
                 descriptor.height /= 4;
             }
+            ConfigureRenderPassDescriptor(cameraTextureDescriptor.width, cameraTextureDescriptor.height, cameraTextureDescriptor.msaaSamples);
 
             cmd.GetTemporaryRT(destination.id, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
         }

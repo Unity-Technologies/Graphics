@@ -10,6 +10,8 @@ namespace UnityEngine.Rendering.Universal
         public DrawSkyboxPass(RenderPassEvent evt)
         {
             renderPassEvent = evt;
+            loadAction = RenderBufferLoadAction.Load;
+            storeAction = RenderBufferStoreAction.Store;
         }
 
         /// <inheritdoc/>

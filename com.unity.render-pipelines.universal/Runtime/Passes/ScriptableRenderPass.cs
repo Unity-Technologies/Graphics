@@ -81,10 +81,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal RenderTargetHandle[] m_ColorAttachments = new RenderTargetHandle[] { RenderTargetHandle.CameraTarget };
         internal List<RenderTargetHandle> m_InputAttachments = new List<RenderTargetHandle>(0);
-        RenderTargetHandle m_DepthAttachment;// = RenderTargetHandle.CameraTarget;
+        internal RenderTargetHandle m_DepthAttachment;// = RenderTargetHandle.CameraTarget;
         RenderPassDescriptor m_RenderPassDescriptor;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
+        internal RenderBufferLoadAction loadAction = RenderBufferLoadAction.DontCare;
+        internal RenderBufferStoreAction storeAction = RenderBufferStoreAction.DontCare;
 
         public ScriptableRenderPass()
         {
@@ -180,37 +182,9 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = clearColor;
         }
 
-        internal void ConfigureColorAttachments(List<RenderTargetHandle> targets)
-        {
-            for (var i = 0; i < targets.Count; i++)
-            {
-                ConfigureColorAttachment(targets[i], i);
-            }
-        }
-
-        internal void ConfigureColorAttachments(RenderTargetHandle[] targets)
-        {
-           // colorAttachments.Clear();
-            for (var i = 0; i < targets.Length; i++)
-            {
-                ConfigureColorAttachment(targets[i], i);
-            }
-        }
-
-        internal void ConfigureColorAttachment(RenderTargetHandle target, int idx = 0)
-        {
-            m_ColorAttachments[idx] = target;
-        }
-
         internal void ConfigureDepthAttachment(RenderTargetHandle target)
         {
             m_DepthAttachment = target;
-        }
-
-        internal void ConfigureAttachments(RenderTargetHandle color, RenderTargetHandle depth)
-        {
-            m_ColorAttachments[0] = color;
-            m_DepthAttachment = depth;
         }
 
         internal void ConfigureInputAttachment(RenderTargetHandle input, int idx = 0/*Maybe we should not make this implicit?*/)
@@ -234,21 +208,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 ConfigureInputAttachment(inputs[i], i);
             }
-        }
-
-        internal void ConfigureResolveTarget(RenderTargetHandle resolveTarget, int idx = 0)
-        {
-            m_ColorAttachments[idx].targetDescriptor.ConfigureResolveTarget(resolveTarget.Identifier());
-        }
-
-        internal void ConfigureColorClear(Color color, float depth, uint stencil, int idx = 0)
-        {
-            m_ColorAttachments[idx].targetDescriptor.ConfigureClear(color, depth, stencil);
-        }
-
-        internal void ConfigureDepthClear(Color color, float depth, uint stencil)
-        {
-            m_DepthAttachment.targetDescriptor.ConfigureClear(color, depth, stencil);
         }
 
         internal void ConfigureRenderPassDescriptor(int width, int height, int sampleCount, bool readOnlyDepth = false)

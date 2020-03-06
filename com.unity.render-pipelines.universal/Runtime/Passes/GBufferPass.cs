@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_HasDepthPrepass = hasDepthPrepass;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             // Create and declare the render targets used in the pass
 
@@ -81,6 +81,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetHandle[] colorAttachmentHandles = new RenderTargetHandle[m_ColorAttachments.Length];
             for (int gbufferIndex = 0; gbufferIndex < m_ColorAttachments.Length; ++gbufferIndex)
                 colorAttachmentHandles[gbufferIndex] = m_ColorAttachments[gbufferIndex];
+
+            ConfigureRenderPassDescriptor(cameraTextureDescriptor.width, cameraTextureDescriptor.height, cameraTextureDescriptor.msaaSamples);
 
             ConfigureTarget(colorAttachmentHandles, m_DepthBufferAttachment);
 
