@@ -517,6 +517,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved BeginCameraRendering callback right before culling.
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
 - Improved behaviour of transmission color on transparent surfaces in path tracing.
+- Light dimmer can now get values higher than one and was renamed to multiplier in the UI. 
 
 ## [7.1.1] - 2019-09-05
 
