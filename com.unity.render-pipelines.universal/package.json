@@ -19,9 +19,9 @@
     ],
     "samples": [
         {
-            "displayName": "Test Sample",
-            "description": "Testing Setup",
-            "path": "Samples~/TestSample"
+            "displayName": "Renderer Feature Samples",
+            "description": "Renderer Feature Samples",
+            "path": "Samples~/RendererFeatures"
         }
     ]
 }
