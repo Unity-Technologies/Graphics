@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [8.0.1] - 2020-05-25
 
 ### Fixed
-- Fix Changelog
+- Fixed a bug where fog density node always returns 0 in the shader preview window when connected to an Unlit Master node. 
 
 ## [8.0.0] - 2020-05-25
 
