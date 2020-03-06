@@ -11,51 +11,51 @@ Shader "Hidden/GUITextureBlit2SRGB" {
             // Shader slightly adapted from the builtin renderer
             // It can consume an exposure texture to setup the exposure in the render
 
-            CGPROGRAM
+            HLSLPROGRAM
+            #pragma editor_sync_compilation
+            #pragma target 4.5
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
             #pragma vertex vert
             #pragma fragment frag
-            #pragma target 2.0
 
-            #include "UnityCG.cginc"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/EditorShaderVariables.hlsl"
 
-            UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex);
-            UNITY_DECLARE_TEX2D(_Exposure);
+            TEXTURE2D(_MainTex);
+            TEXTURE2D(_Exposure);
             uniform float4 _MainTex_ST;
             uniform float4 _Color;
+            uniform float _ExposureBias;
+            uniform float _MipLevel;
             uniform bool _ManualTex2SRGB;
 
             struct appdata_t {
                 float4 vertex : POSITION;
                 float2 texcoord : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2f {
                 float4 vertex : SV_POSITION;
                 float2 texcoord : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             v2f vert (appdata_t v)
             {
                 v2f o;
-                UNITY_SETUP_INSTANCE_ID(v);
-                UNITY_INITIALIZE_OUTPUT(v2f, o);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.vertex = mul(unity_MatrixVP, v.vertex);
                 o.texcoord = TRANSFORM_TEX(v.texcoord.xy, _MainTex);
                 return o;
             }
 
-            fixed4 frag (v2f i) : SV_Target
+            float4 frag (v2f i) : SV_Target
             {
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                fixed4 colTex = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, i.texcoord);
-                float exposure = UNITY_SAMPLE_TEX2D(_Exposure, float2(0, 0)).x;
-                return colTex * _Color * exposure;
+                float4 colTex = SAMPLE_TEXTURE2D_LOD(_MainTex, s_linear_clamp_sampler, i.texcoord, _MipLevel);
+                float exposure = SAMPLE_TEXTURE2D_LOD(_Exposure, s_linear_clamp_sampler, float2(0, 0), 0).x;
+                return colTex * _Color * exposure * exp2(_ExposureBias);
             }
-            ENDCG
+            ENDHLSL
 
         }
     }
