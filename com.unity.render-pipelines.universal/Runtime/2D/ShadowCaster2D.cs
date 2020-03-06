@@ -93,7 +93,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             //#if UNITY_EDITOR
             if(!m_HasPromptedForUpgrader)
             { 
-                if(m_Mesh.colors == null)
+                if(m_Mesh.colors.Length == 0)
                 {
                     m_RequiresShadowUpgrade = true;
                 }
