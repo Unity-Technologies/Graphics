@@ -416,6 +416,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with filtering ray traced area lights when the intensity is high or there is an exposure.
 - Fixed ill-formed include path in Depth Of Field shader.
 - Fixed shader graph and ray tracing after the shader target PR.
+- Fixed a bug in semi-transparent shadows (object further than the light casting shadows)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -500,6 +501,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Transform result from CIE XYZ to sRGB color space in EvalSensitivity for iridescence.
 - Hide the Probes section in the Renderer editos because it was unused.
 - Moved BeginCameraRendering callback right before culling.
+- Changed the visibility of the Indirect Lighting Controller component to public.
 
 ## [7.1.1] - 2019-09-05
 
