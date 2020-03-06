@@ -44,6 +44,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Basic },
             { Pragma.MultiCompileInstancing },
+            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
+            #if ENABLE_HYBRID_RENDERER_V2
+            { Pragma.DOTSInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
+            #else
             { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition[]
             {
                 new FieldCondition(HDFields.DotsInstancing, true),
@@ -79,6 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FieldCondition(HDFields.DotsInstancing, false),
                 new FieldCondition(HDFields.DotsProperties, false),
             } },
+            #endif
         };
 
         public static PragmaCollection DotsInstancedEditorSync = new PragmaCollection
@@ -86,6 +92,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Basic },
             { Pragma.MultiCompileInstancing },
             { Pragma.EditorSyncCompilation },
+            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
+            #if ENABLE_HYBRID_RENDERER_V2
+            { Pragma.DOTSInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
+            #else
             { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition[]
             {
                 new FieldCondition(HDFields.DotsInstancing, true),
@@ -121,6 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FieldCondition(HDFields.DotsInstancing, false),
                 new FieldCondition(HDFields.DotsProperties, false),
             } },
+            #endif
         };
 
         public static PragmaCollection RaytracingBasic = new PragmaCollection

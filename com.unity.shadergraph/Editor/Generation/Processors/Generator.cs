@@ -571,9 +571,9 @@ namespace UnityEditor.ShaderGraph
 
             using (var dotsInstancingOptionsBuilder = new ShaderStringBuilder())
             {
-                dotsInstancingOptionsBuilder.AppendLine("#pragma multi_compile_instancing");
-                dotsInstancingOptionsBuilder.AppendLine("#pragma multi_compile _ DOTS_INSTANCING_ON");
-
+                // Hybrid Renderer V1 requires some magic defines to work, which we enable
+                // if the shader graph has a nonzero amount of DOTS instanced properties.
+                // This can be removed once Hybrid V1 is removed.
                 #if !ENABLE_HYBRID_RENDERER_V2
                 if (instancedPropCount > 0)
                 {
