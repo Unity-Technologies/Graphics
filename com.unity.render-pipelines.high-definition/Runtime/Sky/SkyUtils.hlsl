@@ -11,9 +11,10 @@ float4x4 _PixelCoordToViewDirWS;
 #endif
 
 // Generates a world-space view direction for sky and atmospheric effects
-float3 GetSkyViewDirWS(float2 positionCS)
+// Points towards the camera.
+float3 GetSkyViewDirWS(float2 positionSS)
 {
-    float4 viewDirWS = mul(float4(positionCS.xy + _TaaJitterStrength.xy, 1.0f, 1.0f), _PixelCoordToViewDirWS);
+    float4 viewDirWS = mul(float4(positionSS + _TaaJitterStrength.xy, 1.0f, 1.0f), _PixelCoordToViewDirWS);
     return normalize(viewDirWS.xyz);
 }
 
