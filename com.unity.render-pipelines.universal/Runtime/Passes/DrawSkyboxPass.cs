@@ -1,4 +1,4 @@
-namespace UnityEngine.Rendering.Universal.Internal
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Draw the skybox into the given color buffer using the given depth buffer for depth testing.

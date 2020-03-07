@@ -2,23 +2,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
+using System.Text.RegularExpressions;
+
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
 #endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Various utility functions for HDRP.
+    /// </summary>
     public class HDUtils
     {
-        public const PerObjectData k_RendererConfigurationBakedLighting = PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
-        public const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
+        internal const PerObjectData k_RendererConfigurationBakedLighting = PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
+        internal const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
 
-        static public HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
-        static public HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
-        static public HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
+        /// <summary>Default HDAdditionalReflectionData</summary>
+        static internal HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
+        /// <summary>Default HDAdditionalLightData</summary>
+        static internal HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
+        /// <summary>Default HDAdditionalCameraData</summary>
+        static internal HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
 
         static Texture3D m_ClearTexture3D;
         static RTHandle m_ClearTexture3DRTH;
+        /// <summary>
+        /// Default 1x1x1 3D texture initialized with Color.clear.
+        /// </summary>
         public static Texture3D clearTexture3D
         {
             get
@@ -36,6 +47,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_ClearTexture3D;
             }
         }
+
+        /// <summary>
+        /// Default 1x1x1 3D RTHandle initialized with Color.clear.
+        /// </summary>
         public static RTHandle clearTexture3DRTH
         {
             get
@@ -50,6 +65,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Returns the HDRP default blit material.
+        /// </summary>
+        /// <param name="dimension">Dimension of the texture to blit, either 2D or 2D Array.</param>
+        /// <param name="singleSlice">Blit only a single slice of the array if applicable.</param>
+        /// <returns></returns>
         public static Material GetBlitMaterial(TextureDimension dimension, bool singleSlice = false)
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -61,6 +82,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
+        /// <summary>
+        /// Current HDRP settings.
+        /// </summary>
         public static RenderPipelineSettings hdrpSettings
         {
             get
@@ -68,7 +92,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings;
             }
         }
-        public static int debugStep => MousePositionDebug.instance.debugStep;
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
@@ -97,21 +120,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return types;
         }
 
-        public static Matrix4x4 GetViewProjectionMatrix(Matrix4x4 worldToViewMatrix, Matrix4x4 projectionMatrix)
-        {
-            // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
-            // (different Z value ranges etc.)
-            var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, false);
-            var gpuVP = gpuProj * worldToViewMatrix * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API.
-
-            return gpuVP;
-        }
-
         // Helper to help to display debug info on screen
         static float s_OverlayLineHeight = -1.0f;
-        public static void ResetOverlay() => s_OverlayLineHeight = -1.0f;
+        internal static void ResetOverlay() => s_OverlayLineHeight = -1.0f;
 
-        public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCamera hdCamera)
+        internal static float GetRuntimeDebugPanelWidth(HDCamera hdCamera)
+        {
+            // 600 is the panel size from 'DebugUI Panel' prefab + 10 pixels of padding
+            float width = DebugManager.instance.displayRuntimeUI ? 610.0f : 0.0f;
+            return Mathf.Min(hdCamera.actualWidth, width);
+        }
+
+        internal static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCamera hdCamera)
         {
             x += overlayWidth;
             s_OverlayLineHeight = Mathf.Max(overlayHeight, s_OverlayLineHeight);
@@ -122,15 +142,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 y -= s_OverlayLineHeight;
                 s_OverlayLineHeight = -1.0f;
             }
+
+            if (x == 0)
+                x += GetRuntimeDebugPanelWidth(hdCamera);
         }
 
         /// <summary>Get the aspect ratio of a projection matrix.</summary>
         /// <param name="matrix"></param>
         /// <returns></returns>
-        public static float ProjectionMatrixAspect(in Matrix4x4 matrix)
+        internal static float ProjectionMatrixAspect(in Matrix4x4 matrix)
             => -matrix.m11 / matrix.m00;
 
-        public static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
+        internal static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
         {
             aspectRatio = aspectRatio < 0 ? screenSize.x * screenSize.w : aspectRatio;
 
@@ -171,12 +194,21 @@ namespace UnityEngine.Rendering.HighDefinition
             return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
         }
 
-        public static float ComputZPlaneTexelSpacing(float planeDepth, float verticalFoV, float resolutionY)
+        internal static float ComputZPlaneTexelSpacing(float planeDepth, float verticalFoV, float resolutionY)
         {
             float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
             return tanHalfVertFoV * (2.0f / resolutionY) * planeDepth;
         }
 
+        /// <summary>
+        /// Blit a texture using a quad in the current render target.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source texture.</param>
+        /// <param name="scaleBiasTex">Scale and bias for the input texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="mipLevelTex">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitQuad(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
@@ -186,6 +218,39 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 3 : 2, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
+        /// <summary>
+        /// Blit a texture using a quad in the current render target.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source texture.</param>
+        /// <param name="textureSize">Source texture size.</param>
+        /// <param name="scaleBiasTex">Scale and bias for sampling the input texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="mipLevelTex">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        /// <param name="paddingInPixels">Padding in pixels.</param>
+        public static void BlitQuadWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
+            if (source.wrapMode == TextureWrapMode.Repeat)
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 7 : 6, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            else
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 5 : 4, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+        }
+
+        /// <summary>
+        /// Blit a RTHandle texture.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
@@ -198,6 +263,15 @@ namespace UnityEngine.Rendering.HighDefinition
         // It means that we can end up rendering inside a partial viewport for one of these "camera space" rendering.
         // In this case, we need to make sure than when we blit from one such camera texture to another, we only blit the necessary portion corresponding to the camera viewport.
         // Here, both source and destination are camera-scaled.
+        /// <summary>
+        /// Blit a RTHandle to another RTHandle.
+        /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="destination">Destination RTHandle.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, float mipLevel = 0.0f, bool bilinear = false)
         {
             Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
@@ -207,7 +281,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        // This case, both source and destination are camera-scaled but we want to override the scale/bias parameter.
+        /// <summary>
+        /// Blit a RTHandle to another RTHandle.
+        /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
+        /// This overload allows user to override the scale and bias used when sampling the input RTHandle.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="destination">Destination RTHandle.</param>
+        /// <param name="scaleBias">Scale and bias used to sample the input RTHandle.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Vector4 scaleBias, float mipLevel = 0.0f, bool bilinear = false)
         {
             // Will set the correct camera viewport as well.
@@ -215,6 +299,17 @@ namespace UnityEngine.Rendering.HighDefinition
             BlitTexture(cmd, source, scaleBias, mipLevel, bilinear);
         }
 
+        /// <summary>
+        /// Blit a RTHandle to another RTHandle.
+        /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
+        /// This overload allows user to override the viewport of the destination RTHandle.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="destination">Destination RTHandle.</param>
+        /// <param name="destViewport">Viewport of the destination RTHandle.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Rect destViewport, float mipLevel = 0.0f, bool bilinear = false)
         {
             Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
@@ -225,6 +320,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // These method should be used to render full screen triangles sampling auto-scaling RTs.
         // This will set the proper viewport and UV scale.
+
+        /// <summary>
+        /// Draw a full screen triangle with a material.
+        /// This will automatically set the viewport of the destination RTHandle based on the current camera parameters.
+        /// </summary>
+        /// <param name="commandBuffer">Command Buffer used for rendering.</param>
+        /// <param name="material">Material used for rendering.</param>
+        /// <param name="colorBuffer">Destination RTHandle.</param>
+        /// <param name="properties">Optional material property block.</param>
+        /// <param name="shaderPassId">Optional pass index to use.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RTHandle colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -234,6 +339,16 @@ namespace UnityEngine.Rendering.HighDefinition
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
+        /// <summary>
+        /// Draw a full screen triangle with a material.
+        /// This will automatically set the viewport of the destination RTHandle based on the current camera parameters.
+        /// </summary>
+        /// <param name="commandBuffer">Command Buffer used for rendering.</param>
+        /// <param name="material">Material used for rendering.</param>
+        /// <param name="colorBuffer">Destination RTHandle.</param>
+        /// <param name="depthStencilBuffer">Destination Depth Stencil RTHandle.</param>
+        /// <param name="properties">Optional material property block.</param>
+        /// <param name="shaderPassId">Optional pass index to use.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RTHandle colorBuffer, RTHandle depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -243,6 +358,16 @@ namespace UnityEngine.Rendering.HighDefinition
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
+        /// <summary>
+        /// Draw a full screen triangle with a material.
+        /// This will automatically set the viewport of the destination RTHandle based on the current camera parameters.
+        /// </summary>
+        /// <param name="commandBuffer">Command Buffer used for rendering.</param>
+        /// <param name="material">Material used for rendering.</param>
+        /// <param name="colorBuffers">Array of RenderTargetIdentifier for multiple render target rendering.</param>
+        /// <param name="depthStencilBuffer">Destination Depth Stencil RTHandle.</param>
+        /// <param name="properties">Optional material property block.</param>
+        /// <param name="shaderPassId">Optional pass index to use.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier[] colorBuffers, RTHandle depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -252,15 +377,17 @@ namespace UnityEngine.Rendering.HighDefinition
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        public static void DrawFullScreen(CommandBuffer commandBuffer, RTHandleProperties rtHandleProperties, Material material,
-            RenderTargetIdentifier colorBuffer,
-            MaterialPropertyBlock properties = null, int shaderPassId = 0)
-        {
-            CoreUtils.SetRenderTarget(commandBuffer, colorBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, rtHandleProperties.rtHandleScale);
-            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
-        }
-
+        /// <summary>
+        /// Draw a full screen triangle with a material.
+        /// This will render into the destination texture with the specified viewport.
+        /// </summary>
+        /// <param name="commandBuffer">Command Buffer used for rendering.</param>
+        /// <param name="viewport">Destination viewport.</param>
+        /// <param name="material">Material used for rendering.</param>
+        /// <param name="destination">Destination RenderTargetIdentifier.</param>
+        /// <param name="properties">Optional Material Property block.</param>
+        /// <param name="shaderPassId">Optional pass index to use.</param>
+        /// <param name="depthSlice">Optional depth slice to render to.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0, int depthSlice = -1)
         {
             CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, CubemapFace.Unknown, depthSlice);
@@ -268,6 +395,17 @@ namespace UnityEngine.Rendering.HighDefinition
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
+        /// <summary>
+        /// Draw a full screen triangle with a material.
+        /// This will render into the destination texture with the specified viewport.
+        /// </summary>
+        /// <param name="commandBuffer">Command Buffer used for rendering.</param>
+        /// <param name="viewport">Destination viewport.</param>
+        /// <param name="material">Material used for rendering.</param>
+        /// <param name="depthStencilBuffer">Destination Depth Stencil RTHandle.</param>
+        /// <param name="destination">Destination RenderTargetIdentifier.</param>
+        /// <param name="properties">Optional Material Property block.</param>
+        /// <param name="shaderPassId">Optional pass index to use.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material,
             RenderTargetIdentifier destination, RTHandle depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -278,7 +416,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Returns mouse coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
-        public static Vector4 GetMouseCoordinates(HDCamera camera)
+        internal static Vector4 GetMouseCoordinates(HDCamera camera)
         {
             // We request the mouse post based on the type of the camera
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(camera.screenSize.y, camera.camera.cameraType == CameraType.SceneView);
@@ -286,14 +424,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Returns mouse click coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
-        public static Vector4 GetMouseClickCoordinates(HDCamera camera)
+        internal static Vector4 GetMouseClickCoordinates(HDCamera camera)
         {
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMouseClickPosition(camera.screenSize.y);
             return new Vector4(mousePixelCoord.x, mousePixelCoord.y, RTHandles.rtHandleProperties.rtHandleScale.x * mousePixelCoord.x / camera.screenSize.x, RTHandles.rtHandleProperties.rtHandleScale.y * mousePixelCoord.y / camera.screenSize.y);
         }
 
         // This function check if camera is a CameraPreview, then check if this preview is a regular preview (i.e not a preview from the camera editor)
-        public static bool IsRegularPreviewCamera(Camera camera)
+        internal static bool IsRegularPreviewCamera(Camera camera)
         {
             if (camera.cameraType == CameraType.Preview)
             {
@@ -305,13 +443,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // We need these at runtime for RenderPipelineResources upgrade
-        public static string GetHDRenderPipelinePath()
+        internal static string GetHDRenderPipelinePath()
             => "Packages/com.unity.render-pipelines.high-definition/";
 
-        public static string GetCorePath()
+        internal static string GetCorePath()
             => "Packages/com.unity.render-pipelines.core/";
 
-        public struct PackedMipChainInfo
+        internal struct PackedMipChainInfo
         {
             public Vector2Int textureSize;
             public int mipLevelCount;
@@ -389,13 +527,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static int DivRoundUp(int x, int y) => (x + y - 1) / y;
+        internal static int DivRoundUp(int x, int y) => (x + y - 1) / y;
 
-        public static bool IsQuaternionValid(Quaternion q)
+        internal static bool IsQuaternionValid(Quaternion q)
             => (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]) > float.Epsilon;
 
         // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
-        public static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
+        internal static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
         {
             return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
                     graphicDevice == GraphicsDeviceType.Direct3D12 ||
@@ -408,7 +546,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     /* || graphicDevice == GraphicsDeviceType.Switch */);
         }
 
-        public static void CheckRTCreated(RenderTexture rt)
+        internal static void CheckRTCreated(RenderTexture rt)
         {
             // In some cases when loading a project for the first time in the editor, the internal resource is destroyed.
             // When used as render target, the C++ code will re-create the resource automatically. Since here it's used directly as an UAV, we need to check manually
@@ -416,7 +554,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 rt.Create();
         }
 
-        public static Vector4 ComputeUvScaleAndLimit(Vector2Int viewportResolution, Vector2Int bufferSize)
+        internal static Vector4 ComputeUvScaleAndLimit(Vector2Int viewportResolution, Vector2Int bufferSize)
         {
             Vector2 rcpBufferSize = new Vector2(1.0f / bufferSize.x, 1.0f / bufferSize.y);
 
@@ -433,7 +571,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
         // This function can't be in HDEditorUtils because we need it in HDRenderPipeline.cs (and HDEditorUtils is in an editor asmdef)
-        public static bool IsSupportedBuildTarget(UnityEditor.BuildTarget buildTarget)
+        internal static bool IsSupportedBuildTarget(UnityEditor.BuildTarget buildTarget)
         {
             return (buildTarget == UnityEditor.BuildTarget.StandaloneWindows ||
                     buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
@@ -447,7 +585,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildTarget == UnityEditor.BuildTarget.Switch);
         }
 
-        public static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
+        internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
         {
             unsupportedGraphicDevice = GraphicsDeviceType.Null;
 
@@ -462,7 +600,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        public static OperatingSystemFamily BuildTargetToOperatingSystemFamily(UnityEditor.BuildTarget target)
+        internal static OperatingSystemFamily BuildTargetToOperatingSystemFamily(UnityEditor.BuildTarget target)
         {
             switch (target)
             {
@@ -481,7 +619,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
-        public static bool IsOperatingSystemSupported(string os)
+        internal static bool IsOperatingSystemSupported(string os)
         {
             // Metal support depends on OS version:
             // macOS 10.11.x doesn't have tessellation / earlydepthstencil support, early driver versions were buggy in general
@@ -517,7 +655,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="fadeDistance">Distance at which object should be totally fade</param>
         /// <param name="scale">[OUT] Slope of the fading on the fading part</param>
         /// <param name="bias">[OUT] Ordinate of the fading part at abscissa 0</param>
-        public static void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
+        internal static void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
         {
             // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
             float distanceFadeNear = 0.9f * fadeDistance;
@@ -531,7 +669,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="distanceToCamera">Distance from the object to fade from the camera</param>
         /// <param name="fadeDistance">Distance at witch the object is totally faded</param>
         /// <returns>Computed fade factor</returns>
-        public static float ComputeLinearDistanceFade(float distanceToCamera, float fadeDistance)
+        internal static float ComputeLinearDistanceFade(float distanceToCamera, float fadeDistance)
         {
             float scale;
             float bias;
@@ -548,14 +686,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="weight">Weight multiplior</param>
         /// <param name="fadeDistance">Distance at witch the object is totally faded</param>
         /// <returns>Computed fade factor</returns>
-        public static float ComputeWeightedLinearFadeDistance(Vector3 position1, Vector3 position2, float weight, float fadeDistance)
+        internal static float ComputeWeightedLinearFadeDistance(Vector3 position1, Vector3 position2, float weight, float fadeDistance)
         {
             float distanceToCamera = Vector3.Magnitude(position1 - position2);
             float distanceFade = ComputeLinearDistanceFade(distanceToCamera, fadeDistance);
             return distanceFade * weight;
         }
 
-        public static bool PostProcessIsFinalPass()
+        internal static bool PostProcessIsFinalPass()
         {
             // Post process pass is the final blit only when not in developer mode.
             // In developer mode, we support a range of debug rendering that needs to occur after post processes.
@@ -567,7 +705,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // a unity asset GUID is exactly 16 bytes long which is also a Vector4 so by adding a
         // Vector4 field inside the shader we can store references of an asset inside the material
         // which is actually used to store the reference of the diffusion profile asset
-        public static Vector4 ConvertGUIDToVector4(string guid)
+        internal static Vector4 ConvertGUIDToVector4(string guid)
         {
             Vector4 vector;
             byte[]  bytes = new byte[16];
@@ -584,7 +722,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return vector;
         }
 
-        public static string ConvertVector4ToGUID(Vector4 vector)
+        internal static string ConvertVector4ToGUID(Vector4 vector)
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             unsafe
@@ -599,6 +737,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Normalize the input color.
+        /// </summary>
+        /// <param name="color">Input color.</param>
+        /// <returns>Normalized color.</returns>
         public static Color NormalizeColor(Color color)
         {
             Vector4 ldrColor = Vector4.Max(color, Vector4.one * 0.0001f);
@@ -608,6 +751,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return color;
         }
 
+        /// <summary>
+        /// Draw a renderer list.
+        /// </summary>
+        /// <param name="renderContext">Current Scriptable Render Context.</param>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="rendererList">Renderer List to render.</param>
         public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
         {
             if (!rendererList.isValid)
@@ -736,6 +885,71 @@ namespace UnityEngine.Rendering.HighDefinition
                 return hdCamera;
 
             return s_DefaultHDAdditionalCameraData;
+        }
+
+        static Dictionary<GraphicsFormat, int> graphicsFormatSizeCache = new Dictionary<GraphicsFormat, int>
+        {
+            // Init some default format so we don't allocate more memory on the first frame.
+            {GraphicsFormat.R8G8B8A8_UNorm, 4},
+            {GraphicsFormat.R16G16B16A16_SFloat, 8},
+            {GraphicsFormat.RGB_BC6H_SFloat, 1}, // BC6H uses 128 bits for each 4x4 tile which is 8 bits per pixel
+        };
+
+        /// <summary>
+        /// Compute the size in bytes of a GraphicsFormat. Does not works with compressed formats.
+        /// </summary>
+        /// <param name="format"></param>
+        /// <returns>Size in Bytes</returns>
+        internal static int GetFormatSizeInBytes(GraphicsFormat format)
+        {
+            if (graphicsFormatSizeCache.TryGetValue(format, out var size))
+                return size;
+
+            // Compute the size by parsing the enum name: Note that it does not works with compressed formats
+            string name = format.ToString();
+            int underscoreIndex = name.IndexOf('_');
+            name = name.Substring(0, underscoreIndex == -1 ? name.Length : underscoreIndex);
+
+            // Extract all numbers from the format name:
+            int bits = 0;
+            foreach (Match m in Regex.Matches(name, @"\d+"))
+                bits += int.Parse(m.Value);
+
+            size = bits / 8;
+            graphicsFormatSizeCache[format] = size;
+            return size;
+        }
+
+        internal static void DisplayUnsupportedMessage(string msg)
+        {
+            Debug.LogError(msg);
+
+#if UNITY_EDITOR
+            foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                sv.ShowNotification(new GUIContent(msg));
+#endif
+        }
+
+        internal static void DisplayUnsupportedAPIMessage(string graphicAPI = null)
+        {
+            // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
+#if UNITY_EDITOR
+            var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
+            string currentPlatform = buildTarget.ToString();
+            graphicAPI = graphicAPI ?? UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
+#else
+            string currentPlatform = SystemInfo.operatingSystem;
+            graphicAPI = graphicAPI ?? SystemInfo.graphicsDeviceType.ToString();
+#endif
+
+            string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
+            DisplayUnsupportedMessage(msg);
+        }
+
+        internal static void DisplayUnsupportedXRMessage()
+        {
+            string msg = "AR/VR devices are not supported, no rendering will occur";
+            DisplayUnsupportedMessage(msg);
         }
     }
 }

@@ -2,48 +2,66 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Frustum class.
+    /// </summary>
     public struct Frustum
     {
+        /// <summary>
+        /// Frustum planes.
+        /// In order: left, right, top, bottom, near, far.
+        /// </summary>
         public Plane[] planes;  // Left, right, top, bottom, near, far
+        /// <summary>
+        /// Frustum corner points.
+        /// </summary>
         public Vector3[] corners; // Positions of the 8 corners
 
-        // The frustum will be camera-relative if given a camera-relative VP matrix.
-        public static void Create(Frustum frustum, Matrix4x4 viewProjMatrix, bool depth_0_1, bool reverseZ)
+        static Vector3 IntersectFrustumPlanes(Plane p0, Plane p1, Plane p2)
+        {
+            Vector3 n0 = p0.normal;
+            Vector3 n1 = p1.normal;
+            Vector3 n2 = p2.normal;
+
+            float det = Vector3.Dot(Vector3.Cross(n0, n1), n2);
+            return (Vector3.Cross(n2, n1) * p0.distance + Vector3.Cross(n0, n2) * p1.distance - Vector3.Cross(n0, n1) * p2.distance) * (1.0f / det);
+        }
+
+        /// <summary>
+        /// Creates a frustum.
+        /// Note: when using a camera-relative matrix, the frustum will be camera-relative.
+        /// </summary>
+        /// <param name="frustum">Inout frustum.</param>
+        /// <param name="viewProjMatrix">View projection matrix from which to build the frustum.</param>
+        /// <param name="viewPos">View position of the frustum.</param>
+        /// <param name="viewDir">Direction of the frustum.</param>
+        /// <param name="nearClipPlane">Near clip plane of the frustum.</param>
+        /// <param name="farClipPlane">Far clip plane of the frustum.</param>
+        public static void Create(ref Frustum frustum, Matrix4x4 viewProjMatrix, Vector3 viewPos, Vector3 viewDir, float nearClipPlane, float farClipPlane)
         {
             GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustum.planes);
 
-            float nd = -1.0f;
+            // We need to recalculate the near and far planes otherwise it does not work for oblique projection matrices used for reflection.
+            Plane nearPlane = new Plane();
+            nearPlane.SetNormalAndPosition(viewDir, viewPos);
+            nearPlane.distance -= nearClipPlane;
 
-            if (depth_0_1)
-            {
-                nd = 0.0f;
+            Plane farPlane = new Plane();
+            farPlane.SetNormalAndPosition(-viewDir, viewPos);
+            farPlane.distance += farClipPlane;
 
-                // See "Fast Extraction of Viewing Frustum Planes" by Gribb and Hartmann.
-                Vector3 f  = new Vector3(viewProjMatrix.m20, viewProjMatrix.m21, viewProjMatrix.m22);
-                float   s  = (float)(1.0 / Math.Sqrt(f.sqrMagnitude));
-                Plane   np = new Plane(s * f, s * viewProjMatrix.m23);
+            frustum.planes[4] = nearPlane;
+            frustum.planes[5] = farPlane;
 
-                frustum.planes[4] = np;
-            }
-
-            if (reverseZ)
-            {
-                Plane tmp         = frustum.planes[4];
-                frustum.planes[4] = frustum.planes[5];
-                frustum.planes[5] = tmp;
-            }
-
-            Matrix4x4 invViewProjMatrix = viewProjMatrix.inverse;
-
-            // Unproject 8 frustum points.
-            frustum.corners[0] = invViewProjMatrix.MultiplyPoint(new Vector3(-1, -1, 1));
-            frustum.corners[1] = invViewProjMatrix.MultiplyPoint(new Vector3(1, -1, 1));
-            frustum.corners[2] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, 1));
-            frustum.corners[3] = invViewProjMatrix.MultiplyPoint(new Vector3(1,  1, 1));
-            frustum.corners[4] = invViewProjMatrix.MultiplyPoint(new Vector3(-1, -1, nd));
-            frustum.corners[5] = invViewProjMatrix.MultiplyPoint(new Vector3(1, -1, nd));
-            frustum.corners[6] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, nd));
-            frustum.corners[7] = invViewProjMatrix.MultiplyPoint(new Vector3(1,  1, nd));
+            // Compute corners from the planes instead of projection matrix. Otherwise you get the same issue with near and far for oblique projection.
+            frustum.corners[0] = IntersectFrustumPlanes(frustum.planes[0], frustum.planes[3], frustum.planes[4]);
+            frustum.corners[1] = IntersectFrustumPlanes(frustum.planes[1], frustum.planes[3], frustum.planes[4]);
+            frustum.corners[2] = IntersectFrustumPlanes(frustum.planes[0], frustum.planes[2], frustum.planes[4]);
+            frustum.corners[3] = IntersectFrustumPlanes(frustum.planes[1], frustum.planes[2], frustum.planes[4]);
+            frustum.corners[4] = IntersectFrustumPlanes(frustum.planes[0], frustum.planes[3], frustum.planes[5]);
+            frustum.corners[5] = IntersectFrustumPlanes(frustum.planes[1], frustum.planes[3], frustum.planes[5]);
+            frustum.corners[6] = IntersectFrustumPlanes(frustum.planes[0], frustum.planes[2], frustum.planes[5]);
+            frustum.corners[7] = IntersectFrustumPlanes(frustum.planes[1], frustum.planes[2], frustum.planes[5]);
         }
     } // struct Frustum
 
@@ -80,7 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
     static class GeometryUtils
     {
         // Returns 'true' if the OBB intersects (or is inside) the frustum, 'false' otherwise.
-        public static bool Overlap(OrientedBBox obb, Frustum frustum, int numPlanes, int numCorners)
+        public unsafe static bool Overlap(OrientedBBox obb, Frustum frustum, int numPlanes, int numCorners)
         {
             bool overlap = true;
 
@@ -113,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // The frustum is outside if all of its corners are entirely in front of one of the OBB planes.
             // See "Correct Frustum Culling" by Inigo Quilez.
             // We can exploit the symmetry of the box by only testing against 3 planes rather than 6.
-            Plane[] planes = new Plane[3];
+            var planes = stackalloc Plane[3];
 
             planes[0].normal   = obb.right;
             planes[0].distance = obb.extentX;
@@ -243,3 +261,4 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     } // class GeometryUtils
 }
+

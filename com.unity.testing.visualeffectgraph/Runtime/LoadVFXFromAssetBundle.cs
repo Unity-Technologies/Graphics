@@ -9,9 +9,21 @@ namespace Unity.Testing.VisualEffectGraph
     {
         void Start()
         {
-            var path = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "VFX_Bundle_Test");
-            var assetBundle = AssetBundle.LoadFromFile(System.IO.Path.Combine(path, "vfx_in_assetbundle"));
+            var assetBundlePath = System.IO.File.ReadAllLines(Application.streamingAssetsPath + "/AssetBundlePath.txt");
+            if (assetBundlePath.Length < 1)
+            {
+                Debug.LogError("Unable to find bundle AssetBundlePath.txt");
+                return;
+            }
 
+            var basePath = assetBundlePath[0];
+            var fullPath = System.IO.Path.Combine(basePath, "vfx_in_assetbundle");
+            if (!System.IO.File.Exists(fullPath))
+            {
+                Debug.LogError("Unable to find bundle at : " + fullPath);
+            }
+
+            var assetBundle = AssetBundle.LoadFromFile(fullPath);
             var asset = assetBundle.LoadAsset("Packages/com.unity.testing.visualeffectgraph/AssetBundle/VFX_In_AssetBundle.prefab") as GameObject;
             var vfx = Instantiate(asset).GetComponent<VisualEffect>();
             if (vfx == null)
@@ -22,7 +34,6 @@ namespace Unity.Testing.VisualEffectGraph
 
         void Update()
         {
-
         }
     }
 }

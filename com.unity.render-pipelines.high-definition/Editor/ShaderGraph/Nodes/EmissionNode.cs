@@ -9,7 +9,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public enum EmissiveIntensityUnit
+    enum EmissiveIntensityUnit
     {
         Nits,
         EV100,
@@ -25,11 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            // TODO: write the doc
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Emission-Node"; }
-        }
+        public override string documentationURL => Documentation.GetPageLink("SGNode-Emission");
 
         [SerializeField]
         EmissiveIntensityUnit _intensityUnit;

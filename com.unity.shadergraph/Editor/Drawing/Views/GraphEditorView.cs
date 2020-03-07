@@ -165,7 +165,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Precision");
                     graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
-                    GUILayout.Space(4);
                     if (EditorGUI.EndChangeCheck())
                     {
                         var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
@@ -215,8 +214,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                             m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
                         }
 
-                        m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
-                        m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
+                        UpdateSubWindowsVisibility();
+
                         var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
                         EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
                     }
@@ -239,9 +238,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_BlackboardProvider = new BlackboardProvider(graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
 
-                m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
-
                 CreateMasterPreview();
+
+                UpdateSubWindowsVisibility();
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
@@ -257,11 +256,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.nodeCreationRequest = (c) =>
                 {
                     m_SearchWindowProvider.connectedPort = null;
-                    SearcherWindow.Show(editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(), 
+                    SearcherWindow.Show(editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
                         item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - editorWindow.position.position),
                         c.screenMousePosition - editorWindow.position.position, null);
                 };
-                
+
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
             foreach (var graphGroup in graph.groups)
@@ -281,6 +280,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEdge(edge);
 
             Add(content);
+        }
+
+        void UpdateSubWindowsVisibility()
+        {
+            if (m_UserViewSettings.isBlackboardVisible)
+                m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
+            else
+                m_BlackboardProvider.blackboard.RemoveFromHierarchy();
+
+            if (m_UserViewSettings.isPreviewVisible)
+                m_GraphView.Insert(m_GraphView.childCount, m_MasterPreviewView);
+            else
+                m_MasterPreviewView.RemoveFromHierarchy();
         }
 
         Action<Group, string> m_GraphViewGroupTitleChanged;
@@ -311,7 +323,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
             m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
-            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -983,9 +994,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardRect.width = Mathf.Clamp(blackboardRect.width, 160f, m_GraphView.contentContainer.layout.width);
             blackboardRect.height = Mathf.Clamp(blackboardRect.height, 160f, m_GraphView.contentContainer.layout.height);
 
-            // Make sure that the positionining is on screen.
-            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.width - blackboardRect.width - blackboardRect.width));
-            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.height - blackboardRect.height - blackboardRect.height));
+            // Make sure that the positioning is on screen.
+            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f, Mathf.Max(0f, m_GraphView.contentContainer.layout.width - blackboardRect.width));
+            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(0f, m_GraphView.contentContainer.layout.height - blackboardRect.height));
 
             // Set the processed blackboard layout.
             m_BlackboardProvider.blackboard.SetPosition(blackboardRect);
@@ -1031,8 +1042,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 saveAsRequested = null;
                 convertToSubgraphRequested = null;
                 showInProjectRequested = null;
+                isCheckedOut = null;
+                checkOut = null;
                 foreach (var node in m_GraphView.Children().OfType<IShaderNodeView>())
                     node.Dispose();
+                m_GraphView.nodeCreationRequest = null;
                 m_GraphView = null;
             }
             if (previewManager != null)

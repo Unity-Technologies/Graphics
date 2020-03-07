@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.VFX;
 
-public class IncrementStripIndexOnStart : VFXSpawnerCallbacks
+class IncrementStripIndexOnStart : VFXSpawnerCallbacks
 {
     public class InputProperties
     {
@@ -27,7 +27,6 @@ public class IncrementStripIndexOnStart : VFXSpawnerCallbacks
     }
 
     public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
-    {  
-
+    {
     }
 }

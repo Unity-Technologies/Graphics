@@ -4,76 +4,166 @@ using UnityEngine.Assertions;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using UnityEditorInternal;
+using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class QualitySettingsPanel
+    /// <summary>
+    /// Defines the provider of the quality settings panel for HDRP.
+    /// </summary>
+    class QualitySettingsPanel
     {
+        static QualitySettingsPanelIMGUI s_IMGUIImpl = new QualitySettingsPanelIMGUI();
+
+        /// <summary>
+        /// Instantiate the <see cref="SettingsProvider"/> used for the Quality Settings Panel for the HDRP.
+        /// </summary>
+        /// <returns></returns>
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {
             return new SettingsProvider("Project/Quality/HDRP", SettingsScope.Project)
             {
-                activateHandler = (searchContext, rootElement) =>
-                {
-                    HDEditorUtils.AddStyleSheets(rootElement, HDEditorUtils.FormatingPath);
-                    HDEditorUtils.AddStyleSheets(rootElement, HDEditorUtils.QualitySettingsSheetPath);
-
-                    var panel = new QualitySettingsPanelVisualElement(searchContext);
-                    panel.style.flexGrow = 1;
-
-                    rootElement.Add(panel);
-                },
-                keywords = new [] { "quality", "hdrp" }
+                activateHandler = s_IMGUIImpl.OnActivate,
+                keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<QualitySettingsPanelIMGUI.Styles>()
+                    .Concat(SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDRenderPipelineUI.Styles>())
+                    .Concat(SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDRenderPipelineUI.Styles.GeneralSection>())
+                    .ToArray(),
+                guiHandler = s_IMGUIImpl.OnGUI,
             };
         }
 
-        class HDRPAssetHeaderEntry : VisualElement
+        class QualitySettingsPanelIMGUI
         {
-            TextElement m_Element;
-            List<Label> m_ConfigNames;
-
-            public HDRPAssetHeaderEntry()
+            public class Styles
             {
-                m_Element = new Label();
-                m_ConfigNames = new List<Label>();
+                public const int HDRPAssetListMinHeight = 150;
+                public const int HDRPAssetListMaxHeight = 150;
 
-                m_Element.style.paddingLeft = 5;
-                m_Element.style.flexGrow = 1;
-                m_Element.style.flexDirection = FlexDirection.Row;
-                m_Element.style.unityTextAlign = TextAnchor.MiddleLeft;
-
-                Add(m_Element);
+                public static readonly GUIContent @default = new GUIContent("default");
+                public const string hdrpSubtitleHelp = "HDRP Assets that are assigned either in Graphics settings or in any Quality Level will be listed here.";
             }
 
-            public void Bind(int index, HDRPAssetLocations asset)
+            static GUIContent s_CachedGUIContent = new GUIContent();
+
+            Vector2 m_HDRPAssetListScrollView = Vector2.zero;
+            List<HDRPAssetLocations> m_HDRPAssets = new List<HDRPAssetLocations>();
+            ReorderableList m_HDRPAssetsUIList;
+            Editor m_Cached;
+            int m_SelectedHDRPAssetIndex = -1;
+
+            public QualitySettingsPanelIMGUI()
             {
-                // Update number of label in cache for this row
-                var desiredNumberOfConfig = asset.indices.Count + (asset.isDefault ? 1 : 0);
-                var configNameCountDiff = desiredNumberOfConfig - m_ConfigNames.Count;
-                for (var i = 0; i < -configNameCountDiff; ++i)
+                m_HDRPAssetsUIList = new ReorderableList(m_HDRPAssets, typeof(HDRPAssetLocations), false, false, false, false)
                 {
-                    Remove(m_ConfigNames[0]);
-                    m_ConfigNames.RemoveAt(0);
-                }
-                for (var i = 0; i < configNameCountDiff; ++i)
-                {
-                    var newText = new Label();
-                    newText.AddToClassList("unity-quality-entry-tag");
-                    Add(newText);
-                    m_ConfigNames.Add(newText);
-                }
-                Assert.AreEqual(desiredNumberOfConfig, m_ConfigNames.Count);
+                    drawElementCallback = DrawHDRPAssetItem,
+                    onSelectCallback = OnHDRPAssetSelected,
+                };
+            }
 
-                m_Element.text = asset.asset.name;
-                for (var i = 0; i < asset.indices.Count; ++i)
-                    m_ConfigNames[i].text = QualitySettings.names[asset.indices[i]];
+            /// <summary>
+            /// Executed when activate is called from the settings provider.
+            /// </summary>
+            /// <param name="searchContext"></param>
+            /// <param name="rootElement"></param>
+            public void OnActivate(string searchContext, VisualElement rootElement)
+            {
+                m_HDRPAssets.Clear();
+                PopulateHDRPAssetsFromQualitySettings(m_HDRPAssets);
+            }
+
+            /// <summary>
+            /// entry point of the GUI of the HDRP's quality settings panel
+            /// </summary>
+            public void OnGUI(string searchContext)
+            {
+                // Draw HDRP asset list
+                EditorGUILayout.LabelField(Styles.hdrpSubtitleHelp, EditorStyles.largeLabel, GUILayout.Height(22));
+                m_HDRPAssetListScrollView = EditorGUILayout.BeginScrollView(
+                    m_HDRPAssetListScrollView,
+                    GUILayout.MinHeight(Styles.HDRPAssetListMinHeight),
+                    GUILayout.MaxHeight(Styles.HDRPAssetListMaxHeight)
+                );
+                m_HDRPAssetsUIList.DoLayoutList();
+                EditorGUILayout.EndScrollView();
+
+                // Draw HDRP Asset inspector
+                if (m_SelectedHDRPAssetIndex >= 0 && m_SelectedHDRPAssetIndex < m_HDRPAssets.Count)
+                {
+                    var asset = m_HDRPAssets[m_SelectedHDRPAssetIndex];
+                    s_CachedGUIContent.text = asset.asset.name;
+                    EditorGUILayout.LabelField(s_CachedGUIContent, EditorStyles.largeLabel);
+
+                    Editor.CreateCachedEditor(asset.asset, typeof(HDRenderPipelineEditor), ref m_Cached);
+                    ((HDRenderPipelineEditor)m_Cached).largeLabelWidth = false;
+                    m_Cached.OnInspectorGUI();
+                }
+            }
+
+            /// <summary>
+            /// Draw an HDRP Asset item in the top list of the panel
+            /// </summary>
+            void DrawHDRPAssetItem(Rect rect, int index, bool isActive, bool isFocused)
+            {
+                void DrawTag(ref Rect _rect, GUIContent label)
+                {
+                    EditorStyles.label.CalcMinMaxWidth(label, out var minWidth, out var maxWidth);
+                    minWidth += 6;
+                    rect.x -= minWidth;
+                    rect.width = minWidth;
+                    GUI.Box(rect, label);
+                    rect.x -= 2;
+                }
+
+                var asset = m_HDRPAssets[index];
+                EditorGUI.LabelField(rect, asset.asset.name);
+
+                rect.x = rect.x + rect.width;
                 if (asset.isDefault)
-                    m_ConfigNames[m_ConfigNames.Count - 1].text = "default";
+                    DrawTag(ref rect, Styles.@default);
+                for (var i = 0; i < asset.indices.Count; ++i)
+                {
+                    s_CachedGUIContent.text = QualitySettings.names[asset.indices[i]];
+                    DrawTag(ref rect, s_CachedGUIContent);
+                }
+            }
 
-                RemoveFromClassList("even");
-                RemoveFromClassList("odd");
-                AddToClassList((index & 1) == 1 ? "odd" : "even");
+            /// <summary>
+            /// Called when an item is selected in the HDRPAsset list
+            /// </summary>
+            /// <param name="list"></param>
+            void OnHDRPAssetSelected(ReorderableList list)
+            {
+                m_SelectedHDRPAssetIndex = list.index;
+            }
+
+            /// <summary>
+            /// Compute HDRPAssetLocations[] from currently assign hdrp assets in quality settings
+            /// </summary>
+            static void PopulateHDRPAssetsFromQualitySettings(List<HDRPAssetLocations> target)
+            {
+                if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrp)
+                    target.Add(new HDRPAssetLocations(true, hdrp));
+
+                var qualityLevelCount = QualitySettings.names.Length;
+                for (var i = 0; i < qualityLevelCount; ++i)
+                {
+                    if (!(QualitySettings.GetRenderPipelineAssetAt(i) is HDRenderPipelineAsset hdrp2))
+                        continue;
+
+                    var index = target.FindIndex(a => a.asset == hdrp2);
+                    if (index >= 0)
+                        target[index].indices.Add(i);
+                    else
+                    {
+                        var loc = new HDRPAssetLocations(false, hdrp2);
+                        loc.indices.Add(i);
+                        target.Add(loc);
+                    }
+                }
+
+                target.Sort((l, r) => string.CompareOrdinal(l.asset.name, r.asset.name));
             }
         }
 
@@ -88,109 +178,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 this.asset = asset;
                 this.isDefault = isDefault;
                 this.indices = new List<int>();
-            }
-        }
-
-        class QualitySettingsPanelVisualElement : VisualElement
-        {
-            List<HDRPAssetLocations> m_HDRPAssets;
-            Label m_InspectorTitle;
-            ListView m_HDRPAssetList;
-            Editor m_Cached;
-
-            public QualitySettingsPanelVisualElement(string searchContext)
-            {
-                // Get the assigned HDRP assets
-                m_HDRPAssets = new List<HDRPAssetLocations>();
-                if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrp)
-                    m_HDRPAssets.Add(new HDRPAssetLocations(true, hdrp));
-
-                var qualityLevelCount = QualitySettings.names.Length;
-                for (var i = 0; i < qualityLevelCount; ++i)
-                {
-                    if (!(QualitySettings.GetRenderPipelineAssetAt(i) is HDRenderPipelineAsset hdrp2))
-                        continue;
-
-                    var index = m_HDRPAssets.FindIndex(a => a.asset == hdrp2);
-                    if (index >= 0)
-                        m_HDRPAssets[index].indices.Add(i);
-                    else
-                    {
-                        var loc = new HDRPAssetLocations(false, hdrp2);
-                        loc.indices.Add(i);
-                        m_HDRPAssets.Add(loc);
-                    }
-                }
-
-                m_HDRPAssets.Sort((l, r) => string.CompareOrdinal(l.asset.name, r.asset.name));
-
-                // title
-                var title = new Label()
-                {
-                    text = "Quality"
-                };
-                title.AddToClassList("h1");
-
-                // Header
-                var headerBox = new VisualElement();
-                headerBox.style.height = 200;
-
-                m_HDRPAssetList = new ListView()
-                {
-                    bindItem = (el, i) => ((HDRPAssetHeaderEntry)el).Bind(i, m_HDRPAssets[i]),
-                    itemHeight = (int)EditorGUIUtility.singleLineHeight + 3,
-                    selectionType = SelectionType.Single,
-                    itemsSource = m_HDRPAssets,
-                    makeItem = () => new HDRPAssetHeaderEntry(),
-                };
-                m_HDRPAssetList.AddToClassList("unity-quality-header-list");
-
-#if UNITY_2020_1_OR_NEWER
-                m_HDRPAssetList.onSelectionChange += OnSelectionChange;
-#else
-                m_HDRPAssetList.onSelectionChanged += OnSelectionChanged;
-#endif
-
-                headerBox.Add(m_HDRPAssetList);
-
-                m_InspectorTitle = new Label();
-                m_InspectorTitle.text = "No asset selected";
-                m_InspectorTitle.AddToClassList("h1");
-
-                // Inspector
-                var inspector = new IMGUIContainer(DrawInspector);
-                inspector.style.flexGrow = 1;
-                inspector.style.flexDirection = FlexDirection.Row;
-
-                var inspectorBox = new ScrollView();
-                inspectorBox.style.flexGrow = 1;
-                inspectorBox.style.flexDirection = FlexDirection.Row;
-                inspectorBox.contentContainer.Add(inspector);
-
-                Add(title);
-                Add(headerBox);
-                Add(m_InspectorTitle);
-                Add(inspectorBox);
-            }
-
-#if UNITY_2020_1_OR_NEWER
-            void OnSelectionChange(IEnumerable<object> obj)
-#else
-            void OnSelectionChanged(List<object> obj)
-#endif
-            {
-                m_InspectorTitle.text = m_HDRPAssets[m_HDRPAssetList.selectedIndex].asset.name;
-            }
-
-            void DrawInspector()
-            {
-                var selected = m_HDRPAssetList.selectedIndex;
-                if (selected < 0)
-                    return;
-
-                Editor.CreateCachedEditor(m_HDRPAssets[selected].asset, typeof(HDRenderPipelineEditor), ref m_Cached);
-                ((HDRenderPipelineEditor) m_Cached).largeLabelWidth = false;
-                m_Cached.OnInspectorGUI();
             }
         }
     }

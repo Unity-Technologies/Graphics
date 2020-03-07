@@ -1,13 +1,17 @@
 editors:
+  - version: 2020.1
+  - version: fast-2020.1
   - version: trunk
-    cmd: -u trunk
   - version: fast-trunk
-    cmd: -u trunk --fast
 platforms:
   - name: Win
+    os: windows
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
     flavor: b1.large
+    components:
+      - editor
+      - il2cpp
 #  - name: Linux
 #    type: Unity::VM::GPU
 #    image: cds-ops/ubuntu-18.04-base:stable
@@ -47,15 +51,16 @@ win_apis:
     flavor: {{ platform.flavor}}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
-    - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published    
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only    
 
     {% if testplatform.name == "Standalone" %}
     - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200
     {% else %}
     - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }} --extra-editor-arg="{{ win_api.cmd }}" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
     {% endif %}
+  dependencies:
+    - .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
   artifacts:
     logs:
       paths:

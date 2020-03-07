@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
 using UnityEditor;
-using NUnit.Framework;
 using System.Runtime.CompilerServices;
 
 using SysRegex = System.Text.RegularExpressions.Regex;
@@ -40,7 +39,6 @@ namespace UnityEditor.VFX
                     if (contextData != null)
                         return contextData.title;
                 }
-
             }
             return null;
         }
@@ -165,6 +163,5 @@ namespace UnityEditor.VFX
 
             return index;
         }
-
     }
 }

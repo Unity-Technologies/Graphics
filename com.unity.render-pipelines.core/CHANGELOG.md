@@ -8,14 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
-
-### Changed
-- Restored usage of ENABLE_VR to fix compilation errors on some platforms.
-- Only call SetDirty on an object when actually modifying it in SRP updater utility
-- Set depthSlice to -1 by default on SetRenderTarget() to clear all slices of Texture2DArray by default.
-- ResourceReloader will now add additional InvalidImport check while it cannot load due to AssetDatabase not available.
-- Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
-- Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
+- Add api documentation for TextureCombiner.
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support
@@ -25,6 +18,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix object rotation at instentiation to keep the one in prefab or used in hierarchy.
 - Fixed shader compile errors when trying to use tessellation shaders with PlayStation VR on PS4.
 - Fixed shader compile errors about LODDitheringTransition not being supported in GLES2.
+- Fix `WaveIsFirstLane()` to ignore helper lanes in fragment shaders on PS4.
+- Fixed a bug where Unity would crash if you tried to remove a Camera component from a GameObject using the Inspector window, while other components dependended on the Camera component.
+- Fixed errors due to the debug menu when enabling the new input system.
+- Fix LookDev FPS manipulation in view
+- Fix LookDev zoom being stuck when going near camera pivot position
+- Fix LookDev manipulation in view non responsive if directly using an HDRI
+- Fix LookDev behaviour when user delete the EnvironmentLibrary asset
+- Fix LookDev SunPosition button position
+- Fix LookDev EnvironmentLibrary tab when asset is deleted
+- Fix LookDev used Cubemap when asset is deleted
+- Fixed the definition of `rcp()` for GLES2.
+
+### Changed
+- Restored usage of ENABLE_VR to fix compilation errors on some platforms.
+- Only call SetDirty on an object when actually modifying it in SRP updater utility
+- Set depthSlice to -1 by default on SetRenderTarget() to clear all slices of Texture2DArray by default.
+- ResourceReloader will now add additional InvalidImport check while it cannot load due to AssetDatabase not available.
+- Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
+- Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
+- Updated macros to be compatible with the new shader preprocessor.
 
 ## [7.1.1] - 2019-09-05
 
@@ -96,11 +109,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed setting shader inclue path via old API, use package shader include paths
 
-## [3.3.0]
+## [3.3.0] - 2018-01-01
 
-## [3.2.0]
+## [3.2.0] - 2018-01-01
 
-## [3.1.0]
+## [3.1.0] - 2018-01-01
 
 ### Added
 - Add PCSS shadow filter
@@ -114,8 +127,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Moved root files into folders for easier maintenance
 
-## [0.1.6] - 2018-xx-yy
-
-### Changelog starting
-
-Started Changelog

@@ -10,6 +10,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEditor.Rendering.HighDefinition.Drawing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -17,10 +18,10 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
-    [Title("Master", "HDRP/Lit")]
+    [Title("Master", "Lit (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.HDLitMasterNode")]
-    class HDLitMasterNode : MasterNode<IHDLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class HDLitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string AlbedoSlotName = "Albedo";
         public const string AlbedoDisplaySlotName = "BaseColor";
@@ -471,6 +472,23 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        NormalDropOffSpace m_NormalDropOffSpace;
+        public NormalDropOffSpace normalDropOffSpace
+        {
+            get { return m_NormalDropOffSpace; }
+            set
+            {
+                if (m_NormalDropOffSpace == value)
+                    return;
+
+                m_NormalDropOffSpace = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+
+        [SerializeField]
         MaterialType m_MaterialType;
 
         public MaterialType materialType
@@ -672,21 +690,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_DOTSInstancing = false;
-        public ToggleData dotsInstancing
-        {
-            get { return new ToggleData(m_DOTSInstancing); }
-            set
-            {
-                if (m_DOTSInstancing == value.isOn)
-                    return;
-
-                m_DOTSInstancing = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
         bool m_ZWrite = false;
         public ToggleData zWrite
         {
@@ -750,6 +753,22 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_DOTSInstancing = false;
+
+        public ToggleData dotsInstancing
+        {
+            get { return new ToggleData(m_DOTSInstancing); }
+            set
+            {
+                if (m_DOTSInstancing == value.isOn)
+                    return;
+
+                m_DOTSInstancing = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         int m_MaterialNeedsUpdateHash = 0;
 
         int ComputeMaterialNeedsUpdateHash()
@@ -771,7 +790,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override string documentationURL
         {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/HD-Lit-Master-Node"; }
+            get { return null; }
         }
 
         public bool HasRefraction()
@@ -812,7 +831,23 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (MaterialTypeUsesSlotMask(SlotMask.Normal))
             {
-                AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
+                RemoveSlot(NormalSlotId);
+
+                var coordSpace = CoordinateSpace.Tangent;
+                switch (m_NormalDropOffSpace)
+                {
+                    case NormalDropOffSpace.Tangent:
+                        coordSpace = CoordinateSpace.Tangent;
+                        break;
+                    case NormalDropOffSpace.World:
+                        coordSpace = CoordinateSpace.World;
+                        break;
+                    case NormalDropOffSpace.Object:
+                        coordSpace = CoordinateSpace.Object;
+                        break;
+                }
+
+                AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, coordSpace, ShaderStageCapability.Fragment));
                 validSlots.Add(NormalSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.BentNormal))
@@ -958,9 +993,173 @@ namespace UnityEditor.Rendering.HighDefinition
             RemoveSlotsNameNotMatching(validSlots, true);
         }
 
-        protected override VisualElement CreateCommonSettingsElement()
+        public VisualElement CreateSettingsElement()
         {
             return new HDLitSettingsView(this);
+        }
+
+        public string renderQueueTag
+        {
+            get
+            {
+                if(renderingPass == HDRenderQueue.RenderQueueType.Unknown)
+                {
+                    switch(surfaceType)
+                    {
+                        case SurfaceType.Opaque:
+                            renderingPass = HDRenderQueue.RenderQueueType.Opaque;
+                            break;
+                        case SurfaceType.Transparent:
+                        #pragma warning disable CS0618 // Type or member is obsolete
+                            if (m_DrawBeforeRefraction)
+                            {
+                                m_DrawBeforeRefraction = false;
+                        #pragma warning restore CS0618 // Type or member is obsolete
+                                renderingPass = HDRenderQueue.RenderQueueType.PreRefraction;
+                            }
+                            else 
+                            {
+                                renderingPass = HDRenderQueue.RenderQueueType.Transparent;
+                            }
+                            break;
+                    }
+                }
+                int queue = HDRenderQueue.ChangeType(renderingPass, sortPriority, alphaTest.isOn);
+                return HDRenderQueue.GetShaderTagValue(queue);
+            }
+        }
+
+        public string renderTypeTag => HDRenderTypeTags.HDLitShader.ToString();
+
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass)
+        {
+            var ambientOcclusionSlot = FindSlot<Vector1MaterialSlot>(AmbientOcclusionSlotId);
+            var coatMaskSlot = FindSlot<Vector1MaterialSlot>(CoatMaskSlotId);
+
+            // We need this to know if there are any Dots properties active
+            // Ideally we do this another way but HDLit needs this for conditional pragmas
+            var shaderProperties = new PropertyCollector();
+            owner.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
+            bool hasDotsProperties = shaderProperties.GetDotsInstancingPropertiesCount(GenerationMode.ForReals) > 0;
+
+            return new ConditionalField[]
+            {
+                // Features
+                new ConditionalField(Fields.GraphVertex,                    IsSlotConnected(PositionSlotId) || 
+                                                                                IsSlotConnected(VertexNormalSlotID) || 
+                                                                                IsSlotConnected(VertexTangentSlotID)),
+                new ConditionalField(Fields.GraphPixel,                     true),
+                new ConditionalField(Fields.LodCrossFade,                   supportLodCrossFade.isOn),
+                
+                // Structs
+                new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
+                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+                
+                // Dots
+                new ConditionalField(HDFields.DotsInstancing,               dotsInstancing.isOn),
+                new ConditionalField(HDFields.DotsProperties,               hasDotsProperties),
+
+                // Material
+                new ConditionalField(HDFields.Anisotropy,                   materialType == MaterialType.Anisotropy),
+                new ConditionalField(HDFields.Iridescence,                  materialType == MaterialType.Iridescence),
+                new ConditionalField(HDFields.SpecularColor,                materialType == MaterialType.SpecularColor),
+                new ConditionalField(HDFields.Standard,                     materialType == MaterialType.Standard),
+                new ConditionalField(HDFields.SubsurfaceScattering,         materialType == MaterialType.SubsurfaceScattering &&
+                                                                                surfaceType != SurfaceType.Transparent),
+                new ConditionalField(HDFields.Transmission,                (materialType == MaterialType.SubsurfaceScattering && sssTransmission.isOn) ||
+                                                                                (materialType == MaterialType.Translucent)),
+                new ConditionalField(HDFields.Translucent,                 materialType == MaterialType.Translucent),
+
+                // Surface Type
+                new ConditionalField(Fields.SurfaceOpaque,                  surfaceType == SurfaceType.Opaque),
+                new ConditionalField(Fields.SurfaceTransparent,             surfaceType != SurfaceType.Opaque),
+                
+                // Blend Mode
+                new ConditionalField(Fields.BlendAdd,                       surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
+                new ConditionalField(Fields.BlendAlpha,                     surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
+                new ConditionalField(Fields.BlendMultiply,                  surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Multiply),
+                new ConditionalField(Fields.BlendPremultiply,               surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
+
+                // Double Sided
+                new ConditionalField(HDFields.DoubleSided,                  doubleSidedMode != DoubleSidedMode.Disabled),
+                new ConditionalField(HDFields.DoubleSidedFlip,              doubleSidedMode == DoubleSidedMode.FlippedNormals &&
+                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+                new ConditionalField(HDFields.DoubleSidedMirror,            doubleSidedMode == DoubleSidedMode.MirroredNormals &&
+                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+
+                // Specular Occlusion
+                new ConditionalField(HDFields.SpecularOcclusionFromAO,      specularOcclusionMode == SpecularOcclusionMode.FromAO),
+                new ConditionalField(HDFields.SpecularOcclusionFromAOBentNormal, specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal),
+                new ConditionalField(HDFields.SpecularOcclusionCustom,      specularOcclusionMode == SpecularOcclusionMode.Custom),
+
+                //Distortion
+                new ConditionalField(HDFields.DistortionDepthTest,          distortionDepthTest.isOn),
+                new ConditionalField(HDFields.DistortionAdd,                distortionMode == DistortionMode.Add),
+                new ConditionalField(HDFields.DistortionMultiply,           distortionMode == DistortionMode.Multiply),
+                new ConditionalField(HDFields.DistortionReplace,            distortionMode == DistortionMode.Replace),
+                new ConditionalField(HDFields.TransparentDistortion,        surfaceType != SurfaceType.Opaque && distortion.isOn),
+
+                // Refraction
+                new ConditionalField(HDFields.Refraction,                   HasRefraction()),
+                new ConditionalField(HDFields.RefractionBox,                HasRefraction() && refractionModel == ScreenSpaceRefraction.RefractionModel.Box),
+                new ConditionalField(HDFields.RefractionSphere,             HasRefraction() && refractionModel == ScreenSpaceRefraction.RefractionModel.Sphere),
+
+                //Normal Drop Off Space
+                new ConditionalField(Fields.NormalDropOffOS,                normalDropOffSpace == NormalDropOffSpace.Object),
+                new ConditionalField(Fields.NormalDropOffTS,                normalDropOffSpace == NormalDropOffSpace.Tangent),
+                new ConditionalField(Fields.NormalDropOffWS,                normalDropOffSpace == NormalDropOffSpace.World),
+
+                // Misc
+                new ConditionalField(Fields.AlphaTest,                      alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
+                new ConditionalField(HDFields.AlphaTestShadow,              alphaTest.isOn && alphaTestShadow.isOn && 
+                                                                                pass.pixelPorts.Contains(AlphaThresholdShadowSlotId)),
+                new ConditionalField(HDFields.AlphaTestPrepass,             alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId)),
+                new ConditionalField(HDFields.AlphaTestPostpass,            alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId)),
+                new ConditionalField(HDFields.AlphaFog,                     surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
+                new ConditionalField(HDFields.BlendPreserveSpecular,        surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
+                new ConditionalField(HDFields.TransparentWritesMotionVec,   surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
+                new ConditionalField(HDFields.DisableDecals,                !receiveDecals.isOn),
+                new ConditionalField(HDFields.DisableSSR,                   !receiveSSR.isOn),
+                new ConditionalField(Fields.VelocityPrecomputed,                addPrecomputedVelocity.isOn),
+                new ConditionalField(HDFields.SpecularAA,                   specularAA.isOn && 
+                                                                                pass.pixelPorts.Contains(SpecularAAThresholdSlotId) &&
+                                                                                pass.pixelPorts.Contains(SpecularAAScreenSpaceVarianceSlotId)),
+                new ConditionalField(HDFields.EnergyConservingSpecular,     energyConservingSpecular.isOn),
+                new ConditionalField(HDFields.BentNormal,                   IsSlotConnected(BentNormalSlotId) && 
+                                                                                pass.pixelPorts.Contains(BentNormalSlotId)),
+                new ConditionalField(HDFields.AmbientOcclusion,             pass.pixelPorts.Contains(AmbientOcclusionSlotId) &&
+                                                                                (IsSlotConnected(AmbientOcclusionSlotId) ||
+                                                                                ambientOcclusionSlot.value != ambientOcclusionSlot.defaultValue)),
+                new ConditionalField(HDFields.CoatMask,                     pass.pixelPorts.Contains(CoatMaskSlotId) &&
+                                                                                (IsSlotConnected(CoatMaskSlotId) || coatMaskSlot.value > 0.0f)),
+                new ConditionalField(HDFields.Tangent,                      IsSlotConnected(TangentSlotId) && 
+                                                                                pass.pixelPorts.Contains(TangentSlotId)),
+                new ConditionalField(HDFields.LightingGI,                   IsSlotConnected(LightingSlotId) && 
+                                                                                pass.pixelPorts.Contains(LightingSlotId)),
+                new ConditionalField(HDFields.BackLightingGI,               IsSlotConnected(BackLightingSlotId) && 
+                                                                                pass.pixelPorts.Contains(BackLightingSlotId)),
+                new ConditionalField(HDFields.DepthOffset,                  depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
+                new ConditionalField(HDFields.TransparentBackFace,          surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
+                new ConditionalField(HDFields.TransparentDepthPrePass,      surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
+                new ConditionalField(HDFields.TransparentDepthPostPass,     surfaceType != SurfaceType.Opaque && alphaTestDepthPostpass.isOn),
+            };
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
+            // Fixup the material settings:
+            material.SetFloat(kSurfaceType, (int)(SurfaceType)surfaceType);
+            material.SetFloat(kDoubleSidedNormalMode, (int)doubleSidedMode);
+            material.SetFloat(kAlphaCutoffEnabled, alphaTest.isOn ? 1 : 0);
+            material.SetFloat(kBlendMode, (int)HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode));
+            material.SetFloat(kEnableFogOnTransparent, transparencyFog.isOn ? 1.0f : 0.0f);
+            material.SetFloat(kZTestTransparent, (int)zTest);
+            material.SetFloat(kTransparentCullMode, (int)transparentCullMode);
+            material.SetFloat(kZWrite, zWrite.isOn ? 1.0f : 0.0f);
+            // No sorting priority for shader graph preview
+            material.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: alphaTest.isOn);
+
+            HDLitGUI.SetupMaterialKeywordsAndPass(material);
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
@@ -1015,25 +1214,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             return materialType == HDLitMasterNode.MaterialType.SubsurfaceScattering;
         }
-
-        public override void ProcessPreviewMaterial(Material previewMaterial)
-        {
-            // Fixup the material settings:
-            previewMaterial.SetFloat(kSurfaceType, (int)(SurfaceType)surfaceType);
-            previewMaterial.SetFloat(kDoubleSidedNormalMode, (int)doubleSidedMode);
-            previewMaterial.SetFloat(kUseSplitLighting, RequiresSplitLighting() ? 1.0f : 0.0f);
-            previewMaterial.SetFloat(kAlphaCutoffEnabled, alphaTest.isOn ? 1 : 0);
-            previewMaterial.SetFloat(kBlendMode, (int)HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode));
-            previewMaterial.SetFloat(kEnableFogOnTransparent, transparencyFog.isOn ? 1.0f : 0.0f);
-            previewMaterial.SetFloat(kZTestTransparent, (int)zTest);
-            previewMaterial.SetFloat(kTransparentCullMode, (int)transparentCullMode);
-            previewMaterial.SetFloat(kZWrite, zWrite.isOn ? 1.0f : 0.0f);
-            // No sorting priority for shader graph preview
-            previewMaterial.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: alphaTest.isOn);
-
-            HDLitGUI.SetupMaterialKeywordsAndPass(previewMaterial);
-        }
-
         public override object saveContext
         {
             get
@@ -1091,7 +1271,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,
-                backThenFrontRendering.isOn
+                backThenFrontRendering.isOn,
+                transparencyFog.isOn
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);

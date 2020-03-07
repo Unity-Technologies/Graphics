@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2019-11-18
+## [Unreleased]
 ### Added
 - Tooltips for Attributes
 - Custom Inspector for Spawn context, delay settings are more user friendly.
@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Custom Z axis option for strip output
 - Custom Inspector for Update context, display update position/rotation instead of integration
 - Tooltips to blocks, nodes, contexts, and various menus and options
+- VFX asset compilation is done at import instead of when the asset is saved.
 - New operators: Exp, Log and LoadTexture
 - Duplicate with edges.
 - Right click on edge to create a interstitial node.
@@ -20,14 +21,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New attribute for strips: particleCountInStrip
 - New options for quad strips texture mapping: swap UV and custom mapping
 - Naming for particles system and spawn context
+- Noise evaluation now performed on CPU when possible
+- Range and Min attributes support on int and uint parameters
+- New Construct Matrix from Vector4 operator
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
-- Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
+- Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594](https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
 - Correct VFXSettings display in Shader Graph compatible outputs
 - No more NullReference on sub-outputs after domain reload
 - Fix typo in strip tangent computation
-- Infinite recompilation using subgraph [Case 1186191] (https://issuetracker.unity3d.com/product/unity/issues/guid/1186191/)
+- Infinite recompilation using subgraph [Case 1186191](https://issuetracker.unity3d.com/product/unity/issues/guid/1186191/)
 - Modifying a shader used by an output mesh context now automatically updates the currently edited VFX
 - Possible loss of shadergraph reference in unlit output
 - ui : toolbar item wrap instead of overlapping.
@@ -36,8 +40,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - WorldPosition, AbsoluteWorldPosition & ScreenPos in shadergraph integration
 - Optimize VFXAssetEditor when externalize is activated
 - TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
-- Filter out motion vector output for lower resolution & after post-process render passes [Case 1192932] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192932/)
-- Sort compute on metal failing with BitonicSort128 [Case 1126095] (https://issuetracker.unity3d.com/issues/osx-unexpected-spawn-slash-capacity-results-when-sorting-is-set-to-auto-slash-on)
+- Filter out motion vector output for lower resolution & after post-process render passes [Case 1192932](https://issuetracker.unity3d.com/product/unity/issues/guid/1192932/)
+- Sort compute on metal failing with BitonicSort128 [Case 1126095](https://issuetracker.unity3d.com/issues/osx-unexpected-spawn-slash-capacity-results-when-sorting-is-set-to-auto-slash-on)
 - Fix alpha clipping with shader graph
 - Fix output settings correctly filtered dependeing on shader graph use or not
 - Fix some cases were normal/tangent were not passes as interpolants with shader graph
@@ -49,13 +53,33 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Subgraph operators appear on drag edge on graph.
 - Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
 - Removed Unnecessary reference to HDRP Runtime Assembly in VFX Runtime Assembly
-- Allow alpha clipping of motion vector for transparent outputs [Case 1192930] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192930/)
+- Allow alpha clipping of motion vector for transparent outputs [Case 1192930](https://issuetracker.unity3d.com/product/unity/issues/guid/1192930/)
 - subgraph block into subgraph context no longer forget parameter values.
 - Fix exception when compiling an asset with a turbulence block in absolute mode
 - Fixed GetCustomAttribute that was locked to Current
 - Shader compilation now works when using view direction in shader graph
 - Fix for destroying selected component corrupt "Play Controls" window
 - Depth Position and Collision blocks now work correctly in local space systems
+- Filter out Direction type on inconsistent operator [Case 1201681](https://issuetracker.unity3d.com/product/unity/issues/guid/1201681/)
+- Exclude MouseEvent, RigidBodyCollision, TriggerEvent & Sphere binders when physics modules isn't available
+- Visual Effect Activation Track : Handle empty string in ExposedProperty
+- in some cases AABox position gizmo would not move when dragged.
+- Inspector doesn't trigger any exception if VisualEffectAsset comes from an Asset Bundle [Case 1203616](https://issuetracker.unity3d.com/issues/visual-effect-component-is-not-fully-shown-in-the-inspector-if-vfx-is-loaded-from-asset-bundle)
+- OnStop Event to the start of a Spawn Context makes it also trigger when OnPlay is sent [Case 1198339](https://issuetracker.unity3d.com/product/unity/issues/guid/1198339/)
+- Remove unexpected public API : UnityEditor.VFX.VFXSeedMode & IncrementStripIndexOnStart
+- Fix yamato error : check vfx manager on domain reload instead of vfx import.
+- Filter out unrelevant events from event desc while compiling
+- Missing Packing.hlsl include while using an unlit shadergraph.
+- Fix for nesting of VFXSubgraphContexts.
+- Runtime compilation now compiles correctly when constant folding several texture ports that reference the same texture [Case 1193602](https://issuetracker.unity3d.com/issues/output-shader-errors-when-compiling-the-runtime-shader-of-a-lit-output-with-exposed-but-unassigned-additional-maps)
+- Fix compilation error in runtime mode when Speed Range is 0 in Attribute By Speed block [Case 1118665](https://issuetracker.unity3d.com/issues/vfx-shader-errors-are-thrown-when-quad-outputs-speed-range-is-set-to-zero)
+- NullReferenceException while assigning a null pCache [Case 1222491](https://issuetracker.unity3d.com/issues/pointcache-nullrefexception-when-compiling-an-effect-with-a-pcache-without-an-assigned-asset)
+- Add message in inspector for unreachable properties due to VisualEffectAsset stored in AssetBundle [Case 1193602](https://issuetracker.unity3d.com/product/unity/issues/guid/1203616/)
+- pCache importer and exporter tool was keeping a lock on texture or pCache files [Case 1185677](https://issuetracker.unity3d.com/product/unity/issues/guid/1185677/)
+- Convert inline to exposed property / Quick expose property sets correct default value in parent
+- Age particles checkbox was incorrectly hidden [Case 1221557](https://issuetracker.unity3d.com/product/unity/issues/guid/1221557/)
+- Fix various bugs in Position (Cone) block [Case 1111053] (https://issuetracker.unity3d.com/product/unity/issues/guid/1111053/)
+- Handle correctly direction, position & vector types in AppendVector operator [Case 1111867](https://issuetracker.unity3d.com/product/unity/issues/guid/1111867/)
 
 ## [7.1.1] - 2019-09-05
 ### Added
@@ -135,7 +159,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Crash chaining two spawners each other [Case 1135299](https://issuetracker.unity3d.com/issues/crash-chaining-two-spawners-to-each-other-produces-an-infinite-loop)
 - Inspector : Exposed parameters disregard the initial value [Case 1126471](https://issuetracker.unity3d.com/issues/parameters-exposed-parameters-disregard-the-initial-value)
 - Asset name now displayed in compile errors and output context shaders
-- Fix for linking spawner to spawner while first spawner is linked to initialize + test 
+- Fix for linking spawner to spawner while first spawner is linked to initialize + test
 - Fix space of spaceable slot not copy pasted + test
 - Position (Circle) does not take the Center Z value into account [Case 1146850](https://issuetracker.unity3d.com/issues/blocks-position-circle-does-not-take-the-center-z-value-into-account)
 - Add Exposure Weight for emissive in lit outputs
@@ -162,13 +186,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Visual Effect Inspector Cosmetic Improvements
 - Missing graph invalidation in VFXGraph.OnEnable, was causing trouble with value invalidation until next recompilation
 - Issue that remove the edge when dragging an edge from slot to the same slot.
-- Exception when undoing an edge deletion on a dynamic operator. 
+- Exception when undoing an edge deletion on a dynamic operator.
 - Exception regarding undo/redo when dragging a edge linked to a dynamic operator on another slot.
 - Exception while removing a sub-slot of a dynamic operator
 
 ## [6.5.0-preview] - 2019-03-07
 
-## [6.4.0-preview] - 2019-02-21 
+## [6.4.0-preview] - 2019-02-21
 
 ## [6.3.0-preview] - 2019-02-18
 

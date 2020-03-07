@@ -6,6 +6,7 @@ using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -45,6 +46,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     });
                 });
 
+            ps.Add(new PropertyRow(new Label("Fragment Normal Space")), (row) =>
+            {
+                row.Add(new EnumField(NormalDropOffSpace.Tangent), (field) =>
+                {
+                    field.value = m_Node.normalDropOffSpace;
+                    field.RegisterValueChangedCallback(ChangeSpaceOfNormalDropOffMode);
+                });
+            });
+
             ps.Add(new PropertyRow(new Label("Two Sided")), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
@@ -53,6 +63,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                         toggle.OnToggleChanged(ChangeTwoSided);
                     });
                 });
+            ps.Add(new PropertyRow(new Label("DOTS instancing")), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.dotsInstancing.isOn;
+                    toggle.OnToggleChanged(ChangeDotsInstancing);
+                });
+            });
 
             Add(ps);
         }
@@ -84,12 +102,29 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Node.alphaMode = (AlphaMode)evt.newValue;
         }
 
+        void ChangeSpaceOfNormalDropOffMode(ChangeEvent<Enum> evt)
+        {
+              if (Equals(m_Node.normalDropOffSpace, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Normal Space Drop-Off Mode Change");
+            m_Node.normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
+        }
+
         void ChangeTwoSided(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Two Sided Change");
             ToggleData td = m_Node.twoSided;
             td.isOn = evt.newValue;
             m_Node.twoSided = td;
+        }
+
+        void ChangeDotsInstancing(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("DotsInstancing Change");
+            ToggleData td = m_Node.dotsInstancing;
+            td.isOn = evt.newValue;
+            m_Node.dotsInstancing = td;
         }
     }
 }

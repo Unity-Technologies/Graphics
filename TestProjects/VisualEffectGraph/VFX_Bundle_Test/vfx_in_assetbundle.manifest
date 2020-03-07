@@ -1,0 +1,30 @@
+ManifestFileVersion: 0
+CRC: 1758993972
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 298cc7ba4149045ba4bee537bf1a9198
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 1e5406ad572ba3de7df8b400c595767e
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 72
+  Script: {instanceID: 0}
+- Class: 73398921
+  Script: {instanceID: 0}
+- Class: 2058629509
+  Script: {instanceID: 0}
+- Class: 2083052967
+  Script: {instanceID: 0}
+Assets:
+- Packages/com.unity.testing.visualeffectgraph/AssetBundle/VFX_In_AssetBundle.prefab
+Dependencies: []

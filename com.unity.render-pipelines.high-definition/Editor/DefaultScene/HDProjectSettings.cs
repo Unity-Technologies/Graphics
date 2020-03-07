@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditorInternal;
 using System.IO;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -18,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 #pragma warning disable 414 // never used
         [SerializeField]
-        Version version = Version.First;
+        Version version = MigrationDescription.LastVersion<Version>();
 #pragma warning restore 414
 
         [SerializeField]
@@ -28,13 +29,19 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         string m_ProjectSettingFolderPath = "HDRPDefaultResources";
         [SerializeField]
-        bool m_WizardPopupAtStart = false;
+        bool m_WizardPopupAtStart = true;
+        [SerializeField]
+        bool m_WizardPopupAlreadyShownOnce = false;
         [SerializeField]
         int m_WizardActiveTab = 0;
         [SerializeField]
-        string m_PackageVersionForMaterials = k_PackageFirstTimeVersionForMaterials;
+        bool m_WizardNeedRestartAfterChangingToDX12 = false;
+        [SerializeField]
+        bool m_WizardNeedToRunFixAllAgainAfterDomainReload = false;
+        [SerializeField]
+        int m_LastMaterialVersion = k_NeverProcessedMaterialVersion;
 
-        internal const string k_PackageFirstTimeVersionForMaterials = "NeverSaved";
+        internal const int k_NeverProcessedMaterialVersion = -1;
 
         public static GameObject defaultScenePrefab
         {
@@ -66,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        internal static int wizardActiveTab
+        public static int wizardActiveTab
         {
             get => instance.m_WizardActiveTab;
             set
@@ -86,12 +93,42 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public static string packageVersionForMaterialUpgrade
+        public static bool wizardPopupAlreadyShownOnce
         {
-            get => instance.m_PackageVersionForMaterials;
+            get => instance.m_WizardPopupAlreadyShownOnce;
             set
             {
-                instance.m_PackageVersionForMaterials = value;
+                instance.m_WizardPopupAlreadyShownOnce = value;
+                Save();
+            }
+        }
+
+        public static bool wizardNeedToRunFixAllAgainAfterDomainReload
+        {
+            get => instance.m_WizardNeedToRunFixAllAgainAfterDomainReload;
+            set
+            {
+                instance.m_WizardNeedToRunFixAllAgainAfterDomainReload = value;
+                Save();
+            }
+        }
+
+        public static bool wizardNeedRestartAfterChangingToDX12
+        {
+            get => instance.m_WizardNeedRestartAfterChangingToDX12;
+            set
+            {
+                instance.m_WizardNeedRestartAfterChangingToDX12 = value;
+                Save();
+            }
+        }
+
+        public static int materialVersionForUpgrade
+        {
+            get => instance.m_LastMaterialVersion;
+            set
+            {
+                instance.m_LastMaterialVersion = value;
                 Save();
             }
         }

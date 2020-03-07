@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 2559797677
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: vfx_in_assetbundle
+      Dependencies: {}

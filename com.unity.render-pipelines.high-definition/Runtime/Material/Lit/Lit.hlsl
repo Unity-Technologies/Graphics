@@ -66,7 +66,7 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 #define OUT_GBUFFER_SHADOWMASK outGBuffer4
 #endif
 
-#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN))
 
 #define SUPPORTS_RAYTRACED_AREA_SHADOWS (RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING))
 
@@ -218,6 +218,9 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
     #elif defined(_REFRACTION_SPHERE)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+    #elif defined(_REFRACTION_THIN)
+    #define REFRACTION_THIN_DISTANCE 0.005
+    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
     #endif
 #endif
 
@@ -447,8 +450,14 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
 #if HAS_REFRACTION
     // Note: Reuse thickness of transmission's property set
-    FillMaterialTransparencyData(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance,
-        surfaceData.thickness, surfaceData.transmittanceMask, bsdfData);
+    FillMaterialTransparencyData(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor,
+    #ifdef _REFRACTION_THIN
+                                 // We set both atDistance and thickness to the same, small value
+                                 REFRACTION_THIN_DISTANCE, REFRACTION_THIN_DISTANCE,
+    #else
+                                 surfaceData.atDistance, surfaceData.thickness,
+    #endif
+                                 surfaceData.transmittanceMask, bsdfData);
 #endif
 
     ApplyDebugToBSDFData(bsdfData);
@@ -1093,6 +1102,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.transparentRefractV = refraction.rayWS;
     preLightData.transparentPositionWS = refraction.positionWS;
     preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
+
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
     preLightData.transparentSSMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 1.3) * uint(max(_ColorPyramidScale.z - 1, 0));
@@ -1528,11 +1538,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             ltcValue *= lightData.diffuseDimmer;
 
             // Only apply cookie if there is one
-            if ( lightData.cookieIndex >= 0 )
+            if ( lightData.cookieMode != COOKIEMODE_NONE )
             {
                 // Compute the cookie data for the diffuse term
                 float3 formFactorD =  PolygonFormFactor(LD);
-                ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LD, formFactorD);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LD, formFactorD);
             }
 
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
@@ -1557,11 +1567,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 ltcValue *= lightData.diffuseDimmer;
 
                 // Only apply cookie if there is one
-                if ( lightData.cookieIndex >= 0 )
+                if ( lightData.cookieMode != COOKIEMODE_NONE )
                 {
                     // Compute the cookie data for the transmission diffuse term
                     float3 formFactorTD = PolygonFormFactor(LTD);
-                    ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LTD, formFactorTD);
+                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LTD, formFactorTD);
                 }
 
                 // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
@@ -1576,11 +1586,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             ltcValue *= lightData.specularDimmer;
 
             // Only apply cookie if there is one
-            if ( lightData.cookieIndex >= 0 )
+            if ( lightData.cookieMode != COOKIEMODE_NONE)
             {
                 // Compute the cookie data for the specular term
                 float3 formFactorS =  PolygonFormFactor(LS);
-                ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LS, formFactorS);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
             }
 
             // We need to multiply by the magnitude of the integral of the BRDF
@@ -1595,11 +1605,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 ltcValue = PolygonIrradiance(LSCC);
                 ltcValue *= lightData.specularDimmer;
                 // Only apply cookie if there is one
-                if ( lightData.cookieIndex >= 0 )
+                if ( lightData.cookieMode != COOKIEMODE_NONE )
                 {
                     // Compute the cookie data for the specular term
                     float3 formFactorS =  PolygonFormFactor(LSCC);
-                    ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LSCC, formFactorS);
+                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LSCC, formFactorS);
                 }
                 // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
                 lighting.diffuse *= (1.0 - preLightData.coatIblF);
@@ -1633,7 +1643,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #endif
 
 #if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    if (lightData.screenSpaceShadowIndex >= 0)
+    if ((lightData.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
     {
         shadow = GetScreenSpaceShadow(posInput, lightData.screenSpaceShadowIndex);
     }
@@ -1696,9 +1706,11 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
     InversePreExposeSsrLighting(ssrLighting);
 
-    // Note: RGB is already premultiplied by A.
+    // Apply the weight on the ssr contribution (if required)
+    ApplyScreenSpaceReflectionWeight(ssrLighting);
+    
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
-    lighting.specularReflected = ssrLighting.rgb /* * ssrLighting.a */ * preLightData.specularFGD;
+    lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
     reflectionHierarchyWeight  = ssrLighting.a;
 
     return lighting;

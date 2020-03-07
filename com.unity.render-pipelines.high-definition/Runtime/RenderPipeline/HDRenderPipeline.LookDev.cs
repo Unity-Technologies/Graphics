@@ -13,7 +13,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDRISky sky;
             public Volume volume;
         }
-        
+
+        /// <summary>
+        /// This hook allows HDRP to init the scene when creating the view
+        /// </summary>
+        /// <param name="SRI">The StageRuntimeInterface allowing to communicate with the LookDev</param>
         void IDataProvider.FirstInitScene(StageRuntimeInterface SRI)
         {
             Camera camera = SRI.camera;
@@ -45,9 +49,12 @@ namespace UnityEngine.Rendering.HighDefinition
             Volume volume = volumeGO.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.priority = float.MaxValue;
+            volume.enabled = false;
 
 #if UNITY_EDITOR
             HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            if (hdrpAsset.defaultLookDevProfile == null)
+                hdrpAsset.defaultLookDevProfile = hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
             VolumeProfile profile = ScriptableObject.Instantiate(hdrpAsset.defaultLookDevProfile);
             volume.sharedProfile = profile;
 
@@ -84,6 +91,12 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+        /// <summary>
+        /// This hook allows HDRP to apply the sky as it is requested by the LookDev
+        /// </summary>
+        /// <param name="camera">The Camera rendering in the LookDev</param>
+        /// <param name="sky">The requested Sky to use</param>
+        /// <param name="SRI">The StageRuntimeInterface allowing to communicate with the LookDev</param>
         void IDataProvider.UpdateSky(Camera camera, Sky sky, StageRuntimeInterface SRI)
         {
             LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
@@ -101,6 +114,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// This hook allows HDRP to apply some changes before the LookDev's Camera render.
+        /// Should mainly be used for view isolation.
+        /// </summary>
+        /// <param name="SRI">The StageRuntimeInterface allowing to communicate with the LookDev</param>
+        void IDataProvider.OnBeginRendering(StageRuntimeInterface SRI)
+        {
+            LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
+            data.volume.enabled = true;
+        }
+
+        /// <summary>
+        /// This hook allows HDRP to apply some changes after the LookDev's Camera render.
+        /// Should mainly be used for view isolation.
+        /// </summary>
+        /// <param name="SRI">The StageRuntimeInterface allowing to communicate with the LookDev</param>
+        void IDataProvider.OnEndRendering(StageRuntimeInterface SRI)
+        {
+            LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
+            data.volume.enabled = false;
+        }
+
+        /// <summary>
+        /// This hook allows HDRP to give to LookDev what debug mode it can support.
+        /// </summary>
         IEnumerable<string> IDataProvider.supportedDebugModes
             => new[]
             {
@@ -113,9 +151,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 "Alpha"
             };
 
+        /// <summary>
+        /// This hook allows HDRP to update the debug mode used while requested in the LookDev.
+        /// </summary>
+        /// <param name="debugIndex">The index corresponding to the debug view, -1 = none, other have same index than iven by IDataProvider.supportedDebugModes</param>
         void IDataProvider.UpdateDebugMode(int debugIndex)
             => debugDisplaySettings.SetDebugViewCommonMaterialProperty((Attributes.MaterialSharedProperty)(debugIndex + 1));
 
+        /// <summary>
+        /// This hook allows HDRP to provide a shadow mask in order for LookDev to perform a self shadow composition.
+        /// </summary>
+        /// <param name="output">The created shadow mask</param>
+        /// <param name="SRI">The StageRuntimeInterface allowing to communicate with the LookDev</param>
         void IDataProvider.GetShadowMask(ref RenderTexture output, StageRuntimeInterface SRI)
         {
             LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;

@@ -36,19 +36,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 uiBlocks.Initialize(materialEditor, props);
                 uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().UpdateMaterialProperties(props);
                 uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().OnGUI();
-                
+
                 // TODO: move the terrain UI to a MaterialUIBlock to clarify the code
                 DrawTerrainGUI(materialEditor);
 
                 uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().UpdateMaterialProperties(props);
                 uiBlocks.FetchUIBlock< AdvancedOptionsUIBlock >().OnGUI();
 
-                // Apply material keywords and pass:
-                if (changed.changed)
-                {
-                    foreach (var material in uiBlocks.materials)
-                        SetupMaterialKeywordsAndPassInternal(material);
-                }
+                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
             }
         }
 
@@ -146,7 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool enableHeightBlend = material.HasProperty(kEnableHeightBlend) && material.GetFloat(kEnableHeightBlend) > 0;
             CoreUtils.SetKeyword(material, "_TERRAIN_BLEND_HEIGHT", enableHeightBlend);
 
-            bool enableInstancedPerPixelNormal = material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
+            bool enableInstancedPerPixelNormal = material.HasProperty(kEnableInstancedPerPixelNormal) && material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
             CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
 
             int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
@@ -160,7 +155,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return GraphicsFormatUtility.HasAlphaChannel(GraphicsFormatUtility.GetGraphicsFormat(inTex.format, true));
             }
             return false;
-        }        
+        }
 
         protected void DrawTerrainGUI(MaterialEditor materialEditor)
         {
@@ -284,7 +279,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var maskMapRemapMin = terrainLayer.maskMapRemapMin;
             var maskMapRemapMax = terrainLayer.maskMapRemapMax;
             var smoothness = terrainLayer.smoothness;
-            var metallic = terrainLayer.metallic;            
+            var metallic = terrainLayer.metallic;
 
             ++EditorGUI.indentLevel;
             EditorGUI.BeginChangeCheck();
@@ -336,7 +331,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // AO and Height are still exclusively controlled via the maskRemap controls
                     // metallic and smoothness have their own values as fields within the LayerData.
                     maskMapRemapMax.y = EditorGUILayout.Slider(s_Styles.ao, maskMapRemapMax.y, 0, 1);
-                    
+
                     if (heightBlend)
                     {
                         maskMapRemapMax.z = EditorGUILayout.FloatField(s_Styles.heightCm, maskMapRemapMax.z * 100) / 100;
@@ -346,11 +341,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     // In the case of height (Z), we are trying to set min to no lower than zero value unless
                     // max goes negative.  Zero is a good sensible value for the minimum.  For AO (Y), we
                     // don't need this extra protection step because the UI blocks us from going negative
-                    // anyway.  In both cases, pushing the slider below the min value will lock them together, 
+                    // anyway.  In both cases, pushing the slider below the min value will lock them together,
                     // but min will be "left behind" if you go back up.
                     maskMapRemapMin.y = Mathf.Min(maskMapRemapMin.y, maskMapRemapMax.y);
                     maskMapRemapMin.z = Mathf.Min(Mathf.Max(0, maskMapRemapMin.z), maskMapRemapMax.z);
-                    
+
                     if (TextureHasAlpha(terrainLayer.diffuseTexture))
                     {
                         GUIStyle warnStyle = new GUIStyle(GUI.skin.label);
@@ -367,7 +362,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 terrainLayer.maskMapRemapMin = maskMapRemapMin;
                 terrainLayer.maskMapRemapMax = maskMapRemapMax;
                 terrainLayer.smoothness = smoothness;
-                terrainLayer.metallic = metallic;                
+                terrainLayer.metallic = metallic;
             }
             --EditorGUI.indentLevel;
 

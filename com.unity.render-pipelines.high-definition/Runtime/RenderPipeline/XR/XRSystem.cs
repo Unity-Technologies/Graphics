@@ -44,7 +44,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static bool automatedTestRunning = false;
 
         // Used by test framework and to enable debug features
-        internal static bool testModeEnabled { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
+        static bool testModeEnabledInitialization { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
+        internal static bool testModeEnabled = testModeEnabledInitialization;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         internal static bool dumpDebugInfo = false;
@@ -136,6 +137,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else if (xrEnabled && xrSupported)
                 {
+                    // Disable vsync on the main display when rendering to a XR device
+                    QualitySettings.vSyncCount = 0;
+
                     if (XRGraphics.renderViewportScale != 1.0f)
                     {
                         Debug.LogWarning("RenderViewportScale has no effect with this render pipeline. Use dynamic resolution instead.");
@@ -275,6 +279,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 display.GetRenderPass(renderPassIndex, out var renderPass);
                 display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
+                // Disable legacy stereo culling path
+                cullingParams.cullingOptions &= ~CullingOptions.Stereo;
+
                 if (singlePassAllowed && CanUseSinglePass(renderPass))
                 {
                     var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial);
@@ -324,7 +331,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (display == null || !display.running)
                 return;
 
-            using (new ProfilingSample(cmd, "XR Mirror View"))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.XRMirrorView)))
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
 
@@ -413,7 +420,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     projMatrix = camera.projectionMatrix,
                     viewMatrix = camera.worldToCameraMatrix,
-                    viewport = camera.pixelRect,
+                    viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight),
                     textureArraySlice = -1
                 };
 

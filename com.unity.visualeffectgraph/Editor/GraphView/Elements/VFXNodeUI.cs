@@ -224,7 +224,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            if(m_SettingsDivider != null)
+            if (m_SettingsDivider != null)
                 m_SettingsDivider.visible = hasSettingDivider && hasSettings;
             Profiler.EndSample();
         }
@@ -329,11 +329,11 @@ namespace UnityEditor.VFX.UI
         {
             title = controller.title;
 
-            foreach( var setting in m_Settings)
+            foreach (var setting in m_Settings)
             {
                 setting.UpdateGUI(true);
             }
-            foreach( VFXEditableDataAnchor input in GetPorts(true,false).OfType<VFXEditableDataAnchor>())
+            foreach (VFXEditableDataAnchor input in GetPorts(true, false).OfType<VFXEditableDataAnchor>())
             {
                 input.AssetMoved();
             }
@@ -458,7 +458,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public const int DefaultLabelWidth = 116;
+        public const int DefaultLabelWidth = 148;
 
         protected void AddSetting(VFXSettingController setting)
         {
