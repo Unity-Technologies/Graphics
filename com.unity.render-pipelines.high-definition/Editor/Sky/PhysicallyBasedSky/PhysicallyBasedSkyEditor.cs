@@ -41,6 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HorizonZenithShift;
 
         SerializedDataParameter m_NumberOfBounces;
+        SerializedDataParameter m_PathTracedPreview;
 
         public override void OnEnable()
         {
@@ -86,6 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
 			m_HorizonZenithShift       = Unpack(o.Find(x => x.horizonZenithShift));
 
 			m_NumberOfBounces          = Unpack(o.Find(x => x.numberOfBounces));
+			m_PathTracedPreview        = Unpack(o.Find(x => x.pathTracedPreview));
         }
 
         public override void OnInspectorGUI()
@@ -146,6 +148,8 @@ namespace UnityEditor.Rendering.HighDefinition
 			PropertyField(m_NumberOfBounces);
 
             base.CommonSkySettingsGUI();
+
+			PropertyField(m_PathTracedPreview);
         }
     }
 }

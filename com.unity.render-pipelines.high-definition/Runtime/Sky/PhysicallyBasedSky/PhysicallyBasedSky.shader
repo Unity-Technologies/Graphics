@@ -4,10 +4,11 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
     #pragma vertex Vert
 
-    // #pragma enable_d3d11_debug_symbols
+    #pragma enable_d3d11_debug_symbols
     #pragma editor_sync_compilation
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma multi_compile _ PATH_TRACED_PREVIEW
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -64,9 +65,81 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return output;
     }
 
+#ifdef PATH_TRACED_PREVIEW
+    #define MAKE_FLT(uint sgn, uint exponent, uint fraction) asfloat((((sgn) & 0x1) << 31) | (((exponent) & 0xFF) << 23) | ((fraction) & 0xFFFFFF))
+    #define FLT_SNAN MAKE_FLT(0x1, 0xFF, 0x1)
+    #define DEBUG
+#ifdef DEBUG
+    #define ASSERT(x) if (!(bool)(x)) return FLT_SNAN
+#else  // DEBUG
+    #define ASSERT(x) x
+#endif // DEBUG
+
+    struct Ray
+    {
+        float3 origin;
+        float3 direction;
+        float  frequency;
+    };
+
+    // Multi-dimensional correlated multi-jittered sequence.
+    float cmjND(uint numPoints, uint numDims, uint pointIndex, uint dimIndex)
+    {
+        uint i = pointIndex;
+        uint n = numPoints;         // Size of the sequence: n = s^d
+        uint j = dimIndex;
+        uint d = numDims;
+        uint s = round(pow(n, -d)); // Number of strata
+        uint t = d;                 // Strength of the orthogonal array
+
+        // TODO: also assert in C. Forbid wrong sample counts.
+        ASSERT((n > 1) && (s > 1));
+        ASSERT(abs(s - n * pow(s, 1 - d)) < 0.0001); // Make sure it's an integer
+
+        return 0.5; // TODO... lol
+    }
+
+    float3 PathTraceSky(float3 rayOrigin, float2 positionSS, uint numBounces, uint numPaths)
+    {
+        ASSERT((numBounces >= 1) && (numPaths >= 1));
+
+        // Integral over ((1 + NumBounces) * 3) dimensions:
+        // 2x for filter IS + 1x for photon frequency selection;
+        // 1x for scattering location + 2x for the scattering direction.
+        // For 10 bounces, we are looking at (1 + 10) * 3 = 33 dimensions.
+        // So the number of samples should be at least 2^33...
+        uint numDimensions = 3 * numBounces;
+
+        for (uint p = 0; p < numPaths; p++)
+        {
+            float3 rnd = float3(cmjND(numPaths, numDimensions, p, 0),
+                                cmjND(numPaths, numDimensions, p, 1),
+                                cmjND(numPaths, numDimensions, p, 2));
+
+            float2 filterOffsetSS = rnd.xy - 0.5; // TODO: anything but the box filter...
+
+            Ray ray;
+
+            ray.origin    = rayOrigin;
+            ray.direction = -normalize(mul(float4(positionSS + filterOffsetSS, 1, 1), _PixelCoordToViewDirWS).xyz);
+            ray.frequency = floor(rnd.z * 3); // Color channel, for now...
+        }
+
+
+        return 0;
+    }
+
+#endif // PATH_TRACED_PREVIEW
+
     float4 RenderSky(Varyings input)
     {
         const float R = _PlanetaryRadius;
+
+
+    #ifdef PATH_TRACED_PREVIEW
+        float3 rayOrigin = _WorldSpaceCameraPos1 - _PlanetCenterPosition;
+        float3 skyColor  = PathTraceSky(rayOrigin, input.positionCS.xy);
+    #else // PATH_TRACED_PREVIEW
 
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
@@ -220,6 +293,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         }
 
         skyColor += radiance * (1 - skyOpacity);
+    #endif // PATH_TRACED_PREVIEW
+
         skyColor *= _IntensityMultiplier;
 
         return float4(skyColor, 1.0);

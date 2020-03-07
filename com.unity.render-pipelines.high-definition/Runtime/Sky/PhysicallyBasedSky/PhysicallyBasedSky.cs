@@ -140,6 +140,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Horizon-zenith shift. Does not affect the precomputation.")]
         public ClampedFloatParameter horizonZenithShift = new ClampedFloatParameter(0, -1, 1);
 
+        /// <summary> Path traced preview of the sky inside the viewport. For debugging and verification purposes only. </summary>
+        [Tooltip("Path traced preview of the sky inside the viewport. For debugging and verification purposes only.")]
+        public BoolParameter pathTracedPreview = new BoolParameter(false);
+
         static internal float ScaleHeightFromLayerDepth(float d)
         {
             // Exp[-d / H] = 0.001
