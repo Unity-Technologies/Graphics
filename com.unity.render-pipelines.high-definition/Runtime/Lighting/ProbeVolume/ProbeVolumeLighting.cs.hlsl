@@ -23,7 +23,8 @@ struct ProbeVolumeEngineData
     float3 rcpNegFaceFade;
     float rcpDistFadeLen;
     float endTimesRcpDistFadeLen;
-    float4 scaleBias;
+    float3 scale;
+    float3 bias;
     float4 octahedralDepthScaleBias;
     float3 resolution;
     float3 resolutionInverse;
@@ -70,9 +71,13 @@ float GetEndTimesRcpDistFadeLen(ProbeVolumeEngineData value)
 {
     return value.endTimesRcpDistFadeLen;
 }
-float4 GetScaleBias(ProbeVolumeEngineData value)
+float3 GetScale(ProbeVolumeEngineData value)
 {
-    return value.scaleBias;
+    return value.scale;
+}
+float3 GetBias(ProbeVolumeEngineData value)
+{
+    return value.bias;
 }
 float4 GetOctahedralDepthScaleBias(ProbeVolumeEngineData value)
 {

@@ -55,7 +55,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float distanceFadeStart;
         public float distanceFadeEnd;
 
-        public Vector4 scaleBias;
+        public Vector3 scale;
+        public Vector3 bias;
         public Vector4 octahedralDepthScaleBias;
 
         public ProbeSpacingMode probeSpacingMode;
@@ -124,7 +125,8 @@ namespace UnityEngine.Rendering.HighDefinition
             this.advancedFade = false;
             this.distanceFadeStart = 10000.0f;
             this.distanceFadeEnd = 10000.0f;
-            this.scaleBias = Vector4.zero;
+            this.scale = Vector3.zero;
+            this.bias = Vector3.zero;
             this.octahedralDepthScaleBias = Vector4.zero;
             this.probeSpacingMode = ProbeSpacingMode.Density;
             this.resolutionX = 4;
@@ -208,7 +210,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpDistFadeLen = 1.0f / distFadeLen;
             data.endTimesRcpDistFadeLen = this.distanceFadeEnd * data.rcpDistFadeLen;
 
-            data.scaleBias = this.scaleBias;
+            data.scale = this.scale;
+            data.bias = this.bias;
             data.octahedralDepthScaleBias = this.octahedralDepthScaleBias;
 
             data.resolution = new Vector3(this.resolutionX, this.resolutionY, this.resolutionZ);
@@ -239,6 +242,8 @@ namespace UnityEngine.Rendering.HighDefinition
             resolutionY = 0,
             resolutionZ = 0
         };
+
+        Vector3[] positions = null; // TODO: REMOVE: DEBUG ONLY.
 
         public ProbeVolumeAsset probeVolumeAsset = null;
         public ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
@@ -435,6 +440,48 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
+                // HACK DEBUG TEST REMOVE:
+                // Matrix4x4 worldToBSMatrix = Matrix4x4.TRS(this.transform.position, this.transform.rotation, Vector3.one);
+                // for (int z = 0; z < parameters.resolutionZ; ++z)
+                // {
+                //     for (int y = 0; y < parameters.resolutionY; ++y)
+                //     {
+                //         for (int x = 0; x < parameters.resolutionX; ++x)
+                //         {
+                //             int i = z * parameters.resolutionY * parameters.resolutionX + y * parameters.resolutionX + x;
+                //             Vector3 positionWS = positions[i];
+
+                //             Vector3 positionBS = worldToBSMatrix.inverse.MultiplyPoint(positionWS);
+                //             positionBS.x = positionBS.x / (0.5f * parameters.size.x);
+                //             positionBS.y = positionBS.y / (0.5f * parameters.size.y);
+                //             positionBS.z = positionBS.z / (0.5f * parameters.size.z);
+
+                //             // positionBS.x = positionBS.x * 0.5f + 0.5f;
+                //             // positionBS.y = positionBS.y * 0.5f + 0.5f;
+                //             // positionBS.z = positionBS.z * 0.5f + 0.5f;
+
+                //             if (x == 0 && y == 0 && z == 0)
+                //             {
+                //                 Debug.Log("positionBSStart = {" + positionBS.x + ", " + positionBS.y + ", " + positionBS.z + "}");
+                //             }
+
+                //             if (x == (parameters.resolutionX - 1) && y == (parameters.resolutionY - 1) && z == (parameters.resolutionZ - 1))
+                //             {
+                //                 Debug.Log("positionBSEnd = {" + positionBS.x + ", " + positionBS.y + ", " + positionBS.z + "}");
+                //             }
+
+
+                //             float r = positionBS.x * 1000.0f;
+                //             float g = positionBS.y * 1000.0f;
+                //             float b = positionBS.z * 1000.0f;
+
+                //             data[i].shAr = new Vector4(0.0f, 0.0f, 0.0f, r);
+                //             data[i].shAg = new Vector4(0.0f, 0.0f, 0.0f, g);
+                //             data[i].shAb = new Vector4(0.0f, 0.0f, 0.0f, b);
+                //         }
+                //     }
+                // }
+
                 if (!probeVolumeAsset || GetID() != probeVolumeAsset.instanceID)
                     probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
 
@@ -501,16 +548,23 @@ namespace UnityEngine.Rendering.HighDefinition
             float debugProbeSize = Gizmos.probeSize;
 
             int probeCount = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
-            Vector3[] positions = new Vector3[probeCount];
+            // Vector3[] positions = new Vector3[probeCount];
+            positions = new Vector3[probeCount];
 
             OrientedBBox obb = new OrientedBBox(Matrix4x4.TRS(this.transform.position, this.transform.rotation, parameters.size));
 
             Vector3 probeSteps = new Vector3(parameters.size.x / (float)parameters.resolutionX, parameters.size.y / (float)parameters.resolutionY, parameters.size.z / (float)parameters.resolutionZ);
 
+            // Debug.Log("right is = " + obb.right);
+            // Debug.Log("up is = " + obb.up);
+            // Debug.Log("forward is = " + obb.forward);
+
+            // TODO: Determine why we need to negate obb.forward but not other basis vectors in order to make positions start at the {left, lower, back} corner
+            // and end at the {right, top, front} corner (which our atlasing code assumes).
             Vector3 probeStartPosition = obb.center
                 - obb.right   * (parameters.size.x - probeSteps.x) * 0.5f
                 - obb.up      * (parameters.size.y - probeSteps.y) * 0.5f
-                - obb.forward * (parameters.size.z - probeSteps.z) * 0.5f;
+                + obb.forward * (parameters.size.z - probeSteps.z) * 0.5f;
 
             Quaternion rotation = Quaternion.identity;
             Vector3 scale = new Vector3(debugProbeSize, debugProbeSize, debugProbeSize);
@@ -538,7 +592,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     for (int x = 0; x < parameters.resolutionX; ++x)
                     {
-                        Vector3 position = probeStartPosition + (probeSteps.x * x * obb.right) + (probeSteps.y * y * obb.up) + (probeSteps.z * z * obb.forward);
+                        Vector3 position = probeStartPosition + (probeSteps.x * x * obb.right) + (probeSteps.y * y * obb.up) + (probeSteps.z * z * -obb.forward);
                         positions[processedProbes] = position;
 
                         currentProbeDebugIndices[indexInCurrentBatch] = indexInCurrentBatch;

@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public int atlasWidth;
         public int atlasHeight;
+        public int atlasDepth;
         public int atlasOctahedralDepthWidth;
         public int atlasOctahedralDepthHeight;
     }

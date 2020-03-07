@@ -8,12 +8,14 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
-        float4  _TextureScaleBias;
+        float3  _TextureViewScale;
+        float3  _TextureViewBias;
+        float3  _TextureViewResolution;
         float2  _ValidRange;
         int _ProbeVolumeAtlasSliceMode;
         // float   _RcpGlobalScaleFactor;
         SamplerState ltc_linear_clamp_sampler;
-        TEXTURE2D_ARRAY(_AtlasTextureSH);
+        TEXTURE3D(_AtlasTextureSH);
 
         TEXTURE2D(_AtlasTextureOctahedralDepth);
         float4 _AtlasTextureOctahedralDepthScaleBias;
@@ -35,10 +37,6 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
 
-            float4 scaleBias = (_ProbeVolumeAtlasSliceMode == PROBEVOLUMEATLASSLICEMODE_OCTAHEDRAL_DEPTH)
-                ? _AtlasTextureOctahedralDepthScaleBias
-                : _TextureScaleBias;
-            output.texcoord = output.texcoord * scaleBias.xy + scaleBias.zw;
             return output;
         }
     ENDHLSL
@@ -60,11 +58,22 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float4 valueShAr = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 0, 0) - _ValidRange.x) * _ValidRange.y);
-                float4 valueShAg = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 1, 0) - _ValidRange.x) * _ValidRange.y);
-                float4 valueShAb = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 2, 0) - _ValidRange.x) * _ValidRange.y);
-                float valueValidity = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 3, 0).x - _ValidRange.x) * _ValidRange.y);
-                float2 valueOctahedralDepthMeanAndVariance = saturate((SAMPLE_TEXTURE2D_LOD(_AtlasTextureOctahedralDepth, ltc_linear_clamp_sampler, input.texcoord, 0).xy - _ValidRange.x) * _ValidRange.y);
+                // Layout Z slices horizontally in debug view UV space.
+                float3 uvw;
+                uvw.z = input.texcoord.x * _TextureViewResolution.z;
+                uvw.x = frac(uvw.z);
+                uvw.z = (floor(uvw.z) + 0.5f) / _TextureViewResolution.z;
+                uvw.y = input.texcoord.y;
+
+                // uvw is now in [0, 1] space.
+                // Convert to specific view section of atlas.
+                uvw = uvw * _TextureViewScale + _TextureViewBias;
+
+                float4 valueShAr = saturate((SAMPLE_TEXTURE3D_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, float3(uvw.x, uvw.y, uvw.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0) - _ValidRange.x) * _ValidRange.y);
+                float4 valueShAg = saturate((SAMPLE_TEXTURE3D_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, float3(uvw.x, uvw.y, uvw.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0) - _ValidRange.x) * _ValidRange.y);
+                float4 valueShAb = saturate((SAMPLE_TEXTURE3D_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, float3(uvw.x, uvw.y, uvw.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0) - _ValidRange.x) * _ValidRange.y);
+                float valueValidity = saturate((SAMPLE_TEXTURE3D_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, float3(uvw.x, uvw.y, uvw.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 3), 0).x - _ValidRange.x) * _ValidRange.y);
+                float2 valueOctahedralDepthMeanAndVariance = saturate((SAMPLE_TEXTURE2D_LOD(_AtlasTextureOctahedralDepth, ltc_linear_clamp_sampler, input.texcoord * _AtlasTextureOctahedralDepthScaleBias.xy + _AtlasTextureOctahedralDepthScaleBias.zw, 0).xy - _ValidRange.x) * _ValidRange.y);
 
                 switch (_ProbeVolumeAtlasSliceMode)
                 {

@@ -10,18 +10,18 @@
 
 StructuredBuffer<SphericalHarmonicsL1> _ProbeVolumeAtlasReadBuffer;
 StructuredBuffer<float> _ProbeVolumeAtlasReadValidityBuffer;
-RWTexture2DArray<float4> _ProbeVolumeAtlasWriteTextureSH;
+RWTexture3D<float4> _ProbeVolumeAtlasWriteTextureSH;
 
 uint _ProbeVolumeAtlasReadBufferCount;
 float3 _ProbeVolumeResolution;
 float3 _ProbeVolumeResolutionInverse;
-float4 _ProbeVolumeAtlasScaleBias;
-float4 _ProbeVolumeAtlasResolutionAndInverse;
+float3 _ProbeVolumeAtlasScale;
+float3 _ProbeVolumeAtlasBias;
+float4 _ProbeVolumeAtlasResolutionAndSliceCount;
+float4 _ProbeVolumeAtlasResolutionAndSliceCountInverse;
 
-uint2 ComputeWriteIndexFromReadIndex(uint readIndex, float3 resolution, float3 resolutionInverse, float4 scaleBias, float4 atlasResolutionAndInverse)
+uint3 ComputeWriteIndexFromReadIndex(uint readIndex, float3 resolution)
 {
-    // return uint2(readIndex % 1024u, readIndex >> 10);
-
     // _ProbeVolumeAtlasReadBuffer[z * resolutionY * resolutionX + y * resolutionX + x]
     // TODO: Could implement as floating point operations, which is likely faster.
     // Would need to verify precision.
@@ -29,19 +29,7 @@ uint2 ComputeWriteIndexFromReadIndex(uint readIndex, float3 resolution, float3 r
     uint y = (readIndex / (uint)resolution.x) % (uint)resolution.y;
     uint z = readIndex / ((uint)resolution.y * (uint)resolution.x);
 
-    // Atlas layout:
-    // int width = resolution.x * resolution.z;
-    // int height = resolution.y;
-    // scaleBias: x,y is width and height (scale) z,w offset into atlas (bias)
-    // Handle Z "vertical" flip, as in source, index z == 0 is "top" and index z == resolution.z - 1 is "bottom"
-    // but in destination atlas, z coordinate min is "bottom", and z coordinate max is "top".
-    uint atlasX = x + (resolution.z - 1 - z) * (uint)resolution.x;
-    uint atlasY = y;
-
-    float atlasU = (float)atlasX + scaleBias.z * atlasResolutionAndInverse.x;
-    float atlasV = (float)atlasY + scaleBias.w * atlasResolutionAndInverse.y;
-
-    return uint2((uint)atlasU, (uint)atlasV);
+    return uint3(x, y, z);
 }
 
 // Warning this needs to match with kBatchSize in ProbeVolumeLighting.cs
@@ -52,17 +40,18 @@ void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint 
     uint readIndex = groupId * BATCH_SIZE + groupThreadId;
     if (readIndex >= _ProbeVolumeAtlasReadBufferCount) { return; }
 
-    uint2 writeIndex = ComputeWriteIndexFromReadIndex(
+    uint3 writeIndex = ComputeWriteIndexFromReadIndex(
         readIndex,
-        _ProbeVolumeResolution,
-        _ProbeVolumeResolutionInverse,
-        _ProbeVolumeAtlasScaleBias,
-        _ProbeVolumeAtlasResolutionAndInverse
+        _ProbeVolumeResolution
     );
 
-    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, 0)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAr;
-    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, 1)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAg;
-    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, 2)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAb;
+    // float3 writeUVW = (float3)writeIndex * _ProbeVolumeResolutionInverse;
+
+    writeIndex += (uint3)floor(_ProbeVolumeAtlasBias * _ProbeVolumeAtlasResolutionAndSliceCount.xyz);
+
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAr;
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 1)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAg;
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAb;
 
     // Convert from "Occlusion" representation from Lightmapper into "Validity" representation which can be directly fed into bilateral filter.
     // This avoids computing 1.0 - occlusion terms per 8 probes per volume per pixel per frame.
@@ -71,5 +60,5 @@ void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint 
     float occlusion = _ProbeVolumeAtlasReadValidityBuffer[readIndex];
     float validity = 1.0 - occlusion;
 
-    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, 3)] = float4(validity, 0.0, 0.0, 0.0);
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3)] = float4(validity, 0.0, 0.0, 0.0);
 }

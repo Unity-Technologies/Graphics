@@ -281,25 +281,19 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
                             }
                             else if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_PROBE_VALIDITY_FILTER)
                             {
-                                int2 probeVolumeTexel2DBackSW = int2(
-                                    (int)(max(0.0, floor(probeVolumeTexel3D.z - 0.5)) * s_probeVolumeData.resolution.x + floor(probeVolumeTexel3D.x - 0.5) + 0.5),
-                                    (int)(floor(probeVolumeTexel3D.y - 0.5) + 0.5)
-                                    );
-                                int2 probeVolumeTexel2DFrontSW = int2(probeVolumeTexel2DBackSW.x + (int)s_probeVolumeData.resolution.x, probeVolumeTexel2DBackSW.y);
-
                                 // TODO: Rather than sampling validity data from a slice in our texture array, we could place it in a different texture resource entirely.
                                 // This would allow us to use a single channel format, rather than wasting memory with float4(validity, unused, unused, unused).
                                 // It would also allow us to use a different texture format (i.e: 1x8bpp rather than 4x16bpp).
                                 // Currently just using a texture slice for convenience, and with the idea that MAYBE we will end up using the remaining 3 channels.
-                                probeWeightBSW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DBackSW.x + 0, probeVolumeTexel2DBackSW.y + 0), 3, 0).x);
-                                probeWeightBSE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DBackSW.x + 1, probeVolumeTexel2DBackSW.y + 0), 3, 0).x);
-                                probeWeightBNW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DFrontSW.x + 0, probeVolumeTexel2DFrontSW.y + 0), 3, 0).x);
-                                probeWeightBNE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DFrontSW.x + 1, probeVolumeTexel2DFrontSW.y + 0), 3, 0).x);
+                                probeWeightBSW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 0, probeVolumeTexel3DMin.z + 0 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
+                                probeWeightBSE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 0, probeVolumeTexel3DMin.z + 0 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
+                                probeWeightBNW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 0, probeVolumeTexel3DMin.z + 1 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
+                                probeWeightBNE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 0, probeVolumeTexel3DMin.z + 1 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
 
-                                probeWeightTSW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DBackSW.x + 0, probeVolumeTexel2DBackSW.y + 1), 3, 0).x);
-                                probeWeightTSE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DBackSW.x + 1, probeVolumeTexel2DBackSW.y + 1), 3, 0).x);
-                                probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DFrontSW.x + 0, probeVolumeTexel2DFrontSW.y + 1), 3, 0).x);
-                                probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DFrontSW.x + 1, probeVolumeTexel2DFrontSW.y + 1), 3, 0).x);
+                                probeWeightTSW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 0 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
+                                probeWeightTSE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 1 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
+                                probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 1 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
+                                probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 1 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
                             }
                             else if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_OCTAHEDRAL_DEPTH_OCCLUSION_FILTER)
                             {
@@ -407,29 +401,12 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
                             }
                         }
 
-                        float2 probeVolumeTexel2DBack = float2(
-                            max(0.0, floor(probeVolumeTexel3D.z - 0.5)) * s_probeVolumeData.resolution.x + probeVolumeTexel3D.x,
-                            probeVolumeTexel3D.y
-                            );
-
-                        float2 probeVolumeTexel2DFront = float2(
-                            max(0.0, floor(probeVolumeTexel3D.z + 0.5)) * s_probeVolumeData.resolution.x + probeVolumeTexel3D.x,
-                            probeVolumeTexel3D.y
-                            );
-
-                        float2 probeVolumeAtlasUV2DBack = probeVolumeTexel2DBack * _ProbeVolumeAtlasResolutionAndInverse.zw + s_probeVolumeData.scaleBias.zw;
-                        float2 probeVolumeAtlasUV2DFront = probeVolumeTexel2DFront * _ProbeVolumeAtlasResolutionAndInverse.zw + s_probeVolumeData.scaleBias.zw;
-
-                        float lerpZ = frac(probeVolumeTexel3D.z - 0.5);
+                        float3 probeVolumeAtlasUVW = probeVolumeTexel3D * s_probeVolumeData.resolutionInverse * s_probeVolumeData.scale + s_probeVolumeData.bias;
 
 #if DEBUG_DISPLAY
                         if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
                         {
-                            float validity = lerp(
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack, 3, 0).x,
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 3, 0).x,
-                                lerpZ
-                            );
+                            float validity = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 3), 0).x;
 
                             // Pack validity into SH data so that we can access it later for our debug mode.
                             sampleShAr = float4(validity, 0.0, 0.0, 0.0);
@@ -439,21 +416,9 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
                         else
 #endif
                         {
-                            sampleShAr = lerp(
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack, 0, 0),
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 0, 0),
-                                lerpZ
-                            );
-                            sampleShAg = lerp(
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack, 1, 0),
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 1, 0),
-                                lerpZ
-                            );
-                            sampleShAb = lerp(
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack, 2, 0),
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 2, 0),
-                                lerpZ
-                            );
+                            sampleShAr = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0);
+                            sampleShAg = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0);
+                            sampleShAb = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0);
                         }
                     }
                 }

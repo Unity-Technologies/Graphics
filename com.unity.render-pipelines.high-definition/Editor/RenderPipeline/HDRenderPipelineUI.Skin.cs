@@ -112,8 +112,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
         	public static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Probe Volume Diffuse Global Illumination", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
-        	public static readonly GUIContent probeVolumeAtlasWidth = EditorGUIUtility.TrTextContent("Atlas Width", "Width of the atlas containing visible ProbeVolumes.");
-        	public static readonly GUIContent probeVolumeAtlasHeight = EditorGUIUtility.TrTextContent("Atlas Height", "Height of the atlas containing visible ProbeVolumes.");
+        	public static readonly GUIContent probeVolumeAtlasWidth = EditorGUIUtility.TrTextContent("Atlas Width", "Width (resolution in X) of the atlas containing visible ProbeVolumes.");
+        	public static readonly GUIContent probeVolumeAtlasHeight = EditorGUIUtility.TrTextContent("Atlas Height", "Height (resolution in Y) of the atlas containing visible ProbeVolumes.");
+            public static readonly GUIContent probeVolumeAtlasDepth = EditorGUIUtility.TrTextContent("Atlas Depth", "Depth (resolution in Z) of the atlas containing visible ProbeVolumes.");
             public static readonly GUIContent probeVolumeAtlasOctahedralDepthWidth = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas width", "Width of the atlas containing visible ProbeVolumes octahedral depth data");
             public static readonly GUIContent probeVolumeAtlasOctahedralDepthHeight = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas height", "Height of the atlas containing visible ProbeVolumes octahedral depth data.");
 
@@ -229,6 +230,7 @@ namespace UnityEditor.Rendering.HighDefinition
 				{ supportProbeVolumeContent          , string.Format("{0}, {1}", memoryDrawback, shaderVariantDrawback) },
 	            { probeVolumeAtlasWidth              , memoryDrawback },
     	        { probeVolumeAtlasHeight             , memoryDrawback },
+                { probeVolumeAtlasDepth              , memoryDrawback },
             };
 
             public static Dictionary<SupportedLitShaderMode, string> supportLitShaderModeDrawbacks = new Dictionary<SupportedLitShaderMode, string>
