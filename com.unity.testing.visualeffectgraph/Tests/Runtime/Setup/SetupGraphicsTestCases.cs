@@ -62,7 +62,17 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         {
             Directory.CreateDirectory(bundlePath);
         }
-        UnityEditor.BuildPipeline.BuildAssetBundles(bundlePath, UnityEditor.BuildAssetBundleOptions.None, UnityEditor.BuildTarget.StandaloneWindows64);
+        BuildTarget target = UnityEditor.BuildTarget.StandaloneWindows64;
+
+#if UNITY_STANDALONE_OSX
+        target = UnityEditor.BuildTarget.StandaloneOSX;
+#elif UNITY_STANDALONE_LINUX
+        target = UnityEditor.BuildTarget.StandaloneLinux64;
+#endif
+
+
+
+        UnityEditor.BuildPipeline.BuildAssetBundles(bundlePath, UnityEditor.BuildAssetBundleOptions.None, target);
         if (!Directory.Exists("Assets/StreamingAssets"))
             Directory.CreateDirectory("Assets/StreamingAssets");
         File.WriteAllText("Assets/StreamingAssets/AssetBundlePath.txt", bundlePath);
