@@ -232,14 +232,20 @@ namespace UnityEditor.VFX.UI
             VFXViewController viewController = view.controller;
 
 
+            List<VisualElement> picked = new List<VisualElement>();
+            panel.PickAll(position, picked);
             VFXNodeUI endNode = null;
-            foreach (var node in view.GetAllNodes())
+
+            foreach (var element in picked)
             {
-                if (node.worldBound.Contains(position))
+                if (element is VFXNodeUI node)
                 {
                     endNode = node;
+                    break;
                 }
             }
+
+
 
             VFXDataEdge dataEdge  = edge as VFXDataEdge;
             bool exists = false;
@@ -266,7 +272,7 @@ namespace UnityEditor.VFX.UI
                     }
                     else
                     {
-                        foreach (var input in nodeController.inputPorts.Where(t => t.model == null || t.model.IsMasterSlot()))
+                        foreach (var input in nodeController.inputPorts.Where(t => t.model == null || t.model.IsMasterSlot() && !t.model.HasLink(true)))
                         {
                             if (viewController.CreateLink(input, controller))
                                 break;
