@@ -1227,8 +1227,8 @@ namespace UnityEditor.Rendering.HighDefinition
             );
 
             // All these properties values will be patched with the material keyword update
-            collector.AddIntProperty("_StencilRef", stencilRef); 
-            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask); 
+            collector.AddIntProperty("_StencilRef", stencilRef);
+            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask);
             // Depth prepass
             collector.AddIntProperty("_StencilRefDepth", stencilRefDepth); // Nothing
             collector.AddIntProperty("_StencilWriteMaskDepth", stencilWriteMaskDepth); // StencilUsage.TraceReflectionRay
@@ -1239,8 +1239,8 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors);
             collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors);
             // Gbuffer
-            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); 
-            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); 
+            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer);
+            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer);
             collector.AddIntProperty("_ZTestGBuffer", 4);
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
@@ -1352,7 +1352,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque, bool needAfterPostProcess)
         {
             // We can't use RenderPipelineManager.currentPipeline here because this is called before HDRP is created by SG window
-            bool supportsRayTracing = HDRenderPipeline.GatherRayTracingSupport(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings);
+            bool supportsRayTracing = HDRenderPipeline.currentAsset && HDRenderPipeline.GatherRayTracingSupport(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings);
             var result = new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>();
             if (opaque)
             {
