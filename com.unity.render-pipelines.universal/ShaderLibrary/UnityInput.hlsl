@@ -108,6 +108,7 @@ float4 unity_ProbesOcclusion;
 real4 unity_SpecCube0_HDR;
 
 // Lightmap block feature
+float4 unity_LightmapIndex;
 float4 unity_LightmapST;
 float4 unity_DynamicLightmapST;
 
@@ -204,6 +205,7 @@ SAMPLER(samplerunity_SpecCube0);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
+TEXTURE2D_ARRAY(Unity_LightMapColors);
 SAMPLER(samplerunity_Lightmap);
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
 TEXTURE2D(unity_LightmapInd);

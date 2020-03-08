@@ -323,7 +323,9 @@
 
     UNITY_INSTANCING_BUFFER_START(PerDraw2)
         #ifdef UNITY_USE_LIGHTMAPST_ARRAY
+            UNITY_DEFINE_INSTANCED_PROP(float4, unity_LightmapIndexArray)
             UNITY_DEFINE_INSTANCED_PROP(float4, unity_LightmapSTArray)
+            #define unity_LightmapIndex UNITY_ACCESS_INSTANCED_PROP(unity_Builtins2, unity_LightmapIndexArray)
             #define unity_LightmapST UNITY_ACCESS_INSTANCED_PROP(unity_Builtins2, unity_LightmapSTArray)
         #endif
         #ifdef UNITY_USE_DYNAMICLIGHTMAPST_ARRAY

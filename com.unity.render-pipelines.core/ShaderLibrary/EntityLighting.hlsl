@@ -252,6 +252,24 @@ real3 SampleSingleLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), float2
     return illuminance;
 }
 
+real3 SampleSingleLightmap(TEXTURE2D_ARRAY_PARAM(lightmapTex, lightmapSampler), float2 uv, float slice, float4 transform, bool encodedLightmap, real4 decodeInstructions)
+{
+    // transform is scale and bias
+    uv = uv * transform.xy + transform.zw;
+    real3 illuminance = real3(0.0, 0.0, 0.0);
+    // Remark: baked lightmap is RGBM for now, dynamic lightmap is RGB9E5
+    if (encodedLightmap)
+    {
+        real4 encodedIlluminance = SAMPLE_TEXTURE2D_ARRAY(lightmapTex, lightmapSampler, uv, slice).rgba;
+        illuminance = DecodeLightmap(encodedIlluminance, decodeInstructions);
+    }
+    else
+    {
+        illuminance = SAMPLE_TEXTURE2D_ARRAY(lightmapTex, lightmapSampler, uv, slice).rgb;
+    }
+    return illuminance;
+}
+
 real3 SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS, bool encodedLightmap, real4 decodeInstructions)
 {
     // In directional mode Enlighten bakes dominant light direction

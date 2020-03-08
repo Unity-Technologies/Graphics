@@ -101,7 +101,7 @@ Light GetMainLight()
     light.direction = _MainLightPosition.xyz;
     // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
     light.distanceAttenuation = unity_LightData.z;
-#if defined(LIGHTMAP_ON) || defined(_MIXED_LIGHTING_SUBTRACTIVE)
+#if !defined(UNITY_DOTS_INSTANCING_ENABLED) && (defined(LIGHTMAP_ON) || defined(_MIXED_LIGHTING_SUBTRACTIVE))
     // unity_ProbesOcclusion.x is the mixed light probe occlusion data
     light.distanceAttenuation *= unity_ProbesOcclusion.x;
 #endif
@@ -433,6 +433,8 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     return SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
         TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
         lightmapUV, transformCoords, normalWS, encodedLightmap, decodeInstructions);
+#elif defined(LIGHTMAP_ON) && defined(UNITY_DOTS_INSTANCING_ENABLED)
+    return SampleSingleLightmap(TEXTURE2D_ARRAY_ARGS(Unity_LightMapColors, samplerunity_Lightmap), lightmapUV, unity_LightmapIndex, transformCoords, encodedLightmap, decodeInstructions);
 #elif defined(LIGHTMAP_ON)
     return SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap, decodeInstructions);
 #else
@@ -443,22 +445,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 // We either sample GI from baked lightmap or from probes.
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
-#ifdef UNITY_DOTS_SHADER
-half3 HackSampleSH(half3 normalWS)
-{
-    // Hack SH so that is is valid for hybrid V1
-    real4 SHCoefficients[7];
-    SHCoefficients[0] = float4(-0.02611f, -0.11903f, -0.02472f, 0.55319f);
-    SHCoefficients[1] = float4(-0.04123, 0.0369, -0.03903, 0.62641);
-    SHCoefficients[2] = float4(-0.06967, 0.23016, -0.06596, 0.81901);
-    SHCoefficients[3] = float4(-0.02041, -0.01933, 0.07292, 0.05023);
-    SHCoefficients[4] = float4(-0.03278, -0.03104, 0.0992, 0.07219);
-    SHCoefficients[5] = float4(-0.05806, -0.05496, 0.10764, 0.09859);
-    SHCoefficients[6] = float4(0.07564, 0.10311, 0.11301, 1.00);
-    return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
-}
-#define SAMPLE_GI(lmName, shName, normalWSName) HackSampleSH(normalWSName);
-#elif defined(LIGHTMAP_ON)
+#if defined(LIGHTMAP_ON)
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
 #else
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
