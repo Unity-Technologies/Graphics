@@ -67,6 +67,18 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Manages tiled-based deferred lights.
     internal class DeferredLights
     {
+        enum ShadingPass
+        {
+            StencilAndLighting,
+
+            ZFailStencilFront,
+            ZFailStencilBack,
+            ZFailLighting,
+
+            AccumStencil,
+            AccumLighting,
+        }
+
         public static class ShaderConstants
         {
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
@@ -173,6 +185,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public bool accurateGbufferNormals = true;
         public bool tiledDeferredShading = true; // <- true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
         public readonly bool useJobSystem = true;
+        public bool zfailStencilVolumes = false;
+        public bool accumStencilVolumes = false;
 
         //
         internal int m_RenderWidth = 0;
@@ -1117,9 +1131,33 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 RenderStencilDirectionalLights(cmd, visibleLights, renderingData.lightData.mainLightIndex);
 
-                RenderStencilPointLights(cmd, visibleLights);
-                RenderStencilSpotLights(cmd, visibleLights);
+                if (this.zfailStencilVolumes)
+                {
+                    RenderStencilPointLights(cmd, visibleLights, ShadingPass.ZFailStencilBack);
+                    RenderStencilSpotLights(cmd, visibleLights, ShadingPass.ZFailStencilBack);
 
+                    RenderStencilPointLights(cmd, visibleLights, ShadingPass.ZFailStencilFront);
+                    RenderStencilSpotLights(cmd, visibleLights, ShadingPass.ZFailStencilFront);
+
+                    RenderStencilPointLights(cmd, visibleLights, ShadingPass.ZFailLighting);
+                    RenderStencilSpotLights(cmd, visibleLights, ShadingPass.ZFailLighting);
+                }
+                else if (this.accumStencilVolumes)
+                {
+                    // Clear stencil to 0x80 by drawing a quad (Unity does not expose stencil clear value).
+                    cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 10);
+
+                    RenderStencilPointLights(cmd, visibleLights, ShadingPass.AccumStencil);
+                    RenderStencilSpotLights(cmd, visibleLights, ShadingPass.AccumStencil);
+
+                    RenderStencilPointLights(cmd, visibleLights, ShadingPass.AccumLighting);
+                    RenderStencilSpotLights(cmd, visibleLights, ShadingPass.AccumLighting);
+                }
+                else
+                {
+                    RenderStencilPointLights(cmd, visibleLights, ShadingPass.StencilAndLighting);
+                    RenderStencilSpotLights(cmd, visibleLights, ShadingPass.StencilAndLighting);
+                }
             }
 
             Profiler.EndSample();
@@ -1155,7 +1193,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
         }
 
-        void RenderStencilPointLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights)
+        void RenderStencilPointLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights, ShadingPass shadingPass)
         {
             cmd.EnableShaderKeyword(ShaderKeywordStrings._POINT);
 
@@ -1193,18 +1231,37 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
 
-                // Stencil pass.
-                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 0);
-
-                // Lighting pass.
-                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
-                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
+                if (shadingPass == ShadingPass.StencilAndLighting)
+                {
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 0); // Stencil pass
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 1); // Lighting pass, Lit materials
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 2); // Lighting pass SimpleLit materials
+                }
+                else if (shadingPass == ShadingPass.ZFailStencilFront)
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 6);
+                else if (shadingPass == ShadingPass.ZFailStencilBack)
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 7);
+                else if (shadingPass == ShadingPass.ZFailLighting)
+                {
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 8);
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 9);
+                }
+                else if (shadingPass == ShadingPass.AccumStencil)
+                {
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 0);
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 11);
+                }
+                else if (shadingPass == ShadingPass.AccumLighting)
+                {
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 12); // Lighting pass, Lit materials
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 13); // Lighting pass SimpleLit materials
+                }
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
         }
 
-        void RenderStencilSpotLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights)
+        void RenderStencilSpotLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights, ShadingPass shadingPass)
         {
             cmd.EnableShaderKeyword(ShaderKeywordStrings._SPOT);
 
@@ -1244,12 +1301,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._LightDirection, new Vector3(lightSpotDir4.x, lightSpotDir4.y, lightSpotDir4.z));
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
 
-                // Stencil pass.
-                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0);
-
-                // Lighting pass.
-                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
-                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
+                if (shadingPass == ShadingPass.StencilAndLighting)
+                {
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0); // Stencil pass
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 1); // Lighting pass, Lit materials
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // Lighting pass, SimpleLit materials
+                }
+                else if (shadingPass == ShadingPass.ZFailStencilFront)
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 6);
+                else if (shadingPass == ShadingPass.ZFailStencilBack)
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 7);
+                else if (shadingPass == ShadingPass.ZFailLighting)
+                {
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 8);
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 9);
+                }
+                else if (shadingPass == ShadingPass.AccumStencil)
+                {
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0);
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 11);
+                }
+                else if (shadingPass == ShadingPass.AccumLighting)
+                {
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 12); // Lighting pass, Lit materials
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 13); // Lighting pass SimpleLit materials
+                }
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);

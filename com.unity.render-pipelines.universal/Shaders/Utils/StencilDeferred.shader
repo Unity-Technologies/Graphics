@@ -25,7 +25,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
+        #if defined(_POINT) && defined(_SPOT) && defined(USING_STEREO_MATRICES)
         float4 posCS : TEXCOORD0;
+        #endif
         UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
     };
@@ -61,14 +63,16 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         }
         #endif
 
-        #if defined(_DIRECTIONAL) || defined(_FOG)
+        #if defined(_DIRECTIONAL) || defined(_FOG) || defined(_CLEAR_STENCIL)
         output.positionCS = float4(positionOS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0); // Force triangle to be on zfar
         #else
         VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS.xyz);
         output.positionCS = vertexInput.positionCS;
         #endif
 
+        #if defined(_POINT) && defined(_SPOT) && defined(USING_STEREO_MATRICES)
         output.posCS = output.positionCS;
+        #endif
 
         return output;
     }
@@ -100,11 +104,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 gbuffer1 = LOAD_TEXTURE2D_X(_GBuffer1, input.positionCS.xy);
         half4 gbuffer2 = LOAD_TEXTURE2D_X(_GBuffer2, input.positionCS.xy);
 
-        #if !defined(USING_STEREO_MATRICES)
-        // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
-        float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-            posWS.xyz *= rcp(posWS.w);
-        #else
+        #if defined(_POINT) && defined(_SPOT) && defined(USING_STEREO_MATRICES)
             #if UNITY_REVERSED_Z
             d = 1.0 - d;
             #endif
@@ -114,6 +114,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             posCS.y = -posCS.y;
             #endif
             float3 posWS = ComputeWorldSpacePosition(posCS, UNITY_MATRIX_I_VP);
+        #else
+        // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
+        float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+            posWS.xyz *= rcp(posWS.w);
         #endif
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
@@ -201,11 +205,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
 
-            #pragma multi_compile _ _SPOT
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_vertex _ _SPOT
 
             #pragma vertex Vertex
             #pragma fragment FragWhite
@@ -388,6 +388,289 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma vertex Vertex
             #pragma fragment FragFog
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // 6 - Stencil zfail - stencil front
+        Pass
+        {
+            Name "Stencil zfail - stencil front"
+
+            ZTest LEQual
+            ZWrite Off
+            Cull Back
+            ColorMask 0
+
+            // Bit [0-4] is used for the stencil volume.
+            Stencil {
+                Ref 255
+                WriteMask 31
+                ReadMask 31
+                CompFront Always
+                PassFront Keep
+                ZFailFront DecrSat
+            }
+
+            HLSLPROGRAM
+
+            #pragma multi_compile_vertex _ _SPOT
+
+            #pragma vertex Vertex
+            #pragma fragment FragWhite
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // 7 - Stencil zfail - stencil back
+        Pass 
+        {
+            Name "Stencil Volume - stencil back"
+
+            ZTest LEQual
+            ZWrite Off
+            Cull Front
+            ColorMask 0
+
+            // Bit [0-4] is used for the stencil volume.
+            Stencil {
+                WriteMask 31
+                ReadMask 31
+                CompBack Always
+                PassBack Keep
+                ZFailBack IncrSat
+            }
+
+            HLSLPROGRAM
+
+            #pragma multi_compile_vertex _ _SPOT
+
+            #pragma vertex Vertex
+            #pragma fragment FragWhite
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // 8 - Stencil zfail - Deferred Punctual Light (Lit)
+        Pass
+        {
+            Name "Stencil zfail - Deferred Punctual Light (Lit)"
+
+            ZTest GEqual
+            ZWrite Off
+            Cull Front
+            Blend One One, Zero One
+            BlendOp Add, Add
+
+            // [Stencil] Bit [0-4] is used for the merged stencil volumes.
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
+            Stencil {
+                Ref 32       // 0b00100000
+                WriteMask 0  // 0b00000000
+                ReadMask 127 // 0b01111111
+                Comp Less    // ref < fragment stencil
+                Pass Keep
+                Fail Keep
+                ZFail Keep
+            }
+
+            HLSLPROGRAM
+
+            #pragma multi_compile _POINT _SPOT
+            #pragma multi_compile_fragment _LIT
+            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+
+            #pragma vertex Vertex
+            #pragma fragment DeferredShading
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // 9 - Stencil zfail - Deferred Punctual Light (SimpleLit)
+        Pass
+        {
+            Name "Stencil zfail - Deferred Punctual Light (SimpleLit)"
+
+            ZTest GEqual
+            ZWrite Off
+            Cull Front
+            Blend One One, Zero One
+            BlendOp Add, Add
+
+            // [Stencil] Bit [0-4] is used for the merged stencil volumes.
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
+            Stencil {
+                Ref 64        // 0b01000000
+                WriteMask 0   // 0b00000000
+                ReadMask 127  // 0b01111111
+                CompBack Less // Ref < fragment stencil
+                PassBack Keep
+                FailBack Keep
+                ZFailBack Keep
+            }
+
+            HLSLPROGRAM
+
+            #pragma multi_compile_vertex _POINT _SPOT
+            #pragma multi_compile_fragment _SIMPLELIT
+            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+
+            #pragma vertex Vertex
+            #pragma fragment DeferredShading
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // 10 - Stencil Accum - Clear.
+        Pass 
+        {
+            Name "Stencil Accum - Clear"
+
+            ZTest Always
+            ZWrite Off
+            Cull Off
+            ColorMask 0
+
+            // Bit 7 is used to merge all stencil volumes.
+            // But we invert the meaning of the bit, as we do not have stencil op to write 0xFF when the stencil ref value is already used to store another value.
+            Stencil {
+                Ref 128       // 0b10000000
+                WriteMask 128 // 0b10000000
+                ReadMask 255    // 0b00000000
+                Comp Always
+                Pass Replace
+                Fail Keep
+                ZFail Keep
+            }
+
+            HLSLPROGRAM
+
+            #pragma multi_compile_vertex _CLEAR_STENCIL
+
+            #pragma vertex Vertex
+            #pragma fragment FragWhite
+
+            ENDHLSL
+        }
+
+        // 11 - Stencil Accum - merge stencil on bit 4 to bit 7. But store as "is set".
+        Pass 
+        {
+            Name "Stencil Accum - Stencil Accum"
+
+            ZTest Always
+            ZWrite Off
+            Cull Front
+            ColorMask 0
+
+            // Bit [0-4] is used for the stencil volume.
+            Stencil {
+                Ref 16        // 0b00010000
+                WriteMask 144 // 0b10010000
+                ReadMask 16   // 0b00010000
+                CompBack Equal
+                PassBack Zero
+                FailBack Keep
+                ZFailBack Keep
+            }
+
+            HLSLPROGRAM
+
+            #pragma multi_compile_vertex _ _SPOT
+
+            #pragma vertex Vertex
+            #pragma fragment FragWhite
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // 12 - Stencil Accum - Deferred Punctual Light (Lit)
+        Pass
+        {
+            Name "Deferred Punctual Light (Lit) - Stencil Accum"
+
+            ZTest GEqual
+            ZWrite Off
+            Cull Front
+            Blend One One, Zero One
+            BlendOp Add, Add
+
+            // [Stencil] Bit 4 is used for stencil.
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 7 is used for merged stencil.
+            Stencil {
+                Ref 32       // 0b00100000
+                WriteMask 0  // 0b00000000
+                ReadMask 224 // 0b11100000
+                CompBack Equal
+                PassBack Keep
+                FailBack Keep
+                ZFailBack Keep
+            }
+
+            HLSLPROGRAM
+
+            #pragma multi_compile _POINT _SPOT
+            #pragma multi_compile_fragment _LIT
+            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+
+            #pragma vertex Vertex
+            #pragma fragment DeferredShading
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // 13 - Stencil Accum - Deferred Punctual Light (SimpleLit)
+        Pass
+        {
+            Name "Deferred Punctual Light (SimpleLit) - Stencil Accum"
+
+            ZTest GEqual
+            ZWrite Off
+            Cull Front
+            Blend One One, Zero One
+            BlendOp Add, Add
+
+            // [Stencil] Bit 4 is used for stencil.
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 7 is used for merged stencil.
+            Stencil {
+                Ref 64       // 0b01000000
+                WriteMask 0  // 0b00000000
+                ReadMask 224 // 0b11100000
+                CompBack Equal
+                PassBack Keep
+                FailBack Keep
+                ZFailBack Keep
+            }
+
+            HLSLPROGRAM
+
+            #pragma multi_compile _POINT _SPOT
+            #pragma multi_compile_fragment _SIMPLELIT
+            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+
+            #pragma vertex Vertex
+            #pragma fragment DeferredShading
             //#pragma enable_d3d11_debug_symbols
 
             ENDHLSL
