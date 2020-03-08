@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added path tracing support for refraction and internal reflections.
 - Added support for Thin Refraction Model and Lit's Clear Coat in Path Tracing.
 - Added the Tint parameter to Sky Colored Fog.
+- Exposed `HDCamera.SetupGlobalParams`, enabling custom passes to set up global shader uniforms.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -418,7 +419,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader graph and ray tracing after the shader target PR.
 - Fixed a bug in semi-transparent shadows (object further than the light casting shadows)
 - Fix state enabled of default volume profile when in package.
-- Fixed removal of MeshRenderer and MeshFilter on adding Light component. 
+- Fixed removal of MeshRenderer and MeshFilter on adding Light component.
 - Fixed Ray Traced SubSurface Scattering not working with ray traced area lights
 - Fixed Ray Traced SubSurface Scattering not working in forward mode.
 - Fixed a bug in debug light volumes.
