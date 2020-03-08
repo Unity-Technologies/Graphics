@@ -549,8 +549,13 @@ namespace UnityEngine.Rendering.HighDefinition
             s_Cleanup.Clear();
         }
 
-        // Set up UnityPerView CBuffer.
-        internal void SetupGlobalParams(CommandBuffer cmd, int frameCount)
+        /// <summary>
+        /// Schedule the setup of Camera specific global shader variables. This function sets up view, projection and clipping planes global shader variables.
+        /// Additionally, if stereoSetup is set to true, and single-pass stereo is enabled, stereo-specific shader variables and state are configured.
+        /// </summary>
+        /// <param name="cmd">The CommandBuffer to schedule these commands on.</param>
+        /// <param name="frameCount"></param>
+        public void SetupGlobalParams(CommandBuffer cmd, int frameCount)
         {
             bool taaEnabled = frameSettings.IsEnabled(FrameSettingsField.Postprocess)
                 && antialiasing == AntialiasingMode.TemporalAntialiasing
