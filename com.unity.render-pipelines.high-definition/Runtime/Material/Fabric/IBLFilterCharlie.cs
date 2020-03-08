@@ -40,9 +40,9 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FilterCubemapCharlie)))
             {
                 int mipCount = 1 + (int)Mathf.Log(source.width, 2.0f);
-                if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
+                if (mipCount < (int)EnvConstants.ConvolutionMipCount)
                 {
-                    Debug.LogWarning("RenderCubemapCharlieConvolution: Cubemap size is too small for Charlie convolution, needs at least " + ((int)EnvConstants.SpecCubeLodStep + 1) + " mip levels");
+                    Debug.LogWarning("RenderCubemapCharlieConvolution: Cubemap size is too small for Charlie convolution, needs at least " + (int)EnvConstants.ConvolutionMipCount + " mip levels");
                     return;
                 }
 
@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 props.SetTexture("_MainTex", source);
                 props.SetFloat("_InvOmegaP", invOmegaP);
 
-                for (int mip = 0; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
+                for (int mip = 0; mip < (int)EnvConstants.ConvolutionMipCount; ++mip)
                 {
                     props.SetFloat("_Level", mip);
 
