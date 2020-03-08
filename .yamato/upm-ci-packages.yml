@@ -1,13 +1,8 @@
 editors:
   - version: trunk
-    cmd: -u trunk
   - version: 2020.1
-    cmd: -u 2020.1/staging
   - version: fast-trunk
-    cmd: -u trunk
   - version: fast-2020.1
-    cmd: -u 2020.1/staging
-# removing --fast from command for now
 packages:
   - name: Core
     id: core
@@ -65,6 +60,10 @@ packages:
     hascodependencies: 1
 platforms:
     - name: win
+      os: windows
+      components:
+      - editor
+      - il2cpp
       agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -72,6 +71,10 @@ platforms:
       copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       editorpath: .\.Editor
     - name: mac
+      os: macos
+      components:
+      - editor
+      - il2cpp
       agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -106,23 +109,20 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}:
     flavor: {{ platform.agent.flavor }}
   commands:
     - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
     {% if package.hascodependencies %}
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
-    - unity-downloader-cli {{ editor.cmd }} -c editor --wait
     - {{ platform.copycmd }}
-    - upm-ci package test -u {{ platform.editorpath }} --package-path {{ package.packagename }}
-    #- upm-ci package test -u {{ platform.editorpath }} --type updated-dependencies-tests --package-path {{ package.packagename }}
-    {% else %}
-    - upm-ci package test {{ editor.cmd }} --package-path {{ package.packagename }}
-    #- upm-ci package test -u {{ editor.version }} --type updated-dependencies-tests --package-path {{ package.packagename }}
     {% endif %}
+    - upm-ci package test -u {{ platform.editorpath }} --package-path {{ package.packagename }}
   artifacts:
     logs:
       paths:
         - "**/upm-ci~/test-results/**/*"
   dependencies:
+    - .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
   {% for dep in package.dependencies %}
-  - {{ dep }}
+    - {{ dep }}
   {% endfor %}
 {% endfor %}
 {% endfor %}
@@ -139,22 +139,21 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}_dependencies:
     flavor: {{ platform.agent.flavor }}
   commands:
     - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
     {% if package.hascodependencies %}
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
-    - unity-downloader-cli {{ editor.cmd }} -c editor --wait
     - {{ platform.copycmd }}
-    - upm-ci package test -u {{ platform.editorpath }} --type updated-dependencies-tests --package-path {{ package.packagename }}
-    {% else %}
-    - upm-ci package test {{ editor.cmd }} --type updated-dependencies-tests --package-path {{ package.packagename }}
     {% endif %}
+    - upm-ci package test -u {{ platform.editorpath }} --type updated-dependencies-tests --package-path {{ package.packagename }}
   artifacts:
     logs:
       paths:
         - "**/upm-ci~/test-results/**/*"
   dependencies:
-  - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_{{ editor.version }}
+    - .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
+    - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_{{ editor.version }}
   {% for dep in package.dependencies %}
-  - {{ dep }}
+    - {{ dep }}
   {% endfor %}
 {% endfor %}
 {% endfor %}
@@ -180,6 +179,7 @@ all_package_ci_{{ editor.version }}:
 {% endfor %}
 {% endfor %}
 
+
 {% for package in packages %}
 publish_{{ package.id }}:
   name: z_(do not use) Publish {{ package.name }}
@@ -196,16 +196,15 @@ publish_{{ package.id }}:
         - "upm-ci~/packages/*.tgz"
   dependencies:
     - .yamato/upm-ci-packages.yml#pack_{{ package.id }}
-{% for editor in editors %}
 {% for platform in platforms %}
-    - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_{{ editor.version }}
-{% endfor %}
+# just using trunk for if a publish is happening
+    - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_trunk
 {% endfor %}
 {% endfor %}
 
-{% for editor in editors %}
-publish_all_{{ editor.version }}:
-  name: Publish all packages - {{ editor.version }}
+
+publish_all:
+  name: Publish all packages
   agent:
     type: Unity::VM
     image: package-ci/ubuntu:stable
@@ -216,5 +215,4 @@ publish_all_{{ editor.version }}:
   dependencies:
 {% for package in packages %}
     - .yamato/upm-ci-packages.yml#publish_{{ package.id }}
-{% endfor %}
 {% endfor %}

@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "PBR")]
-    class PBRMasterNode : MasterNode<IPBRSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class PBRMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string AlbedoSlotName = "Albedo";
         public const string NormalSlotName = "Normal";
@@ -126,6 +126,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        bool m_DOTSInstancing = false;
+
+        public ToggleData dotsInstancing
+        {
+            get { return new ToggleData(m_DOTSInstancing); }
+            set
+            {
+                if (m_DOTSInstancing == value.isOn)
+                    return;
+
+                m_DOTSInstancing = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
         public PBRMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -185,9 +201,74 @@ namespace UnityEditor.ShaderGraph
             }, true);
         }
 
-        protected override VisualElement CreateCommonSettingsElement()
+        public VisualElement CreateSettingsElement()
         {
             return new PBRSettingsView(this);
+        }
+
+        public string renderQueueTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{RenderQueue.Transparent}";
+                else if(IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) || FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f)
+                    return $"{RenderQueue.AlphaTest}";
+                else
+                    return $"{RenderQueue.Geometry}";
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{RenderType.Transparent}";
+                else
+                    return $"{RenderType.Opaque}";
+            }
+        }
+
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass)
+        {
+            return new ConditionalField[]
+            {
+                // Features
+                new ConditionalField(Fields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+                                                                        IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
+                new ConditionalField(Fields.GraphPixel,          true),
+                
+                // Surface Type
+                new ConditionalField(Fields.SurfaceOpaque,       surfaceType == ShaderGraph.SurfaceType.Opaque),
+                new ConditionalField(Fields.SurfaceTransparent,  surfaceType != ShaderGraph.SurfaceType.Opaque),
+                
+                // Blend Mode
+                new ConditionalField(Fields.BlendAdd,            surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
+                new ConditionalField(Fields.BlendAlpha,          surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
+                new ConditionalField(Fields.BlendMultiply,       surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Multiply),
+                new ConditionalField(Fields.BlendPremultiply,    surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
+
+                // Normal Drop Off Space
+                new ConditionalField(Fields.NormalDropOffOS,     normalDropOffSpace == NormalDropOffSpace.Object),
+                new ConditionalField(Fields.NormalDropOffTS,     normalDropOffSpace == NormalDropOffSpace.Tangent),
+                new ConditionalField(Fields.NormalDropOffWS,     normalDropOffSpace == NormalDropOffSpace.World),
+
+                // Misc
+                new ConditionalField(Fields.AlphaClip,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
+                                                                        FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
+                new ConditionalField(Fields.AlphaTest,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
+                                                                        FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
+                new ConditionalField(Fields.SpecularSetup,       model == PBRMasterNode.Model.Specular),
+                new ConditionalField(Fields.Normal,              IsSlotConnected(PBRMasterNode.NormalSlotId)),
+                new ConditionalField(Fields.DoubleSided,         twoSided.isOn),
+            };
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
+
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)

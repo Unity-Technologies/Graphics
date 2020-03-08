@@ -71,7 +71,6 @@ namespace UnityEditor.VFX.Test
             var camera = cameraObj.AddComponent<Camera>();
             camera.transform.localPosition = Vector3.one;
             camera.transform.LookAt(vfxComponent.transform);
-
         }
 
         static string[] k_Create_Asset_And_Check_Event_ListCases = new[] { "OnPlay", "Test_Event" };
@@ -272,6 +271,64 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
+        //Fix case 1217876
+        static VFXTimeModeTest[] s_Change_Fixed_Time_Step_To_A_Large_Value_Then_Back_To_Default = new[]
+        {
+            new VFXTimeModeTest("FixedDeltaTime", (uint)VFXUpdateMode.FixedDeltaTime, 0u, 0),
+            new VFXTimeModeTest("FixedDeltaTime_And_IgnoreTimeScale", (uint)VFXUpdateMode.IgnoreTimeScale, 0u, 0),
+        };
+
+        [UnityTest]
+        public IEnumerator Change_Fixed_Time_Step_To_A_Large_Value_Then_Back_To_Default([ValueSource("s_Change_Fixed_Time_Step_To_A_Large_Value_Then_Back_To_Default")] VFXTimeModeTest timeMode)
+        {
+            yield return new EnterPlayMode();
+
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+            CreateAssetAndComponent(3615.0f, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
+            graph.GetResource().updateMode = (VFXUpdateMode)timeMode.vfxUpdateMode;
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var previousCaptureFrameRate = Time.captureFramerate;
+            var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
+            var previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
+
+            //Set default
+            UnityEngine.VFX.VFXManager.fixedTimeStep = 0.01f;
+
+            var maxFrame = 64;
+            Time.captureFramerate = 10;
+            while (Mathf.Abs(Time.deltaTime - Time.captureDeltaTime) > 0.0001f && --maxFrame > 0)
+                yield return null; //wait capture deltaTime setting effective
+
+            //Change_Fixed_Time_Step_To_A_Large_Value
+            UnityEngine.VFX.VFXManager.fixedTimeStep = 2.0f;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = 5.0f;
+
+            //wait a few frame
+            for (int frame = 0; frame < 6; ++frame)
+                yield return null;
+
+            //Then_Back_To_Default (actually, a really small value)
+            Time.captureFramerate = 600; //Not round delta time, easily failing on small value
+            UnityEngine.VFX.VFXManager.fixedTimeStep = 0.001f; //Can be 0.01f too
+
+            //Failure should occurs within these frame
+            for (int frame = 0; frame < 8; ++frame)
+            {
+                var spawnState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+                Assert.AreNotEqual(spawnState.deltaTime, UnityEngine.VFX.VFXManager.maxDeltaTime); //Overflow in step count
+                yield return null;
+            }
+
+            Time.captureFramerate = previousCaptureFrameRate;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = previousFixedTimeStep;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = previousMaxDeltaTime;
+
+            yield return new ExitPlayMode();
+        }
+
         [Retry(3)]
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner_Plugging_OnStop_Into_Start_Input_Flow()
@@ -289,7 +346,7 @@ namespace UnityEditor.VFX.Test
             eventStop.eventName = "Dummy";
             graph.AddChild(eventStop);
             graph.children.OfType<VFXBasicSpawner>().First().LinkFrom(eventStop, 0, 1);
-            
+
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             int maxFrame = 512;
@@ -723,7 +780,7 @@ namespace UnityEditor.VFX.Test
             {
                 expectedContent = System.IO.File.ReadLines(pathExpected);
             }
-            catch(System.Exception)
+            catch (System.Exception)
             {
                 success = false;
                 error += "\nCan't locate file : " + pathExpected;
@@ -898,34 +955,43 @@ namespace UnityEditor.VFX.Test
         public static readonly CreateSpawner_ChangeLoopMode_TestCase[] k_CreateSpawner_ChangeLoopModeTestCases =
         {
             //Default : infinite loop, infinite loop duration
-            new CreateSpawner_ChangeLoopMode_TestCase() {   LoopDuration    = VFXBasicSpawner.LoopMode.Infinite,
-                                                            LoopCount       = VFXBasicSpawner.LoopMode.Infinite,
-                                                            DelayBeforeLoop = VFXBasicSpawner.DelayMode.None,
-                                                            DelayAfterLoop  = VFXBasicSpawner.DelayMode.None },
+            new CreateSpawner_ChangeLoopMode_TestCase() {
+                LoopDuration    = VFXBasicSpawner.LoopMode.Infinite,
+                LoopCount       = VFXBasicSpawner.LoopMode.Infinite,
+                DelayBeforeLoop = VFXBasicSpawner.DelayMode.None,
+                DelayAfterLoop  = VFXBasicSpawner.DelayMode.None
+            },
             //Simply random loop
-            new CreateSpawner_ChangeLoopMode_TestCase() {   LoopDuration    = VFXBasicSpawner.LoopMode.Random,
-                                                            LoopCount       = VFXBasicSpawner.LoopMode.Infinite,
-                                                            DelayBeforeLoop = VFXBasicSpawner.DelayMode.None,
-                                                            DelayAfterLoop  = VFXBasicSpawner.DelayMode.None },
+            new CreateSpawner_ChangeLoopMode_TestCase() {
+                LoopDuration    = VFXBasicSpawner.LoopMode.Random,
+                LoopCount       = VFXBasicSpawner.LoopMode.Infinite,
+                DelayBeforeLoop = VFXBasicSpawner.DelayMode.None,
+                DelayAfterLoop  = VFXBasicSpawner.DelayMode.None
+            },
 
             //Random loop, adding random before delay
-            new CreateSpawner_ChangeLoopMode_TestCase() {   LoopDuration    = VFXBasicSpawner.LoopMode.Random,
-                                                            LoopCount       = VFXBasicSpawner.LoopMode.Infinite,
-                                                            DelayBeforeLoop = VFXBasicSpawner.DelayMode.Random,
-                                                            DelayAfterLoop  = VFXBasicSpawner.DelayMode.None },
+            new CreateSpawner_ChangeLoopMode_TestCase() {
+                LoopDuration    = VFXBasicSpawner.LoopMode.Random,
+                LoopCount       = VFXBasicSpawner.LoopMode.Infinite,
+                DelayBeforeLoop = VFXBasicSpawner.DelayMode.Random,
+                DelayAfterLoop  = VFXBasicSpawner.DelayMode.None
+            },
 
             //Random loop count, constant loop duration
-            new CreateSpawner_ChangeLoopMode_TestCase() {   LoopDuration    = VFXBasicSpawner.LoopMode.Constant,
-                                                            LoopCount       = VFXBasicSpawner.LoopMode.Random,
-                                                            DelayBeforeLoop = VFXBasicSpawner.DelayMode.None,
-                                                            DelayAfterLoop  = VFXBasicSpawner.DelayMode.None },
+            new CreateSpawner_ChangeLoopMode_TestCase() {
+                LoopDuration    = VFXBasicSpawner.LoopMode.Constant,
+                LoopCount       = VFXBasicSpawner.LoopMode.Random,
+                DelayBeforeLoop = VFXBasicSpawner.DelayMode.None,
+                DelayAfterLoop  = VFXBasicSpawner.DelayMode.None
+            },
 
             //Everything random
-            new CreateSpawner_ChangeLoopMode_TestCase() {   LoopDuration    = VFXBasicSpawner.LoopMode.Random,
-                                                            LoopCount       = VFXBasicSpawner.LoopMode.Random,
-                                                            DelayBeforeLoop = VFXBasicSpawner.DelayMode.Random,
-                                                            DelayAfterLoop  = VFXBasicSpawner.DelayMode.Random },
-
+            new CreateSpawner_ChangeLoopMode_TestCase() {
+                LoopDuration    = VFXBasicSpawner.LoopMode.Random,
+                LoopCount       = VFXBasicSpawner.LoopMode.Random,
+                DelayBeforeLoop = VFXBasicSpawner.DelayMode.Random,
+                DelayAfterLoop  = VFXBasicSpawner.DelayMode.Random
+            },
         };
 
         [UnityTest]
@@ -1065,7 +1131,6 @@ namespace UnityEditor.VFX.Test
 
             yield return new ExitPlayMode();
         }
-
 
         [UnityTest]
         public IEnumerator CreateSpawner_With_All_Zero_Duration() //Cover possible infinite loop

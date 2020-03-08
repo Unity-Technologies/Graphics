@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
-            if( shaderGraph == null)
+            if (shaderGraph == null)
                 yield return slotExpressions.First(o => o.name == "mainTexture");
         }
 
@@ -58,7 +58,7 @@ namespace UnityEditor.VFX
             {
                 foreach (var property in base.inputProperties)
                     yield return property;
-                if ( shaderGraph == null)
+                if (shaderGraph == null)
                     foreach (var property in PropertiesFromType("OptionalInputProperties"))
                         yield return property;
             }

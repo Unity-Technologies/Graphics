@@ -34,6 +34,7 @@ namespace UnityEditor.VFX
         {
             builder.Append(initialValue);
         }
+
         public static string GetValueString(VFXValueType type, object value)
         {
             var format = "";
@@ -221,19 +222,12 @@ namespace UnityEditor.VFX
             {
                 var names = mapper.GetNames(texture);
 
-                // First write the actual texture
-                string actualName = names[0];
-                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), actualName);
-                WriteLineFormat("SamplerState sampler{0};", actualName);
-                WriteLineFormat("float4 {0}_TexelSize;", actualName); // TODO This is not very good to add a uniform for each texture that is hardly ever used
-                WriteLine();
-
-                // Then write defines for all other names the texture is referenced as so it can be used by those names directly in template
-                for (int i = 1; i < names.Count; ++i)
+                // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
+                for (int i = 0; i < names.Count; ++i)
                 {
-                    WriteLineFormat("#define {0} {1}", names[i], actualName);
-                    WriteLineFormat("#define sampler{0} sampler{1}", names[i], actualName);
-                    WriteLineFormat("#define {0}_TexelSize {1}_TexelSize", names[i], actualName); // TODO This is not very good to add a uniform for each texture that is hardly ever used
+                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), names[i]);
+                    WriteLineFormat("SamplerState sampler{0};", names[i]);
+                    WriteLineFormat("float4 {0}_TexelSize;", names[i]); // TODO This is not very good to add a uniform for each texture that is hardly ever used
                     WriteLine();
                 }
             }
@@ -413,12 +407,13 @@ namespace UnityEditor.VFX
 
             WriteFormat("{0} {1};\n", VFXExpression.TypeToCode(type), variableName);
         }
-        public void WriteDeclaration(VFXValueType type, string variableName,string semantic)
+
+        public void WriteDeclaration(VFXValueType type, string variableName, string semantic)
         {
             if (!VFXExpression.IsTypeValidOnGPU(type))
                 throw new ArgumentException(string.Format("Invalid GPU Type: {0}", type));
 
-            WriteFormat("VFX_OPTIONAL_INTERPOLATION {0} {1} : {2};\n", VFXExpression.TypeToCode(type), variableName,semantic);
+            WriteFormat("VFX_OPTIONAL_INTERPOLATION {0} {1} : {2};\n", VFXExpression.TypeToCode(type), variableName, semantic);
         }
 
         public void WriteVariable(VFXExpression exp, Dictionary<VFXExpression, string> variableNames)
