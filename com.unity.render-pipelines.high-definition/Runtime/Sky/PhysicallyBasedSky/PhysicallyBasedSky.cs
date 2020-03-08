@@ -20,124 +20,124 @@ namespace UnityEngine.Rendering.HighDefinition
         const float k_DefaultAirAlbedoB     = 1.0f; // has the same height distribution as air (most certainly WRONG).
 
         /// <summary> Simplifies the interface by using parameters suitable to simulate Earth. </summary>
-        [Tooltip("Simplifies the interface by using parameters suitable to simulate Earth.")]
+        [Tooltip("When enabled, Unity simplifies the interface and only exposes properties suitable to simulate Earth.")]
         public BoolParameter earthPreset = new BoolParameter(true);
 
         /// <summary> Allows to specify the location of the planet. If disabled, the planet is always below the camera in the world-space X-Z plane. </summary>
-        [Tooltip("Allows to specify the location of the planet. If disabled, the planet is always below the camera in the world-space X-Z plane.")]
+        [Tooltip("When enabled, you can define the planet in terms of a world-space position and radius. Otherwise, the planet is always below the Camera in the world-space x-z plane.")]
         public BoolParameter sphericalMode = new BoolParameter(true);
 
         /// <summary> World-space Y coordinate of the sea level of the planet. Units: meters. </summary>
-        [Tooltip("World-space Y coordinate of the sea level of the planet. Units: meters.")]
+        [Tooltip("Sets the world-space y coordinate of the planet's sea level in meters.")]
         public FloatParameter seaLevel = new FloatParameter(0);
 
         /// <summary> Radius of the planet (distance from the center of the planet to the sea level). Units: meters. </summary>
-        [Tooltip("Radius of the planet (distance from the center of the planet to the sea level). Units: meters.")]
+        [Tooltip("Sets the radius of the planet in meters. This is distance from the center of the planet to the sea level.")]
         public MinFloatParameter planetaryRadius = new MinFloatParameter(k_DefaultEarthRadius, 0);
 
         /// <summary> Position of the center of the planet in the world space. Units: meters. Does not affect the precomputation. </summary>
-        [Tooltip("Position of the center of the planet in the world space. Units: meters. Does not affect the precomputation.")]
+        [Tooltip("Sets the world-space position of the planet's center in meters.")]
         public Vector3Parameter planetCenterPosition = new Vector3Parameter(new Vector3(0, -k_DefaultEarthRadius, 0));
 
         /// <summary> Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith. </summary>
-        [Tooltip("Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith.")]
+        [Tooltip("Controls the red color channel opacity of air at the point in the sky directly above the observer (zenith).")]
         public ClampedFloatParameter airDensityR = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirScatteringR, k_DefaultAirScaleHeight), 0, 1);
 
         /// <summary> Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith. </summary>
-        [Tooltip("Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith.")]
+        [Tooltip("Controls the green color channel opacity of air at the point in the sky directly above the observer (zenith).")]
         public ClampedFloatParameter airDensityG = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirScatteringG, k_DefaultAirScaleHeight), 0, 1);
 
         /// <summary> Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith. </summary>
-        [Tooltip("Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith.")]
+        [Tooltip("Controls the blue color channel opacity of air at the point in the sky directly above the observer (zenith).")]
         public ClampedFloatParameter airDensityB = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirScatteringB, k_DefaultAirScaleHeight), 0, 1);
 
         /// <summary> Single scattering albedo of air molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones. </summary>
-        [Tooltip("Single scattering albedo of air molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones.")]
+        [Tooltip("Specifies the color that HDRP tints the air to. This controls the single scattering albedo of air molecules (per color channel). A value of 0 results in absorbing molecules, and a value of 1 results in scattering ones.")]
         public ColorParameter airTint = new ColorParameter(new Color(k_DefaultAirAlbedoR, k_DefaultAirAlbedoG, k_DefaultAirAlbedoB), hdr: false, showAlpha: false, showEyeDropper: true);
 
         /// <summary> Depth of the atmospheric layer (from the sea level) composed of air particles. Controls the rate of height-based density falloff. Units: meters. </summary>
-        [Tooltip("Depth of the atmospheric layer (from the sea level) composed of air particles. Controls the rate of height-based density falloff. Units: meters.")]
+        [Tooltip("Sets the depth, in meters, of the atmospheric layer, from sea level, composed of air particles. Controls the rate of height-based density falloff.")]
         // We assume the exponential falloff of density w.r.t. the height.
         // We can interpret the depth as the height at which the density drops to 0.1% of the initial (sea level) value.
         public MinFloatParameter airMaximumAltitude = new MinFloatParameter(LayerDepthFromScaleHeight(k_DefaultAirScaleHeight), 0);
 
         /// <summary> Opacity of aerosols as measured by an observer on the ground looking towards the zenith. </summary>
-        [Tooltip("Opacity of aerosols as measured by an observer on the ground looking towards the zenith.")]
+        [Tooltip("Controls the opacity of aerosols at the point in the sky directly above the observer (zenith).")]
         // Note: aerosols are (fairly large) solid or liquid particles suspended in the air.
         public ClampedFloatParameter aerosolDensity = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(10.0f / 1000000, 1200), 0, 1);
 
         /// <summary> Single scattering albedo of aerosol molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones. </summary>
-        [Tooltip("Single scattering albedo of aerosol molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones.")]
+        [Tooltip("Specifies the color that HDRP tints aerosols to. This controls the single scattering albedo of aerosol molecules (per color channel). A value of 0 results in absorbing molecules, and a value of 1 results in scattering ones.")]
         public ColorParameter aerosolTint = new ColorParameter(new Color(0.9f, 0.9f, 0.9f), hdr: false, showAlpha: false, showEyeDropper: true);
 
         /// <summary> Depth of the atmospheric layer (from the sea level) composed of aerosol particles. Controls the rate of height-based density falloff. Units: meters. </summary>
-        [Tooltip("Depth of the atmospheric layer (from the sea level) composed of aerosol particles. Controls the rate of height-based density falloff. Units: meters.")]
+        [Tooltip("Sets the depth, in meters, of the atmospheric layer, from sea level, composed of aerosol particles. Controls the rate of height-based density falloff.")]
         // We assume the exponential falloff of density w.r.t. the height.
         // We can interpret the depth as the height at which the density drops to 0.1% of the initial (sea level) value.
         public MinFloatParameter aerosolMaximumAltitude = new MinFloatParameter(LayerDepthFromScaleHeight(1200), 0);
 
         /// <summary> Positive values for forward scattering, 0 for isotropic scattering. negative values for backward scattering. </summary>
-        [Tooltip("Positive values for forward scattering, 0 for isotropic scattering. negative values for backward scattering.")]
+        [Tooltip("Controls the direction of anisotropy. Set this to a positive value for forward scattering, a negative value for backward scattering, or 0 for isotropic scattering.")]
         public ClampedFloatParameter aerosolAnisotropy = new ClampedFloatParameter(0, -1, 1);
 
         /// <summary> Number of scattering events. </summary>
-        [Tooltip("Number of scattering events.")]
+        [Tooltip("Sets the number of scattering events. This increases the quality of the sky visuals but also increases the pre-computation time.")]
         public ClampedIntParameter numberOfBounces = new ClampedIntParameter(8, 1, 10);
 
         /// <summary> Ground tint. </summary>
-        [Tooltip("Ground tint.")]
+        [Tooltip("Specifies a color that HDRP uses to tint the Ground Color Texture.")]
         public ColorParameter groundTint = new ColorParameter(new Color(0.4f, 0.25f, 0.15f), hdr: false, showAlpha: false, showEyeDropper: false);
 
         /// <summary> Ground color texture. Does not affect the precomputation. </summary>
-        [Tooltip("Ground color texture. Does not affect the precomputation.")]
+        [Tooltip("Specifies a Texture that represents the planet's surface. Does not affect the precomputation.")]
         public CubemapParameter groundColorTexture = new CubemapParameter(null);
 
         /// <summary> Ground emission texture. Does not affect the precomputation. </summary>
-        [Tooltip("Ground emission texture. Does not affect the precomputation.")]
+        [Tooltip("Specifies a Texture that represents the emissive areas of the planet's surface. Does not affect the precomputation.")]
         public CubemapParameter groundEmissionTexture = new CubemapParameter(null);
 
         /// <summary> Ground emission multiplier. Does not affect the precomputation. </summary>
-        [Tooltip("Ground emission multiplier. Does not affect the precomputation.")]
+        [Tooltip("Sets the multiplier that HDRP applies to the Ground Emission Texture.")]
         public MinFloatParameter groundEmissionMultiplier = new MinFloatParameter(1, 0);
 
         /// <summary> Rotation of the planet. Does not affect the precomputation. </summary>
-        [Tooltip("Rotation of the planet. Does not affect the precomputation.")]
+        [Tooltip("Sets the orientation of the planet. Does not affect the precomputation.")]
         public Vector3Parameter planetRotation = new Vector3Parameter(Vector3.zero);
 
         /// <summary> Space emission texture. Does not affect the precomputation. </summary>
-        [Tooltip("Space emission texture. Does not affect the precomputation.")]
+        [Tooltip("Specifies a Texture that represents the emissive areas of space. Does not affect the precomputation.")]
         public CubemapParameter spaceEmissionTexture = new CubemapParameter(null);
 
         /// <summary> Space emission multiplier. Does not affect the precomputation. </summary>
-        [Tooltip("Space emission multiplier. Does not affect the precomputation.")]
+        [Tooltip("Sets the multiplier that HDRP applies to the Space Emission Texture. Does not affect the precomputation.")]
         public MinFloatParameter spaceEmissionMultiplier = new MinFloatParameter(1, 0);
 
         /// <summary> Rotation of space. Does not affect the precomputation. </summary>
-        [Tooltip("Rotation of space. Does not affect the precomputation.")]
+        [Tooltip("Sets the orientation of space. Does not affect the precomputation.")]
         public Vector3Parameter spaceRotation = new Vector3Parameter(Vector3.zero);
 
         /// <summary> Color saturation. Does not affect the precomputation. </summary>
-        [Tooltip("Color saturation. Does not affect the precomputation.")]
+        [Tooltip("Controls the saturation of the sky color. Does not affect the precomputation.")]
         public ClampedFloatParameter colorSaturation = new ClampedFloatParameter(1, 0, 1);
 
         /// <summary> Opacity saturation. Does not affect the precomputation. </summary>
-        [Tooltip("Opacity saturation. Does not affect the precomputation.")]
+        [Tooltip("Controls the saturation of the sky opacity. Does not affect the precomputation.")]
         public ClampedFloatParameter alphaSaturation = new ClampedFloatParameter(1, 0, 1);
 
         /// <summary> Opacity multiplier. Does not affect the precomputation. </summary>
-        [Tooltip("Opacity multiplier. Does not affect the precomputation.")]
+        [Tooltip("Sets the multiplier that HDRP applies to the opacity of the sky. Does not affect the precomputation.")]
         public ClampedFloatParameter alphaMultiplier = new ClampedFloatParameter(1, 0, 1);
 
         /// <summary> Horizon tint. Does not affect the precomputation. </summary>
-        [Tooltip("Horizon tint. Does not affect the precomputation.")]
+        [Tooltip("Specifies a color that HDRP uses to tint the sky at the horizon. Does not affect the precomputation.")]
         public ColorParameter horizonTint = new ColorParameter(Color.white, hdr: false, showAlpha: false, showEyeDropper: false);
 
         /// <summary> Zenith tint. Does not affect the precomputation. </summary>
-        [Tooltip("Zenith tint. Does not affect the precomputation.")]
+        [Tooltip("Specifies a color that HDRP uses to tint the point in the sky directly above the observer (the zenith). Does not affect the precomputation.")]
         public ColorParameter zenithTint = new ColorParameter(Color.white, hdr: false, showAlpha: false, showEyeDropper: false);
 
         /// <summary> Horizon-zenith shift. Does not affect the precomputation. </summary>
-        [Tooltip("Horizon-zenith shift. Does not affect the precomputation.")]
+        [Tooltip("Controls how HDRP blends between the Horizon Tint and Zenith Tint. Does not affect the precomputation.")]
         public ClampedFloatParameter horizonZenithShift = new ClampedFloatParameter(0, -1, 1);
 
         static internal float ScaleHeightFromLayerDepth(float d)
