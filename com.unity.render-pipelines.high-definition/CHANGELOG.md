@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed invalid game view rendering when disabling all cameras in the scene (case 1105163)
 - Fixed infinite reload loop while displaying Light's Shadow's Link Light Layer in Inspector of Prefab Asset.
 - Fixed the cookie atlas size and planar atlas size being too big after an upgrade of the HDRP asset.
+- Fix player build DX12
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
@@ -448,7 +449,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix Inf source in LTC for area lights.
 - Fixed alpha clipping test (comparison was '>', now '>=')
 - Fixed preview camera (eg. shader graph preview) when path tracing is on
-- Fix player build
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
