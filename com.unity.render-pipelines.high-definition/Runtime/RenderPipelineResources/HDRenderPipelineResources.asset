@@ -179,6 +179,7 @@ MonoBehaviour:
       type: 3}
     bilateralUpsampleCS: {fileID: 7200000, guid: cb7fd978e12804e4bbf0b5ecbe0ce06e,
       type: 3}
+    ssGIDenoiserCS: {fileID: 7200000, guid: a435d803bc32d0845ba1a713b7a1c8b1, type: 3}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}
     colorGradient: {fileID: 2800000, guid: 4ea52e665573c1644bf05dd9b11fd2a4, type: 3}

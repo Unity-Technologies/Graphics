@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(GlobalIllumination))]
     class GlobalIlluminatorEditor : VolumeComponentEditor
     {
+        SerializedDataParameter m_Enable;
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_RaySteps;
         SerializedDataParameter m_MaximalRadius;
@@ -40,6 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var o = new PropertyFetcher<GlobalIllumination>(serializedObject);
 
+            m_Enable = Unpack(o.Find(x => x.enable));
+
             m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
             m_RaySteps = Unpack(o.Find(x => x.raySteps));
             m_MaximalRadius = Unpack(o.Find(x => x.maximalRadius));
@@ -71,6 +74,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            PropertyField(m_Enable);
+            
             // If ray tracing is supported display the content of the volume component
             if (HDRenderPipeline.pipelineSupportsRayTracing)
             {

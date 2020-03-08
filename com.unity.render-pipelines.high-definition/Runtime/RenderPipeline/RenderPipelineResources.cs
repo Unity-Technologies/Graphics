@@ -263,6 +263,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader reflectionDenoiserCS;
             [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Common/BilateralUpsample.compute")]
             public ComputeShader bilateralUpsampleCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/SSGIDenoiser.compute")]
+            public ComputeShader ssGIDenoiserCS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)

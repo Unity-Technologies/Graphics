@@ -9,6 +9,12 @@ namespace UnityEngine.Rendering.HighDefinition
     public sealed class GlobalIllumination : VolumeComponent
     {
         /// <summary>
+        /// Enable screen space global illumination.
+        /// </summary>
+        [Tooltip("Enable screen space global illumination.")]
+        public BoolParameter enable = new BoolParameter(true);
+
+        /// <summary>
         /// Enable ray traced global illumination.
         /// </summary>
         [Tooltip("Enable ray traced global illumination.")]

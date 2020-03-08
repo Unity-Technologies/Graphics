@@ -1,0 +1,267 @@
+#pragma kernel SpatialFilterHalf                                SPATIAL_FILTER=SpatialFilterHalf HALF_RES
+#pragma kernel SpatialFilter                                    SPATIAL_FILTER=SpatialFilter
+
+#pragma kernel TemporalFilterHalf                               TEMPORAL_FILTER=TemporalFilterHalf HALF_RES
+#pragma kernel TemporalFilter                                   TEMPORAL_FILTER=TemporalFilter
+
+#pragma kernel CopyHistory                                      COPY_HISTORY=CopyHistory
+
+// Common includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+
+// HDRP includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
+
+// #pragma only_renderers d3d11
+// #pragma enable_d3d11_debug_symbols
+
+// Tile size of this compute shaders
+#define SSGI_FILTER_TILE_SIZE 8
+
+// Depth buffer of the current frame
+TEXTURE2D_X(_DepthTexture);
+StructuredBuffer<int2> _DepthPyramidMipLevelOffsets;
+// Noisy buffer input
+TEXTURE2D_X(_InputNoisyBuffer);
+// Noisy buffer input
+RW_TEXTURE2D_X(float4, _OutputFilteredBuffer);
+
+float sqr(float value)
+{
+    return value * value;
+}
+float gaussian(float radius, float sigma)
+{
+    return exp(-sqr(radius / sigma));
+}
+
+[numthreads(SSGI_FILTER_TILE_SIZE, SSGI_FILTER_TILE_SIZE, 1)]
+void SPATIAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
+                    , uint2 groupThreadId : SV_GroupThreadID
+                    , uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Fetch the current pixel coordinates
+    int2 centerCoord = groupId * SSGI_FILTER_TILE_SIZE + groupThreadId;
+
+#if HALF_RES
+    // Read the mip offset of the half res
+    int2 mipOffset = _DepthPyramidMipLevelOffsets[1];
+
+    // We need the full res coordinate for the inputs
+    uint2 fullResCoord = centerCoord * 2;
+
+    // Get the posinputs of the current version of the pixel
+    // TODO: Use Depth pyramid
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + centerCoord).r;
+#else
+    // Get the posinputs of the current version of the pixel
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
+#endif
+
+    // If the current point we are processing is a background point or the whole history should be discarded for an other reason, we invalidate the history
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        _OutputFilteredBuffer[COORD_TEXTURE2D_X(centerCoord)] = 0;
+        return;
+    }
+
+    float centerz01 = Linear01Depth(depth, _ZBufferParams);
+    float3 colorSum = 0.0;
+    float wSum = 0.0;
+    int2 tapCoord = centerCoord;
+    int radius = 3;
+    float sigma = radius * 1.0;
+    for (int y = -radius; y <= radius; ++y)
+    {
+        for (int x = -radius; x <= radius; ++x)
+        {
+            float r = sqrt(x*x + y*y);
+            // Compute the tap coord
+            tapCoord = centerCoord + int2(x, y);
+
+            // We should not tap outside of the screen (given that its a unit, if we go below zero we wrap around)
+            if (tapCoord.x > _ScreenSize.x 
+                || tapCoord.x < 0
+                || tapCoord.y > _ScreenSize.y
+                || tapCoord.y < 0)
+                continue;
+
+            // Read the depth of the 
+#if HALF_RES
+            float tapDepth = LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + tapCoord).r;
+#else
+            float tapDepth = LOAD_TEXTURE2D_X(_DepthTexture, tapCoord).r;
+#endif
+            float tapz01 = Linear01Depth(tapDepth, _ZBufferParams);
+
+            // Compute the depth for this pixel
+            float depthWeight = max(0.0, 1.0 - abs(tapz01 - centerz01));
+
+            // Compute the weight (skip computation for the center)
+            const float w = r ? gaussian(r, sigma) * depthWeight : 1.0;
+
+            // Accumuate this value
+            colorSum += LOAD_TEXTURE2D_X(_InputNoisyBuffer, tapCoord).xyz * w;
+            wSum += w;
+        }
+    }
+
+    _OutputFilteredBuffer[COORD_TEXTURE2D_X(centerCoord)] = float4(colorSum / wSum, LOAD_TEXTURE2D_X(_InputNoisyBuffer, centerCoord).w);
+}
+
+float3 DirectClipToAABB(float3 history, float3 minimum, float3 maximum)
+{
+    // note: only clips towards aabb center (but fast!)
+    float3 center  = 0.5 * (maximum + minimum);
+    float3 extents = 0.5 * (maximum - minimum) * 10;
+
+    // This is actually `distance`, however the keyword is reserved
+    float3 offset = history - center;
+    float3 v_unit = offset.xyz / extents;
+    float3 absUnit = abs(v_unit);
+    float maxUnit = Max3(absUnit.x, absUnit.y, absUnit.z);
+
+    if (maxUnit > 1.0)
+        return center + (offset / maxUnit);
+    else
+        return history;
+}
+
+// History buffer input
+TEXTURE2D_X(_HistoryBuffer);
+// Depth buffer of the previous frame
+TEXTURE2D_X(_HistoryDepthTexture);
+
+[numthreads(SSGI_FILTER_TILE_SIZE, SSGI_FILTER_TILE_SIZE, 1)]
+void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
+                    , uint2 groupThreadId : SV_GroupThreadID
+                    , uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Fetch the current pixel coordinates
+    uint2 centerCoord = groupId * SSGI_FILTER_TILE_SIZE + groupThreadId;
+    float4 color = LOAD_TEXTURE2D_X(_InputNoisyBuffer, centerCoord);
+
+#if HALF_RES
+    // Read the mip offset of the half res
+    int2 mipOffset = _DepthPyramidMipLevelOffsets[1];
+
+    // We need the full res coordinate for the inputs
+    uint2 fullResCoord = centerCoord * 2;
+
+    // Get the posinputs of the current version of the pixel
+    // TODO: Use Depth pyramid
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + centerCoord).r;
+    PositionInputs posInputs = GetPositionInput(fullResCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
+#else
+    // Get the posinputs of the current version of the pixel
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
+    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
+#endif
+
+    // If the current point we are processing is a background point or the whole history should be discarded for an other reason, we invalidate the history
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        return;
+    }
+
+    // Decode the velocity of the pixel
+    float2 velocity = float2(0.0, 0.0);
+#if HALF_RES
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, (float2)fullResCoord), velocity);
+#else
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, (float2)centerCoord), velocity);
+#endif
+
+    // Compute the pixel coordinate for the history tapping
+    int2 historyTapCoord = (int2)((posInputs.positionNDC - velocity) * _ScreenSize.xy);
+
+    // If the pixel was outside of the screen during the previous frame, invalidate the history
+    if (historyTapCoord.x > _ScreenSize.x || historyTapCoord.x < 0 
+        || historyTapCoord.y > _ScreenSize.y || historyTapCoord.y < 0)
+    {
+        return;
+    }
+
+#if HALF_RES
+    float historyDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, historyTapCoord * 0.5).r;
+#else
+    // Fetch the depth of the history pixel. If the history position was a background point, invalidate the history
+    float historyDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, historyTapCoord).r;
+#endif
+
+    bool invalidHistory = false;
+    if (historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        invalidHistory = true;
+    }
+
+    // Compute the world space position (from previous frame)
+    float3 historyPositionWS = ComputeWorldSpacePosition(posInputs.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
+
+    // Is it too far from the current position?
+    if (length(historyPositionWS - posInputs.positionWS) > 0.1)
+    {
+        invalidHistory = true;
+    }
+
+    // Fetch current color
+#if HALF_RES
+    float4 history = LOAD_TEXTURE2D_X(_HistoryBuffer, historyTapCoord * 0.5f);
+#else
+    float4 history = LOAD_TEXTURE2D_X(_HistoryBuffer, historyTapCoord);
+#endif
+    float sampleCount = history.w;
+
+    // Accumulation factor that tells us how much we need to keep the history data
+    float accumulationFactor = 0.0;
+
+    // If the history is invalid or the history was flagged as moving (sampleCount == 0.0)
+    if (invalidHistory || sampleCount == 0.0)
+    {
+        // We only take the current value
+        accumulationFactor = 0.0;
+    #if SINGLE_CHANNEL
+        history.x = 0.0;
+    #else
+        history.xyz = 0.0;
+    #endif
+            sampleCount = 1.0;
+    }
+    else
+    {
+        // Otherwise we compute the accumulation factor
+        accumulationFactor = sampleCount >= 16.0 ?  16.0/17.0 : (sampleCount / (sampleCount + 1.0));
+
+        // Update the sample count
+        sampleCount = min(sampleCount + 1.0, 16.0);
+        // And the sample count of history becomes 1 (or 0 if the previous sample was mooving)
+        if (color.w > 0.0)
+        {
+            sampleCount = 5.0;
+            accumulationFactor = sampleCount / (sampleCount + 1.0);
+        }
+    }
+
+    _OutputFilteredBuffer[COORD_TEXTURE2D_X(centerCoord)] = float4(color.xyz * (1.0 - accumulationFactor) + history.xyz * accumulationFactor, sampleCount);
+}
+
+[numthreads(SSGI_FILTER_TILE_SIZE, SSGI_FILTER_TILE_SIZE, 1)]
+void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
+        return;  // Out of bounds, discard
+
+    _OutputFilteredBuffer[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_InputNoisyBuffer, dispatchThreadId.xy);
+}

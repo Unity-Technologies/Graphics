@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         HDSimpleDenoiser m_SimpleDenoiser;
         HDDiffuseDenoiser m_DiffuseDenoiser;
         HDReflectionDenoiser m_ReflectionDenoiser;
+        SSGIDenoiser m_SSGIDenoiser;
 
         // Ray-count manager data
         RayCountManager m_RayCountManager = new RayCountManager();
@@ -144,6 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ReflectionDenoiser.Release();
             m_TemporalFilter.Release();
             m_SimpleDenoiser.Release();
+            m_SSGIDenoiser.Release();
             m_DiffuseDenoiser.Release();
             m_RayCountManager.Release();
         }
@@ -477,7 +479,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return 0;
             else
         #endif
-            return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+            return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 16;
         }
 
         internal void BuildRayTracingLightCluster(CommandBuffer cmd, HDCamera hdCamera)
@@ -553,6 +555,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SimpleDenoiser.Init(m_Asset.renderPipelineResources, sharedRTManager, this);
             }
             return m_SimpleDenoiser;
+        }
+
+        internal SSGIDenoiser GetSSGIDenoiser()
+        {
+            if (m_SSGIDenoiser == null)
+            {
+                m_SSGIDenoiser = new SSGIDenoiser();
+                m_SSGIDenoiser.Init(m_Asset.renderPipelineResources, sharedRTManager, this);
+            }
+            return m_SSGIDenoiser;
         }
 
         internal HDDiffuseDenoiser GetDiffuseDenoiser()
