@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+- Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
+
 ## [7.2.0] - 2020-02-10
 
 ### Added
