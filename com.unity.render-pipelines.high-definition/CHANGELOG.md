@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
+- Fixed alpha clipping test (comparison was '>', now '>=')
+- Fixed preview camera (eg. shader graph preview) when path tracing is on
 
 ## [7.2.0] - 2020-02-10
 
