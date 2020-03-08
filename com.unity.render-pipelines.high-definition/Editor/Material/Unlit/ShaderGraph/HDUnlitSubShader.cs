@@ -503,7 +503,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return activeFields;
         }
 
-        private static bool GenerateShaderPassUnlit(HDUnlitMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        private static bool GenerateShaderPassUnlit(HDUnlitMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool instancingFlag = true)
         {
             if (mode == GenerationMode.ForReals || pass.UseInPreview)
             {
@@ -520,7 +520,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     vertexActive = true;
                 }
-                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
+                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive, instancingFlag: instancingFlag);
             }
             else
             {
@@ -578,11 +578,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 subShader.Indent();
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName);
                 {
-                    GenerateShaderPassUnlit(masterNode, m_PassRaytracingIndirect, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassUnlit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassUnlit(masterNode, m_PassRaytracingForward, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassUnlit(masterNode, m_PassRaytracingGBuffer, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassUnlit(masterNode, m_PassPathTracing, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassUnlit(masterNode, m_PassRaytracingIndirect, mode, subShader, sourceAssetDependencyPaths, instancingFlag: false);
+                    GenerateShaderPassUnlit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths, instancingFlag: false);
+                    GenerateShaderPassUnlit(masterNode, m_PassRaytracingForward, mode, subShader, sourceAssetDependencyPaths, instancingFlag: false);
+                    GenerateShaderPassUnlit(masterNode, m_PassRaytracingGBuffer, mode, subShader, sourceAssetDependencyPaths, instancingFlag: false);
+                    GenerateShaderPassUnlit(masterNode, m_PassPathTracing, mode, subShader, sourceAssetDependencyPaths, instancingFlag: false);
                 }
                 subShader.Deindent();
                 subShader.AddShaderChunk("}", false);
