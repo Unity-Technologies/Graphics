@@ -53,8 +53,11 @@ namespace UnityEditor.VFX
                     expressions[exp] = previousNames;
                 }
 
-                if (names == null)
-                    previousNames.Add(prefix + VFXCodeGeneratorHelper.GeneratePrefix((uint)expressions.Count()));
+                if (names == null) 
+                {
+                    if (previousNames.Count == 0) // No need to generate a name if one was already generated
+                        previousNames.Add(prefix + VFXCodeGeneratorHelper.GeneratePrefix(m_CurrentUniformIndex++));
+                }
                 else
                     previousNames.AddRange(names);
             }
@@ -75,6 +78,8 @@ namespace UnityEditor.VFX
         {
             m_UniformToName = new Dictionary<VFXExpression, List<string>>();
             m_TextureToName = new Dictionary<VFXExpression, List<string>>();
+
+            m_CurrentUniformIndex = 0;
 
             var processedExp = new HashSet<VFXExpression>();
             foreach (var exp in mapper.expressions)
@@ -124,6 +129,8 @@ namespace UnityEditor.VFX
 
         private Dictionary<VFXExpression, List<string>> m_UniformToName;
         private Dictionary<VFXExpression, List<string>> m_TextureToName;
+
+        private uint m_CurrentUniformIndex;
         private bool m_FilterOutConstants;
     }
 }
