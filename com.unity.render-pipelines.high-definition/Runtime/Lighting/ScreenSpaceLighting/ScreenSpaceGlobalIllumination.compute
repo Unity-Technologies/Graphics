@@ -242,6 +242,9 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
     // Compute the view direction (world space)
     float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
+    // If the ray is toomuch along the view direction, the result we are going to get is going to lead to leaking probably, we need to avoid it
+    //killRay = killRay  || (dot(viewWS, sampleDir) > 0.95);
+
     // Apply normal bias with the magnitude dependent on the distance from the camera.
     // Unfortunately, we only have access to the shading normal, which is less than ideal...
     posInput.positionWS  = camPosWS + (posInput.positionWS - camPosWS) * (1 - 0.001 * rcp(max(dot(normalData.normalWS, viewWS), FLT_EPS)));
@@ -266,6 +269,8 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 TEXTURE2D_X(_IndirectDiffuseHitPointTexture);
 // Input baked indirect diffuse texture that we use to combine with the ray marched data
 TEXTURE2D_X(_GBufferTexture3);
+// Depth buffer of the previous frame
+TEXTURE2D_X(_HistoryDepthTexture);
 // Output indirect diffuse texture 
 RW_TEXTURE2D_X(float4, _IndirectDiffuseTextureRW);
 
@@ -292,6 +297,9 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     // Read the hit point ndc position to fetch
     float4 hitPositionNDC = LOAD_TEXTURE2D_X(_IndirectDiffuseHitPointTexture, currentCoord);
 
+    // Grab the depth of the hit point
+    float hitPointDepth = LOAD_TEXTURE2D_X(_DepthTexture, hitPositionNDC * _ScreenSize.xy).x;
+
     // Flag that tracks if this ray lead to a valid result
     bool invalid = false;
 
@@ -311,38 +319,22 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
         (prevFrameUV.y < 0) || (prevFrameUV.y > _ColorPyramidUvScaleAndLimitPrevFrame.w))
         invalid = true;
 
+    // Grab the depth of the hit point and reject the history buffer if the depth is too different
+    // TODO: Find a better metric
+    float hitPointHistoryDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, prevFrameNDC * _ScreenSize.xy).x;
+    if (abs(hitPointHistoryDepth - hitPointDepth) > 0.01)
+    {
+        invalid = true;
+    }
+
     // Based on if the intersection was valid (or not, pick a source for the lighting)
     float3 color = 0.0;
     if (!invalid)
     {
         // The intersection was considered valid, we can read from the color pyramid
-        color = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, _IndirectDiffusePyramidBias).rgb;
+        color = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, 0).rgb;
     }
-    /*
-    else
-    {
-        // LULULU
-        float depthCz01 = Linear01Depth(deviceDepth, _ZBufferParams);
 
-#if HALF_RES
-    float colorSum = 0.0;
-    float wSum = 0.0;
-    for (int i = 0; i < 4; i++)
-    {
-        int2 currentUpsampledCoord = fullResCoord + HalfResIndexToCoordinateShift[i];
-        float3 color = _GBufferTexture3[COORD_TEXTURE2D_X(currentUpsampledCoord)].rgb;
-        float depthz01 = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, currentUpsampledCoord).x, _ZBufferParams);
-        float dw = max(0.0, 1.0 - abs(depthz01 - depthCz01) * 2.0);
-        colorSum += color * dw;
-        wSum += dw;
-    }
-    color = colorSum / wSum;
-    //color = _GBufferTexture3[COORD_TEXTURE2D_X(currentCoord * 2)].rgb;
-#else
-        color = _GBufferTexture3[COORD_TEXTURE2D_X(currentCoord)].rgb;
-#endif
-    }
-    */
     // We need to clamp before leaving
     color = clamp(color, 0.0, _RaytracingIntensityClamp);
 
