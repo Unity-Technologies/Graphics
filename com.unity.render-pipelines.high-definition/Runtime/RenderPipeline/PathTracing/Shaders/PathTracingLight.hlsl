@@ -35,7 +35,8 @@ LightList CreateLightList(float3 position, uint lightLayers)
     localCount = _PunctualLightCountRT + _AreaLightCountRT;
     #endif
 
-    for (uint i = 0; i < localCount && list.localCount < MAX_LOCAL_LIGHT_COUNT; i++)
+    uint i;
+    for (i = 0; i < localCount && list.localCount < MAX_LOCAL_LIGHT_COUNT; i++)
     {
         #ifdef USE_LIGHT_CLUSTER
         const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
@@ -50,7 +51,7 @@ LightList CreateLightList(float3 position, uint lightLayers)
     // Then filter the active distant lights (directional)
     list.distantCount = 0;
 
-    for (uint i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
+    for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
     {
         if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers))
             list.distantIndex[list.distantCount++] = i;
@@ -175,7 +176,7 @@ bool SampleLights(LightList lightList,
             if (lightData.size.x > 0.0) // Stores the square radius
             {
                 float3x3 localFrame = GetLocalFrame(normalize(outgoingDir));
-                SampleCone(inputSample, sqrt(saturate(1.0 - lightData.size.x / sqDist)), outgoingDir, pdf); // computes rcpPdf
+                SampleCone(inputSample.xy, sqrt(saturate(1.0 - lightData.size.x / sqDist)), outgoingDir, pdf); // computes rcpPdf
 
                 outgoingDir = normalize(outgoingDir.x * localFrame[0] + outgoingDir.y * localFrame[1] + outgoingDir.z * localFrame[2]);
 
@@ -207,7 +208,7 @@ bool SampleLights(LightList lightList,
 
         if (lightData.angularDiameter > 0.0)
         {
-            SampleCone(inputSample, cos(lightData.angularDiameter * 0.5), outgoingDir, pdf); // computes rcpPdf
+            SampleCone(inputSample.xy, cos(lightData.angularDiameter * 0.5), outgoingDir, pdf); // computes rcpPdf
             value = lightData.color / pdf;
             pdf = GetDistantLightWeight(lightList) / pdf;
             outgoingDir = normalize(outgoingDir.x * normalize(lightData.right) + outgoingDir.y * normalize(lightData.up) - outgoingDir.z * lightData.forward);
@@ -235,9 +236,9 @@ void EvaluateLights(LightList lightList,
 {
     value = 0.0;
     pdf = 0.0;
-
+    uint i;
     // First local lights
-    for (uint i = 0; i < lightList.localCount; i++)
+    for (i = 0; i < lightList.localCount; i++)
     {
         LightData lightData = GetLocalLightData(lightList, i);
 
@@ -273,7 +274,7 @@ void EvaluateLights(LightList lightList,
     }
 
     // Then distant lights
-    for (uint i = 0; i < lightList.distantCount; i++)
+    for (i = 0; i < lightList.distantCount; i++)
     {
         DirectionalLightData lightData = GetDistantLightData(lightList, i);
 

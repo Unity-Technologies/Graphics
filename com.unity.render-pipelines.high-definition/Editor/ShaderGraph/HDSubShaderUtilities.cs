@@ -567,7 +567,7 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRPShaderStructs.VertexDescriptionInputs.dependencies
         };
 
-        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive)
+        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive, bool instancingFlag = true)
         {
             string templatePath = Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor/Material");
             string templateLocation = Path.Combine(Path.Combine(Path.Combine(templatePath, pass.MaterialName), "ShaderGraph"), pass.TemplateName);
@@ -782,6 +782,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             int instancedCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
             ShaderGenerator instancingOptions = new ShaderGenerator();
+            if (instancingFlag)
             {
                 instancingOptions.AddShaderChunk("#pragma multi_compile_instancing", true);
 
