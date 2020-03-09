@@ -55,9 +55,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             lightDataGI.mode = LightmapperUtils.Extract(light.bakingOutput.lightmapBakeType);
 #endif
-            
+
             lightDataGI.shadow = (byte)(light.shadows != LightShadows.None ? 1 : 0);
-            
+
             HDLightType lightType = add.ComputeLightType(light);
             if (lightType != HDLightType.Area)
             {
@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Point;
                     lightDataGI.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
                     break;
-                    
+
                 case HDLightType.Area:
                     switch (add.areaLightShape)
                     {
@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         case AreaLightShape.Tube:
                             lightDataGI.InitNoBake(lightDataGI.instanceID);
                             break;
-                            
+
                         case AreaLightShape.Disc:
                             lightDataGI.orientation = light.transform.rotation;
                             lightDataGI.position = light.transform.position;
@@ -217,6 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             // TEMP: for now, if we bake a rectangle type this will disable the light for runtime, need to speak with GI team about it!
                             lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Disc;
                             lightDataGI.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
+                            lightDataGI.cookieID = add.areaLightCookie ? add.areaLightCookie.GetInstanceID() : 0;
                             break;
 
                         default:
