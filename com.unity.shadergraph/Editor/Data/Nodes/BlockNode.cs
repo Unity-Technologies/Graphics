@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         string m_SerializedDescriptor;
 
         [NonSerialized]
-        ContextData m_Context;
+        ContextData m_ContextData;
 
         [NonSerialized]
         int m_Index;
@@ -27,20 +27,11 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         BlockFieldDescriptor m_Descriptor;
 
+        [NonSerialized]
+        ShaderGraphRequirements m_Requirements;
+
         public BlockNode()
         {
-        }
-
-        public ContextData contextData
-        {
-            get => m_Context;
-            set => m_Context = value;
-        }
-
-        public int index
-        {
-            get => m_Index;
-            set => m_Index = value;
         }
 
         // Because the GraphData is deserialized after its child elements
@@ -48,6 +39,18 @@ namespace UnityEditor.ShaderGraph
         // at the time of node deserialization
         // Therefore we need to deserialize this element at GraphData.OnAfterDeserialize
         public string serializedDescriptor => m_SerializedDescriptor;
+
+        public ContextData contextData
+        {
+            get => m_ContextData;
+            set => m_ContextData = value;
+        }
+
+        public int index
+        {
+            get => m_Index;
+            set => m_Index = value;
+        }
 
         public BlockFieldDescriptor descriptor
         {
@@ -59,111 +62,100 @@ namespace UnityEditor.ShaderGraph
         {
             name = $"{fieldDescriptor.tag}.{fieldDescriptor.name}";
             m_Descriptor = fieldDescriptor;
+            m_Requirements = fieldDescriptor.control.GetRequirements();
             AddSlot();
         }
 
         void AddSlot()
         {
-            var displayName = descriptor.name;
-            var referenceName = descriptor.name;
+            var stageCapability = m_Descriptor.shaderStage.GetShaderStageCapability();
             switch(descriptor.control)
             {
-                case ObjectSpacePositionControl objectSpacePositionControl:
-                    AddSlot(new PositionMaterialSlot(0, displayName, referenceName, CoordinateSpace.Object, GetStageCapability()));
+                case PositionControl positionControl:
+                    AddSlot(new PositionMaterialSlot(0, descriptor.name, descriptor.name, positionControl.space, stageCapability));
                     break;
-                case ObjectSpaceNormalControl objectSpaceNormalControl:
-                    AddSlot(new NormalMaterialSlot(0, displayName, referenceName, CoordinateSpace.Object, GetStageCapability()));
+                case NormalControl normalControl:
+                    AddSlot(new NormalMaterialSlot(0, descriptor.name, descriptor.name, normalControl.space, stageCapability));
                     break;
-                case ObjectSpaceTangentControl objectSpaceTangentControl:
-                    AddSlot(new TangentMaterialSlot(0, displayName, referenceName, CoordinateSpace.Object, GetStageCapability()));
-                    break;
-                case TangentSpaceNormalControl tangentSpaceNormalControl:
-                    AddSlot(new NormalMaterialSlot(0, displayName, referenceName, CoordinateSpace.Tangent, GetStageCapability()));
+                case TangentControl tangentControl:
+                    AddSlot(new TangentMaterialSlot(0, descriptor.name, descriptor.name, tangentControl.space, stageCapability));
                     break;
                 case ColorControl colorControl:
                     var colorMode = colorControl.hdr ? ColorMode.HDR : ColorMode.Default;
-                    AddSlot(new ColorRGBMaterialSlot(0, displayName, referenceName, SlotType.Input, colorControl.value, colorMode, GetStageCapability()));
+                    AddSlot(new ColorRGBMaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, colorControl.value, colorMode, stageCapability));
                     break;
                 case ColorRGBAControl colorRGBAControl:
-                    AddSlot(new ColorRGBAMaterialSlot(0, displayName, referenceName, SlotType.Input, colorRGBAControl.value, GetStageCapability()));
+                    AddSlot(new ColorRGBAMaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, colorRGBAControl.value, stageCapability));
                     break;
                 case FloatControl floatControl:
-                    AddSlot(new Vector1MaterialSlot(0, displayName, referenceName, SlotType.Input, floatControl.value, GetStageCapability()));
+                    AddSlot(new Vector1MaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, floatControl.value, stageCapability));
                     break;
             }
             RemoveSlotsNameNotMatching(new int[] {0});
         }
 
-        ShaderStageCapability GetStageCapability()
-        {
-            if(m_Descriptor != null && m_Descriptor.contextStage == ContextStage.Vertex)
-                return ShaderStageCapability.Vertex;
-
-            return ShaderStageCapability.Fragment;
-        }
-
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != GetStageCapability())
+            if(m_Descriptor == null || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
             
-            return m_Descriptor.requirements.requiresNormal;
+            return m_Requirements.requiresNormal;
         }
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != GetStageCapability())
+            if(m_Descriptor == null || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
-            return m_Descriptor.requirements.requiresViewDir;
+            return m_Requirements.requiresViewDir;
         }
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != GetStageCapability())
+            if(m_Descriptor == null || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
             
-            return m_Descriptor.requirements.requiresPosition;
+            return m_Requirements.requiresPosition;
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != GetStageCapability())
+            if(m_Descriptor == null || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
             
-            return m_Descriptor.requirements.requiresTangent;
+            return m_Requirements.requiresTangent;
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != GetStageCapability())
+            if(m_Descriptor == null || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
             
-            return m_Descriptor.requirements.requiresBitangent;
+            return m_Requirements.requiresBitangent;
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
-            if(stageCapability != GetStageCapability())
+            if(m_Descriptor == null || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
             
-            return m_Descriptor.requirements.requiresMeshUVs.Contains(channel);
+            return m_Requirements.requiresMeshUVs.Contains(channel);
         }
 
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != GetStageCapability())
+            if(m_Descriptor == null || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
             
-            return m_Descriptor.requirements.requiresScreenPosition;
+            return m_Requirements.requiresScreenPosition;
         }
 
         public bool RequiresVertexColor(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != GetStageCapability())
+            if(m_Descriptor == null || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
             
-            return m_Descriptor.requirements.requiresVertexColor;
+            return m_Requirements.requiresVertexColor;
         }
 
         public override void OnBeforeSerialize()

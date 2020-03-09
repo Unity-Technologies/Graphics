@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach(var field in m_Graph.blockFieldDescriptors)
                 {
                     // Test stage
-                    if(field.contextStage != contextView.contextData.contextStage)
+                    if(field.shaderStage != contextView.contextData.shaderStage)
                         continue;
 
                     // Create and initialize BlockNode instance then add entry

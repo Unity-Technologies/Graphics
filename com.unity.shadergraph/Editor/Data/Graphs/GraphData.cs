@@ -610,10 +610,10 @@ namespace UnityEditor.ShaderGraph
         public void AddContexts()
         {
             m_VertexContext = new ContextData();
-            m_VertexContext.contextStage = ContextStage.Vertex;
+            m_VertexContext.shaderStage = ShaderStage.Vertex;
             m_VertexContext.position = new Vector2(0, 0);
             m_FragmentContext = new ContextData();
-            m_FragmentContext.contextStage = ContextStage.Fragment;
+            m_FragmentContext.shaderStage = ShaderStage.Fragment;
             m_FragmentContext.position = new Vector2(0, 200);
         }
 
@@ -1335,7 +1335,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(node is BlockNode blockNode)
                 {
-                    var contextData = blockNode.descriptor.contextStage == ContextStage.Vertex ? vertexContext : fragmentContext;
+                    var contextData = blockNode.descriptor.shaderStage == ShaderStage.Vertex ? vertexContext : fragmentContext;
                     AddBlockNoValidate(blockNode, contextData, blockNode.index);
                 }
                 else
@@ -1563,11 +1563,11 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Deserialize Contexts & Blocks
 
-            void DeserializeContextData(ContextData contextData, ContextStage stage)
+            void DeserializeContextData(ContextData contextData, ShaderStage stage)
             {
                 // Because Vertex/Fragment Contexts are serialized explicitly
                 // we do not need to serialize the Stage value on the ContextData
-                contextData.contextStage = stage;
+                contextData.shaderStage = stage;
 
                 var blockCount = contextData.serializeableBlockGuids.Count;
                 for(int i = 0; i < blockCount; i++)
@@ -1586,8 +1586,8 @@ namespace UnityEditor.ShaderGraph
             }
 
             // First deserialize the ContextDatas
-            DeserializeContextData(m_VertexContext, ContextStage.Vertex);
-            DeserializeContextData(m_FragmentContext, ContextStage.Fragment);
+            DeserializeContextData(m_VertexContext, ShaderStage.Vertex);
+            DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
 
             // Deserialize implementation datas
             // Because deserialization of their implementation references requires the implementation list stored here

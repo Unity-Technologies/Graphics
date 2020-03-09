@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         List<BlockNode> m_Blocks = new List<BlockNode>();
 
         [NonSerialized]
-        ContextStage m_ContextStage;
+        ShaderStage m_ShaderStage;
 
         public ContextData()
         {
@@ -35,10 +35,10 @@ namespace UnityEditor.ShaderGraph
             set => m_Position = value;
         }
 
-        public ContextStage contextStage
+        public ShaderStage shaderStage
         {
-            get => m_ContextStage;
-            set => m_ContextStage = value;
+            get => m_ShaderStage;
+            set => m_ShaderStage = value;
         }
 
         public void OnBeforeSerialize()
