@@ -75,6 +75,17 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     #define ASSERT(x) x
 #endif // DEBUG
 
+    static const uint s_RandomPrimes[10] = { 0xD974CF83,
+                                             0xFAF269B5,
+                                             0xAE727FA9,
+                                             0x5BA52335,
+                                             0xA4E819D5,
+                                             0xDD638559,
+                                             0xC0972367,
+                                             0x4B190D9B,
+                                             0xD1894DB5,
+                                             0xA78BCBB3 };
+
     struct Ray
     {
         float3 origin;
@@ -82,49 +93,176 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         float  frequency;
     };
 
-    // Multi-dimensional correlated multi-jittered sequence.
-    float cmjND(uint numPoints, uint numDims, uint pointIndex, uint dimIndex)
+    // 'l' is the size of the permutation vector (typically, the number of strata per dimension).
+    uint permute(uint i, uint l, uint p)
     {
-        uint i = pointIndex;
-        uint n = numPoints;         // Size of the sequence: n = s^d
-        uint j = dimIndex;
-        uint d = numDims;
-        uint s = round(pow(n, -d)); // Number of strata
-        uint t = d;                 // Strength of the orthogonal array
+        if (p == 0) return i; // identity permutation when (p == 0)
 
-        // TODO: also assert in C. Forbid wrong sample counts.
-        ASSERT((n > 1) && (s > 1));
-        ASSERT(abs(s - n * pow(s, 1 - d)) < 0.0001); // Make sure it's an integer
+        uint w = l - 1;
 
-        return 0.5; // TODO... lol
+        w |= w >> 1;
+        w |= w >> 2;
+        w |= w >> 4;
+        w |= w >> 8;
+        w |= w >> 16;
+        do
+        {
+            i ^= p; i *= 0xe170893d;
+            i ^= p >> 16;
+            i ^= (i & w) >> 4;
+            i ^= p >> 8; i *= 0x0929eb3f;
+            i ^= p >> 23;
+            i ^= (i & w) >> 1; i *= 1 | p >> 27;
+            i *= 0x6935fa69;
+            i ^= (i & w) >> 11; i *= 0x74dcb303;
+            i ^= (i & w) >> 2;  i *= 0x9e501cc3;
+            i ^= (i & w) >> 2;  i *= 0xc860a3df;
+            i &= w;
+            i ^= i >> 5;
+        } while (i >= l);
+        return (i + p) % l;
     }
 
-    float3 PathTraceSky(float3 rayOrigin, float2 positionSS, uint numBounces, uint numPaths)
+    float randfloat(uint i, uint p)
     {
-        ASSERT((numBounces >= 1) && (numPaths >= 1));
+        if (p == 0) return 0.5f; // always 0.5 when (p == 0)
 
-        // Integral over ((1 + NumBounces) * 3) dimensions:
-        // 2x for filter IS + 1x for photon frequency selection;
-        // 1x for scattering location + 2x for the scattering direction.
-        // For 10 bounces, we are looking at (1 + 10) * 3 = 33 dimensions.
-        // So the number of samples should be at least 2^33...
-        uint numDimensions = 3 * numBounces;
+        i ^= p;
+        i ^= i >> 17;
+        i ^= i >> 10; i *= 0xb36534e5;
+        i ^= i >> 12;
+        i ^= i >> 21; i *= 0x93fc4795;
+        i ^= 0xdf6e307f;
+        i ^= i >> 17; i *= 1 | p >> 18;
 
-        for (uint p = 0; p < numPaths; p++)
+        float f = i * (1.0f / 4294967808.0f);
+
+        ASSERT(0 <= f && f < 1);
+
+        return f;
+    }
+
+    // Compute the digits of decimal value 'v' expressed in base 's'.
+    void toBaseS(uint v, uint s, uint t, out uint output[t])
+    {
+        for (uint i = 0; i < t; v /= s, ++i)
         {
-            float3 rnd = float3(cmjND(numPaths, numDimensions, p, 0),
-                                cmjND(numPaths, numDimensions, p, 1),
-                                cmjND(numPaths, numDimensions, p, 2));
+            output[i] = v % s;
+        }
+    }
 
-            float2 filterOffsetSS = rnd.xy - 0.5; // TODO: anything but the box filter...
-
-            Ray ray;
-
-            ray.origin    = rayOrigin;
-            ray.direction = -normalize(mul(float4(positionSS + filterOffsetSS, 1, 1), _PixelCoordToViewDirWS).xyz);
-            ray.frequency = floor(rnd.z * 3); // Color channel, for now...
+    // Copy all but the j-th element of vector in.
+    // TODO: in-place.
+    void allButJ(uint input, uint inSize, uint omit, out uint output[inSize - 1])
+    {
+        for (uint i = 0; i < omit; ++i)
+        {
+            output[i] = input[i];
         }
 
+        for (uint i = omit + 1; i < inSize; ++i)
+        {
+            output[i - 1] = input[i];
+        }
+    }
+
+    // Evaluate polynomial with coefficients using the argument value of 'arg'.
+    uint evalPoly(const uint *coeffs, uint inSize, uint arg)
+    {
+        uint ans  = 0;
+        int  last = inSize - 1;
+
+        for (int i = last; i >= 0; i--)
+        {
+            ans = (ans * arg) + coeffs[i]; // Horner's rule
+        }
+
+        return ans;
+    }
+
+    // Multi-dimensional correlated multi-jittered sequence.
+    // We specialize it for 6D, which means we generate 64 points.
+    float cmj6D(uint pointIndex, uint dimIndex, uint seed)
+    {
+        uint s = 2;           // Number of strata per dimension
+        uint d = 6;           // Number of dimensions
+        uint n = 64;          // Size of the sequence: n = s^d
+        uint t = d;           // Strength of the orthogonal array
+        uint p = seed;        // Pseudo-random permutation seed
+        uint i = pointIndex;
+        uint j = dimIndex;
+
+        ASSERT(i < n);
+        ASSERT(j < d);
+
+        i = permute(i, n, p); // Shuffle the points
+
+        uint iDigits[t];
+        uint pDigits[t - 1];
+
+        uint p1 = (j + 1) * (p * 0x51633e2d);
+        uint p2 = (j + 1) * (p * 0x68bc21eb);
+        uint p3 = (j + 1) * (p * 0x02e5be93);
+
+        uint stm = n / s; // pow(s, t-1)
+
+        toBaseS(i, s, t, iDigits);       // Completely initializes iDigits
+
+        uint stratum = permute(iDigits[j], s, p1);
+
+        allButJ(iDigits, t, j, pDigits); // Completely initializes pDigits
+
+        uint sStratum = evalPoly(pDigits, t - 1, s);
+             sStratum = permute(sStratum, stm, p2);
+
+        float jitter = randfloat(i, p3);
+
+        return (stratum + (sStratum + jitter) / stm) / s;
+    }
+
+    // 1x path per thread per call.
+    // Tracing multiple paths can be achieved via multiple passes.
+    float3 PathTraceSky(uint2  groupCoord, uint threadIndex,
+                        float3 rayOrigin,  uint pathIndex, uint numPaths, uint numBounces)
+    {
+        // Integral over ((1 + NumBounces) * 3) dimensions:
+        // 2x for filter IS + 1x for photon frequency selection (bounce #0);
+        // 1x for scattering location + 2x for the scattering direction (bounce #i).
+        uint numDimensions = 3 * numBounces;
+
+        uint groupSize = 8;
+        uint bounce    = 0;
+
+        // The group size is (8*8 == 64). It matches the number of points the RNG provides,
+        // so we trace a group of paths at the same time.
+        // It supports up to 6 dimensions at a time (2^6 == 64).
+        // Therefore, every 6 dimensions (2 bounces), we must switch to a new permutation seed.
+        // Every path (per pixel) must also use a unique seed.
+        // Note: this guarantees good distribution of samples within the group,
+        // but not within each individual pixel (for numPaths > 1).
+        // Perhaps we could do something using powers of 2?
+        uint   seed = permute(pathIndex, numPaths, s_RandomPrimes[bounce / 2]);
+        float3 rnd  = float3(cmj6D(threadIndex, (bounce * 3 + 0) % 5, seed),
+                             cmj6D(threadIndex, (bounce * 3 + 1) % 5, seed),
+                             cmj6D(threadIndex, (bounce * 3 + 2) % 5, seed));
+
+        // Determine which pixel the path contributes to.
+        float2 filterOffset = rnd.xy; // TODO: do not use the box filter?
+        float2 screenCoord  = (groupCoord * groupSize) + filterOffset * groupSize;
+
+        Ray ray; // Pinhole camera...
+
+        ray.origin    = rayOrigin;
+        ray.direction = -normalize(mul(float4(screenCoord, 1, 1), _PixelCoordToViewDirWS).xyz);
+        ray.frequency = floor(rnd.z * 3); // Color channel, for now...
+
+        for (bounce = 1; bounce < numBounces; bounce++)
+        {
+            seed = permute(pathIndex, numPaths, s_RandomPrimes[bounce / 2]);
+            rnd  = float3(cmj6D(threadIndex, (bounce * 3 + 0) % 5, seed),
+                          cmj6D(threadIndex, (bounce * 3 + 1) % 5, seed),
+                          cmj6D(threadIndex, (bounce * 3 + 2) % 5, seed));
+        }
 
         return 0;
     }
@@ -138,7 +276,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
     #ifdef PATH_TRACED_PREVIEW
         float3 rayOrigin = _WorldSpaceCameraPos1 - _PlanetCenterPosition;
-        float3 skyColor  = PathTraceSky(rayOrigin, input.positionCS.xy);
+        float3 skyColor  = PathTraceSky(rayOrigin, input.positionCS.xy, 1, 1);
     #else // PATH_TRACED_PREVIEW
 
         // TODO: Not sure it's possible to precompute cam rel pos since variables
