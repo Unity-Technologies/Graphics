@@ -286,9 +286,17 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_ColorGradingLutPass);
             }
 
+            #region RenderPass1
+
             EnqueueDeferred(ref renderingData, requiresDepthPrepass, context, ref cmd);
+            #endregion
+
+            #region RenderPass2
 
 			bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
+            m_CameraColorTexture.InitDescriptor(cameraTargetDescriptor.graphicsFormat);
+            m_CameraColorTexture.ConfigureLoadStoreActions(RenderBufferStoreAction.Store, RenderBufferLoadAction.Load);
+
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
             {
                 // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
@@ -326,8 +334,10 @@ namespace UnityEngine.Rendering.Universal
             m_RenderTransparentForwardPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
 
             EnqueuePass(m_RenderTransparentForwardPass);
+
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
+            #endregion
             bool lastCameraInTheStack = renderingData.resolveFinalTarget;
             bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
 
@@ -463,11 +473,11 @@ namespace UnityEngine.Rendering.Universal
             }
 
             RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[k_GBufferSlicesCount +
-#if UNITY_IOS && !UNITY_EDITOR
+//#if UNITY_IOS && !UNITY_EDITOR //TODO: investigate needsDepthBBIdx as it does pretty much the same thing as here, but in engine code, this applies to all these #ifs
                                                                                   2];
-#else
-                                                                                  1];
-#endif
+//#else
+//                                                                                  1];
+//#endif
 
             for (int gbufferIndex = 0; gbufferIndex < k_GBufferSlicesCount; ++gbufferIndex)
             {
@@ -480,10 +490,10 @@ namespace UnityEngine.Rendering.Universal
 
             gbufferColorAttachments[k_GBufferSlicesCount] = m_CameraColorTexture; // the last slice is the lighting buffer created in DeferredRenderer.cs
 
-#if UNITY_IOS && !UNITY_EDITOR
+//#if UNITY_IOS && !UNITY_EDITOR
             gbufferColorAttachments[k_GBufferSlicesCount + 1].InitDescriptor(GraphicsFormat.R32_SFloat); // the last slice is the lighting buffer created in DeferredRenderer.cs
             gbufferColorAttachments[k_GBufferSlicesCount + 1].ConfigureLoadStoreActions(RenderBufferStoreAction.DontCare, RenderBufferLoadAction.Clear);
-#endif
+//#endif
 
             m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, requiresDepthPrepass);
             m_GBufferPass.Configure(cmd, desc);
@@ -517,11 +527,11 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredPass.ConfigureInputAttachment(gbufferColorAttachments[0], 0);
             m_DeferredPass.ConfigureInputAttachment(gbufferColorAttachments[1], 1);
             m_DeferredPass.ConfigureInputAttachment(gbufferColorAttachments[2], 2);
-#if UNITY_IOS && !UNITY_EDITOR
+//#if UNITY_IOS && !UNITY_EDITOR
             m_DeferredPass.ConfigureInputAttachment(gbufferColorAttachments[4], 3);
-#else
-            m_DeferredPass.ConfigureInputAttachment(m_GBufferPass.depthAttachment, 3);
-#endif
+//#else
+//            m_DeferredPass.ConfigureInputAttachment(m_GBufferPass.depthAttachment, 3);
+//#endif
 
             EnqueuePass(m_DeferredPass);
 
