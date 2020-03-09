@@ -298,12 +298,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // Test against all current BlockNodes in the Context
                 // Never allow duplicate BlockNodes
-                var blockNodes = new BlockNode[contextView.contextData.blockGuids.Count]; 
-                for(int i = 0; i < blockNodes.Length; i++)
-                {
-                    blockNodes[i] = m_Graph.GetNodeFromGuid<BlockNode>(contextView.contextData.blockGuids[i]);
-                }
-                if(blockNodes.Where(x => x.name == blockNode.name).FirstOrDefault() != null)
+                if(contextView.contextData.blocks.Where(x => x.name == blockNode.name).FirstOrDefault() != null)
                     return false;
                 
                 // Insert block to Data

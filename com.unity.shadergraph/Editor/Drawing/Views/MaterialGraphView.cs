@@ -42,11 +42,23 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public GraphData graph { get; private set; }
         public Action onConvertToSubgraphClick { get; set; }
-        public UQueryState<ContextView> contexts { get; set; }
 
-        public void UpdateQueries()
+        // GraphView has UQueryState<Node> nodes built in to query for Nodes
+        // We need this for Contexts but we might as well cast it to a list once
+        List<ContextView> contexts { get; set; }
+
+        // We have to manually update Contexts
+        // Currently only called during GraphEditorView ctor as our Contexts are static
+        public void UpdateContextList()
         {
-            contexts = contentViewContainer.Query<ContextView>().Build();
+            var contextQuery = contentViewContainer.Query<ContextView>().Build();
+            contexts = contextQuery.ToList();
+        }
+
+        // We need a way to access specific ContextViews
+        public ContextView GetContext(ContextData contextData)
+        {
+            return contexts.FirstOrDefault(s => s.contextData == contextData);
         }
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)

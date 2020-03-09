@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
         Vector2 m_Position;
 
         [NonSerialized]
-        List<Guid> m_BlockGuids = new List<Guid>();
+        List<BlockNode> m_Blocks = new List<BlockNode>();
 
         [NonSerialized]
         ContextStage m_ContextStage;
@@ -25,7 +25,9 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
-        public List<Guid> blockGuids => m_BlockGuids;
+        public List<string> serializeableBlockGuids => m_SerializableBlockGuids;
+
+        public List<BlockNode> blocks => m_Blocks;
 
         public Vector2 position
         {
@@ -42,19 +44,14 @@ namespace UnityEditor.ShaderGraph
         public void OnBeforeSerialize()
         {
             m_SerializableBlockGuids = new List<string>();
-            foreach(var blockGuid in blockGuids)
+            foreach(var block in blocks)
             {
-                m_SerializableBlockGuids.Add(blockGuid.ToString());
+                m_SerializableBlockGuids.Add(block.guid.ToString());
             }
         }
 
         public void OnAfterDeserialize()
         {
-            foreach(var blockGuid in m_SerializableBlockGuids)
-            {
-                blockGuids.Add(new Guid(blockGuid));
-            }
-            m_SerializableBlockGuids = null;
         }
     }
 }

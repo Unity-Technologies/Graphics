@@ -633,13 +633,13 @@ namespace UnityEditor.ShaderGraph
             blockNode.contextData = contextData;
             
             // Add to ContextData
-            if(index == -1 || index >= contextData.blockGuids.Count)
+            if(index == -1 || index >= contextData.blocks.Count)
             {
-                contextData.blockGuids.Add(blockNode.guid);
+                contextData.blocks.Add(blockNode);
             }
             else
             {
-                contextData.blockGuids.Insert(index, blockNode.guid);
+                contextData.blocks.Insert(index, blockNode);
             }
 
             // Update support Blocks
@@ -662,21 +662,13 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Set Blocks as active based on supported Block list
-            foreach(var vertexBlockGuid in vertexContext.blockGuids)
+            foreach(var vertexBlock in vertexContext.blocks)
             {
-                var block = GetNodeFromGuid<BlockNode>(vertexBlockGuid);
-                if(block == null)
-                    continue;
-
-                block.isActive = supportedBlockTypes.Contains(block.name);
+                vertexBlock.isActive = supportedBlockTypes.Contains(vertexBlock.name);
             }
-            foreach(var fragmentBlockGuid in fragmentContext.blockGuids)
+            foreach(var fragmentBlock in fragmentContext.blocks)
             {
-                var block = GetNodeFromGuid<BlockNode>(fragmentBlockGuid);
-                if(block == null)
-                    continue;
-
-                block.isActive = supportedBlockTypes.Contains(block.name);
+                fragmentBlock.isActive = supportedBlockTypes.Contains(fragmentBlock.name);
             }
         }
 
@@ -736,7 +728,7 @@ namespace UnityEditor.ShaderGraph
             if(node is BlockNode blockNode && blockNode.contextData != null)
             {
                 // Remove from ContextData
-                blockNode.contextData.blockGuids.Remove(blockNode.guid);
+                blockNode.contextData.blocks.Remove(blockNode);
             }
         }
 
@@ -1550,26 +1542,6 @@ namespace UnityEditor.ShaderGraph
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);
 
-            // Process Blocks
-            m_VertexContext.contextStage = ContextStage.Vertex;
-            var vertexBlockCount = m_VertexContext.blockGuids.Count;
-            for(int i = 0; i < vertexBlockCount; i++)
-            {
-                var vertexBlock = GetNodeFromGuid<BlockNode>(m_VertexContext.blockGuids[i]);
-                vertexBlock.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == vertexBlock.serializedDescriptor);
-                vertexBlock.contextData = m_VertexContext;
-                vertexBlock.index = i;
-            }
-            m_FragmentContext.contextStage = ContextStage.Fragment;
-            var fragmentBlockCount = m_FragmentContext.blockGuids.Count;
-            for(int i = 0; i < fragmentBlockCount; i++)
-            {
-                var fragmentBlock = GetNodeFromGuid<BlockNode>(m_FragmentContext.blockGuids[i]);
-                fragmentBlock.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == fragmentBlock.serializedDescriptor);
-                fragmentBlock.contextData = m_FragmentContext;
-                fragmentBlock.index = i;
-            }
-
             m_OutputNode = null;
 
             if (!isSubGraph)
@@ -1587,6 +1559,35 @@ namespace UnityEditor.ShaderGraph
                     m_ActiveOutputNodeGuid = new Guid(m_ActiveOutputNodeGuidSerialized);
                 }
             }
+
+            // --------------------------------------------------
+            // Deserialize Contexts & Blocks
+
+            void DeserializeContextData(ContextData contextData, ContextStage stage)
+            {
+                // Because Vertex/Fragment Contexts are serialized explicitly
+                // we do not need to serialize the Stage value on the ContextData
+                contextData.contextStage = stage;
+
+                var blockCount = contextData.serializeableBlockGuids.Count;
+                for(int i = 0; i < blockCount; i++)
+                {
+                    // Deserialize the BlockNode guids on the ContextData
+                    // This needs to be done here as BlockNodes are deserialized before GraphData
+                    var blockGuid = new Guid(contextData.serializeableBlockGuids[i]);
+                    var block = GetNodeFromGuid<BlockNode>(blockGuid);
+                    contextData.blocks.Add(block);
+
+                    // Update NonSerialized data on the BlockNode
+                    block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
+                    block.contextData = contextData;
+                    block.index = i;
+                }
+            }
+
+            // First deserialize the ContextDatas
+            DeserializeContextData(m_VertexContext, ContextStage.Vertex);
+            DeserializeContextData(m_FragmentContext, ContextStage.Fragment);
 
             // Deserialize implementation datas
             // Because deserialization of their implementation references requires the implementation list stored here

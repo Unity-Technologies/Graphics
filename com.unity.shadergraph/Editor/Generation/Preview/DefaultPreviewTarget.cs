@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
-using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -39,13 +38,6 @@ namespace UnityEditor.ShaderGraph
         public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks, TargetImplementationData data)
         {
             return null;
-        }
-    }
-
-    internal class DefaultPreviewTargetData : TargetImplementationData
-    {
-        internal override void GetProperties(PropertySheet propertySheet, InspectorView inspectorView)
-        {
         }
     }
 }

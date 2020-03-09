@@ -50,15 +50,38 @@ namespace UnityEditor.ShaderGraph
             container.Add(m_Port);
         }
 
+        public void InsertBlock(MaterialNodeView nodeView)
+        {
+            if(!(nodeView.userData is BlockNode blockNode))
+                return;
+
+            // If index is -1 the node is being added to the end of the Stack
+            if(blockNode.index == -1)
+            {
+                AddElement(nodeView);
+                return;
+            }
+            
+            // Add or Insert based on index
+            if(blockNode.index >= contentContainer.childCount)
+            {
+                AddElement(nodeView);
+            }
+            else 
+            {
+                InsertElement(blockNode.index, nodeView);
+            }
+        }
+
         public void InsertElements(int insertIndex, IEnumerable<GraphElement> elements)
         {
             var blockDatas = elements.Select(x => x.userData as BlockNode).ToArray();
             for(int i = 0; i < blockDatas.Length; i++)
             {
-                contextData.blockGuids.Remove(blockDatas[i].guid);
+                contextData.blocks.Remove(blockDatas[i]);
             }
 
-            contextData.blockGuids.InsertRange(insertIndex, blockDatas.Select(x => x.guid));
+            contextData.blocks.InsertRange(insertIndex, blockDatas);
         }
 
         protected override bool AcceptsElement(GraphElement element, ref int proposedIndex, int maxIndex)

@@ -280,7 +280,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
             AddContexts();
-            m_GraphView.UpdateQueries();
 
             foreach (var graphGroup in graph.groups)
             {
@@ -292,7 +291,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddStickyNote(stickyNote);
             }
 
-            foreach (var node in graph.GetNodes<AbstractMaterialNode>())
+            foreach (var node in graph.GetNodes<AbstractMaterialNode>().Where(x => !(x is BlockNode)))
+                AddNode(node);
+
+            // As they can be reordered, we cannot be sure BlockNodes are deserialized in the same order as their stack position
+            // To handle this we reorder the BlockNodes here to avoid having to reorder them on the fly as they are added
+            foreach (var node in graph.GetNodes<BlockNode>().OrderBy(s => s.index))
                 AddNode(node);
 
             foreach (var edge in graph.edges)
@@ -327,6 +331,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 pickingMode = PickingMode.Ignore,
             };
             m_GraphView.AddElement(contextEdge);
+
+            // Update the Context list on MaterialGraphView
+            m_GraphView.UpdateContextList();
         }
 
         void UpdateSubWindowsVisibility()
@@ -462,24 +469,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if(node is BlockNode blockNode &&
                             element.GetFirstAncestorOfType<ContextView>() == null)
                         {
-                            foreach(var context in m_GraphView.contexts.ToList())
-                            {
-                                // isDragging ensures we arent calling this when moving
-                                // the BlockNode into the GraphView during dragging (placeholder)
-                                if(context.isDragging || context.contextData != blockNode.contextData)
-                                    continue;
-                                
-                                // Remove from GraphView and add back to Context
-                                m_GraphView.RemoveElement(element);
-                                if(blockNode.index >= context.contentContainer.childCount)
-                                {
-                                    context.AddElement(element);
-                                }
-                                else 
-                                {
-                                    context.InsertElement(blockNode.index, element);
-                                }
-                            }
+                            var context = graphView.GetContext(blockNode.contextData);
+
+                            // isDragging ensures we arent calling this when moving
+                            // the BlockNode into the GraphView during dragging
+                            if(context.isDragging)
+                                continue;
+                            
+                            // Remove from GraphView and add back to Context
+                            m_GraphView.RemoveElement(element);
+                            context.InsertBlock(element as MaterialNodeView);
                         }
                     }
 
@@ -660,15 +659,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if(node is BlockNode blockNode)
                     {
-                        var contexts = m_GraphView.contexts.ToList();
-                        foreach(var context in contexts)
-                        {
-                            if(context.contentContainer.Contains(nodeView as Node))
-                            {
-                                context.RemoveElement(nodeView as Node);
-                                break;
-                            }
-                        }
+                        var context = m_GraphView.GetContext(blockNode.contextData);
+                        context.RemoveElement(nodeView as Node);
                     }
                     else
                     {
@@ -832,7 +824,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            m_GraphView.UpdateQueries();
             UpdateBadges();
 
             RegisterGraphViewCallbacks();
@@ -883,51 +874,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 blockNodeView.MarkDirtyRepaint();
                 nodeView = blockNodeView;
 
-                var contexts = m_GraphView.contexts.ToList();
-                foreach(var context in contexts)
-                {
-                    if(!context.contextData.Equals(blockNode.contextData))
-                        continue;
-
-                    // If index is -1 the node is being added to the end of the Stack
-                    // This never happens when deserializing
-                    if(blockNode.index == -1)
-                    {
-                        context.AddElement(blockNodeView);
-                        break;
-                    }
-
-                    // We cant guarantee the order nodes are deserialized in
-                    // Because of this we need to calculate the insertion index
-                    // Based on the index of currently present views in the stack
-                    var currentIndex = 0;
-                    var currentIndicies = new List<int>();
-                    var childNodes = context.contentContainer.Children().ToList();
-
-                    // Get a list of all current Node view indicies in the stack
-                    for(int i = 0; i < context.contentContainer.childCount; i++)
-                    {
-                        var childNode = childNodes[i] as MaterialNodeView;
-                        currentIndicies.Add((childNode.userData as BlockNode).index);
-                    }
-                    currentIndicies.OrderBy(x => x);
-
-                    // Get the insertion index based on current stack state
-                    for(int i = 0; i < currentIndicies.Count; i++)
-                    {
-                        if(blockNode.index > currentIndicies[i])
-                            currentIndex++;
-                    }
-                    
-                    if(currentIndex >= context.contentContainer.childCount)
-                    {
-                        context.AddElement(blockNodeView);
-                    }
-                    else 
-                    {
-                        context.InsertElement(currentIndex, blockNodeView);
-                    }
-                }
+                var context = m_GraphView.GetContext(blockNode.contextData);
+                context.InsertBlock(blockNodeView);
             }
             else
             {

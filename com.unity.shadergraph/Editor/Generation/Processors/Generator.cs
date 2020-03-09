@@ -140,15 +140,13 @@ namespace UnityEditor.ShaderGraph
                 foreach(PassCollection.Item pass in descriptor.passes)
                 {
                     var blocks = new List<BlockFieldDescriptor>();
-                    foreach(var vertexBlockGuid in m_GraphData.vertexContext.blockGuids)
+                    foreach(var vertexBlock in m_GraphData.vertexContext.blocks)
                     {
-                        var block = m_GraphData.GetNodeFromGuid<BlockNode>(vertexBlockGuid);
-                        blocks.Add(block.descriptor);
+                        blocks.Add(vertexBlock.descriptor);
                     }
-                    foreach(var fragmentBlockGuid in m_GraphData.fragmentContext.blockGuids)
+                    foreach(var fragmentBlock in m_GraphData.fragmentContext.blocks)
                     {
-                        var block = m_GraphData.GetNodeFromGuid<BlockNode>(fragmentBlockGuid);
-                        blocks.Add(block.descriptor);
+                        blocks.Add(fragmentBlock.descriptor);
                     }
 
                     var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, blocks, m_TargetImplementations[targetIndex]);
@@ -204,10 +202,8 @@ namespace UnityEditor.ShaderGraph
                 var supportedBlockTypes = m_TargetImplementations[targetIndex].GetSupportedBlocks(data);
 
                 vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-                foreach(var vertexBlockGuid in m_GraphData.vertexContext.blockGuids)
+                foreach(var block in m_GraphData.vertexContext.blocks)
                 {
-                    var block = m_GraphData.GetNodeFromGuid<BlockNode>(vertexBlockGuid);
-
                     // Add nodes and slots from supported vertex blocks
                     if(supportedBlockTypes.Contains(block.descriptor))
                     {
@@ -219,10 +215,8 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-                foreach(var fragmentBlockGuid in m_GraphData.fragmentContext.blockGuids)
+                foreach(var block in m_GraphData.fragmentContext.blocks)
                 {
-                    var block = m_GraphData.GetNodeFromGuid<BlockNode>(fragmentBlockGuid);
-
                     // Add slots from supported fragment blocks
                     if(supportedBlockTypes.Contains(block.descriptor))
                     {

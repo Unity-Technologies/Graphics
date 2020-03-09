@@ -265,15 +265,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             // TODO: While Master nodes still exist, branch and collect Blocks instead
             if(node is IMasterNode masterNode)
             {
-                foreach(var vertexBlockGuid in m_Graph.vertexContext.blockGuids)
+                foreach(var vertexBlock in m_Graph.vertexContext.blocks)
                 {
-                    var block = m_Graph.GetNodeFromGuid<BlockNode>(vertexBlockGuid);
-                    m_PropertyNodes.Add(block);
+                    m_PropertyNodes.Add(vertexBlock);
                 }
-                foreach(var fragmentBlockGuid in m_Graph.fragmentContext.blockGuids)
+                foreach(var fragmentBlock in m_Graph.fragmentContext.blocks)
                 {
-                    var block = m_Graph.GetNodeFromGuid<BlockNode>(fragmentBlockGuid);
-                    m_PropertyNodes.Add(block);
+                    m_PropertyNodes.Add(fragmentBlock);
                 }
             }
             else
