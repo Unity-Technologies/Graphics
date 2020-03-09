@@ -459,14 +459,14 @@ Build_{{ project.name }}_iPhone_Metal_{{ editor.version }}:
     - unity-downloader-cli --source-file $YAMATO_SOURCE_DIR/unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
     - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr-staging --output utr
     - chmod +x ./utr
-    - ./utr --suite=playmode --platform=iOS --editor-location=.Editor --testproject=TestProjects/{{ project.folder }} --player-save-path=build/players --artifacts_path=build/logs --build-only
+    - ./utr --suite=playmode --platform=iOS --editor-location=.Editor --testproject=TestProjects/{{ project.folder }} --player-save-path=build/players --artifacts_path=test-results --build-only
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
       rerun: {{ editor.rerun_strategy }}
   artifacts:
     logs:
       paths:
-        - "test-results/**"
+        - "**/test-results/**"
     players:
       paths:
         - "build/players/**"
@@ -485,14 +485,14 @@ Build_{{ project.name }}_iPhone_Metal_{{ editor.version }}:
   commands:
     - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
     - chmod +x ./utr
-    - ./utr --suite=playmode --platform=iOS --player-load-path=build/players --artifacts_path=build/test-results
+    - ./utr --suite=playmode --platform=iOS --player-load-path=build/players --artifacts_path=test-results
   dependencies:
     - path: .yamato/upm-ci-universal.yml#Build_{{ project.name }}_iPhone_Metal_{{ editor.version }}
       rerun: {{ editor.rerun_strategy }}
   artifacts:
     logs:
       paths:
-        - "test-results/**"
+        - "**/test-results/**"
 
 
 {% endif %}
