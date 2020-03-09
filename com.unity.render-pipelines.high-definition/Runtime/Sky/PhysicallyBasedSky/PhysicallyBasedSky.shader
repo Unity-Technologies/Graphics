@@ -65,8 +65,10 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return output;
     }
 
+// #define PATH_TRACED_PREVIEW
+
 #ifdef PATH_TRACED_PREVIEW
-    #define MAKE_FLT(uint sgn, uint exponent, uint fraction) asfloat((((sgn) & 0x1) << 31) | (((exponent) & 0xFF) << 23) | ((fraction) & 0xFFFFFF))
+    #define MAKE_FLT(sgn, exponent, fraction) asfloat((((sgn) & 0x1) << 31) | (((exponent) & 0xFF) << 23) | ((fraction) & 0xFFFFFF))
     #define FLT_SNAN MAKE_FLT(0x1, 0xFF, 0x1)
     #define DEBUG
 #ifdef DEBUG
@@ -142,80 +144,53 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return f;
     }
 
-    // Compute the digits of decimal value 'v' expressed in base 's'.
-    void toBaseS(uint v, uint s, uint t, out uint output[t])
-    {
-        for (uint i = 0; i < t; v /= s, ++i)
-        {
-            output[i] = v % s;
-        }
-    }
-
-    // Copy all but the j-th element of vector in.
-    // TODO: in-place.
-    void allButJ(uint input, uint inSize, uint omit, out uint output[inSize - 1])
-    {
-        for (uint i = 0; i < omit; ++i)
-        {
-            output[i] = input[i];
-        }
-
-        for (uint i = omit + 1; i < inSize; ++i)
-        {
-            output[i - 1] = input[i];
-        }
-    }
-
-    // Evaluate polynomial with coefficients using the argument value of 'arg'.
-    uint evalPoly(const uint *coeffs, uint inSize, uint arg)
-    {
-        uint ans  = 0;
-        int  last = inSize - 1;
-
-        for (int i = last; i >= 0; i--)
-        {
-            ans = (ans * arg) + coeffs[i]; // Horner's rule
-        }
-
-        return ans;
-    }
-
     // Multi-dimensional correlated multi-jittered sequence.
     // We specialize it for 6D, which means we generate 64 points.
     float cmj6D(uint pointIndex, uint dimIndex, uint seed)
     {
-        uint s = 2;           // Number of strata per dimension
-        uint d = 6;           // Number of dimensions
-        uint n = 64;          // Size of the sequence: n = s^d
-        uint t = d;           // Strength of the orthogonal array
-        uint p = seed;        // Pseudo-random permutation seed
-        uint i = pointIndex;
-        uint j = dimIndex;
+        const uint s = 2;           // Number of strata per dimension
+        const uint t = 6;           // Strength of the orthogonal array (number of dimensions)
+        const uint n = 64;          // Size of the sequence: n = s^t
+        const uint p = seed;        // Pseudo-random permutation seed
+        const uint i = permute(pointIndex, n, p); // Shuffle the points
+        const uint j = dimIndex;
 
         ASSERT(i < n);
-        ASSERT(j < d);
+        ASSERT(j < t);
 
-        i = permute(i, n, p); // Shuffle the points
+        const uint p1 = (p * (j + 1)) * 0x51633e2d;
+        const uint p2 = (p * (j + 1)) * 0x68bc21eb;
+        const uint p3 = (p * (j + 1)) * 0x02e5be93;
 
-        uint iDigits[t];
-        uint pDigits[t - 1];
+        uint digits[t];
 
-        uint p1 = (j + 1) * (p * 0x51633e2d);
-        uint p2 = (j + 1) * (p * 0x68bc21eb);
-        uint p3 = (j + 1) * (p * 0x02e5be93);
+        uint d; // Avoid compiler warning
 
-        uint stm = n / s; // pow(s, t-1)
+        // digits = toBaseS(i, s);
+        for (d = 0; d < t; d /= s, d++)
+        {
+            digits[d] = d % s;
+        }
 
-        toBaseS(i, s, t, iDigits);       // Completely initializes iDigits
+        uint stratum = permute(digits[j], s, p1);
 
-        uint stratum = permute(iDigits[j], s, p1);
+        // digits = allButJ(digits, j);
+        for (d = j; d < (t - 1); d++)
+        {
+            digits[d] = digits[d + 1];
+        }
 
-        allButJ(iDigits, t, j, pDigits); // Completely initializes pDigits
+        uint poly = 0;
 
-        uint sStratum = evalPoly(pDigits, t - 1, s);
-             sStratum = permute(sStratum, stm, p2);
+        // poly = evalPoly(digits, s);
+        for (d = (t - 2); d != -1; d--)
+        {
+            poly = (poly * s) + digits[d]; // Horner's rule
+        }
 
-        float jitter = randfloat(i, p3);
+        uint  stm      = n / s; // pow(s, t - 1)
+        uint  sStratum = permute(poly, stm, p2);
+        float jitter   = randfloat(i, p3);
 
         return (stratum + (sStratum + jitter) / stm) / s;
     }
@@ -262,6 +237,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             rnd  = float3(cmj6D(threadIndex, (bounce * 3 + 0) % 5, seed),
                           cmj6D(threadIndex, (bounce * 3 + 1) % 5, seed),
                           cmj6D(threadIndex, (bounce * 3 + 2) % 5, seed));
+
+
         }
 
         return 0;
