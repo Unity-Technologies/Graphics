@@ -287,7 +287,7 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<RenderPassEvent> blockEventLimits = new NativeArray<RenderPassEvent>(k_RenderPassBlockCount, Allocator.Temp);
             blockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.BeforeRenderingPrepasses;
             blockEventLimits[RenderPassBlock.MainRenderingOpaque] = RenderPassEvent.AfterRenderingOpaques;
-            blockEventLimits[RenderPassBlock.MainRenderingTransparent] = RenderPassEvent.AfterRenderingPostProcessing + 2;
+            blockEventLimits[RenderPassBlock.MainRenderingTransparent] = RenderPassEvent.AfterRenderingPostProcessing;
             blockEventLimits[RenderPassBlock.AfterRendering] = (RenderPassEvent)Int32.MaxValue;
 
             NativeArray<int> blockRanges = new NativeArray<int>(blockEventLimits.Length + 1, Allocator.Temp);
@@ -348,10 +348,10 @@ namespace UnityEngine.Rendering.Universal
             // In the opaque and transparent blocks the main rendering executes.
 
             // Opaque blocks...
-            ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData, eyeIndex, true);
+            ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData, eyeIndex);
 
             // Transparent blocks...
-            ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData, eyeIndex, true);
+            ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData, eyeIndex);
 
             // Draw Gizmos...
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
@@ -465,18 +465,21 @@ namespace UnityEngine.Rendering.Universal
         }
 
         void ExecuteBlock(int blockIndex, NativeArray<int> blockRanges,
-            ScriptableRenderContext context, ref RenderingData renderingData, int eyeIndex = 0, bool asSingleRenderPass = false, bool submit = false)
+            ScriptableRenderContext context, ref RenderingData renderingData, int eyeIndex = 0, bool submit = false)
         {
             int endIndex = blockRanges[blockIndex + 1];
             bool renderPassStarted = false;
+
             HashSet<AttachmentDescriptor> attachmentSet = new HashSet<AttachmentDescriptor>();
             NativeArray<AttachmentDescriptor> descriptors;
+
             for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
             {
                 if (endIndex == 0 || blockRanges[blockIndex] == endIndex)
                     return;
 
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
+                //The old path
                 if (!renderPass.useNativeRenderPass || renderingData.cameraData.camera.cameraType != CameraType.Game)
                 {
                     if (renderPassStarted)
@@ -497,20 +500,23 @@ namespace UnityEngine.Rendering.Universal
                     NativeArray<int> inputIndices =
                         new NativeArray<int>(renderPass.inputAttachments.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-                    if (asSingleRenderPass && !renderPassStarted)
+                    if (!renderPassStarted)
                     {
                         // Run through all ScriptableRenderPasses once to get all the attachments at the beginning of the block
                         // TODO: add some validation here (compare with previous/next rp descriptors)
                         for (int rpIdx = blockRanges[blockIndex]; rpIdx < endIndex; ++rpIdx)
                         {
                             var rp = m_ActiveRenderPassQueue[rpIdx];
-
+                            CommandBuffer cmd = CommandBufferPool.Get(k_RenderPass + " " + renderPass.GetType().ToString());
+                            rp.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
+                            context.ExecuteCommandBuffer(cmd);
+                            cmd.Clear();
                             if (!rp.useNativeRenderPass)
                                 continue;
-                            //TODO: MRT actions, for the time being it needs to be done per attachment in the *Renderer.cs
+                            //TODO: MRT actions, for the time being it needs to be done per additional attachment in the *Renderer.cs
                             if (rp.m_LoadAction != RenderBufferLoadAction.DontCare && rp.m_StoreAction != RenderBufferStoreAction.DontCare)
                             {
-                                rp.m_ColorAttachments[0].InitDescriptor(RenderTextureFormat.Default);
+                                rp.m_ColorAttachments[0].InitDescriptor(RenderTextureFormat.Default); //TODO HDR and other stuff
                                 rp.m_ColorAttachments[0].ConfigureLoadStoreActions(rp.m_StoreAction, rp.m_LoadAction);
                                 rp.m_DepthAttachment.InitDescriptor(RenderTextureFormat.Depth);
                                 rp.m_DepthAttachment.ConfigureLoadStoreActions(rp.m_StoreAction, rp.m_LoadAction);
@@ -520,7 +526,6 @@ namespace UnityEngine.Rendering.Universal
                             {
                                 if (rp.colorAttachments[i].id == -2) //First invalid means we are done with the attachments
                                     break;
-
                                 attachmentSet.Add(rp.colorAttachments[i].targetDescriptor);
                             }
                             for (int i = 0; i < rp.inputAttachments.Count; i++)
@@ -535,6 +540,7 @@ namespace UnityEngine.Rendering.Universal
                         }
                     }
 
+                    //Map color and input attachments for the subpass
                     descriptors = new NativeArray<AttachmentDescriptor>(attachmentSet.ToArray(), Allocator.Temp);
                     for (int i = 0; i < colorCount; i++)
                     {
@@ -547,7 +553,6 @@ namespace UnityEngine.Rendering.Universal
                             }
                         }
                     }
-
                     if (renderPass.hasInputAttachment)
                     {
                         for (int i = 0; i < renderPass.inputAttachments.Count; i++)
@@ -572,41 +577,26 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     if (renderPass.hasInputAttachment)
-                    {
                         context.BeginSubPass(indices, inputIndices, desc.readOnlyDepth);
-                    }
                     else
                         context.BeginSubPass(indices);
-
 
                     if (inputIndices.IsCreated)
                         inputIndices.Dispose();
                     if (indices.IsCreated)
                         indices.Dispose();
 
-
                     ExecuteNativeRenderPass(context, renderPass, ref renderingData);
                     context.EndSubPass();
-
-                    if (!asSingleRenderPass && renderPassStarted)
-                    {
-                        renderPassStarted = false;
-                        context.EndRenderPass();
-                    }
                 }
-
-                if (!asSingleRenderPass)
-                {
-                    attachmentSet.Clear();
-                }
-
             }
 
-            if (asSingleRenderPass && renderPassStarted)
+            if (renderPassStarted)
             {
-                renderPassStarted = false;
+                attachmentSet.Clear();
                 context.EndRenderPass();
             }
+
             if (submit)
                 context.Submit();
         }
