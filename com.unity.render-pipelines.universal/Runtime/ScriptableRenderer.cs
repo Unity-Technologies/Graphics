@@ -507,10 +507,6 @@ namespace UnityEngine.Rendering.Universal
                         for (int rpIdx = blockRanges[blockIndex]; rpIdx < endIndex; ++rpIdx)
                         {
                             var rp = m_ActiveRenderPassQueue[rpIdx];
-                            CommandBuffer cmd = CommandBufferPool.Get(k_RenderPass + " " + renderPass.GetType().ToString());
-                            rp.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
-                            context.ExecuteCommandBuffer(cmd);
-                            cmd.Clear();
                             if (!rp.useNativeRenderPass)
                                 continue;
                             //TODO: MRT actions, for the time being it needs to be done per additional attachment in the *Renderer.cs

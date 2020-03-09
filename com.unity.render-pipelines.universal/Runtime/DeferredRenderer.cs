@@ -305,10 +305,14 @@ namespace UnityEngine.Rendering.Universal
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
 
                 m_CopyColorPass.Setup(m_CameraColorTexture, m_OpaqueColor, downsamplingMethod);
+                m_CopyColorPass.Configure(cmd, cameraTargetDescriptor);
 
                 m_CopyColorPass.inputAttachments.Clear();
                 m_CopyColorPass.ConfigureInputAttachment(m_CameraColorTexture, 0);
                 m_CopyColorPass.ConfigureTarget(m_OpaqueColor);
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 EnqueuePass(m_CopyColorPass);
             }
@@ -317,7 +321,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 EnqueuePass(m_TransparentSettingsPass); // Only toggle shader keywords for shadow receivers
             }
-
+            //TODO: particles are not rendered due to no _CameraDepthTexture, so renderPass it
             m_RenderTransparentForwardPass.ConfigureTarget(m_CameraColorTexture, m_CameraDepthAttachment);
             m_RenderTransparentForwardPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
 
@@ -484,6 +488,9 @@ namespace UnityEngine.Rendering.Universal
 //#endif
 
             m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, requiresDepthPrepass);
+            m_GBufferPass.Configure(cmd, desc);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
             m_GBufferPass.ConfigureTarget(gbufferColorAttachments, m_CameraDepthAttachment);
 
             EnqueuePass(m_GBufferPass);
@@ -506,6 +513,7 @@ namespace UnityEngine.Rendering.Universal
                 if (m_DeferredLights.HasTileDepthRangeExtraPass())
                     EnqueuePass(m_TileDepthRangeExtraPass);
             }
+            m_DeferredPass.Configure(cmd, desc);
 
             m_DeferredPass.inputAttachments.Clear();
             m_DeferredPass.ConfigureInputAttachment(gbufferColorAttachments[0], 0);
