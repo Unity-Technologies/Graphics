@@ -20,8 +20,8 @@ namespace UnityEditor.VFX
         public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
-
-            dependencies.Add(Asset.GetInstanceID());
+            if (!object.ReferenceEquals(Asset, null))
+                dependencies.Add(Asset.GetInstanceID());
         }
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties

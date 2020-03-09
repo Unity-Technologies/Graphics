@@ -219,10 +219,16 @@ namespace UnityEditor.VFX
         {
             foreach (var texture in mapper.textures)
             {
-                string name = mapper.GetName(texture);
-                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType),name);
-                WriteLineFormat("SamplerState sampler{0};", name);
-                WriteLineFormat("float4 {0}_TexelSize;", name);
+                var names = mapper.GetNames(texture);
+
+                // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
+                for (int i = 0; i < names.Count; ++i)
+                {
+                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), names[i]);
+                    WriteLineFormat("SamplerState sampler{0};", names[i]);
+                    WriteLineFormat("float4 {0}_TexelSize;", names[i]); // TODO This is not very good to add a uniform for each texture that is hardly ever used
+                    WriteLine();
+                }
             }
         }
 

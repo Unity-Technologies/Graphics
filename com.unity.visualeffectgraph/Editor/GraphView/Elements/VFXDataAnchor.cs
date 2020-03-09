@@ -279,11 +279,14 @@ namespace UnityEditor.VFX.UI
                 VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == controller.portType.UserFriendlyName());
                 if (parameterDesc != null)
                 {
-                    VFXParameter parameter = viewController.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(140, 20), parameterDesc);
+                    Vector2 pos = view.contentViewContainer.GlobalToBound(position) - new Vector2(140, 20);
+                    VFXParameter parameter = viewController.AddVFXParameter(pos, parameterDesc,false);
                     parameter.SetSettingValue("m_Exposed", true);
                     startSlot.Link(parameter.outputSlots[0]);
 
                     CopyValueToParameter(parameter);
+
+                    viewController.AddVFXModel(pos, parameter);
                 }
             }
             else if (!exists)

@@ -166,7 +166,7 @@ namespace UnityEditor.VFX
 
             if (hasSoftParticles)
             {
-                var softParticleFade = slotExpressions.First(o => o.name == "softParticlesFadeDistance");
+                var softParticleFade = slotExpressions.First(o => o.name == "softParticleFadeDistance");
                 var invSoftParticleFade = (VFXValue.Constant(1.0f) / softParticleFade.exp);
                 yield return new VFXNamedExpression(invSoftParticleFade, "invSoftParticlesFadeDistance");
             }
@@ -258,7 +258,7 @@ namespace UnityEditor.VFX
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f), new TooltipAttribute("Alpha threshold used for pixel clipping"))), 0.5f);
 
                 if (hasSoftParticles)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticlesFadeDistance", VFXPropertyAttribute.Create(new MinAttribute(0.001f))), 1.0f);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticleFadeDistance", VFXPropertyAttribute.Create(new MinAttribute(0.001f))), 1.0f);
 
                 if (hasExposure && useExposureWeight)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "exposureWeight", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))), 1.0f);
