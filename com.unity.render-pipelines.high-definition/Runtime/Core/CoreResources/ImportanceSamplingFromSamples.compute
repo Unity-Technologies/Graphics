@@ -11,18 +11,18 @@
 TEXTURECUBE(_Cubemap);
 SAMPLER(sampler_Cubemap);
 
-Texture2D<float4>   _Samples;
+Texture2D<float4>   _Samples;   // Samples generated like with ImportanceSample2D.compute
+                                // #Samples x 1 {RG: UV LatLong, B: Density [not normalized PDF]}
 RWTexture2D<float4> _Output;
 
-Texture2D<float4>   _Integral;
+Texture2D<float4>   _Integral;  // Integral to normalized the Density
 
-float4               _Sizes;
+float4               _Sizes;    // XY: SamplesSize, Z: SamplesCount
 
-#define SamplesCount    _Sizes.z
 #define OutputSize      _Sizes.xy
+#define SamplesCount    _Sizes.z
 
-
-float3 SphericalTexCoordinateToDirection222(float2 sphTexCoord)
+float3 SphericalTexCoordinateToDirection(float2 sphTexCoord)
 {
     float pi    = 3.1415926535897932384626433832795f;
     float theta = (1.0f - sphTexCoord.x)*(2.0f*pi);
@@ -44,14 +44,14 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         uint2  pos      = uint2(id.x, 0);
         float  integral = _Integral[uint2(0, 0)].r;
         float4 input    = _Samples[pos];
+        float  density  = input.z; // PDF not normalized
 
         float2 latLongUV    = input.xy;
-        float3 dir          = SphericalTexCoordinateToDirection222(latLongUV);
+        float3 dir          = SphericalTexCoordinateToDirection(latLongUV);
         float  sin0         = sin(latLongUV.y*PI);
 
         float3 signal = sin0*SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
 
-        float  density = SampleToPDFMeasure(signal);
         float  pdf     = density/integral;
 
         if (pdf == 0.0f)
