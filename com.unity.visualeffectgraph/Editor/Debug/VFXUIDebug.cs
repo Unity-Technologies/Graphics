@@ -11,7 +11,7 @@ using Object = System.Object;
 namespace UnityEditor.VFX.UI
 {
 
-    class VFXUIDebug : VFXObject
+    class VFXUIDebug
     {
         public enum Modes
         {
@@ -552,7 +552,8 @@ namespace UnityEditor.VFX.UI
                 default:
                     break;
             }
-            m_Curves.Notify(e);
+            if( m_Curves != null)
+                m_Curves.Notify(e);
         }
 
         static Color GetColor(int i)

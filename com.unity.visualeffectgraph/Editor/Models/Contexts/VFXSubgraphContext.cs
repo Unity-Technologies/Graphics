@@ -28,6 +28,10 @@ namespace UnityEditor.VFX
                 OnGraphChanged(graph);
         }
 
+
+        public IEnumerable<VFXModel> subChildren
+        { get { return m_SubChildren; } }
+
         static Action<VFXGraph> OnGraphChanged; 
 
         public VFXSubgraphContext():base(VFXContextType.Subgraph, VFXDataType.SpawnEvent, VFXDataType.None)
@@ -353,16 +357,12 @@ namespace UnityEditor.VFX
         {
             if (m_SubChildren == null) return;
 
-            var toInvalidate = new HashSet<VFXSlot>();
-
             var inputExpressions = new List<VFXExpression>();
 
             foreach (var subSlot in inputSlots.SelectMany(t => t.GetExpressionSlots()))
                 inputExpressions.Add(subSlot.GetExpression());
 
             VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetSortedInputParameters());
-            foreach (var slot in toInvalidate)
-                slot.InvalidateExpressionTree();
         }
         protected override void OnAdded()
         {
@@ -406,11 +406,6 @@ namespace UnityEditor.VFX
             }
             else
                 base.OnInvalidate(model, cause);
-        }
-
-        public VFXModel[] subChildren
-        {
-            get { return m_SubChildren; }
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
