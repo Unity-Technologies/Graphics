@@ -9,6 +9,7 @@ using UnityEngine.VFX;
 using UnityEngine.Profiling;
 
 using UnityObject = UnityEngine.Object;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.VFX
 {
@@ -635,6 +636,8 @@ namespace UnityEditor.VFX
                 bool considerGraphDirty = m_ExpressionGraphDirty && !preventRecompilation;
                 if (considerGraphDirty)
                 {
+                    CheckShaderReferences();
+
                     BuildSubgraphDependencies();
                     PrepareSubgraphs();
 
@@ -669,6 +672,60 @@ namespace UnityEditor.VFX
                     }
                     m_DependentDirty = false;
                 }
+            }
+        }
+
+        private void CheckShaderReferences()
+        {
+            // Try to reimport all shadergraph at compilation if they are missing
+
+            //For shadergraph outputs
+
+            VFXShaderGraphPostProcessor.disableImportDependentVFX = true;
+            try
+            {
+                foreach (var output in children.OfType<VFXShaderGraphParticleOutput>())
+                {
+                    if (!object.ReferenceEquals(output.shaderGraph, null) && output.shaderGraph == null)
+                    {
+                        int instanceID = output.shaderGraph.GetInstanceID();
+
+                        string shaderAssetPath = AssetDatabase.GetAssetPath(instanceID);
+                        if (!string.IsNullOrEmpty(shaderAssetPath))
+                        {
+                            Debug.Log("forcing ShaderGraph to reimport : " + shaderAssetPath);
+                            AssetDatabase.ImportAsset(shaderAssetPath);
+
+                            var realAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(shaderAssetPath);
+                            if (realAsset != null)
+                                output.shaderGraph = realAsset;
+                        }
+
+                    }
+                }
+                //For static meshes
+                foreach (var output in children.OfType<VFXStaticMeshOutput>())
+                {
+                    Shader shader = (output.GetData() as VFXDataMesh).shader;
+                    if (!object.ReferenceEquals(shader, null) && shader == null)
+                    {
+                        int instanceID = shader.GetInstanceID();
+
+                        string shaderAssetPath = AssetDatabase.GetAssetPath(instanceID);
+                        if (!string.IsNullOrEmpty(shaderAssetPath))
+                        {
+                            AssetDatabase.ImportAsset(shaderAssetPath);
+
+                            var realAsset = AssetDatabase.LoadAssetAtPath<Shader>(shaderAssetPath);
+                            if (realAsset != null)
+                                (output.GetData() as VFXDataMesh).shader = shader;
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                VFXShaderGraphPostProcessor.disableImportDependentVFX = false;
             }
         }
 
