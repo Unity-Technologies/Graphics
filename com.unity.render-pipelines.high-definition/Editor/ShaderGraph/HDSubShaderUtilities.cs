@@ -567,7 +567,7 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRPShaderStructs.VertexDescriptionInputs.dependencies
         };
 
-        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive, bool instancingFlag = true)
+        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive, bool isLit = true, bool instancingFlag = true)
         {
             string templatePath = Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor/Material");
             string templateLocation = Path.Combine(Path.Combine(Path.Combine(templatePath, pass.MaterialName), "ShaderGraph"), pass.TemplateName);
@@ -779,18 +779,37 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderGenerator vertexGraphInputs = new ShaderGenerator();
             ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.VertexDescriptionInputs), activeFields, vertexGraphInputs, debugOutput);
 
-
-            int instancedCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
             ShaderGenerator instancingOptions = new ShaderGenerator();
+
             if (instancingFlag)
             {
+                int instancedCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
+                bool isDotsInstancing = masterNode is MasterNode node && node.dotsInstancing.isOn;
+
                 instancingOptions.AddShaderChunk("#pragma multi_compile_instancing", true);
 
-                if (masterNode is MasterNode node && node.dotsInstancing.isOn)
+                if (isDotsInstancing)
                 {
                     instancingOptions.AddShaderChunk("#define UNITY_DOTS_SHADER");
-                    instancingOptions.AddShaderChunk("#pragma instancing_options nolightprobe");
-                    instancingOptions.AddShaderChunk("#pragma instancing_options nolodfade");
+                }
+
+                if (isLit)
+                {
+                    if (isDotsInstancing)
+                    {
+                        instancingOptions.AddShaderChunk("#pragma instancing_options nolightprobe");
+                        instancingOptions.AddShaderChunk("#pragma instancing_options nolodfade");
+                    }
+                    else
+                    {
+                        instancingOptions.AddShaderChunk("#pragma instancing_options renderinglayer");
+                    }
+                }
+
+                if (pass.ExtraInstancingOptions != null)
+                {
+                    foreach (var instancingOption in pass.ExtraInstancingOptions)
+                        instancingOptions.AddShaderChunk(instancingOption);
                 }
 
                 if (instancedCount > 0)
@@ -801,22 +820,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     instancingOptions.AddShaderChunk("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
                     instancingOptions.AddShaderChunk("#define UNITY_DOTS_INSTANCING_ENABLED");
                     instancingOptions.AddShaderChunk("#endif");
-                }
 
-                if (pass.ExtraInstancingOptions != null)
-                {
-                    foreach (var instancingOption in pass.ExtraInstancingOptions)
-                        instancingOptions.AddShaderChunk(instancingOption);
-                }
-            }
-            if (instancedCount > 0)
-            {
-                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                dotsInstancingCode.AppendLine("// Dots Instancing vars");
-                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                dotsInstancingCode.AppendLine("");
+                    dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
+                    dotsInstancingCode.AppendLine("// Dots Instancing vars");
+                    dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
+                    dotsInstancingCode.AppendLine("");
 
-                dotsInstancingCode.Append(sharedProperties.GetDotsInstancingPropertiesDeclaration(mode));
+                    dotsInstancingCode.Append(sharedProperties.GetDotsInstancingPropertiesDeclaration(mode));
+                }
             }
 
             ShaderGenerator shaderStages = new ShaderGenerator();
