@@ -1021,6 +1021,16 @@ namespace UnityEditor.Rendering
                     var arrayInfos = (field.GetCustomAttributes(typeof(HLSLArray), false) as HLSLArray[]);
                     if (arrayInfos.Length != 0)
                     {
+                        // For constant buffers, every element of the array needs to be aligned to a Vector4
+                        if (attr.generateCBuffer &&
+                            arrayInfos[0].elementType != typeof(Vector4) &&
+                            arrayInfos[0].elementType != typeof(ShaderGenUInt4) &&
+                            arrayInfos[0].elementType != typeof(Matrix4x4))
+                        {
+                            Error("Invalid HLSLArray target: '" + field.FieldType + "'" + ", only Vector4 and ShaderGenUInt4 are supported for integer arrays in constant buffers.");
+                            return false;
+                        }
+
                         arraySize = arrayInfos[0].arraySize;
                         fieldType = arrayInfos[0].elementType;
                     }
@@ -1177,6 +1187,8 @@ namespace UnityEditor.Rendering
                         EmitPrimitiveType(floatPrecision, 3, arraySize, field.Name, "", m_ShaderFields);
                     else if (fieldType == typeof(Vector4))
                         EmitPrimitiveType(floatPrecision, 4, arraySize, field.Name, "", m_ShaderFields);
+                    else if (fieldType == typeof(ShaderGenUInt4))
+                        EmitPrimitiveType(PrimitiveType.UInt, 4, arraySize, field.Name, "", m_ShaderFields);
                     else if (fieldType == typeof(Matrix4x4))
                         EmitMatrixType(floatPrecision, 4, 4, arraySize, field.Name, "", m_ShaderFields);
                     else if (!ExtractComplex(field, m_ShaderFields))

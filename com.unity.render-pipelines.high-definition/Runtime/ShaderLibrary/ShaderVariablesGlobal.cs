@@ -8,6 +8,13 @@ namespace UnityEngine.Rendering.HighDefinition
     // - Global data for a camera (view matrices, RTHandle stuff, etc)
     // - Things that are needed per draw call (like fog or lighting info for forward rendering)
     // Anything else (such as engine passes) can have their own constant buffers (and still use this one as well).
+
+    // PARAMETERS DECLARATION GUIDELINES:
+    // All data is aligned on Vector4 size, arrays elements included.
+    // - Shader side structure will be padded for anything not aligned to Vector4. Add padding accordingly.
+    // - Base element size for array should be 4 components of 4 bytes (Vector4 or Vector4Int basically) otherwise the array will be interlaced with padding on shader side.
+    // Try to keep data grouped by access and rendering system as much as possible (fog params or light params together for example).
+    // => Don't move a float parameter away from where it belongs for filling a hole. Add padding in this case.
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesGlobal
     {
@@ -94,33 +101,30 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _TimeParameters;             // { t, sin(t), cos(t) }
         public Vector4 _LastTimeParameters;         // { t, sin(t), cos(t) }
 
-        // Volumetric lighting.
-        public Vector4 _FogColor; // color in rgb
-        public Vector4 _MipFogParameters;
-        public Vector3 _HeightFogBaseScattering;
-        public float _HeightFogBaseExtinction;
-        public int _FogEnabled;
-        public int _PBRFogEnabled;
-        public float _MaxFogDistance;
-        public float _FogColorMode;
-        public Vector2 _HeightFogExponents; // { 1/H, H }
-        public float _HeightFogBaseHeight;
-        public float _GlobalFogAnisotropy;
+        // Volumetric lighting / Fog.
+        public int      _FogEnabled;
+        public int      _PBRFogEnabled;
+        public int      _EnableVolumetricFog;
+        public float    _MaxFogDistance;
+        public Vector4  _FogColor; // color in rgb
+        public float    _FogColorMode;
+        public Vector3  _Pad2;
+        public Vector4  _MipFogParameters;
+        public Vector3  _HeightFogBaseScattering;
+        public float    _HeightFogBaseExtinction;
+        public Vector2  _HeightFogExponents; // { 1/H, H }
+        public float    _HeightFogBaseHeight;
+        public float    _GlobalFogAnisotropy;
 
-        public Vector4 _VBufferViewportSize;           // { w, h, 1/w, 1/h }
-
-        public uint _VBufferSliceCount;
-        public float _VBufferRcpSliceCount;
-        public float _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
-        public float _ContactShadowOpacity;
-
-        public Vector4 _VBufferSharedUvScaleAndLimit;  // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
-
-        public Vector4 _VBufferDistanceEncodingParams; // See the call site for description
-        public Vector4 _VBufferDistanceDecodingParams; // See the call site for description
-
-        public float _VBufferLastSliceDist;       // The distance to the middle of the last slice
-        public int _EnableVolumetricFog;           // bool...
+        // VBuffer
+        public Vector4  _VBufferViewportSize;           // { w, h, 1/w, 1/h }
+        public Vector4  _VBufferSharedUvScaleAndLimit;  // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+        public Vector4  _VBufferDistanceEncodingParams; // See the call site for description
+        public Vector4  _VBufferDistanceDecodingParams; // See the call site for description
+        public uint     _VBufferSliceCount;
+        public float    _VBufferRcpSliceCount;
+        public float    _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
+        public float    _VBufferLastSliceDist;          // The distance to the middle of the last slice
 
         // Light Loop
         public const int s_MaxEnv2DLight = 32;
@@ -131,60 +135,58 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [HLSLArray(s_MaxEnv2DLight, typeof(Matrix4x4))]
         public fixed float _Env2DCaptureVP[s_MaxEnv2DLight * 4 * 4];
-        [HLSLArray(s_MaxEnv2DLight * 3, typeof(float))]
-        public fixed float _Env2DCaptureForward[s_MaxEnv2DLight * 3];
+        [HLSLArray(s_MaxEnv2DLight, typeof(Vector4))]
+        public fixed float _Env2DCaptureForward[s_MaxEnv2DLight * 4];
         [HLSLArray(s_MaxEnv2DLight, typeof(Vector4))]
         public fixed float _Env2DAtlasScaleOffset[s_MaxEnv2DLight * 4];
 
-        public uint _DirectionalLightCount;
-        public uint _PunctualLightCount;
-        public uint _AreaLightCount;
-        public uint _EnvLightCount;
+        public uint     _DirectionalLightCount;
+        public uint     _PunctualLightCount;
+        public uint     _AreaLightCount;
+        public uint     _EnvLightCount;
 
-        public int _EnvLightSkyEnabled;         // TODO: make it a bool
-        public uint _CascadeShadowCount;
-        public int _DirectionalShadowIndex;
-        public uint _EnableLightLayers;
+        public int      _EnvLightSkyEnabled;
+        public uint     _CascadeShadowCount;
+        public int      _DirectionalShadowIndex;
+        public uint     _EnableLightLayers;
 
-        public float _ReplaceDiffuseForIndirect;
-        public uint _EnableSkyReflection;
-        public uint _EnableSSRefraction;
-        public float _MicroShadowOpacity;
+        public float    _ReplaceDiffuseForIndirect;
+        public uint     _EnableSkyReflection;
+        public uint     _EnableSSRefraction;
+        public float    _MicroShadowOpacity;
 
-        public float _DirectionalTransmissionMultiplier;
+        public float    _DirectionalTransmissionMultiplier;
+        public float    _ProbeExposureScale;
+        public float    _ContactShadowOpacity;
+        public float    _ColorPyramidLodCount;
 
-        public Vector4 _CookieAtlasSize;
-        public Vector4 _CookieAtlasData;
-        public Vector4 _PlanarAtlasData;
-
-        // Tile/Cluster
-        public uint _NumTileFtplX;
-        public uint _NumTileFtplY;
-        public float g_fClustScale;
-        public float g_fClustBase;
-
-        public float g_fNearPlane;
-        public float g_fFarPlane;
-        public int g_iLog2NumClusters; // We need to always define these to keep constant buffer layouts compatible
-        public uint g_isLogBaseBufferEnabled;
-
-        public uint _NumTileClusteredX;
-        public uint _NumTileClusteredY;
-        public int _EnvSliceSize;
-
-        // Uniform variables that defines if we should be using the raytraced indirect diffuse
-        public int _RaytracedIndirectDiffuse;
-
-        // Buffer pyramid
-        public float _ColorPyramidLodCount;
-
-        // Ambient occlusion
         public Vector4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
-
         public Vector4 _IndirectLightingMultiplier; // .x indirect diffuse multiplier (use with indirect lighting volume controler)
 
-        // Screen space refraction
         public float _SSRefractionInvScreenWeightDistance; // Distance for screen space smoothstep with fallback
+        public float _Pad3;
+        public float _Pad4;
+        public float _Pad5;
+
+        public Vector4  _CookieAtlasSize;
+        public Vector4  _CookieAtlasData;
+        public Vector4  _PlanarAtlasData;
+
+        // Tile/Cluster
+        public uint     _NumTileFtplX;
+        public uint     _NumTileFtplY;
+        public float    g_fClustScale;
+        public float    g_fClustBase;
+
+        public float    g_fNearPlane;
+        public float    g_fFarPlane;
+        public int      g_iLog2NumClusters; // We need to always define these to keep constant buffer layouts compatible
+        public uint     g_isLogBaseBufferEnabled;
+
+        public uint     _NumTileClusteredX;
+        public uint     _NumTileClusteredY;
+        public int      _EnvSliceSize;
+        public float    _Pad6;
 
         // Subsurface scattering
         // Use float4 to avoid any packing issue between compute and pixel shaders
@@ -196,8 +198,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _TransmissionTintsAndFresnel0[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];  // RGB = 1/4 * color, A = fresnel0
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
         public fixed float _WorldScales[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];        // X = meters per world unit; Y = world units per meter
-        [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(uint))]
-        public fixed uint _DiffusionProfileHashTable[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT]; // TODO: constant
+
+        // Because of constant buffer limitation, arrays can only hold 4 components elements (otherwise we get alignment issues)
+        // We could pack the 16 values inside 4 uint4 but then the generated code is inefficient and generates a lots of swizzle operations instead of a single load.
+        // That's why we have 16 uint and only use the first component of each element.
+        [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(ShaderGenUInt4))]
+        public fixed uint _DiffusionProfileHashTable[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4]; // TODO: constant
 
         public uint _EnableSubsurfaceScattering; // Globally toggles subsurface and transmission scattering on/off
         public uint _TexturingModeFlags;         // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
@@ -205,19 +211,21 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _DiffusionProfileCount;
 
         // Decals
-        public Vector2 _DecalAtlasResolution;
-        public uint _EnableDecals;
-        public uint _DecalCount;
+        public Vector2  _DecalAtlasResolution;
+        public uint     _EnableDecals;
+        public uint     _DecalCount;
 
         public uint _OffScreenRendering;
         public uint _OffScreenDownsampleFactor;
         public uint _XRViewCount;
-        public int _FrameCount;
-
-        public float _ProbeExposureScale;
-        public int _UseRayTracedReflections;
-        public int _RaytracingFrameIndex;
+        public int  _FrameCount;
 
         public Vector4 _CoarseStencilBufferSize;
+
+        // Uniform variables that defines if we should be using the raytraced indirect diffuse
+        public int      _RaytracedIndirectDiffuse;
+        public int      _UseRayTracedReflections;
+        public int      _RaytracingFrameIndex;
+        public float    _Pad7;
     }
 }

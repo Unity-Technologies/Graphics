@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb.data._WorldScales[i * 4 + c] = m_SSSWorldScales[i][c];
                 }
 
-                cb.data._DiffusionProfileHashTable[i] = m_SSSDiffusionProfileHashes[i];
+                cb.data._DiffusionProfileHashTable[i * 4] = m_SSSDiffusionProfileHashes[i];
             }
         }
 

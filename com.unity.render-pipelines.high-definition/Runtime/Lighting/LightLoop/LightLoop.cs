@@ -250,7 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ReflectionProbeCache         reflectionProbeCache { get; private set; }
             public PlanarReflectionProbeCache   reflectionPlanarProbeCache { get; private set; }
             public List<Matrix4x4>              env2DCaptureVP { get; private set; }
-            public List<float>                  env2DCaptureForward { get; private set; }
+            public List<Vector4>                env2DCaptureForward { get; private set; }
             public List<Vector4>                env2DAtlasScaleOffset {get; private set; } = new List<Vector4>();
 
             Material m_CubeToPanoMaterial;
@@ -264,13 +264,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightCookieManager = new LightCookieManager(hdrpAsset, k_MaxCacheSize);
 
                 env2DCaptureVP = new List<Matrix4x4>();
-                env2DCaptureForward = new List<float>();
+                env2DCaptureForward = new List<Vector4>();
                 for (int i = 0, c = Mathf.Max(1, lightLoopSettings.maxPlanarReflectionOnScreen); i < c; ++i)
                 {
                     env2DCaptureVP.Add(Matrix4x4.identity);
-                    env2DCaptureForward.Add(0);
-                    env2DCaptureForward.Add(0);
-                    env2DCaptureForward.Add(0);
+                    env2DCaptureForward.Add(Vector4.zero);
                     env2DAtlasScaleOffset.Add(Vector4.zero);
                 }
 
@@ -1754,9 +1752,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         var capturedForwardWS = renderData.captureRotation * Vector3.forward;
                         //capturedForwardWS.z *= -1; // Transform to RHS standard
-                        m_TextureCaches.env2DCaptureForward[fetchIndex * 3 + 0] = capturedForwardWS.x;
-                        m_TextureCaches.env2DCaptureForward[fetchIndex * 3 + 1] = capturedForwardWS.y;
-                        m_TextureCaches.env2DCaptureForward[fetchIndex * 3 + 2] = capturedForwardWS.z;
+                        m_TextureCaches.env2DCaptureForward[fetchIndex] = new Vector4(capturedForwardWS.x, capturedForwardWS.y, capturedForwardWS.z, 0.0f);
                         break;
                     }
                 case HDAdditionalReflectionData _:
@@ -3248,8 +3244,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int j = 0; j < 16; ++j)
                     cb.data._Env2DCaptureVP[i * 16 + j] = m_TextureCaches.env2DCaptureVP[i][j];
 
-                for (int j = 0; j < 3; ++j)
-                    cb.data._Env2DCaptureForward[i * 3 + j] = m_TextureCaches.env2DCaptureForward[i * 3 + j];
+                for (int j = 0; j < 4; ++j)
+                    cb.data._Env2DCaptureForward[i * 4 + j] = m_TextureCaches.env2DCaptureForward[i][j];
 
                 for (int j = 0; j < 4; ++j)
                     cb.data._Env2DAtlasScaleOffset[i * 4 + j] = m_TextureCaches.env2DAtlasScaleOffset[i][j];

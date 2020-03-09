@@ -125,10 +125,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateShaderVariablesGlobalCBFogParameters(ConstantBuffer<ShaderVariablesGlobal> cb, HDCamera hdCamera)
         {
+            bool enableVolumetrics = enableVolumetricFog.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
+
             cb.data._FogEnabled = 1;
+            cb.data._PBRFogEnabled = IsPBRFogEnabled(hdCamera) ? 1 : 0;
+            cb.data._EnableVolumetricFog = enableVolumetrics ? 1 : 0;
             cb.data._MaxFogDistance = maxFogDistance.value;
 
-            // Fog Color
             Color fogColor = (colorMode.value == FogColorMode.ConstantColor) ? color.value : tint.value;
             cb.data._FogColorMode = (float)colorMode.value;
             cb.data._FogColor = new Color(fogColor.r, fogColor.g, fogColor.b, 0.0f);
@@ -151,12 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float H = ScaleHeightFromLayerDepth(layerDepth);
             cb.data._HeightFogExponents = new Vector2(1.0f / H, H);
             cb.data._HeightFogBaseHeight = crBaseHeight;
-
-            bool enableVolumetrics = enableVolumetricFog.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
             cb.data._GlobalFogAnisotropy = anisotropy.value;
-            cb.data._EnableVolumetricFog = enableVolumetrics ? 1 : 0;
-
-            cb.data._PBRFogEnabled = IsPBRFogEnabled(hdCamera) ? 1 : 0;
         }
     }
 

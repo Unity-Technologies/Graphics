@@ -287,5 +287,11 @@ namespace UnityEngine.Rendering
         }
     }
 
+    /// <summary>
+    /// This type needs to be used when generating unsigned integer arrays for constant buffers.
+    /// </summary>
+    public struct ShaderGenUInt4
+    {
 
+    }
 }
