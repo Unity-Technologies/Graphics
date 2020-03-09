@@ -771,7 +771,7 @@ namespace UnityEditor.VFX
                 if (m_DependentDirty)
                 {
                     var obj = GetResource().visualEffectObject;
-                    VFXExternalShaderProcessor.RecompileDependencies(obj);
+                    VFXAssetProcessor.RecompileDependencies(obj);
                     m_DependentDirty = false;
                 }
             }
