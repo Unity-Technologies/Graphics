@@ -11,6 +11,7 @@ using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
 using Object = UnityEngine.Object;
+using System.IO;
 
 namespace UnityEditor.VFX
 {
@@ -694,21 +695,57 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static VFXShaderSourceDesc[] SaveShaderFiles(VisualEffectResource resource, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static VFXShaderSourceDesc[] SaveShaderFiles(   VisualEffectResource resource,
+                                                                List<GeneratedCodeData> generatedCodeData,
+                                                                Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
+                                                                VFXSystemNames systemNames)
         {
             Profiler.BeginSample("VFXEditor.SaveShaderFiles");
             try
             {
-                VFXShaderSourceDesc[] descs = new VFXShaderSourceDesc[generatedCodeData.Count];
+                var descs = new VFXShaderSourceDesc[generatedCodeData.Count];
+                var assetName = string.Empty;
+                if (resource.asset != null)
+                {
+                    assetName = resource.asset.name; //Most Common case, asset is already available
+                }
+                else
+                {
+                    var assetPath = AssetDatabase.GetAssetPath(resource); //Can occur during Copy/Past or Rename
+                    if (!string.IsNullOrEmpty(assetPath))
+                    {
+                        assetName = Path.GetFileNameWithoutExtension(assetPath);
+                    }
+                    else if (resource.name != null) //Unable to retrieve asset path, last fallback use serialized resource name
+                    {
+                        assetName = resource.name;
+                    }
+                }
 
                 for (int i = 0; i < generatedCodeData.Count; ++i)
                 {
                     var generated = generatedCodeData[i];
-                    var fileName = generated.context.fileName;
+
+                    var systemName = systemNames.GetUniqueSystemName(generated.context.GetData());
+                    var contextLetter = generated.context.letter;
+                    var contextName = string.IsNullOrEmpty(generated.context.label) ? generated.context.libraryName : generated.context.label;
+
+                    var shaderName = string.Empty;
+                    var fileName = string.Empty;
+                    if (contextLetter == '\0')
+                    {
+                        fileName = string.Format("[{0}] [{1}] {2}", assetName, systemName, contextName);
+                        shaderName = string.Format("Hidden/VFX/{0}/{1}/{2}", assetName, systemName, contextName);
+                    }
+                    else
+                    {
+                        fileName = string.Format("[{0}] [{1}]{2} {3}", assetName, systemName, contextLetter, contextName);
+                        shaderName = string.Format("Hidden/VFX/{0}/{1}/{2}/{3}", assetName, systemName, contextLetter, contextName);
+                    }
 
                     if (!generated.computeShader)
                     {
-                        generated.content.Insert(0, "Shader \"" + generated.context.shaderName + "\"\n");
+                        generated.content.Insert(0,"Shader \""+ shaderName + "\"\n");
                     }
                     descs[i].source = generated.content.ToString();
                     descs[i].name = fileName;
@@ -932,7 +969,6 @@ namespace UnityEditor.VFX
                 var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float } };
                 FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, compilableContexts);
 
-
                 SubgraphInfos subgraphInfos;
                 subgraphInfos.subgraphParents = new Dictionary<VFXSubgraphContext, VFXSubgraphContext>();
 
@@ -966,8 +1002,9 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating shaders", 7 / nbSteps);
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode, sourceDependencies);
 
+                m_Graph.systemNames.Sync(m_Graph);
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Saving shaders", 8 / nbSteps);
-                VFXShaderSourceDesc[] shaderSources = SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, contextToCompiledData);
+                VFXShaderSourceDesc[] shaderSources = SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, contextToCompiledData, m_Graph.systemNames);
 
                 var bufferDescs = new List<VFXGPUBufferDesc>();
                 var temporaryBufferDescs = new List<VFXTemporaryGPUBufferDesc>();
@@ -982,8 +1019,6 @@ namespace UnityEditor.VFX
                     stride = globalEventAttributeDescs.First().offset.structure,
                     initialData = ComputeArrayOfStructureInitialData(globalEventAttributeDescs)
                 });
-
-                m_Graph.systemNames.Sync(m_Graph);
 
                 var contextSpawnToSpawnInfo = new Dictionary<VFXContext, SpawnInfo>();
                 FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, globalEventAttributeDescs, contextToCompiledData, ref subgraphInfos, m_Graph.systemNames);

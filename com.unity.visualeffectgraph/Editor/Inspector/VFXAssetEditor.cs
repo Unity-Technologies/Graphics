@@ -133,6 +133,7 @@ class VisualEffectAssetEditor : Editor
 
     ReorderableList m_ReorderableList;
     List<IVFXSubRenderer> m_OutputContexts = new List<IVFXSubRenderer>();
+    VFXGraph m_CurrentGraph;
 
     void OnReorder(ReorderableList list)
     {
@@ -144,7 +145,14 @@ class VisualEffectAssetEditor : Editor
 
     private void DrawOutputContextItem(Rect rect, int index, bool isActive, bool isFocused)
     {
-        EditorGUI.LabelField(rect, EditorGUIUtility.TempContent((m_OutputContexts[index] as VFXContext).fileName));
+        var context = m_OutputContexts[index] as VFXContext;
+
+        var systemName = context.GetGraph().systemNames.GetUniqueSystemName(context.GetData());
+        var contextLetter = context.letter;
+        var contextName = string.IsNullOrEmpty(context.label) ? context.libraryName : context.label;
+        var fullName = string.Format("{0}{1}/{2}", systemName, contextLetter != '\0' ? "/" + contextLetter : string.Empty, contextName);
+
+        EditorGUI.LabelField(rect, EditorGUIUtility.TempContent(fullName));
     }
 
     private void DrawHeader(Rect rect)
@@ -159,7 +167,11 @@ class VisualEffectAssetEditor : Editor
         VisualEffectAsset target = this.target as VisualEffectAsset;
         var resource = target.GetResource();
         if (resource != null) //Can be null if VisualEffectAsset is in Asset Bundle
-            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+        {
+            m_CurrentGraph = resource.GetOrCreateGraph();
+            m_CurrentGraph.systemNames.Sync(m_CurrentGraph);
+            m_OutputContexts.AddRange(m_CurrentGraph.children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+        }
 
         m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
         m_ReorderableList.displayRemove = false;
