@@ -18,7 +18,7 @@ using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
-    namespace UnityEditor.ShaderGraph.UnitTests
+namespace UnityEditor.ShaderGraph.UnitTests
 {
 
 
@@ -29,6 +29,7 @@ using Object = UnityEngine.Object;
         private static readonly string TestPrefix = "_Test_";
         private const float CompilationTimeout = 30f;
 
+
         public static void CloseAllOpenShaderGraphWindows()
         {
             foreach (MaterialGraphEditWindow graphWindow in Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>())
@@ -37,7 +38,7 @@ using Object = UnityEngine.Object;
             }
         }
 
-        private static IEnumerator UntilGraphIsDoneCompiling(MaterialGraphEditWindow window)
+        private static IEnumerator UntilGraphIsDoneCompiling(MaterialGraphEditWindow window, (string, bool, MaterialGraphEditWindow, MaterialGraphEditWindow) debugData)
         {
             GraphEditorView graphEditorView = window.GetPrivateProperty<GraphEditorView>("graphEditorView");
             PreviewManager previewManager = graphEditorView.GetPrivateProperty<PreviewManager>("previewManager");
@@ -70,6 +71,7 @@ using Object = UnityEngine.Object;
                 }
                 if (Time.realtimeSinceStartup - startTime > CompilationTimeout)
                 {
+                    TrySaveWindows(debugData);
                     throw new TimeoutException("Graph took to long to compile");
                 }
                 yield return null;
@@ -133,19 +135,26 @@ using Object = UnityEngine.Object;
 
         }
 
-        private static void TrySaveWindows(MaterialGraphEditWindow copyWindow, MaterialGraphEditWindow testGraphWindow)
+        private static void TrySaveWindows((string, bool, MaterialGraphEditWindow, MaterialGraphEditWindow) debugData)
         {
+            (string assetPath, bool printShader, MaterialGraphEditWindow copyWindow, MaterialGraphEditWindow testGraphWindow) = debugData;
+            if (copyWindow != null)
+            {
+                copyWindow.UpdateAsset();
+                copyWindow.Close();
+            }
+            if (testGraphWindow != null)
+            {
+                testGraphWindow.UpdateAsset();
+                if (printShader)
+                {
+                    string outputPath = TestGraphLocation + TestPrefix + Path.GetFileNameWithoutExtension(assetPath)
+                                      + '.' + ShaderGraphImporter.Extension;
+                    Debug.Log(ShaderGraphImporter.GetShaderText(outputPath, out List<PropertyCollector.TextureInfo> configuredTextures));
+                }
 
-                if (copyWindow != null)
-                {
-                    copyWindow.UpdateAsset();
-                    copyWindow.Close();
-                }
-                if (testGraphWindow != null)
-                {
-                    testGraphWindow.UpdateAsset();
-                    testGraphWindow.Close();
-                }
+                testGraphWindow.Close();
+            }
 
         }
 
@@ -182,7 +191,7 @@ using Object = UnityEngine.Object;
             {
                 try
                 {
-                    TrySaveWindows(copyWindow, testGraphWindow);
+                    TrySaveWindows((assetPath, false, copyWindow, testGraphWindow));
                 }
                 catch (Exception cantSaveOrCloseWindowsException)
                 {
@@ -190,8 +199,9 @@ using Object = UnityEngine.Object;
                 }
                 throw cantOpenWindowsOrAccessPrivatePropertyException;
             }
+            var debugData = (assetPath, !testGraphObject.graph.isSubGraph, copyWindow, testGraphWindow);
 
-            yield return UntilGraphIsDoneCompiling(testGraphWindow);
+            yield return UntilGraphIsDoneCompiling(testGraphWindow, debugData);
 
             var nodeLookup = new Dictionary<AbstractMaterialNode, AbstractMaterialNode>();
             var temporaryMarks = ListPool<(AbstractMaterialNode, SlotReference?, SlotReference?)>.Get();
@@ -218,7 +228,7 @@ using Object = UnityEngine.Object;
                 {
                     if (!nodeLookup.ContainsKey(node))
                     {
-                        yield return UserlikeAddNode(node, testGraphWindow, nodeLookup);
+                        yield return UserlikeAddNode(node, testGraphWindow, nodeLookup, debugData);
                         afterUserAddNode?.Invoke();
                     }
 
@@ -228,7 +238,7 @@ using Object = UnityEngine.Object;
                         if (toNode != null && !nodeLookup.ContainsKey(toNode))
                         {
 
-                            yield return UserlikeAddNode(toNode, testGraphWindow, nodeLookup);
+                            yield return UserlikeAddNode(toNode, testGraphWindow, nodeLookup, debugData);
                             afterUserAddNode?.Invoke();
                             permanentMarks.Add((toNode, null, null));
                         }
@@ -246,7 +256,7 @@ using Object = UnityEngine.Object;
                             ListPool<(AbstractMaterialNode, SlotReference?, SlotReference?)>.Release(permanentMarks);
                             try
                             {
-                                TrySaveWindows(copyWindow, testGraphWindow);
+                                TrySaveWindows(debugData);
                             }
                             catch (Exception cantSaveOrCloseWindowsException)
                             {
@@ -255,7 +265,7 @@ using Object = UnityEngine.Object;
                             throw cantAddEdgeException;
                         }
 
-                        yield return UntilGraphIsDoneCompiling(testGraphWindow);
+                        yield return UntilGraphIsDoneCompiling(testGraphWindow, debugData);
                     }
                     permanentMarks.Add((node, to, from));
                 }
@@ -281,20 +291,11 @@ using Object = UnityEngine.Object;
                 }
             }
 
-            yield return UntilGraphIsDoneCompiling(testGraphWindow);
+            yield return UntilGraphIsDoneCompiling(testGraphWindow, debugData);
 
             try
             {
-                if (copyWindow != null)
-                {
-                    copyWindow.UpdateAsset();
-                    copyWindow.Close();
-                }
-                if (testGraphWindow != null)
-                {
-                    testGraphWindow.UpdateAsset();
-                    testGraphWindow.Close();
-                }
+                TrySaveWindows(debugData);
             }
             catch (Exception cantSaveAndCloseException)
             {
@@ -356,7 +357,8 @@ using Object = UnityEngine.Object;
                                                                              GraphObject graphObject,
                                                                              MaterialGraphEditWindow graphEditWindow,
                                                                              GraphEditorView graphEditorView,
-                                                                             Dictionary<AbstractMaterialNode, AbstractMaterialNode> nodeLookup)
+                                                                             Dictionary<AbstractMaterialNode, AbstractMaterialNode> nodeLookup,
+                                                                             (string, bool, MaterialGraphEditWindow, MaterialGraphEditWindow) debugData)
         {
             //find coresponding shader property
             AbstractShaderProperty property = propertyNode.owner.properties.FirstOrDefault(x => x.guid == propertyNode.propertyGuid);
@@ -366,10 +368,10 @@ using Object = UnityEngine.Object;
             AbstractMaterialNode concrete = property.ToConcreteNode();
             concrete.drawState = propertyNode.drawState;
             concrete.owner = propertyNode.owner;
-            yield return UserlikeAddNodeUsingSearcherAndCopyValues(concrete, graphObject, graphEditWindow, graphEditorView);
+            yield return UserlikeAddNodeUsingSearcherAndCopyValues(concrete, graphObject, graphEditWindow, graphEditorView, debugData);
             Assert.IsNotNull(searcherAddedNode);
 
-            yield return UntilGraphIsDoneCompiling(graphEditWindow);
+            yield return UntilGraphIsDoneCompiling(graphEditWindow, debugData);
 
             MaterialGraphView materialGraphView = graphEditorView.graphView;
             graphEditorView.HandleGraphChanges();
@@ -405,7 +407,8 @@ using Object = UnityEngine.Object;
         private static IEnumerator UserlikeAddNodeUsingSearcherAndCopyValues(AbstractMaterialNode node,
                                                                              GraphObject graphObject,
                                                                              MaterialGraphEditWindow graphEditWindow,
-                                                                             GraphEditorView graphEditorView)
+                                                                             GraphEditorView graphEditorView,
+                                                                             (string, bool, MaterialGraphEditWindow, MaterialGraphEditWindow) debugData)
         {
             //Need to access the searcherprovider to call OnSearcherSelectEntry
             SearchWindowProvider searchWindowProvider = graphEditorView.GetPrivateField<SearchWindowProvider>("m_SearchWindowProvider");
@@ -415,7 +418,7 @@ using Object = UnityEngine.Object;
                 item => (searchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, graphEditWindow.position.center),
                 graphEditWindow.position.center, null);
 
-            yield return UntilGraphIsDoneCompiling(graphEditWindow);
+            yield return UntilGraphIsDoneCompiling(graphEditWindow, debugData);
 
             //get searcher entries
             Type newNodeType = node.GetType();
@@ -478,9 +481,10 @@ using Object = UnityEngine.Object;
                                                   GraphObject graphObject,
                                                   MaterialGraphEditWindow graphEditWindow,
                                                   GraphEditorView graphEditorView,
-                                                  Dictionary<AbstractMaterialNode, AbstractMaterialNode> nodeLookup)
+                                                  Dictionary<AbstractMaterialNode, AbstractMaterialNode> nodeLookup,
+                                                  (string, bool, MaterialGraphEditWindow, MaterialGraphEditWindow) debugData)
         {
-            yield return UserlikeAddNodeUsingSearcherAndCopyValues(node, graphObject, graphEditWindow, graphEditorView);
+            yield return UserlikeAddNodeUsingSearcherAndCopyValues(node, graphObject, graphEditWindow, graphEditorView, debugData);
             nodeLookup.Add(node, searcherAddedNode);
             searcherAddedNode = null;
         }
@@ -504,7 +508,8 @@ using Object = UnityEngine.Object;
         /// <returns></returns>
         public static IEnumerator UserlikeAddNode(AbstractMaterialNode node,
                                                   MaterialGraphEditWindow testGraphWindow,
-                                                  Dictionary<AbstractMaterialNode, AbstractMaterialNode> nodeLookup)
+                                                  Dictionary<AbstractMaterialNode, AbstractMaterialNode> nodeLookup,
+                                                  (string, bool, MaterialGraphEditWindow, MaterialGraphEditWindow) debugData)
         {
 
             GraphEditorView graphEditorView = testGraphWindow.GetPrivateProperty<GraphEditorView>("graphEditorView");
@@ -512,14 +517,14 @@ using Object = UnityEngine.Object;
 
             if (node is PropertyNode propertyNode)
             {
-                yield return UserLikeAddInlineNodeAndConvertToProperty(propertyNode, graphObject, testGraphWindow, graphEditorView, nodeLookup);
+                yield return UserLikeAddInlineNodeAndConvertToProperty(propertyNode, graphObject, testGraphWindow, graphEditorView, nodeLookup, debugData);
             }
             else
             {
-                yield return DefaultAddNode(node, graphObject, testGraphWindow, graphEditorView, nodeLookup);
+                yield return DefaultAddNode(node, graphObject, testGraphWindow, graphEditorView, nodeLookup, debugData);
             }
 
-            yield return UntilGraphIsDoneCompiling(testGraphWindow);
+            yield return UntilGraphIsDoneCompiling(testGraphWindow, debugData);
         }
 
     }
@@ -567,7 +572,7 @@ using Object = UnityEngine.Object;
             return GraphCreationUtils.UserlikeGraphCreation(assetPath, afterUserAction: () =>
             {
                 undoCount = (undoCount + 1) % undoFrequency;
-                if(undoCount % undoFrequency == undoFrequency - 1)
+                if (undoCount % undoFrequency == undoFrequency - 1)
                 {
                     Undo.PerformUndo();
                     Undo.PerformRedo();
