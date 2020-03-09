@@ -8,7 +8,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     #pragma editor_sync_compilation
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-    #pragma multi_compile _ PATH_TRACED_PREVIEW
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -65,196 +64,9 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return output;
     }
 
-// #define PATH_TRACED_PREVIEW
-
-#ifdef PATH_TRACED_PREVIEW
-    #define MAKE_FLT(sgn, exponent, fraction) asfloat((((sgn) & 0x1) << 31) | (((exponent) & 0xFF) << 23) | ((fraction) & 0xFFFFFF))
-    #define FLT_SNAN MAKE_FLT(0x1, 0xFF, 0x1)
-    #define DEBUG
-#ifdef DEBUG
-    #define ASSERT(x) if (!(bool)(x)) return FLT_SNAN
-#else  // DEBUG
-    #define ASSERT(x) x
-#endif // DEBUG
-
-    static const uint s_RandomPrimes[10] = { 0xD974CF83,
-                                             0xFAF269B5,
-                                             0xAE727FA9,
-                                             0x5BA52335,
-                                             0xA4E819D5,
-                                             0xDD638559,
-                                             0xC0972367,
-                                             0x4B190D9B,
-                                             0xD1894DB5,
-                                             0xA78BCBB3 };
-
-    struct Ray
-    {
-        float3 origin;
-        float3 direction;
-        float  frequency;
-    };
-
-    // 'l' is the size of the permutation vector (typically, the number of strata per dimension).
-    uint permute(uint i, uint l, uint p)
-    {
-        if (p == 0) return i; // identity permutation when (p == 0)
-
-        uint w = l - 1;
-
-        w |= w >> 1;
-        w |= w >> 2;
-        w |= w >> 4;
-        w |= w >> 8;
-        w |= w >> 16;
-        do
-        {
-            i ^= p; i *= 0xe170893d;
-            i ^= p >> 16;
-            i ^= (i & w) >> 4;
-            i ^= p >> 8; i *= 0x0929eb3f;
-            i ^= p >> 23;
-            i ^= (i & w) >> 1; i *= 1 | p >> 27;
-            i *= 0x6935fa69;
-            i ^= (i & w) >> 11; i *= 0x74dcb303;
-            i ^= (i & w) >> 2;  i *= 0x9e501cc3;
-            i ^= (i & w) >> 2;  i *= 0xc860a3df;
-            i &= w;
-            i ^= i >> 5;
-        } while (i >= l);
-        return (i + p) % l;
-    }
-
-    float randfloat(uint i, uint p)
-    {
-        if (p == 0) return 0.5f; // always 0.5 when (p == 0)
-
-        i ^= p;
-        i ^= i >> 17;
-        i ^= i >> 10; i *= 0xb36534e5;
-        i ^= i >> 12;
-        i ^= i >> 21; i *= 0x93fc4795;
-        i ^= 0xdf6e307f;
-        i ^= i >> 17; i *= 1 | p >> 18;
-
-        float f = i * (1.0f / 4294967808.0f);
-
-        ASSERT(0 <= f && f < 1);
-
-        return f;
-    }
-
-    // Multi-dimensional correlated multi-jittered sequence.
-    // We specialize it for 6D, which means we generate 64 points.
-    float cmj6D(uint pointIndex, uint dimIndex, uint seed)
-    {
-        const uint s = 2;           // Number of strata per dimension
-        const uint t = 6;           // Strength of the orthogonal array (number of dimensions)
-        const uint n = 64;          // Size of the sequence: n = s^t
-        const uint p = seed;        // Pseudo-random permutation seed
-        const uint i = permute(pointIndex, n, p); // Shuffle the points
-        const uint j = dimIndex;
-
-        ASSERT(i < n);
-        ASSERT(j < t);
-
-        const uint p1 = (p * (j + 1)) * 0x51633e2d;
-        const uint p2 = (p * (j + 1)) * 0x68bc21eb;
-        const uint p3 = (p * (j + 1)) * 0x02e5be93;
-
-        uint digits[t];
-
-        uint d; // Avoid compiler warning
-
-        // digits = toBaseS(i, s);
-        for (d = 0; d < t; d /= s, d++)
-        {
-            digits[d] = d % s;
-        }
-
-        uint stratum = permute(digits[j], s, p1);
-
-        // digits = allButJ(digits, j);
-        for (d = j; d < (t - 1); d++)
-        {
-            digits[d] = digits[d + 1];
-        }
-
-        uint poly = 0;
-
-        // poly = evalPoly(digits, s);
-        for (d = (t - 2); d != -1; d--)
-        {
-            poly = (poly * s) + digits[d]; // Horner's rule
-        }
-
-        uint  stm      = n / s; // pow(s, t - 1)
-        uint  sStratum = permute(poly, stm, p2);
-        float jitter   = randfloat(i, p3);
-
-        return (stratum + (sStratum + jitter) / stm) / s;
-    }
-
-    // 1x path per thread per call.
-    // Tracing multiple paths can be achieved via multiple passes.
-    float3 PathTraceSky(uint2  groupCoord, uint threadIndex,
-                        float3 rayOrigin,  uint pathIndex, uint numPaths, uint numBounces)
-    {
-        // Integral over ((1 + NumBounces) * 3) dimensions:
-        // 2x for filter IS + 1x for photon frequency selection (bounce #0);
-        // 1x for scattering location + 2x for the scattering direction (bounce #i).
-        uint numDimensions = 3 * numBounces;
-
-        uint groupSize = 8;
-        uint bounce    = 0;
-
-        // The group size is (8*8 == 64). It matches the number of points the RNG provides,
-        // so we trace a group of paths at the same time.
-        // It supports up to 6 dimensions at a time (2^6 == 64).
-        // Therefore, every 6 dimensions (2 bounces), we must switch to a new permutation seed.
-        // Every path (per pixel) must also use a unique seed.
-        // Note: this guarantees good distribution of samples within the group,
-        // but not within each individual pixel (for numPaths > 1).
-        // Perhaps we could do something using powers of 2?
-        uint   seed = permute(pathIndex, numPaths, s_RandomPrimes[bounce / 2]);
-        float3 rnd  = float3(cmj6D(threadIndex, (bounce * 3 + 0) % 5, seed),
-                             cmj6D(threadIndex, (bounce * 3 + 1) % 5, seed),
-                             cmj6D(threadIndex, (bounce * 3 + 2) % 5, seed));
-
-        // Determine which pixel the path contributes to.
-        float2 filterOffset = rnd.xy; // TODO: do not use the box filter?
-        float2 screenCoord  = (groupCoord * groupSize) + filterOffset * groupSize;
-
-        Ray ray; // Pinhole camera...
-
-        ray.origin    = rayOrigin;
-        ray.direction = -normalize(mul(float4(screenCoord, 1, 1), _PixelCoordToViewDirWS).xyz);
-        ray.frequency = floor(rnd.z * 3); // Color channel, for now...
-
-        for (bounce = 1; bounce < numBounces; bounce++)
-        {
-            seed = permute(pathIndex, numPaths, s_RandomPrimes[bounce / 2]);
-            rnd  = float3(cmj6D(threadIndex, (bounce * 3 + 0) % 5, seed),
-                          cmj6D(threadIndex, (bounce * 3 + 1) % 5, seed),
-                          cmj6D(threadIndex, (bounce * 3 + 2) % 5, seed));
-
-
-        }
-
-        return 0;
-    }
-
-#endif // PATH_TRACED_PREVIEW
-
     float4 RenderSky(Varyings input)
     {
         const float R = _PlanetaryRadius;
-
-
-    #ifdef PATH_TRACED_PREVIEW
-        float3 rayOrigin = _WorldSpaceCameraPos1 - _PlanetCenterPosition;
-        float3 skyColor  = PathTraceSky(rayOrigin, input.positionCS.xy, 1, 1);
-    #else // PATH_TRACED_PREVIEW
 
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
@@ -408,8 +220,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         }
 
         skyColor += radiance * (1 - skyOpacity);
-    #endif // PATH_TRACED_PREVIEW
-
         skyColor *= _IntensityMultiplier;
 
         return float4(skyColor, 1.0);

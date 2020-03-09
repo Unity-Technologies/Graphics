@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle[]                   m_GroundIrradianceTables;    // All orders, one order
         RTHandle[]                   m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
 
+        static ComputeShader         s_VolumePathTracingCS;
         static ComputeShader         s_GroundIrradiancePrecomputationCS;
         static ComputeShader         s_InScatteredRadiancePrecomputationCS;
         static Material              s_PbrSkyMaterial;
@@ -76,11 +77,13 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdrpResources = HDRenderPipeline.defaultAsset.renderPipelineResources;
 
             // Shaders
+            s_VolumePathTracingCS                 = hdrpResources.shaders.volumePathTracingCS;
             s_GroundIrradiancePrecomputationCS    = hdrpResources.shaders.groundIrradiancePrecomputationCS;
             s_InScatteredRadiancePrecomputationCS = hdrpResources.shaders.inScatteredRadiancePrecomputationCS;
             s_PbrSkyMaterial                      = CoreUtils.CreateEngineMaterial(hdrpResources.shaders.physicallyBasedSkyPS);
             s_PbrSkyMaterialProperties            = new MaterialPropertyBlock();
 
+            Debug.Assert(s_VolumePathTracingCS                 != null);
             Debug.Assert(s_GroundIrradiancePrecomputationCS    != null);
             Debug.Assert(s_InScatteredRadiancePrecomputationCS != null);
 
@@ -123,6 +126,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_InScatteredRadianceTables[2]); m_InScatteredRadianceTables[2] = null;
             RTHandles.Release(m_InScatteredRadianceTables[3]); m_InScatteredRadianceTables[3] = null;
             RTHandles.Release(m_InScatteredRadianceTables[4]); m_InScatteredRadianceTables[4] = null;
+
+            // TODO: clean up the shaders?
 
             m_LastPrecomputedBounce = 0;
         }
@@ -349,6 +354,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float   R = pbrSky.GetPlanetaryRadius();
 
             bool isPbrSkyActive = r > R; // Disable sky rendering below the ground
+            bool pathTraceSky   = pbrSky.pathTracedPreview.value && !renderForCubemap;
 
             CommandBuffer cmd = builtinParams.commandBuffer;
 
@@ -412,6 +418,15 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasSpaceEmissionTexture, hasSpaceEmissionTexture);
 
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._RenderSunDisk, renderSunDisk ? 1 : 0);
+
+            if (pathTraceSky)
+            {
+                cmd.SetComputeTextureParam(s_VolumePathTracingCS, 0, "_ColorBuffer", builtinParams.colorBuffer);
+
+                int numGroupsX = HDUtils.DivRoundUp((int)builtinParams.screenSize.x, 8);
+                int numGroupsY = HDUtils.DivRoundUp((int)builtinParams.screenSize.y, 8);
+                cmd.DispatchCompute(s_VolumePathTracingCS, 0, numGroupsX, numGroupsY, 1);
+            }
 
             int pass = (renderForCubemap ? 0 : 2) + (isPbrSkyActive ? 0 : 1);
 
