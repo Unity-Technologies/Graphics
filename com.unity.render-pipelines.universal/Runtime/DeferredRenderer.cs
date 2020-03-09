@@ -184,7 +184,9 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_DepthPrepass);
                 }
 
-                EnqueueDeferred(ref renderingData, requiresDepthPrepass);
+                // Deferred shading do not try to apply shadow because we don't render any
+                // (m_MainLightShadowCasterPass and m_AdditionalLightsShadowCasterPass are not queued).
+                EnqueueDeferred(ref renderingData, requiresDepthPrepass, false, false);
 
                 EnqueuePass(m_DrawSkyboxPass);
                 EnqueuePass(m_RenderTransparentForwardPass);
@@ -258,7 +260,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_ColorGradingLutPass);
             }
 
-            EnqueueDeferred(ref renderingData, requiresDepthPrepass);
+            EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows);
 
 			bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
@@ -413,7 +415,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass)
+        void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
             RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[k_GBufferSlicesCount + 1];
             for (int gbufferIndex = 0; gbufferIndex < k_GBufferSlicesCount; ++gbufferIndex)
@@ -429,7 +431,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyDepthPass0);
             }
 
-            m_DeferredLights.Setup(ref renderingData, m_AdditionalLightsShadowCasterPass, m_CameraDepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_CameraDepthAttachment, gbufferColorAttachments);
+            m_DeferredLights.Setup(ref renderingData, applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null, m_CameraDepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_CameraDepthAttachment, gbufferColorAttachments);
             // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
             // At this point, we do not know if m_DeferredLights.m_Tilers[x].m_Tiles actually contain any indices of lights intersecting tiles (If there are no lights intersecting tiles, we could skip several following passes) : this information is computed in DeferredRender.SetupLights, which is called later by UniversalRenderPipeline.RenderSingleCamera (via ScriptableRenderer.Execute).
             // However HasTileLights uses m_HasTileVisLights which is calculated by CheckHasTileLights from all visibleLights. visibleLights is the list of lights that have passed camera culling, so we know they are in front of the camera. So we can assume m_DeferredLights.m_Tilers[x].m_Tiles will not be empty in that case.

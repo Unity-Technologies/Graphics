@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         NativeArray<ushort> m_stencilVisLights;
         // Offset of each type of lights in m_stencilVisLights.
         NativeArray<ushort> m_stencilVisLightOffsets;
-        // Needed to access light shadow index.
+        // Needed to access light shadow index (can be null if the pass is not queued).
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
 
         // For rendering stencil point lights.
@@ -529,7 +529,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // We don't need this array anymore as all the lights have been inserted into the tile-grid structures.
-            prePunctualLights.Dispose();
+            if (prePunctualLights.IsCreated)
+                prePunctualLights.Dispose();
 
             Profiler.EndSample();
         }
@@ -1116,10 +1117,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
                 RenderStencilDirectionalLights(cmd, visibleLights, renderingData.lightData.mainLightIndex);
-
                 RenderStencilPointLights(cmd, visibleLights);
                 RenderStencilSpotLights(cmd, visibleLights);
-
             }
 
             Profiler.EndSample();
@@ -1182,7 +1181,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     vl.spotAngle, vl.light?.innerSpotAngle,
                     out lightAttenuation, out lightSpotDir4);
 
-                int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
+                int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex) : -1;
                 if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
                     cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
                 else
@@ -1225,11 +1224,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 lightAttenuation;
                 Vector4 lightSpotDir4;
                 UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
-                    vl.lightType, vl.range /*vl.range*/, vl.localToWorldMatrix,
+                    vl.lightType, vl.range, vl.localToWorldMatrix,
                     vl.spotAngle, vl.light?.innerSpotAngle,
                     out lightAttenuation, out lightSpotDir4);
 
-                int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
+                int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex) : -1;
                 if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
                     cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
                 else
