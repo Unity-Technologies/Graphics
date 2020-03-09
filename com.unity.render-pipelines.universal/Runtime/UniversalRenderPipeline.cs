@@ -117,6 +117,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
             }
 
+#if ENABLE_VR && ENABLE_VR_MODULE
+            XRGraphics.eyeTextureResolutionScale = asset.renderScale;
+#endif
             // For compatibility reasons we also match old LightweightPipeline tag.
             Shader.globalRenderPipeline = "UniversalPipeline,LightweightPipeline";
 
