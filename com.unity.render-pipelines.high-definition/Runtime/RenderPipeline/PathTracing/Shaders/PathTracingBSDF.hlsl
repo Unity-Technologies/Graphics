@@ -17,7 +17,7 @@ bool SampleGGX(MaterialData mtlData,
 
     float NdotL, NdotH, VdotH;
     float3x3 localToWorld = GetLocalFrame(mtlData.bsdfData.normalWS);
-    SampleGGXDir(inputSample, mtlData.V, localToWorld, roughness, outgoingDir, NdotL, NdotH, VdotH);
+    SampleGGXDir(inputSample.xy, mtlData.V, localToWorld, roughness, outgoingDir, NdotL, NdotH, VdotH);
 
     if (NdotL < 0.001 || !IsAbove(mtlData, outgoingDir))
         return false;
@@ -223,7 +223,7 @@ bool SampleGGX(MaterialData mtlData,
 
     float NdotL, NdotH, VdotH;
     float3x3 localToWorld = GetLocalFrame(mtlData.bsdfData.normalWS);
-    SampleGGXDir(inputSample, mtlData.V, localToWorld, roughness, outgoingDir, NdotL, NdotH, VdotH);
+    SampleGGXDir(inputSample.xy, mtlData.V, localToWorld, roughness, outgoingDir, NdotL, NdotH, VdotH);
 
     // FIXME: won't be necessary after new version of SampleGGXDir()
     float3 H = normalize(mtlData.V + outgoingDir);
