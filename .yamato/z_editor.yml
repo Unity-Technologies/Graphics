@@ -39,6 +39,7 @@ editor:priming:{{ editor.version }}:{{ platform.os }}:
     type: Unity::VM
     image: 'cds-ops/ubuntu-16.04-base:stable'
     flavor: b1.small
+  skip_checkout: true
   variables:
     PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
     DISPLAY: ":0"

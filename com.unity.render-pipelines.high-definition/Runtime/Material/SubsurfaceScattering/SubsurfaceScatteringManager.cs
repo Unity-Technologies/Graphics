@@ -323,6 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
                     RTHandle intermediateBuffer2 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA2);
                     RTHandle intermediateBuffer3 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA3);
+                    RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
 
                     // Grab the acceleration structure for the target camera
                     RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
@@ -350,10 +351,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Bind the textures for ray generation
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DepthTexture, sharedRTManager.GetDepthStencilBuffer());
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._NormalBufferTexture, sharedRTManager.GetNormalBuffer());
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._SSSBufferTexture, m_SSSColor);
                         cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, sharedRTManager.GetDepthStencilBuffer(), RenderTextureSubElement.Stencil);
 
@@ -362,6 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._NormalTextureRW, intermediateBuffer1);
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._PositionTextureRW, intermediateBuffer2);
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DiffuseLightingTextureRW, intermediateBuffer3);
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DirectionTextureRW, directionBuffer);
 
                         // Run the computation
                         cmd.DispatchRays(subSurfaceShader, m_RayGenSubSurfaceShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
@@ -379,6 +377,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._ThroughputTextureRW, intermediateBuffer0);
                         cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._NormalTextureRW, intermediateBuffer1);
                         cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._PositionTextureRW, intermediateBuffer2);
+                        cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._DirectionTextureRW, directionBuffer);
                         cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._DiffuseLightingTextureRW, intermediateBuffer3);
 
                         // Bind the output texture (it is used for accumulation read and write)

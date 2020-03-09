@@ -417,6 +417,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ill-formed include path in Depth Of Field shader.
 - Fixed shader graph and ray tracing after the shader target PR.
 - Fixed a bug in semi-transparent shadows (object further than the light casting shadows)
+- Fix state enabled of default volume profile when in package.
+- Fixed removal of MeshRenderer and MeshFilter on adding Light component. 
+- Fixed Ray Traced SubSurface Scattering not working with ray traced area lights
+- Fixed Ray Traced SubSurface Scattering not working in forward mode.
+- Fixed a bug in debug light volumes.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
