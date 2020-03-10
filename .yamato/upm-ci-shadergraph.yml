@@ -137,11 +137,7 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
 {{ project.name }}_Win_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
   name : {{ project.name }} on Win_{{ win_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
-    {% if testplatform.name == "editmode" %}
-    type: Unity::VM
-    {% else %}
     type: Unity::VM::GPU
-    {% endif %} 
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
 {% if editor.version == 'CUSTOM-REVISION' %}
@@ -267,9 +263,6 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
 {% elsif platform.name == "OSX_Metal" %}
 
 {% for testplatform in testplatforms %}
-{% if testplatform.name == "editmode" %}
-#skip because we don't need a GPU to run editmode tests
-{% else %}
 {{ project.name }}_OSX_Metal_{{ testplatform.name }}_{{ editor.version }}:
   name : {{ project.name }} on OSX_Metal_{{ testplatform.name }} on version {{ editor.version }}
   agent:
@@ -318,11 +311,7 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
 {{ project.name }}_Linux_{{ linux_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
   name : {{ project.name }} on Linux_{{ linux_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
-    {% if testplatform.name == "editmode" %}
-    type: Unity::VM
-    {% else %}
     type: {{ platform.type }}
-    {% endif %} 
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
 {% if editor.version == 'CUSTOM-REVISION' %}
