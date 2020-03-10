@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         bool m_TwoSided;
 
-        [Inspectable("Two Sided", true)]
+        [Inspectable("Two Sided", false)]
         public ToggleData twoSided
         {
             get { return new ToggleData(m_TwoSided); }

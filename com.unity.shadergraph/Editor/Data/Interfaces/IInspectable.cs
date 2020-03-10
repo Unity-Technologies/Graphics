@@ -3,25 +3,29 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property)]
     public class Inspectable : Attribute
     {
-        public string _labelName;
-        public object _defaultValue;
+        public string LabelName { get; set; }
+
+        public object DefaultValue { get; set; }
+
         public Inspectable(string labelName, object defaultValue)
         {
-            this._labelName = labelName;
-            this._defaultValue = defaultValue;
+            this.LabelName = labelName;
+            this.DefaultValue = defaultValue;
         }
+
     }
 
     [AttributeUsage(AttributeTargets.Class)]
     public class SGPropertyDrawer : Attribute
     {
-        public Type _propertyType;
-        public SGPropertyDrawer(Type _propertyType)
+        public Type PropertyType { get; set; }
+
+        public SGPropertyDrawer(Type propertyType)
         {
-            this._propertyType = _propertyType;
+            this.PropertyType = propertyType;
         }
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Drawing.Inspector;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -223,7 +224,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
 
-                m_InspectorView = new InspectorView(graph, graphView, previewManager);
+                m_InspectorView = new InspectorView(graph, graphView);
                 m_InspectorView.visible = m_UserViewSettings.isInspectorVisible;
                 m_GraphView.OnSelectionChange += m_InspectorView.UpdateSelection;
 

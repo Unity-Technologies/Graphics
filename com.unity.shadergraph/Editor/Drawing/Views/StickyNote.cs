@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -28,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public readonly VisualElement resizedElement;
 
-        public ElementResizer(VisualElement resizedElement, ResizableElement.Resizer direction)
+    public ElementResizer(VisualElement resizedElement, ResizableElement.Resizer direction)
         {
             this.direction = direction;
             this.resizedElement = resizedElement;
@@ -164,7 +165,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
     }
-    class ResizableElement : VisualElement
+
+      class ResizableElement : VisualElement
     {
         public ResizableElement() : this("uxml/Resizable")
         {
@@ -183,7 +185,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 VisualElement resizer = this.Q(value.ToString().ToLower() + "-resize");
                 if (resizer != null)
-                    resizer.AddManipulator(new ElementResizer(this, value));
+                {
+                    var manipulator = new ElementResizer(this, value);
+                    resizer.AddManipulator(manipulator);
+                    m_Manipulators.Add(manipulator);
+                }
                 m_Resizers[value] = resizer;
             }
 
@@ -192,7 +198,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     VisualElement resizer = this.Q(vertical.ToString().ToLower() + "-" + horizontal.ToString().ToLower() + "-resize");
                     if (resizer != null)
-                        resizer.AddManipulator(new ElementResizer(this, vertical | horizontal));
+                    {
+                        var manipulator = new ElementResizer(this, vertical | horizontal);
+                        resizer.AddManipulator(manipulator);
+                        m_Manipulators.Add(manipulator);
+                    }
                     m_Resizers[vertical | horizontal] = resizer;
                 }
         }
@@ -206,8 +216,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         Dictionary<Resizer, VisualElement> m_Resizers = new Dictionary<Resizer, VisualElement>();
-    }
 
+        List<Manipulator> m_Manipulators = new List<Manipulator>();
+
+        // Lets visual element owners bind a callback to when any resize operation is completed
+        public void BindOnResizeCallback(EventCallback<MouseUpEvent> mouseUpEvent)
+        {
+            foreach (var manipulator in m_Manipulators)
+            {
+                if (manipulator == null)
+                    return;
+                manipulator.target.RegisterCallback(mouseUpEvent);
+            }
+        }
+    }
 
     class StickyNodeChangeEvent : EventBase<StickyNodeChangeEvent>
     {
