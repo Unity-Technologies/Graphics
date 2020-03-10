@@ -26,23 +26,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
-        class NotAMaterialSlot : ISlot
-        {
-            public bool Equals(ISlot other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int id { get; }
-            public string displayName { get; set; }
-            public bool isInputSlot { get; }
-            public bool isOutputSlot { get; }
-            public int priority { get; set; }
-            public SlotReference slotReference { get; }
-            public AbstractMaterialNode owner { get; set; }
-            public bool hidden { get; set; }
-        }
-
         [OneTimeSetUp]
         public void RunBeforeAnyTests()
         {
@@ -61,12 +44,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void GetVariableNameForSlotThrowsWhenInvalid()
         {
             Assert.Throws<ArgumentException>(() => m_NodeA.GetVariableNameForSlot(666));
-        }
-
-        [Test]
-        public void AddingNonMaterialSlotToNodeThrows()
-        {
-            Assert.Throws<ArgumentException>(() => m_NodeA.AddSlot(new NotAMaterialSlot()));
         }
 
         [Test]
@@ -107,7 +84,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(1, properties.Count);
             var pp = properties.FirstOrDefault();
 
-            Assert.AreEqual(m_NodeA.GetVariableNameForSlot(slot.id), pp.name);
+            Assert.AreEqual(m_NodeA.GetVariableNameForSlot(slot.slotId), pp.name);
             Assert.AreEqual(PropertyType.Vector1, pp.propType);
             Assert.AreEqual(slot.value, pp.floatValue);
         }
@@ -118,7 +95,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             string expected = string.Format("{0}", m_NodeA.GetVariableNameForSlot(TestNode.V1In));
 
             var slot = m_NodeA.GetInputSlots<MaterialSlot>().FirstOrDefault();
-            var result = m_NodeA.GetSlotValue(slot.id, GenerationMode.Preview);
+            var result = m_NodeA.GetSlotValue(slot.slotId, GenerationMode.Preview);
             Assert.AreEqual(expected, result);
         }
 

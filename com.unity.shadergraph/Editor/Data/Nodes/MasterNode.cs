@@ -119,7 +119,7 @@ namespace UnityEditor.ShaderGraph
 
             if(owner.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
-                owner.AddValidationError(tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+                owner.AddValidationError(this, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
 
                 configuredTextures = shaderProperties.GetConfiguredTexutres();
                 return ShaderGraphImporter.k_ErrorShader;

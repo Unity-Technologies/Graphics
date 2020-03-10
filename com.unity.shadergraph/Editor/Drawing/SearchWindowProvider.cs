@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public List<NodeEntry> currentNodeEntries;
         public ShaderPort connectedPort { get; set; }
         public bool nodeNeedsRepositioning { get; set; }
-        public SlotReference targetSlotReference { get; internal set; }
+        public MaterialSlot targetSlot { get; internal set; }
         public Vector2 targetPosition { get; internal set; }
         private const string k_HiddenFolderName = "Hidden";
 
@@ -54,9 +54,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Icon = null;
             }
         }
-        
+
         List<int> m_Ids;
-        List<ISlot> m_Slots = new List<ISlot>();
+        List<MaterialSlot> m_Slots = new List<MaterialSlot>();
 
         public void GenerateNodeEntries()
         {
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
                 var node = new SubGraphNode { asset = asset };
                 var title = asset.path.Split('/').ToList();
-                
+
                 if (asset.descendents.Contains(m_Graph.assetGuid) || asset.assetGuid == m_Graph.assetGuid)
                 {
                     continue;
@@ -134,25 +134,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                             return 1;
                         var value = entry1.title[i].CompareTo(entry2.title[i]);
                         if (value != 0)
-                        {                            
+                        {
                             // Make sure that leaves go before nodes
                             if (entry1.title.Length != entry2.title.Length && (i == entry1.title.Length - 1 || i == entry2.title.Length - 1))
                             {
-                                //once nodes are sorted, sort slot entries by slot order instead of alphebetically 
+                                //once nodes are sorted, sort slot entries by slot order instead of alphebetically
                                 var alphaOrder = entry1.title.Length < entry2.title.Length ? -1 : 1;
-                                var slotOrder = entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);                     
+                                var slotOrder = entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);
                                 return alphaOrder.CompareTo(slotOrder);
-                            }                                                         
-                            
+                            }
+
                             return value;
                         }
                     }
                     return 0;
                 });
 
-            
+
             currentNodeEntries = nodeEntries;
-        }       
+        }
 
         void AddEntries(AbstractMaterialNode node, string[] title, List<NodeEntry> addNodeEntries)
         {
@@ -186,7 +186,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var materialSlot = (MaterialSlot)slot;
                     return !materialSlot.IsCompatibleStageWith(connectedSlot);
                 });
-            
+
             foreach (var slot in m_Slots)
             {
                 //var entryTitle = new string[title.Length];
@@ -196,22 +196,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     title = title,
                     node = node,
-                    compatibleSlotId = slot.id,
+                    compatibleSlotId = slot.slotId,
                     slotName = slot.displayName
                 });
             }
         }
     }
     class SearcherProvider : SearchWindowProvider
-    {        
+    {
         public Searcher.Searcher LoadSearchWindow()
         {
             GenerateNodeEntries();
 
-            //create empty root for searcher tree 
+            //create empty root for searcher tree
             var root = new List<SearcherItem>();
             var dummyEntry = new NodeEntry();
-            
+
             foreach (var nodeEntry in currentNodeEntries)
             {
                 SearcherItem item = null;
@@ -249,18 +249,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (parent.Depth == 0 && !root.Contains(parent))
                         root.Add(parent);
                 }
-                
+
             }
 
             var nodeDatabase = SearcherDatabase.Create(root, string.Empty, false);
-            
-            return new Searcher.Searcher(nodeDatabase, new SearchWindowAdapter("Create Node"));             
+
+            return new Searcher.Searcher(nodeDatabase, new SearchWindowAdapter("Create Node"));
         }
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
             if(entry == null || (entry as SearchNodeItem).NodeGUID.node == null)
                 return false;
-           
+
             var nodeEntry = (entry as SearchNodeItem).NodeGUID;
             var node = nodeEntry.node;
 
@@ -279,20 +279,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (connectedPort != null)
             {
                 var connectedSlot = connectedPort.slot;
-                var connectedSlotReference = connectedSlot.owner.GetSlotReference(connectedSlot.id);
-                var compatibleSlotReference = node.GetSlotReference(nodeEntry.compatibleSlotId);
+                var compatibleSlot = node.FindSlot<MaterialSlot>(nodeEntry.compatibleSlotId);
 
-                var fromReference = connectedSlot.isOutputSlot ? connectedSlotReference : compatibleSlotReference;
-                var toReference = connectedSlot.isOutputSlot ? compatibleSlotReference : connectedSlotReference;
-                m_Graph.Connect(fromReference, toReference);
+                var fromSlot = connectedSlot.isOutputSlot ? connectedSlot : compatibleSlot;
+                var toSlot = connectedSlot.isOutputSlot ? compatibleSlot : connectedSlot;
+                m_Graph.Connect(fromSlot, toSlot);
 
                 nodeNeedsRepositioning = true;
-                targetSlotReference = compatibleSlotReference;
+                targetSlot = compatibleSlot;
                 targetPosition = graphMousePosition;
             }
 
             return true;
         }
     }
-    
+
 }

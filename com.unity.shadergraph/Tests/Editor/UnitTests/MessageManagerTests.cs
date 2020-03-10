@@ -11,21 +11,21 @@ namespace UnityEditor.ShaderGraph.UnitTests
 {
     class TestMessageManager : MessageManager
     {
-        public Dictionary<object, Dictionary<Identifier, List<ShaderMessage>>> Messages
+        public Dictionary<object, Dictionary<AbstractMaterialNode, List<ShaderMessage>>> Messages
         {
             get { return m_Messages; }
         }
     }
-    
+
     class MessageManagerTests
     {
         TestMessageManager m_EmptyMgr;
         TestMessageManager m_ComplexMgr;
         string p0 = "Provider 0";
         string p1 = "Provider 1";
-        Identifier node0 = new Identifier(0);
-        Identifier node1 = new Identifier(1);
-        Identifier node2 = new Identifier(2);
+        AbstractMaterialNode node0 = new AddNode();
+        AbstractMaterialNode node1 = new AddNode();
+        AbstractMaterialNode node2 = new AddNode();
         ShaderMessage e0 = new ShaderMessage("e0");
         ShaderMessage e1 = new ShaderMessage("e1");
         ShaderMessage e2 = new ShaderMessage("e2");
@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void Setup()
         {
             m_EmptyMgr = new TestMessageManager();
-            
+
             m_ComplexMgr = new TestMessageManager();
             m_ComplexMgr.AddOrAppendError(p0, node0, e0);
             m_ComplexMgr.AddOrAppendError(p0, node0, e1);
@@ -49,9 +49,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         // Simple helper to avoid typing that ungodly generic type
-        static List<KeyValuePair<Identifier, List<ShaderMessage>>> GetListFrom(MessageManager mgr)
+        static List<KeyValuePair<AbstractMaterialNode, List<ShaderMessage>>> GetListFrom(MessageManager mgr)
         {
-            return new List<KeyValuePair<Identifier, List<ShaderMessage>>>(mgr.GetNodeMessages());
+            return new List<KeyValuePair<AbstractMaterialNode, List<ShaderMessage>>>(mgr.GetNodeMessages());
         }
 
         [Test]
@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var ret = GetListFrom(m_EmptyMgr);
             Assert.IsEmpty(ret);
         }
-        
+
         [Test]
         public void AddMessage_CreatesMessage()
         {
@@ -98,33 +98,33 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_EmptyMgr.AddOrAppendError(p1, node0, e2);
 
             GetListFrom(m_EmptyMgr);
-            
+
             Assert.AreEqual(2, m_EmptyMgr.Messages[p0][node0].Count);
             Assert.AreEqual(e0, m_EmptyMgr.Messages[p0][node0][0]);
             Assert.AreEqual(e1, m_EmptyMgr.Messages[p0][node0][1]);
             Assert.AreEqual(1, m_EmptyMgr.Messages[p1][node0].Count);
             Assert.AreEqual(e2, m_EmptyMgr.Messages[p1][node0][0]);
         }
-        
+
         [Test]
         public void RemoveNode_DoesNotDirty_IfNodeDoesNotExist()
         {
             m_EmptyMgr.AddOrAppendError(p0, node0, e0);
             GetListFrom(m_EmptyMgr);
-            
+
             m_EmptyMgr.RemoveNode(node1);
-            
+
             Assert.IsFalse(m_EmptyMgr.nodeMessagesChanged);
         }
-        
+
         [Test]
         public void RemoveNode_DirtiesList_IfNodeExists()
         {
             m_EmptyMgr.AddOrAppendError(p0, node0, e0);
             GetListFrom(m_EmptyMgr);
-            
+
             m_EmptyMgr.RemoveNode(node0);
-            
+
             Assert.IsTrue(m_EmptyMgr.nodeMessagesChanged);
         }
 
@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var ret = GetListFrom(m_EmptyMgr);
             Assert.IsEmpty(ret);
         }
-        
+
         [Test]
         public void RemoveNode_RemovesNode_FromAllProvides()
         {
@@ -148,13 +148,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var ret = GetListFrom(m_EmptyMgr);
             Assert.IsEmpty(ret);
         }
-        
+
         [Test]
         public void AppendMessage_AppendsMessage()
         {
             m_EmptyMgr.AddOrAppendError(p0, node0, e0);
             m_EmptyMgr.AddOrAppendError(p0, node0, e1);
-            
+
             var ret = GetListFrom(m_EmptyMgr);
             Assert.IsNotEmpty(ret);
             Assert.AreEqual(node0, ret[0].Key);
@@ -187,20 +187,20 @@ namespace UnityEditor.ShaderGraph.UnitTests
             mixedMgr.AddOrAppendError(p0, node0, w0);
             mixedMgr.AddOrAppendError(p1, node0, e1);
             mixedMgr.AddOrAppendError(p1, node0, w1);
-            
+
             var ret = GetListFrom(mixedMgr)[0].Value;
             Assert.AreEqual(e0, ret[0]);
             Assert.AreEqual(e1, ret[1]);
             Assert.AreEqual(w0, ret[2]);
             Assert.AreEqual(w1, ret[3]);
         }
-        
+
         [Test]
         public void MultipleNodes_RemainSeparate()
         {
             m_EmptyMgr.AddOrAppendError(p0, node0, e0);
             m_EmptyMgr.AddOrAppendError(p0, node1, e1);
-            
+
             var ret = GetListFrom(m_EmptyMgr);
             Assert.AreEqual(2, ret.Count);
             Assert.AreEqual(node0, ret[0].Key);
@@ -208,13 +208,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(node1, ret[1].Key);
             Assert.AreEqual(e1, ret[1].Value[0]);
         }
-        
+
         [Test]
         public void MultipleCreators_AggregatePerNode()
         {
             m_EmptyMgr.AddOrAppendError(p0, node0, e0);
             m_EmptyMgr.AddOrAppendError(p1, node0, e1);
-            
+
             var ret = GetListFrom(m_EmptyMgr);
             Assert.IsNotEmpty(ret);
             Assert.AreEqual(node0, ret[0].Key);
@@ -228,7 +228,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             m_EmptyMgr.AddOrAppendError(p0, node0, e0);
             m_EmptyMgr.AddOrAppendError(p0, node0, e0);
-            
+
             var ret = GetListFrom(m_EmptyMgr);
             Assert.IsNotEmpty(ret);
             Assert.AreEqual(node0, ret[0].Key);
@@ -268,9 +268,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void ClearNodesFromProvider_ClearsNodes()
         {
-            var n0 = new AndNode {tempId = node0};
-            var n2 = new AndNode {tempId = node2};
-            var nodesToClear = new List<AbstractMaterialNode>() { n0, n2 };
+            var nodesToClear = new List<AbstractMaterialNode>() { node0, node2 };
             m_ComplexMgr.ClearNodesFromProvider(p1, nodesToClear);
 
             var ret = GetListFrom(m_ComplexMgr);
@@ -281,9 +279,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void ClearNodesFromProvider_LeavesOtherNodes()
         {
-            var n0 = new AndNode {tempId = node0};
-            var n2 = new AndNode {tempId = node2};
-            var nodesToClear = new List<AbstractMaterialNode>() { n0, n2 };
+            var nodesToClear = new List<AbstractMaterialNode>() { node0, node2 };
             m_ComplexMgr.ClearNodesFromProvider(p1, nodesToClear);
 
             var ret = GetListFrom(m_ComplexMgr);

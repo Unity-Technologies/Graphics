@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.Serialization
 {
     [Serializable]
-    class JsonObject : ISerializationCallbackReceiver
+    public class JsonObject : ISerializationCallbackReceiver
     {
         // We have some fields in here to match the output of ScriptableObject.
         // This is to prevent introducing big changes to Shader Graph files
@@ -27,9 +27,7 @@ namespace UnityEditor.ShaderGraph.Serialization
         string m_Type;
 
         [SerializeField]
-        string m_Id = Guid.NewGuid().ToString();
-
-        public string type => m_Type;
+        string m_Id = Guid.NewGuid().ToString("N");
 
         public string id => m_Id;
 
@@ -39,15 +37,19 @@ namespace UnityEditor.ShaderGraph.Serialization
             set => m_Name = value;
         }
 
-        public virtual void OnBeforeSerialize()
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             m_EditorClassIdentifier = $"{GetType().Assembly.GetName().Name}:{GetType().Namespace}:{GetType().Name}";
             m_Type = $"{GetType().FullName}";
+            OnBeforeSerialize();
         }
+
+        public virtual void OnBeforeSerialize() { }
 
         public virtual void OnAfterDeserialize() { }
 
-        internal virtual void OnAfterMultiDeserialize(string json)
-        {}
+        public virtual void OnAfterDeserialize(string json) { }
+
+        public virtual void OnAfterMultiDeserialize(string json) { }
     }
 }

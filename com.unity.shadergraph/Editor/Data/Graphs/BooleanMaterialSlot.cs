@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
 
             var property = new BooleanShaderProperty()
             {
-                overrideReferenceName = matOwner.GetVariableNameForSlot(id),
+                overrideReferenceName = matOwner.GetVariableNameForSlot(slotId),
                 generatePropertyBlock = false,
                 value = value
             };

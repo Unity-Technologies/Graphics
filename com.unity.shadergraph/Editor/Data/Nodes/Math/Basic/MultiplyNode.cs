@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph
                     inputSlot.hasError = false;
 
                     // if there is a connection
-                    var edges = owner.GetEdges(inputSlot.slotReference).ToList();
+                    var edges = owner.GetEdges(inputSlot).ToList();
                     if (!edges.Any())
                     {
                         if (inputSlot is DynamicValueMaterialSlot)
@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph
 
                     // get the output details
                     var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                    var outputNode = outputSlotRef.owner;
                     if (outputNode == null)
                         continue;
 
@@ -251,7 +251,7 @@ namespace UnityEditor.ShaderGraph
 
             if (isInError)
             {
-                ((GraphData) owner).AddValidationError(tempId, errorMessage);
+                ((GraphData) owner).AddValidationError(this, errorMessage);
             }
             else
             {
@@ -299,10 +299,10 @@ namespace UnityEditor.ShaderGraph
             GetInputSlots(slots);
             for (int i = 0; i < slots.Count; i++)
             {
-                var edges = owner.GetEdges(slots[i].slotReference).ToList();
+                var edges = owner.GetEdges(slots[i]).ToList();
                 if (!edges.Any())
                     continue;
-                var outputNode = owner.GetNodeFromGuid(edges[0].outputSlot.nodeGuid);
+                var outputNode = edges[0].outputSlot.owner;
                 var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
                 if (outputSlot.concreteValueType == ConcreteSlotValueType.Matrix4
                     || outputSlot.concreteValueType == ConcreteSlotValueType.Matrix3
@@ -314,10 +314,10 @@ namespace UnityEditor.ShaderGraph
 
         private void SetConcreteValueTypeFromEdge(DynamicValueMaterialSlot slot)
         {
-            var edges = owner.GetEdges(slot.slotReference).ToList();
+            var edges = owner.GetEdges(slot).ToList();
             if (!edges.Any())
                 return;
-            var outputNode = owner.GetNodeFromGuid(edges[0].outputSlot.nodeGuid);
+            var outputNode = edges[0].outputSlot.owner;
             var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
             slot.SetConcreteType(outputSlot.concreteValueType);
         }

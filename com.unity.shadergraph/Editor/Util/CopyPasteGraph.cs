@@ -11,7 +11,7 @@ namespace UnityEditor.Graphing.Util
     sealed class CopyPasteGraph : ISerializationCallbackReceiver
     {
         [NonSerialized]
-        HashSet<IEdge> m_Edges = new HashSet<IEdge>();
+        HashSet<EdgeData> m_Edges = new HashSet<EdgeData>();
 
         [NonSerialized]
         HashSet<AbstractMaterialNode> m_Nodes = new HashSet<AbstractMaterialNode>();
@@ -56,7 +56,7 @@ namespace UnityEditor.Graphing.Util
 
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes)
+        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<EdgeData> edges, IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes)
         {
             m_SourceGraphGuid = sourceGraphGuid;
 
@@ -74,7 +74,7 @@ namespace UnityEditor.Graphing.Util
             {
                 if (!node.canCopyNode)
                 {
-                    throw new InvalidOperationException($"Cannot copy node {node.name} ({node.guid}).");
+                    throw new InvalidOperationException($"Cannot copy node {node.name} ({node.id}).");
                 }
                 AddNode(node);
                 foreach (var edge in NodeUtils.GetAllEdges(node))
@@ -109,7 +109,7 @@ namespace UnityEditor.Graphing.Util
             m_Nodes.Add(node);
         }
 
-        public void AddEdge(IEdge edge)
+        public void AddEdge(EdgeData edge)
         {
             m_Edges.Add(edge);
         }
@@ -141,7 +141,7 @@ namespace UnityEditor.Graphing.Util
 
         public IEnumerable<StickyNoteData> stickyNotes => m_StickyNotes;
 
-        public IEnumerable<IEdge> edges
+        public IEnumerable<EdgeData> edges
         {
             get { return m_Edges; }
         }
@@ -169,7 +169,7 @@ namespace UnityEditor.Graphing.Util
         public void OnBeforeSerialize()
         {
             m_SerializableNodes = SerializationHelper.Serialize<AbstractMaterialNode>(m_Nodes);
-            m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
+            m_SerializableEdges = SerializationHelper.Serialize<EdgeData>(m_Edges);
             m_SerilaizeableInputs = SerializationHelper.Serialize<ShaderInput>(m_Inputs);
             m_SerializableMetaProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_MetaProperties);
             m_SerializableMetaKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_MetaKeywords);
@@ -183,7 +183,7 @@ namespace UnityEditor.Graphing.Util
                 m_Nodes.Add(node);
             m_SerializableNodes = null;
 
-            var edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
+            var edges = SerializationHelper.Deserialize<EdgeData>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
             m_Edges.Clear();
             foreach (var edge in edges)
                 m_Edges.Add(edge);

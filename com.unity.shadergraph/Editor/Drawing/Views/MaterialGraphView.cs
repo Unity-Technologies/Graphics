@@ -213,7 +213,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             graph.owner.RegisterCompleteObjectUndo("Delete Group and Contents");
             var groupItems = graph.GetItemsInGroup(data);
-            graph.RemoveElements(groupItems.OfType<AbstractMaterialNode>().ToArray(), new IEdge[] {}, new [] {data}, groupItems.OfType<StickyNoteData>().ToArray());
+            graph.RemoveElements(groupItems.OfType<AbstractMaterialNode>().ToArray(), new EdgeData[] {}, new [] {data}, groupItems.OfType<StickyNoteData>().ToArray());
         }
 
         private void InitializePrecisionSubMenu(ContextualMenuPopulateEvent evt)
@@ -482,15 +482,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var propNode = new PropertyNode();
                 propNode.drawState = node.drawState;
-                propNode.groupGuid = node.groupGuid;
+                propNode.group = node.group;
                 graph.AddNode(propNode);
                 propNode.propertyGuid = prop.guid;
 
                 var oldSlot = node.FindSlot<MaterialSlot>(converter.outputSlotId);
                 var newSlot = propNode.FindSlot<MaterialSlot>(PropertyNode.OutputSlotId);
 
-                foreach (var edge in graph.GetEdges(oldSlot.slotReference))
-                    graph.Connect(newSlot.slotReference, edge.inputSlot);
+                foreach (var edge in graph.GetEdges(oldSlot))
+                    graph.Connect(newSlot, edge.inputSlot);
 
                 graph.RemoveNode(node);
             }
@@ -533,7 +533,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var groups = elements.OfType<ShaderGroup>().Select(x => x.userData);
             var nodes = elements.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.canCopyNode);
-            var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
+            var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<EdgeData>();
             var inputs = selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
             var notes = elements.OfType<StickyNote>().Select(x => x.userData);
 
@@ -620,7 +620,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             graph.owner.RegisterCompleteObjectUndo(operationName);
             graph.RemoveElements(nodesToDelete.ToArray(),
-                selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>().ToArray(),
+                selection.OfType<Edge>().Select(x => x.userData).OfType<EdgeData>().ToArray(),
                 selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(),
                 selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
 
@@ -937,7 +937,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             using (var remappedNodesDisposable = ListPool<AbstractMaterialNode>.GetDisposable())
             {
-                using (var remappedEdgesDisposable = ListPool<IEdge>.GetDisposable())
+                using (var remappedEdgesDisposable = ListPool<EdgeData>.GetDisposable())
                 {
                     var remappedNodes = remappedNodesDisposable.value;
                     var remappedEdges = remappedEdgesDisposable.value;
@@ -974,7 +974,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphView.ClearSelection();
                     graphView.graphElements.ForEach(element =>
                         {
-                            if (element is Edge edge && remappedEdges.Contains(edge.userData as IEdge))
+                            if (element is Edge edge && remappedEdges.Contains(edge.userData as EdgeData))
                                 graphView.AddToSelection(edge);
 
                             if (element is IShaderNodeView nodeView && remappedNodes.Contains(nodeView.node))

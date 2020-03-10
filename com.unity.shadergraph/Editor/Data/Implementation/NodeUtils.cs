@@ -26,10 +26,10 @@ namespace UnityEditor.Graphing
             var missingSlots = new List<int>();
 
             var inputSlots = expectedInputSlots as IList<int> ?? expectedInputSlots.ToList();
-            missingSlots.AddRange(inputSlots.Except(node.GetInputSlots<ISlot>().Select(x => x.id)));
+            missingSlots.AddRange(inputSlots.Except(node.GetInputSlots<MaterialSlot>().Select(x => x.slotId)));
 
             var outputSlots = expectedOutputSlots as IList<int> ?? expectedOutputSlots.ToList();
-            missingSlots.AddRange(outputSlots.Except(node.GetOutputSlots<ISlot>().Select(x => x.id)));
+            missingSlots.AddRange(outputSlots.Except(node.GetOutputSlots<MaterialSlot>().Select(x => x.slotId)));
 
             if (missingSlots.Count == 0)
                 return;
@@ -39,27 +39,27 @@ namespace UnityEditor.Graphing
             throw new SlotConfigurationException(string.Format("Missing slots {0} on node {1}", string.Join(", ", toPrint.ToArray()), node));
         }
 
-        public static IEnumerable<IEdge> GetAllEdges(AbstractMaterialNode node)
+        public static IEnumerable<EdgeData> GetAllEdges(AbstractMaterialNode node)
         {
-            var result = new List<IEdge>();
-            var validSlots = ListPool<ISlot>.Get();
+            var result = new List<EdgeData>();
+            var validSlots = ListPool<MaterialSlot>.Get();
 
-            validSlots.AddRange(node.GetInputSlots<ISlot>());
+            validSlots.AddRange(node.GetInputSlots<MaterialSlot>());
             for (int index = 0; index < validSlots.Count; index++)
             {
                 var inputSlot = validSlots[index];
-                result.AddRange(node.owner.GetEdges(inputSlot.slotReference));
+                result.AddRange(node.owner.GetEdges(inputSlot));
             }
 
             validSlots.Clear();
-            validSlots.AddRange(node.GetOutputSlots<ISlot>());
+            validSlots.AddRange(node.GetOutputSlots<MaterialSlot>());
             for (int index = 0; index < validSlots.Count; index++)
             {
                 var outputSlot = validSlots[index];
-                result.AddRange(node.owner.GetEdges(outputSlot.slotReference));
+                result.AddRange(node.owner.GetEdges(outputSlot));
             }
 
-            ListPool<ISlot>.Release(validSlots);
+            ListPool<MaterialSlot>.Release(validSlots);
             return result;
         }
 
@@ -69,7 +69,7 @@ namespace UnityEditor.Graphing
             node.GetSlots(slots);
 
             name = name.Trim();
-            return GraphUtil.SanitizeName(slots.Where(p => p.id != slotId).Select(p => p.RawDisplayName()), "{0} ({1})", name);
+            return GraphUtil.SanitizeName(slots.Where(p => p.slotId != slotId).Select(p => p.RawDisplayName()), "{0} ({1})", name);
         }
 
         // CollectNodesNodeFeedsInto looks at the current node and calculates
@@ -93,29 +93,29 @@ namespace UnityEditor.Graphing
             if (nodeList.Contains(node))
                 return;
 
-            IEnumerable<int> ids;
+            IEnumerable<MaterialSlot> slots;
 
             // If this node is a keyword node and we have an active keyword permutation
             // The only valid port id is the port that corresponds to that keywords value in the active permutation
             if(node is KeywordNode keywordNode && keywordPermutation != null)
             {
-                var valueInPermutation = keywordPermutation.Where(x => x.Key.guid == keywordNode.keywordGuid).FirstOrDefault();
-                ids = new int[] { keywordNode.GetSlotIdForPermutation(valueInPermutation) };
+                var valueInPermutation = keywordPermutation.FirstOrDefault(x => x.Key.guid == keywordNode.keywordGuid);
+                slots = new [] { keywordNode.FindSlot<MaterialSlot>(keywordNode.GetSlotIdForPermutation(valueInPermutation)) };
             }
             else if (slotIds == null)
             {
-                ids = node.GetInputSlots<ISlot>().Select(x => x.id);
+                slots = node.GetInputSlots<MaterialSlot>();
             }
             else
             {
-                ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
+                slots = node.GetInputSlots<MaterialSlot>().Where(x => slotIds.Contains(x.slotId));
             }
 
-            foreach (var slot in ids)
+            foreach (var slot in slots)
             {
-                foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
+                foreach (var edge in node.owner.GetEdges(slot))
                 {
-                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    var outputNode = edge.outputSlot.owner;
                     if (outputNode != null)
                         DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation);
                 }
@@ -129,9 +129,9 @@ namespace UnityEditor.Graphing
         {
             var node = slot.owner;
             var graph = node.owner;
-            foreach (var edge in graph.GetEdges(node.GetSlotReference(slot.id)))
+            foreach (var edge in graph.GetEdges(slot))
             {
-                var outputNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                var outputNode = edge.outputSlot.owner;
                 if (outputNode != null)
                 {
                     CollectNodeSet(nodeSet, outputNode);
@@ -165,11 +165,11 @@ namespace UnityEditor.Graphing
             if (nodeList.Contains(node))
                 return;
 
-            foreach (var slot in node.GetOutputSlots<ISlot>())
+            foreach (var slot in node.GetOutputSlots<MaterialSlot>())
             {
-                foreach (var edge in node.owner.GetEdges(slot.slotReference))
+                foreach (var edge in node.owner.GetEdges(slot))
                 {
-                    var inputNode = node.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                    var inputNode = edge.inputSlot.owner;
                     CollectNodesNodeFeedsInto(nodeList, inputNode);
                 }
             }
@@ -198,17 +198,17 @@ namespace UnityEditor.Graphing
 
                 if (goingBackwards && slot.isInputSlot)
                 {
-                    foreach (var edge in graph.GetEdges(slot.slotReference))
+                    foreach (var edge in graph.GetEdges(slot))
                     {
-                        var node = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                        var node = edge.outputSlot.owner;
                         s_SlotStack.Push(node.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId));
                     }
                 }
                 else if (!goingBackwards && slot.isOutputSlot)
                 {
-                    foreach (var edge in graph.GetEdges(slot.slotReference))
+                    foreach (var edge in graph.GetEdges(slot))
                     {
-                        var node = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                        var node = edge.inputSlot.owner;
                         s_SlotStack.Push(node.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId));
                     }
                 }
@@ -241,17 +241,17 @@ namespace UnityEditor.Graphing
 
                 if (goingBackwards && slot.isInputSlot)
                 {
-                    foreach (var edge in graph.GetEdges(slot.slotReference))
+                    foreach (var edge in graph.GetEdges(slot))
                     {
-                        var node = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                        var node = edge.outputSlot.owner;
                         s_SlotStack.Push(node.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId));
                     }
                 }
                 else if (!goingBackwards && slot.isOutputSlot)
                 {
-                    foreach (var edge in graph.GetEdges(slot.slotReference))
+                    foreach (var edge in graph.GetEdges(slot))
                     {
-                        var node = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                        var node = edge.inputSlot.owner;
                         s_SlotStack.Push(node.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId));
                     }
                 }

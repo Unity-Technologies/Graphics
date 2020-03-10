@@ -856,9 +856,9 @@ namespace UnityEditor.ShaderGraph
 
             if (outputSlot != null)
             {
-                var result = $"surf.{NodeUtils.GetHLSLSafeName(outputSlot.shaderOutputName)}_{outputSlot.id}";
+                var result = $"surf.{NodeUtils.GetHLSLSafeName(outputSlot.shaderOutputName)}_{outputSlot.slotId}";
                 pixelShaderSurfaceRemap.AppendLine("return all(isfinite({0})) ? {1} : {2};",
-                    result, AdaptNodeOutputForPreview(node, outputSlot.id, result), nanOutput);
+                    result, AdaptNodeOutputForPreview(node, outputSlot.slotId, result), nanOutput);
             }
             else
             {

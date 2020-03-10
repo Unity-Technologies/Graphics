@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
 
     static class MayRequireCameraOpaqueTextureExtensions
     {
-        public static bool RequiresCameraOpaqueTexture(this ISlot slot)
+        public static bool RequiresCameraOpaqueTexture(this MaterialSlot slot)
         {
             var mayRequireCameraOpaqueTexture = slot as IMayRequireCameraOpaqueTexture;
             return mayRequireCameraOpaqueTexture != null && mayRequireCameraOpaqueTexture.RequiresCameraOpaqueTexture();

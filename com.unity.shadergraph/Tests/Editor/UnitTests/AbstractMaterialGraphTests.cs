@@ -36,20 +36,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
         }
 
-        [Test]
-        public void TestCanGetMaterialNodeFromMaterialGraph()
-        {
-            GraphData graph = new GraphData();
-
-            var node = new TestableMNode();
-            graph.AddNode(node);
-            Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
-
-            Assert.AreEqual(node, graph.GetNodeFromGuid(node.guid));
-            Assert.AreEqual(node, graph.GetNodeFromGuid<TestableMNode>(node.guid));
-        }
-
         /*     [Test]
              public void TestCreatePixelShaderGraphWorks()
              {

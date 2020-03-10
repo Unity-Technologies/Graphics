@@ -277,7 +277,7 @@ namespace UnityEditor.ShaderGraph
             {
                 AddSlot(slot);
             }
-            RemoveSlotsNameNotMatching(slots.Select(x => x.id));
+            RemoveSlotsNameNotMatching(slots.Select(x => x.slotId));
         }
 
         private static MaterialSlot CreateBoundSlot(Binding attributeBinding, int slotId, string displayName, string shaderOutputName, ShaderStageCapability shaderStageCapability, bool hidden)
@@ -348,14 +348,14 @@ namespace UnityEditor.ShaderGraph
                 GetOutputSlots(tempSlots);
                 foreach (var outSlot in tempSlots)
                 {
-                    sb.AppendLine(outSlot.concreteValueType.ToShaderString() + " " + GetVariableNameForSlot(outSlot.id) + ";");
+                    sb.AppendLine(outSlot.concreteValueType.ToShaderString() + " " + GetVariableNameForSlot(outSlot.slotId) + ";");
                 }
 
                 string call = GetFunctionName() + "(";
                 bool first = true;
                 tempSlots.Clear();
                 GetSlots(tempSlots);
-                tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
+                tempSlots.Sort((slot1, slot2) => slot1.slotId.CompareTo(slot2.slotId));
                 foreach (var slot in tempSlots)
                 {
                     if (!first)
@@ -365,9 +365,9 @@ namespace UnityEditor.ShaderGraph
                     first = false;
 
                     if (slot.isInputSlot)
-                        call += GetSlotValue(slot.id, generationMode);
+                        call += GetSlotValue(slot.slotId, generationMode);
                     else
-                        call += GetVariableNameForSlot(slot.id);
+                        call += GetVariableNameForSlot(slot.slotId);
                 }
                 call += ");";
 
@@ -378,7 +378,7 @@ namespace UnityEditor.ShaderGraph
         private string GetFunctionName()
         {
             var function = GetFunctionToConvert();
-            return function.Name + (function.IsStatic ? string.Empty : "_" + GuidEncoder.Encode(guid)) + "_" + concretePrecision.ToShaderString()
+            return function.Name + (function.IsStatic ? string.Empty : "_" + id) + "_" + concretePrecision.ToShaderString()
                 + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "")
                 + (this.GetSlots<DynamicMatrixMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
         }
@@ -390,7 +390,7 @@ namespace UnityEditor.ShaderGraph
             using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
                 GetSlots(tempSlots);
-                tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
+                tempSlots.Sort((slot1, slot2) => slot1.slotId.CompareTo(slot2.slotId));
                 var first = true;
                 foreach (var slot in tempSlots)
                 {
@@ -432,7 +432,7 @@ namespace UnityEditor.ShaderGraph
                 GetSlots(tempSlots);
                 foreach (var slot in tempSlots)
                 {
-                    var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
+                    var toReplace = string.Format("{{slot{0}dimension}}", slot.slotId);
                     var replacement = NodeUtils.GetSlotDimension(slot.concreteValueType);
                     result = result.Replace(toReplace, replacement);
                 }

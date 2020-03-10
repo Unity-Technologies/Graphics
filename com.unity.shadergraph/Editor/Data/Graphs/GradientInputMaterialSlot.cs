@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
             if (generationMode.IsPreview())
-                return GradientUtil.GetGradientForPreview(matOwner.GetVariableNameForSlot(id));
+                return GradientUtil.GetGradientForPreview(matOwner.GetVariableNameForSlot(slotId));
 
             return ConcreteSlotValueAsVariable();
         }
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
             if (generationMode != GenerationMode.Preview)
                 return;
 
-            GradientUtil.GetGradientPropertiesForPreview(properties, matOwner.GetVariableNameForSlot(id), value);
+            GradientUtil.GetGradientPropertiesForPreview(properties, matOwner.GetVariableNameForSlot(slotId), value);
         }
 
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)

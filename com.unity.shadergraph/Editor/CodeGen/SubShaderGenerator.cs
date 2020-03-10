@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph
 
             if(graph.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
-                graph.AddValidationError(node.tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+                graph.AddValidationError(node, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
 
                 results.configuredTextures = shaderProperties.GetConfiguredTexutres();
                 results.shader = string.Empty;
@@ -354,7 +354,7 @@ namespace UnityEditor.ShaderGraph
                     string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
                     if (useIdsInNames)
                     {
-                        hlslName = $"{hlslName}_{slot.id}";
+                        hlslName = $"{hlslName}_{slot.slotId}";
                     }
 
                     surfaceDescriptionStruct.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
@@ -461,17 +461,17 @@ namespace UnityEditor.ShaderGraph
                 {
                     if (input != null)
                     {
-                        var foundEdges = graph.GetEdges(input.slotReference).ToArray();
+                        var foundEdges = graph.GetEdges(input).ToArray();
                         var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
                         if (rootNode is SubGraphOutputNode)
                         {
-                            hlslName = $"{hlslName}_{input.id}";
+                            hlslName = $"{hlslName}_{input.slotId}";
                         }
                         if (foundEdges.Any())
                         {
                             surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
                                 hlslName,
-                                rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
+                                rootNode.GetSlotValue(input.slotId, mode, rootNode.concretePrecision));
                         }
                         else
                         {
@@ -486,9 +486,9 @@ namespace UnityEditor.ShaderGraph
                 var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
                 if (slot != null)
                 {
-                    var hlslSafeName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id}";
+                    var hlslSafeName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.slotId}";
                     surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                        hlslSafeName, rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision));
+                        hlslSafeName, rootNode.GetSlotValue(slot.slotId, mode, rootNode.concretePrecision));
                 }
             }
         }
@@ -550,10 +550,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     foreach (var slot in slots)
                     {
-                        var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
+                        var isSlotConnected = slot.owner.owner.GetEdges(slot).Any();
                         var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
                         var slotValue = isSlotConnected ?
-                            ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
+                            ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.slotId, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
                         builder.AppendLine("description.{0} = {1};", slotName, slotValue);
                     }
                 }

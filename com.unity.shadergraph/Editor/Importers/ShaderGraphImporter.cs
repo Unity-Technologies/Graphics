@@ -59,7 +59,7 @@ Shader ""Hidden/GraphErrorShader2""
     }
     Fallback Off
 }";
-        
+
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
@@ -96,7 +96,7 @@ Shader ""Hidden/GraphErrorShader2""
             if (graph.outputNode is VfxMasterNode vfxMasterNode)
             {
                 var vfxAsset = GenerateVfxShaderGraphAsset(vfxMasterNode);
-                
+
                 mainObject = vfxAsset;
             }
             else
@@ -108,7 +108,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 foreach (var pair in graph.messageManager.GetNodeMessages())
                 {
-                    var node = graph.GetNodeFromTempId(pair.Key);
+                    var node = pair.Key;
                     MessageManager.Log(node, path, pair.Value.First(), shader);
                 }
             }
@@ -318,7 +318,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var message = new StringBuilder($"Precision mismatch for function {name}:");
                     foreach (var node in source.nodes)
                     {
-                        message.AppendLine($"{node.name} ({node.guid}): {node.concretePrecision}");
+                        message.AppendLine($"{node.name} ({node.id}): {node.concretePrecision}");
                     }
                     throw new InvalidOperationException(message.ToString());
                 }
@@ -447,7 +447,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 var port = ports[portIndex];
                 portCodeIndices[portIndex].Add(codeSnippets.Count);
-                codeSnippets.Add($"{nl}{indent}{port.concreteValueType.ToShaderString(graph.concretePrecision)} {port.shaderOutputName}_{port.id};");
+                codeSnippets.Add($"{nl}{indent}{port.concreteValueType.ToShaderString(graph.concretePrecision)} {port.shaderOutputName}_{port.slotId};");
             }
 
             sharedCodeIndices.Add(codeSnippets.Count);
@@ -530,7 +530,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 var port = ports[portIndex];
                 portCodeIndices[portIndex].Add(codeSnippets.Count);
-                codeSnippets.Add($"{indent}OUT.{port.shaderOutputName}_{port.id} = {masterNode.GetSlotValue(port.id, GenerationMode.ForReals, graph.concretePrecision)};{nl}");
+                codeSnippets.Add($"{indent}OUT.{port.shaderOutputName}_{port.slotId} = {masterNode.GetSlotValue(port.slotId, GenerationMode.ForReals, graph.concretePrecision)};{nl}");
             }
 
             #endregion
@@ -549,7 +549,7 @@ Shader ""Hidden/GraphErrorShader2""
                 result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
         }
 
-            asset.SetOutputs(ports.Select((t, i) => new OutputMetadata(i, t.shaderOutputName,t.id)).ToArray());
+            asset.SetOutputs(ports.Select((t, i) => new OutputMetadata(i, t.shaderOutputName,t.slotId)).ToArray());
 
             asset.evaluationFunctionName = evaluationFunctionName;
             asset.inputStructName = inputStructName;

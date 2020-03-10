@@ -7,11 +7,13 @@ namespace UnityEditor.ShaderGraph.Serialization
 {
     static class MultiJsonInternal
     {
-        internal static readonly Dictionary<string, Type> typeMap = CreateTypeMap();
+        static readonly Dictionary<string, Type> k_TypeMap = CreateTypeMap();
 
         internal static bool isDeserializing;
 
         internal static readonly Dictionary<string, JsonObject> instanceMap = new Dictionary<string, JsonObject>();
+
+        static List<MultiJsonEntry> s_Entries;
 
         internal static bool isSerializing;
 
@@ -70,10 +72,6 @@ namespace UnityEditor.ShaderGraph.Serialization
 
                 var json = str.Substring(jsonBegin, jsonEnd - jsonBegin);
                 JsonUtility.FromJsonOverwrite(json, raw);
-                if (string.IsNullOrWhiteSpace(raw.MonoBehaviour.id))
-                {
-                    throw new InvalidOperationException("Id is null or whitespace.");
-                }
                 if (string.IsNullOrWhiteSpace(raw.MonoBehaviour.type))
                 {
                     throw new InvalidOperationException("Type is null or whitespace.");
@@ -87,6 +85,26 @@ namespace UnityEditor.ShaderGraph.Serialization
             return result;
         }
 
+        public static void Enqueue(JsonObject jsonObject, string json)
+        {
+            if (s_Entries == null)
+            {
+                throw new InvalidOperationException("Can only Enqueue during JsonObject.OnAfterDeserialize.");
+            }
+
+            instanceMap.Add(jsonObject.id, jsonObject);
+            s_Entries.Add(new MultiJsonEntry(jsonObject.GetType().FullName, jsonObject.id, json));
+        }
+
+        public static JsonObject CreateInstance(string typeString)
+        {
+            if (!k_TypeMap.TryGetValue(typeString, out var type))
+            {
+                return null;
+            }
+            return (JsonObject)Activator.CreateInstance(type, true);
+        }
+
         public static JsonObject Deserialize(List<MultiJsonEntry> entries)
         {
             if (isDeserializing)
@@ -98,17 +116,17 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 isDeserializing = true;
 
-                foreach (var entry in entries)
+                for (var index = 0; index < entries.Count; index++)
                 {
-                    if (!typeMap.TryGetValue(entry.type, out var type))
-                    {
-                        // TODO: Implement fallback types that preserves JSON
-                        continue;
-                    }
-
+                    var entry = entries[index];
                     try
                     {
-                        var instance = (JsonObject)Activator.CreateInstance(type);
+                        var instance = CreateInstance(entry.type);
+                        if (entry.id == null)
+                        {
+                            entries[index] = entry = new MultiJsonEntry(entry.type, instance.id, entry.json);
+                        }
+
                         instanceMap[entry.id] = instance;
                     }
                     catch (Exception e)
@@ -120,20 +138,27 @@ namespace UnityEditor.ShaderGraph.Serialization
                     }
                 }
 
-                foreach (var entry in entries)
+                s_Entries = entries;
+
+                // Not a foreach because `entries` can be populated by calls to `Enqueue` as we go.
+                for (var i = 0; i < entries.Count; i++)
                 {
+                    var entry = entries[i];
                     try
                     {
                         var instance = instanceMap[entry.id];
                         var fakeType = typeof(FakeScriptableObject<>).MakeGenericType(instance.GetType());
                         var fake = Activator.CreateInstance(fakeType, instance);
                         EditorJsonUtility.FromJsonOverwrite(entry.json, fake);
+                        instance.OnAfterDeserialize(entry.json);
                     }
                     catch (Exception e)
                     {
                         Debug.LogException(e);
                     }
                 }
+
+                s_Entries = null;
 
                 foreach (var entry in entries)
                 {
@@ -187,7 +212,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                     // Main object needs to be placed first
                     x.Item1 == mainObject.id ? -1 :
                     y.Item1 == mainObject.id ? 1 :
-                    // We sort everything else by ID to persistently maintain positions in the output
+                    // We sort everything else by ID to consistently maintain positions in the output
                     x.Item1.CompareTo(y.Item1));
 
                 var sb = new StringBuilder();

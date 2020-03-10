@@ -10,5 +10,10 @@ namespace UnityEditor.ShaderGraph.Serialization
             var entries = MultiJsonInternal.Parse(json);
             return (T)MultiJsonInternal.Deserialize(entries);
         }
+
+        public static string Serialize(JsonObject mainObject)
+        {
+            return MultiJsonInternal.Serialize(mainObject);
+        }
     }
 }

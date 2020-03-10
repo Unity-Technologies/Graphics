@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            return matOwner.GetVariableNameForSlot(id);
+            return matOwner.GetVariableNameForSlot(slotId);
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
             var prop = new CubemapShaderProperty();
-            prop.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
+            prop.overrideReferenceName = matOwner.GetVariableNameForSlot(slotId);
             prop.modifiable = false;
             prop.generatePropertyBlock = true;
             prop.value.cubemap = cubemap;

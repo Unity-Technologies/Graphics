@@ -1,15 +1,18 @@
 ﻿using System;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    public abstract class ShaderInput
+    // TODO: Upgrade
+    [Serializable]
+    public abstract class ShaderInput : JsonObject
     {
         [SerializeField]
         SerializableGuid m_Guid = new SerializableGuid();
 
         internal Guid guid => m_Guid.guid;
-        
+
         [SerializeField]
         string m_Name;
 

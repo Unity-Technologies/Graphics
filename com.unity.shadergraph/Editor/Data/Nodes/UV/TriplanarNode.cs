@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
-{    
+{
     [Title("UV", "Triplanar")]
     class TriplanarNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireBitangent
     {
@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph
 
             //Sampler input slot
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInputId);
-            var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
+            var edgesSampler = owner.GetEdges(samplerSlot);
             var id = GetSlotValue(TextureInputId, generationMode);
 
             switch (textureType)

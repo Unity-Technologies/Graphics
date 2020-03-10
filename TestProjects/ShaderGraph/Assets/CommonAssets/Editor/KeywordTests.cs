@@ -230,7 +230,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
                 List<MaterialSlot> inputSlots = new List<MaterialSlot>();
                 keywordNode.GetInputSlots(inputSlots);
-                inputSlots.OrderBy(x => x.id);
+                inputSlots.OrderBy(x => x.slotId);
                 Assert.IsNotEmpty(keywordNodes, "No input Ports on Node.");
                 
                 switch(keyword.keywordType)

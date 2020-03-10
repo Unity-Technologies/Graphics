@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
 
             var property = new Matrix4ShaderProperty()
             {
-                overrideReferenceName = matOwner.GetVariableNameForSlot(id),
+                overrideReferenceName = matOwner.GetVariableNameForSlot(slotId),
                 generatePropertyBlock = false,
                 value = value
             };

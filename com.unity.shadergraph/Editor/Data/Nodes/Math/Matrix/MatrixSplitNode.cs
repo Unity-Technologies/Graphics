@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
                 if (numInputRows > 4)
                     numInputRows = 0;
 
-                if (!owner.GetEdges(inputSlot.slotReference).Any())
+                if (!owner.GetEdges(inputSlot).Any())
                 {
                     numInputRows = 0;
                     useIndentity = true;
@@ -145,7 +145,7 @@ namespace UnityEditor.ShaderGraph
                     inputSlot.hasError = false;
 
                     // if there is a connection
-                    var edges = owner.GetEdges(inputSlot.slotReference).ToList();
+                    var edges = owner.GetEdges(inputSlot).ToList();
                     if (!edges.Any())
                     {
                         if (inputSlot is DynamicVectorMaterialSlot)
@@ -157,7 +157,7 @@ namespace UnityEditor.ShaderGraph
 
                     // get the output details
                     var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                    var outputNode = outputSlotRef.owner;
                     if (outputNode == null)
                         continue;
 
@@ -246,7 +246,7 @@ namespace UnityEditor.ShaderGraph
 
             if (isInError)
             {
-                ((GraphData) owner).AddValidationError(tempId, errorMessage);
+                ((GraphData) owner).AddValidationError(this, errorMessage);
             }
             else
             {

@@ -6,6 +6,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
+    // TODO: Upgrade
     [Serializable]
     class ShaderKeyword : ShaderInput
     {
@@ -19,7 +20,7 @@ namespace UnityEditor.ShaderGraph
         {
             this.displayName = keywordType.ToString();
             this.keywordType = keywordType;
-            
+
             // Add sensible default entries for Enum type
             if(keywordType == KeywordType.Enum)
             {
@@ -112,7 +113,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private bool m_IsExposable = true;
 
-        internal override bool isExposable => m_IsExposable 
+        internal override bool isExposable => m_IsExposable
             && (keywordType == KeywordType.Enum || referenceName.EndsWith("_ON"));
 
         internal override bool isRenamable => isEditable;
@@ -142,7 +143,7 @@ namespace UnityEditor.ShaderGraph
                     // Reference name must be appended with _ON but must be removed when generating block
                     if(referenceName.EndsWith("_ON"))
                         return $"[Toggle]{referenceName.Remove(referenceName.Length - 3, 3)}(\"{displayName}\", Float) = {value}";
-                    else 
+                    else
                         return string.Empty;
                 default:
                     throw new ArgumentOutOfRangeException();

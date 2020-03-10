@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
         {
             UpdateNodeAfterDeserialization();
         }
-        
+
         [SerializeField]
         private string m_KeywordGuidSerialized;
 
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph
             var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
             if (keyword == null)
                 return;
-            
+
             name = keyword.displayName;
             UpdatePorts(keyword);
         }
@@ -74,15 +74,15 @@ namespace UnityEditor.ShaderGraph
                     GetInputSlots(inputSlots);
 
                     // Store the edges
-                    Dictionary<MaterialSlot, List<IEdge>> edgeDict = new Dictionary<MaterialSlot, List<IEdge>>();
+                    Dictionary<MaterialSlot, List<EdgeData>> edgeDict = new Dictionary<MaterialSlot, List<EdgeData>>();
                     foreach (MaterialSlot slot in inputSlots)
-                        edgeDict.Add(slot, (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference));
-                    
+                        edgeDict.Add(slot, (List<EdgeData>)slot.owner.owner.GetEdges(slot));
+
                     // Remove old slots
                     for(int i = 0; i < inputSlots.Count; i++)
                     {
-                        RemoveSlot(inputSlots[i].id);
-                    } 
+                        RemoveSlot(inputSlots[i].slotId);
+                    }
 
                     // Add output slot
                     AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
@@ -93,9 +93,9 @@ namespace UnityEditor.ShaderGraph
                     for(int i = 0; i < keyword.entries.Count; i++)
                     {
                         // Get slot based on entry id
-                        MaterialSlot slot = inputSlots.Where(x => 
-                            x.id == keyword.entries[i].id &&
-                            x.RawDisplayName() == keyword.entries[i].displayName && 
+                        MaterialSlot slot = inputSlots.Where(x =>
+                            x.slotId == keyword.entries[i].id &&
+                            x.RawDisplayName() == keyword.entries[i].displayName &&
                             x.shaderOutputName == keyword.entries[i].referenceName).FirstOrDefault();
 
                         // If slot doesnt exist its new so create it
@@ -110,9 +110,9 @@ namespace UnityEditor.ShaderGraph
                     RemoveSlotsNameNotMatching(slotIds);
 
                     // Reconnect the edges
-                    foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in edgeDict)
+                    foreach (KeyValuePair<MaterialSlot, List<EdgeData>> entry in edgeDict)
                     {
-                        foreach (IEdge edge in entry.Value)
+                        foreach (EdgeData edge in entry.Value)
                         {
                             owner.Connect(edge.outputSlot, edge.inputSlot);
                         }
@@ -129,7 +129,7 @@ namespace UnityEditor.ShaderGraph
             var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
             if (keyword == null)
                 return;
-            
+
             var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
             switch(keyword.keywordType)
             {
@@ -165,7 +165,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             sb.AppendLine($"#elif defined({keyword.referenceName}_{keyword.entries[i].referenceName})");
                         }
-                        
+
                         // Append per-slot code
                         var value = GetSlotValue(GetSlotIdForPermutation(new KeyValuePair<ShaderKeyword, int>(keyword, i)), generationMode);
                         sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {value};"));
@@ -202,7 +202,7 @@ namespace UnityEditor.ShaderGraph
 
             return false;
         }
-        
+
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
@@ -219,7 +219,7 @@ namespace UnityEditor.ShaderGraph
             if (!string.IsNullOrEmpty(m_KeywordGuidSerialized))
             {
                 m_KeywordGuid = new Guid(m_KeywordGuidSerialized);
-            } 
+            }
         }
     }
 }

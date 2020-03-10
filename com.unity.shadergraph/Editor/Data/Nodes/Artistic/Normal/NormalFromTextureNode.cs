@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph
             var outputValue = GetSlotValue(OutputSlotId, generationMode);
 
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInputId);
-            var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
+            var edgesSampler = owner.GetEdges(samplerSlot);
             string samplerValue;
             if (edgesSampler.Any())
                 samplerValue = GetSlotValue(SamplerInputId, generationMode);

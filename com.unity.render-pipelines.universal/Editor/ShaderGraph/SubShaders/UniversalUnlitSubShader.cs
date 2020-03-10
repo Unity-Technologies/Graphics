@@ -222,7 +222,7 @@ namespace UnityEditor.Rendering.Universal
             baseActiveFields.Add("features.graphPixel");
 
             if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
-                masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == UnlitMasterNode.AlphaThresholdSlotId).value > 0.0f)
+                masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.slotId == UnlitMasterNode.AlphaThresholdSlotId).value > 0.0f)
             {
                 baseActiveFields.Add("AlphaClip");
             }
