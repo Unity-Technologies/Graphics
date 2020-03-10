@@ -7,26 +7,12 @@ namespace UnityEditor.ShaderGraph
     internal abstract class TargetImplementationData
     {
         [SerializeField]
-        string m_SerializedImplementation;
-
-        [NonSerialized]
-        ITargetImplementation m_Implementation;
+        string m_ImplementationName;
         
-        internal string serializedImplementation
+        internal string implementationName
         { 
-            get => m_SerializedImplementation;
-            set => m_SerializedImplementation = value;
-        }
-
-        internal ITargetImplementation implementation
-        { 
-            get => m_Implementation;
-            set => m_Implementation = value;
-        }
-
-        internal void Init(ITargetImplementation implementation)
-        {
-            m_Implementation = implementation;
+            get => m_ImplementationName;
+            set => m_ImplementationName = value;
         }
     }
 }

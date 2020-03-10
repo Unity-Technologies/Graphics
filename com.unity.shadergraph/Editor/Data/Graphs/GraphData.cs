@@ -1484,10 +1484,6 @@ namespace UnityEditor.ShaderGraph
 
             // Serialize implementation datas
             // We also serialize their implementation reference here (see OnAfterDeserialize)
-            foreach(var implementationData in m_TargetImplementationDatas)
-            {
-                implementationData.serializedImplementation = implementationData.implementation.GetType().FullName;
-            }
             m_SerializableTargetImplementationDatas = SerializationHelper.Serialize<TargetImplementationData>(m_TargetImplementationDatas);
         }
 
@@ -1581,10 +1577,6 @@ namespace UnityEditor.ShaderGraph
             // We simply deserialize them here rather than implementing ISerializationCallbackReceiver on the data object
             // and handling the GraphData reference there somehow (deserialization order issues)
             m_TargetImplementationDatas = SerializationHelper.Deserialize<TargetImplementationData>(m_SerializableTargetImplementationDatas, GraphUtil.GetLegacyTypeRemapping());
-            foreach(var implementationData in m_TargetImplementationDatas)
-            {
-                implementationData.implementation = m_AllImplementations.FirstOrDefault(x => x.GetType().FullName == implementationData.serializedImplementation);
-            }
         }
 
         public void OnEnable()
@@ -1686,24 +1678,25 @@ namespace UnityEditor.ShaderGraph
                 m_ActiveTargetImplementationBitmask = newBitmask;
             }
             
-            UpdateTargetDatas();
+            UpdateTargetImplementationDatas();
             UpdateSupportedBlocks();
         }
 
-        void UpdateTargetDatas()
+        void UpdateTargetImplementationDatas()
         {
             // Ensure that all active TargetImplementations have a matching data object
             // Currently we never remove serialized data objects
             foreach(var implementation in activeTargetImplementations)
             {
                 // Get data for the TargetImplementation
-                var data = m_TargetImplementationDatas.FirstOrDefault(s => s.implementation == implementation);
+                var implementationName = implementation.GetType().FullName;
+                var data = m_TargetImplementationDatas.FirstOrDefault(s => s.implementationName == implementationName);
                 
                 // If TargetImplementation does not have an active data object we create one
                 if(data == null)
                 {
                     data = Activator.CreateInstance(implementation.dataType) as TargetImplementationData;
-                    data.Init(implementation);
+                    data.implementationName = implementationName;
                     m_TargetImplementationDatas.Add(data);
                 }
 
