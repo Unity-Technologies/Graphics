@@ -421,10 +421,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (pathTraceSky)
             {
-                cmd.SetComputeTextureParam(s_VolumePathTracingCS, 0, "_ColorBuffer", builtinParams.colorBuffer);
-
                 int numGroupsX = HDUtils.DivRoundUp((int)builtinParams.screenSize.x, 8);
                 int numGroupsY = HDUtils.DivRoundUp((int)builtinParams.screenSize.y, 8);
+
+                cmd.SetComputeTextureParam(s_VolumePathTracingCS, 0, "_ColorBuffer", builtinParams.colorBuffer);
+                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_DispatchThreadCount", (numGroupsX * 8) * (numGroupsY * 8));
+                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_PassIndex",           0);
+                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_BounceCount",         1);
+
                 cmd.DispatchCompute(s_VolumePathTracingCS, 0, numGroupsX, numGroupsY, 1);
             }
 

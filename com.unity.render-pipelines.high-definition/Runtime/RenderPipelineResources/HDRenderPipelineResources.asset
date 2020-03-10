@@ -89,6 +89,8 @@ MonoBehaviour:
     gradientSkyPS: {fileID: 4800000, guid: 2b5d4f1b26f03dc4a873b093e0c4adb1, type: 3}
     ambientProbeConvolutionCS: {fileID: 7200000, guid: 6d048f7b1bd45e840b4e79ec92639fa8,
       type: 3}
+    volumePathTracingCS: {fileID: 7200000, guid: f17d04fdda23ded4b94cd0e4893a7102,
+      type: 3}
     groundIrradiancePrecomputationCS: {fileID: 7200000, guid: eb6ae6f326207ee4d987a3e5adddf63a,
       type: 3}
     inScatteredRadiancePrecomputationCS: {fileID: 7200000, guid: 70c69d514688f8545855680760d77418,
