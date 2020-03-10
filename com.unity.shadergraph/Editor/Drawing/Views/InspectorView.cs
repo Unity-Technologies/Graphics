@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         GraphData m_GraphData;
         PropertySheet m_PropertySheet;
 
+        // Track enabled states of foldouts
         Dictionary<ITargetImplementation, bool> m_ImplementationFoldouts;
 
         public InspectorView(GraphData graphData)
@@ -29,6 +30,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             style.right = 0;
             style.top = 0;
             style.backgroundColor = new Color(.17f, .17f, .17f, 1);
+            style.flexDirection = FlexDirection.Column;
 
             Rebuild();
         }
@@ -37,22 +39,26 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_PropertySheet = new PropertySheet();
 
-            CreateTargetSettings(m_PropertySheet);
+            // Add base settings
+            CreateTargetSettings();
             m_PropertySheet.Add(new PropertyRow(new Label("")));
 
-            CreateImplementationSettings(m_PropertySheet);
+            // Add per-implementation settings
+            CreateImplementationSettings();
             m_PropertySheet.Add(new PropertyRow(new Label("")));
             
             Add(m_PropertySheet);
         }
 
-        void CreateTargetSettings(PropertySheet ps)
+        void CreateTargetSettings()
         {
-            var targetSettingsLabel =  new Label("Target Settings");
+            // Add Label
+            // Use PropertyView to maintain layout
+            var targetSettingsLabel = new Label("Target Settings");
             targetSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            ps.Add(new PropertyRow(targetSettingsLabel));
+            m_PropertySheet.Add(new PropertyRow(targetSettingsLabel));
 
-            ps.Add(new PropertyRow(new Label("Target")), (row) =>
+            m_PropertySheet.Add(new PropertyRow(new Label("Target")), (row) =>
                 {
                     row.Add(new IMGUIContainer(() => {
                         EditorGUI.BeginChangeCheck();
@@ -66,7 +72,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }));
                 });
 
-            ps.Add(new PropertyRow(new Label("Implementations")), (row) =>
+            m_PropertySheet.Add(new PropertyRow(new Label("Implementations")), (row) =>
                 {
                     row.Add(new IMGUIContainer(() => {
                         EditorGUI.BeginChangeCheck();
@@ -81,35 +87,43 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
         }
 
-        void CreateImplementationSettings(PropertySheet ps)
+        void CreateImplementationSettings()
         {
+            // Add Label
+            // Use PropertyView to maintain layout
             var implementationSettingsLabel =  new Label("Implementation Settings");
             implementationSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            ps.Add(new PropertyRow(implementationSettingsLabel));
+            m_PropertySheet.Add(new PropertyRow(implementationSettingsLabel));
 
             foreach(var implementationData in m_GraphData.activeTargetImplementationDatas)
             {
+                // Ensure enabled state is being tracked and get value
                 bool foldoutActive = true;
                 if(!m_ImplementationFoldouts.TryGetValue(implementationData.implementation, out foldoutActive))
                 {
                     m_ImplementationFoldouts.Add(implementationData.implementation, foldoutActive);
                 }
 
+                // Create foldout
                 var foldout = new Foldout() { text = implementationData.implementation.displayName, value = foldoutActive };
                 foldout.RegisterValueChangedCallback(evt => 
                 {
+                    // Re-add foldout using enabled value
                     m_ImplementationFoldouts.Remove(implementationData.implementation);
                     m_ImplementationFoldouts.Add(implementationData.implementation, evt.newValue);
                     foldout.value = evt.newValue;
+
+                    // Rebuild full GUI
                     Remove(m_PropertySheet);
                     Rebuild();
                 });
 
-                ps.Add(foldout);
-
+                m_PropertySheet.Add(foldout);
+                
                 if(foldout.value)
                 {
-                    implementationData.GetProperties(ps, this);
+                    // Draw ImplementationData properties
+                    implementationData.GetProperties(m_PropertySheet, this);
                 }
             }
         }
