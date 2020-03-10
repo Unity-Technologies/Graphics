@@ -1,4 +1,4 @@
-#define USE_ALL_MASKS
+#define USE_ALL_MASKS_HDLIT
 
 using System;
 using System.Linq;
@@ -165,11 +165,13 @@ namespace UnityEditor.Rendering.HighDefinition
         const SlotMask SpecularColorSlotMask =          SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Specular | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
         const SlotMask TranslucentSlotMask =            SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
 
+        #if USE_ALL_MASKS_HDLIT
         const SlotMask AllSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Tangent | SlotMask.SubsurfaceMask | SlotMask.Thickness |
                                      SlotMask.DiffusionProfile | SlotMask.IridescenceMask | SlotMask.IridescenceLayerThickness | SlotMask.Specular | SlotMask.CoatMask |
                                      SlotMask.Metallic | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass |
                                      SlotMask.AlphaThresholdDepthPostpass | SlotMask.Anisotropy | SlotMask.SpecularOcclusion | SlotMask.AlphaThresholdShadow | SlotMask.Lighting |
                                      SlotMask.BackLighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
+        #endif
 
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
@@ -201,7 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool MaterialTypeUsesSlotMask(SlotMask mask)
         {
-#if USE_ALL_MASKS
+#if USE_ALL_MASKS_HDLIT
             SlotMask activeMask = AllSlotMask;
 #else
             SlotMask activeMask = GetActiveSlotMask();
@@ -1117,6 +1119,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 });
             }
 
+            // Add 'materialType', 'receiveSSR', and 'coatMask' properties
             HDSubShaderUtilities.AddMaterialTypeProperties(collector, (int)(m_MaterialType), m_SSSTransmission);
             HDSubShaderUtilities.AddReceiveSSRProperty(collector, m_ReceivesSSR);
 

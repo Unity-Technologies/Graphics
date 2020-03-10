@@ -1,3 +1,5 @@
+#define USE_ALL_MASKS_STACKLIT
+
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -1037,6 +1039,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             List<int> validSlots = new List<int>();
 
+            var forceSlots =
+                            #if USE_ALL_MASKS_STACKLIT
+                               true;
+                            #else
+                               false;
+                            #endif
+
             AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotDisplayName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             validSlots.Add(PositionSlotId);
 
@@ -1088,7 +1097,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AddSlot(new Vector1MaterialSlot(SmoothnessASlotId, SmoothnessASlotName, SmoothnessASlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
             validSlots.Add(SmoothnessASlotId);
 
-            if (anisotropy.isOn)
+            if (forceSlots || anisotropy.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(AnisotropyASlotId, AnisotropyASlotName, AnisotropyASlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(AnisotropyASlotId);
@@ -1118,7 +1127,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (coat.isOn)
+            if (forceSlots || coat.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(CoatSmoothnessSlotId, CoatSmoothnessSlotName, CoatSmoothnessSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(CoatSmoothnessSlotId);
@@ -1129,7 +1138,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 AddSlot(new ColorRGBMaterialSlot(CoatExtinctionSlotId, CoatExtinctionSlotName, CoatExtinctionSlotName, SlotType.Input, Color.white, ColorMode.HDR, ShaderStageCapability.Fragment));
                 validSlots.Add(CoatExtinctionSlotId);
 
-                if (coatNormal.isOn)
+                if (forceSlots || coatNormal.isOn)
                 {
                     AddSlot(new NormalMaterialSlot(CoatNormalSlotId, CoatNormalSlotName, CoatNormalSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
                     validSlots.Add(CoatNormalSlotId);
@@ -1139,7 +1148,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 validSlots.Add(CoatMaskSlotId);
             }
 
-            if (dualSpecularLobe.isOn)
+            if (forceSlots || dualSpecularLobe.isOn)
             {
                 if (dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.Direct)
                 {
@@ -1162,20 +1171,20 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                if (anisotropy.isOn)
+                if (forceSlots || anisotropy.isOn)
                 {
                     AddSlot(new Vector1MaterialSlot(AnisotropyBSlotId, AnisotropyBSlotName, AnisotropyBSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                     validSlots.Add(AnisotropyBSlotId);
                 }
             }
 
-            if (iridescence.isOn)
+            if (forceSlots || iridescence.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(IridescenceMaskSlotId, IridescenceMaskSlotName, IridescenceMaskSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(IridescenceMaskSlotId);
                 AddSlot(new Vector1MaterialSlot(IridescenceThicknessSlotId, IridescenceThicknessSlotDisplayName, IridescenceThicknessSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(IridescenceThicknessSlotId);
-                if (coat.isOn)
+                if (forceSlots || coat.isOn)
                 {
                     AddSlot(new Vector1MaterialSlot(IridescenceCoatFixupTIRSlotId, IridescenceCoatFixupTIRSlotName, IridescenceCoatFixupTIRSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                     validSlots.Add(IridescenceCoatFixupTIRSlotId);
@@ -1184,19 +1193,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (subsurfaceScattering.isOn)
+            if (forceSlots || subsurfaceScattering.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(SubsurfaceMaskSlotId, SubsurfaceMaskSlotName, SubsurfaceMaskSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(SubsurfaceMaskSlotId);
             }
 
-            if (transmission.isOn)
+            if (forceSlots || transmission.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(ThicknessSlotId, ThicknessSlotName, ThicknessSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(ThicknessSlotId);
             }
 
-            if (subsurfaceScattering.isOn || transmission.isOn)
+            if (forceSlots || subsurfaceScattering.isOn || transmission.isOn)
             {
                 AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotDisplayName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
                 validSlots.Add(DiffusionProfileHashSlotId);
@@ -1324,6 +1333,14 @@ namespace UnityEditor.Rendering.HighDefinition
             var renderingPass = surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             previewMaterial.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: alphaTest.isOn);
 
+            // Core features in Runtime
+            previewMaterial.SetInt(kAnisotropy, Convert.ToInt32(anisotropy.isOn));
+            previewMaterial.SetInt(kCoat, Convert.ToInt32(coat.isOn));
+            previewMaterial.SetInt(kDualSpecularLobe, Convert.ToInt32(dualSpecularLobe.isOn));
+            previewMaterial.SetInt(kIridescence, Convert.ToInt32(iridescence.isOn));
+            previewMaterial.SetInt(kSubsurfaceScattering, Convert.ToInt32(subsurfaceScattering.isOn));
+            previewMaterial.SetInt(kTransmission, Convert.ToInt32(transmission.isOn));
+
             StackLitGUI.SetupMaterialKeywordsAndPass(previewMaterial);
         }
 
@@ -1408,6 +1425,21 @@ namespace UnityEditor.Rendering.HighDefinition
                     overrideReferenceName = kAddPrecomputedVelocity,
                 });
             }
+
+            // Add 'materialType', 'receiveSSR', and 'coatMask' properties
+            HDSubShaderUtilities.AddMaterialCoreFeaturesProperties(collector,
+                                                                   anisotropy.isOn,
+                                                                   coat.isOn,
+                                                                   coatNormal.isOn,
+                                                                   dualSpecularLobe.isOn,
+                                                                   iridescence.isOn,
+                                                                   subsurfaceScattering.isOn,
+                                                                   transmission.isOn);
+
+            HDSubShaderUtilities.AddReceiveSSRProperty(collector, m_ReceiveSSR);
+            
+            var coatMaskSlot = this.FindSlot<Vector1MaterialSlot>(HDLitMasterNode.CoatMaskSlotId);
+            HDSubShaderUtilities.AddCoatProperties(collector, coatMaskSlot?.value ?? 0.0f);
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn);

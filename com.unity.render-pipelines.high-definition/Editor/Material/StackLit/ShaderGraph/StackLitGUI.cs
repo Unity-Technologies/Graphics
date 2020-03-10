@@ -15,7 +15,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit
             ^ SurfaceOptionUIBlock.Features.AlphaCutoffThreshold
             ^ SurfaceOptionUIBlock.Features.BackThenFrontRendering
-            ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass;
+            ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass
+            ^ SurfaceOptionUIBlock.Features.ReceiveSSR;
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
@@ -40,10 +41,60 @@ namespace UnityEditor.Rendering.HighDefinition
             BaseLitGUI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false;
             bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0: false;
-            BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting);
+            bool subsurfaceScattering = (material.HasProperty(kSubsurfaceScattering))
+                                        ? material.GetInt(kSubsurfaceScattering) > 0
+                                        : false;
+
+            BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting || subsurfaceScattering);
             if (material.HasProperty(kAddPrecomputedVelocity))
             {
                 CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
+            }
+
+            if (material.HasProperty(kIsStackLit))
+            {
+                if (material.HasProperty(kAnisotropy))
+                {
+                    var anisotropy = material.GetInt(kAnisotropy);
+                    CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", anisotropy > 0);
+                }
+
+                if (material.HasProperty(kCoat))
+                {
+                    var coat = material.GetInt(kCoat);
+                    var coatMaskMap = material.HasProperty("_CoatMaskMap");
+                    CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_COAT", coat > 0 &&
+                                         material.GetFloat("_CoatMask") > 0.0 || (coatMaskMap && material.GetTexture("_CoatMaskMap")));
+
+                    if (coat > 0 && material.HasProperty(kCoatNormal))
+                    {
+                        var coatNormal = material.GetInt(kCoatNormal);
+                        CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_COAT_NORMALMAP", coatNormal > 0);
+                    }
+                }
+
+                if (material.HasProperty(kDualSpecularLobe))
+                {
+                    var dualSpecularLobe = material.GetInt(kDualSpecularLobe);
+                    CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_DUAL_SPECULAR_LOBE", dualSpecularLobe > 0);
+                }
+
+                if (material.HasProperty(kIridescence))
+                {
+                    var iridescence = material.GetInt(kIridescence);
+                    CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_IRIDESCENCE", iridescence > 0);
+                }
+                
+                if (material.HasProperty(kSubsurfaceScattering))
+                {
+                    CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", subsurfaceScattering);
+                }
+
+                if (material.HasProperty(kTransmission))
+                {
+                    var transmission = material.GetInt(kTransmission);
+                    CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", transmission > 0);
+                }
             }
         }
 

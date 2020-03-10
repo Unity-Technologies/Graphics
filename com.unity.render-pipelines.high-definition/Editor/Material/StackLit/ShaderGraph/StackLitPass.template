@@ -158,15 +158,37 @@ Pass
 
     $SpecularOcclusion:                                  #define _ENABLESPECULAROCCLUSION // main enable
 
+    //$BaseParametrization.SpecularColor:                  #define _MATERIAL_FEATURE_SPECULAR_COLOR
+    //$Material.Anisotropy:                                #define _MATERIAL_FEATURE_ANISOTROPY
+    //$Material.Coat:                                      #define _MATERIAL_FEATURE_COAT
+    //$Material.CoatNormal:                                #define _MATERIAL_FEATURE_COAT_NORMALMAP
+    //$Material.DualSpecularLobe:                          #define _MATERIAL_FEATURE_DUAL_SPECULAR_LOBE
+    //$DualSpecularLobeParametrization.HazyGloss:          #define _MATERIAL_FEATURE_HAZY_GLOSS
+    //$Material.Iridescence:                               #define _MATERIAL_FEATURE_IRIDESCENCE
+    //$Material.SubsurfaceScattering:                      #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    //$Material.Transmission:                              #define _MATERIAL_FEATURE_TRANSMISSION
+    //$AnisotropyForAreaLights:                            #define _ANISOTROPY_FOR_AREA_LIGHTS
+    //$RecomputeStackPerLight:                             #define _VLAYERED_RECOMPUTE_PERLIGHT
+    //$HonorPerLightMinRoughness:                          #define _STACK_LIT_HONORS_LIGHT_MIN_ROUGHNESS
+    //$ShadeBaseUsingRefractedAngles:                      #define _VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
+    //$StackLitDebug:                                      #define _STACKLIT_DEBUG
+    //$DepthOffset:                                        #define _DEPTHOFFSET_ON 1
+    //$BlendMode.PreserveSpecular:                         #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
+    //$NormalDropOffTS:		                         #define _NORMAL_DROPOFF_TS 1
+    //$NormalDropOffOS:		                         #define _NORMAL_DROPOFF_OS 1
+    //$NormalDropOffWS:		                         #define _NORMAL_DROPOFF_WS 1
+
+
+    #pragma shader_feature_local _MATERIAL_FEATURE_ANISOTROPY
+    #pragma shader_feature_local _MATERIAL_FEATURE_COAT
+    #pragma shader_feature_local _MATERIAL_FEATURE_COAT_NORMALMAP
+    #pragma shader_feature_local _MATERIAL_FEATURE_DUAL_SPECULAR_LOBE
+    #pragma shader_feature_local _MATERIAL_FEATURE_IRIDESCENCE
+    #pragma shader_feature_local _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature_local _MATERIAL_FEATURE_TRANSMISSION
+
     $BaseParametrization.SpecularColor:                  #define _MATERIAL_FEATURE_SPECULAR_COLOR
-    $Material.Anisotropy:                                #define _MATERIAL_FEATURE_ANISOTROPY
-    $Material.Coat:                                      #define _MATERIAL_FEATURE_COAT
-    $Material.CoatNormal:                                #define _MATERIAL_FEATURE_COAT_NORMALMAP
-    $Material.DualSpecularLobe:                          #define _MATERIAL_FEATURE_DUAL_SPECULAR_LOBE
     $DualSpecularLobeParametrization.HazyGloss:          #define _MATERIAL_FEATURE_HAZY_GLOSS
-    $Material.Iridescence:                               #define _MATERIAL_FEATURE_IRIDESCENCE
-    $Material.SubsurfaceScattering:                      #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-    $Material.Transmission:                              #define _MATERIAL_FEATURE_TRANSMISSION
     $AnisotropyForAreaLights:                            #define _ANISOTROPY_FOR_AREA_LIGHTS
     $RecomputeStackPerLight:                             #define _VLAYERED_RECOMPUTE_PERLIGHT
     $HonorPerLightMinRoughness:                          #define _STACK_LIT_HONORS_LIGHT_MIN_ROUGHNESS
@@ -177,6 +199,7 @@ Pass
     $NormalDropOffTS:		                         #define _NORMAL_DROPOFF_TS 1
     $NormalDropOffOS:		                         #define _NORMAL_DROPOFF_OS 1
     $NormalDropOffWS:		                         #define _NORMAL_DROPOFF_WS 1
+
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl"
 

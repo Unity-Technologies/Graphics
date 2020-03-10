@@ -1367,6 +1367,72 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
+        public static void AddMaterialCoreFeaturesProperties(PropertyCollector collector,
+                                                             bool anisotropy = false,
+                                                             bool coat = false,
+                                                             bool coatNormal = false,
+                                                             bool dualSpecularLobe = false,
+                                                             bool iridescence = false,
+                                                             bool subsurfaceScattering = false,
+                                                             bool transmission = false)
+        {
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kIsStackLit,
+                value = true,
+                hidden = true
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kAnisotropy,
+                value = anisotropy,
+                hidden = true,
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kCoat,
+                value = coat,
+                hidden = true,
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kCoatNormal,
+                value = coatNormal,
+                hidden = true,
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kDualSpecularLobe,
+                value = dualSpecularLobe,
+                hidden = true,
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kIridescence,
+                value = iridescence,
+                hidden = true,
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kSubsurfaceScattering,
+                value = subsurfaceScattering,
+                hidden = true,
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kTransmission,
+                value = transmission,
+                hidden = true,
+            });
+        }
+
         public static void AddReceiveSSRProperty(PropertyCollector collector, bool receiveSSR = false)
         {
             collector.AddShaderProperty(new BooleanShaderProperty
