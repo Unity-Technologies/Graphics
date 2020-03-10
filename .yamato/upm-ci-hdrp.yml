@@ -59,6 +59,13 @@ linux_apis:
     cmd: -force-glcore
   - name: Vulkan
     cmd: -force-vulkan
+cache_server_args:
+  - arg: -adb2 
+  - arg: -enableCacheServer
+  - arg: -cacheServerEndpoint cacheserver-slo.hq.unity3d.com
+  - arg: -cacheServerNamespacePrefix SRP
+  - arg: -cacheServerEnableDownload true
+  - arg: -cacheServerEnableUpload true
 ---
 {% for project in projects %}
 {% for editor in editors %}
@@ -92,7 +99,7 @@ linux_apis:
     {% if testplatform.name == "Standalone" %}
     - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200
     {% else %}
-    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }} --extra-editor-arg="{{ win_api.cmd }}" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
+    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }} --extra-editor-arg="{{ win_api.cmd }}" {% for cache_server_arg in cache_server_args %}--extra-editor-arg="{{ cache_server_arg.arg }}" {% endfor %} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
     {% endif %}
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
