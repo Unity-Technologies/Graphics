@@ -1106,57 +1106,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 value = (int)renderingPass,
             });
 
-            ////////////
-
-            // Add `MaterialType` property
-            collector.AddShaderProperty(new Vector1ShaderProperty
-            {
-                overrideReferenceName = kMaterialID,
-                floatType = FloatType.Enum,
-                value = (int)(m_MaterialType),
-                enumNames = { "SubsurfaceScattering",
-                              "Standard",
-                              "Anisotropy",
-                              "Iridescence",
-                              "SpecularColor",
-                              "Translucent" },
-                enumValues = { (int)MaterialId.LitSSS,
-                               (int)MaterialId.LitStandard,
-                               (int)MaterialId.LitAniso,
-                               (int)MaterialId.LitIridescence,
-                               (int)MaterialId.LitSpecular,
-                               (int)MaterialId.LitTranslucent
-                            },
-                hidden = true,
-            });
-
-            // Add `TransmissionEnable` property
-            collector.AddShaderProperty(new BooleanShaderProperty
-            {
-                overrideReferenceName = kTransmissionEnable,
-                value = m_SSSTransmission,
-                hidden = true,
-            });
-
-            // Add `Receive SSR` property
-            collector.AddShaderProperty(new BooleanShaderProperty
-            {
-                overrideReferenceName = kEnableSSR,
-                value = m_ReceivesSSR,
-                hidden = true,
-            });
-
-            // Add `CoatMaskValue` property
-            var coatMaskSlot = this.FindSlot<Vector1MaterialSlot>(HDLitMasterNode.CoatMaskSlotId);
-            collector.AddShaderProperty(new Vector1ShaderProperty
-            {
-                overrideReferenceName = "_CoatMask",
-                value = coatMaskSlot?.value ?? 0.0f,
-                hidden = true,
-            });
-            
-            ////////////
-
             //See SG-ADDITIONALVELOCITY-NOTE
             if (addPrecomputedVelocity.isOn)
             {
@@ -1167,6 +1116,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     overrideReferenceName = kAddPrecomputedVelocity,
                 });
             }
+
+            HDSubShaderUtilities.AddMaterialTypeProperties(collector, (int)(m_MaterialType), m_SSSTransmission);
+            HDSubShaderUtilities.AddReceiveSSRProperty(collector, m_ReceivesSSR);
+
+            var coatMaskSlot = this.FindSlot<Vector1MaterialSlot>(HDLitMasterNode.CoatMaskSlotId);
+            HDSubShaderUtilities.AddCoatProperties(collector, coatMaskSlot?.value ?? 0.0f);
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn);

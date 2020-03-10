@@ -1336,6 +1336,57 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
+        public static void AddMaterialTypeProperties(PropertyCollector collector, int materialType, bool SSSTransmission = false)
+        {
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = kMaterialID,
+                floatType = FloatType.Enum,
+                value = materialType,
+                enumNames = { "SubsurfaceScattering",
+                              "Standard",
+                              "Anisotropy",
+                              "Iridescence",
+                              "SpecularColor",
+                              "Translucent" },
+                enumValues = { (int)MaterialId.LitSSS,
+                               (int)MaterialId.LitStandard,
+                               (int)MaterialId.LitAniso,
+                               (int)MaterialId.LitIridescence,
+                               (int)MaterialId.LitSpecular,
+                               (int)MaterialId.LitTranslucent
+                            },
+                hidden = true,
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kTransmissionEnable,
+                value = SSSTransmission,
+                hidden = true,
+            });
+        }
+
+        public static void AddReceiveSSRProperty(PropertyCollector collector, bool receiveSSR = false)
+        {
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kEnableSSR,
+                value = receiveSSR,
+                hidden = true,
+            });
+        }
+
+        public static void AddCoatProperties(PropertyCollector collector, float coatMask = 0.0f)
+        {
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = "_CoatMask",
+                value = coatMask,
+                hidden = true,
+            });
+        }
+
         public static string RenderQueueName(HDRenderQueue.RenderQueueType value)
         {
             switch (value)
