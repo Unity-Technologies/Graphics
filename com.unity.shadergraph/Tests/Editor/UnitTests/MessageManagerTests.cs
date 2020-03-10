@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             var ret = GetListFrom(m_EmptyMgr);
             Assert.IsNotEmpty(ret);
-            Assert.AreEqual(node0, ret[0].Key);
+            Assert.AreEqual(node0.guid, ret[0].Key);
             Assert.IsNotEmpty(ret[0].Value);
             Assert.AreEqual(e0, ret[0].Value[0]);
         }
@@ -158,7 +158,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             var ret = GetListFrom(m_EmptyMgr);
             Assert.IsNotEmpty(ret);
-            Assert.AreEqual(node0, ret[0].Key);
+            Assert.AreEqual(node0.guid, ret[0].Key);
             Assert.AreEqual(2, ret[0].Value.Count);
             Assert.AreEqual(e0, ret[0].Value[0]);
             Assert.AreEqual(e1, ret[0].Value[1]);
@@ -204,9 +204,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             var ret = GetListFrom(m_EmptyMgr);
             Assert.AreEqual(2, ret.Count);
-            Assert.AreEqual(node0, ret[0].Key);
+            Assert.AreEqual(node0.guid, ret[0].Key);
             Assert.AreEqual(e0, ret[0].Value[0]);
-            Assert.AreEqual(node1, ret[1].Key);
+            Assert.AreEqual(node1.guid, ret[1].Key);
             Assert.AreEqual(e1, ret[1].Value[0]);
         }
 
@@ -218,7 +218,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             var ret = GetListFrom(m_EmptyMgr);
             Assert.IsNotEmpty(ret);
-            Assert.AreEqual(node0, ret[0].Key);
+            Assert.AreEqual(node0.guid, ret[0].Key);
             Assert.AreEqual(2, ret[0].Value.Count);
             Assert.AreEqual(e0, ret[0].Value[0]);
             Assert.AreEqual(e1, ret[0].Value[1]);
@@ -232,7 +232,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             var ret = GetListFrom(m_EmptyMgr);
             Assert.IsNotEmpty(ret);
-            Assert.AreEqual(node0, ret[0].Key);
+            Assert.AreEqual(node0.guid, ret[0].Key);
             Assert.AreEqual(2, ret[0].Value.Count);
             Assert.AreEqual(e0, ret[0].Value[0]);
             Assert.AreEqual(e0, ret[0].Value[1]);
@@ -246,11 +246,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var ret = GetListFrom(m_ComplexMgr);
             Assert.IsNotEmpty(ret);
             Assert.AreEqual(3, ret.Count);
-            Assert.AreEqual(node0, ret[0].Key);
+            Assert.AreEqual(node0.guid, ret[0].Key);
             Assert.AreEqual(2, ret[0].Value.Count);
-            Assert.AreEqual(node1, ret[1].Key);
+            Assert.AreEqual(node1.guid, ret[1].Key);
             Assert.AreEqual(1, ret[1].Value.Count);
-            Assert.AreEqual(node2, ret[2].Key);
+            Assert.AreEqual(node2.guid, ret[2].Key);
             Assert.IsEmpty(ret[2].Value);
         }
 
@@ -259,11 +259,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             m_ComplexMgr.ClearAllFromProvider(p1);
             var ret = GetListFrom(m_ComplexMgr);
-            Assert.IsNotEmpty(ret.Where(kvp => kvp.Key.Equals(node2)));
-            Assert.IsEmpty(ret.First(kvp => kvp.Key.Equals(node2)).Value);
+            Assert.IsNotEmpty(ret.Where(kvp => kvp.Key.Equals(node2.guid)));
+            Assert.IsEmpty(ret.First(kvp => kvp.Key.Equals(node2.guid)).Value);
 
             ret = GetListFrom(m_ComplexMgr);
-            Assert.IsEmpty(ret.Where(kvp => kvp.Key.Equals(node2)));
+            Assert.IsEmpty(ret.Where(kvp => kvp.Key.Equals(node2.guid)));
         }
 
         [Test]
@@ -273,8 +273,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_ComplexMgr.ClearNodesFromProvider(p1, nodesToClear);
 
             var ret = GetListFrom(m_ComplexMgr);
-            Assert.AreEqual(2, ret.Find(kpv => kpv.Key.Equals(node0)).Value.Count);
-            Assert.IsEmpty(ret.Find(kvp => kvp.Key.Equals(node2)).Value);
+            Assert.AreEqual(2, ret.Find(kpv => kpv.Key.Equals(node0.guid)).Value.Count);
+            Assert.IsEmpty(ret.Find(kvp => kvp.Key.Equals(node2.guid)).Value);
         }
 
         [Test]
@@ -284,7 +284,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_ComplexMgr.ClearNodesFromProvider(p1, nodesToClear);
 
             var ret = GetListFrom(m_ComplexMgr);
-            Assert.AreEqual(3, ret.Find(kpv => kpv.Key.Equals(node1)).Value.Count);
+            Assert.AreEqual(3, ret.Find(kpv => kpv.Key.Equals(node1.guid)).Value.Count);
         }
     }
 }
