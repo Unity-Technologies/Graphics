@@ -108,12 +108,12 @@ float randfloat(uint i, uint p)
 }
 
 // Multi-dimensional correlated multi-jittered sequence.
-// We specialize it for 6D, which means we generate 64 points.
+// We specialize it for 6D, which means we generate s^6 points.
 float cmj6D(uint pointIndex, uint dimIndex, uint seed)
 {
-    const uint s = 2;           // Number of strata per dimension
+    const uint s = 4;           // Number of strata per dimension
     const uint t = 6;           // Strength of the orthogonal array (number of dimensions)
-    const uint n = 64;          // Size of the sequence: n = s^t
+    const uint n = 4096;        // Size of the sequence: n = s^t
     const uint p = seed;        // Pseudo-random permutation seed
     const uint i = permute(pointIndex, n, p); // Shuffle the points
     const uint j = dimIndex;
@@ -132,7 +132,7 @@ float cmj6D(uint pointIndex, uint dimIndex, uint seed)
     uint k = i;
 
     // digits = toBaseS(i, s);
-    for (d = 0; d < t; k /= s, d++)
+    for (d = 0, uint k = i; d < t; k /= s, d++)
     {
         digits[d] = k % s;
     }
@@ -163,26 +163,24 @@ float cmj6D(uint pointIndex, uint dimIndex, uint seed)
 // 1x path per thread per call.
 // Tracing multiple paths can be achieved via multiple passes.
 void PathTraceSky(uint2  groupCoord, uint threadIndex,
-                  float3 rayOrigin,  uint pathIndex, uint numPaths, uint numBounces)
+                  float3 rayOrigin,  uint passIndex, uint numPathPerPass, uint numBounces)
 {
     // Integral over ((1 + NumBounces) * 3) dimensions:
     // 2x for filter IS + 1x for photon frequency selection (bounce #0);
     // 1x for scattering location + 2x for the scattering direction (bounce #i).
     uint numDimensions = 3 * numBounces;
 
-    uint groupSize = 8; // (8*8 == 64)
+    uint groupSize = 8; // (8^2 == 64)
     uint bounce    = 0;
 
-    // The group size is 64. It matches the number of points the RNG provides,
-    // so we trace a group of paths at the same time.
-    // It supports up to 6 dimensions at a time (2^6 == 64).
-    // Therefore, every 6 dimensions (2 bounces), we must switch to a new permutation seed.
-    // Every path (per pixel) must also use a unique seed.
-    // Note: this guarantees good distribution of samples within the group,
-    // but not within each individual pixel (for numPaths > 1).
-    // Perhaps we could do something using powers of 2?
-    uint   seed = 1;
-    // uint   seed = permute(pathIndex, numPaths, s_RandomPrimes[bounce / 2]);
+    // We constrain our RNG to 6 dimensions.
+    // We generate 4096 (4^6) paths stratified into 4 intervals per dimension.
+    // That gives us 256 spp per a 4x4 block of pixels.
+    // The stratification properties of Orthogonal Arrays guarantee 256 spp, but make no promises
+    // about uniformity of the distribution within each individual pixel.
+    uint blockSize = 16;
+
+    uint   seed = permute(pathIndex, numPaths, s_RandomPrimes[bounce / 2]);
     float3 rnd  = float3(cmj6D(threadIndex, (bounce * 3 + 0) % 5, seed),
                          cmj6D(threadIndex, (bounce * 3 + 1) % 5, seed),
                          cmj6D(threadIndex, (bounce * 3 + 2) % 5, seed));
