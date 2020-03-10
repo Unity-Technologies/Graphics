@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -95,22 +96,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             implementationSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             m_PropertySheet.Add(new PropertyRow(implementationSettingsLabel));
 
-            foreach(var implementationData in m_GraphData.activeTargetImplementationDatas)
+            foreach(var implementation in m_GraphData.activeTargetImplementations)
             {
                 // Ensure enabled state is being tracked and get value
                 bool foldoutActive = true;
-                if(!m_ImplementationFoldouts.TryGetValue(implementationData.implementation, out foldoutActive))
+                if(!m_ImplementationFoldouts.TryGetValue(implementation, out foldoutActive))
                 {
-                    m_ImplementationFoldouts.Add(implementationData.implementation, foldoutActive);
+                    m_ImplementationFoldouts.Add(implementation, foldoutActive);
                 }
 
                 // Create foldout
-                var foldout = new Foldout() { text = implementationData.implementation.displayName, value = foldoutActive };
+                var foldout = new Foldout() { text = implementation.displayName, value = foldoutActive };
                 foldout.RegisterValueChangedCallback(evt => 
                 {
                     // Re-add foldout using enabled value
-                    m_ImplementationFoldouts.Remove(implementationData.implementation);
-                    m_ImplementationFoldouts.Add(implementationData.implementation, evt.newValue);
+                    m_ImplementationFoldouts.Remove(implementation);
+                    m_ImplementationFoldouts.Add(implementation, evt.newValue);
                     foldout.value = evt.newValue;
 
                     // Rebuild full GUI
@@ -123,14 +124,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if(foldout.value)
                 {
                     // Draw ImplementationData properties
-                    implementationData.GetProperties(m_PropertySheet, this);
+                    implementation.GetInspectorContent(m_PropertySheet, () => {
+                        // TODO: Currently I use this action to force a recompile
+                        // TODO: How will the inspector actually work? (Sai)
+                        OnChange();
+                    });
                 }
             }
         }
 
-        // TODO: Currently I use this to force a recompile
-        // TODO: How will the inspector actually work? (Sai)
-        public void OnChange()
+        void OnChange()
         {
             m_GraphData.UpdateSupportedBlocks();
             m_GraphData.outputNode.Dirty(ModificationScope.Graph);

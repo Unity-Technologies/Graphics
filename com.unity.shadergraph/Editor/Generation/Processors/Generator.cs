@@ -66,8 +66,7 @@ namespace UnityEditor.ShaderGraph
             var activeFields = new ActiveFields();
             if(outputNode is IMasterNode masterNode)
             {
-                var data = m_GraphData.activeTargetImplementationDatas.FirstOrDefault(s => s.implementation == targetImplementation);
-                var fields = GenerationUtils.GetActiveFieldsFromConditionals(targetImplementation.GetConditionalFields(pass, blocks, data));
+                var fields = GenerationUtils.GetActiveFieldsFromConditionals(targetImplementation.GetConditionalFields(pass, blocks));
                 foreach(FieldDescriptor field in fields)
                     activeFields.baseInstance.Add(field);
             }
@@ -110,8 +109,6 @@ namespace UnityEditor.ShaderGraph
                 for(int i = 0; i < m_TargetImplementations.Length; i++)
                 {
                     TargetSetupContext context = new TargetSetupContext();
-                    var data = m_GraphData.activeTargetImplementationDatas.FirstOrDefault(s => s.implementation == m_TargetImplementations[i]);
-                    context.SetData(data);
                     m_TargetImplementations[i].SetupTarget(ref context); 
                     GetAssetDependencyPaths(context);
                     GenerateSubShader(i, context.descriptor);
@@ -198,8 +195,7 @@ namespace UnityEditor.ShaderGraph
             if(m_OutputNode is IMasterNode masterNode)
             {
                 // Update supported block list for current target implementation
-                var data = m_GraphData.activeTargetImplementationDatas.FirstOrDefault(s => s.implementation == m_TargetImplementations[targetIndex]);
-                var supportedBlockTypes = m_TargetImplementations[targetIndex].GetSupportedBlocks(data);
+                var supportedBlockTypes = m_TargetImplementations[targetIndex].GetSupportedBlocks();
 
                 vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
                 foreach(var block in m_GraphData.vertexContext.blocks)

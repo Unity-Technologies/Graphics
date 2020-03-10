@@ -388,15 +388,6 @@ namespace UnityEditor.ShaderGraph
 
         [NonSerialized]
         List<TargetImplementationData> m_TargetImplementationDatas = new List<TargetImplementationData>();
-
-        // Used to return all target datas that have a currently active matching implementation
-        public IEnumerable<TargetImplementationData> activeTargetImplementationDatas
-        {
-            get
-            {
-                return m_TargetImplementationDatas.Where(s => activeTargetImplementations.Contains(s.implementation));
-            }
-        }
         #endregion
 
         public bool didActiveOutputNodeChange { get; set; }
@@ -654,11 +645,7 @@ namespace UnityEditor.ShaderGraph
             var masterNode = GetNodeFromGuid<AbstractMaterialNode>(activeOutputNodeGuid) as IMasterNode;
             foreach(var implementation in activeTargetImplementations)
             {
-                var data = activeTargetImplementationDatas.FirstOrDefault(s => s.implementation == implementation);
-                if(data == null)
-                    continue;
-
-                supportedBlockTypes.AddRange(implementation.GetSupportedBlocks(data).Select(x => $"{x.tag}.{x.name}"));
+                supportedBlockTypes.AddRange(implementation.GetSupportedBlocks().Select(x => $"{x.tag}.{x.name}"));
             }
 
             // Set Blocks as active based on supported Block list
@@ -1699,8 +1686,8 @@ namespace UnityEditor.ShaderGraph
                 m_ActiveTargetImplementationBitmask = newBitmask;
             }
             
-            UpdateSupportedBlocks();
             UpdateTargetDatas();
+            UpdateSupportedBlocks();
         }
 
         void UpdateTargetDatas()
@@ -1709,12 +1696,19 @@ namespace UnityEditor.ShaderGraph
             // Currently we never remove serialized data objects
             foreach(var implementation in activeTargetImplementations)
             {
-                if(!m_TargetImplementationDatas.Any(s => s.implementation == implementation))
+                // Get data for the TargetImplementation
+                var data = m_TargetImplementationDatas.FirstOrDefault(s => s.implementation == implementation);
+                
+                // If TargetImplementation does not have an active data object we create one
+                if(data == null)
                 {
-                    var implementationData = Activator.CreateInstance(implementation.dataType) as TargetImplementationData;
-                    implementationData.Init(implementation);
-                    m_TargetImplementationDatas.Add(implementationData);
+                    data = Activator.CreateInstance(implementation.dataType) as TargetImplementationData;
+                    data.Init(implementation);
+                    m_TargetImplementationDatas.Add(data);
                 }
+
+                // Update data object on TargetImplementation
+                implementation.data = data;
             }
         }
     }

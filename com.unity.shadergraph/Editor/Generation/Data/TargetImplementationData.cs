@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -29,15 +28,5 @@ namespace UnityEditor.ShaderGraph
         {
             m_Implementation = implementation;
         }
-
-        internal void DirtyTarget()
-        {
-            // TODO: Force recompilation here...
-        }
-
-        // TODO: Should we have the GUI implementation integrated in this way?
-        // TODO: Also I currently use this to rebuild the inspector
-        // TODO: How are we going to update the inspector when the data object is changed? (Sai)
-        internal abstract void GetProperties(PropertySheet propertySheet, InspectorView inspectorView);
     }
 }
