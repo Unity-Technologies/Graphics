@@ -26,11 +26,21 @@ namespace UnityEngine.Rendering
             cmd.SetGlobalConstantBuffer(m_GPUConstantBuffer, shaderId, 0, m_GPUConstantBuffer.stride);
         }
 
-        public void Push(CommandBuffer cmd, ComputeShader cs, int kernel, bool commitData = false)
+        public void Push(CommandBuffer cmd, ComputeShader cs, int shaderId, bool commitData = false)
         {
             if (commitData)
                 Commit(cmd);
-            cmd.SetComputeConstantBufferParam(cs, kernel, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
+            cmd.SetComputeConstantBufferParam(cs, shaderId, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
+        }
+
+        public void Push(CommandBuffer cmd, Material mat, int shaderId, bool commitData = false)
+        {
+            if (commitData)
+                Commit(cmd);
+            // This isn't done via command buffer because as long as the buffer itself is not destroyed,
+            // the binding stays valid. Only the commit of data needs to go through the command buffer.
+            // We do it here anyway for now to simplify user API.
+            mat.SetConstantBuffer(shaderId, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
         }
 
         public void Release()
