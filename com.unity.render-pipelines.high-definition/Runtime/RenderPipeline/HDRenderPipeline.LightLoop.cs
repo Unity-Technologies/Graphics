@@ -391,10 +391,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle VolumeVoxelizationPass(   RenderGraph     renderGraph,
-                                                    HDCamera            hdCamera,
-                                                    ComputeBuffer       visibleVolumeBoundsBuffer,
-                                                    ComputeBuffer       visibleVolumeDataBuffer,
-                                                    ComputeBuffer       bigTileLightListBuffer)
+                                                HDCamera        hdCamera,
+                                                ComputeBuffer   visibleVolumeBoundsBuffer,
+                                                ComputeBuffer   visibleVolumeDataBuffer,
+                                                ComputeBuffer   bigTileLightListBuffer,
+                                                int             frameIndex)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -402,7 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync());
 
-                    passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera);
+                    passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera, frameIndex);
                     passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
                     passData.visibleVolumeDataBuffer = visibleVolumeDataBuffer;
                     passData.bigTileLightListBuffer = bigTileLightListBuffer;

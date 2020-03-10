@@ -275,31 +275,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalPropertyMaskBuffer = Shader.PropertyToID("_DecalPropertyMaskBuffer");
         public static readonly int _DecalPropertyMaskBufferSRV = Shader.PropertyToID("_DecalPropertyMaskBufferSRV");
 
-
-        //public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos_Internal");
-        //public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS_Internal");
-        //public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
-        //public static readonly int _InvViewMatrix = Shader.PropertyToID("_InvViewMatrix");
-        //public static readonly int _ProjMatrix = Shader.PropertyToID("_ProjMatrix");
-        //public static readonly int _InvProjMatrix = Shader.PropertyToID("_InvProjMatrix");
-        //public static readonly int _NonJitteredViewProjMatrix = Shader.PropertyToID("_NonJitteredViewProjMatrix");
-        //public static readonly int _ViewProjMatrix = Shader.PropertyToID("_ViewProjMatrix");
-        //public static readonly int _CameraViewProjMatrix = Shader.PropertyToID("_CameraViewProjMatrix");
-        //public static readonly int _InvViewProjMatrix = Shader.PropertyToID("_InvViewProjMatrix");
-        //public static readonly int _ZBufferParams = Shader.PropertyToID("_ZBufferParams");
-        //public static readonly int _ProjectionParams = Shader.PropertyToID("_ProjectionParams");
-        //public static readonly int unity_OrthoParams = Shader.PropertyToID("unity_OrthoParams");
-        //public static readonly int _InvProjParam = Shader.PropertyToID("_InvProjParam");
-        //public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
-        //public static readonly int _ScreenParams = Shader.PropertyToID("_ScreenParams");
-        //public static readonly int _RTHandleScale = Shader.PropertyToID("_RTHandleScale");
-        //public static readonly int _RTHandleScaleHistory = Shader.PropertyToID("_RTHandleScaleHistory");
-        //public static readonly int _PrevViewProjMatrix = Shader.PropertyToID("_PrevViewProjMatrix");
-        //public static readonly int _PrevInvViewProjMatrix = Shader.PropertyToID("_PrevInvViewProjMatrix");
-        //public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
-        //public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
-        //public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
-
         public static readonly int _WorldSpaceCameraPos1 = Shader.PropertyToID("_WorldSpaceCameraPos1");
         public static readonly int _ViewMatrix1 = Shader.PropertyToID("_ViewMatrix1");
 
@@ -372,6 +347,7 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         public static readonly int _ShaderVariablesGlobal = Shader.PropertyToID("ShaderVariablesGlobal");
+        public static readonly int _ShaderVariablesVolumetric = Shader.PropertyToID("ShaderVariablesVolumetric");
 
         public static readonly int _SSSBufferTexture = Shader.PropertyToID("_SSSBufferTexture");
         public static readonly int _NormalBufferTexture = Shader.PropertyToID("_NormalBufferTexture");
@@ -473,44 +449,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DstOffset         = Shader.PropertyToID("_DstOffset");
         public static readonly int _DepthMipChain = Shader.PropertyToID("_DepthMipChain");
 
-
-        public static readonly int _FogEnabled                        = Shader.PropertyToID("_FogEnabled");
-        public static readonly int _PBRFogEnabled                     = Shader.PropertyToID("_PBRFogEnabled");
-        public static readonly int _MaxFogDistance                    = Shader.PropertyToID("_MaxFogDistance");
-        public static readonly int _AmbientProbeCoeffs                = Shader.PropertyToID("_AmbientProbeCoeffs");
-        public static readonly int _HeightFogBaseExtinction           = Shader.PropertyToID("_HeightFogBaseExtinction");
-        public static readonly int _HeightFogBaseScattering           = Shader.PropertyToID("_HeightFogBaseScattering");
-        public static readonly int _HeightFogBaseHeight               = Shader.PropertyToID("_HeightFogBaseHeight");
-        public static readonly int _HeightFogExponents                = Shader.PropertyToID("_HeightFogExponents");
-        public static readonly int _EnableVolumetricFog               = Shader.PropertyToID("_EnableVolumetricFog");
-        public static readonly int _GlobalFogAnisotropy               = Shader.PropertyToID("_GlobalFogAnisotropy");
-        public static readonly int _CornetteShanksConstant            = Shader.PropertyToID("_CornetteShanksConstant");
-        public static readonly int _VBufferViewportSize               = Shader.PropertyToID("_VBufferViewportSize");
-        public static readonly int _VBufferSliceCount                 = Shader.PropertyToID("_VBufferSliceCount");
-        public static readonly int _VBufferRcpSliceCount              = Shader.PropertyToID("_VBufferRcpSliceCount");
-        public static readonly int _VBufferRcpInstancedViewCount      = Shader.PropertyToID("_VBufferRcpInstancedViewCount");
-        public static readonly int _VBufferSharedUvScaleAndLimit      = Shader.PropertyToID("_VBufferSharedUvScaleAndLimit");
-        public static readonly int _VBufferDistanceEncodingParams     = Shader.PropertyToID("_VBufferDistanceEncodingParams");
-        public static readonly int _VBufferDistanceDecodingParams     = Shader.PropertyToID("_VBufferDistanceDecodingParams");
-        public static readonly int _VBufferPrevViewportSize           = Shader.PropertyToID("_VBufferPrevViewportSize");
-        public static readonly int _VBufferHistoryPrevUvScaleAndLimit = Shader.PropertyToID("_VBufferHistoryPrevUvScaleAndLimit");
-        public static readonly int _VBufferPrevDepthEncodingParams    = Shader.PropertyToID("_VBufferPrevDepthEncodingParams");
-        public static readonly int _VBufferPrevDepthDecodingParams    = Shader.PropertyToID("_VBufferPrevDepthDecodingParams");
-        public static readonly int _VBufferLastSliceDist              = Shader.PropertyToID("_VBufferLastSliceDist");
-        public static readonly int _VBufferCoordToViewDirWS           = Shader.PropertyToID("_VBufferCoordToViewDirWS");
-        public static readonly int _VBufferUnitDepthTexelSpacing      = Shader.PropertyToID("_VBufferUnitDepthTexelSpacing");
         public static readonly int _VBufferDensity                    = Shader.PropertyToID("_VBufferDensity");
         public static readonly int _VBufferLighting                   = Shader.PropertyToID("_VBufferLighting");
         public static readonly int _VBufferLightingIntegral           = Shader.PropertyToID("_VBufferLightingIntegral");
         public static readonly int _VBufferLightingHistory            = Shader.PropertyToID("_VBufferLightingHistory");
-        public static readonly int _VBufferLightingHistoryIsValid     = Shader.PropertyToID("_VBufferLightingHistoryIsValid");
         public static readonly int _VBufferLightingFeedback           = Shader.PropertyToID("_VBufferLightingFeedback");
-        public static readonly int _VBufferSampleOffset               = Shader.PropertyToID("_VBufferSampleOffset");
         public static readonly int _VolumeBounds                      = Shader.PropertyToID("_VolumeBounds");
         public static readonly int _VolumeData                        = Shader.PropertyToID("_VolumeData");
-        public static readonly int _NumVisibleDensityVolumes          = Shader.PropertyToID("_NumVisibleDensityVolumes");
         public static readonly int _VolumeMaskAtlas                   = Shader.PropertyToID("_VolumeMaskAtlas");
-        public static readonly int _VolumeMaskDimensions              = Shader.PropertyToID("_VolumeMaskDimensions");
 
         public static readonly int _EnableLightLayers                 = Shader.PropertyToID("_EnableLightLayers");
         public static readonly int _ReplaceDiffuseForIndirect         = Shader.PropertyToID("_ReplaceDiffuseForIndirect");

@@ -2127,7 +2127,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     haveAsyncTaskWithShadows = true;
 
                     void Callback(CommandBuffer c, HDGPUAsyncTaskParams a)
-                        => VolumeVoxelizationPass(a.hdCamera, c);
+                        => VolumeVoxelizationPass(a.hdCamera, c, m_FrameCount);
                 }
 
                 if (hdCamera.frameSettings.SSRRunsAsync())
@@ -2219,7 +2219,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     // Perform the voxelization step which fills the density 3D texture.
-                    VolumeVoxelizationPass(hdCamera, cmd);
+                    VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount);
                 }
 
                 // Render the volumetric lighting.
