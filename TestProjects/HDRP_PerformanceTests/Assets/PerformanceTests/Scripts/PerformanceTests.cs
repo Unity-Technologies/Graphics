@@ -37,6 +37,8 @@ public class PerformanceTests : IPrebuildSetup
             return new EditorBuildSettingsScene(scenePath, true);
         });
 
+        EditorUserBuildSettings.ps4HardwareTarget = PS4HardwareTarget.BaseOnly;
+
         EditorBuildSettings.scenes = testScenes.ToArray();
 #endif
     }
