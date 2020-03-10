@@ -20,7 +20,7 @@ namespace Drawing.Views
         protected VisualElement m_ContentContainer;
         protected VisualElement m_HeaderItem;
 
-        private bool m_Scrollable = true;
+        private bool m_Scrollable = false;
 
         private Dragger m_Dragger;
         protected GraphView m_GraphView;
@@ -176,7 +176,7 @@ namespace Drawing.Views
             capabilities |= Capabilities.Movable | Capabilities.Resizable;
             style.overflow = Overflow.Hidden;
             focusable = true;
-            scrollable = false;
+            scrollable = true;
             name = elementName;
             title = windowTitle;
 

@@ -160,7 +160,14 @@ namespace Drawing.Inspector
         public void UpdateSelection(List<ISelectable> selectedObjects)
         {
             // Remove current properties
-            m_ContentContainer.Clear();
+            for (int i = 0; i < m_ContentContainer.childCount; ++i)
+            {
+                var child = m_ContentContainer.Children().ElementAt(i);
+                if (child is PropertySheet)
+                {
+                    m_ContentContainer.Remove(child);
+                }
+            }
 
             if(selectedObjects.Count == 0)
             {
@@ -168,12 +175,7 @@ namespace Drawing.Inspector
                 return;
             }
 
-            if (selectedObjects.Count == 1)
-            {
-                var visualElement = (VisualElement) selectedObjects.First();
-                subTitle = $"{visualElement}";
-            }
-            else if(selectedObjects.Count > 1)
+            if(selectedObjects.Count > 1)
             {
                 subTitle = $"{selectedObjects.Count} Objects.";
             }
@@ -191,6 +193,10 @@ namespace Drawing.Inspector
             else if(selectedObjects.FirstOrDefault() is UnityEditor.Experimental.GraphView.Group group)
             {
                 subTitle = "(Group)";
+            }
+            else if(selectedObjects.FirstOrDefault() is UnityEditor.Experimental.GraphView.Node node)
+            {
+                subTitle = node.title;
             }
 
             var propertySheet = new PropertySheet();
