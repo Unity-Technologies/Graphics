@@ -51,6 +51,8 @@ Pass
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
     #endif
 
+    $splice(HybridV1InjectedBuiltinProperties)
+
     // Includes
     $splice(PreGraphIncludes)
 
@@ -66,7 +68,6 @@ Pass
 
     // Graph Properties
     $splice(GraphProperties)
-    $splice(DotsInstancedProperties)
 
     // Graph Functions
     $splice(GraphFunctions)
