@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -269,6 +269,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { HDBase },
             { Descriptors.AlphaTest, new FieldCondition(HDFields.AlphaTestPrepass, true) },
+            { Descriptors.WriteNormalBuffer, new FieldCondition(HDFields.DisableSSRTransparent, true) },
         };
 
         public static KeywordCollection TransparentDepthPostpass = new KeywordCollection

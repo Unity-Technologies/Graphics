@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 using UnityEditor.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -238,6 +238,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdDepthPrepassSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
+                HDLitMasterNode.NormalSlotId,
+                HDLitMasterNode.SmoothnessSlotId,
             };
 
             public static int[] HDLitTransparentBackface = new int[]

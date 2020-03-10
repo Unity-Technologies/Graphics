@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -477,6 +477,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         // --------------------------------------------------
         // Transparent Depth Prepass & Postpass
+
+        public static RenderStateCollection HDLitTransparentDepthPrePostPass = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = Uniforms.stencilWriteMaskDepth,
+                Ref = Uniforms.stencilRefDepth,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
 
         public static RenderStateCollection HDTransparentDepthPrePostPass = new RenderStateCollection
         {

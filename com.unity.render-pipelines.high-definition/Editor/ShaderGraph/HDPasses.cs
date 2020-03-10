@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -727,8 +727,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 structs = HDStructCollections.Default,
+                requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
-                renderStates = HDRenderStates.HDTransparentDepthPrePostPass,
+                renderStates = HDRenderStates.HDLitTransparentDepthPrePostPass,
                 pragmas = HDPragmas.DotsInstanced,
                 defines = HDDefines.TransparentDepthPrepass,
                 keywords = HDKeywords.TransparentDepthPrepass,
