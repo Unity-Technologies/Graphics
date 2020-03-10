@@ -9,16 +9,19 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Rendering;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing.Util;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Texture", "Sample VT Stack")]
+    [Title("Input", "Texture", SampleTextureStackNode.DefaultNodeTitle)]
     [FormerName("UnityEditor.ShaderGraph.SampleTextureStackNodeBase")]
     [FormerName("UnityEditor.ShaderGraph.SampleTextureStackNode2")]
     [FormerName("UnityEditor.ShaderGraph.SampleTextureStackNode3")]
     [FormerName("UnityEditor.ShaderGraph.SampleTextureStackNode4")]
     class SampleTextureStackNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV, IHasSettings, IGeneratesInclude, IMayRequireTime
     {
+        public const string DefaultNodeTitle = "Sample VT Stack";
+
         public const int UVInputId = 0;
         [NonSerialized]
         public readonly int[] OutputSlotIds = new int[] { 1, 2, 3, 4 };
@@ -228,7 +231,8 @@ namespace UnityEditor.ShaderGraph
                 foreach (var node in stacks)
                 {
                     if (node == this) continue;
-                    if (node.GetStackName() == name)
+                    // Check if the names as emitted in the shader will clash
+                    if (node.GetStackName() == this.ProcessStackName(name) )
                     {
                         conflict = true;
                         break;
@@ -243,6 +247,18 @@ namespace UnityEditor.ShaderGraph
             }
 
             return name;
+        }
+
+        /*
+            True if the masternode of the graph this node is currently in supports virtual texturing.
+        */ 
+        private bool supportedByMasterNode
+        {
+            get
+            {
+                var masterNode = owner?.GetNodes<IMasterNode>().FirstOrDefault();
+                return masterNode?.SupportsVirtualTexturing() ?? false;
+            }
         }
 
         /*
@@ -346,21 +362,21 @@ namespace UnityEditor.ShaderGraph
                 {
                     int currentIndex = i; //to make lambda by-ref capturing happy
                     ps.Add(new PropertyRow(new Label("Layer " + (i + 1) + " Type")), (row) =>
-                      {
-                          row.Add(new UIElements.EnumField(m_Node.m_TextureTypes[i]), (field) =>
-                          {
-                              field.value = m_Node.m_TextureTypes[i];
-                              field.RegisterValueChangedCallback(evt =>
-                              {
-                                  if (m_Node.m_TextureTypes[currentIndex] == (TextureType)evt.newValue)
-                                      return;
+                    {
+                        row.Add(new UIElements.EnumField(m_Node.m_TextureTypes[i]), (field) =>
+                        {
+                            field.value = m_Node.m_TextureTypes[i];
+                            field.RegisterValueChangedCallback(evt =>
+                            {
+                                if (m_Node.m_TextureTypes[currentIndex] == (TextureType)evt.newValue)
+                                    return;
 
-                                  m_Node.owner.owner.RegisterCompleteObjectUndo("Texture Type Change");
-                                  m_Node.m_TextureTypes[currentIndex] = (TextureType)evt.newValue;
-                                  m_Node.Dirty(ModificationScope.Graph);
-                              });
-                          });
-                      });
+                                m_Node.owner.owner.RegisterCompleteObjectUndo("Texture Type Change");
+                                m_Node.m_TextureTypes[currentIndex] = (TextureType)evt.newValue;
+                                m_Node.Dirty(ModificationScope.Graph);
+                            });
+                        });
+                    });
                 }
 
                 ps.Add(new PropertyRow(new Label("Space")), (row) =>
@@ -378,6 +394,20 @@ namespace UnityEditor.ShaderGraph
                         });
                     });
                 });
+
+#if !ENABLE_VIRTUALTEXTURES
+                ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("VT is disabled, this node will do regular 2D sampling.")));
+#endif
+                if (!m_Node.supportedByMasterNode)
+                {
+                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current master node does not support VT, this node will do regular 2D sampling.")));
+                }
+
+                IVirtualTexturingEnabledRenderPipeline vtRp = GraphicsSettings.currentRenderPipeline as IVirtualTexturingEnabledRenderPipeline;
+                if (vtRp == null || vtRp.virtualTexturingEnabled == false)
+                {
+                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current render pipeline does not support VT." + ((vtRp ==null) ? "(Interface not implemented by" + GraphicsSettings.currentRenderPipeline.GetType().Name + ")" : "(virtualTexturingEnabled == false)"))));
+                }
 
                 Add(ps);
             }
@@ -469,13 +499,13 @@ namespace UnityEditor.ShaderGraph
             }
 
             RemoveSlotsNameNotMatching(usedSlots, true);
-            name = GetStackName();
+            name = String.IsNullOrEmpty(m_StackName) ? DefaultNodeTitle : m_StackName;
         }
 
         public static bool SubGraphHasStacks(SubGraphNode node)
         {
             var asset = node.asset;
-            foreach(var input in asset.inputs)
+            foreach (var input in asset.inputs)
             {
                 var texInput = input as Texture2DShaderProperty;
                 if (texInput != null && !string.IsNullOrEmpty(texInput.textureStack))
@@ -604,17 +634,23 @@ namespace UnityEditor.ShaderGraph
             get { return PreviewMode.Preview3D; }
         }
 
-
-        protected virtual string GetStackName()
+        protected virtual string ProcessStackName(string potentialName)
         {
-            if (!string.IsNullOrEmpty(m_StackName))
+            // We do a poor man's namespacing here since the user's entered name could clash with existing symbols defined in the shaders or templates
+            // adding variables in templates later could also suddenly break user's stacks so any stacks are prefixed by a "namespace".
+            if (!string.IsNullOrEmpty(potentialName))
             {
-                return m_StackName;
+                return "StackNodeNamespace_" + potentialName;
             }
             else
             {
                 return string.Format("TexStack_{0}", GuidEncoder.Encode(guid));
             }
+        }
+
+        protected virtual string GetStackName()
+        {
+            return ProcessStackName(m_StackName);
         }
 
         private string GetTextureName(int layerIndex, GenerationMode generationMode)
@@ -701,7 +737,7 @@ namespace UnityEditor.ShaderGraph
                     GetSlotValue(DxInputId, generationMode),
                     GetSlotValue(DyInputId, generationMode),
                     AddresMode.VtAddressMode_Wrap,
-                    FilterMode.VtFilter_Anisotropic,                    
+                    FilterMode.VtFilter_Anisotropic,
                     m_LodCalculation,
                     UvSpace.VtUvSpace_Regular,
                     m_SampleQuality));
@@ -760,22 +796,28 @@ namespace UnityEditor.ShaderGraph
         {
             // This is not in templates or headers so this error only gets checked in shaders actually using the VT node
             // as vt headers get included even if there are no vt nodes yet.
-            registry.ProvideIncludeBlock("disable-vt-if-unsupported", @"#if defined(_SURFACE_TYPE_TRANSPARENT)
+            IVirtualTexturingEnabledRenderPipeline vtRp = GraphicsSettings.currentRenderPipeline as IVirtualTexturingEnabledRenderPipeline;
+
+            if (!supportedByMasterNode)
+            {
+                // The master node is not white listed for VT just use regular textures even if vt is on for this project.
+                registry.ProvideIncludeBlock("disable-vt-if-unsupported-node", "#define FORCE_VIRTUAL_TEXTURING_OFF 1");
+            }
+            else if (vtRp == null || vtRp.virtualTexturingEnabled == false)
+            {
+                // The master render pipeline does not support VT just use regular textures even if vt is on for this project.
+                registry.ProvideIncludeBlock("disable-vt-if-unsupported-node", "#define FORCE_VIRTUAL_TEXTURING_OFF 1");
+            }
+            else
+            {
+                // The master node supports VT but certain keyword settings in child materials may still break it. We catch this here.
+                registry.ProvideIncludeBlock("disable-vt-if-unsupported", @"#if defined(_SURFACE_TYPE_TRANSPARENT)
 #define FORCE_VIRTUAL_TEXTURING_OFF 1
 #error VT cannot be used on transparent surfaces.
-#endif
-#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
-#define FORCE_VIRTUAL_TEXTURING_OFF 1
-#error VT cannot be used on decals. (DBuffer)
-#endif
-#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_DBUFFER_MESH)
-#define FORCE_VIRTUAL_TEXTURING_OFF 1
-#error VT cannot be used on decals. (Mesh)
-#endif
-#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
-#define FORCE_VIRTUAL_TEXTURING_OFF 1
-#error VT cannot be used on decals. (Projector)
 #endif");
+            }
+
+            // Always include the header even if vt is off this ensures the macros providing fallbacks are existing.
             registry.ProvideInclude("Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl");
         }
 
@@ -945,7 +987,7 @@ namespace UnityEditor.ShaderGraph
             bool hasFeedback = false;
             foreach (var node in stackNodes)
             {
-                if ( !node.noFeedback )
+                if (!node.noFeedback)
                 {
                     hasFeedback = true;
                     break;
@@ -953,16 +995,16 @@ namespace UnityEditor.ShaderGraph
             }
 
             if (!hasFeedback) foreach (var node in subgraphNodes)
-            {
-                foreach (var slot in node.GetOutputSlots<Vector4MaterialSlot>())
                 {
-                    if (slot.shaderOutputName.StartsWith(subgraphOutputFrefix))
+                    foreach (var slot in node.GetOutputSlots<Vector4MaterialSlot>())
                     {
-                        hasFeedback = true;
-                        break;
+                        if (slot.shaderOutputName.StartsWith(subgraphOutputFrefix))
+                        {
+                            hasFeedback = true;
+                            break;
+                        }
                     }
                 }
-            }
 
             if (!hasFeedback)
             {
@@ -1008,7 +1050,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var node in subgraphNodes)
             {
                 Debug.Log("SubgraphNode");
-                foreach (var slot in node.GetOutputSlots< Vector4MaterialSlot>())
+                foreach (var slot in node.GetOutputSlots<Vector4MaterialSlot>())
                 {
                     Debug.Log("Slot " + slot.shaderOutputName);
                     if (!slot.shaderOutputName.StartsWith(subgraphOutputFrefix)) continue;
