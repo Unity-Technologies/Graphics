@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static PragmaCollection Basic = new PragmaCollection
         {
-            { Pragma.Target(4.5) },
+            { Pragma.Target(ShaderModel.Target45) },
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
@@ -125,14 +125,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PragmaCollection RaytracingBasic = new PragmaCollection
         {
-            { Pragma.Target(4.5) },
+            { Pragma.Target(ShaderModel.Target45) },
             { Pragma.Raytracing("test") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
         };
 
         public static PragmaCollection RaytracingInstanced = new PragmaCollection
         {
-            { Pragma.Target(4.5) },
+            { Pragma.Target(ShaderModel.Target45) },
             { Pragma.Raytracing("test") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
             { Pragma.MultiCompileInstancing },
