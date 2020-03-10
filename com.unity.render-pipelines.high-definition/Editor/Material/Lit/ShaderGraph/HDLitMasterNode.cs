@@ -692,21 +692,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_DOTSInstancing = false;
-        public ToggleData dotsInstancing
-        {
-            get { return new ToggleData(m_DOTSInstancing); }
-            set
-            {
-                if (m_DOTSInstancing == value.isOn)
-                    return;
-
-                m_DOTSInstancing = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
         bool m_ZWrite = false;
         public ToggleData zWrite
         {

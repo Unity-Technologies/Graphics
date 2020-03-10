@@ -520,7 +520,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     vertexActive = true;
                 }
-                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive, instancingFlag: instancingFlag);
+                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive, isLit:false, instancingFlag: instancingFlag);
             }
             else
             {

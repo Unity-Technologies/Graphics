@@ -958,26 +958,6 @@ namespace UnityEditor.Rendering.HighDefinition
         };
         public int GetPreviewPassIndex() { return 0; }
 
-        private static List<string> GetInstancingOptionsFromMasterNode(AbstractMaterialNode iMasterNode)
-        {
-            List<string> instancingOption = new List<string>();
-
-            HDLitMasterNode masterNode = iMasterNode as HDLitMasterNode;
-
-            if (masterNode.dotsInstancing.isOn)
-            {
-                instancingOption.Add("#pragma instancing_options nolightprobe");
-                instancingOption.Add("#pragma instancing_options nolodfade");
-            }
-            else
-            {
-                instancingOption.Add("#pragma instancing_options renderinglayer");
-            }
-
-            return instancingOption;
-        }
-
-
         private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             var activeFields = new ActiveFields();
@@ -1229,8 +1209,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // apply master node options to active fields
                 var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
-
-                pass.ExtraInstancingOptions = GetInstancingOptionsFromMasterNode(masterNode);
 
                 // use standard shader pass generation
                 bool vertexActive = false;
