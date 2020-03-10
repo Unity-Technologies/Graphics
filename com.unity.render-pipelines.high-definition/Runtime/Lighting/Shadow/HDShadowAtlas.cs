@@ -531,7 +531,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.globalCB.data._InvProjMatrix = shadowRequest.deviceProjectionYFlip.inverse;
                 parameters.globalCB.data._ViewProjMatrix = viewProjection;
                 parameters.globalCB.data._InvViewProjMatrix = viewProjection.inverse;
-                parameters.globalCB.Commit(cmd, HDShaderIDs._ShaderVariablesGlobal);
+
+                parameters.globalCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesGlobal, true);
 
                 cmd.SetGlobalVectorArray(HDShaderIDs._ShadowClipPlanes, shadowRequest.frustumPlanes);
 

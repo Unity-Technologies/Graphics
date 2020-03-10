@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     data.hdCamera.UpdateShaderVariableGlobalCB(data.globalCB, data.frameCount);
                     data.hdCamera.SetupGlobalParams(context.cmd, data.frameCount);
-                    data.globalCB.Commit(context.cmd, HDShaderIDs._ShaderVariablesGlobal);
+                    data.globalCB.PushGlobal(context.cmd, HDShaderIDs._ShaderVariablesGlobal, true);
                 });
             }
         }
