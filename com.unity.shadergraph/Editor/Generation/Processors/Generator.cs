@@ -562,8 +562,8 @@ namespace UnityEditor.ShaderGraph
                 if (instancedPropCount > 0)
                     dotsInstancedPropertyBuilder.AppendLines(propertyCollector.GetDotsInstancingPropertiesDeclaration(m_Mode));
                 else
-                    dotsInstancedPropertyBuilder.AppendLine("// DotsInstancedProperties: <None>");
-                spliceCommands.Add("DotsInstancedProperties", dotsInstancedPropertyBuilder.ToCodeBlock());
+                    dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
+                spliceCommands.Add("HybridV1InjectedBuiltinProperties", dotsInstancedPropertyBuilder.ToCodeBlock());
             }
 
             // --------------------------------------------------
