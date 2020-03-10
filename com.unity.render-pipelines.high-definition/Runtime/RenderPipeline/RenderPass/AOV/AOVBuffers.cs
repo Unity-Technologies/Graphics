@@ -12,6 +12,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Normals buffer at the end of the frame.</summary>
         Normals,
         /// <summary>Motion vectors buffer at the end of the frame.</summary>
-        MotionVectors
+        MotionVectors,
+        /// <summary>Custom pass buffer.</summary> 
+        CustomPass //TODO: all injection points
     }
 }

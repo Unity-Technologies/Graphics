@@ -2452,6 +2452,10 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess);
 
             aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
+            if (m_CustomPassColorBuffer.IsValueCreated)
+            {
+                aovRequest.PushCameraTexture(cmd, AOVBuffers.CustomPass, hdCamera, m_CustomPassColorBuffer.Value, aovBuffers);
+            }
 
             RenderTargetIdentifier postProcessDest = HDUtils.PostProcessIsFinalPass(hdCamera) ? target.id : m_IntermediateAfterPostProcessBuffer;
             RenderPostProcess(cullingResults, hdCamera, postProcessDest, renderContext, cmd);
