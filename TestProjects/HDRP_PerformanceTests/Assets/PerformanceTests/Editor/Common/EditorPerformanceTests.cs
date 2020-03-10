@@ -81,10 +81,10 @@ public class EditorPerformanceTests
         BuildReport report = BuildPipeline.BuildPlayer(buildPlayerOptions);
         BuildSummary summary = report.summary;
 
-        Measure.Custom(FormatSampleGroupName(kSize, kTotal).ToSampleGroup(), summary.totalSize);
-        Measure.Custom(FormatSampleGroupName(kSize, kShader).ToSampleGroup(), GetAssetSizeInBuild(report, typeof(Shader)));
-        Measure.Custom(FormatSampleGroupName(kSize, kComputeShader).ToSampleGroup(), GetAssetSizeInBuild(report, typeof(ComputeShader)));
-        Measure.Custom(FormatSampleGroupName(kTime, kTotal).ToSampleGroup(), summary.totalTime.TotalMilliseconds);
+        Measure.Custom(FormatSampleGroupName(kSize, kTotal).ToSampleGroup(SampleUnit.Byte), summary.totalSize);
+        Measure.Custom(FormatSampleGroupName(kSize, kShader).ToSampleGroup(SampleUnit.Byte), GetAssetSizeInBuild(report, typeof(Shader)));
+        Measure.Custom(FormatSampleGroupName(kSize, kComputeShader).ToSampleGroup(SampleUnit.Byte), GetAssetSizeInBuild(report, typeof(ComputeShader)));
+        Measure.Custom(FormatSampleGroupName(kTime, kTotal).ToSampleGroup(SampleUnit.Millisecond), summary.totalTime.TotalMilliseconds);
         Measure.Custom(FormatSampleGroupName(kBuild, kWarnings).ToSampleGroup(), summary.totalWarnings);
         Measure.Custom(FormatSampleGroupName(kBuild, kSuccess).ToSampleGroup(), summary.result == BuildResult.Succeeded ? 1 : 0);
 
@@ -119,14 +119,14 @@ public class EditorPerformanceTests
                 if (content.type == typeof(ComputeShader))
                 {
                     var computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(content.sourceAssetPath);
-                    Measure.Custom(FormatSampleGroupName(kSize, kComputeShader, computeShader.name).ToSampleGroup(), content.packedSize);
+                    Measure.Custom(FormatSampleGroupName(kSize, kComputeShader, computeShader.name).ToSampleGroup(SampleUnit.Byte), content.packedSize);
                 }
                 else if (content.type == typeof(Shader))
                 {
                     var shader = AssetDatabase.LoadAssetAtPath<Shader>(content.sourceAssetPath);
 
                     if (KeepShaderForReport(shader))
-                        Measure.Custom(FormatSampleGroupName(kSize, kShader, shader.name).ToSampleGroup(), content.packedSize);
+                        Measure.Custom(FormatSampleGroupName(kSize, kShader, shader.name).ToSampleGroup(SampleUnit.Byte), content.packedSize);
                 }
             }
         }
@@ -138,7 +138,7 @@ public class EditorPerformanceTests
             return;
 
         Measure.Custom(FormatSampleGroupName(kStriping, shader.name, data.passName).ToSampleGroup(), currentVariantCount);
-        Measure.Custom(FormatSampleGroupName(kStripingTime, shader.name, data.passName).ToSampleGroup(), strippingTime);
+        Measure.Custom(FormatSampleGroupName(kStripingTime, shader.name, data.passName).ToSampleGroup(SampleUnit.Millisecond), strippingTime);
     }
 
     static string lastCompiledShader = kNA;
@@ -149,7 +149,7 @@ public class EditorPerformanceTests
             // Match this line in the editor log: Compiled shader 'HDRP/Lit' in 69.48s
             case var _ when MatchRegex(@"^\s*Compiled shader '(.*)' in (\d{1,}.\d{1,})s$", line, out var match):
                 lastCompiledShader = match.Groups[1].Value; // store the value of the shader for internal program count report
-                SampleGroup shaderCompilationTime = new SampleGroup(FormatSampleGroupName(kCompilationTime, match.Groups[1].Value), SampleUnit.Undefined);
+                SampleGroup shaderCompilationTime = new SampleGroup(FormatSampleGroupName(kCompilationTime, match.Groups[1].Value), SampleUnit.Second);
                 Measure.Custom(shaderCompilationTime, double.Parse(match.Groups[2].Value));
                 break;
 

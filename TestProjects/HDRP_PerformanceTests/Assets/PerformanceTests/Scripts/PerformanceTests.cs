@@ -58,10 +58,10 @@ public class PerformanceTests : IPrebuildSetup
             yield return new CounterTestDescription{ assetData = asset, sceneData = scene };
     }
 
-    IEnumerable<HDProfileId> GetAllMarkers()
+    IEnumerable<ProfilingSampler> GetAllMarkers()
     {
         foreach (var val in Enum.GetValues(typeof(HDProfileId)))
-            yield return (HDProfileId)val;
+            yield return ProfilingSampler.Get((HDProfileId)val);
     }
 
     [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
@@ -75,7 +75,12 @@ public class PerformanceTests : IPrebuildSetup
         // Enable all the markers
         hdCamera.profilingSampler.enableRecording = true;
         foreach (var marker in GetAllMarkers())
-            ProfilingSampler.Get(marker).enableRecording = true;
+            marker.enableRecording = true;
+        
+        // Allocate all sample groups:
+        var sampleGroups = new Dictionary<ProfilingSampler, (SampleGroup cpu, SampleGroup inlineCPU, SampleGroup gpu)>();
+        foreach (var marker in GetAllMarkers())
+            CreateSampleGroups(marker);
 
         // Wait for the markers to be initialized
         for (int i = 0; i < 20; i++)
@@ -85,27 +90,31 @@ public class PerformanceTests : IPrebuildSetup
         {
             MeasureTime(hdCamera.profilingSampler);
             foreach (var marker in GetAllMarkers())
-                MeasureTime(ProfilingSampler.Get(marker));
+                MeasureTime(marker);
+            yield return null;
         }
 
         // disable all the markers
         hdCamera.profilingSampler.enableRecording = false;
         foreach (var marker in GetAllMarkers())
-            ProfilingSampler.Get(marker).enableRecording = false;
+            marker.enableRecording = false;
+
+        void CreateSampleGroups(ProfilingSampler sampler)
+        {
+            SampleGroup cpuSample = new SampleGroup(FormatSampleGroupName(kTiming, kCPU, sampler.name), SampleUnit.Millisecond, false);
+            SampleGroup gpuSample = new SampleGroup(FormatSampleGroupName(kTiming, kGPU, sampler.name), SampleUnit.Millisecond, false);
+            SampleGroup inlineCPUSample = new SampleGroup(FormatSampleGroupName(kTiming, kInlineCPU, sampler.name), SampleUnit.Millisecond, false);
+            sampleGroups[sampler] = (cpuSample, inlineCPUSample, gpuSample);
+        }
 
         void MeasureTime(ProfilingSampler sampler)
         {
-            // Due to a bug about convertion of time units before sending the data to the database, we need to use Undefined units
-            SampleGroup cpuSample = new SampleGroup(FormatSampleGroupName(kTiming, kCPU, sampler.name), SampleUnit.Undefined, false);
-            SampleGroup gpuSample = new SampleGroup(FormatSampleGroupName(kTiming, kGPU, sampler.name), SampleUnit.Undefined, false);
-            SampleGroup inlineCPUSample = new SampleGroup(FormatSampleGroupName(kTiming, kInlineCPU, sampler.name), SampleUnit.Undefined, false);
-
             if (sampler.cpuElapsedTime > 0)
-                Measure.Custom(cpuSample, sampler.cpuElapsedTime);
+                Measure.Custom(sampleGroups[sampler].cpu, sampler.cpuElapsedTime);
             if (sampler.gpuElapsedTime > 0)
-                Measure.Custom(gpuSample, sampler.gpuElapsedTime);
+                Measure.Custom(sampleGroups[sampler].gpu, sampler.gpuElapsedTime);
             if (sampler.inlineCpuElapsedTime > 0)
-                Measure.Custom(inlineCPUSample, sampler.inlineCpuElapsedTime);
+                Measure.Custom(sampleGroups[sampler].inlineCPU, sampler.inlineCpuElapsedTime);
         }
     }
 
@@ -165,8 +174,8 @@ public class PerformanceTests : IPrebuildSetup
 
         // Report data
         foreach (var result in results)
-            Measure.Custom(new SampleGroup(FormatSampleGroupName(kMemory, result.name), SampleUnit.Undefined, false), result.size);
-        Measure.Custom(new SampleGroup(FormatSampleGroupName(kTotalMemory, testDescription.assetType.Name), SampleUnit.Undefined, false), totalMemory);
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(kMemory, result.name), SampleUnit.Byte, false), result.size);
+        Measure.Custom(new SampleGroup(FormatSampleGroupName(kTotalMemory, testDescription.assetType.Name), SampleUnit.Byte, false), totalMemory);
     }
 
     [Version("1"), UnityTest]
