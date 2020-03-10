@@ -963,6 +963,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kAddPrecomputedVelocity = "_AddPrecomputedVelocity";
         public const string kShadowMatteFilter = "_ShadowMatteFilter";
 
+        public const string kIsStackLit = "_IsStackLitMasterNode";
+        public const string kAnisotropy = "_Anisotropy";
+        public const string kCoat = "_Coat";
+        public const string kCoatNormal = "_CoatNormal";
+        public const string kDualSpecularLobe = "_DualSpecularLobe";
+        public const string kIridescence = "_Iridescence";
+        public const string kSubsurfaceScattering = "_SubsurfaceScattering";
+        public const string kTransmission = "_Transmission";
+
         public static readonly Color[] kLayerColors =
         {
             Color.white,
