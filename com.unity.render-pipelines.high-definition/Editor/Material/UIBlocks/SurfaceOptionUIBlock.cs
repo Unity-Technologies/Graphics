@@ -97,6 +97,15 @@ namespace UnityEditor.Rendering.HighDefinition
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
 
+            // StackLit core features
+            public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Enable Anisotropy");
+            public static GUIContent coatText = new GUIContent("Coat", "Enable Coat");
+            public static GUIContent coatNormalText = new GUIContent("Coat Normal", "Enable Coat Normal");
+            public static GUIContent dualSpecularLobeText = new GUIContent("Dual Specular Lobe", "Enable Dual Specular Lobe");
+            public static GUIContent iridescenceText = new GUIContent("Iridescence", "Enable Iridescence");
+            public static GUIContent subsurfaceScatteringText = new GUIContent("Subsurface Scattering", "Enable Subsurface Scattering");
+            public static GUIContent transmissionText = new GUIContent("Transmission", "Enable Transmission");
+
             public static string afterPostProcessZTestInfoBox = "After post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
         }
 
@@ -208,6 +217,16 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty stencilRef = null;
         MaterialProperty zTest = null;
         MaterialProperty transparentCullMode = null;
+
+        // Custom StackLit exposed core features
+        MaterialProperty isStackLit = null;
+        MaterialProperty anisotropy = null;
+        MaterialProperty coat = null;
+        MaterialProperty coatNormal = null;
+        MaterialProperty dualSpecularLobe = null;
+        MaterialProperty iridescence = null;
+        MaterialProperty subsurfaceScattering = null;
+        MaterialProperty transmission = null;
 
         SurfaceType defaultSurfaceType { get { return SurfaceType.Opaque; } }
 
@@ -344,6 +363,16 @@ namespace UnityEditor.Rendering.HighDefinition
             transparentCullMode = FindProperty(kTransparentCullMode);
 
             refractionModel = FindProperty(kRefractionModel);
+
+            // StackLit core features
+            isStackLit = FindProperty(kIsStackLit);
+            anisotropy = FindProperty(kAnisotropy);
+            coat = FindProperty(kCoat);
+            coatNormal = FindProperty(kCoatNormal);
+            dualSpecularLobe = FindProperty(kDualSpecularLobe);
+            iridescence = FindProperty(kIridescence);
+            subsurfaceScattering = FindProperty(kSubsurfaceScattering);
+            transmission = FindProperty(kTransmission);
         }
 
         public override void OnGUI()
@@ -707,6 +736,46 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.indentLevel++;
                     materialEditor.ShaderProperty(transmissionEnable, Styles.transmissionEnableText);
                     EditorGUI.indentLevel--;
+                }
+            }
+
+            if (isStackLit != null)
+            {
+                if (anisotropy != null)
+                {
+                    materialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
+                }
+
+                if (coat != null)
+                {
+                    materialEditor.ShaderProperty(coat, Styles.coatText);
+
+                    if (coat.floatValue > 0 && coatNormal != null)
+                    {
+                        EditorGUI.indentLevel++;
+                        materialEditor.ShaderProperty(coatNormal, Styles.coatNormalText);
+                        EditorGUI.indentLevel--;
+                    }
+                }
+                
+                if (dualSpecularLobe != null)
+                {
+                    materialEditor.ShaderProperty(dualSpecularLobe, Styles.dualSpecularLobeText);
+                }
+
+                if (iridescence != null)
+                {
+                    materialEditor.ShaderProperty(iridescence, Styles.iridescenceText);
+                }
+
+                if (subsurfaceScattering != null)
+                {
+                    materialEditor.ShaderProperty(subsurfaceScattering, Styles.subsurfaceScatteringText);
+                }
+
+                if (transmission != null)
+                {
+                    materialEditor.ShaderProperty(transmission, Styles.transmissionText);
                 }
             }
 
