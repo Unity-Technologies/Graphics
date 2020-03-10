@@ -2152,9 +2152,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
                 {
                     // This call overwrites camera properties passed to the shader system.
-                    RenderShadowMaps(renderContext, cmd, cullingResults, hdCamera);
+                    RenderShadowMaps(renderContext, cmd, m_ShaderVariablesGlobalCB, cullingResults, hdCamera);
 
-                    hdCamera.SetupGlobalParams(cmd, m_FrameCount);
+                    hdCamera.UpdateShaderVariableGlobalCB(m_ShaderVariablesGlobalCB, m_FrameCount);
+                    m_ShaderVariablesGlobalCB.Commit(cmd, HDShaderIDs._ShaderVariablesGlobal);
                 }
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))

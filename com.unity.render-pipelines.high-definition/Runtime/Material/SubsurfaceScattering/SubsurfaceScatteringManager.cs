@@ -234,14 +234,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool             needTemporaryBuffer;
             public Material         copyStencilForSplitLighting;
             public Material         combineLighting;
-            public uint             texturingModeFlags;
             public int              numTilesX;
             public int              numTilesY;
             public int              numTilesZ;
-            public Vector4[]        worldScales;
             public Vector4[]        filterKernels;
-            public Vector4[]        shapeParams;
-            //public float[]          diffusionProfileHashes;
             public ComputeBuffer    coarseStencilBuffer;
 
         }
@@ -267,16 +263,10 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.needTemporaryBuffer = NeedTemporarySubsurfaceBuffer() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             parameters.copyStencilForSplitLighting = m_SSSCopyStencilForSplitLighting;
             parameters.combineLighting = m_CombineLightingPass;
-            parameters.texturingModeFlags = m_SSSTexturingModeFlags;
             parameters.numTilesX = ((int)hdCamera.screenSize.x + 15) / 16;
             parameters.numTilesY = ((int)hdCamera.screenSize.y + 15) / 16;
             parameters.numTilesZ = hdCamera.viewCount;
-
-            parameters.worldScales = m_SSSWorldScales;
             parameters.filterKernels = m_SSSFilterKernels;
-            parameters.shapeParams = m_SSSShapeParams;
-            //parameters.diffusionProfileHashes = m_SSSDiffusionProfileHashes;
-
             parameters.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
 
             return parameters;
@@ -450,19 +440,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // However, the compute can't output and MSAA target so we blend the non-MSAA target into the MSAA one.
         static void RenderSubsurfaceScattering(in SubsurfaceScatteringParameters parameters, in SubsurfaceScatteringResources resources, CommandBuffer cmd)
         {
-            unsafe
-            {
-                // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
-                // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
-                uint textureingModeFlags = parameters.texturingModeFlags;
-                cmd.SetComputeFloatParam(parameters.subsurfaceScatteringCS, HDShaderIDs._TexturingModeFlags, *(float*)&textureingModeFlags);
-            }
-
-            cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._WorldScales, parameters.worldScales);
             cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._FilterKernels, parameters.filterKernels);
-            cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._ShapeParams, parameters.shapeParams);
-            //cmd.SetComputeFloatParams(parameters.subsurfaceScatteringCS, HDShaderIDs._DiffusionProfileHashTable, parameters.diffusionProfileHashes);
-
             cmd.SetComputeTextureParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._DepthTexture, resources.depthTexture);
             cmd.SetComputeTextureParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._IrradianceSource, resources.diffuseBuffer);
             cmd.SetComputeTextureParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._SSSBufferTexture, resources.sssBuffer);

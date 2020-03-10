@@ -93,8 +93,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class PushGlobalCameraParamPassData
         {
-            public HDCamera    hdCamera;
-            public int         frameCount;
+            public HDCamera                                 hdCamera;
+            public int                                      frameCount;
+            public ConstantBuffer<ShaderVariablesGlobal>    globalCB;
 
         }
 
@@ -104,20 +105,22 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.hdCamera = hdCamera;
                 passData.frameCount = m_FrameCount;
+                passData.globalCB = m_ShaderVariablesGlobalCB;
 
                 builder.SetRenderFunc(
                 (PushGlobalCameraParamPassData data, RenderGraphContext context) =>
                 {
+                    data.hdCamera.UpdateShaderVariableGlobalCB(data.globalCB, data.frameCount);
                     data.hdCamera.SetupGlobalParams(context.cmd, data.frameCount);
+                    data.globalCB.Commit(context.cmd, HDShaderIDs._ShaderVariablesGlobal);
                 });
             }
         }
 
         internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults)
         {
-            var result = m_ShadowManager.RenderShadows(m_RenderGraph, hdCamera, cullResults);
-
-            // TODO: Remove this once shadows don't pollute global parameters anymore.
+            var result = m_ShadowManager.RenderShadows(m_RenderGraph, m_ShaderVariablesGlobalCB, hdCamera, cullResults);
+            // Need to restore global camera parameters.
             PushGlobalCameraParams(renderGraph, hdCamera);
             return result;
         }

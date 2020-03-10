@@ -439,7 +439,7 @@ namespace UnityEngine.Rendering.HighDefinition
             atlasShapeID++;
         }
 
-        public void RenderShadows(CullingResults cullResults, FrameSettings frameSettings, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        public void RenderShadows(CullingResults cullResults, ConstantBuffer<ShaderVariablesGlobal> globalCB, FrameSettings frameSettings, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (m_ShadowRequests.Count == 0)
                 return;
@@ -447,7 +447,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowDrawingSettings shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0);
             shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
 
-            var parameters = PrepareRenderShadowsParameters();
+            var parameters = PrepareRenderShadowsParameters(globalCB);
             RenderShadows(parameters, m_Atlas, shadowDrawSettings, renderContext, cmd);
 
             if (parameters.blurAlgorithm == BlurAlgorithm.IM)
@@ -462,23 +462,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct RenderShadowsParameters
         {
-            public List<HDShadowRequest>    shadowRequests;
-            public Material                 clearMaterial;
-            public bool                     debugClearAtlas;
-            public int                      atlasShaderID;
-            public BlurAlgorithm            blurAlgorithm;
+            public ConstantBuffer<ShaderVariablesGlobal>    globalCB;
+            public List<HDShadowRequest>                    shadowRequests;
+            public Material                                 clearMaterial;
+            public bool                                     debugClearAtlas;
+            public int                                      atlasShaderID;
+            public BlurAlgorithm                            blurAlgorithm;
 
             // EVSM
-            public ComputeShader            evsmShadowBlurMomentsCS;
-            public int                      momentAtlasShaderID;
+            public ComputeShader                            evsmShadowBlurMomentsCS;
+            public int                                      momentAtlasShaderID;
 
             // IM
-            public ComputeShader            imShadowBlurMomentsCS;
+            public ComputeShader                            imShadowBlurMomentsCS;
         }
 
-        RenderShadowsParameters PrepareRenderShadowsParameters()
+        RenderShadowsParameters PrepareRenderShadowsParameters(ConstantBuffer<ShaderVariablesGlobal> globalCB)
         {
             var parameters = new RenderShadowsParameters();
+            parameters.globalCB = globalCB;
             parameters.shadowRequests = m_ShadowRequests;
             parameters.clearMaterial = m_ClearMaterial;
             parameters.debugClearAtlas = m_LightingDebugSettings.clearShadowAtlas;
@@ -523,12 +525,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Setup matrices for shadow rendering:
                 Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * shadowRequest.view;
-                cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix, shadowRequest.view);
-                cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix, shadowRequest.view.inverse);
-                cmd.SetGlobalMatrix(HDShaderIDs._ProjMatrix, shadowRequest.deviceProjectionYFlip);
-                cmd.SetGlobalMatrix(HDShaderIDs._InvProjMatrix, shadowRequest.deviceProjectionYFlip.inverse);
-                cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix, viewProjection);
-                cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix, viewProjection.inverse);
+                parameters.globalCB.data._ViewMatrix = shadowRequest.view;
+                parameters.globalCB.data._InvViewMatrix = shadowRequest.view.inverse;
+                parameters.globalCB.data._ProjMatrix = shadowRequest.deviceProjectionYFlip;
+                parameters.globalCB.data._InvProjMatrix = shadowRequest.deviceProjectionYFlip.inverse;
+                parameters.globalCB.data._ViewProjMatrix = viewProjection;
+                parameters.globalCB.data._InvViewProjMatrix = viewProjection.inverse;
+                parameters.globalCB.Commit(cmd, HDShaderIDs._ShaderVariablesGlobal);
+
                 cmd.SetGlobalVectorArray(HDShaderIDs._ShadowClipPlanes, shadowRequest.frustumPlanes);
 
                 // TODO: remove this execute when DrawShadows will use a CommandBuffer

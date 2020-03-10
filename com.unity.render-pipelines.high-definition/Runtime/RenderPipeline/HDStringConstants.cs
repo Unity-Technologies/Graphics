@@ -220,17 +220,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
         public static readonly int _SkyTexture = Shader.PropertyToID("_SkyTexture");
 
-        public static readonly int _EnableSubsurfaceScattering = Shader.PropertyToID("_EnableSubsurfaceScattering");
-        public static readonly int _TransmittanceMultiplier = Shader.PropertyToID("_TransmittanceMultiplier");
-        public static readonly int _TexturingModeFlags = Shader.PropertyToID("_TexturingModeFlags");
-        public static readonly int _TransmissionFlags = Shader.PropertyToID("_TransmissionFlags");
-        public static readonly int _ThicknessRemaps = Shader.PropertyToID("_ThicknessRemaps");
-        public static readonly int _ShapeParams = Shader.PropertyToID("_ShapeParams");
-        public static readonly int _TransmissionTintsAndFresnel0 = Shader.PropertyToID("_TransmissionTintsAndFresnel0");
         public static readonly int specularLightingUAV = Shader.PropertyToID("specularLightingUAV");
         public static readonly int diffuseLightingUAV = Shader.PropertyToID("diffuseLightingUAV");
-        public static readonly int _DiffusionProfileHashTable = Shader.PropertyToID("_DiffusionProfileHashTable");
-        public static readonly int _DiffusionProfileCount = Shader.PropertyToID("_DiffusionProfileCount");
         public static readonly int _DiffusionProfileAsset = Shader.PropertyToID("_DiffusionProfileAsset");
         public static readonly int _MaterialID = Shader.PropertyToID("_MaterialID");
 
@@ -285,29 +276,29 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalPropertyMaskBufferSRV = Shader.PropertyToID("_DecalPropertyMaskBufferSRV");
 
 
-        public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos_Internal");
-        public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS_Internal");
-        public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
-        public static readonly int _InvViewMatrix = Shader.PropertyToID("_InvViewMatrix");
-        public static readonly int _ProjMatrix = Shader.PropertyToID("_ProjMatrix");
-        public static readonly int _InvProjMatrix = Shader.PropertyToID("_InvProjMatrix");
-        public static readonly int _NonJitteredViewProjMatrix = Shader.PropertyToID("_NonJitteredViewProjMatrix");
-        public static readonly int _ViewProjMatrix = Shader.PropertyToID("_ViewProjMatrix");
-        public static readonly int _CameraViewProjMatrix = Shader.PropertyToID("_CameraViewProjMatrix");
-        public static readonly int _InvViewProjMatrix = Shader.PropertyToID("_InvViewProjMatrix");
-        public static readonly int _ZBufferParams = Shader.PropertyToID("_ZBufferParams");
-        public static readonly int _ProjectionParams = Shader.PropertyToID("_ProjectionParams");
-        public static readonly int unity_OrthoParams = Shader.PropertyToID("unity_OrthoParams");
-        public static readonly int _InvProjParam = Shader.PropertyToID("_InvProjParam");
-        public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
-        public static readonly int _ScreenParams = Shader.PropertyToID("_ScreenParams");
-        public static readonly int _RTHandleScale = Shader.PropertyToID("_RTHandleScale");
-        public static readonly int _RTHandleScaleHistory = Shader.PropertyToID("_RTHandleScaleHistory");
-        public static readonly int _PrevViewProjMatrix = Shader.PropertyToID("_PrevViewProjMatrix");
-        public static readonly int _PrevInvViewProjMatrix = Shader.PropertyToID("_PrevInvViewProjMatrix");
-        public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
-        public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
-        public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
+        //public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos_Internal");
+        //public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS_Internal");
+        //public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
+        //public static readonly int _InvViewMatrix = Shader.PropertyToID("_InvViewMatrix");
+        //public static readonly int _ProjMatrix = Shader.PropertyToID("_ProjMatrix");
+        //public static readonly int _InvProjMatrix = Shader.PropertyToID("_InvProjMatrix");
+        //public static readonly int _NonJitteredViewProjMatrix = Shader.PropertyToID("_NonJitteredViewProjMatrix");
+        //public static readonly int _ViewProjMatrix = Shader.PropertyToID("_ViewProjMatrix");
+        //public static readonly int _CameraViewProjMatrix = Shader.PropertyToID("_CameraViewProjMatrix");
+        //public static readonly int _InvViewProjMatrix = Shader.PropertyToID("_InvViewProjMatrix");
+        //public static readonly int _ZBufferParams = Shader.PropertyToID("_ZBufferParams");
+        //public static readonly int _ProjectionParams = Shader.PropertyToID("_ProjectionParams");
+        //public static readonly int unity_OrthoParams = Shader.PropertyToID("unity_OrthoParams");
+        //public static readonly int _InvProjParam = Shader.PropertyToID("_InvProjParam");
+        //public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
+        //public static readonly int _ScreenParams = Shader.PropertyToID("_ScreenParams");
+        //public static readonly int _RTHandleScale = Shader.PropertyToID("_RTHandleScale");
+        //public static readonly int _RTHandleScaleHistory = Shader.PropertyToID("_RTHandleScaleHistory");
+        //public static readonly int _PrevViewProjMatrix = Shader.PropertyToID("_PrevViewProjMatrix");
+        //public static readonly int _PrevInvViewProjMatrix = Shader.PropertyToID("_PrevInvViewProjMatrix");
+        //public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
+        //public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
+        //public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
 
         public static readonly int _WorldSpaceCameraPos1 = Shader.PropertyToID("_WorldSpaceCameraPos1");
         public static readonly int _ViewMatrix1 = Shader.PropertyToID("_ViewMatrix1");

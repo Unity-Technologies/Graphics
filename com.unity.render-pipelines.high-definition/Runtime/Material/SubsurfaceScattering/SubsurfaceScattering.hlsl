@@ -22,7 +22,7 @@ uint GetSubsurfaceScatteringTexturingMode(int diffusionProfile)
 
     if (enableSss)
     {
-        bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), diffusionProfile);
+        bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, diffusionProfile);
 
         if (performPostScatterTexturing)
         {
