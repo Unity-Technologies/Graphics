@@ -77,7 +77,7 @@ all_project_ci_nightly_{{ editor.version }}:
   {% endfor %}
     - path: .yamato/upm-ci-packages.yml#all_package_ci_{{ editor.version }}
       rerun: always
-    - path: .yamato/upm-ci-universal.yml#Universal_Android_OpenGLES_{{ editor.version }}
+    - path: .yamato/upm-ci-universal.yml#Universal_Android_OpenGLES3_{{ editor.version }}
       rerun: always
   triggers:
     recurring:
