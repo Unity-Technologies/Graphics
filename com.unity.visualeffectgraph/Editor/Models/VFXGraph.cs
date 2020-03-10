@@ -44,6 +44,12 @@ namespace UnityEditor.VFX
 
         static VFXGraphPreprocessor()
         {
+            EditorApplication.update += CheckCompilationVersion;
+        }
+
+        static void CheckCompilationVersion()
+        {
+            EditorApplication.update -= CheckCompilationVersion;
             string[] allVisualEffectAssets = AssetDatabase.FindAssets("t:VisualEffectAsset");
 
             UnityObject vfxmanager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/VFXManager.asset").FirstOrDefault();
