@@ -300,7 +300,6 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     logs:
       paths:
         - "**/test-results/**"
-{% endif %}
 {% endfor %}
 
 {% elsif platform.name == "Linux" %}
