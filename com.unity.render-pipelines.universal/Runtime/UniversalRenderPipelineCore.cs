@@ -4,6 +4,7 @@ using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
 
 using UnityEngine.Experimental.GlobalIllumination;
+using UnityEngine.Experimental.Rendering;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
@@ -194,42 +195,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the current render pipeline instance that is being used to render.
-        /// Returns null if no UniversalRenderPipeline asset is being in use.
-        /// </summary>
-        public static UniversalRenderPipeline currentRenderPipeline
-        {
-            get => RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
-        }
-
-        /// <summary>
-        /// Returns a renderer from the current render pipeline.
-        /// </summary>
-        /// <param name="index">Index to the renderer list in the pipeline asset.</param>
-        /// <returns>If valid index the given renderer from the pipeline asset, otherwise null.</returns>
-        public ScriptableRenderer GetRenderer(int index)
-        {
-            if (renderers == null)
-            {
-                Debug.LogError("RenderPipeline is corrupted. The list of renderers is not valid.");
-                return null;
-            }
-
-            // -1 means default renderer.
-            // In this case we return the default renderer from the asset.
-            if (index < 0)
-                index = m_DefaultRendererIndex;
-
-            if (index < 0 || index >= renderers.Length)
-            {
-                Debug.LogError("Trying to access an invalid renderer");
-                return null;
-            }
-
-            return renderers[index];
-        }
-
-        /// <summary>
         /// Checks if a camera is rendering in MultiPass stereo mode.
         /// </summary>
         /// <param name="camera">Camera to check state from.</param>
@@ -257,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
             bool isStereoEnabled, bool isHdrEnabled, int msaaSamples, bool needsAlpha)
         {
             RenderTextureDescriptor desc;
-            RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
+            GraphicsFormat renderTextureFormatDefault = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
 
             // NB: There's a weird case about XR and render texture
             // In test framework currently we render stereo tests to target texture
@@ -266,7 +231,7 @@ namespace UnityEngine.Rendering.Universal
             if (isStereoEnabled)
             {
                 desc = XRGraphics.eyeTextureDesc;
-                renderTextureFormatDefault = desc.colorFormat;
+                renderTextureFormatDefault = desc.graphicsFormat;
             }
             else if (camera.targetTexture == null)
             {
@@ -288,10 +253,10 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                bool use32BitHDR = !needsAlpha && RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
-                RenderTextureFormat hdrFormat = (use32BitHDR) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
-            
-                desc.colorFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
+                bool use32BitHDR = !needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render);
+                GraphicsFormat hdrFormat = (use32BitHDR) ? GraphicsFormat.B10G11R11_UFloatPack32 : GraphicsFormat.R16G16B16A16_SFloat;
+
+                desc.graphicsFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);

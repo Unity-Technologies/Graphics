@@ -51,7 +51,7 @@ namespace UnityEditor.VFX
             if (attributes.Any(a => !(a is Attribute)))
                 throw new ArgumentException("Only C# attributes are allowed to be passed to this method");
 
-            return attributes.Where(t=> t!= null).SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
+            return attributes.Where(t => t != null).SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
                 .Select(o => o.Value(a))).ToArray();
         }
 
@@ -83,7 +83,7 @@ namespace UnityEditor.VFX
                             }
                             break;
                         case Type.kMin:
-                            switch(exp.valueType)
+                            switch (exp.valueType)
                             {
                                 case VFXValueType.Int32:
                                     exp = new VFXExpressionMax(exp, VFXValue.Constant((int)attribute.m_Min));
@@ -99,7 +99,7 @@ namespace UnityEditor.VFX
                                     break;
                                 default:
                                     throw new NotImplementedException(string.Format("Cannot use MinAttribute on value of type: {0}", exp.valueType));
-                            }    
+                            }
                             break;
                         case Type.kNormalize:
                             exp = VFXOperatorUtility.Normalize(exp);
@@ -132,7 +132,7 @@ namespace UnityEditor.VFX
                         case Type.kRange:
                             break;
                         case Type.kMin:
-                            tooltipAddon += string.Format(CultureInfo.InvariantCulture," (Min: {0})", attribute.m_Min);
+                            tooltipAddon += string.Format(CultureInfo.InvariantCulture, " (Min: {0})", attribute.m_Min);
                             break;
                         case Type.kNormalize:
                             tooltipAddon += " (Normalized)";
@@ -154,7 +154,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if( string.IsNullOrEmpty(tooltip))
+            if (string.IsNullOrEmpty(tooltip))
                 tooltip = label;
 
             tooltip = tooltip + tooltipAddon;

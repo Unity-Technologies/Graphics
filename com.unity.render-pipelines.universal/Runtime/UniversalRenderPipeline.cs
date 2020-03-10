@@ -79,7 +79,8 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                return (Application.isMobilePlatform) ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
+                return (Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore) 
+                        ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
             }
         }
 
@@ -89,18 +90,8 @@ namespace UnityEngine.Rendering.Universal
             get => 8;
         }
 
-        ScriptableRenderer[] renderers = null;
-        int m_DefaultRendererIndex = -1;
-
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
-            m_DefaultRendererIndex = asset.m_DefaultRendererIndex;
-
-            int rendererCount = asset.m_RendererDataList.Length;
-            renderers = new ScriptableRenderer[rendererCount];
-            for (int i = 0; i < rendererCount; ++i)
-                renderers[i] = asset.m_RendererDataList[i]?.InternalCreateRenderer();
-
             SetSupportedRenderingFeatures();
 
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
@@ -139,9 +130,6 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-
-            foreach (var renderer in renderers)
-                renderer?.Dispose();
 
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
