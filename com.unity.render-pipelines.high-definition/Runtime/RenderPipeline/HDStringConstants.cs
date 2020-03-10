@@ -217,7 +217,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _LastTimeParameters  = Shader.PropertyToID("_LastTimeParameters");
 
         public static readonly int _EnvLightSkyEnabled = Shader.PropertyToID("_EnvLightSkyEnabled");
-        public static readonly int _AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
         public static readonly int _SkyTexture = Shader.PropertyToID("_SkyTexture");
 
         public static readonly int specularLightingUAV = Shader.PropertyToID("specularLightingUAV");
