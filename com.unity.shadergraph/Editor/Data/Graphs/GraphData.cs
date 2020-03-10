@@ -7,6 +7,7 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using Edge = UnityEditor.Graphing.Edge;
 
 namespace UnityEditor.ShaderGraph
@@ -15,7 +16,7 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.MaterialGraph")]
     [FormerName("UnityEditor.ShaderGraph.SubGraph")]
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
-    sealed class GraphData : ISerializationCallbackReceiver
+    sealed class GraphData : JsonObject
     {
         public GraphObject owner { get; set; }
 
@@ -1283,7 +1284,7 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        public void OnBeforeSerialize()
+        public override void OnBeforeSerialize()
         {
             var nodes = GetNodes<AbstractMaterialNode>().ToList();
             nodes.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
@@ -1295,7 +1296,7 @@ namespace UnityEditor.ShaderGraph
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
 
-        public void OnAfterDeserialize()
+        public override void OnAfterDeserialize()
         {
             // have to deserialize 'globals' before nodes
             m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
@@ -1417,7 +1418,7 @@ namespace UnityEditor.ShaderGraph
 
             m_ValidTargets = foundTargets;
             m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
-            
+
         }
     }
 

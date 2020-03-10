@@ -14,6 +14,7 @@ using UnityEditor.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using UnityEditor.VersionControl;
 
@@ -383,7 +384,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shader != null)
                     {
                         GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as AbstractMaterialNode).saveContext);
-                    }                    
+                    }
                 }
             }
 
@@ -804,9 +805,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selectedGuid = assetGuid;
 
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                if (!textGraph.StartsWith("{\n    \"MonoBehaviour\":"))
+                {
+                    textGraph = $"{{\"MonoBehaviour\":{{\"m_Type\":\"{typeof(GraphData).FullName}\",{textGraph.Substring(textGraph.IndexOf("{")+1)}}}";
+                }
                 graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
-                graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
+                graphObject.graph = MultiJson.Deserialize<GraphData>(textGraph);
                 graphObject.graph.assetGuid = assetGuid;
                 graphObject.graph.isSubGraph = isSubGraph;
                 graphObject.graph.messageManager = messageManager;
