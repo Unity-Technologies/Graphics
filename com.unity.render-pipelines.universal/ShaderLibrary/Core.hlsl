@@ -110,6 +110,11 @@ float4 GetScaledScreenParams()
     return _ScaledScreenParams;
 }
 
+float4 GetScreenParams(bool scaled = true)
+{
+    return (scaled) ? GetScaledScreenParams() : _ScreenParams;
+}
+
 void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
 {
 #ifdef _ALPHATEST_ON

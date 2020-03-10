@@ -373,7 +373,7 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 half SampleAO(half3 positionCS)
 {
 #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
-    return SAMPLE_TEXTURE2D(_ScreenSpaceAOTexture, sampler_ScreenSpaceAOTexture, positionCS.xy * (_ScreenParams.zw - 1)).x;
+    return SAMPLE_TEXTURE2D(_ScreenSpaceAOTexture, sampler_ScreenSpaceAOTexture, positionCS.xy * (GetScreenParams().zw - 1)).x;
 #endif
 
     return 1.0;
