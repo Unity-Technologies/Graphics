@@ -8,7 +8,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
 {
     // Public Variables
     public Settings settings = new Settings();
-    
+
     // Private Variables
     private Material m_Material;
     private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;
@@ -32,7 +32,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         public float radius = 0.1f;
         public int sampleCount = 10;
     }
-    
+
     // Called from OnEnable and OnValidate...
     public override void Create()
     {
@@ -52,7 +52,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         // Create the pass...
         m_SSAOPass = new ScreenSpaceAmbientOcclusionPass(name, m_Material, RenderPassEvent.AfterRenderingPrePasses);
     }
-    
+
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if (m_Material == null)
@@ -67,7 +67,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
     {
         CoreUtils.Destroy(m_Material);
     }
-    
+
     // The SSAO Pass
     private class ScreenSpaceAmbientOcclusionPass : ScriptableRenderPass
     {
@@ -83,7 +83,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         private static readonly int _BaseMap = Shader.PropertyToID("_BaseMap");
         private static readonly int _TempRenderTexture1 = Shader.PropertyToID("_TempRenderTexture1");
         private static readonly int _TempRenderTexture2 = Shader.PropertyToID("_TempRenderTexture2");
-        
+
         private enum ShaderPass
         {
             OcclusionDepth = 0,
@@ -98,7 +98,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             FinalComposition = 9,
             FinalCompositionGBuffer = 10,
         }
-        
+
         public ScreenSpaceAmbientOcclusionPass(string profilerTag, Material material, RenderPassEvent rpEvent)
         {
             m_ProfilerTag = profilerTag;
@@ -112,7 +112,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         {
             m_FeatureSettings = featureSettings;
         }
-        
+
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             bool downScale;
@@ -140,7 +140,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 //m_DepthSource = m_FeatureSettings.depthSource;
             }
 
-            downScaleDivider = downScale ? 2 : 1;
+            downScaleDivider = 1;//downScale ? 2 : 1;
             FilterMode filterMode = downScale ? FilterMode.Bilinear : FilterMode.Point;
 
             // Material settings
@@ -160,25 +160,15 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             cmd.GetTemporaryRT(m_Texture.id, m_Descriptor, FilterMode.Point);
 
             var desc = GetStereoCompatibleDescriptor(m_Descriptor.width * downScaleDivider, m_Descriptor.height * downScaleDivider, GraphicsFormat.R8G8B8A8_UNorm);
-            
+
             cmd.GetTemporaryRT(_TempRenderTexture1, desc, filterMode);
             cmd.GetTemporaryRT(_TempRenderTexture2, desc, filterMode);
-
-            /*RenderTextureDescriptor desc = GetStereoCompatibleDescriptor(m_Descriptor, m_Descriptor.width * downScaleDivider, m_Descriptor.height * downScaleDivider, m_Descriptor.graphicsFormat);
-            cmd.GetTemporaryRT(_TempRenderTexture1, desc, filterMode);
-            cmd.GetTemporaryRT(_TempRenderTexture2, desc, filterMode);
-
-            m_Descriptor = GetStereoCompatibleDescriptor(m_Descriptor, m_Descriptor.width / downScaleDivider, m_Descriptor.height / downScaleDivider, GraphicsFormat.R8G8B8A8_UNorm);
-            m_Descriptor.colorFormat = RenderTextureFormat.R8;
-            cmd.GetTemporaryRT(m_Texture.id, m_Descriptor, filterMode);*/
-
-
 
             // Configure targets and clear color
             ConfigureTarget(m_ScreenSpaceOcclusionTexture);
             ConfigureClear(ClearFlag.All, Color.white);
         }
-        
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -230,39 +220,39 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             //        break;
             //}
         }
-        
+
         private void ExecuteSSAO(ScriptableRenderContext context, ref RenderingData renderingData, int occlusionPass, int horizonalBlurPass, int verticalPass, int finalPass)
         {
             Camera camera = renderingData.cameraData.camera;
-            m_Material.SetMatrix("ProjectionMatrix", camera.projectionMatrix);
+            //m_Material.SetMatrix("ProjectionMatrix", camera.projectionMatrix);
             bool isStereo = renderingData.cameraData.isStereoEnabled;
-            
+
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+
+            //CoreUtils.SetKeyword(cmd, "UNITY_SINGLE_PASS_STEREO", isStereo);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceAmbientOcclusion, true);
-            
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            
+
+            //context.StartMultiEye(camera, eyeIndex);
             // Occlusion pass
-            cmd.Blit(_TempRenderTexture1, _TempRenderTexture1, m_Material, occlusionPass);
-            
+            //cmd.Blit(_TempRenderTexture1, _TempRenderTexture1, m_Material, occlusionPass);
+            Blit(cmd, _TempRenderTexture1, _TempRenderTexture1, m_Material, occlusionPass);
+
             // Horizontal Blur
             cmd.SetGlobalTexture(_BaseMap, _TempRenderTexture1);
             cmd.Blit(_TempRenderTexture1, _TempRenderTexture2, m_Material, horizonalBlurPass);
-            
+
             // Vertical Blur
             cmd.SetGlobalTexture(_BaseMap, _TempRenderTexture2);
             cmd.Blit(_TempRenderTexture2, _TempRenderTexture1, m_Material, verticalPass);
-            
+
             // Final Composition
             cmd.SetGlobalTexture(_BaseMap, _TempRenderTexture1);
             cmd.Blit(_TempRenderTexture1, m_ScreenSpaceOcclusionTexture, m_Material, finalPass);
-            
-            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-            
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
-        
+
         /// <inheritdoc/>
         public override void FrameCleanup(CommandBuffer cmd)
         {
