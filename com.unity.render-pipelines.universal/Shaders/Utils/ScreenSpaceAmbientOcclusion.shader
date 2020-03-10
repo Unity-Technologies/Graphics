@@ -64,7 +64,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #define SOURCE_DEPTH
                 #pragma vertex VertDefault
                 #pragma fragment SSAO
-                #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
@@ -78,13 +77,12 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #define SOURCE_DEPTH
                 #define BLUR_HORIZONTAL
                 #define BLUR_SAMPLE_CENTER_NORMAL
-                #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
                 #pragma vertex VertDefault
                 #pragma fragment FragBlur
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
-
+        
         // 2 - Separable blur (vertical pass) with CameraDepthTexture
         Pass
         {
@@ -94,7 +92,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #define SOURCE_DEPTH
                 #define BLUR_VERTICAL
                 #define BLUR_SAMPLE_CENTER_NORMAL
-                #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
                 #pragma vertex VertDefault
                 #pragma fragment FragBlur
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
