@@ -45,7 +45,7 @@ namespace UnityEditor.VFX
 
         static VFXGraphPreprocessor()
         {
-            EditorApplication.update += CheckCompilationVersion;
+            //EditorApplication.update += CheckCompilationVersion;
         }
 
         static void CheckCompilationVersion()
