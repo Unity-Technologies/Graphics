@@ -59,7 +59,7 @@ Shader ""Hidden/GraphErrorShader2""
     }
     Fallback Off
 }";
-        
+
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
@@ -96,7 +96,7 @@ Shader ""Hidden/GraphErrorShader2""
             if (graph.outputNode is VfxMasterNode vfxMasterNode)
             {
                 var vfxAsset = GenerateVfxShaderGraphAsset(vfxMasterNode);
-                
+
                 mainObject = vfxAsset;
             }
             else
@@ -108,7 +108,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 foreach (var pair in graph.messageManager.GetNodeMessages())
                 {
-                    var node = graph.GetNodeFromTempId(pair.Key);
+                    var node = graph.GetNodeFromGuid(pair.Key);
                     MessageManager.Log(node, path, pair.Value.First(), shader);
                 }
             }
