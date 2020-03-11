@@ -124,6 +124,9 @@ float cmj6D(uint pointIndex, uint dimIndex, uint seed)
     const uint p2 = (p * (j + 1)) * 0x68bc21eb;
     const uint p3 = (p * (j + 1)) * 0x02e5be93;
 
+    // TODO: we do not actually need 't' registers.
+    // The compiler should be able to fuse the loops below.
+    // This formulation is retained for comparison with the reference implementation.
     uint digits[t];
 
     uint d; // Avoid compiler warning
@@ -210,7 +213,7 @@ float3 PathTraceSky(uint2 groupCoord, uint dispatchThreadIndex, uint dispatchThr
     float2 filterOffset = rnd.xy; // TODO: do not use a box filter?
     float2 screenCoord  = groupSize1D * groupCoord
                         + blockSize1D * zSwizzle(blockIndex) // Assume 4 blocks per group
-                        + blockSize1D * filterOffset;
+                        + blockSize1D * filterOffset; // TODO: do not divide and then multiply by 4
 
     positionSS = (uint2)screenCoord;
 
