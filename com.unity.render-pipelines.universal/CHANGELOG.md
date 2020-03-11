@@ -8,9 +8,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.3.0] - 2020-03-11
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
 ### Added
 - Added the option to control the transparent layer separately in the Forward Renderer.
 - Added the ability to set individual RendererFeatures to be active or not, use `ScriptableRendererFeature.SetActive(bool)` to set whether a Renderer Feature will execute,  `ScriptableRendererFeature.isActive` can be used to check the current active state of the Renderer Feature.
