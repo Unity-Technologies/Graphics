@@ -48,31 +48,15 @@ half4 _DrawObjectPassData;
 
 half4 _AdditionalLightsCount;
 
-// FXC increases shader compilation time when using array buffers with sizes
-// This introduced a regression when we increased the light limits.
-// Here we only define the light buffers for shader variants that use it.
-#if defined(_ADDITIONAL_LIGHTS_VERTEX) || defined(_ADDITIONAL_LIGHTS)
-    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    StructuredBuffer<LightData> _AdditionalLightsBuffer;
-    StructuredBuffer<int> _AdditionalLightsIndices;
-    #else
-    float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
-    half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
-    half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
-    half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
-    half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
-    #endif
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+StructuredBuffer<LightData> _AdditionalLightsBuffer;
+StructuredBuffer<int> _AdditionalLightsIndices;
 #else
-    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    #define _AdditionalLightsBuffer ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsBuffer, _ADDITIONAL_LIGHTS)
-    #define _AdditionalLightsIndices ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsIndices, _ADDITIONAL_LIGHTS)
-    #else
-    #define _AdditionalLightsPosition ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsPosition, _ADDITIONAL_LIGHTS)
-    #define _AdditionalLightsColor ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsColor, _ADDITIONAL_LIGHTS)
-    #define _AdditionalLightsAttenuation ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsAttenuation, _ADDITIONAL_LIGHTS)
-    #define _AdditionalLightsSpotDir ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsSpotDir, _ADDITIONAL_LIGHTS)
-    #define _AdditionalLightsOcclusionProbes ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsOcclusionProbes, _ADDITIONAL_LIGHTS)
-    #endif
+float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld
