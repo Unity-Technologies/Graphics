@@ -138,16 +138,15 @@ float cmj6D(uint pointIndex, uint dimIndex, uint seed)
 
     uint stratum = permute(digits[j], s, p1);
 
-    // digits = allButJ(digits, j);
-    for (d = j + 1; d < t; d++)
-    {
-        digits[d - 1] = digits[d];
-    }
-
     uint poly = 0;
 
-    // poly = evalPoly(digits, s);
-    for (d = (t - 2); d != uint(-1); d--)
+    // digits = allButJ(digits, j);
+    // poly   = evalPoly(digits, s);
+    for (d = (t - 1); d != j; d--)
+    {
+        poly = (poly * s) + digits[d]; // Horner's rule
+    }
+    for (d = (j - 1); d != uint(-1); d--)
     {
         poly = (poly * s) + digits[d]; // Horner's rule
     }
