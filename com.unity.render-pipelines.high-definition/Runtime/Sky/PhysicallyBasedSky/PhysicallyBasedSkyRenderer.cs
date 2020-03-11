@@ -341,6 +341,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        int passIndex = 0;
+
         // 'renderSunDisk' parameter is not supported.
         // Users should instead create an emissive (or lit) mesh for every relevant light source
         // (to support multiple stars in space, moons with moon phases, etc).
@@ -424,9 +426,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 int numGroupsX = HDUtils.DivRoundUp((int)builtinParams.screenSize.x, 8);
                 int numGroupsY = HDUtils.DivRoundUp((int)builtinParams.screenSize.y, 8);
 
+                passIndex = (passIndex + 1) & 255;
+
                 cmd.SetComputeTextureParam(s_VolumePathTracingCS, 0, "_ColorBuffer", builtinParams.colorBuffer);
                 cmd.SetComputeIntParam(s_VolumePathTracingCS, "_DispatchThreadCount", (numGroupsX * 8) * (numGroupsY * 8));
-                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_PassIndex",           0);
+                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_PassIndex",           passIndex);
                 cmd.SetComputeIntParam(s_VolumePathTracingCS, "_BounceCount",         1);
 
                 cmd.DispatchCompute(s_VolumePathTracingCS, 0, numGroupsX, numGroupsY, 1);

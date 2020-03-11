@@ -22,6 +22,8 @@
     #define ASSERT(x) x
 #endif // DEBUG
 
+static const uint s_RandomPrimes[10] = { 0xD974CF83, 0xFAF269B5, 0xAE727FA9, 0x5BA52335, 0xA4E819D5, 0xDD638559, 0xC0972367, 0x4B190D9B, 0xD1894DB5, 0xA78BCBB3 };
+
 TEXTURECUBE(_GroundAlbedoTexture);
 TEXTURECUBE(_GroundEmissionTexture);
 TEXTURECUBE(_SpaceEmissionTexture);
@@ -42,17 +44,6 @@ uint  _BounceCount;
 // 3x3, but Unity can only set 4x4...
 float4x4 _PlanetRotation;
 float4x4 _SpaceRotation;
-
-static const uint s_RandomPrimes[10] = { 0xD974CF83,
-                                         0xFAF269B5,
-                                         0xAE727FA9,
-                                         0x5BA52335,
-                                         0xA4E819D5,
-                                         0xDD638559,
-                                         0xC0972367,
-                                         0x4B190D9B,
-                                         0xD1894DB5,
-                                         0xA78BCBB3 };
 
 struct Ray
 {
@@ -246,6 +237,12 @@ float3 PathTraceSky(uint2 groupCoord, uint dispatchThreadIndex, uint dispatchThr
     return 1;
 }
 
+// Floating-point atomics are not supported. Use fixed-point math in units of HALF_MIN instead.
+groupshared uint g_RadianceR[GROUP_SIZE_2D];
+groupshared uint g_RadianceG[GROUP_SIZE_2D];
+groupshared uint g_RadianceB[GROUP_SIZE_2D];
+groupshared uint g_SampleCount[GROUP_SIZE_2D];
+
 [numthreads(GROUP_SIZE_2D, 1, 1)]
 void main(uint2 groupCoord       : SV_GroupID,
           uint  groupIndex       : SV_GroupIndex,
@@ -261,5 +258,34 @@ void main(uint2 groupCoord       : SV_GroupID,
                                    GROUP_SIZE_1D, BLOCK_SIZE_1D, _BounceCount, _PassIndex,
                                    origin, outPositionSS);
 
-    _ColorBuffer[COORD_TEXTURE2D_X(outPositionSS)] = float4(radiance, 1);
+    // Find the corresponding coordinate in the groupshared memory.
+    uint outPositionGS = (outPositionSS.y % GROUP_SIZE_1D) * GROUP_SIZE_1D
+                       + (outPositionSS.x % GROUP_SIZE_1D);
+
+    // Full clear.
+    g_RadianceR[groupThreadIndex]   = 0;
+    g_RadianceG[groupThreadIndex]   = 0;
+    g_RadianceB[groupThreadIndex]   = 0;
+    g_SampleCount[groupThreadIndex] = 0;
+    // Partial fill.
+    GroupMemoryBarrierWithGroupSync();
+    InterlockedAdd(g_RadianceR[outPositionGS], round(radiance.r * 16384)); // Fixed-point
+    InterlockedAdd(g_RadianceG[outPositionGS], round(radiance.g * 16384)); // Fixed-point
+    InterlockedAdd(g_RadianceB[outPositionGS], round(radiance.b * 16384)); // Fixed-point
+    InterlockedAdd(g_RadianceB[outPositionGS], 1);
+    // Full load.
+    uint sampleCount;
+    GroupMemoryBarrierWithGroupSync();
+    radiance.r    = g_RadianceR[groupThreadIndex] * rcp(16384);
+    radiance.g    = g_RadianceG[groupThreadIndex] * rcp(16384);
+    radiance.b    = g_RadianceB[groupThreadIndex] * rcp(16384);
+    sampleCount   = g_SampleCount[groupThreadIndex];
+    outPositionSS = GROUP_SIZE_1D * groupCoord + uint2(groupThreadIndex % GROUP_SIZE_1D, groupThreadIndex / GROUP_SIZE_1D);
+
+    // We store the sample count in the alpha channel.
+    float3 oldRadiance    = _ColorBuffer[COORD_TEXTURE2D_X(outPositionSS)].rgb;
+    float  oldSampleCount = _ColorBuffer[COORD_TEXTURE2D_X(outPositionSS)].a;
+    float  newSampleCount = oldSampleCount + sampleCount;
+    float4 newValue       = float4((oldRadiance * oldSampleCount + radiance) * rcp(max(newSampleCount, 1)), newSampleCount);
+    _ColorBuffer[COORD_TEXTURE2D_X(outPositionSS)] = newValue;
 }
