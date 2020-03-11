@@ -23,7 +23,7 @@ There are properties on the Master Node, and properties on each Material. Master
 
 ![](Images/MasterNodeDecal1.png))
 
-The following table describes the input ports on a Decal Master Node, including the property type and Shader stage used for each port. For more information on Shader stages, see [Shader Stage]([https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Shader-Stage.html](https://docs.unity3d.com/Packages/com.unity.shadergraph@6.9/manual/Shader-Stage.html)).
+The following table describes the input ports on a Decal Master Node, including the property type and Shader stage used for each port. For more information on Shader stages, see [Shader Stage](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Shader-Stage.html).
 
 | Property              | Type     | Stage    | Description                                                  |
 | --------------------- | -------- | -------- | ------------------------------------------------------------ |
