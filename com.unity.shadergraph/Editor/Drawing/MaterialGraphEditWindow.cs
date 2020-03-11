@@ -278,7 +278,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_Deleted)
                 return false; // Not dirty; it's gone.
 
-            var currentJson = EditorJsonUtility.ToJson(graphObject.graph, true);
+            var currentJson = MultiJson.Serialize(graphObject.graph);
             var fileJson = File.ReadAllText(AssetDatabase.GUIDToAssetPath(selectedGuid));
             return !string.Equals(currentJson, fileJson, StringComparison.Ordinal);
         }
