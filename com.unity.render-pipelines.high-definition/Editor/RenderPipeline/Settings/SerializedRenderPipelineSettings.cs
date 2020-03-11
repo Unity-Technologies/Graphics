@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportSSR;
         public SerializedProperty supportSSRTransparent;
         public SerializedProperty supportSSAO;
+        public SerializedProperty supportSSGI;
         public SerializedProperty supportSubsurfaceScattering;
         [UnityEngine.Serialization.FormerlySerializedAs("enableUltraQualitySSS")]
         public SerializedProperty increaseSssSampleCount;
@@ -77,6 +78,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportSSR                      = root.Find((RenderPipelineSettings s) => s.supportSSR);
             supportSSRTransparent           = root.Find((RenderPipelineSettings s) => s.supportSSRTransparent);
             supportSSAO                     = root.Find((RenderPipelineSettings s) => s.supportSSAO);
+            supportSSGI                     = root.Find((RenderPipelineSettings s) => s.supportSSGI);
             supportSubsurfaceScattering     = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
             increaseSssSampleCount          = root.Find((RenderPipelineSettings s) => s.increaseSssSampleCount);
             supportVolumetrics              = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
