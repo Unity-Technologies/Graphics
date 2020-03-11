@@ -44,6 +44,7 @@
 
 // Tile size of this compute
 #define RAYTRACING_SHADOW_TILE_SIZE 8
+#define AREA_SHADOW_CLAMP_VALUE 10.0
 
 // The target acceleration structure that we will evaluate the reflexion in
 TEXTURE2D_X(_DepthTexture);
@@ -143,7 +144,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     lightData.cookieMode = cookieMode;
 
     // Compute the non-occluded analytic luminance value
-    float U = Luminance(lighting.diffuse + lighting.specular);
+    float U = clamp(Luminance(lighting.diffuse + lighting.specular) * GetCurrentExposureMultiplier(), 0.0, AREA_SHADOW_CLAMP_VALUE);
 
     // NOTE: Due to a VGPR optimisation in we need to restore the previous value (position, dimmer, and other thing are overriden)
     lightData = _LightDatas[_RaytracingTargetAreaLight];
@@ -205,7 +206,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float3 radiance = misPDF > 0.0 ? (diffuseLighting + specularLighting) / misPDF : 0.0;
 
     // Accumulate
-    float3 Un = radiance;
+    float3 Un = clamp(radiance * GetCurrentExposureMultiplier(), 0.0, AREA_SHADOW_CLAMP_VALUE);
 
     // Compute luminance of Un
     float UnL = Luminance(Un) / _RaytracingNumSamples;
@@ -345,7 +346,7 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     float3 radiance = misPDF > 0.0 ? (diffuseLighting + specularLighting) / misPDF : 0.0;
 
     // Accumulate
-    float3 Un = radiance;
+    float3 Un = clamp(radiance * GetCurrentExposureMultiplier(), 0.0, AREA_SHADOW_CLAMP_VALUE);
 
     // Compute luminance of Un
     float UnL = Luminance(Un) / _RaytracingNumSamples;

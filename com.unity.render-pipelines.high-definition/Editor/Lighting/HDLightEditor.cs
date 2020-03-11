@@ -40,17 +40,28 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SerializedHDLight = new SerializedHDLight(m_AdditionalLightDatas, settings);
 
             // Update emissive mesh and light intensity when undo/redo
-            Undo.undoRedoPerformed += () =>
+            Undo.undoRedoPerformed += OnUndoRedo;
+        }
+
+        void OnDisable()
+        {
+            // Update emissive mesh and light intensity when undo/redo
+            Undo.undoRedoPerformed -= OnUndoRedo;
+        }
+
+        void OnUndoRedo()
+        {
+            // Serialized object is lossing references after an undo
+            if (m_SerializedHDLight.serializedObject.targetObject != null)
             {
-                // Serialized object is lossing references after an undo
-                if (m_SerializedHDLight.serializedObject.targetObject != null)
-                {
-                    m_SerializedHDLight.serializedObject.ApplyModifiedProperties();
-                    foreach (var hdLightData in m_AdditionalLightDatas)
-                        if (hdLightData != null)
-                            hdLightData.UpdateAreaLightEmissiveMesh();
-                }
-            };
+                m_SerializedHDLight.serializedObject.ApplyModifiedProperties();
+                foreach (var hdLightData in m_AdditionalLightDatas)
+                    if (hdLightData != null)
+                        hdLightData.UpdateAreaLightEmissiveMesh();
+            }
+
+            // if Type or ShowEmissive Mesh undone, we must fetxh again the emissive meshes
+            m_SerializedHDLight.FetchAreaLightEmissiveMeshComponents();
         }
 
         public override void OnInspectorGUI()
@@ -81,7 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var hdLightData in m_AdditionalLightDatas)
             {
                 hdLightData.UpdateAreaLightEmissiveMesh();
-                hdLightData.UpdateEmissiveMeshComponents();
             }
 
             m_SerializedHDLight.needUpdateAreaLightEmissiveMeshComponents = false;
