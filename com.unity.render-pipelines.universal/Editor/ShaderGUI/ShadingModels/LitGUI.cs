@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
@@ -49,6 +49,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             public static readonly string[] metallicSmoothnessChannelNames = {"Metallic Alpha", "Albedo Alpha"};
             public static readonly string[] specularSmoothnessChannelNames = {"Specular Alpha", "Albedo Alpha"};
+
+            public static GUIContent clearCoatStrengthText   = new GUIContent("Clear Coat Strength",
+                "Specifies the strength of the coat blending. " +
+                "Strength 0 disables the clear coat feature. " +
+                "It acts as a multiplier of the clear coat map strength value or as direct strength value if no map is specified. " +
+                "The map specifies clear coat strength in red channel and clear coat smoothness in green channel. ");
+            public static GUIContent clearCoatSmoothnessText = new GUIContent("Clear Coat Smoothness",
+                "Specifies the smoothness of the coating. Acts as a multiplier of the clear coat map smoothness value or as direct smoothness value if no map is specified.");
         }
 
         public struct LitProperties
@@ -72,6 +80,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public MaterialProperty highlights;
             public MaterialProperty reflections;
 
+            public MaterialProperty clearCoatMap;
+            public MaterialProperty clearCoatStrength;
+            public MaterialProperty clearCoatSmoothness;
+
             public LitProperties(MaterialProperty[] properties)
             {
                 // Surface Option Props
@@ -90,6 +102,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 // Advanced Props
                 highlights = BaseShaderGUI.FindProperty("_SpecularHighlights", properties, false);
                 reflections = BaseShaderGUI.FindProperty("_EnvironmentReflections", properties, false);
+
+                clearCoatMap        = BaseShaderGUI.FindProperty("_ClearCoatMap", properties, false);
+                clearCoatStrength   = BaseShaderGUI.FindProperty("_ClearCoatStrength", properties, false);
+                clearCoatSmoothness = BaseShaderGUI.FindProperty("_ClearCoatSmoothness", properties, false);
             }
         }
 
@@ -102,6 +118,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             {
                 materialEditor.TexturePropertySingleLine(Styles.occlusionText, properties.occlusionMap,
                     properties.occlusionMap.textureValue != null ? properties.occlusionStrength : null);
+            }
+
+            DoClearCoat(properties, materialEditor, material);
+        }
+
+        public static void DoClearCoat(LitProperties properties, MaterialEditor materialEditor, Material material)
+        {
+            materialEditor.TexturePropertySingleLine(Styles.clearCoatStrengthText, properties.clearCoatMap, properties.clearCoatStrength);
+            if (properties.clearCoatStrength.floatValue >= 0.0)
+            {
+                EditorGUI.indentLevel += 2;
+
+                // Texture and HDR color controls
+                materialEditor.ShaderProperty(properties.clearCoatSmoothness , Styles.clearCoatSmoothnessText);
+
+                EditorGUI.indentLevel -= 2;
             }
         }
 
@@ -210,6 +242,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 CoreUtils.SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
                     GetSmoothnessMapChannel(material) == SmoothnessMapChannel.AlbedoAlpha && opaque);
             }
+
+            if (material.HasProperty("_ClearCoatStrength") && material.GetFloat("_ClearCoatStrength") > 0.0f)
+            {
+                CoreUtils.SetKeyword(material, "_CLEARCOAT", true);
+                if (material.HasProperty("_ClearCoatMap"))
+                    CoreUtils.SetKeyword(material, "_CLEARCOATMAP", material.GetTexture("_ClearCoatMap"));
+            }
+
         }
     }
 }

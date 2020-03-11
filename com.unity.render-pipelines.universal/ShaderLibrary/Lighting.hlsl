@@ -2,6 +2,7 @@
 #define UNIVERSAL_LIGHTING_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -256,6 +257,14 @@ struct BRDFData
     // them in the light loop. Take a look at DirectBRDF function for detailed explaination.
     half normalizationTerm;     // roughness * 4.0 + 2.0
     half roughness2MinusOne;    // roughness^2 - 1.0
+
+#ifdef _CLEARCOAT
+    half clearCoatStrength;
+    half clearCoatPerceptualRoughness;
+    half clearCoatRoughness;
+    half clearCoatRoughness2;
+    half clearCoatRoughness2MinusOne;
+#endif
 };
 
 half ReflectivitySpecular(half3 specular)
@@ -278,21 +287,53 @@ half OneMinusReflectivityMetallic(half metallic)
     return oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
 }
 
-inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha, out BRDFData outBRDFData)
+#ifdef _CLEARCOAT
+half3 f0ClearCoatToSurface(half3 f0)
+{
+    // Approximation of iorTof0(f0ToIor(f0), 1.5)
+    // This assumes that the clear coat layer has an IOR of 1.5
+#if defined(SHADER_API_MOBILE)
+    return saturate(f0 * (f0 * 0.526868h + 0.529324h) - 0.0482256h);
+#else
+    return saturate(f0 * (f0 * (0.941892h - 0.263008h * f0) + 0.346479h) - 0.0285998h);
+#endif
+}
+
+half ClearCoatBRDF(BRDFData brdfData, half3 halfDir, half NoH, half LoH, half LoH2)
+{
+    half D = NoH * NoH * brdfData.clearCoatRoughness2MinusOne + 1.00001h;
+    half specularTerm = brdfData.clearCoatRoughness2 / ((D * D) * max(0.1h, LoH2) * (brdfData.clearCoatRoughness * 4.0 + 2.0)) * brdfData.clearCoatStrength;
+    half attenuation = 1 - LoH * brdfData.clearCoatStrength;
+
+#if defined (SHADER_API_MOBILE)
+    specularTerm = specularTerm - HALF_MIN;
+    specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
+#endif
+
+    return specularTerm * attenuation;
+}
+#endif //_CLEARCOAT
+
+inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha,
+#ifdef _CLEARCOAT
+    half clearCoatStrength,
+    half clearCoatSmoothness,
+#endif
+    out BRDFData outBRDFData)
 {
 #ifdef _SPECULAR_SETUP
     half reflectivity = ReflectivitySpecular(specular);
     half oneMinusReflectivity = 1.0 - reflectivity;
 
     outBRDFData.diffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
-    outBRDFData.specular = specular;
+    half3 specRf0 = specular;
 #else
 
     half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
     half reflectivity = 1.0 - oneMinusReflectivity;
 
     outBRDFData.diffuse = albedo * oneMinusReflectivity;
-    outBRDFData.specular = lerp(kDieletricSpec.rgb, albedo, metallic);
+    half3 specRf0 = kDieletricSpec.rgb;
 #endif
 
     outBRDFData.grazingTerm = saturate(smoothness + reflectivity);
@@ -306,6 +347,29 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 #ifdef _ALPHAPREMULTIPLY_ON
     outBRDFData.diffuse *= alpha;
     alpha = alpha * oneMinusReflectivity + reflectivity;
+#endif
+
+#ifdef _CLEARCOAT
+    // Calculate Roughness of Clear Coat layer
+    outBRDFData.clearCoatStrength            = clearCoatStrength;
+    outBRDFData.clearCoatPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(clearCoatSmoothness);
+    outBRDFData.clearCoatRoughness           = PerceptualRoughnessToRoughness(outBRDFData.clearCoatPerceptualRoughness);
+    outBRDFData.clearCoatRoughness2          = outBRDFData.clearCoatRoughness * outBRDFData.clearCoatRoughness;
+    outBRDFData.clearCoatRoughness2MinusOne  = outBRDFData.clearCoatRoughness2 - 1.0h;
+
+    // Modify Roughness of base layer
+    half ieta = lerp(1.0h, CLEAR_COAT_IETA, outBRDFData.clearCoatStrength);
+    half coatRoughnessScale = Sq(ieta);
+    half sigma = RoughnessToVariance(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness));
+    outBRDFData.perceptualRoughness = RoughnessToPerceptualRoughness(VarianceToRoughness(sigma * coatRoughnessScale));
+
+    specRf0 = lerp(specRf0, f0ClearCoatToSurface(specRf0), outBRDFData.clearCoatStrength);
+#endif // _CLEARCOAT
+
+#ifdef _SPECULAR_SETUP
+    outBRDFData.specular = specRf0;
+#else
+    outBRDFData.specular = lerp(specRf0, albedo, metallic);
 #endif
 }
 
@@ -323,7 +387,7 @@ half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSp
 // * NDF [Modified] GGX
 // * Modified Kelemen and Szirmay-Kalos for Visibility term
 // * Fresnel approximated with 1/LdotH
-half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
+half3 DirectBRDF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
 {
 #ifndef _SPECULARHIGHLIGHTS_OFF
     float3 halfDir = SafeNormalize(float3(lightDirectionWS) + float3(viewDirectionWS));
@@ -355,6 +419,12 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 #endif
 
     half3 color = specularTerm * brdfData.specular + brdfData.diffuse;
+
+#ifdef _CLEARCOAT
+    half cc = ClearCoatBRDF(brdfData, halfDir, NoH, LoH, LoH2);
+    color += cc;
+#endif
+
     return color;
 #else
     return brdfData.diffuse;
@@ -510,6 +580,17 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
     return min(bakedGI, realtimeShadow);
 }
 
+#ifdef _CLEARCOAT
+void ClearCoatGlobalIllumination(BRDFData brdfData, half3 reflectVector, half fresnelTerm, half occlusion, inout half3 indirectDiffuse, inout half3 indirectSpecular)
+{
+    fresnelTerm *= brdfData.clearCoatStrength;
+    float attenuation = 1 - fresnelTerm;
+    indirectDiffuse *= attenuation;
+    indirectSpecular *= attenuation * attenuation;
+    indirectSpecular += GlossyEnvironmentReflection(reflectVector, brdfData.clearCoatPerceptualRoughness, occlusion) * fresnelTerm;
+}
+#endif
+
 half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
 {
     half3 reflectVector = reflect(-viewDirectionWS, normalWS);
@@ -518,7 +599,16 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
     half3 indirectDiffuse = bakedGI * occlusion;
     half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, occlusion);
 
+#ifdef _CLEARCOAT
+    indirectDiffuse *= brdfData.diffuse;
+    float surfaceReduction = 1.0 / (brdfData.roughness2 + 1.0);
+    indirectSpecular = surfaceReduction * indirectSpecular * lerp(brdfData.specular, brdfData.grazingTerm, fresnelTerm);
+
+    ClearCoatGlobalIllumination(brdfData, reflectVector, fresnelTerm, occlusion, indirectDiffuse, indirectSpecular);
+    return indirectDiffuse + indirectSpecular;
+#else
     return EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
+#endif
 }
 
 void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
@@ -550,7 +640,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDi
 {
     half NdotL = saturate(dot(normalWS, lightDirectionWS));
     half3 radiance = lightColor * (lightAttenuation * NdotL);
-    return DirectBDRF(brdfData, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
+    return DirectBRDF(brdfData, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
 }
 
 half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS)
@@ -580,10 +670,19 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
 half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha)
+    half smoothness, half occlusion, half3 emission, half alpha
+#ifdef _CLEARCOAT
+    , half clearCoatStrength
+    , half clearCoatSmoothness
+#endif
+)
 {
     BRDFData brdfData;
-    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha,
+#ifdef _CLEARCOAT
+        clearCoatStrength, clearCoatSmoothness,
+#endif
+        brdfData);
     
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
@@ -645,7 +744,12 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)
 {
-    return UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
+    return UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha
+#if _CLEARCOAT
+        , 0.0h
+        , 0.0h
+#endif
+    );
 }
 
 half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
