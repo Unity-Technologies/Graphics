@@ -91,7 +91,6 @@ struct StackInfo
 StructuredBuffer<GraniteTilesetConstantBuffer> _VTTilesetBuffer;
 
 #define DECLARE_STACK_CB(stackName) \
-    float4x4 stackName##_spaceparams[2];\
     float4 stackName##_atlasparams[2]
 
 #define DECLARE_STACK_BASE(stackName) \
@@ -104,7 +103,6 @@ GraniteTilesetConstantBuffer GetConstantBuffer_##stackName() \
     GraniteTilesetConstantBuffer graniteParamBlock; \
     graniteParamBlock = _VTTilesetBuffer[idx]; \
     \
-    /* hack resolve scale into constant buffer here */\
     graniteParamBlock.data[0][2][0] *= RESOLVE_SCALE_OVERRIDE.x; \
     graniteParamBlock.data[0][3][0] *= RESOLVE_SCALE_OVERRIDE.y; \
     \
