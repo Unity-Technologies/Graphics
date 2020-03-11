@@ -11,6 +11,7 @@ Visual Effect Graph is a Unity package that uses a [Scriptable Render Pipeline](
 
 **Note:** When you download the High Definition Render Pipeline package from Package Manager, Unity automatically installs the Visual Effect Graph package.
 * A target device that can use compute Shaders, such as aWindows PC, Playstation 4, XBox One, or Mac running MacOS.
+
 ## Installing Visual Effect Graph
 
 To install the Visual Effect Graph package:
@@ -51,12 +52,14 @@ To do so, you can:
 * Drag and drop a Visual Effect Graph Asset from the Project Window to the Scene View Window. This makes the graph appear in front of the Camera.
 
 When you’ve added the Visual Effect Graph Asset to you Hierarchy, Unity attaches the Asset to a [Visual Effect Component](VisualEffectComponent.md), which references the Asset. 
+
 ## Editing a Visual Effect Graph
 To edit Visual Effect Graph Assets in the  [Visual Effect Graph window](VisualEffectGraphWindow.md) :
 
 * Open the Visual Effect Graph window (menu: __Window___ &gt; __Visual Effects__) with an empty graph. This prompts you to open a Visual Effect Graph Asset.
 * Select an existing Visual Effect Graph Asset, and click the __Edit__ button in the Inspector. This opens the Visual Effect Graph window with the graph contained in this Asset.
 * Select the Visual Effect component (menu: next to the Asset template, click __Edit__). This opens the Visual Effect Graph window and with the graph contained in the referenced Asset.
+
 ## Previewing a graph’s effect
 To preview an effect, you can:
 

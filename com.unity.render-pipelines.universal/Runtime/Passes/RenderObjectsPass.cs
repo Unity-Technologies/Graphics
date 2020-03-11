@@ -60,9 +60,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
             else
             {
+                m_ShaderTagIdList.Add(new ShaderTagId("SRPDefaultUnlit"));
                 m_ShaderTagIdList.Add(new ShaderTagId("UniversalForward"));
                 m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
-                m_ShaderTagIdList.Add(new ShaderTagId("SRPDefaultUnlit"));
             }
 
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
@@ -80,37 +80,40 @@ namespace UnityEngine.Experimental.Rendering.Universal
             drawingSettings.overrideMaterial = overrideMaterial;
             drawingSettings.overrideMaterialPassIndex = overrideMaterialPassIndex;
 
-            Camera camera = renderingData.cameraData.camera;
-            float cameraAspect = (float) camera.pixelWidth / (float) camera.pixelHeight;
+            ref CameraData cameraData = ref renderingData.cameraData;
+            Camera camera = cameraData.camera;
+
+            // In case of camera stacking we need to take the viewport rect from base camera
+            Rect pixelRect = renderingData.cameraData.pixelRect;
+            float cameraAspect = (float) pixelRect.width / (float) pixelRect.height;
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+                if (m_CameraSettings.overrideCamera && cameraData.isStereoEnabled)
+                    Debug.LogWarning("RenderObjects pass is configured to override camera matrices. While rendering in stereo camera matrices cannot be overriden.");
 
-                if (m_CameraSettings.overrideCamera)
+                if (m_CameraSettings.overrideCamera && !cameraData.isStereoEnabled)
                 {
                     Matrix4x4 projectionMatrix = Matrix4x4.Perspective(m_CameraSettings.cameraFieldOfView, cameraAspect,
                         camera.nearClipPlane, camera.farClipPlane);
+                    projectionMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, cameraData.IsCameraProjectionMatrixFlipped());
 
-                    Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+                    Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
                     Vector4 cameraTranslation = viewMatrix.GetColumn(3);
                     viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
 
-                    cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-                    context.ExecuteCommandBuffer(cmd);
+                    RenderingUtils.SetViewAndProjectionMatrices(cmd, viewMatrix, projectionMatrix, false);
                 }
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings,
                     ref m_RenderStateBlock);
 
-                if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera)
+                if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera && !cameraData.isStereoEnabled)
                 {
-                    Matrix4x4 projectionMatrix = Matrix4x4.Perspective(camera.fieldOfView, cameraAspect,
-                        camera.nearClipPlane, camera.farClipPlane);
-
-                    cmd.Clear();
-                    cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, projectionMatrix);
+                    RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.GetViewMatrix(), cameraData.GetGPUProjectionMatrix(), false);
                 }
             }
             context.ExecuteCommandBuffer(cmd);

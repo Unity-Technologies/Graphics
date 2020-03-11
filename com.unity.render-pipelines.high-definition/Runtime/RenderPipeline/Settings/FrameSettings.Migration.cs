@@ -4,7 +4,7 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Obsolete("For data migration")]
-    public enum ObsoleteLitShaderMode
+    enum ObsoleteLitShaderMode
     {
         Forward,
         Deferred
@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
             newFrameSettingsFormat.SetEnabled(FrameSettingsField.MotionVectors, oldFrameSettingsFormat.enableMotionVectors);
             newFrameSettingsFormat.SetEnabled(FrameSettingsField.ObjectMotionVectors, oldFrameSettingsFormat.enableObjectMotionVectors);
             newFrameSettingsFormat.SetEnabled(FrameSettingsField.Decals, oldFrameSettingsFormat.enableDecals);
-            newFrameSettingsFormat.SetEnabled(FrameSettingsField.RoughRefraction, oldFrameSettingsFormat.enableRoughRefraction);
+            newFrameSettingsFormat.SetEnabled(FrameSettingsField.Refraction, oldFrameSettingsFormat.enableRoughRefraction);
             newFrameSettingsFormat.SetEnabled(FrameSettingsField.TransparentPostpass, oldFrameSettingsFormat.enableTransparentPostpass);
             newFrameSettingsFormat.SetEnabled(FrameSettingsField.Distortion, oldFrameSettingsFormat.enableDistortion);
             newFrameSettingsFormat.SetEnabled(FrameSettingsField.Postprocess, oldFrameSettingsFormat.enablePostprocess);
@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.Decals] = true;
                             break;
                         case ObsoleteFrameSettingsOverrides.RoughRefraction:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.RoughRefraction] = true;
+                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.Refraction] = true;
                             break;
                         case ObsoleteFrameSettingsOverrides.TransparentPostpass:
                             newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.TransparentPostpass] = true;
@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
             oldFrameSettingsFormat = null;
         }
 #pragma warning restore 618 // Type or member is obsolete
-        
+
         internal static void MigrateToCustomPostprocessAndCustomPass(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.CustomPass, true);
@@ -364,7 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, false);
             cameraFrameSettings.SetEnabled(FrameSettingsField.SkyReflection, true);
         }
-        
+
         internal static void MigrateToNoReflectionRealtimeSettings(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReflectionProbe, true);
@@ -410,6 +410,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static void MigrateToRayTracing(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.RayTracing, true);
+        }
+
+        internal static void MigrateToSeparateColorGradingAndTonemapping(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.Tonemapping, true);
         }
     }
 }

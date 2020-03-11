@@ -1,24 +1,39 @@
 editors:
+  - version: 2020.1
+    rerun_strategy: on-new-revision
+  - version: fast-2020.1
+    rerun_strategy: on-new-revision
   - version: trunk
-    cmd: -u trunk
+    rerun_strategy: on-new-revision
   - version: fast-trunk
-    cmd: -u trunk --fast
+    rerun_strategy: on-new-revision
   - version: CUSTOM-REVISION
-    cmdwin: -r %CUSTOM_REVISION%
-    cmdposix: -r $CUSTOM_REVISION
+    rerun_strategy: always
 platforms:
   - name: Win
+    os: windows
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
     flavor: b1.large
+    components:
+      - editor
+      - il2cpp
   - name: OSX_Metal
+    os: macos
     type: Unity::metal::macmini
     image: slough-ops/macos-10.14-xcode
     flavor: m1.mac
+    components:
+      - editor
+      - il2cpp
   - name: Linux
+    os: linux
     type: Unity::VM::GPU
     image: cds-ops/ubuntu-18.04-base:stable
     flavor: b1.large
+    components:
+      - editor
+      - il2cpp
 testplatforms:
   - name: playmode
     args: --suite=playmode
@@ -70,20 +85,18 @@ linux_apis:
 {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
-    - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
-    
-    {% if editor.version == 'CUSTOM-REVISION' %}
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmdwin }} -c editor --wait --published
-    {% else %}
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
-    {% endif %}    
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
 
     {% if testplatform.name == "Standalone" %}
     - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200
     {% else %}
     - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }} --extra-editor-arg="{{ win_api.cmd }}" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
     {% endif %}
+  dependencies:
+    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
+      rerun: {{ editor.rerun_strategy }}
   artifacts:
     logs:
       paths:
@@ -108,16 +121,12 @@ linux_apis:
     CUSTOM_REVISION: custom_revision_not_set
 {% endif %}
   commands:
-    - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
-    
-    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple'"
-    - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r ../ScriptableRenderPipeline/ bokken@$BOKKEN_DEVICE_IP:~/ScriptableRenderPipeline
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr   
+    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple'"
+    - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/ScriptableRenderPipeline
     - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-    {% if editor.version == 'CUSTOM-REVISION' %}
-    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli {{ editor.cmdposix }} -c editor --wait --published'
-    {% else %}
-    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli {{ editor.cmd }} -c editor --wait --published'
-    {% endif %}
+
+    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/ScriptableRenderPipeline/unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only'
     
     {% if testplatform.name == "Standalone" %}
     - |
@@ -130,7 +139,9 @@ linux_apis:
       mkdir -p TestProjects/{{ project.folder }}/test-results/
       scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results/ TestProjects/{{ project.folder }}/test-results/
       exit $UTR_RESULT
-
+  dependencies:
+    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
+      rerun: {{ editor.rerun_strategy }}
   artifacts:
     logs:
       paths:
@@ -153,17 +164,26 @@ linux_apis:
     {% endif %} 
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
   commands:
     - sudo -H pip install --upgrade pip
-    - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
+    - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
     - sudo npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
-    - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
+    
+    - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
+    
     {% if testplatform.name == "Standalone" %}
     - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }}Linux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinux{{ linux_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
     {% else %}
     - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr --extra-editor-arg="{{ linux_api.cmd }}"  {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
     {% endif %}
+  dependencies:
+    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
+      rerun: {{ editor.rerun_strategy }}
   artifacts:
     logs:
       paths:
@@ -194,7 +214,8 @@ All_{{ project.name }}_{{ editor.version }}:
   {% if platform.name == "OSX_OpenGLCore" %}
   
   {% if testplatform.name == "editmode" %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
+    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
+      rerun: {{ editor.rerun_strategy }}
   {% endif %}
   
   {% elsif platform.name == "OSX_Metal"  and testplatform.name == "editmode" %}
@@ -216,22 +237,11 @@ All_{{ project.name }}_{{ editor.version }}:
   {% endfor %}
 
   {% else %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }} 
+    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }} 
+      rerun: {{ editor.rerun_strategy }}
   {% endif %}
     
   {% endfor %}
   {% endfor %}
-  # {% if editor.version == "fast-trunk" %}
-  # triggers:
-    # changes:
-      # only:
-        # - "com.unity.render-pipelines.high-definition-config/**/*"
-        # - "com.unity.render-pipelines.high-definition/**/*"
-        # - "com.unity.testing.hdrp/**/*"
-        # - "TestProjects/HDRP*/**/*"
-      # except:
-        # - "**/*.md"
-  # {% endif %}
-
 {% endfor %} 
 {% endfor %}

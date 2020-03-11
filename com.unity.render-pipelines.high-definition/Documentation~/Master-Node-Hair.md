@@ -10,7 +10,7 @@ The Hair master node is the destination node for the Hair Shader Graph. It conta
 
 ## Creating and editing a Hair Material
 
-Hair Materials use a Shader Graph master node which means that you need to use a specific method to create and edit a Hair Material. For information on how to do this, see [Creating and Editing HDRP Shader Graphs](Creating-and-Editing-HDRP-Shader-Graphs.html). When you create a Material from the Shader Graph, the properties that you exposed in the Blackboard appear in the **Exposed Properties** section.
+Hair Materials use a Shader Graph master node which means that you need to use a specific method to create and edit a Hair Material. For information on how to do this, see [Creating and Editing HDRP Shader Graphs](Customizing-HDRP-materials-with-Shader-Graph.html). When you create a Material from the Shader Graph, the properties that you exposed in the Blackboard appear in the **Exposed Properties** section.
 
 ## Properties
 

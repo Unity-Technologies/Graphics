@@ -466,7 +466,7 @@ namespace UnityEditor
                         material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                         break;
                     case BlendMode.Additive:
-                        material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
                         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                         break;

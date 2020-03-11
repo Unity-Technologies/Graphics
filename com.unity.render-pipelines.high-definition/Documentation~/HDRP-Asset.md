@@ -75,7 +75,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | ------------------------------- | ------------------------------------------------------------ |
 | **Enable**                      | Enable the checkbox to make HDRP support dynamic resolution in your Unity Project. |
 | **- Dynamic Resolution Type**   | Use the drop-down to select the type of dynamic resolution HDRP uses:<br />&#8226; **Software**: This option allocates render targets to accommodate the maximum resolution possible, then rescales the viewport accordingly. This allows the viewport to render at varying resolutions. |
-| **- Upscale Filter**            | Use the drop-down to select the filter that HDRP uses for upscaling.<br />&#8226; **Bilinear**: A low quality upsample. The least resource intensive option.<br />&#8226; **Catmull-Rom**: A bicubic upsample with 4 taps.<br />&#8226; **Lanczos**: A sharp upsample. This method can potentially introduce artifacts so you should not use it for extreme upsampling cases for example, when the screen percentage is less than 50%. |
+| **- Upscale Filter**            | Use the drop-down to select the filter that HDRP uses for upscaling.<br />&#8226; **Bilinear**: A low quality upsample. The least resource intensive option.<br />&#8226; **Catmull-Rom**: A bicubic upsample with 4 taps.<br />&#8226; **Lanczos**: A sharp upsample. This method can potentially introduce artifacts so you should not use it for extreme upsampling cases for example, when the screen percentage is less than 50%.<br />&#8226; **Contrast Adaptive Sharpen**: An ultra sharp upsample. Not meant for screen percenatage less than 50% and will still sharpen when screen percentage is set to 100% |
 | **- Minimum Screen Percentage** | The minimum screen percentage that dynamic resolution can reach. |
 | **- Maximum Screen Percentage** | The maximum screen percentage that dynamic resolution can reach. This value must be higher than the **Min Screen Percentage**. |
 | **- Force Screen Percentage**   | Enable the checkbox to force HDRP to use a specific screen percentage for dynamic resolution. This feature is useful for debugging dynamic resolution. |
@@ -103,18 +103,19 @@ Light Layers are used to separate lighting into different layers in order to mak
 
 ### Cookies
 
-Use the Cookie settings to configure the maximum resolution of individual cookies and the maximum resolution of cookie texture arrays that define the number of cookies on screen at one time. Larger sizes use more memory, but result in higher quality images.
+Use the Cookie settings to configure the maximum resolution of the atlas and it's format. A bigger resolution means that you can have more cookies on screen at one time or use bigger cookies texture in general. Increasing for format will allow you to handle HDR cookies and have better precision at the cost of memory.
 
 | **Property**           | **Description**                                              |
 | ---------------------- | ------------------------------------------------------------ |
-| **Cookie Size**        | Use the drop-down to select the maximum individual cookie size for 2D cookies. HDRP uses 2D cookies for Directional and Spot Lights. |
-| **Texture Array Size** | The maximum Texture Array size for the 2D cookies that HDRP uses for Directional and Spot Lights. Increase this to make HDRP support a greater number of 2D cookies concurrently on screen. |
-| **Point Cookie Size**  | Use the drop-down to select the maximum[ Point Cookie](https://docs.unity3d.com/Manual/Cookies.html) size for cubemap cookies. HDRP uses cubemap cookies for Point Lights. |
+| **2D Atlas Size**      | Use the drop-down to select the maximum size for 2D cookie atlas. HDRP uses 2D cookies for Directional, Spot Lights and Area Lights. |
+| **2D Atlas Last Valid Mip** | Adds padding to prevent area light cookie border to be cut but can blur the texture a lot if too high values are used. Generally the default value (0) works well in most cases. |
+| **Cookie Format** | The format of the cookies that HDRP will use, using R16G16B16A16 instead of R11G11B10 will double the memory usage but help you to avoid banding and adds the support for EXR cookies. |
+| **Point Cookie Size**  | Use the drop-down to select the maximum[Point Cookie](https://docs.unity3d.com/Manual/Cookies.html) size for cubemap cookies. HDRP uses cubemap cookies for Point Lights. |
 | **Cubemap Array Size** | The maximum cube map Array size for the Cube cookies that HDRP uses for Point Lights. Increase this to make HDRP support a greater number of cube map cookies concurrently on screen. |
 
 ### Reflections
 
-Use the Reflection settings to configure the resolution of your reflections and whether Unity should compress the Reflection Probe caches or not. The Reflection Probe cache refers to runtime memory that HDRP reserves for Reflection Probes. The cache is a first in, first out list that stores the currently visible Reflection Probes.
+Use the Reflection settings to configure the max number and resolution of the probes and whether Unity should compress the Reflection Probe caches or not. The Reflection Probe cache refers to runtime memory that HDRP reserves for Reflection Probes. The cache is a first in, first out list that stores the currently visible Reflection Probes.
 
 | **Property**                               | **Description**                                              |
 | ------------------------------------------ | ------------------------------------------------------------ |
@@ -123,7 +124,8 @@ Use the Reflection settings to configure the resolution of your reflections and 
 | **Reflection Cubemap Size**                | Use the drop-down to select the maximum resolution of individual Reflection Probe[ ](https://docs.unity3d.com/Manual/class-Cubemap.html)[cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
 | **Probe Cache Size**                       | The maximum size of the Probe Cache. Defines how many Probe cube maps HDRP can save in cache. |
 | **Compress Planar Reflection Probe Cache** | Enable the checkbox to compress the [Planar Reflection Probe](Planar-Reflection-Probe.html) cache in order to save space on disk. |
-| **Planar Reflection Texture Size**         | Use the drop-down to select the maximum resolution of individual Planar Reflection textures. |
+| **Planar Reflection Atlas Size**           | Use the drop-down to select the resolution of the planar probe atlas. It defines how many reflection probe you'll be able to render at once and at which resolution.  |
+| **Max Planar Reflection On Screen**        | The maximum number of planar reflections on screen at once. |
 | **Planar Probe Cache Size**                | The maximum size of the Planer Reflection Probe cache. Defines how many Probe textures HDRP can save in cache. |
 | **Maximum Environment Lights on Screen**   | The maximum number of environment Lights HDRP can manage on screen at once. |
 
@@ -215,4 +217,4 @@ Use these settings to enable or disable settings relating to lighting in HDRP.
 | ---------------------- | ------------------------------------------------------------ |
 | **Grading LUT Size**   | The size of the internal and external color grading lookup textures (LUTs). This size is fixed for the Project. You can not mix and match LUT sizes, so decide on a size before you start the color grading process. The default value, **32**, provides a good balance of speed and quality. |
 | **Grading LUT Format** | Use the drop-down to select the format to encode the color grading LUTs with. Lower precision formats are faster and use less memory at the expense of color precision. These formats directly map to their equivalent in the built-in [GraphicsFormat](https://docs.unity3d.com/ScriptReference/Experimental.Rendering.GraphicsFormat.html) enum value. |
-
+| **Buffer Format** |  Use the drop-down to select the format of the color buffers that are used in the post-processing passes. Lower precision formats are faster and use less memory at the expense of color precision. These formats directly map to their equivalent in the built-in [GraphicsFormat](https://docs.unity3d.com/ScriptReference/Experimental.Rendering.GraphicsFormat.html) enum value. 

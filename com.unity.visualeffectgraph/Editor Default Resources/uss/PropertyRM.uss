@@ -60,6 +60,7 @@
     padding-left: 1px;
     margin-bottom:0;
     padding-bottom:0;
+    overflow:hidden;
     -unity-text-align:middle-left;
 }
 
@@ -127,7 +128,7 @@
     margin-right:0;
     margin-top:0;
     margin-bottom:0;
-    height: 18px;
+    --height: 18px;
 }
 
 BoolPropertyRM > .unity-toggle
@@ -239,7 +240,11 @@ StringPropertyRM VFXStringField .unity-text-field
 
 Matrix4x4PropertyRM.propertyrm > .fieldContainer
 {
-    height: -1px;
+    height: auto;
+}
+Matrix4x4PropertyRM.propertyrm VFXMatrix4x4Field
+{
+    height: 72px;
 }
 
 

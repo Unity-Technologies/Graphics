@@ -904,6 +904,30 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void UniqueDefaultSystemNames()
+        {
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXView view = window.graphView;
+            view.controller = m_ViewController;
+
+            const int count = 16;
+            var spawners = VFXTestCommon.CreateSpawners(view, m_ViewController, count);
+
+            var systemNames = view.controller.graph.systemNames;
+            var names = new List<string>();
+            foreach (var system in spawners)
+                names.Add(systemNames.GetUniqueSystemName(system));
+
+            Assert.IsTrue(names.Where(name => !string.IsNullOrEmpty(name)).Distinct().Count() == count, "Some spawners have the same name or are null or empty.");
+
+            var GPUSystems = VFXTestCommon.GetFieldValue<VFXView, List<VFXSystemBorder>>(view, "m_Systems");
+            VFXTestCommon.CreateSystems(view, m_ViewController, count, count);
+            var uniqueSystemNames = GPUSystems.Select(system => system.controller.title).Distinct();
+
+            Assert.IsTrue(uniqueSystemNames.Count() == count, "Some GPU systems have the same name or are null or empty.");
+        }
+
+        [Test]
         public void ConvertToSubgraph()
         {
             //Create a new vfx based on the usual template

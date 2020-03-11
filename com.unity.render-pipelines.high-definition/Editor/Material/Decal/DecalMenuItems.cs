@@ -11,7 +11,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var parent = menuCommand.context as GameObject;
             var go = CoreEditorUtils.CreateGameObject(parent, "Decal Projector");
-            go.AddComponent<DecalProjector>();
+            var decal = go.AddComponent<DecalProjector>();
+            decal.transform.RotateAround(decal.transform.position, decal.transform.right, 90);
             // Ensure it gets re-parented if this was a context click (otherwise does nothing)
             GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
             // Register the creation in the undo system

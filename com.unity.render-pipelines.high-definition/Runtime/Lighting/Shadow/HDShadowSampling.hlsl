@@ -277,12 +277,15 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
     float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
     float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
 
+    // x contains resolution and y the inverse of atlas resolution
+    float2 shadowAtlasInfo = isPerspective ? _ShadowAtlasSize.xz : _CascadeShadowAtlasSize.xz;
+
     // Note: this is a hack, but the original implementation was faulty as it didn't scale offset based on the resolution of the atlas (*not* the shadow map).
     // All the softness fitting has been done using a reference 4096x4096, hence the following scale.
-    float atlasResFactor = (4096 * _ShadowAtlasSize.z);
+    float atlasResFactor = (4096 * shadowAtlasInfo.y);
 
     // max softness is empirically set resolution of 512, so needs to be set res independent.
-    float shadowMapRes = scale.x * _ShadowAtlasSize.x; // _ShadowAtlasSize is square
+    float shadowMapRes = scale.x * shadowAtlasInfo.x; // atlas is square
     float resIndepenentMaxSoftness = 0.04 * (shadowMapRes / 512);
 
     //1) Blocker Search
@@ -307,7 +310,8 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
     }
 
     //2) Penumbra Estimation
-    float filterSize = shadowSoftness * PenumbraSize(tcs.z, averageBlockerDepth);
+    float filterSize = shadowSoftness * (isPerspective ? PenumbraSizePunctual(tcs.z, averageBlockerDepth) : 
+                                                         PenumbraSizeDirectional(tcs.z, averageBlockerDepth, zParams.x));
     filterSize = max(filterSize, minFilterRadius);
     filterSize *= atlasResFactor;
 

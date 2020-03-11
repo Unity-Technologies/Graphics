@@ -119,7 +119,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Runtime Data
         RenderTexture m_RealtimeTexture;
         RenderData m_RealtimeRenderData;
-        bool m_WasRenderedSinceLastOnDemandRequest;
+        bool m_WasRenderedSinceLastOnDemandRequest = true;
+
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];
 
@@ -139,20 +140,55 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal bool HasValidRenderedData()
+        {
+            bool hasValidTexture = texture != null;
+            if (mode != ProbeSettings.Mode.Realtime)
+            {
+                return hasValidTexture;
+            }
+            else
+            {
+                bool hasEverRendered = lastRenderedFrame != int.MinValue;
+                return hasEverRendered && hasValidTexture;
+            }
+        }
+
         // Public API
         // Texture asset
         /// <summary>
         /// The baked texture. Can be null if the probe was never baked.
+        ///
+        /// Most of the time, you do not need to set this value yourself. You can set this property in situations
+        /// where you want to manually assign data that differs from what Unity generates.
         /// </summary>
-        public Texture bakedTexture => m_BakedTexture;
+        public Texture bakedTexture
+        {
+            get => m_BakedTexture;
+            set => m_BakedTexture = value;
+        }
+
         /// <summary>
         /// Texture used in custom mode.
         /// </summary>
-        public Texture customTexture => m_CustomTexture;
+        public Texture customTexture
+        {
+            get => m_CustomTexture;
+            set => m_CustomTexture = value;
+        }
+
         /// <summary>
         /// The allocated realtime texture. Can be null if the probe never rendered with the realtime mode.
+        ///
+        /// Most of the time, you do not need to set this value yourself. You can set this property in situations
+        /// where you want to manually assign data that differs from what Unity generates.
         /// </summary>
-        public RenderTexture realtimeTexture => m_RealtimeTexture;
+        public RenderTexture realtimeTexture
+        {
+            get => m_RealtimeTexture;
+            set => m_RealtimeTexture = value;
+        }
+
         /// <summary>
         /// The texture used during lighting for this probe.
         /// </summary>
@@ -198,15 +234,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The render data of the last bake
         /// </summary>
-        public RenderData bakedRenderData { get => m_BakedRenderData; internal set => m_BakedRenderData = value; }
+        public RenderData bakedRenderData { get => m_BakedRenderData; set => m_BakedRenderData = value; }
         /// <summary>
         /// The render data of the custom mode
         /// </summary>
-        public RenderData customRenderData { get => m_CustomRenderData; internal set => m_CustomRenderData = value; }
+        public RenderData customRenderData { get => m_CustomRenderData; set => m_CustomRenderData = value; }
         /// <summary>
         /// The render data of the last realtime rendering
         /// </summary>
-        public RenderData realtimeRenderData { get => m_RealtimeRenderData; internal set => m_RealtimeRenderData = value; }
+        public RenderData realtimeRenderData { get => m_RealtimeRenderData; set => m_RealtimeRenderData = value; }
         /// <summary>
         /// The currently used render data.
         /// </summary>
@@ -219,7 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <exception cref="ArgumentOutOfRangeException">When the mode is invalid</exception>
         public RenderData GetRenderData(ProbeSettings.Mode targetMode)
         {
-            switch (mode)
+            switch (targetMode)
             {
                 case ProbeSettings.Mode.Baked: return bakedRenderData;
                 case ProbeSettings.Mode.Custom: return customRenderData;
@@ -235,7 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <exception cref="ArgumentOutOfRangeException">When the mode is invalid</exception>
         public void SetRenderData(ProbeSettings.Mode targetMode, RenderData renderData)
         {
-            switch (mode)
+            switch (targetMode)
             {
                 case ProbeSettings.Mode.Baked: bakedRenderData = renderData; break;
                 case ProbeSettings.Mode.Custom: customRenderData = renderData; break;
@@ -256,6 +292,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The realtime mode of the probe
         /// </summary>
         public ProbeSettings.RealtimeMode realtimeMode { get => m_ProbeSettings.realtimeMode; set => m_ProbeSettings.realtimeMode = value; }
+        /// <summary>
+        /// Resolution of the probee.
+        /// </summary>
+        public PlanarReflectionAtlasResolution resolution { get => m_ProbeSettings.resolution; set => m_ProbeSettings.resolution = value; }
 
         // Lighting
         /// <summary>Light layer to use by this probe.</summary>
@@ -279,7 +319,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Proxy
         /// <summary>ProxyVolume currently used by this probe.</summary>
-        public ReflectionProxyVolumeComponent proxyVolume => m_ProxyVolume;
+        public ReflectionProxyVolumeComponent proxyVolume
+        {
+            get => m_ProxyVolume;
+            set => m_ProxyVolume = value;
+        }
+
         /// <summary>
         /// Use the influence volume as the proxy volume if this is true.
         /// </summary>
@@ -296,8 +341,6 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_ProbeSettings.influence ?? (m_ProbeSettings.influence = new InfluenceVolume());
             private set => m_ProbeSettings.influence = value;
         }
-        internal Matrix4x4 influenceToWorld => Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-
         // Camera
         /// <summary>Frame settings in use with this probe.</summary>
         public ref FrameSettings frameSettings => ref m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettings;
@@ -305,11 +348,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specify the settings overriden for the frame settins
         /// </summary>
         public ref FrameSettingsOverrideMask frameSettingsOverrideMask => ref m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettingsOverrideMask;
-        internal Vector3 influenceExtents => influenceVolume.extents;
-        internal Matrix4x4 proxyToWorld
-            => proxyVolume != null
-            ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
-            : influenceToWorld;
+
         /// <summary>
         /// The extents of the proxy volume
         /// </summary>
@@ -325,7 +364,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public Bounds bounds => influenceVolume.GetBoundsAt(transform.position);
 
-        internal ProbeSettings settings
+        /// <summary>
+        /// To read the settings of this probe, most of the time you should use the sanitized version of
+        /// this property: <see cref="settings"/>.
+        /// Use this property to read the settings of the probe only when it is important that you read the raw data.
+        /// </summary>
+        public ref ProbeSettings settingsRaw => ref m_ProbeSettings;
+
+        /// <summary>
+        /// Use this property to get the settings used for calculations.
+        ///
+        /// To edit the settings of the probe, use the unsanitized version of this property: <see cref="settingsRaw"/>.
+        /// </summary>
+        public ProbeSettings settings
         {
             get
             {
@@ -337,6 +388,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return settings;
             }
         }
+
+        internal Matrix4x4 influenceToWorld => Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+        internal Vector3 influenceExtents => influenceVolume.extents;
+        internal Matrix4x4 proxyToWorld
+            => proxyVolume != null
+                ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
+                : influenceToWorld;
 
         internal bool wasRenderedAfterOnEnable { get; private set; } = false;
         internal int lastRenderedFrame { get; private set; } = int.MinValue;
@@ -365,7 +423,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateProbeName()
         {
-            // TODO: ask if this is ok: 
+            // TODO: ask if this is ok:
             if (settings.type == ProbeSettings.ProbeType.PlanarProbe)
             {
                 for (int i = 0; i < 6; i++)

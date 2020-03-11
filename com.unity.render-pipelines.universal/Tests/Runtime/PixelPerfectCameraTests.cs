@@ -256,10 +256,13 @@ namespace UnityEngine.Rendering.Universal.Tests
         [Test]
         public void CalculateFinalBlitPixelRectStretchToFitHeightWorks()
         {
-            PixelPerfectCameraInternal internals = new PixelPerfectCameraInternal(new PixelPerfectCameraTestComponent());
+            PixelPerfectCameraTestComponent testComponent = new PixelPerfectCameraTestComponent();
+            testComponent.refResolutionX = 200;
+            testComponent.refResolutionY = 100;
+            PixelPerfectCameraInternal internals = new PixelPerfectCameraInternal(testComponent);
 
             internals.useStretchFill = true;
-            Rect pixelRect = internals.CalculateFinalBlitPixelRect(2.0f, 400, 100);
+            Rect pixelRect = internals.CalculateFinalBlitPixelRect(400, 100);
 
             Rect expected = new Rect(100.0f, 0.0f, 200.0f, 100.0f);
             Assert.AreEqual(expected, pixelRect);
@@ -268,10 +271,13 @@ namespace UnityEngine.Rendering.Universal.Tests
         [Test]
         public void CalculateFinalBlitPixelRectStretchToFitWidthWorks()
         {
-            PixelPerfectCameraInternal internals = new PixelPerfectCameraInternal(new PixelPerfectCameraTestComponent());
+            PixelPerfectCameraTestComponent testComponent = new PixelPerfectCameraTestComponent();
+            testComponent.refResolutionX = 200;
+            testComponent.refResolutionY = 100;
+            PixelPerfectCameraInternal internals = new PixelPerfectCameraInternal(testComponent);
 
             internals.useStretchFill = true;
-            Rect pixelRect = internals.CalculateFinalBlitPixelRect(2.0f, 200, 200);
+            Rect pixelRect = internals.CalculateFinalBlitPixelRect(200, 200);
 
             Rect expected = new Rect(0.0f, 50.0f, 200.0f, 100.0f);
             Assert.AreEqual(expected, pixelRect);
@@ -282,6 +288,8 @@ namespace UnityEngine.Rendering.Universal.Tests
         {
             PixelPerfectCameraTestComponent testComponent = new PixelPerfectCameraTestComponent();
             testComponent.upscaleRT = true;
+            testComponent.refResolutionX = 400;
+            testComponent.refResolutionY = 300;
             PixelPerfectCameraInternal internals = new PixelPerfectCameraInternal(testComponent);
 
             internals.useStretchFill = false;
@@ -289,7 +297,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             internals.offscreenRTWidth = 400;
             internals.offscreenRTHeight = 300;
 
-            Rect pixelRect = internals.CalculateFinalBlitPixelRect(4.0f / 3.0f, 1600, 1200);
+            Rect pixelRect = internals.CalculateFinalBlitPixelRect(1600, 1200);
 
             Rect expected = new Rect(400.0f, 300.0f, 800.0f, 600.0f);
             Assert.AreEqual(expected, pixelRect);
@@ -300,6 +308,8 @@ namespace UnityEngine.Rendering.Universal.Tests
         {
             PixelPerfectCameraTestComponent testComponent = new PixelPerfectCameraTestComponent();
             testComponent.upscaleRT = false;
+            testComponent.refResolutionX = 400;
+            testComponent.refResolutionY = 300;
             PixelPerfectCameraInternal internals = new PixelPerfectCameraInternal(testComponent);
 
             internals.useStretchFill = false;
@@ -307,7 +317,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             internals.offscreenRTWidth = 400;
             internals.offscreenRTHeight = 300;
 
-            Rect pixelRect = internals.CalculateFinalBlitPixelRect(4.0f / 3.0f, 1600, 1200);
+            Rect pixelRect = internals.CalculateFinalBlitPixelRect(1600, 1200);
 
             Rect expected = new Rect(600.0f, 450.0f, 400.0f, 300.0f);
             Assert.AreEqual(expected, pixelRect);

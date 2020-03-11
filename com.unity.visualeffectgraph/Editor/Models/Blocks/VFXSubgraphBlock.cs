@@ -13,9 +13,13 @@ namespace UnityEditor.VFX
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected VisualEffectSubgraphBlock m_Subgraph;
-        
+
+        [NonSerialized]
         VFXModel[] m_SubChildren;
+
+        [NonSerialized]
         VFXBlock[] m_SubBlocks;
+        VFXGraph m_UsedSubgraph;
 
         public VisualEffectSubgraphBlock subgraph
         {
@@ -26,6 +30,13 @@ namespace UnityEditor.VFX
 
                 return m_Subgraph;
             }
+        }
+
+        public override void GetImportDependentAssets(HashSet<int> dependencies)
+        {
+            base.GetImportDependentAssets(dependencies);
+            if (!object.ReferenceEquals(m_Subgraph,null))
+                dependencies.Add(m_Subgraph.GetInstanceID());
         }
 
         public sealed override string name { get { return m_Subgraph != null ? m_Subgraph.name : "Empty Subgraph Block"; } }
@@ -44,6 +55,8 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
+                    if( m_Subgraph == null && ! object.ReferenceEquals(m_Subgraph,null))
+                        m_Subgraph = EditorUtility.InstanceIDToObject(m_Subgraph.GetInstanceID()) as VisualEffectSubgraphBlock;
                     if (m_SubChildren == null && subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
                         RecreateCopy();
 
@@ -116,6 +129,7 @@ namespace UnityEditor.VFX
             {
                 m_SubChildren = null;
                 m_SubBlocks = null;
+                m_UsedSubgraph = null;
                 return;
             }
 
@@ -128,6 +142,7 @@ namespace UnityEditor.VFX
             {
                 m_SubChildren = null;
                 m_SubBlocks = null;
+                m_UsedSubgraph = null;
                 return;
             }
 
@@ -144,6 +159,7 @@ namespace UnityEditor.VFX
             }
 
             var copy = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
+            m_UsedSubgraph = graph;
             m_SubChildren = copy.OfType<VFXModel>().Where(t => t is VFXBlock || t is VFXOperator || t is VFXParameter).ToArray();
             m_SubBlocks = m_SubChildren.OfType<VFXBlock>().ToArray();
             foreach (var child in m_SubChildren)
@@ -156,10 +172,9 @@ namespace UnityEditor.VFX
             foreach (var subgraphBlocks in m_SubBlocks.OfType<VFXSubgraphBlock>())
                 subgraphBlocks.RecreateCopy();
             SyncSlots(VFXSlot.Direction.kInput,true);
-            PatchInputExpressions();
         }
         
-        void PatchInputExpressions()
+        public void PatchInputExpressions()
         {
             if (m_SubChildren == null) return;
 
@@ -249,11 +264,15 @@ namespace UnityEditor.VFX
                 if (graph != null && subgraph != null && m_Subgraph.GetResource() != null)
                 {
                     var otherGraph = m_Subgraph.GetResource().GetOrCreateGraph();
+                    if (otherGraph != m_UsedSubgraph)
+                        RecreateCopy();
                     if (otherGraph == graph || otherGraph.subgraphDependencies.Contains(graph.GetResource().visualEffectObject))
                         m_Subgraph = null; // prevent cyclic dependencies.
                     if (graph.GetResource().isSubgraph) // BuildSubgraphDependenciesis called for vfx by recompilation, but in subgraph we must call it explicitely
                         graph.BuildSubgraphDependencies();
                 }
+                else if (m_UsedSubgraph != null)
+                    RecreateCopy();
 
             }
 

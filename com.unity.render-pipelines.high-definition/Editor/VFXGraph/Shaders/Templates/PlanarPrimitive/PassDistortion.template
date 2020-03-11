@@ -3,13 +3,7 @@ Pass
 {		
 	Tags { "LightMode"="DistortionVectors" }
 
-	Stencil
-	{
-		WriteMask 64
-		Ref 64
-		Comp Always
-		Pass Replace
-	}
+    ${VFXStencilDistortionVectors}
 
 	HLSLPROGRAM
 	#pragma target 4.5
@@ -31,19 +25,19 @@ Pass
 		// y: alpha threshold
 		// z: frame blending factor
 		// w: alpha
-		nointerpolation float4 builtInInterpolants : TEXCOORD1;
+		VFX_OPTIONAL_INTERPOLATION float4 builtInInterpolants : TEXCOORD1;
 		#endif
 
 		#if USE_FLIPBOOK_MOTIONVECTORS
 		// x: motion vector scale u
 		// y: motion vector scale v
-		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
+		VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
 		#endif
 
 		// x: horizontal value / normal scale
 		// y: vertical value 
 		// z: blur scale
-		nointerpolation float3 distortionInterpolants : TEXCOORD3;
+		VFX_OPTIONAL_INTERPOLATION float3 distortionInterpolants : TEXCOORD3;
 
 		#if USE_SOFT_PARTICLE
 		float4 projPos : TEXCOORD4;
