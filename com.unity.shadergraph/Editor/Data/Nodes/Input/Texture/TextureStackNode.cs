@@ -1046,13 +1046,10 @@ namespace UnityEditor.ShaderGraph
                 i++;
             }
 
-            Debug.Log("SubgraphNodes_v2: " + subgraphNodes.Count);
             foreach (var node in subgraphNodes)
             {
-                Debug.Log("SubgraphNode");
                 foreach (var slot in node.GetOutputSlots<Vector4MaterialSlot>())
                 {
-                    Debug.Log("Slot " + slot.shaderOutputName);
                     if (!slot.shaderOutputName.StartsWith(subgraphOutputFrefix)) continue;
 
                     // Create a new slot on the aggregate that is similar to the uv input slot
