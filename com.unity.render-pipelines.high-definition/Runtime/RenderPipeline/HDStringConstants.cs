@@ -735,6 +735,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SourceTexture                  = Shader.PropertyToID("_SourceTexture");
         public static readonly int _InputHistoryTexture            = Shader.PropertyToID("_InputHistoryTexture");
         public static readonly int _OutputHistoryTexture           = Shader.PropertyToID("_OutputHistoryTexture");
+        public static readonly int _Input                          = Shader.PropertyToID("_Input");
+        public static readonly int _InputVal                       = Shader.PropertyToID("_InputVal");
+        public static readonly int _Output                         = Shader.PropertyToID("_Output");
+        public static readonly int _Samples                        = Shader.PropertyToID("_Samples");
+        public static readonly int _Sizes                          = Shader.PropertyToID("_Sizes");
+        public static readonly int _Iteration                      = Shader.PropertyToID("_Iteration");
+        public static readonly int _Integral                       = Shader.PropertyToID("_Integral");
+        public static readonly int _MinMax                         = Shader.PropertyToID("_MinMax");
+        public static readonly int _PDF                            = Shader.PropertyToID("_PDF");
+        public static readonly int _CDF                            = Shader.PropertyToID("_CDF");
 
         public static readonly int _TargetScale                    = Shader.PropertyToID("_TargetScale");
         public static readonly int _Params                         = Shader.PropertyToID("_Params");

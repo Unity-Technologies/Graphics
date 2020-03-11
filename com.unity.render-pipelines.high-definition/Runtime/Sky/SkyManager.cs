@@ -382,7 +382,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture GetReflectionTexture(SkyUpdateContext skyContext)
         {
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
-        {
+            {
                 ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
                 return context.renderingContext.skyboxBSDFCubemapArray;
             }
@@ -507,6 +507,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_BuiltinParameters.commandBuffer.CopyTexture(m_SkyboxBSDFCubemapIntermediate, i, renderingContext.skyboxBSDFCubemapArray, 6 * bsdfIdx + i);
                     }
                 }
+                renderingContext.skyboxBSDFCubemapArray.IncrementUpdateCount();
             }
         }
 
