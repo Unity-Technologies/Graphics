@@ -13,7 +13,17 @@ namespace UnityEngine.Rendering.HighDefinition
         Normals,
         /// <summary>Motion vectors buffer at the end of the frame.</summary>
         MotionVectors,
-        /// <summary>Custom pass buffer.</summary> 
-        CustomPass //TODO: all injection points
+        /// <summary>Custom pass buffer after the custom pass at "BeforeRendering" injection point is executed.</summary> 
+        CustomPassBufferBeforeRendering,
+        /// <summary>Custom pass buffer after the custom pass at "AfterOpaqueDepthAndNormal" injection point is executed.</summary> 
+        CustomPassBufferAfterOpaqueDepthAndNormal,
+        /// <summary>Custom pass buffer after the custom pass at "BeforePreRefraction" injection point is executed.</summary> 
+        CustomPassBufferBeforePreRefraction,
+        /// <summary>Custom pass buffer after the custom pass at "BeforeTransparent" injection point is executed.</summary> 
+        CustomPassBufferBeforeTransparent,
+        /// <summary>Custom pass buffer after the custom pass at "BeforePostProcess" injection point is executed.</summary> 
+        CustomPassBufferBeforePostProcess,
+        /// <summary>Custom pass buffer after the custom pass at "AfterPostProcess" injection point is executed.</summary> 
+        CustomPassBufferAfterPostProcess
     }
 }
