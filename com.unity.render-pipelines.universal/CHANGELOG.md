@@ -108,6 +108,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed incorrect light attenuation on Nintendo Switch.
 - Fixed XR SDK single-pass incorrectly switching to multipass issue. Add query for XR SDK single-pass availability using XR SDK renderpass descriptors.
 - Fixed a performance issue in Hololens when using renderer with custom render passes.
+- Fixed an issue with URP switching such that every avaiable URP makes a total set of supported features such that all URPs are taken into consideration. [case 1157420](https://issuetracker.unity3d.com/issues/lwrp-srp-switching-doesnt-work-even-with-manually-adding-shadervariants-per-scene)
 
 ## [7.1.8] - 2020-01-20
 
@@ -188,6 +189,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
 - Improved overall memory bandwidth usage.
 - Added SceneSelection pass for TerrainLit shader.
+- Fixed an issue with URP switching such that every avaiable URP makes a total set of supported features such that all URPs are taken into consideration. [case 1157420](https://issuetracker.unity3d.com/issues/lwrp-srp-switching-doesnt-work-even-with-manually-adding-shadervariants-per-scene)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
