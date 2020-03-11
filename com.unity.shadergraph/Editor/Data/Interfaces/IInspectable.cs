@@ -6,14 +6,14 @@ namespace UnityEditor.ShaderGraph.Drawing
     [AttributeUsage(AttributeTargets.Property)]
     public class Inspectable : Attribute
     {
-        public string LabelName { get; set; }
+        public string labelName { get; private set; }
 
-        public object DefaultValue { get; set; }
+        public object defaultValue { get; private set; }
 
         public Inspectable(string labelName, object defaultValue)
         {
-            this.LabelName = labelName;
-            this.DefaultValue = defaultValue;
+            this.labelName = labelName;
+            this.defaultValue = defaultValue;
         }
 
     }
@@ -21,11 +21,11 @@ namespace UnityEditor.ShaderGraph.Drawing
     [AttributeUsage(AttributeTargets.Class)]
     public class SGPropertyDrawer : Attribute
     {
-        public Type PropertyType { get; set; }
+        public Type propertyType { get; private set; }
 
         public SGPropertyDrawer(Type propertyType)
         {
-            this.PropertyType = propertyType;
+            this.propertyType = propertyType;
         }
     }
 
@@ -33,6 +33,6 @@ namespace UnityEditor.ShaderGraph.Drawing
     interface IInspectable
     {
         string displayName { get; }
-        PropertySheet GetInspectorContent();
+        object GetUnderlyingObject();
     }
 }

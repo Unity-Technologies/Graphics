@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         ShaderInput m_Input;
 
         // Common
-        TextField m_ReferenceNameField;    
+        TextField m_ReferenceNameField;
         IManipulator m_ResetReferenceMenu;
         EventCallback<KeyDownEvent> m_KeyDownCallback;
         EventCallback<FocusOutEvent> m_FocusOutCallback;
@@ -44,6 +44,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                         throw new ArgumentOutOfRangeException();
                 }
             }
+        }
+
+        public object GetUnderlyingObject()
+        {
+            throw new NotImplementedException();
         }
 
         public BlackboardFieldView(GraphData m_GraphDataData, ShaderInput input, Texture icon, string text, string typeText)
@@ -101,7 +106,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             control.SetEnabled(enabled);
             propertySheet.Add(new PropertyRow(new Label(labelText)), (row) =>
             {
-                row.Add(control); 
+                row.Add(control);
             });
         }
 
@@ -189,7 +194,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphData.owner.RegisterCompleteObjectUndo("Change Reference Name");
                     if (m_ReferenceNameField.value != m_Input.referenceName)
                         m_GraphData.SanitizeGraphInputReferenceName(m_Input, evt.newValue);
-                    
+
                     m_ReferenceNameField.value = m_Input.referenceName;
                     if (string.IsNullOrEmpty(m_Input.overrideReferenceName))
                         m_ReferenceNameField.RemoveFromClassList("modified");
@@ -278,7 +283,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphData.owner.RegisterCompleteObjectUndo("Change Precision");
                 if (property.precision == (Precision)evt.newValue)
                     return;
-                
+
                 property.precision = (Precision)evt.newValue;
                 m_GraphData.ValidateGraph();
                 precisionField.MarkDirtyRepaint();
@@ -287,7 +292,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             AddRow(propertySheet, "Precision", precisionField);
         }
-        
+
         void BuildGpuInstancingField(PropertySheet propertySheet, AbstractShaderProperty property)
         {
             Toggle gpuInstancedToogle = new Toggle { value = property.gpuInstanced };
@@ -354,7 +359,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             defaultField.value = property.value;
                             DirtyNodes();
                         });
-                        
+
                         AddRow(propertySheet, "Default", defaultField);
                         AddRow(propertySheet, "Min", minField);
                         AddRow(propertySheet, "Max", maxField);
@@ -399,7 +404,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddRow(propertySheet, "Mode", modeField);
             }
         }
-        
+
         void BuildVector2PropertyField(PropertySheet propertySheet, Vector2ShaderProperty property)
         {
             var field = new Vector2Field { value = property.value };
@@ -413,10 +418,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             field.RegisterValueChangedCallback(evt =>
                 {
                     // Only true when setting value via FieldMouseDragger
-                    // Undo recorded once per dragger release              
+                    // Undo recorded once per dragger release
                     if (m_UndoGroup == -1)
                         m_GraphData.owner.RegisterCompleteObjectUndo("Change property value");
-                    
+
                     property.value = evt.newValue;
                     DirtyNodes();
                 });
@@ -438,10 +443,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             field.RegisterValueChangedCallback(evt =>
                 {
                     // Only true when setting value via FieldMouseDragger
-                    // Undo recorded once per dragger release              
+                    // Undo recorded once per dragger release
                     if (m_UndoGroup == -1)
                         m_GraphData.owner.RegisterCompleteObjectUndo("Change property value");
-                    
+
                     property.value = evt.newValue;
                     DirtyNodes();
                 });
@@ -465,10 +470,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             field.RegisterValueChangedCallback(evt =>
                 {
                     // Only true when setting value via FieldMouseDragger
-                    // Undo recorded once per dragger release              
+                    // Undo recorded once per dragger release
                     if (m_UndoGroup == -1)
                         m_GraphData.owner.RegisterCompleteObjectUndo("Change property value");
-                    
+
                     property.value = evt.newValue;
                     DirtyNodes();
                 });
@@ -696,7 +701,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     };
                     DirtyNodes();
                 });
-            
+
             AddRow(propertySheet, "", row1Field);
 
             var row2Field = new Vector3Field { value = property.value.GetRow(2) };
@@ -898,7 +903,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var keyword = m_Input as ShaderKeyword;
             if(keyword == null)
                 return;
-    
+
             // KeywordDefinition
             var keywordDefinitionField = new EnumField((Enum)keyword.keywordDefinition);
             keywordDefinitionField.RegisterValueChangedCallback(evt =>
@@ -987,18 +992,18 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if(!(m_Input is ShaderKeyword keyword))
                 return;
-            
+
             // Create reorderable list from entries
             m_ReorderableList = new ReorderableList(keyword.entries, typeof(KeywordEntry), true, true, true, true);
         }
 
-        private void AddCallbacks() 
+        private void AddCallbacks()
         {
             if(!(m_Input is ShaderKeyword keyword))
                 return;
-            
-            // Draw Header      
-            m_ReorderableList.drawHeaderCallback = (Rect rect) => 
+
+            // Draw Header
+            m_ReorderableList.drawHeaderCallback = (Rect rect) =>
             {
                 int indent = 14;
                 var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
@@ -1008,41 +1013,41 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
 
             // Draw Element
-            m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => 
+            m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
                 KeywordEntry entry = ((KeywordEntry)m_ReorderableList.list[index]);
                 EditorGUI.BeginChangeCheck();
-        
+
                 var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.displayName, EditorStyles.label);
                 var referenceName = EditorGUI.DelayedTextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName, EditorStyles.label);
 
                 displayName = GetDuplicateSafeDisplayName(entry.id, displayName);
                 referenceName = GetDuplicateSafeReferenceName(entry.id, referenceName.ToUpper());
-        
+
                 if(EditorGUI.EndChangeCheck())
                 {
                     keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);
-            
+
                     DirtyNodes();
                     // Rebuild();
-                }   
+                }
             };
 
             // Element height
-            m_ReorderableList.elementHeightCallback = (int indexer) => 
+            m_ReorderableList.elementHeightCallback = (int indexer) =>
             {
                 return m_ReorderableList.elementHeight;
             };
 
             // Can add
-            m_ReorderableList.onCanAddCallback = (ReorderableList list) => 
-            {  
+            m_ReorderableList.onCanAddCallback = (ReorderableList list) =>
+            {
                 return list.count < 8;
             };
 
             // Can remove
-            m_ReorderableList.onCanRemoveCallback = (ReorderableList list) => 
-            {  
+            m_ReorderableList.onCanRemoveCallback = (ReorderableList list) =>
+            {
                 return list.count > 2;
             };
 
@@ -1062,7 +1067,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if(!(m_Input is ShaderKeyword keyword))
                 return;
-            
+
             m_GraphData.owner.RegisterCompleteObjectUndo("Add Keyword Entry");
 
             var index = list.list.Count + 1;

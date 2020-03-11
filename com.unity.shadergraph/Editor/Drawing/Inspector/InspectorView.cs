@@ -45,8 +45,8 @@ namespace Drawing.Inspector
             var newPropertyRow = this.CreatePropertyRowForField(newEnumValue =>
                 propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newEnumValue}),
                 (Enum) propertyInfo.GetValue(actualObject),
-                attribute.LabelName,
-                (Enum) attribute.DefaultValue);
+                attribute.labelName,
+                (Enum) attribute.defaultValue);
 
             return newPropertyRow;
         }
@@ -74,7 +74,7 @@ namespace Drawing.Inspector
             var newPropertyRow = this.CreatePropertyRowForField(newBoolValue =>
                 propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newBoolValue}),
                 (ToggleData) propertyInfo.GetValue(actualObject),
-                attribute.LabelName);
+                attribute.labelName);
 
             return newPropertyRow;
         }
@@ -141,13 +141,13 @@ namespace Drawing.Inspector
             {
                 var typeHandledByPropertyDrawer = propertyDrawerType.GetCustomAttribute<SGPropertyDrawer>();
                 // Numeric types and boolean wrapper types like ToggleData handled here
-                if (typeHandledByPropertyDrawer.PropertyType == typeOfProperty)
+                if (typeHandledByPropertyDrawer.propertyType == typeOfProperty)
                 {
                     propertyDrawerToUse = propertyDrawerType;
                     return true;
                 }
                 // Enums are weird and need to be handled explicitly as done below as their runtime type isn't the same as System.Enum
-                else if (typeHandledByPropertyDrawer.PropertyType == typeOfProperty.BaseType)
+                else if (typeHandledByPropertyDrawer.propertyType == typeOfProperty.BaseType)
                 {
                     propertyDrawerToUse = propertyDrawerType;
                     return true;
@@ -180,33 +180,22 @@ namespace Drawing.Inspector
                 subTitle = $"{selectedObjects.Count} Objects.";
             }
 
-            //if (selection.FirstOrDefault() is IInspectable inspectable)
-            //{
-            //    m_ContextTitle.text = inspectable.displayName;
-            //    m_PropertyContainer.Add(inspectable.GetInspectorContent());
-            //}
-
-            if(selectedObjects.FirstOrDefault() is UnityEditor.Experimental.GraphView.Edge edge)
-            {
-                subTitle = "(Edge)";
-            }
-            else if(selectedObjects.FirstOrDefault() is UnityEditor.Experimental.GraphView.Group group)
-            {
-                subTitle = "(Group)";
-            }
-            else if(selectedObjects.FirstOrDefault() is UnityEditor.Experimental.GraphView.Node node)
-            {
-                subTitle = node.title;
-            }
-
             var propertySheet = new PropertySheet();
             try
             {
                 foreach (var selectable in selectedObjects)
                 {
-                    GetPropertyInfoFromSelection(selectable, out var properties, out var dataObject);
-                    if (dataObject == null)
+                    object dataObject = null;
+                    PropertyInfo[] properties;
+                    if (selectable is IInspectable inspectable)
+                    {
+                        dataObject = inspectable.GetUnderlyingObject();
+                        properties = dataObject.GetType().GetProperties();
+                    }
+                    else
                         continue;
+                    // #TODO: When the inspector encounters certain types like BlackboardFieldView that have more complex representations for their data,
+                    // #TODO: need to check those first before doing a property-by-property check and handle it directly
 
                     foreach (var propertyInfo in properties)
                     {
@@ -233,24 +222,6 @@ namespace Drawing.Inspector
 
             m_ContentContainer.Add(propertySheet);
             m_ContentContainer.MarkDirtyRepaint();
-        }
-
-        // Meant to be overriden by whichever graph needs to use this inspector and fetch the appropriate property data from it as they see suitable
-        // IsELECTABLE SShould implenet a function that lets it return the actual object that it represents (that object still has the reflection data)
-        protected virtual void GetPropertyInfoFromSelection(ISelectable selectable, out PropertyInfo[] properties, out object dataObject)
-        {
-            properties = new PropertyInfo[] {};
-            dataObject = null;
-
-            if ((selectable is MaterialNodeView) == false)
-                return;
-
-            // #TODO: This is where we'd retrieve the settings object from the target?
-            var nodeView = (MaterialNodeView) selectable;
-
-            var node = nodeView.node;
-            dataObject = node;
-            properties = node.GetType().GetProperties();
         }
 
         void SetSelectionToGraph()

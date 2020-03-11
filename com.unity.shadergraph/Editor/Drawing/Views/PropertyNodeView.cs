@@ -52,6 +52,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public object GetUnderlyingObject()
+        {
+            throw new NotImplementedException();
+        }
+
         public PropertySheet GetInspectorContent()
         {
             var sheet = new PropertySheet();

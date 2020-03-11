@@ -420,6 +420,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public string displayName => $"{m_Title.text} (Sticky Note)";
+        public object GetUnderlyingObject()
+        {
+            throw new System.NotImplementedException();
+        }
 
         public StickyNote(string uiFile, Rect position, GraphData graph)
         {
