@@ -139,9 +139,9 @@ float cmj6D(uint pointIndex, uint dimIndex, uint seed)
     uint stratum = permute(digits[j], s, p1);
 
     // digits = allButJ(digits, j);
-    for (d = j; d < (t - 1); d++)
+    for (d = j + 1; d < t; d++)
     {
-        digits[d] = digits[d + 1];
+        digits[d - 1] = digits[d];
     }
 
     uint poly = 0;
