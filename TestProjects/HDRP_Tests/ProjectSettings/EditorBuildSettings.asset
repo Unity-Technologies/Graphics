@@ -150,6 +150,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1710_Decals_Normal_Patch.unity
     guid: 439ce9822b2644f4ea064429ed2c5955
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1711_DecalMasks.unity
+    guid: a537e2b011b7b4c07af19c8ad6b26cec
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1800_Classification.unity
     guid: 5043daebf48d1b740bb244b9a55508ef
   - enabled: 1
@@ -467,6 +470,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8105_BlendStates_b.unity
     guid: e75b9916869e2384b8e53bc6bffb1314
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8105_BlendStates_c_lit-unlit.unity
+    guid: 277b6e81295b84afaa297d0889efb8a1
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8106_UnlitShadowMatte.unity
     guid: 446a8abf33eabaa4eb3228747da30066
