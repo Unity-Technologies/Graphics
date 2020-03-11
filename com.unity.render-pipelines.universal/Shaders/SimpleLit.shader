@@ -71,7 +71,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature _RECEIVE_SHADOWS_OFF
-            
+
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
@@ -277,10 +277,6 @@ Shader "Universal Render Pipeline/Simple Lit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
-
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment

@@ -5,7 +5,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #pragma multi_compile_local_fragment _ _FXAA
         #pragma multi_compile_local_fragment _ _FILM_GRAIN
         #pragma multi_compile_local_fragment _ _DITHERING
-		#pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
+        #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
         
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
