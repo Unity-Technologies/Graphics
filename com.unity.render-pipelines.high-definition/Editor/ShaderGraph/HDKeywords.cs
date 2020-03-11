@@ -189,7 +189,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
                     new KeywordEntry() { displayName = "Alpha", referenceName = "ALPHA" },
                     new KeywordEntry() { displayName = "Add", referenceName = "ADD" },
-                    new KeywordEntry() { displayName = "Multiply", referenceName = "MULTIPLY" },
+                    new KeywordEntry() { displayName = "PreMultiply", referenceName = "PRE_MULTIPLY" },
                 }
             };
 
