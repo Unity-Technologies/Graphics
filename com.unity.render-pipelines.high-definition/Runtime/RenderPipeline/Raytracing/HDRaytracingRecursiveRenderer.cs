@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RayCountManager rayCountManager = GetRayCountManager();
             cmd.SetRayTracingIntParam(forwardShader, HDShaderIDs._RayCountEnabled, rayCountManager.RayCountIsEnabled());
             cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RayCountTexture, rayCountManager.GetRayCountTexture());
-            
+
             // Compute an approximate pixel spread angle value (in radians)
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
 
@@ -149,7 +149,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Note: Just in case, we rebind the directional light data (in case they were not)
             cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
-            cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
 
             // Set the data for the ray miss
             cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));

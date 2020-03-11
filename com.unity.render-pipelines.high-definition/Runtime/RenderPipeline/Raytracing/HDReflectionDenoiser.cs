@@ -57,8 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle intermediateBuffer1 = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
 
             // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
-            var historyScale = new Vector2(hdCamera.actualWidth / (float)historySignal.rt.width, hdCamera.actualHeight / (float)historySignal.rt.height);
-            cmd.SetComputeVectorParam(m_ReflectionDenoiserCS, HDShaderIDs._RTHandleScaleHistory, historyScale);
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_TemporalAccumulationKernel, HDShaderIDs._DenoiseInputTexture, noisySignal);
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_TemporalAccumulationKernel, HDShaderIDs._HistoryBuffer, historySignal);
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_TemporalAccumulationKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());

@@ -94,8 +94,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Set the data for the ray generation
                 cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._DepthTexture, m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer());
                 cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._NormalBufferTexture, m_RenderPipeline.sharedRTManager.GetNormalBuffer());
-                int frameIndex = m_RenderPipeline.RayTracingFrameIndex(hdCamera);
-                cmd.SetRayTracingIntParam(aoShader, HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                 // Inject the ray-tracing sampling data
                 BlueNoise blueNoise = m_RenderPipeline.GetBlueNoiseManager();
@@ -148,7 +146,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Bind the textures and the params
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, outputTexture);
-            cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, hdCamera.volumeStack.GetComponent<AmbientOcclusion>().directLightingStrength.value));
 
             // TODO: All the push-debug stuff should be centralized somewhere
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, outputTexture, FullScreenDebugMode.SSAO);
