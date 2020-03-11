@@ -426,6 +426,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix Inf source in LTC for area lights.
 - Fix issue with AO being misaligned when multiple view are visible.
 - Fix issue that caused the clamp of camera rotation motion for motion blur to be ineffective.
+- Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
+- Fixed culling of lights with XR SDK
+- Fixed memory stomp in shadow caching code, leading to overflow of Shadow request array and runtime errors.
+- Fixed an issue related to transparent objects reading the ray traced indirect diffuse buffer
+- Fixed an issue with filtering ray traced area lights when the intensity is high or there is an exposure.
+- Fixed ill-formed include path in Depth Of Field shader.
+- Fixed shader graph and ray tracing after the shader target PR.
+- Fixed a bug in semi-transparent shadows (object further than the light casting shadows)
+- Fix state enabled of default volume profile when in package.
+- Fixed removal of MeshRenderer and MeshFilter on adding Light component. 
+- Fixed Ray Traced SubSurface Scattering not working with ray traced area lights
+- Fixed Ray Traced SubSurface Scattering not working in forward mode.
+- Fixed a bug in debug light volumes.
 - Fixed a bug related to ray traced area light shadow history.
 - Fixed an issue where fog sky color mode could sample NaNs in the sky cubemap.
 - Fixed a leak in the PBR sky renderer.
@@ -522,6 +535,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removing unused alpha threshold depth prepass and post pass for fabric shader graph.
 - Transform result from CIE XYZ to sRGB color space in EvalSensitivity for iridescence.
 - Moved BeginCameraRendering callback right before culling.
+- Changed the visibility of the Indirect Lighting Controller component to public.
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
 - Improved behaviour of transmission color on transparent surfaces in path tracing.
 - Light dimmer can now get values higher than one and was renamed to multiplier in the UI. 
