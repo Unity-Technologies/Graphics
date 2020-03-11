@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private void OnSceneEdit()
         {
             // If we just change the sample count, we don't want to reset iteration
-            if (m_CacheMaxIteration != m_PathTracingSettings.maximumSamples.value)
+            if (m_PathTracingSettings && m_CacheMaxIteration != m_PathTracingSettings.maximumSamples.value)
                 m_CacheMaxIteration = (uint) m_PathTracingSettings.maximumSamples.value;
             else
                 m_CurrentIteration = 0;
