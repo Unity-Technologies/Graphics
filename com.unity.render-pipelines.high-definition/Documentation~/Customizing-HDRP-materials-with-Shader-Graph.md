@@ -15,7 +15,7 @@ HDRP includes the following Shader Graphs:
 - StackLit
 - Unlit
 
-The [Lit](Lit-Shader), LayeredLit, and [Unlit](Unlit-Shader) Shaders are available as standard Shaders (without Shader Graph). This means that you can use them without creating a Shader Graph instance, and edit them in the Inspector. To use these, select a Material to view it in the Inspector and click on the **Shader** drop-down. Go to the **HDRP** section to see a list of every HDRP Shader that does not require a Shader Graph instance.
+The [Lit](Lit-Shader.html), [LayeredLit](Layered-Lit-Shader.html), and [Unlit](Unlit-Shader.html) Shaders are available as standard Shaders (without Shader Graph). This means that you can use them without creating a Shader Graph instance, and edit them in the Inspector. To use these, select a Material to view it in the Inspector and click on the **Shader** drop-down. Go to the **HDRP** section to see a list of every HDRP Shader that does not require a Shader Graph instance.
 
 <a name="Creation"></a>
 

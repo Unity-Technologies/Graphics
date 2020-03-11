@@ -10,7 +10,7 @@ To translate AxF file data into Material properties and data that HDRP's AxF Sha
 
 Although it is possible to create an AxF Material from scratch in Unity, you should instead use an external authoring tool, such as X-Rite’s Total Appearance Capture (TAC™) Ecosystem, to create an AxF file and then import the result into Unity. If you install the AxF Importer package, Unity automatically imports AxF files as AxF Materials.
 
-The AxF importer is available in [Unity Enterprise for Product Lifecycle](https://unity.com/products/unity-enterprise-product-lifecycle). When you download the AxF Importer package, use the Package Manager to install it locally. For information on how to install local packages, see [Installing a local package](https://docs.unity3d.com/Manual/upm-ui-local.html).
+The AxF importer is available in Unity Enterprise for Product Lifecycle. For more information, contact your Unity sales representative. When you download the AxF Importer package, use the Package Manager to install it locally. For information on how to install local packages, see [Installing a local package](https://docs.unity3d.com/Manual/upm-ui-local.html).
 
 ### Using the AxF Importer package
 
@@ -111,5 +111,5 @@ Note: The AxF Importer imports every Texture as half float, linear, sRGB gamut (
 
 | **Property**                 | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
-| **Enable GPU instancing**    | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not[ static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
+| **Enable GPU instancing**    | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
 | **Add Precomputed Velocity** | Enable the checkbox to use precomputed velocity information stored in an Alembic file. |
