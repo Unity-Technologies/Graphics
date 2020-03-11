@@ -128,6 +128,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that causes double sRGB correction on Quest. [case 1209292](https://issuetracker.unity3d.com/product/unity/issues/guid/1209292)
 - Fixed an issue where terrain DepthOnly pass does not work for XR.
 - Fixed an issue that caused depth texture to be flipped when sampling from shaders [case 1225362](https://issuetracker.unity3d.com/issues/game-object-is-rendered-incorrectly-in-the-game-view-when-sampling-depth-texture)
+- Fixed an issue with URP switching such that every avaiable URP makes a total set of supported features such that all URPs are taken into consideration. [case 1157420](https://issuetracker.unity3d.com/issues/lwrp-srp-switching-doesnt-work-even-with-manually-adding-shadervariants-per-scene)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
