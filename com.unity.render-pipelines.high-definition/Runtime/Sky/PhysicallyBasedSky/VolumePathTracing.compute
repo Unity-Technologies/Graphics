@@ -38,6 +38,7 @@ int _RenderSunDisk;             // bool...
 float _GroundEmissionMultiplier;
 float _SpaceEmissionMultiplier;
 uint  _DispatchThreadCount;
+uint  _DispatchWidth;
 uint  _PassIndex;
 uint  _BounceCount;
 
@@ -52,7 +53,7 @@ struct Ray
     float  frequency;
 };
 
-// 'l' is the size of the permutation vector (e.g. the number of strata per dimension).
+// 'l' is the length of the permutation vector (e.g. the number of strata per dimension).
 uint permute(uint i, uint l, uint p)
 {
     ASSERT(l != 0);
@@ -104,6 +105,8 @@ float randfloat(uint i, uint p)
     return f;
 }
 
+#define CMJ_DO_NOT_DIVIDE_BY_S
+
 // Multi-dimensional correlated multi-jittered sequence.
 // We specialize it for 6D, which means we generate s^6 points.
 float cmj6D(uint pointIndex, uint dimIndex, uint seed)
@@ -129,9 +132,7 @@ float cmj6D(uint pointIndex, uint dimIndex, uint seed)
     // This formulation is retained for comparison with the reference implementation.
     uint digits[t];
 
-    uint d; // Avoid compiler warning
-
-    uint k = i;
+    uint k = i, d = 0;
 
     // digits = toBaseS(i, s);
     for (d = 0; d < t; k /= s, d++)
@@ -157,32 +158,30 @@ float cmj6D(uint pointIndex, uint dimIndex, uint seed)
     uint  stm      = n / s; // pow(s, t - 1)
     uint  sStratum = permute(poly, stm, p2);
     float jitter   = randfloat(i, p3);
+    float result   = (stratum + (sStratum + jitter) / stm);
 
-    return (stratum + (sStratum + jitter) / stm) / s;
+#ifdef CMJ_DO_NOT_DIVIDE_BY_S
+    return result;
+#else
+    return result / s;
+#endif
 }
 
 #define GROUP_SIZE_1D 8 // 8^2 == 64
 #define GROUP_SIZE_2D (GROUP_SIZE_1D * GROUP_SIZE_1D)
-#define BLOCK_SIZE_1D 4 // 4^2 == 16
-
-// Map: 0 1 -> (0,0) (1,0)
-//      2 3 -> (0,1) (1,1)
-uint2 zSwizzle(uint v)
-{
-    return uint2(v & 1, (v >> 1) & 1); // Will also truncate the input to 2 bits
-}
+#define TILE_SIZE_1D  4 // 4^2 == 16
 
 // 1x path per thread per call.
 // Tracing multiple paths can be achieved via multiple passes (0 <= passIndex < 256).
 // Do not access globals from within a pure function.
-float3 PathTraceSky(uint2 groupCoord, uint dispatchThreadIndex, uint dispatchThreadCount,
-                    uint groupSize1D, uint blockSize1D, uint bounceCount, uint passIndex,
+float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
+                    uint2 threadCoordInGroup, uint threadCountInDispatch,
+                    uint groupSize1D, uint tileSize1D, uint bounceCount, uint passIndex,
                     float3 rayOrigin, out uint2 positionSS)
 {
-    uint blockSize2D    = blockSize1D * blockSize1D;
-    uint blocksPerGroup = Sq(groupSize1D / blockSize1D);
-
-    ASSERT(blocksPerGroup == 4);
+    uint tileSize2D      = tileSize1D * tileSize1D;
+    uint tilesPerGroup1D = groupSize1D / tileSize1D;
+    uint tilesPerGroup2D = Sq(tilesPerGroup1D);
 
     // Integral over ((1 + NumBounces) * 3) dimensions:
     // 2x for filter IS + 1x for photon frequency selection (bounce #0);
@@ -191,31 +190,41 @@ float3 PathTraceSky(uint2 groupCoord, uint dispatchThreadIndex, uint dispatchThr
 
     // We constrain our RNG to 6 dimensions.
     // We generate 4096 (4^6) paths stratified into 4 intervals per dimension.
-    // That gives us 256 spp within a 4x4 block of pixels.
+    // That gives us 256 spp within a 4x4 tile of pixels.
     // The stratification properties of Orthogonal Arrays guarantee 256 spp, but make no promises
     // about the uniformity of the distribution within each individual pixel (or stratum).
+    // TODO: it seems we get between 249-257 spp. Floating-point issue?
     // As for the order of generated points, every single pass produces 1spp on average,
     // but this could mean several samples for one pixel and 0 for another.
     // Therefore, we must use atomics for accumulation.
-    uint blockIndex       = dispatchThreadIndex / blockSize2D;
-    uint blockCount       = dispatchThreadCount / blockSize2D;
-    uint blockThreadIndex = dispatchThreadCount % blockSize2D;
+    uint2 tileCoordInGroup    = threadCoordInGroup / tileSize1D;
+    uint  tileIndexInGroup    = tileCoordInGroup.y * tilesPerGroup1D + tileCoordInGroup.x;
+    uint  tileIndexInDispatch = groupIndexInDispatch * tilesPerGroup2D + tileIndexInGroup;
+    uint  tileCountInDispatch = threadCountInDispatch / tileSize2D;
+    uint2 threadCoordInTile   = threadCoordInGroup % tileSize1D;
+    uint  threadIndexInTile   = threadCoordInTile.y * tileSize1D + threadCoordInTile.x;
 
-    // We generate a unique point set per block every 2 bounces.
+    // We generate a unique point set per tile every 2 bounces.
     uint   bounce     = 0;
-    uint   seed       = permute(blockIndex, blockCount, s_RandomPrimes[bounce / 2]); // Shuffle the blocks
-    uint   pointIndex = blockSize2D * passIndex + blockThreadIndex; // Block of points per pass
+    uint   seed       = permute(tileIndexInDispatch, tileCountInDispatch, s_RandomPrimes[bounce / 2]); // Shuffle the tiles
+    uint   pointIndex = tileSize2D * passIndex + threadIndexInTile; // Tile of points per pass
     float3 rnd        = float3(cmj6D(pointIndex, bounce * 3 + 0, seed),
                                cmj6D(pointIndex, bounce * 3 + 1, seed),
                                cmj6D(pointIndex, bounce * 3 + 2, seed));
 
     // Determine which pixel the path contributes to.
     float2 filterOffset = rnd.xy; // TODO: do not use a box filter?
-    float2 screenCoord  = groupSize1D * groupCoord
-                        + blockSize1D * zSwizzle(blockIndex) // Assume 4 blocks per group
-                        + blockSize1D * filterOffset; // TODO: do not divide and then multiply by 4
+#ifdef CMJ_DO_NOT_DIVIDE_BY_S
+    float2 intraTileOffset = filterOffset;
+#else
+    float2 intraTileOffset = filterOffset * tileSize1D;
+#endif
 
-    positionSS = (uint2)screenCoord;
+    positionSS = groupSize1D * groupCoordInDispatch
+               + tileSize1D  * tileCoordInGroup
+               + (uint2)intraTileOffset;
+
+    float2 screenCoord = positionSS + frac(intraTileOffset);
 
     Ray ray; // Pinhole camera...
 
@@ -243,21 +252,25 @@ float3 PathTraceSky(uint2 groupCoord, uint dispatchThreadIndex, uint dispatchThr
 groupshared uint g_RadianceR[GROUP_SIZE_2D];
 groupshared uint g_RadianceG[GROUP_SIZE_2D];
 groupshared uint g_RadianceB[GROUP_SIZE_2D];
-groupshared uint g_SampleCount[GROUP_SIZE_2D];
+groupshared uint g_SampleCnt[GROUP_SIZE_2D];
 
-[numthreads(GROUP_SIZE_2D, 1, 1)]
-void main(uint2 groupCoord       : SV_GroupID,
-          uint  groupIndex       : SV_GroupIndex,
-          uint  groupThreadIndex : SV_GroupThreadID)
+[numthreads(GROUP_SIZE_1D, GROUP_SIZE_1D, 1)]
+void main(uint2 groupCoordInDispatch  : SV_GroupID,
+          uint2 threadCoordInGroup    : SV_GroupThreadID,
+          uint  threadIndexInGroup    : SV_GroupIndex,
+          uint2 threadCoordInDispatch : SV_DispatchThreadID)
 {
-    // SV_DispatchThreadID is 2D in our case, and that's not what we want.
-    uint dispatchThreadIndex = groupIndex * GROUP_SIZE_2D + groupThreadIndex;
+    if (_PassIndex > 255) return;
 
+    const uint groupIndexInDispatch = groupCoordInDispatch.y * _DispatchWidth + groupCoordInDispatch.x;
+
+    // Planet-relative coordinates.
     const float3 origin = _WorldSpaceCameraPos - _PlanetCenterPosition;
 
     uint2  outPositionSS;
-    float3 radiance = PathTraceSky(groupCoord, dispatchThreadIndex, _DispatchThreadCount,
-                                   GROUP_SIZE_1D, BLOCK_SIZE_1D, _BounceCount, _PassIndex,
+    float3 radiance = PathTraceSky(groupCoordInDispatch, groupIndexInDispatch,
+                                   threadCoordInGroup, _DispatchThreadCount,
+                                   GROUP_SIZE_1D, TILE_SIZE_1D, _BounceCount, _PassIndex,
                                    origin, outPositionSS);
 
     // Find the corresponding coordinate in the groupshared memory.
@@ -265,29 +278,28 @@ void main(uint2 groupCoord       : SV_GroupID,
                        + (outPositionSS.x % GROUP_SIZE_1D);
 
     // Full clear.
-    g_RadianceR[groupThreadIndex]   = 0;
-    g_RadianceG[groupThreadIndex]   = 0;
-    g_RadianceB[groupThreadIndex]   = 0;
-    g_SampleCount[groupThreadIndex] = 0;
+    g_RadianceR[threadIndexInGroup] = 0;
+    g_RadianceG[threadIndexInGroup] = 0;
+    g_RadianceB[threadIndexInGroup] = 0;
+    g_SampleCnt[threadIndexInGroup] = 0;
     // Partial fill.
     GroupMemoryBarrierWithGroupSync();
     InterlockedAdd(g_RadianceR[outPositionGS], round(radiance.r * 16384)); // Fixed-point
     InterlockedAdd(g_RadianceG[outPositionGS], round(radiance.g * 16384)); // Fixed-point
     InterlockedAdd(g_RadianceB[outPositionGS], round(radiance.b * 16384)); // Fixed-point
-    InterlockedAdd(g_RadianceB[outPositionGS], 1);
+    InterlockedAdd(g_SampleCnt[outPositionGS], 1);
     // Full load.
     uint sampleCount;
     GroupMemoryBarrierWithGroupSync();
-    radiance.r    = g_RadianceR[groupThreadIndex] * rcp(16384);
-    radiance.g    = g_RadianceG[groupThreadIndex] * rcp(16384);
-    radiance.b    = g_RadianceB[groupThreadIndex] * rcp(16384);
-    sampleCount   = g_SampleCount[groupThreadIndex];
-    outPositionSS = GROUP_SIZE_1D * groupCoord + uint2(groupThreadIndex % GROUP_SIZE_1D, groupThreadIndex / GROUP_SIZE_1D);
+    radiance.r  = g_RadianceR[threadIndexInGroup] * rcp(16384);
+    radiance.g  = g_RadianceG[threadIndexInGroup] * rcp(16384);
+    radiance.b  = g_RadianceB[threadIndexInGroup] * rcp(16384);
+    sampleCount = g_SampleCnt[threadIndexInGroup];
 
     // We store the sample count in the alpha channel.
-    float3 oldRadiance    = _ColorBuffer[COORD_TEXTURE2D_X(outPositionSS)].rgb;
-    float  oldSampleCount = _ColorBuffer[COORD_TEXTURE2D_X(outPositionSS)].a;
+    float3 oldRadiance    = _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].rgb;
+    float  oldSampleCount = round(_ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].a);
     float  newSampleCount = oldSampleCount + sampleCount;
     float4 newValue       = float4((oldRadiance * oldSampleCount + radiance) * rcp(max(newSampleCount, 1)), newSampleCount);
-    _ColorBuffer[COORD_TEXTURE2D_X(outPositionSS)] = newValue;
+    _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] = newValue;
 }
