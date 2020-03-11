@@ -111,6 +111,20 @@ namespace UnityEngine.Rendering.HighDefinition
             HDUtils.BlitCameraTexture(cmd, source, targets[index]);
         }
 
+        internal void PushCameraTexture(
+            CommandBuffer cmd,
+            AOVBuffers aovBufferId,
+            HDCamera camera,
+            Lazy<RTHandle> source,
+            List<RTHandle> targets
+        )
+        {
+            if (!source.IsValueCreated)
+                return;
+
+            PushCameraTexture(cmd, aovBufferId, camera, source.Value, targets);
+        }
+
         class PushCameraTexturePassData
         {
             public int                  requestIndex;
