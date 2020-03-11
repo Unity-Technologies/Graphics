@@ -104,7 +104,7 @@ The Fabric Shader allows you to render realistic fabric Materials in HDRP. You c
 
 ![](Images/HDRPFeatures-AxFShader.png)
 
-The AxF Shader supports the [X-Rite AxF](https://www.xrite.com/axf) measured Material format. The AxF importer, which is part of the [Unity Industry Bundle](https://unity.com/solutions/automotive-transportation/industry-bundle), automatically populates an AxF Material when it imports AxF Assets.
+The AxF Shader supports the [X-Rite AxF](https://www.xrite.com/axf) measured Material format. The AxF importer, available in [Unity Enterprise for Product Lifecylce](https://unity.com/products/unity-enterprise-product-lifecycle), automatically populates an AxF Material when it imports AxF Assets.
 
 ### Decal Shader
 
