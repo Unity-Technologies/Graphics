@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Renderer Feature list is now redesigned to fit more closely to the Volume Profile UI, this vastly improves UX and reliability of the Renderer Features List.
+- Default color values for Lit and SimpleLit shaders changed to white due to issues with texture based workflows.
 
 ### Fixed
 - Fixed an issue where camera stacking didn't work properly inside prefab mode. [case 1220509](https://issuetracker.unity3d.com/issues/urp-cannot-assign-overlay-cameras-to-a-camera-stack-while-in-prefab-mode)
@@ -29,6 +30,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where NullReferenceException might be thrown when creating 2D Lights. [case 1219374](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-threw-on-adding-the-light-2d-experimental-component-when-2d-render-data-not-assigned)
 - Fixed an issue where the 2D Renderer upgrader did not upgrade using the correct default material.
 - Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
+- Fixed an issue where partical shaders failed to handle Single-Pass Stereo VR rendering with Double-Wide Textures. [case 1201208](https://issuetracker.unity3d.com/issues/urp-vr-each-eye-uses-the-cameraopaquetexture-of-both-eyes-for-rendering-when-using-single-pass-rendering-mode)
+- Fixed an issue where MSAA isn't applied until eye textures are relocated by changing their resolution. [case 1197958](https://issuetracker.unity3d.com/issues/oculus-quest-oculus-go-urp-msaa-isnt-applied-until-eye-textures-are-relocated-by-changing-their-resolution)
+- Fixed an issue with a blurry settings icon. [case 1201895](https://issuetracker.unity3d.com/issues/urp-setting-icon-blurred-in-universalrendererpipelineasset)
+- Fixed an issue where rendering into RenderTexture with Single Pass Instanced renders both eyes overlapping.
+- Fixed an issue where Renderscale setting has no effect when using XRSDK.
+- Fixed an issue where renderScale != 1 or Display.main.requiresBlitToBackbuffer forced an unnecessary blit on XR.
+- Fixed an issue that causes double sRGB correction on Quest. [case 1209292](https://issuetracker.unity3d.com/product/unity/issues/guid/1209292)
+- Fixed an issue where terrain DepthOnly pass does not work for XR.
+- Fixed an issue where Shaders that used Texture Arrays and FrontFace didn't compile at build time, which caused the build to fail.
 
 ### Added
 - If Unity Editor Analytics are enabled, Universal collects anonymous data about usage of Universal. This helps the Universal team focus our efforts on the most common scenarios, and better understand the needs of our customers.
