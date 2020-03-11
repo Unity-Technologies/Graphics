@@ -122,6 +122,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportSSRTransparent;
         /// <summary>Support screen space ambient occlusion.</summary>
         public bool supportSSAO;
+        /// <summary>Support screen space global illumination.</summary>
+        public bool supportSSGI;
         /// <summary>Support subsurface scattering.</summary>
         public bool supportSubsurfaceScattering;
         /// <summary>High quality subsurface scattering.</summary>

@@ -470,6 +470,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_AmbientOcclusionSystem.InitRaytracing(this);
             }
+            // Initialize the SSGI structures
+            InitScreenSpaceGlobalIllumination();
 
             // Initialize screen space shadows
             InitializeScreenSpaceShadows();
@@ -817,6 +819,7 @@ namespace UnityEngine.Rendering.HighDefinition
             base.Dispose(disposing);
 
             ReleaseScreenSpaceShadows();
+            ReleaseScreenSpaceGlobalIllumination();
 
             if (m_RayTracingSupported)
             {
@@ -1014,11 +1017,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
-                    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
-                    cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, validIndirectDiffuse ? 1 : 0);
-
                     // Bind the camera's ray tracing frame index
                     cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, RayTracingFrameIndex(hdCamera));
+
+                    // Raise the flag only and only if SSGI is on and the ray tracing version of it
+                    bool validIndirectDiffuse = RayTracedIndirectDiffuseState(hdCamera);
+                    cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, validIndirectDiffuse ? 1 : 0);
                 }
                 cmd.SetGlobalFloat(HDShaderIDs._ContactShadowOpacity, m_ContactShadows.opacity.value);
             }
@@ -2155,7 +2159,32 @@ namespace UnityEngine.Rendering.HighDefinition
                     bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
                     if (validIndirectDiffuse)
                     {
-                        RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
+                        if (RayTracedIndirectDiffuseState(hdCamera))
+                        {
+                            RenderRayTracedIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
+                        }
+                        else
+                        {
+                            RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
+                            BindIndirectDiffuseTexture(cmd);
+                        }
+                    }
+                    else
+                    {
+                        BindBlackIndirectDiffuseTexture(cmd);
+                    }
+                }
+                else
+                {
+                    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
+                    if (validIndirectDiffuse)
+                    {
+                        RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
+                        BindIndirectDiffuseTexture(cmd);
+                    }
+                    else
+                    {
+                        BindBlackIndirectDiffuseTexture(cmd);
                     }
                 }
 
@@ -4537,6 +4566,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Texture normalBuffer = null;
             bool needDepthBuffer = false;
             Texture depthBuffer = null;
+            Texture depthBuffer1 = null;
 
             HDAdditionalCameraData acd = null;
             hdCamera.camera.TryGetComponent<HDAdditionalCameraData>(out acd);
@@ -4550,7 +4580,7 @@ namespace UnityEngine.Rendering.HighDefinition
             VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
             needNormalBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0);
             needDepthBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Depth) != 0);
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState())
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState() || ValidIndirectDiffuseState(hdCamera))
             {
                 needNormalBuffer = true;
                 needDepthBuffer = true;
@@ -4582,11 +4612,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: mainDepthBuffer.rt.graphicsFormat, dimension: TextureXR.dimension, enableRandomWrite: mainDepthBuffer.rt.enableRandomWrite, name: $"Depth History Buffer"
                     );
                 }
-
                 depthBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth) ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.Depth, Allocator, 1);
 
                 for (int i = 0; i < hdCamera.viewCount; i++)
                     cmd.CopyTexture(mainDepthBuffer, i, 0, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight, depthBuffer, i, 0, 0, 0);
+
+                RTHandle Allocator1(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+                {
+                    return rtHandleSystem.Alloc(m_SharedRTManager.ComputeDepthBufferMip1Size, TextureXR.slices, colorFormat: mainDepthBuffer.rt.graphicsFormat, dimension: TextureXR.dimension, enableRandomWrite: mainDepthBuffer.rt.enableRandomWrite, name: $"Depth History Buffer Mip 1"
+                    );
+                }
+                var mipchainInfo = m_SharedRTManager.GetDepthBufferMipChainInfo();
+                depthBuffer1 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth1) ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.Depth1, Allocator1, 1);
+                for (int i = 0; i < hdCamera.viewCount; i++)
+                    cmd.CopyTexture(mainDepthBuffer, i, 0, mipchainInfo.mipLevelOffsets[1].x, mipchainInfo.mipLevelOffsets[1].y, mipchainInfo.mipLevelSizes[1].x, mipchainInfo.mipLevelSizes[1].y, depthBuffer1, i, 0, 0, 0);
             }
 
             // Send buffers to client.

@@ -301,6 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int unity_OrthoParams = Shader.PropertyToID("unity_OrthoParams");
         public static readonly int _InvProjParam = Shader.PropertyToID("_InvProjParam");
         public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
+        public static readonly int _HalfScreenSize = Shader.PropertyToID("_HalfScreenSize");
         public static readonly int _ScreenParams = Shader.PropertyToID("_ScreenParams");
         public static readonly int _RTHandleScale = Shader.PropertyToID("_RTHandleScale");
         public static readonly int _RTHandleScaleHistory = Shader.PropertyToID("_RTHandleScaleHistory");
@@ -404,7 +405,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SsrReflectsSky                    = Shader.PropertyToID("_SsrReflectsSky");
 
         public static readonly int _DepthPyramidMipLevelOffsets       = Shader.PropertyToID("_DepthPyramidMipLevelOffsets");
-
+        public static readonly int _DepthPyramidFirstMipLevelOffset   = Shader.PropertyToID("_DepthPyramidFirstMipLevelOffset");
+        
 
         public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");
         public static readonly int _LightLayersTexture = Shader.PropertyToID("_LightLayersTexture");
@@ -700,9 +702,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracedIndirectDiffuse            = Shader.PropertyToID("_RaytracedIndirectDiffuse");
         public static readonly int _IndirectDiffuseTexture              = Shader.PropertyToID("_IndirectDiffuseTexture");
         public static readonly int _IndirectDiffuseTextureRW            = Shader.PropertyToID("_IndirectDiffuseTextureRW");
-        public static readonly int _IndirectDiffuseHitPointTextureRW    = Shader.PropertyToID("_IndirectDiffuseHitPointTextureRW");
         public static readonly int _UpscaledIndirectDiffuseTextureRW    = Shader.PropertyToID("_UpscaledIndirectDiffuseTextureRW");
-
+        public static readonly int _IndirectDiffuseHitPointTexture      = Shader.PropertyToID("_IndirectDiffuseHitPointTexture");
+        public static readonly int _IndirectDiffuseHitPointTextureRW    = Shader.PropertyToID("_IndirectDiffuseHitPointTextureRW");
+        public static readonly int _IndirectDiffuseThicknessScale       = Shader.PropertyToID("_IndirectDiffuseThicknessScale");
+        public static readonly int _IndirectDiffuseThicknessBias        = Shader.PropertyToID("_IndirectDiffuseThicknessBias");
+        public static readonly int _IndirectDiffuseSteps                = Shader.PropertyToID("_IndirectDiffuseSteps");
+        public static readonly int _IndirectDiffuseMaximalRadius        = Shader.PropertyToID("_IndirectDiffuseMaximalRadius");
+        public static readonly int _InputNoisyBuffer                    = Shader.PropertyToID("_InputNoisyBuffer");
+        public static readonly int _OutputFilteredBuffer                = Shader.PropertyToID("_OutputFilteredBuffer");
+        public static readonly int _LowResolutionTexture                = Shader.PropertyToID("_LowResolutionTexture");
+        public static readonly int _OutputUpscaledTexture               = Shader.PropertyToID("_OutputUpscaledTexture");
+        public static readonly int _IndirectDiffuseSpatialFilter        = Shader.PropertyToID("_IndirectDiffuseSpatialFilter");
+        
         // Deferred Lighting
         public static readonly int _RaytracingLitBufferRW           = Shader.PropertyToID("_RaytracingLitBufferRW");
         public static readonly int _RaytracingDiffuseRay            = Shader.PropertyToID("_RaytracingDiffuseRay");

@@ -409,6 +409,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 #endif
+    
+    // Add the contribution of SSGI, when SSGI id disabled this is black.
+    builtinData.bakeDiffuseLighting += LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz;
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
