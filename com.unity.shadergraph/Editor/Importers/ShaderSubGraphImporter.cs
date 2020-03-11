@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -38,10 +39,15 @@ namespace UnityEditor.ShaderGraph
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
             graphAsset.assetGuid = subGraphGuid;
             var textGraph = File.ReadAllText(subGraphPath, Encoding.UTF8);
-            var graphData = new GraphData { isSubGraph = true, assetGuid = subGraphGuid };
+            if (!textGraph.StartsWith("{\n    \"MonoBehaviour\":"))
+            {
+                textGraph = $"{{\"MonoBehaviour\":{{\"m_Type\":\"{typeof(GraphData).FullName}\",{textGraph.Substring(textGraph.IndexOf("{")+1)}}}";
+            }
+            var graphData = MultiJson.Deserialize<GraphData>(textGraph);
+            graphData.isSubGraph = true;
+            graphData.assetGuid = subGraphGuid;
             var messageManager = new MessageManager();
             graphData.messageManager = messageManager;
-            JsonUtility.FromJsonOverwrite(textGraph, graphData);
 
             try
             {

@@ -9,6 +9,7 @@ using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
@@ -87,7 +88,11 @@ Shader ""Hidden/GraphErrorShader2""
             UnityEngine.Object mainObject;
 
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            GraphData graph = JsonUtility.FromJson<GraphData>(textGraph);
+            if (!textGraph.StartsWith("{\n    \"MonoBehaviour\":"))
+            {
+                textGraph = $"{{\"MonoBehaviour\":{{\"m_Type\":\"{typeof(GraphData).FullName}\",{textGraph.Substring(textGraph.IndexOf("{")+1)}}}";
+            }
+            var graph = MultiJson.Deserialize<GraphData>(textGraph);
             graph.messageManager = new MessageManager();
             graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
             graph.OnEnable();
@@ -180,7 +185,11 @@ Shader ""Hidden/GraphErrorShader2""
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, out GraphData graph)
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            graph = JsonUtility.FromJson<GraphData>(textGraph);
+            if (!textGraph.StartsWith("{\n    \"MonoBehaviour\":"))
+            {
+                textGraph = $"{{\"MonoBehaviour\":{{\"m_Type\":\"{typeof(GraphData).FullName}\",{textGraph.Substring(textGraph.IndexOf("{")+1)}}}";
+            }
+            graph = MultiJson.Deserialize<GraphData>(textGraph);
             graph.messageManager = new MessageManager();
             graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
             graph.OnEnable();
@@ -192,7 +201,7 @@ Shader ""Hidden/GraphErrorShader2""
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            GraphData graph = JsonUtility.FromJson<GraphData>(textGraph);
+            GraphData graph = MultiJson.Deserialize<GraphData>(textGraph);
             graph.messageManager = new MessageManager();
             graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
             graph.OnEnable();
