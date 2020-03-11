@@ -9,7 +9,7 @@
 // Adjust UVs using the LOD padding size
 float2 RemapUVWithPadding(float2 coord, float2 size, float rcpPaddingWidth, float lod)
 {
-    float2 scale = rcp(size + rcpPaddingWidth) * size;
+    float2 scale  = rcp(size + rcpPaddingWidth) * size;
     float2 offset = 0.5 * (1.0 - scale);
 
     // Avoid edge bleeding for texture when sampling with lod by clamping uvs:
@@ -20,8 +20,8 @@ float2 RemapUVWithPadding(float2 coord, float2 size, float rcpPaddingWidth, floa
 // Used by directional, spots and area lights.
 float3 SampleCookie2D(float2 coord, float4 scaleOffset, float lod = 0) // TODO: mip maps for cookies
 {
-    float2 scale        = scaleOffset.xy;
-    float2 offset       = scaleOffset.zw;
+    float2 scale    = scaleOffset.xy;
+    float2 offset   = scaleOffset.zw;
 
     // Remap the uv to take in account the padding
     coord = RemapUVWithPadding(coord, scale, COOKIE_ATLAS_RCP_PADDING, max(0, lod - COOKIE_ATLAS_LAST_VALID_MIP));

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+- Update Integration of HDRI Sky for Lux intensity
+- Added Pipeline for Importance Sampling (Marginals Generation)
 - Support Cookies for AreaLight:Disc on backing
 - Update Integration of HDRI Sky for Lux intensity
 - Ray tracing support for VR single-pass

@@ -157,7 +157,6 @@ namespace UnityEngine.Rendering
                     addon += "Add";
             break;
             case Operation.MinMax:
-                //if (channelsCount == 1)
                 preAddOn = "First";
                 addon += "MinMax";
             break;

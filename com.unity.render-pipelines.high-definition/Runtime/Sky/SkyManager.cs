@@ -574,6 +574,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     ReleaseCachedContext(updateContext.cachedSkyRenderingContextId);
+
+                    Texture skyReflection = GetReflectionTexture(updateContext);
+                    if (skyReflection != m_BlackCubemapArray)
+                    {
+                        int marginalID = ImportanceSamplers.GetIdentifier(skyReflection);
+                        ImportanceSamplers.ScheduleRelease(marginalID);
+                    }
                 }
                 else
                 {
@@ -806,6 +813,35 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
+            }
+
+            int skyID = ImportanceSamplers.GetIdentifier(reflectionTexture);
+            if (ImportanceSamplers.ExistAndReady(skyID))
+            {
+                ImportanceSamplersSystem.MarginalTextures marginals = ImportanceSamplers.GetMarginals(skyID);
+
+                cmd.SetGlobalInt    (HDShaderIDs._SkyTextureImportanceSamplerReady, 1);
+                cmd.SetGlobalVector (HDShaderIDs._SkyTextureSizeInfos,              new Vector4(
+                                                                                            marginals.conditionalMarginal.rt.height,
+                                                                                            1.0f/marginals.conditionalMarginal.rt.height,
+                                                                                            0.5f/marginals.conditionalMarginal.rt.height,
+                                                                                            0.0f
+                                                                                        ));
+                cmd.SetGlobalTexture(HDShaderIDs._SkyTextureIntegrals,              marginals.integral);
+                cmd.SetGlobalTexture(HDShaderIDs._SkyTextureMarginals,              marginals.marginal);
+                cmd.SetGlobalTexture(HDShaderIDs._SkyTextureConditionalMarginals,   marginals.conditionalMarginal);
+            }
+            else
+            {
+                RTHandle black = TextureXR.GetBlackTextureArray();
+                cmd.SetGlobalInt    (HDShaderIDs._SkyTextureImportanceSamplerReady, 0);
+                cmd.SetGlobalVector (HDShaderIDs._SkyTextureSizeInfos,              Vector4.one);
+                cmd.SetGlobalTexture(HDShaderIDs._SkyTextureIntegrals,              black);
+                cmd.SetGlobalTexture(HDShaderIDs._SkyTextureMarginals,              black);
+                cmd.SetGlobalTexture(HDShaderIDs._SkyTextureConditionalMarginals,   black);
+
+                int cubemapID = ImportanceSamplers.GetIdentifier(reflectionTexture);
+                ImportanceSamplers.ScheduleMarginalGeneration(cubemapID, reflectionTexture);
             }
         }
 

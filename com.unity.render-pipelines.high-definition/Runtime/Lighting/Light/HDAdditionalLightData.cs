@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("lightDimmer")]
         float m_LightDimmer = 1.0f;
         /// <summary>
-        /// Get/Set the light dimmer / multiplier, between 0 and 16. 
+        /// Get/Set the light dimmer / multiplier, between 0 and 16.
         /// </summary>
         public float lightDimmer
         {
@@ -540,6 +540,44 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_AreaLightCookie = value;
+                UpdateAllLightValues();
+            }
+        }
+
+        // Optional IES for rectangular area lights
+        [SerializeField, FormerlySerializedAs("areaLightIES")]
+        Texture m_AreaLightIES = null;
+        /// <summary>
+        /// Get/Set IES texture for area lights.
+        /// </summary>
+        public Texture areaLightIES
+        {
+            get => m_AreaLightIES;
+            set
+            {
+                if (m_AreaLightIES == value)
+                    return;
+
+                m_AreaLightIES = value;
+                UpdateAllLightValues();
+            }
+        }
+
+        // Optional IES for pointlights
+        [SerializeField, FormerlySerializedAs("pointLightIES")]
+        Texture m_PointLightIES = null;
+        /// <summary>
+        /// Get/Set IES texture for area lights.
+        /// </summary>
+        public Texture pointLightIES
+        {
+            get => m_PointLightIES;
+            set
+            {
+                if (m_PointLightIES == value)
+                    return;
+
+                m_PointLightIES = value;
                 UpdateAllLightValues();
             }
         }
@@ -1354,7 +1392,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// True if the light affects volumetric fog, false otherwise 
+        /// True if the light affects volumetric fog, false otherwise
         /// </summary>
         public bool affectsVolumetric
         {

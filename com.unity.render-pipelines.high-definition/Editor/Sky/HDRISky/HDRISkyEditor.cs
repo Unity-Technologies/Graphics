@@ -3,6 +3,9 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
+using System;
+using System.Collections.Generic;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
@@ -65,7 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var hdrp = HDRenderPipeline.defaultAsset;
             if (hdrp != null)
             {
-                m_CubeToHemiLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToHemiPanoPS);
+                m_CubeToHemiLatLong         = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToHemiPanoPS);
             }
             m_ReadBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
         }
@@ -85,7 +88,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdri == null || m_CubeToHemiLatLong == null)
                 return;
 
-            // Render LatLong
             RTHandle latLongMap = RTHandles.Alloc(  4*hdri.width, hdri.width,
                                                     colorFormat: GraphicsFormat.R32G32B32A32_SFloat,
                                                     enableRandomWrite: true);
@@ -112,15 +114,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
             Color hdriIntensity = m_ReadBackTexture.GetPixel(0, 0);
 
+            // (2.0f*PI)*(0.5f*PI) == (PI^2)
+            float coef   =                         (Mathf.PI*Mathf.PI)
+                            / // --------------------------------------------------------
+                                    ((float)(latLongMap.rt.width*latLongMap.rt.height));
+            float ref3   = (hdriIntensity.r + hdriIntensity.g + hdriIntensity.b)/3.0f;
+            float maxRef = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
+
+            m_UpperHemisphereLuxValue.value.floatValue = coef*ref3;
             m_UpperHemisphereLuxValue.value.floatValue =          Mathf.PI*Mathf.PI*Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b)
                                                         / // ----------------------------------------------------------------------------------------
                                                                             ((float)(latLongMap.rt.width*latLongMap.rt.height));
 
-            float max = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
-            if (max == 0.0f)
-                max = 1.0f;
+            if (maxRef == 0.0f)
+                maxRef = 1.0f;
 
-            m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/max, hdriIntensity.g/max, hdriIntensity.b/max);
+            m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/maxRef, hdriIntensity.g/maxRef, hdriIntensity.b/maxRef);
             m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 50% to not have too dark or too bright shadow
         }
 

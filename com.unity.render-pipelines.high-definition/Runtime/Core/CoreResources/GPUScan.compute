@@ -69,7 +69,7 @@ void KerName(uint3 id : SV_DispatchThreadID)
 #else
         uint k = id.y;
 #endif
-        const uint off = uint(_Iteration);
+        const uint off = uint(_Iteration) + 1;
 #ifdef FIRST
         VType inVal = _Input[id.xy].xx;
         _Output[id.xy] = Operation(inVal.xx, GetSample(id.xy).xx);

@@ -25,8 +25,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-
-
         enum ShadowmaskMode
         {
             ShadowMask,
@@ -712,6 +710,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 serialized.settings.DrawCookie();
 
+                if (lightType == HDLightType.Spot)
+                    // Spot & Area Light, uses the same kind of IES
+                    EditorGUILayout.ObjectField(serialized.areaLightIES, s_Styles.areaLightIES);
+                else if (lightType == HDLightType.Point) // Directional Light do not support IES
+                    EditorGUILayout.ObjectField(serialized.pointLightIES, s_Styles.pointLightIES);
+
                 // When directional light use a cookie, it can control the size
                 if (serialized.settings.cookie != null && lightType == HDLightType.Directional)
                 {
@@ -727,6 +731,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.ObjectField( serialized.areaLightCookie, s_Styles.areaLightCookie );
                 ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture);
+
+                EditorGUILayout.ObjectField( serialized.areaLightIES, s_Styles.areaLightIES );
             }
 
             if (EditorGUI.EndChangeCheck())

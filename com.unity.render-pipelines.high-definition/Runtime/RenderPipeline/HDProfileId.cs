@@ -145,6 +145,8 @@ namespace UnityEngine.Rendering.HighDefinition
         XRMirrorView,
         XRCustomMirrorView,
         XRDepthCopy,
+        BuildMaginals,
+        BuildMaginalInternal,
 
         // Low res transparency
         DownsampleDepth,

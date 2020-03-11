@@ -80,15 +80,16 @@ float GetScale(float angle)
 
     if (_preMultiplyByJacobian == 1)
     {
-        scale *= sin(angle);
+        scale *= sin(angle); // Spherical Jacobian
     }
     if (_preMultiplyByCosTheta == 1)
     {
-        scale *= cos(angle);
+        scale *= max(-cos(angle), 0.0f);
     }
     if (_preMultiplyBySolidAngle == 1)
     {
-        scale *= 0.25f*pi*pi*_Sizes.z*_Sizes.w;
+        scale *= _Sizes.z*_Sizes.w;
+        scale *= pi*pi*0.5f;
     }
 
     return scale;
@@ -96,9 +97,8 @@ float GetScale(float angle)
 
 float4 frag(v2f i) : SV_Target
 {
-    uint2 pixCoord = ((uint2) i.vertex.xy);
-
-    float3 dir = GetDir(i.texcoord.xy);
+    uint2  pixCoord = (uint2)i.vertex.xy;
+    float3 dir     = GetDir(i.texcoord.xy);
 
     float3 output;
     if (_buildPDF == 1)
@@ -108,7 +108,7 @@ float4 frag(v2f i) : SV_Target
 
     float scale = 1.0f;
     float pi    = 3.1415926535897932384626433832795f;
-    float angle = (1.0f - i.texcoord.y)*pi;
+    float angle = i.texcoord.y*pi;
 
     output *= GetScale(angle);
 
@@ -117,9 +117,8 @@ float4 frag(v2f i) : SV_Target
 
 float4 fragArray(v2f i) : SV_Target
 {
-    uint2 pixCoord = ((uint2) i.vertex.xy);
-
-    float3 dir = GetDir(i.texcoord.xy);
+    uint2  pixCoord = (uint2)i.vertex.xy;
+    float3 dir      = GetDir(i.texcoord.xy);
 
     float3 output;
     if (_buildPDF == 1)
