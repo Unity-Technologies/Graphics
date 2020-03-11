@@ -61,6 +61,10 @@ namespace UnityEditor.ShaderGraph
             var pixelSlots = FindMaterialSlotsOnNode(pass.pixelPorts, masterNode);
             var vertexSlots = FindMaterialSlotsOnNode(pass.vertexPorts, masterNode);
 
+            // Include Registry
+            var includeBuilder = new ShaderStringBuilder();
+            var includeRegistry = new IncludeRegistry(includeBuilder);
+
             // Function Registry
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
@@ -179,6 +183,7 @@ namespace UnityEditor.ShaderGraph
                 SubShaderGenerator.GenerateVertexDescriptionFunction(
                     masterNode.owner as GraphData,
                     vertexGraphFunctionBuilder,
+                    includeRegistry,
                     functionRegistry,
                     propertyCollector,
                     keywordCollector,
@@ -229,6 +234,7 @@ namespace UnityEditor.ShaderGraph
                 masterNode,
                 masterNode.owner as GraphData,
                 pixelGraphFunctionBuilder,
+                includeRegistry,
                 functionRegistry,
                 propertyCollector,
                 keywordCollector,
@@ -294,6 +300,13 @@ namespace UnityEditor.ShaderGraph
                     pixelBuilder.AppendLine("// GraphPixel: <None>");
                 spliceCommands.Add("GraphPixel", pixelBuilder.ToCodeBlack());
             }
+
+            // --------------------------------------------------
+            // Graph Includes
+
+            if(includeBuilder.length == 0)
+                includeBuilder.AppendLine("// GraphIncludes: <None>");
+            spliceCommands.Add("GraphIncludes", includeBuilder.ToCodeBlack());            
 
             // --------------------------------------------------
             // Graph Functions

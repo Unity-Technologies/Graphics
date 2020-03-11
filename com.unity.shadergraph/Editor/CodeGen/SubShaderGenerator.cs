@@ -69,6 +69,9 @@ namespace UnityEditor.ShaderGraph
             var shaderKeywordDeclarations = new ShaderStringBuilder();
             var shaderKeywordPermutations = new ShaderStringBuilder(1);
 
+            var includeBuilder = new ShaderStringBuilder();
+            var includeRegistry = new IncludeRegistry(includeBuilder);
+
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -196,6 +199,7 @@ namespace UnityEditor.ShaderGraph
                 node,
                 graph,
                 surfaceDescriptionFunction,
+                includeRegistry,
                 functionRegistry,
                 shaderProperties,
                 shaderKeywords,
@@ -374,6 +378,7 @@ namespace UnityEditor.ShaderGraph
             AbstractMaterialNode rootNode,
             GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
+            IncludeRegistry includeRegistry,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
@@ -395,11 +400,12 @@ namespace UnityEditor.ShaderGraph
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
                 for(int i = 0; i < nodes.Count; i++)
                 {
-                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], includeRegistry, functionRegistry, surfaceDescriptionFunction,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }
 
+                includeRegistry.builder.currentNode = null;
                 functionRegistry.builder.currentNode = null;
                 surfaceDescriptionFunction.currentNode = null;
 
@@ -413,6 +419,7 @@ namespace UnityEditor.ShaderGraph
         static void GenerateDescriptionForNode(
             AbstractMaterialNode activeNode,
             List<int> keywordPermutations,
+            IncludeRegistry includeRegistry,
             FunctionRegistry functionRegistry,
             ShaderStringBuilder descriptionFunction,
             PropertyCollector shaderProperties,
@@ -420,13 +427,19 @@ namespace UnityEditor.ShaderGraph
             GraphData graph,
             GenerationMode mode)
         {
+            if (activeNode is IGeneratesInclude includeNode)
+            {
+                includeRegistry.builder.currentNode = activeNode;
+                includeNode.GenerateNodeInclude(includeRegistry, mode);
+            }
+
             if (activeNode is IGeneratesFunction functionNode)
             {
                 functionRegistry.builder.currentNode = activeNode;
                 functionNode.GenerateNodeFunction(functionRegistry, mode);
                 functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
             }
-
+                       
             if (activeNode is IGeneratesBodyCode bodyNode)
             {
                 if(keywordPermutations != null)
@@ -516,6 +529,7 @@ namespace UnityEditor.ShaderGraph
         public static void GenerateVertexDescriptionFunction(
             GraphData graph,
             ShaderStringBuilder builder,
+            IncludeRegistry includeRegistry,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
@@ -539,11 +553,12 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
                 for(int i = 0; i < nodes.Count; i++)
                 {
-                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], includeRegistry, functionRegistry, builder,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }
 
+                includeRegistry.builder.currentNode = null;
                 functionRegistry.builder.currentNode = null;
                 builder.currentNode = null;
 

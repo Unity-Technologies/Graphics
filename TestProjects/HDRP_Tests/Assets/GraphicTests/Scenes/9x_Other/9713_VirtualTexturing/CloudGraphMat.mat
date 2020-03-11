@@ -44,6 +44,14 @@ Material:
         m_Texture: {fileID: 2800000, guid: 402f77c2ec784934a884d97647d9fe9b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TexStack164AE2E_164AE2E_Texture2_6:
+        m_Texture: {fileID: 2800000, guid: 312de1f115b043b42804703d66a0e4b8, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TexStack164AE2E_164AE2E_Texture_5:
+        m_Texture: {fileID: 2800000, guid: 402f77c2ec784934a884d97647d9fe9b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
     - Vector1_1EC2602A: 0.5
     - Vector1_A6D4BDE2: 0.5
