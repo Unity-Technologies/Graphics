@@ -155,6 +155,34 @@
 #   endif
 #endif
 
+// Include language header
+#if defined(SHADER_API_XBOXONE)
+#include "Packages/com.unity.render-pipelines.xboxone/ShaderLibrary/API/XBoxOne.hlsl"
+#elif defined(SHADER_API_PSSL)
+#include "Packages/com.unity.render-pipelines.ps4/ShaderLibrary/API/PSSL.hlsl"
+#elif defined(SHADER_API_D3D11)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl"
+#elif defined(SHADER_API_METAL)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Metal.hlsl"
+#elif defined(SHADER_API_VULKAN)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Vulkan.hlsl"
+#elif defined(SHADER_API_SWITCH)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Switch.hlsl"
+#elif defined(SHADER_API_GLCORE)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLCore.hlsl"
+#elif defined(SHADER_API_GLES3)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES3.hlsl"
+#elif defined(SHADER_API_GLES)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES2.hlsl"
+#else
+#error unsupported shader api
+#endif
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Validate.hlsl"
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
+
+
 #if defined(API_SUPPORTS_RENDER_PASS)
 //entry point
 #define UNITY_DECLARE_FRAMEBUFFER_INPUT(idx, type) UNITY_DECLARE_FRAMEBUFFER_INPUT_##type(idx)
@@ -198,33 +226,6 @@
 #undef TEXTURE2D_UINT_MS
 
 #endif
-
-// Include language header
-#if defined(SHADER_API_XBOXONE)
-#include "Packages/com.unity.render-pipelines.xboxone/ShaderLibrary/API/XBoxOne.hlsl"
-#elif defined(SHADER_API_PSSL)
-#include "Packages/com.unity.render-pipelines.ps4/ShaderLibrary/API/PSSL.hlsl"
-#elif defined(SHADER_API_D3D11)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl"
-#elif defined(SHADER_API_METAL)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Metal.hlsl"
-#elif defined(SHADER_API_VULKAN)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Vulkan.hlsl"
-#elif defined(SHADER_API_SWITCH)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Switch.hlsl"
-#elif defined(SHADER_API_GLCORE)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLCore.hlsl"
-#elif defined(SHADER_API_GLES3)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES3.hlsl"
-#elif defined(SHADER_API_GLES)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES2.hlsl"
-#else
-#error unsupported shader api
-#endif
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Validate.hlsl"
-
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
@@ -1170,11 +1171,11 @@ void LODDitheringTransition(uint2 fadeMaskSeed, float ditherFactor)
 // while on other APIs is in the red channel. Note that on some platform, always using the green channel might work, but is not guaranteed.
 uint GetStencilValue(uint2 stencilBufferVal)
 {
-#if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE)  
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE)
     return stencilBufferVal.y;
 #else
     return stencilBufferVal.x;
 #endif
-} 
+}
 
 #endif // UNITY_COMMON_INCLUDED
