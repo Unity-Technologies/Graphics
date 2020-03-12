@@ -969,6 +969,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MasterPreviewView?.RemoveFromHierarchy();
             CreateMasterPreview();
             ApplyMasterPreviewLayout();
+            UpdateSubWindowsVisibility();
         }
 
         void HandleEditorViewChanged(GeometryChangedEvent evt)
