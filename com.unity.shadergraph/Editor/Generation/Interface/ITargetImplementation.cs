@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Drawing;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -15,10 +16,13 @@ namespace UnityEditor.ShaderGraph
         void SetupTarget(ref TargetSetupContext context);
         void SetActiveBlocks(ref List<BlockFieldDescriptor> activeBlocks);
         ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks);
+        VisualElement GetSettings(Action onChange);
+    }
 
-        // TODO: Should we have the GUI implementation integrated in this way?
-        // TODO: Also I currently use this to rebuild the inspector
-        // TODO: How are we going to update the inspector when the data object is changed? (Sai)
-        void GetInspectorContent(PropertySheet propertySheet, Action onChange);
+    [GenerationAPI]
+    internal interface ITargetHasMetadata
+    {
+        string metadataIdentifier { get; }
+        ScriptableObject GetMetadataObject();
     }
 }

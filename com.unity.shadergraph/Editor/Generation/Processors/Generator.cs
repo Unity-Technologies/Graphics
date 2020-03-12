@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph
         {
             if(m_OutputNode is IMasterNode masterNode)
             {
-                m_TargetImplementations = m_GraphData.activeTargetImplementations.ToArray();
+                m_TargetImplementations = m_GraphData.activeGenerationTarget.activeImplementations.ToArray();
             }
             else
             {
@@ -182,7 +182,7 @@ namespace UnityEditor.ShaderGraph
             // Initiailize Collectors
             var propertyCollector = new PropertyCollector();
             var keywordCollector = new KeywordCollector();
-            m_OutputNode.owner.CollectShaderKeywords(keywordCollector, m_Mode);
+            m_GraphData.CollectShaderKeywords(keywordCollector, m_Mode);
 
             // Get upstream nodes from ShaderPass port mask
             List<AbstractMaterialNode> vertexNodes;

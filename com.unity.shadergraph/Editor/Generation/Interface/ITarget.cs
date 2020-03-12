@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine.Rendering;
-
-namespace UnityEditor.ShaderGraph
+﻿namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
     internal interface ITarget

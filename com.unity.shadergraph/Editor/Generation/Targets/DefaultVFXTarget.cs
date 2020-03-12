@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -55,9 +55,10 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
-        public void GetInspectorContent(PropertySheet propertySheet, Action onChange)
+        public VisualElement GetSettings(Action onChange)
         {
-            propertySheet.Add(new PropertyRow(new Label("Lit")), (row) =>
+            var element = new VisualElement() { name = "defaultVisualEffectSettings" };
+            element.Add(new PropertyRow(new Label("Lit")), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
@@ -72,7 +73,7 @@ namespace UnityEditor.ShaderGraph
                     });
                 });
 
-            propertySheet.Add(new PropertyRow(new Label("Alpha Test")), (row) =>
+            element.Add(new PropertyRow(new Label("Alpha Test")), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
@@ -86,6 +87,8 @@ namespace UnityEditor.ShaderGraph
                         });
                     });
                 });
+            
+            return element;
         }
     }
 }

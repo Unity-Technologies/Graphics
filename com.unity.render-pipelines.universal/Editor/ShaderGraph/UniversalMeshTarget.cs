@@ -47,9 +47,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_AddPrecomputedVelocity = false;
 
         [SerializeField]
-        bool m_DOTSInstancing = false;
-
-        [SerializeField]
         NormalDropOffSpace m_NormalDropOffSpace = NormalDropOffSpace.Tangent;
 
         public Type targetType => typeof(MeshTarget);
@@ -157,9 +154,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             };
         }
 
-        public void GetInspectorContent(PropertySheet propertySheet, Action onChange)
+        public VisualElement GetSettings(Action onChange)
         {
-            propertySheet.Add(new PropertyRow(new Label("Material")), (row) =>
+            var element = new VisualElement() { name = "universalMeshSettings" };
+            element.Add(new PropertyRow(new Label("Material")), (row) =>
                 {
                     row.Add(new EnumField(MaterialType.Lit), (field) =>
                     {
@@ -176,7 +174,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             if(m_MaterialType == MaterialType.Lit)
             {
-                propertySheet.Add(new PropertyRow(new Label("Workflow")), (row) =>
+                element.Add(new PropertyRow(new Label("Workflow")), (row) =>
                     {
                         row.Add(new EnumField(WorkflowMode.Metallic), (field) =>
                         {
@@ -192,7 +190,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     });
             }
 
-            propertySheet.Add(new PropertyRow(new Label("Surface")), (row) =>
+            element.Add(new PropertyRow(new Label("Surface")), (row) =>
                 {
                     row.Add(new EnumField(SurfaceType.Opaque), (field) =>
                     {
@@ -209,7 +207,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             if(m_SurfaceType == SurfaceType.Transparent)
             {
-                propertySheet.Add(new PropertyRow(new Label("Blend")), (row) =>
+                element.Add(new PropertyRow(new Label("Blend")), (row) =>
                     {
                         row.Add(new EnumField(AlphaMode.Additive), (field) =>
                         {
@@ -225,7 +223,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     });
             }
 
-            propertySheet.Add(new PropertyRow(new Label("Alpha Clip")), (row) =>
+            element.Add(new PropertyRow(new Label("Alpha Clip")), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
@@ -240,7 +238,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     });
                 });
 
-            propertySheet.Add(new PropertyRow(new Label("Two Sided")), (row) =>
+            element.Add(new PropertyRow(new Label("Two Sided")), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
@@ -257,7 +255,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             if(m_MaterialType == MaterialType.Lit)
             {
-                propertySheet.Add(new PropertyRow(new Label("Fragment Normal Space")), (row) =>
+                element.Add(new PropertyRow(new Label("Fragment Normal Space")), (row) =>
                     {
                         row.Add(new EnumField(NormalDropOffSpace.Tangent), (field) =>
                         {
@@ -272,6 +270,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         });
                     });
             }
+
+            return element;
         }
     }
 }

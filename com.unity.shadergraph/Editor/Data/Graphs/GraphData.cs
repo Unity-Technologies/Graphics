@@ -303,7 +303,6 @@ namespace UnityEditor.ShaderGraph
                     m_ActiveOutputNodeGuid = value;
                     m_OutputNode = null;
                     didActiveOutputNodeChange = true;
-                    UpdateTargets();
                 }
             }
         }
@@ -335,81 +334,25 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        #region Targets
-        [NonSerialized]
-        List<ITargetImplementation> m_AllImplementations;
-
-        [NonSerialized]
-        List<ITarget> m_ValidTargets = new List<ITarget>();
-
-        public List<ITarget> validTargets => m_ValidTargets;
-
-        [SerializeField]
-        int m_ActiveTargetIndex;
-
-        public int activeTargetIndex
-        {
-            get => m_ActiveTargetIndex;
-            set => m_ActiveTargetIndex = value;
-        }
-
-        public ITarget activeTarget => m_ValidTargets[m_ActiveTargetIndex];
-
-        [NonSerialized]
-        List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
-
-        public List<ITargetImplementation> validImplementations => m_ValidImplementations;
-
-        [SerializeField]
-        int m_ActiveTargetImplementationBitmask = -1;
-
-        public int activeTargetImplementationBitmask
-        {
-            get => m_ActiveTargetImplementationBitmask;
-            set => m_ActiveTargetImplementationBitmask = value;
-        }
-
-        public List<ITargetImplementation> activeTargetImplementations
-        {
-            get
-            {
-                // Return a list of all valid TargetImplementations enabled in the bitmask
-                return m_ValidImplementations.Where(s => ((1 << m_ValidImplementations.IndexOf(s)) & 
-                    m_ActiveTargetImplementationBitmask) == (1 << m_ValidImplementations.IndexOf(s))).ToList();
-            }
-        }
-        #endregion
-
         public bool didActiveOutputNodeChange { get; set; }
 
         internal delegate void SaveGraphDelegate(Shader shader, object context);
         internal static SaveGraphDelegate onSaveGraph;
 
+        #region Targets
+        List<GenerationTarget> m_GenerationTargets = new List<GenerationTarget>();
+        int m_ActiveTargetIndex;
+
+        // TODO: We should hand in the GenerationTarget during ctor
+        // TODO: But this requires preview refactors
+        public GenerationTarget activeGenerationTarget => m_GenerationTargets[m_ActiveTargetIndex];
+        #endregion
+
         public GraphData()
         {
             m_GroupItems[Guid.Empty] = new List<IGroupItem>();
             GetBlockFieldDescriptors();
-            GetTargetImplementations();
-        }
-
-        // We need to cache TargetImplementations
-        // This is for numerous reasons:
-        // - Currently we redo this reflection every target update which is wasteful
-        // - We need to have matching implementation instances here and per target data object
-        void GetTargetImplementations()
-        {
-            m_AllImplementations = new List<ITargetImplementation>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetTypesOrNothing())
-                {
-                    if (!type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type))
-                    {
-                        var implementation = (ITargetImplementation)Activator.CreateInstance(type);
-                        m_AllImplementations.Add(implementation);
-                    }
-                }
-            }
+            GetTargets();
         }
 
         void GetBlockFieldDescriptors()
@@ -434,6 +377,69 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
+        }
+
+        void GetTargets()
+        {
+            // Get all TargetImplementation types
+            var typeCollection = TypeCache.GetTypesDerivedFrom(typeof(ITarget));
+            foreach(var type in typeCollection)
+            {
+                if(!type.IsAbstract && type != typeof(PreviewTarget))
+                {
+                    // Instantiate and add TargetImplementation
+                    var target = Activator.CreateInstance(type) as ITarget;
+                    var generationTarget = new GenerationTarget(target);
+
+                    if(generationTarget.implementations.Count != 0)
+                    {
+                        m_GenerationTargets.Add(generationTarget);
+                    }
+                }
+            }
+            
+            // TODO: Get actual target index...
+            m_ActiveTargetIndex = 0;
+        }
+
+        // TODO: We should not have any View code here
+        // TODO: However, for now we dont know how the InspectorView will work
+        // TODO: So for now leave it here and dont spill the assemblies outside the method
+        public UnityEngine.UIElements.VisualElement GetSettings(Action onChange)
+        {
+            var element = new UnityEngine.UIElements.VisualElement() { name = "graphSettings" };
+
+            // Add Label
+            var targetSettingsLabel = new UnityEngine.UIElements.Label("Target Settings");
+            targetSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            element.Add(new Drawing.PropertyRow(targetSettingsLabel));
+
+            // Target Dropdown Field
+            element.Add(new Drawing.PropertyRow(new UnityEngine.UIElements.Label("Target")), (row) =>
+                {
+                    row.Add(new UnityEngine.UIElements.IMGUIContainer(() => {
+                        EditorGUI.BeginChangeCheck();
+                        m_ActiveTargetIndex = EditorGUILayout.Popup(m_ActiveTargetIndex, 
+                            m_GenerationTargets.Select(x => x.target.displayName).ToArray(), GUILayout.Width(100f));
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            UpdateActiveBlocks();
+                            onChange();
+                        }
+                    }));
+                });
+            
+            // Add a space
+            element.Add(new Drawing.PropertyRow(new UnityEngine.UIElements.Label("")));
+
+            // Add Settings for TargetImplementations
+            element.Add(activeGenerationTarget.GetSettings(() =>
+                {
+                    UpdateActiveBlocks();
+                    onChange();
+                }));
+
+            return element;
         }
 
         public void ClearChanges()
@@ -631,7 +637,7 @@ namespace UnityEditor.ShaderGraph
         {
             // Get list of active Block types
             var activeBlocks = ListPool<BlockFieldDescriptor>.Get();
-            foreach(var implementation in activeTargetImplementations)
+            foreach(var implementation in activeGenerationTarget.implementations)
             {
                 implementation.SetActiveBlocks(ref activeBlocks);
             }
@@ -1564,7 +1570,8 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
-            UpdateTargets();
+            // TODO: Do I need this?
+            UpdateActiveBlocks();
 
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
         }
@@ -1572,83 +1579,6 @@ namespace UnityEditor.ShaderGraph
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
-        }
-
-        public void UpdateTargets()
-        {
-            if(outputNode == null)
-                return;
-
-            // First get all valid TargetImplementations that are valid with the current graph
-            List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
-            foreach(var implementation in m_AllImplementations)
-            {
-                // TODO: This can probably be optimised. After moving to caching the implementation on ctor
-                // TODO: this section allocs GC just to either remove PreviewTarget or return only PreviewTarget depending on if this is a Subgraph
-                if (outputNode is SubGraphOutputNode && typeof(DefaultPreviewTarget).IsAssignableFrom(implementation.GetType()))
-                {
-                    foundImplementations.Add(implementation);
-                }
-                else if (!foundImplementations.Contains(implementation) && !typeof(DefaultPreviewTarget).IsAssignableFrom(implementation.GetType()))
-                {
-                    foundImplementations.Add(implementation);
-                }
-            }
-
-            // Next we get all Targets that have valid TargetImplementations
-            List<ITarget> foundTargets = new List<ITarget>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetTypesOrNothing())
-                {
-                    var isTarget = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITarget).IsAssignableFrom(type);
-                    if (isTarget && !foundTargets.Any(s => s.GetType() == type))
-                    {
-                        var target = (ITarget)Activator.CreateInstance(type);
-                        if(foundImplementations.Where(s => s.targetType == type).Any())
-                            foundTargets.Add(target);
-                    }
-                }
-            }
-
-            // Assembly reload, just rebuild the non-serialized lists
-            if(m_ValidTargets.Count == 0)
-            {
-                m_ValidTargets = foundTargets;
-                m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
-            }
-
-            // Active Target index has changed
-            // Still need to validate TargetImplementation bitmask
-            if(foundTargets[m_ActiveTargetIndex].GetType() != activeTarget.GetType())
-            {
-                var activeTargetInFoundList = foundTargets.Where(s => s.GetType() == activeTarget.GetType()).FirstOrDefault();
-                m_ActiveTargetIndex = foundTargets.IndexOf(activeTargetInFoundList);
-            }
-
-            m_ValidTargets = foundTargets;
-            m_ValidImplementations = foundImplementations.Where(s => s.targetType == activeTarget.GetType()).ToList();
-
-            // Nothing or Everything. No need to update bitmask.
-            if(m_ActiveTargetImplementationBitmask != 0 && m_ActiveTargetImplementationBitmask != -1)
-            {
-                // Current ITargetImplementation bitmask is set to Mixed...
-                // We need to build a new bitmask from the indicies in the new Implementation list
-                int newBitmask = 0;
-                foreach(ITargetImplementation implementation in activeTargetImplementations)
-                {
-                    var implementationInFound = foundImplementations.Where(s => s.GetType() == implementation.GetType()).FirstOrDefault();
-                    if(implementationInFound != null)
-                    {
-                        // If the new Implementation list contains this Implementation
-                        // add its new index to the bitmask
-                        newBitmask = newBitmask | (1 << foundImplementations.IndexOf(implementationInFound));
-                    }
-                }
-                m_ActiveTargetImplementationBitmask = newBitmask;
-            }
-            
-            UpdateActiveBlocks();
         }
     }
 

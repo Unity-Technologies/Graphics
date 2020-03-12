@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Drawing;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -28,8 +28,9 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
-        public void GetInspectorContent(PropertySheet propertySheet, Action onChange)
+        public VisualElement GetSettings(Action onChange)
         {
+            return null;
         }
     }
 }
