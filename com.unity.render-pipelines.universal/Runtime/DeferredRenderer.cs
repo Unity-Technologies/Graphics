@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Net.Mail;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
 
@@ -105,12 +106,12 @@ namespace UnityEngine.Rendering.Universal
             m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 2, m_DeferredLights, 0);
             m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 3, m_DeferredLights, 1);
             m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 4, m_DeferredLights);
-            m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", new ShaderTagId("UniversalForwardOnly"), true, RenderPassEvent.BeforeRenderingOpaques + 5, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+            m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", new ShaderTagId("UniversalForwardOnly"), true, RenderPassEvent.BeforeRenderingOpaques + 5, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass1 = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial);
             m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
-            m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+            m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
@@ -126,9 +127,7 @@ namespace UnityEngine.Rendering.Universal
             // string shaderProperty passed to Init() is use to refer to a texture from shader code
             m_CameraColorTexture.Init("_CameraColorTexture");
             m_CameraDepthTexture.Init("_CameraDepthTexture");
-            m_CameraDepthTexture.InitDescriptor(RenderTextureFormat.Depth);
             m_CameraDepthAttachment.Init("_CameraDepthAttachment");
-            m_CameraDepthAttachment.InitDescriptor(RenderTextureFormat.Depth);
 
             m_GBufferAttachments[0].Init("_GBuffer0");
             m_GBufferAttachments[1].Init("_GBuffer1");
@@ -234,20 +233,17 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
 
-            m_ActiveCameraColorAttachment.InitDescriptor(cameraTargetDescriptor.graphicsFormat);
-            m_ActiveCameraDepthAttachment.InitDescriptor(RenderTextureFormat.Depth);
-
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
-            m_CameraColorTexture.InitDescriptor(cameraTargetDescriptor.graphicsFormat);
 
-            m_CameraColorTexture.ConfigureLoadStoreActions(RenderBufferStoreAction.Store, RenderBufferLoadAction.Clear);
-            m_CameraDepthAttachment.ConfigureLoadStoreActions(RenderBufferStoreAction.Store, RenderBufferLoadAction.Clear);
+            var m_CameraColorDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
+            m_CameraColorDescriptor.ConfigureTarget(m_CameraColorTexture.Identifier(), true, true);
+            var m_CameraDepthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
+            m_CameraDepthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), true, true);
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
-                rendererFeatures[i].SetFeatureColorTarget(m_CameraColorTexture);
-                rendererFeatures[i].SetFeatureDepthTarget(m_CameraDepthAttachment);
+                rendererFeatures[i].SetFeatureColorTarget(m_CameraColorDescriptor, m_CameraDepthDescriptor);
             }
 
             int count = activeRenderPassQueue.Count;
@@ -286,13 +282,11 @@ namespace UnityEngine.Rendering.Universal
             #region RenderPass2
 
 			bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
-            m_CameraColorTexture.InitDescriptor(cameraTargetDescriptor.graphicsFormat);
-            m_CameraColorTexture.ConfigureLoadStoreActions(RenderBufferStoreAction.Store, RenderBufferLoadAction.Load);
 
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
             {
                 // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
-                m_DrawSkyboxPass.ConfigureTarget(m_CameraColorTexture, m_CameraDepthAttachment);
+                m_DrawSkyboxPass.ConfigureTarget(m_CameraColorDescriptor, m_CameraDepthDescriptor);
                 m_DrawSkyboxPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
                 EnqueuePass(m_DrawSkyboxPass);
             }
@@ -306,10 +300,12 @@ namespace UnityEngine.Rendering.Universal
 
                 m_CopyColorPass.Setup(m_CameraColorTexture, m_OpaqueColor, downsamplingMethod);
                 m_CopyColorPass.Configure(cmd, cameraTargetDescriptor);
-
+                var opaqueDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
+                opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, false);
+                opaqueDescriptor.ConfigureClear(Color.black, 1, 0);
                 m_CopyColorPass.inputAttachments.Clear();
-                m_CopyColorPass.ConfigureInputAttachment(m_CameraColorTexture, 0);
-                m_CopyColorPass.ConfigureTarget(m_OpaqueColor);
+                m_CopyColorPass.ConfigureInputAttachment(m_CameraColorDescriptor);
+                m_CopyColorPass.ConfigureTarget(opaqueDescriptor);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -321,8 +317,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 EnqueuePass(m_TransparentSettingsPass); // Only toggle shader keywords for shadow receivers
             }
-            //TODO: particles are not rendered due to no _CameraDepthTexture, so renderPass it
-            m_RenderTransparentForwardPass.ConfigureTarget(m_CameraColorTexture, m_CameraDepthAttachment);
+
+            m_RenderTransparentForwardPass.ConfigureTarget(m_CameraColorDescriptor, m_CameraDepthDescriptor);
             m_RenderTransparentForwardPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
 
             EnqueuePass(m_RenderTransparentForwardPass);
@@ -457,6 +453,9 @@ namespace UnityEngine.Rendering.Universal
         void EnqueueDeferred(ref RenderingData renderingData, bool requiresDepthPrepass, ScriptableRenderContext context, ref CommandBuffer cmd)
         {
             var desc = renderingData.cameraData.cameraTargetDescriptor;
+            var depthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
+            depthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), false, true);
+            depthDescriptor.ConfigureClear(Color.black, 1, 0);
             if (requiresDepthPrepass)
             {
                 m_DepthPrepass.Setup(desc, m_CameraDepthTexture);
@@ -470,28 +469,28 @@ namespace UnityEngine.Rendering.Universal
 //#else
 //                                                                                  1];
 //#endif
-
+            AttachmentDescriptor[] gbufferDescriptors = new AttachmentDescriptor[gbufferColorAttachments.Length];
             for (int gbufferIndex = 0; gbufferIndex < k_GBufferSlicesCount; ++gbufferIndex)
             {
                 gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
-                gbufferColorAttachments[gbufferIndex].InitDescriptor(renderingData.cameraData.cameraTargetDescriptor.graphicsFormat);
-                gbufferColorAttachments[gbufferIndex]
-                    .InitDescriptor(renderingData.cameraData.cameraTargetDescriptor.graphicsFormat);
-                gbufferColorAttachments[gbufferIndex].ConfigureLoadStoreActions(RenderBufferStoreAction.DontCare, RenderBufferLoadAction.Clear);
+                gbufferDescriptors[gbufferIndex] = new AttachmentDescriptor(renderingData.cameraData.cameraTargetDescriptor.graphicsFormat);
+                gbufferDescriptors[gbufferIndex].ConfigureTarget(gbufferColorAttachments[gbufferIndex].Identifier(), false, false);
+                gbufferDescriptors[gbufferIndex].ConfigureClear(Color.black, 1, 0);
             }
 
             gbufferColorAttachments[k_GBufferSlicesCount] = m_CameraColorTexture; // the last slice is the lighting buffer created in DeferredRenderer.cs
+            gbufferDescriptors[k_GBufferSlicesCount].ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), false, true);
+            gbufferDescriptors[k_GBufferSlicesCount].ConfigureClear(Color.black, 1, 0);//#endif
 
 //#if UNITY_IOS && !UNITY_EDITOR
-            gbufferColorAttachments[k_GBufferSlicesCount + 1].InitDescriptor(GraphicsFormat.R32_SFloat); // the last slice is the lighting buffer created in DeferredRenderer.cs
-            gbufferColorAttachments[k_GBufferSlicesCount + 1].ConfigureLoadStoreActions(RenderBufferStoreAction.DontCare, RenderBufferLoadAction.Clear);
-//#endif
-
+            gbufferDescriptors[k_GBufferSlicesCount + 1] = new AttachmentDescriptor(GraphicsFormat.R32_SFloat);
+            gbufferDescriptors[k_GBufferSlicesCount + 1].ConfigureTarget(gbufferColorAttachments[k_GBufferSlicesCount + 1].Identifier(), false, false);
+            gbufferDescriptors[k_GBufferSlicesCount + 1].ConfigureClear(Color.black, 1, 0);//#endif
+            m_GBufferPass.ConfigureTarget(gbufferDescriptors, depthDescriptor);
             m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, requiresDepthPrepass);
             m_GBufferPass.Configure(cmd, desc);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
-            m_GBufferPass.ConfigureTarget(gbufferColorAttachments, m_CameraDepthAttachment);
 
             EnqueuePass(m_GBufferPass);
 
@@ -514,15 +513,12 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_TileDepthRangeExtraPass);
             }
             m_DeferredPass.Configure(cmd, desc);
-
-            m_DeferredPass.inputAttachments.Clear();
-            m_DeferredPass.ConfigureInputAttachment(gbufferColorAttachments[0], 0);
-            m_DeferredPass.ConfigureInputAttachment(gbufferColorAttachments[1], 1);
-            m_DeferredPass.ConfigureInputAttachment(gbufferColorAttachments[2], 2);
+            m_DeferredPass.ConfigureTarget(gbufferDescriptors[k_GBufferSlicesCount]);
+            m_DeferredPass.ConfigureInputAttachment(new[] {gbufferDescriptors[0], gbufferDescriptors[1], gbufferDescriptors[2]
 //#if UNITY_IOS && !UNITY_EDITOR
-            m_DeferredPass.ConfigureInputAttachment(gbufferColorAttachments[4], 3);
+                , gbufferDescriptors[4]});
 //#else
-//            m_DeferredPass.ConfigureInputAttachment(m_GBufferPass.depthAttachment, 3);
+//            });
 //#endif
 
             EnqueuePass(m_DeferredPass);

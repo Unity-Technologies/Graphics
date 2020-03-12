@@ -493,12 +493,11 @@ namespace UnityEngine.Rendering.Universal
                 {
                     int depthAttachmentIdx = -1;
                     var desc = renderPass.renderPassDescriptor;
-                    var colorCount = RenderingUtils.GetValidColorBufferCount(renderPass.colorAttachments);
+                    var colorCount = RenderingUtils.GetValidAttachmentCount(renderPass.colorAttachmentDescriptors);
 
                     NativeArray<int> indices =
-                        new NativeArray<int>((int)colorCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                    NativeArray<int> inputIndices =
-                        new NativeArray<int>(renderPass.inputAttachments.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                        new NativeArray<int>((int)colorCount, Allocator.Temp);
+                    NativeArray<int> inputIndices = new NativeArray<int>(0, Allocator.Temp);
 
                     if (!renderPassStarted)
                     {
@@ -509,28 +508,25 @@ namespace UnityEngine.Rendering.Universal
                             var rp = m_ActiveRenderPassQueue[rpIdx];
                             if (!rp.useNativeRenderPass)
                                 continue;
-                            //TODO: MRT actions, for the time being it needs to be done per additional attachment in the *Renderer.cs
-                            if (rp.m_LoadAction != RenderBufferLoadAction.DontCare && rp.m_StoreAction != RenderBufferStoreAction.DontCare)
+
+                            for (int i = 0; i < rp.colorAttachmentDescriptors.Length; i++)
                             {
-                                rp.m_ColorAttachments[0].InitDescriptor(RenderTextureFormat.Default); //TODO HDR and other stuff
-                                rp.m_ColorAttachments[0].ConfigureLoadStoreActions(rp.m_StoreAction, rp.m_LoadAction);
-                                rp.m_DepthAttachment.InitDescriptor(RenderTextureFormat.Depth);
-                                rp.m_DepthAttachment.ConfigureLoadStoreActions(rp.m_StoreAction, rp.m_LoadAction);
+                                if (rp.colorAttachmentDescriptors[i].loadStoreTarget == BuiltinRenderTextureType.None) //First invalid means we are done with the attachments
+                                    break;
+                                attachmentSet.Add(rp.colorAttachmentDescriptors[i]);
                             }
 
-                            for (int i = 0; i < rp.colorAttachments.Length; i++)
+                            if (rp.hasInputAttachment)
                             {
-                                if (rp.colorAttachments[i].id == -2) //First invalid means we are done with the attachments
-                                    break;
-                                attachmentSet.Add(rp.colorAttachments[i].targetDescriptor);
+                                for (int i = 0; i < rp.inputAttachmentDescriptors.Length; i++)
+                                {
+                                    attachmentSet.Add(rp.inputAttachmentDescriptors[i]);
+                                }
                             }
-                            for (int i = 0; i < rp.inputAttachments.Count; i++)
+
+                            if (rp.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None && depthAttachmentIdx == -1)
                             {
-                                attachmentSet.Add(rp.inputAttachments[i].targetDescriptor);
-                            }
-                            if (rp.depthAttachment.targetDescriptor.graphicsFormat != GraphicsFormat.None && depthAttachmentIdx == -1)
-                            {
-                                attachmentSet.Add(rp.depthAttachment.targetDescriptor);
+                                attachmentSet.Add(rp.depthAttachmentDescriptor);
                                 depthAttachmentIdx = attachmentSet.Count - 1; //This might be bad, but leaving for the time being
                             }
                         }
@@ -542,7 +538,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         for (int j = 0; j < descriptors.Length; j++)
                         {
-                            if (renderPass.colorAttachments[i].targetDescriptor == descriptors[j])
+                            if (renderPass.colorAttachmentDescriptors[i] == descriptors[j])
                             {
                                 indices[i] = j;
                                 break;
@@ -551,11 +547,12 @@ namespace UnityEngine.Rendering.Universal
                     }
                     if (renderPass.hasInputAttachment)
                     {
-                        for (int i = 0; i < renderPass.inputAttachments.Count; i++)
+                        inputIndices = new NativeArray<int>(renderPass.inputAttachmentDescriptors.Length, Allocator.Temp);
+                        for (int i = 0; i < renderPass.inputAttachmentDescriptors.Length; i++)
                         {
                             for (int j = 0; j < descriptors.Length; j++)
                             {
-                                if (renderPass.inputAttachments[i].targetDescriptor == descriptors[j])
+                                if (renderPass.inputAttachmentDescriptors[i] == descriptors[j])
                                 {
                                     inputIndices[i] = j;
                                     break;
@@ -567,6 +564,11 @@ namespace UnityEngine.Rendering.Universal
                     //Start the RenderPass
                     if (!renderPassStarted)
                     {
+                        if (descriptors.Length >= 8)
+                        {
+                            Debug.LogError("color attachment count is too damn high");
+                            break;
+                        }
                         context.BeginRenderPass(desc.width, desc.height, desc.sampleCount, descriptors, depthAttachmentIdx);
                         descriptors.Dispose();
                         renderPassStarted = true;

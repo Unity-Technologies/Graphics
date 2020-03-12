@@ -21,8 +21,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
-            m_LoadAction = RenderBufferLoadAction.Clear;
-            m_StoreAction = RenderBufferStoreAction.Store;
         }
 
         // ScriptableRenderPass

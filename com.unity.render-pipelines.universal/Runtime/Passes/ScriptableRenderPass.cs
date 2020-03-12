@@ -46,9 +46,28 @@ namespace UnityEngine.Rendering.Universal
             get => m_ColorAttachments[0];
         }
 
+        public AttachmentDescriptor[] colorAttachmentDescriptors
+        {
+            get => m_ColorAttachmentDescriptors;
+        }
+
+        public AttachmentDescriptor colorAttachmentDescriptor
+        {
+            get => m_ColorAttachmentDescriptors[0];
+        }
         public List<RenderTargetHandle> inputAttachments
         {
             get => m_InputAttachments;
+        }
+
+        public AttachmentDescriptor[] inputAttachmentDescriptors
+        {
+            get => m_InputAttachmentDescriptors;
+        }
+
+        public AttachmentDescriptor depthAttachmentDescriptor
+        {
+            get => m_DepthAttachmentDescriptor;
         }
 
         public RenderTargetHandle depthAttachment
@@ -81,12 +100,17 @@ namespace UnityEngine.Rendering.Universal
 
         internal RenderTargetHandle[] m_ColorAttachments = new RenderTargetHandle[] { RenderTargetHandle.CameraTarget };
         internal List<RenderTargetHandle> m_InputAttachments = new List<RenderTargetHandle>(0);
+        internal AttachmentDescriptor[] m_ColorAttachmentDescriptors = new AttachmentDescriptor[8];
+        internal AttachmentDescriptor m_DepthAttachmentDescriptor;
+        internal AttachmentDescriptor[] m_InputAttachmentDescriptors;
         internal RenderTargetHandle m_DepthAttachment;// = RenderTargetHandle.CameraTarget;
         RenderPassDescriptor m_RenderPassDescriptor;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
         internal RenderBufferLoadAction m_LoadAction = RenderBufferLoadAction.DontCare;
         internal RenderBufferStoreAction m_StoreAction = RenderBufferStoreAction.DontCare;
+
+        public static AttachmentDescriptor EmptyAttachment = new AttachmentDescriptor();
 
         public ScriptableRenderPass()
         {
@@ -99,6 +123,7 @@ namespace UnityEngine.Rendering.Universal
             isBlitRenderPass = false;
             hasInputAttachment = false;
             useNativeRenderPass = false;
+            EmptyAttachment.ConfigureTarget(BuiltinRenderTextureType.None, false, false);
             eyeIndex = 0;
         }
 
@@ -122,7 +147,11 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = depthAttachment;
             ConfigureTarget(colorAttachment);
         }
-
+        public void ConfigureTarget(AttachmentDescriptor colorAttachment, AttachmentDescriptor depthAttachment)
+        {
+            m_DepthAttachmentDescriptor = depthAttachment;
+            ConfigureTarget(colorAttachment);
+        }
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
@@ -143,7 +172,19 @@ namespace UnityEngine.Rendering.Universal
             m_ColorAttachments = colorAttachments;
             m_DepthAttachment = depthAttachment;
         }
+        public void ConfigureTarget(AttachmentDescriptor[] colorAttachments, AttachmentDescriptor depthAttachment)
+        {
+            overrideCameraTarget = true;
 
+            uint nonNullColorBuffers = RenderingUtils.GetValidAttachmentCount(colorAttachments);
+            if (nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
+                Debug.LogError("Trying to set " + nonNullColorBuffers +
+                               " renderTargets, which is more than the maximum supported:" +
+                               SystemInfo.supportedRenderTargetCount);
+
+            m_ColorAttachmentDescriptors = colorAttachments;
+            m_DepthAttachmentDescriptor = depthAttachment;
+        }
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
@@ -159,6 +200,13 @@ namespace UnityEngine.Rendering.Universal
                 m_ColorAttachments[i] = RenderTargetHandle.Empty;
         }
 
+        public void ConfigureTarget(AttachmentDescriptor attachment)
+        {
+            m_ColorAttachmentDescriptors[0] = attachment;
+            for (int i = 1; i < m_ColorAttachmentDescriptors.Length; ++i)
+                m_ColorAttachmentDescriptors[i] = EmptyAttachment;
+        }
+
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
@@ -169,7 +217,10 @@ namespace UnityEngine.Rendering.Universal
         {
             ConfigureTarget(colorAttachments, RenderTargetHandle.CameraTarget);
         }
-
+        public void ConfigureTarget(AttachmentDescriptor[] colorAttachments)
+        {
+            ConfigureTarget(colorAttachments, EmptyAttachment);
+        }
         /// <summary>
         /// Configures clearing for the render targets for this render pass. Call this inside Configure.
         /// </summary>
@@ -185,6 +236,18 @@ namespace UnityEngine.Rendering.Universal
         internal void ConfigureDepthAttachment(RenderTargetHandle target)
         {
             m_DepthAttachment = target;
+        }
+
+        internal void ConfigureInputAttachment(AttachmentDescriptor input)
+        {
+            hasInputAttachment = true;
+            m_InputAttachmentDescriptors = new AttachmentDescriptor[] { input };
+        }
+
+        internal void ConfigureInputAttachment(AttachmentDescriptor[] inputs)
+        {
+            hasInputAttachment = true;
+            m_InputAttachmentDescriptors = inputs;
         }
 
         internal void ConfigureInputAttachment(RenderTargetHandle input, int idx = 0/*Maybe we should not make this implicit?*/)

@@ -33,8 +33,7 @@ namespace UnityEngine.Rendering.Universal
             Create();
         }
 
-        public abstract void SetFeatureColorTarget(RenderTargetHandle color);
+        public abstract void SetFeatureColorTarget(AttachmentDescriptor color, AttachmentDescriptor depth);
 
-        public abstract void SetFeatureDepthTarget(RenderTargetHandle depth);
     }
 }
