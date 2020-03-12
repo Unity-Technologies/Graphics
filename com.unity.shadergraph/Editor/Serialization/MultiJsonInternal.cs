@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         internal static bool isDeserializing;
 
-        internal static readonly Dictionary<string, JsonObject> instanceMap = new Dictionary<string, JsonObject>();
+        internal static readonly Dictionary<string, JsonObject> valueMap = new Dictionary<string, JsonObject>();
 
         static List<MultiJsonEntry> s_Entries;
 
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                 throw new InvalidOperationException("Can only Enqueue during JsonObject.OnAfterDeserialize.");
             }
 
-            instanceMap.Add(jsonObject.id, jsonObject);
+            valueMap.Add(jsonObject.id, jsonObject);
             s_Entries.Add(new MultiJsonEntry(jsonObject.GetType().FullName, jsonObject.id, json));
         }
 
@@ -121,13 +121,13 @@ namespace UnityEditor.ShaderGraph.Serialization
                     var entry = entries[index];
                     try
                     {
-                        var instance = CreateInstance(entry.type);
+                        var value = CreateInstance(entry.type);
                         if (entry.id == null)
                         {
-                            entries[index] = entry = new MultiJsonEntry(entry.type, instance.id, entry.json);
+                            entries[index] = entry = new MultiJsonEntry(entry.type, value.id, entry.json);
                         }
 
-                        instanceMap[entry.id] = instance;
+                        valueMap[entry.id] = value;
                     }
                     catch (Exception e)
                     {
@@ -146,11 +146,11 @@ namespace UnityEditor.ShaderGraph.Serialization
                     var entry = entries[i];
                     try
                     {
-                        var instance = instanceMap[entry.id];
-                        var fakeType = typeof(FakeScriptableObject<>).MakeGenericType(instance.GetType());
-                        var fake = Activator.CreateInstance(fakeType, instance);
+                        var value = valueMap[entry.id];
+                        var fakeType = typeof(FakeScriptableObject<>).MakeGenericType(value.GetType());
+                        var fake = Activator.CreateInstance(fakeType, value);
                         EditorJsonUtility.FromJsonOverwrite(entry.json, fake);
-                        instance.OnAfterDeserialize(entry.json);
+                        value.OnAfterDeserialize(entry.json);
                     }
                     catch (Exception e)
                     {
@@ -164,8 +164,8 @@ namespace UnityEditor.ShaderGraph.Serialization
                 {
                     try
                     {
-                        var instance = instanceMap[entry.id];
-                        instance.OnAfterMultiDeserialize(entry.json);
+                        var value = valueMap[entry.id];
+                        value.OnAfterMultiDeserialize(entry.json);
                     }
                     catch (Exception e)
                     {
@@ -173,11 +173,11 @@ namespace UnityEditor.ShaderGraph.Serialization
                     }
                 }
 
-                return instanceMap[entries[0].id];
+                return valueMap[entries[0].id];
             }
             finally
             {
-                instanceMap.Clear();
+                valueMap.Clear();
                 isDeserializing = false;
             }
         }
@@ -201,11 +201,11 @@ namespace UnityEditor.ShaderGraph.Serialization
                 // Not a foreach because the queue is populated by `JsonRef<T>`s as we go.
                 for (var i = 0; i < serializationQueue.Count; i++)
                 {
-                    var instance = serializationQueue[i];
-                    var fakeType = typeof(FakeScriptableObject<>).MakeGenericType(instance.GetType());
-                    var fake = Activator.CreateInstance(fakeType, instance);
+                    var value = serializationQueue[i];
+                    var fakeType = typeof(FakeScriptableObject<>).MakeGenericType(value.GetType());
+                    var fake = Activator.CreateInstance(fakeType, value);
                     var json = EditorJsonUtility.ToJson(fake, true);
-                    idJsonList.Add((instance.id, json));
+                    idJsonList.Add((value.id, json));
                 }
 
                 idJsonList.Sort((x, y) =>

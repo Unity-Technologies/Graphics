@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 try
                 {
-                    m_Value = (T)MultiJsonInternal.instanceMap[m_Id];
+                    m_Value = (T)MultiJsonInternal.valueMap[m_Id];
                 }
                 catch (Exception e)
                 {
