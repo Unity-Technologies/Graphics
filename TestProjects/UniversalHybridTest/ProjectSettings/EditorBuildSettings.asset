@@ -29,16 +29,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SampleScenes/TestFarAwayFromOrigin.unity
     guid: f4cbc7d5e8bdf0d44af228513401cac3
-  - enabled: 1
-    path: Assets/StressTestScenes/BigBatches/StressTestGameObjects.unity
-    guid: 3f5cee5e619a1a544b711b7d1a7b409a
-  - enabled: 1
-    path: Assets/StressTestScenes/BigBatches/StressTestHybrid.unity
-    guid: 91c6bd0eb9c10634a9e19714d1bf7e20
-  - enabled: 1
-    path: Assets/StressTestScenes/BigBatches/StressTestGameObjectsSingleMaterial.unity
-    guid: 3d98b4d5d921bcb48941c2fa13bf76f8
-  - enabled: 1
-    path: Assets/StressTestScenes/BigBatches/StressTestHybridWithDisabledRendering.unity
-    guid: ad050540b81b3be488c9c3f3b13871e7
   m_configObjects: {}
