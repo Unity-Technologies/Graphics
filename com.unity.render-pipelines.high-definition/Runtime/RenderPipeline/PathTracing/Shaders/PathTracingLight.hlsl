@@ -9,6 +9,7 @@
 struct LightList
 {
     uint  localCount;
+    uint  localPointCount;
     uint  localIndex[MAX_LOCAL_LIGHT_COUNT];
     float localWeight;
 
@@ -16,43 +17,111 @@ struct LightList
     uint  distantIndex[MAX_DISTANT_LIGHT_COUNT];
     float distantWeight;
 
-    #ifdef USE_LIGHT_CLUSTER
+#ifdef USE_LIGHT_CLUSTER
     uint  cellIndex;
-    #endif
+#endif
 };
 
-LightList CreateLightList(float3 position, uint lightLayers)
+bool IsRectAreaLightActive(LightData lightData, float3 position, float3 normal)
+{
+    float3 lightVec = position - GetAbsolutePositionWS(lightData.positionRWS);
+
+    // Check that the shading position is in front of the light
+    float lightCos = dot(lightVec, lightData.forward);
+    if (lightCos < 0.0)
+        return false;
+
+    // Check that at least part of the light is above the tangent plane
+   float lightTangentDist = dot(normal, lightVec);
+   if (4.0 * lightTangentDist * abs(lightTangentDist) > Sq(lightData.size.x) + Sq(lightData.size.y))
+        return false;
+
+    return true;
+}
+
+bool IsPointLightActive(LightData lightData, float3 position, float3 normal)
+{
+    float3 lightVec = position - GetAbsolutePositionWS(lightData.positionRWS);
+
+    // Check that at least part of the light is above the tangent plane
+    float lightTangentDist = dot(normal, lightVec);
+    if (lightTangentDist * abs(lightTangentDist) > lightData.size.x)
+        return false;
+
+    // Offset the light position towards the back, to account for the radius,
+    // then check whether we are still within the dilated cone angle
+    float sqSinAngle = 1.0 - Sq(lightData.angleOffset / lightData.angleScale);
+    float3 lightOffset = sqrt(lightData.size.x / sqSinAngle) * lightData.forward;
+    float lightCos = dot(normalize(lightVec + lightOffset), lightData.forward);
+
+    return lightCos * lightData.angleScale + lightData.angleOffset > 0.0;
+}
+
+bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)
+{
+    return dot(normal, lightData.forward) < sin(lightData.angularDiameter * 0.5);
+}
+
+LightList CreateLightList(float3 position, float3 normal, uint lightLayers)
 {
     LightList list;
 
-    // First take care of local lights (area, point, spot)
-    list.localCount = 0;
-    uint localCount;
+    // First take care of local lights (point, area)
+    uint i, localPointCount, localCount;
 
-    #ifdef USE_LIGHT_CLUSTER
-    GetLightCountAndStartCluster(position, LIGHTCATEGORY_AREA, localCount, localCount, list.cellIndex);
-    #else
+#ifdef USE_LIGHT_CLUSTER
+    list.cellIndex = GetClusterCellIndex(position);
+    localPointCount = GetPunctualLightClusterCellCount(list.cellIndex);
+    localCount = GetAreaLightClusterCellCount(list.cellIndex);
+#else
+    localPointCount = _PunctualLightCountRT;
     localCount = _PunctualLightCountRT + _AreaLightCountRT;
-    #endif
+#endif
 
-    for (uint i = 0; i < localCount && list.localCount < MAX_LOCAL_LIGHT_COUNT; i++)
+    // First point lights (including spot lights)
+    for (list.localPointCount = 0, i = 0; i < localPointCount && list.localPointCount < MAX_LOCAL_LIGHT_COUNT; i++)
     {
-        #ifdef USE_LIGHT_CLUSTER
+#ifdef USE_LIGHT_CLUSTER
         const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
-        #else
+#else
         const LightData lightData = _LightDatasRT[i];
-        #endif
+#endif
 
-        if (IsMatchingLightLayer(lightData.lightLayers, lightLayers))
+        if (IsMatchingLightLayer(lightData.lightLayers, lightLayers)
+#ifndef _SURFACE_TYPE_TRANSPARENT
+            && IsPointLightActive(lightData, position, normal)
+#endif
+            )
+            list.localIndex[list.localPointCount++] = i;
+    }
+
+    // Then rect area lights
+    for (list.localCount = list.localPointCount; i < localCount && list.localCount < MAX_LOCAL_LIGHT_COUNT; i++)
+    {
+#ifdef USE_LIGHT_CLUSTER
+        const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
+#else
+        const LightData lightData = _LightDatasRT[i];
+#endif
+
+        if (IsMatchingLightLayer(lightData.lightLayers, lightLayers)
+#ifndef _SURFACE_TYPE_TRANSPARENT
+            && IsRectAreaLightActive(lightData, position, normal)
+#endif
+            )
             list.localIndex[list.localCount++] = i;
     }
 
     // Then filter the active distant lights (directional)
     list.distantCount = 0;
 
-    for (uint i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
+    for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
     {
-        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers))
+        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers)
+#ifndef _SURFACE_TYPE_TRANSPARENT
+            && IsDistantLightActive(_DirectionalLightDatas[i], normal)
+#endif
+            )
             list.distantIndex[list.distantCount++] = i;
     }
 
@@ -70,11 +139,11 @@ uint GetLightCount(LightList list)
 
 LightData GetLocalLightData(LightList list, uint i)
 {
-    #ifdef USE_LIGHT_CLUSTER
+#ifdef USE_LIGHT_CLUSTER
     return FetchClusterLightIndex(list.cellIndex, list.localIndex[i]);
-    #else
+#else
     return _LightDatasRT[list.localIndex[i]];
-    #endif
+#endif
 }
 
 LightData GetLocalLightData(LightList list, float inputSample)
@@ -287,14 +356,12 @@ void EvaluateLights(LightList lightList,
     value = 0.0;
     pdf = 0.0;
 
-    // First local lights
-    for (uint i = 0; i < lightList.localCount; i++)
+    uint i;
+
+    // First local lights (area lights only, as we consider the probability of hitting a point light neglectable)
+    for (i = lightList.localPointCount; i < lightList.localCount; i++)
     {
         LightData lightData = GetLocalLightData(lightList, i);
-
-        // Punctual lights have a quasi-null probability of being hit here
-        if (lightData.lightType != GPULIGHTTYPE_RECTANGLE)
-            continue;
 
         float t = rayDescriptor.TMax;
         float cosTheta = -dot(rayDescriptor.Direction, lightData.forward);
@@ -326,7 +393,7 @@ void EvaluateLights(LightList lightList,
     }
 
     // Then distant lights
-    for (uint i = 0; i < lightList.distantCount; i++)
+    for (i = 0; i < lightList.distantCount; i++)
     {
         DirectionalLightData lightData = GetDistantLightData(lightList, i);
 

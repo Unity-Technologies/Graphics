@@ -51,15 +51,16 @@ namespace UnityEngine.Rendering.HighDefinition
     }
     public partial class HDRenderPipeline
     {
-        PathTracing m_PathTracingSettings;
+        PathTracing m_PathTracingSettings = null;
 
         uint  m_CurrentIteration = 0;
-
-        uint  m_CacheLightCount = 0;
-        ulong m_CacheAccelSize = 0;
 #if UNITY_EDITOR
         uint  m_CacheMaxIteration = 0;
 #endif // UNITY_EDITOR
+        ulong m_CacheAccelSize = 0;
+        uint  m_CacheLightCount = 0;
+        uint  m_CacheCameraWidth = 0;
+        uint  m_CacheCameraHeight = 0;
 
         bool m_CameraSkyEnabled;
 
@@ -92,7 +93,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // If we just change the sample count, we don't want to reset iteration
             if (m_PathTracingSettings && m_CacheMaxIteration != m_PathTracingSettings.maximumSamples.value)
+            {
                 m_CacheMaxIteration = (uint) m_PathTracingSettings.maximumSamples.value;
+                if (m_CurrentIteration >= m_CacheMaxIteration)
+                    m_CurrentIteration = 0;
+            }
             else
                 m_CurrentIteration = 0;
         }
@@ -119,6 +124,15 @@ namespace UnityEngine.Rendering.HighDefinition
             if (cameraSkyEnabled != m_CameraSkyEnabled)
             {
                 m_CameraSkyEnabled = cameraSkyEnabled;
+                m_CurrentIteration = 0;
+                return;
+            }
+
+            // Check camera resolution dirtiness
+            if (hdCamera.actualWidth != m_CacheCameraWidth || hdCamera.actualHeight != m_CacheCameraHeight)
+            {
+                m_CacheCameraWidth = (uint) hdCamera.actualWidth;
+                m_CacheCameraHeight = (uint) hdCamera.actualHeight;
                 m_CurrentIteration = 0;
                 return;
             }
@@ -198,11 +212,15 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
 
             // Inject the ray generation data
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
+#if UNITY_HDRP_DXR_TESTS_DEFINE
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingNumSamples, 1);
+#else
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingNumSamples, m_PathTracingSettings.maximumSamples.value);
+#endif
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingMinRecursion, m_PathTracingSettings.minimumDepth.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, m_PathTracingSettings.maximumDepth.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, m_PathTracingSettings.maximumIntensity.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingCameraNearPlane, hdCamera.camera.nearClipPlane);
 
             // Set the data for the ray generation

@@ -1957,6 +1957,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Unlit"),
             };
+
+            public static PassDescriptor PathTracing = new PassDescriptor()
+            {
+                //Definition
+                displayName = "PathTracingDXR",
+                referenceName = "SHADERPASS_PATH_TRACING",
+                lightMode = "PathTracingDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
+                pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingInstanced,
+                keywords = HDKeywords.HDBase,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingPathTracing },
+
+                //Custom Template
+                passTemplatePath = GetPassTemplatePath("Unlit"),
+            };
         }
 #endregion
 

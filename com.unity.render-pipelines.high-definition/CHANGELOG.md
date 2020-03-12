@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a path tracing test to the test suite.
 - Added a warning and workaround instructions that appear when you enable XR single-pass after the first frame with the XR SDK.
 - Added the exposure sliders to the planar reflection probe preview
+- Added support for subsurface scattering in path tracing.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -536,8 +537,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the visibility of the Indirect Lighting Controller component to public.
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
 - Improved behaviour of transmission color on transparent surfaces in path tracing.
-- Light dimmer can now get values higher than one and was renamed to multiplier in the UI. 
+- Light dimmer can now get values higher than one and was renamed to multiplier in the UI.
 - Removed info box requesting volume component for Visual Environment and updated the documentation with the relevant information.
+- Improved light selection oracle for light sampling in path tracing.
 
 ## [7.1.1] - 2019-09-05
 
