@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed infinite reload loop while displaying Light's Shadow's Link Light Layer in Inspector of Prefab Asset.
 - Fixed the cookie atlas size and planar atlas size being too big after an upgrade of the HDRP asset.
 - Fix player build DX12
+- Fixed compilation issue with linux vulkan and raytrace shader
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.

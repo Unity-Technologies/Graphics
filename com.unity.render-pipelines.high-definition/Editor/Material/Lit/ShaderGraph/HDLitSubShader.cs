@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
                 "#pragma multi_compile _ DEBUG_DISPLAY",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
@@ -113,6 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             RequiredFields = new List<string>()
@@ -172,6 +174,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             Includes = new List<string>()
@@ -205,6 +208,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
@@ -353,6 +357,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             Includes = new List<string>()
@@ -419,6 +424,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
                 "#define CUTOFF_TRANSPARENT_DEPTH_PREPASS",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
@@ -524,6 +530,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             RequiredFields = new List<string>()
@@ -604,6 +611,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
                 "#define CUTOFF_TRANSPARENT_DEPTH_POSTPASS",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
@@ -636,6 +644,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -693,6 +702,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ TRANSPARENT_COLOR_SHADOW",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.Low)
             },
@@ -746,6 +756,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -802,6 +813,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -858,6 +870,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -914,6 +927,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#define SHADOW_LOW",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
             },

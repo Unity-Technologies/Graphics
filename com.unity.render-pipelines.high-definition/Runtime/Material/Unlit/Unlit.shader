@@ -92,7 +92,6 @@ Shader "HDRP/Unlit"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -148,6 +147,9 @@ Shader "HDRP/Unlit"
             ZWrite On
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
             //enable GPU instancing support
             #pragma multi_compile_instancing
 
@@ -193,6 +195,9 @@ Shader "HDRP/Unlit"
             ColorMask 0 0
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
             //enable GPU instancing support
             #pragma multi_compile_instancing
 
@@ -238,6 +243,9 @@ Shader "HDRP/Unlit"
             ColorMask 0 1
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
             //enable GPU instancing support
             #pragma multi_compile_instancing
 
@@ -281,6 +289,9 @@ Shader "HDRP/Unlit"
             Cull [_CullMode]
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
             //enable GPU instancing support
             #pragma multi_compile_instancing
 
@@ -314,6 +325,9 @@ Shader "HDRP/Unlit"
             Cull Off
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
             //enable GPU instancing support
             #pragma multi_compile_instancing
 
@@ -349,6 +363,9 @@ Shader "HDRP/Unlit"
             ColorMask 0
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
             //enable GPU instancing support
             #pragma multi_compile_instancing
 
@@ -385,6 +402,9 @@ Shader "HDRP/Unlit"
             Cull [_CullMode]
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
             //enable GPU instancing support
             #pragma multi_compile_instancing
             
@@ -413,6 +433,8 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
+
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
@@ -439,6 +461,8 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
+
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
@@ -463,6 +487,8 @@ Shader "HDRP/Unlit"
             Tags{ "LightMode" = "GBufferDXR" }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11
 
             #pragma raytracing surface_shader
 
@@ -497,6 +523,8 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
+
             #pragma raytracing surface_shader
 
             #define SHADOW_LOW
@@ -523,6 +551,8 @@ Shader "HDRP/Unlit"
             Tags{ "LightMode" = "PathTracingDXR" }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11
 
             #pragma raytracing surface_shader
 

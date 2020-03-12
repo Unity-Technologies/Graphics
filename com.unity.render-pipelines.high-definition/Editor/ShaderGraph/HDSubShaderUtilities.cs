@@ -1030,6 +1030,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Comment set of define for Forward Opaque pass in HDRP
         public static List<string> s_ExtraDefinesForwardOpaque = new List<string>()
         {
+            "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
             "#pragma multi_compile _ DEBUG_DISPLAY",
             "#pragma multi_compile _ LIGHTMAP_ON",
             "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
@@ -1042,6 +1043,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static List<string> s_ExtraDefinesForwardTransparent = new List<string>()
         {
+            "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
             "#pragma multi_compile _ DEBUG_DISPLAY",
             "#pragma multi_compile _ LIGHTMAP_ON",
             "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
@@ -1055,6 +1057,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static List<string> s_ExtraDefinesForwardMaterialDepthOrMotion = new List<string>()
         {
+            "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
             "#define WRITE_NORMAL_BUFFER",
             "#pragma multi_compile _ WRITE_MSAA_DEPTH",
             HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
@@ -1062,6 +1065,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static List<string> s_ExtraDefinesDepthOrMotion = new List<string>()
         {
+            "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
             "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
             "#pragma multi_compile _ WRITE_MSAA_DEPTH",
             HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)

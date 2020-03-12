@@ -18,6 +18,10 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
             CullOverride = "Cull Off",
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
+            ExtraDefines = new List<string>()
+            {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch"
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
@@ -68,6 +72,10 @@ namespace UnityEditor.Rendering.HighDefinition
             ZClipOverride = HDSubShaderUtilities.zClipShadowCaster,
             CullOverride = HDSubShaderUtilities.defaultCullMode,
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
+            ExtraDefines = new List<string>()
+            {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch"
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -98,6 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
             },
@@ -330,6 +339,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -378,6 +388,10 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_RAYTRACING_VISIBILITY",
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
+            ExtraDefines = new List<string>()
+            {
+                "#pragma only_renderers d3d11",
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl\"",
@@ -422,6 +436,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -471,6 +486,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -520,6 +536,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
