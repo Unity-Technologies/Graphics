@@ -162,6 +162,148 @@ float cmj6D(uint pointIndex, uint dimIndex, uint seed)
     return result / s;
 }
 
+// Computes (Exp[x^2] * Erfc[x]) for (x >= 0).
+// Range of inputs:  [0, Inf].
+// Range of outputs: [0, 1].
+float Exp2Erfc(float x)
+{
+    float t, u, y, z;
+
+    t = 3.97886080735226 / (x + 3.97886080735226);
+    u = t - 0.5;
+#ifdef DOUBLE_PRECISION
+    // Original implementation kindly provided by Takuya Ooura.
+    // http://www.kurims.kyoto-u.ac.jp/~ooura/gamerf.html
+    y = (((((((((0.00127109764952614092 * u + 1.19314022838340944e-4) * u -
+        0.003963850973605135) * u - 8.70779635317295828e-4) * u +
+        0.00773672528313526668) * u + 0.00383335126264887303) * u -
+        0.0127223813782122755) * u - 0.0133823644533460069) * u +
+        0.0161315329733252248) * u + 0.0390976845588484035) * u +
+        0.00249367200053503304;
+#else
+    y = (0.0019898212777384947 * u + 0.039833135938877856) * u +
+        0.0034132959838498976;
+#endif
+    z = ((((((((((((y * u - 0.0838864557023001992) * u -
+        0.119463959964325415) * u + 0.0166207924969367356) * u +
+        0.357524274449531043) * u + 0.805276408752910567) * u +
+        1.18902982909273333) * u + 1.37040217682338167) * u +
+        1.31314653831023098) * u + 1.07925515155856677) * u +
+        0.774368199119538609) * u + 0.490165080585318424) * u +
+        0.275374741597376782) * t;
+
+    return z;
+}
+
+float ChapmanUpper(float z, float cosTheta)
+{
+    float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
+
+    float zm12 = rsqrt(z);        // z^(-1/2)
+    float zp12 = z * zm12;        // z^(+1/2)
+
+    float tp   = 1 + sinTheta;    // 1 + Sin
+    float rstp = rsqrt(tp);       // 1 / Sqrt[1 + Sin]
+    float rtp  = rstp * rstp;     // 1 / (1 + Sin)
+    float stm  = cosTheta * rstp; // Sqrt[1 - Sin] = Cos / Sqrt[1 + Sin]
+    float arg  = zp12 * stm;      // Sqrt[z - z * Sin], argument of Erfc
+    float e2ec = Exp2Erfc(arg);   // Exp[x^2] * Erfc[x]
+
+    // Term 1 of Equation 46.
+    float mul1 = cosTheta * rtp; // Sqrt[(1 - Sin) / (1 + Sin)] = Cos / (1 + Sin)
+    float trm1 = mul1 * (1 - 0.5 * rtp);
+
+    // Term 2 of Equation 46.
+    float mul2 = SQRT_PI * rstp * e2ec; // Sqrt[Pi / (1 + Sin)] * Exp[x^2] * Erfc[x]
+    float trm2 = mul2 * (zp12 * (-1.5 + tp + rtp) +
+                         zm12 * 0.25 * (2 * tp - 1) * rtp);
+    return trm1 + trm2;
+}
+
+float ChapmanHorizontal(float z)
+{
+    float zm12 = rsqrt(z);           // z^(-1/2)
+    float zm32 = zm12 * zm12 * zm12; // z^(-3/2)
+
+    float p = -0.14687275046666018 + z * (0.4699928014933126 + z * 1.2533141373155001);
+
+    // Equation 47.
+    return p * zm32;
+}
+
+// z = (r / H), Z = (R / H).
+float RescaledChapman(float z, float Z, float cosTheta)
+{
+    float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
+
+    // Cos[Pi - theta] = -Cos[theta],
+    // Sin[Pi - theta] =  Sin[theta],
+    // so we can just use Abs[Cos[theta]].
+    float ch = ChapmanUpper(z, abs(cosTheta)) * exp(Z - z); // Rescaling adds 'exp'
+
+    if (cosTheta < 0)
+    {
+        // Ch[z, theta] = 2 * Exp[z - z_0] * Ch[z_0, Pi/2] - Ch[z, Pi - theta].
+        // z_0 = r_0 / H = (r / H) * Sin[theta] = z * Sin[theta].
+        float z_0 = z * sinTheta;
+        float chP = ChapmanHorizontal(z_0) * exp(Z - z_0); // Rescaling adds 'exp'
+
+        // Equation 48.
+        ch = 2 * chP - ch;
+    }
+
+    return ch;
+}
+
+float RadAtDist(float r, float cosTheta, float t)
+{
+    float r2 = r * r + t * (t + 2 * (r * cosTheta));
+
+    // Equation 38.
+    return sqrt(r2);
+}
+
+float CosAtDist(float r, float cosTheta, float t)
+{
+    float r2 = r * r + t * (t + 2 * (r * cosTheta));
+
+    // Equation 39.
+    return (t + r * cosTheta) * rsqrt(r2);
+}
+
+// 'r' is the radial distance from the center of the planet.
+// 'viewZ' is the Z coordinate of the view direction.
+// 'dist' is the distance.
+// seaLvlAtt = (sigma_t * k) is the sea-level (height = 0) attenuation coefficient.
+// 'R' is the radius of the planet.
+// 'H' is the scale height.
+// rcpH = rcp(H) is the falloff exponent.
+float3 OptDepthSpherExpMedium(float r, float viewZ, float dist, float R,
+                              float3 seaLvlAtt, float H, float rcpH)
+{
+    float rX        = r;
+    float cosThetaX = -viewZ; // p = x - s * v
+    float rY        = RadAtDist(rX, cosThetaX, dist);
+    float cosThetaY = CosAtDist(rX, cosThetaX, dist);
+
+    // Potentially swap X and Y.
+    // Convention: at the point Y, the ray points up.
+    cosThetaX = (cosThetaY >= 0) ? cosThetaX : -cosThetaX;
+    cosThetaY = abs(cosThetaY);
+
+    float Z   = R  * rcpH;
+    float zX  = rX * rcpH;
+    float zY  = rY * rcpH;
+
+    float chX = RescaledChapman(zX, Z, cosThetaX);
+    float chY = ChapmanUpper(zY, cosThetaY) * exp(Z - zY); // Rescaling adds 'exp'
+
+    // We may have swapped X and Y.
+    float ch = abs(chX - chY);
+
+    return ch * H * seaLvlAtt;
+}
+
 #define GROUP_SIZE_1D 8 // 8^2 == 64
 #define GROUP_SIZE_2D (GROUP_SIZE_1D * GROUP_SIZE_1D)
 #define TILE_SIZE_1D  4 // 4^2 == 16
@@ -229,11 +371,11 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
     const float A = _AtmosphericRadius;
     const float R = _PlanetaryRadius;
 
-    // Parametrize the ray interval between two points X and Y.
-    float rX, rSqX, rRcpX, cosChiX;
-    ApplySphericalSymmetry(ray.origin, ray.direction, /* -> */ rX, rSqX, rRcpX, cosChiX);
+    // Reparametrize the ray.
+    float r, rSq, rRcp, cosTheta;
+    ApplySphericalSymmetry(ray.origin, ray.direction, /* -> */ r, rSq, rRcp, cosTheta);
 
-    float2 atmosEntryExit = IntersectSphere(A, cosChiX, rX, rRcpX);
+    float2 atmosEntryExit = IntersectSphere(A, cosTheta, r, rRcp);
     bool   hitAtmosphere  = atmosEntryExit.y > 0;
 
     if (!hitAtmosphere)
@@ -249,32 +391,37 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
         ray.origin *= (1 - 1e-6); // 2 orders of magnitude larger than FLT_EPS
 
         // Update ray parameters.
-        ApplySphericalSymmetry(ray.origin, ray.direction, /* -> */ rX, rSqX, rRcpX, cosChiX);
+        ApplySphericalSymmetry(ray.origin, ray.direction, /* -> */ r, rSq, rRcp, cosTheta);
 
         atmosEntryExit.y -= atmosEntryExit.x;
         atmosEntryExit.x  = 0;
     }
 
-    float cosHorX      = ComputeCosineOfHorizonAngle(rRcpX);
-    bool  aboveHorizon = (cosChiX >= cosHorX);
+    float cosHor      = ComputeCosineOfHorizonAngle(rRcp);
+    bool  aboveHorizon = (cosTheta >= cosHor);
 
     if (aboveHorizon)
     {
         ray.maxDist = atmosEntryExit.y;
     }
-    else
+    else // Intersect the planet
     {
-        ray.maxDist = IntersectSphere(R, cosChiX, rX, rRcpX).x; // Entry
+        ray.maxDist = IntersectSphere(R, cosTheta, r, rRcp).x; // Entry
         ASSERT(ray.maxDist > 0);
     }
 
+    float3 optDepth = 0; // Air + aerosols + ozone
+    optDepth += OptDepthSpherExpMedium(r, -cosTheta, ray.maxDist, R,
+                                       _AirSeaLevelExtinction, _AirScaleHeight, _AirDensityFalloff);
+    optDepth += OptDepthSpherExpMedium(r, -cosTheta, ray.maxDist, R,
+                                       _AerosolSeaLevelExtinction, _AerosolScaleHeight, _AerosolDensityFalloff);
 
     for (bounce = 1; bounce < bounceCount; bounce++)
     {
 
     }
 
-    return 1 - saturate(ray.maxDist / 10000);
+    return OpacityFromOpticalDepth(optDepth);
 }
 
 // Floating-point atomics are not supported. Use fixed-point math in units of HALF_MIN instead.
