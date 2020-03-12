@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_DepthPrepass);
                 }
 
-                EnqueueDeferred(ref renderingData, requiresDepthPrepass, false, false);
+                EnqueueDeferred(ref renderingData, requiresDepthPrepass, false, false, context, cmd);
 
                 // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
                 m_DrawSkyboxPass.ConfigureTarget(m_CameraColorTexture.Identifier(), m_CameraDepthTexture.Identifier());
@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             #region RenderPass1
-            EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows);
+            EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows, context, cmd);
             #endregion
 
             #region RenderPass2
@@ -449,13 +449,14 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow)
+        void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow, ScriptableRenderContext context, CommandBuffer cmd)
         {
             var desc = renderingData.cameraData.cameraTargetDescriptor;
             var depthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
             depthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), false, true);
             depthDescriptor.ConfigureClear(Color.black, 1, 0);
-            if (requiresDepthPrepass)
+
+            if (hasDepthPrepass)
             {
                 m_DepthPrepass.Setup(desc, m_CameraDepthTexture);
                 m_DepthPrepass.Configure(cmd, desc);
@@ -487,7 +488,7 @@ namespace UnityEngine.Rendering.Universal
             gbufferDescriptors[k_GBufferSlicesCount + 1].ConfigureClear(Color.black, 1, 0);
 //#endif
             m_GBufferPass.ConfigureTarget(gbufferDescriptors, depthDescriptor);
-            m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, requiresDepthPrepass);
+            m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, hasDepthPrepass);
             m_GBufferPass.Configure(cmd, desc);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
