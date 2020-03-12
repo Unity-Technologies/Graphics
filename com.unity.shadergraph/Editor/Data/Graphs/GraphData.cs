@@ -75,9 +75,6 @@ namespace UnityEditor.ShaderGraph
         #region Node data
 
         [NonSerialized]
-        Stack<Identifier> m_FreeNodeTempIds = new Stack<Identifier>();
-
-        [NonSerialized]
         List<AbstractMaterialNode> m_Nodes = new List<AbstractMaterialNode>();
 
         [NonSerialized]
