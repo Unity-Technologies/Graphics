@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_DepthPrepass);
                 }
 
-                EnqueueDeferred(ref renderingData, requiresDepthPrepass, context, ref cmd);
+                EnqueueDeferred(ref renderingData, requiresDepthPrepass, false, false);
 
                 // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
                 m_DrawSkyboxPass.ConfigureTarget(m_CameraColorTexture.Identifier(), m_CameraDepthTexture.Identifier());
@@ -275,8 +275,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             #region RenderPass1
-
-            EnqueueDeferred(ref renderingData, requiresDepthPrepass, context, ref cmd);
+            EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows);
             #endregion
 
             #region RenderPass2
@@ -450,7 +449,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void EnqueueDeferred(ref RenderingData renderingData, bool requiresDepthPrepass, ScriptableRenderContext context, ref CommandBuffer cmd)
+        void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
             var desc = renderingData.cameraData.cameraTargetDescriptor;
             var depthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
@@ -494,8 +493,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.Clear();
 
             EnqueuePass(m_GBufferPass);
+            m_DeferredLights.Setup(ref renderingData, applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null, m_CameraDepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_CameraDepthAttachment, gbufferColorAttachments);
 
-            m_DeferredLights.Setup(ref renderingData, m_AdditionalLightsShadowCasterPass, m_CameraDepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_CameraDepthAttachment, gbufferColorAttachments);
             // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
             // At this point, we do not know if m_DeferredLights.m_Tilers[x].m_Tiles actually contain any indices of lights intersecting tiles (If there are no lights intersecting tiles, we could skip several following passes) : this information is computed in DeferredRender.SetupLights, which is called later by UniversalRenderPipeline.RenderSingleCamera (via ScriptableRenderer.Execute).
             // However HasTileLights uses m_HasTileVisLights which is calculated by CheckHasTileLights from all visibleLights. visibleLights is the list of lights that have passed camera culling, so we know they are in front of the camera. So we can assume m_DeferredLights.m_Tilers[x].m_Tiles will not be empty in that case.

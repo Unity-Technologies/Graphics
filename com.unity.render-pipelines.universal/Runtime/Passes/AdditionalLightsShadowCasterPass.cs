@@ -42,7 +42,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         List<int> m_AdditionalShadowCastingLightIndices = new List<int>();
         List<int> m_AdditionalShadowCastingLightIndicesMap = new List<int>();
-        NativeArray<int> m_ShadowCastingLightIndicesMap;
+        // Get the shadow light index for a visible light index, or -1.
+        List<int> m_ShadowCastingLightIndicesMap = new List<int>();
 
         bool m_SupportsBoxFilterForShadows;
         const string m_ProfilerTag = "Render Additional Shadows";
@@ -91,7 +92,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_AdditionalLightsShadowData == null || m_AdditionalLightsShadowData.Length < additionalLightsCount)
                 m_AdditionalLightsShadowData = new ShaderInput.ShadowData[additionalLightsCount];
 
-            m_ShadowCastingLightIndicesMap = new NativeArray<int>(visibleLights.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            // By default visible lights do not have shadow light indices.
+            for (int i = 0; i < visibleLights.Length; ++i)
+                m_ShadowCastingLightIndicesMap.Add(-1);
 
             int validShadowCastingLights = 0;
             bool supportsSoftShadows = renderingData.shadowData.supportsSoftShadows;
@@ -101,10 +104,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Skip main directional light as it is not packed into the shadow atlas
                 if (i == renderingData.lightData.mainLightIndex)
-                {
-                    m_ShadowCastingLightIndicesMap[i] = -1;
                     continue;
-                }
 
                 int shadowCastingLightIndex = m_AdditionalShadowCastingLightIndices.Count;
                 bool isValidShadowSlice = false;
@@ -113,9 +113,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // We need to iterate the lights even though additional lights are disabled because
                     // cullResults.GetShadowCasterBounds() does the fence sync for the shadow culling jobs.
                     if (!renderingData.shadowData.supportsAdditionalLightShadows)
-                    {
                         continue;
-                    }
 
                     if (IsValidShadowCastingLight(ref renderingData.lightData, i))
                     {
@@ -178,7 +176,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_AdditionalLightSlices[shadowCastingLightIndex].projectionMatrix = identity;
                 }
 
-                m_ShadowCastingLightIndicesMap[i] = (isValidShadowSlice) ? shadowCastingLightIndex : -1;
+                m_ShadowCastingLightIndicesMap[i] = isValidShadowSlice ? shadowCastingLightIndex : -1;
             }
 
             // Lights that need to be rendered in the shadow map atlas
@@ -255,17 +253,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderTexture.ReleaseTemporary(m_AdditionalLightsShadowmapTexture);
                 m_AdditionalLightsShadowmapTexture = null;
             }
-
-            if (m_ShadowCastingLightIndicesMap.IsCreated)
-                m_ShadowCastingLightIndicesMap.Dispose();
         }
 
-        public int GetShadowLightIndexForLightIndex(int i)
+        public int GetShadowLightIndexForLightIndex(int visibleLightIndex)
         {
-            if (m_ShadowCastingLightIndicesMap.IsCreated && i < m_ShadowCastingLightIndicesMap.Length)
-                return m_ShadowCastingLightIndicesMap[i];
-            else
+            if (visibleLightIndex < 0 || visibleLightIndex >= m_ShadowCastingLightIndicesMap.Count)
                 return -1;
+            return m_ShadowCastingLightIndicesMap[visibleLightIndex];
         }
 
         void Clear()
@@ -273,6 +267,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AdditionalShadowCastingLightIndices.Clear();
             m_AdditionalShadowCastingLightIndicesMap.Clear();
             m_AdditionalLightsShadowmapTexture = null;
+            m_ShadowCastingLightIndicesMap.Clear();
         }
 
         void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData)

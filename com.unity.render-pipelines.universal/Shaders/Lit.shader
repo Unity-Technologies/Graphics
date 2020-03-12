@@ -166,7 +166,7 @@ Shader "Universal Render Pipeline/Lit"
             ZTest LEqual
             Cull[_Cull]
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             // This is a Lit material.
             Stencil {
                 Ref 32       // 0b00100000

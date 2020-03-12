@@ -25,7 +25,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
+        #if defined(USING_STEREO_MATRICES) && (defined(_POINT) || defined(_SPOT) || defined(_DIRECTIONAL))
         float4 posCS : TEXCOORD0;
+        #endif
         UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
     };
@@ -68,7 +70,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         output.positionCS = vertexInput.positionCS;
         #endif
 
+        #if defined(USING_STEREO_MATRICES) && (defined(_POINT) || defined(_SPOT) || defined(_DIRECTIONAL))
         output.posCS = output.positionCS;
+        #endif
 
         return output;
     }
@@ -82,7 +86,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     float3 _LightPosWS;
     float3 _LightColor;
-
     float4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
     float3 _LightDirection; // directional/spotLights support
     int _ShadowLightIndex;
@@ -102,11 +105,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 gbuffer1 = UNITY_READ_FRAMEBUFFER_INPUT(1, input.positionCS.xy);
         half4 gbuffer2 = UNITY_READ_FRAMEBUFFER_INPUT(2, input.positionCS.xy);
 
-        #if !defined(USING_STEREO_MATRICES)
-        // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
-        float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-            posWS.xyz *= rcp(posWS.w);
-        #else
+        #if defined(USING_STEREO_MATRICES) && (defined(_POINT) || defined(_SPOT) || defined(_DIRECTIONAL))
             #if UNITY_REVERSED_Z
             d = 1.0 - d;
             #endif
@@ -116,6 +115,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             posCS.y = -posCS.y;
             #endif
             float3 posWS = ComputeWorldSpacePosition(posCS, UNITY_MATRIX_I_VP);
+        #else
+        // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
+        float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+            posWS.xyz *= rcp(posWS.w);
         #endif
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
@@ -204,10 +207,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             HLSLPROGRAM
 
             #pragma multi_compile _ _SPOT
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
             #pragma vertex Vertex
             #pragma fragment FragWhite
@@ -228,7 +227,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref 48       // 0b00110000
                 WriteMask 16 // 0b00010000
@@ -267,7 +266,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref 80       // 0b01010000
                 WriteMask 16 // 0b00010000
@@ -299,7 +298,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         {
             Name "Deferred Directional Light (Lit)"
 
-            ZTest Less
             ZTest NotEqual
             ZWrite Off
             Cull Off
@@ -307,7 +305,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref 32      // 0b00100000
                 WriteMask 0 // 0b00000000
@@ -339,7 +337,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         {
             Name "Deferred Directional Light (SimpleLit)"
 
-            ZTest Less
             ZTest NotEqual
             ZWrite Off
             Cull Off
@@ -347,7 +344,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref 64      // 0b01000000
                 WriteMask 0 // 0b00000000
@@ -379,7 +376,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         {
             Name "Fog"
 
-            ZTest Less
             ZTest NotEqual
             ZWrite Off
             Cull Off

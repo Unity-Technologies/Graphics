@@ -142,7 +142,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             Name "TerrainDetailVertex - GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             // This is an Unlit material.
             // Vertex-lit behaves like Unlit for the deferred renderer.
             Stencil {

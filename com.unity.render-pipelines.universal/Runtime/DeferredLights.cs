@@ -5,11 +5,10 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 
-
-
-// TODO Check if there is a bitarray structure (with dynamic size) available in Unity
-// TODO Rename shaderTagId for UniversalForward, UniversalForwardOnly Forward, ForwardOnly ? Match HDRP
-// TODO PostProcessing bind depth-buffer copy texture without any valid mechanism?
+// TODO SimpleLit material, make sure when variant is !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), specular is correctly silenced.
+// TODO use InitializeSimpleLitSurfaceData() in all shader code
+// TODO use InitializeParticleLitSurfaceData() in forward pass for ParticleLitForwardPass.hlsl ? Similar refactoring for ParticleSimpleLitForwardPass.hlsl
+// TODO Make sure GPU buffers are uploaded without copying into Unity CommandBuffer memory
 // TODO BakedLit.shader has a Universal2D pass, but Unlit.shader doesn't have?
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -194,9 +193,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Should any visible lights be rendered as tile?
         bool m_HasTileVisLights;
-        // Visible lights rendered using stencil.
+        // Visible lights indices rendered using stencil volumes.
         NativeArray<ushort> m_stencilVisLights;
-        // Needed to access light shadow index.
+        // Offset of each type of lights in m_stencilVisLights.
+        NativeArray<ushort> m_stencilVisLightOffsets;
+        // Needed to access light shadow index (can be null if the pass is not queued).
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
 
         // For rendering stencil point lights.
@@ -236,7 +237,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal ProfilingSampler m_ProfilingSamplerDeferredTiledPass = new ProfilingSampler(k_DeferredTiledPass);
         internal ProfilingSampler m_ProfilingSamplerDeferredStencilPass = new ProfilingSampler(k_DeferredStencilPass);
         internal ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
-
+        
 
         public DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
         {
@@ -309,7 +310,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (renderingData.cameraData.isXRMultipass)
             {
                 //Camera.StereoscopicEye eyeIndex = (Camera.StereoscopicEye)renderingData.cameraData.camera.stereoActiveEye; // Always left eye
-                Camera.StereoscopicEye eyeIndex = (Camera.StereoscopicEye) m_EyeIndex;
+                Camera.StereoscopicEye eyeIndex = (Camera.StereoscopicEye)m_EyeIndex;
                 proj = renderingData.cameraData.camera.GetStereoProjectionMatrix(eyeIndex);
                 view = renderingData.cameraData.camera.GetStereoViewMatrix(eyeIndex);
             }
@@ -319,16 +320,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 view = renderingData.cameraData.camera.worldToCameraMatrix;
             }
 
-            //TODO: investigate more, but probably due to using RenderPass this needs to be here
-            if (SystemInfo.graphicsUVStartsAtTop)
-            {
-                proj.m10 *= -1;
-                proj.m11 *= -1;
-                proj.m12 *= -1;
-                proj.m13 *= -1;
-            }
-
-            //md.SetViewProjectionMatrices(view, proj);
             // When reading back from depth texture, we need to scale back from [0; 1] to [-1; 1] as Unity defaults to for GL clip-space depth convention.
             // As well, non-GL platforms render upside-down, we don't need to y-reverse again on GL platforms.
             bool isGL = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
@@ -342,7 +333,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 new Vector4(0.0f, 0.0f, (SystemInfo.usesReversedZBuffer ? -1.0f : 1.0f) * 0.5f, 0.0f),
                 new Vector4(0.0f, 0.0f, 0.5f, 1.0f)
             ) * proj;
-
+            
 
             // xy coordinates in range [-1; 1] go to pixel coordinates.
             Matrix4x4 toScreen = new Matrix4x4(
@@ -398,6 +389,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             PrecomputeLights(
                 out prePunctualLights,
                 out m_stencilVisLights,
+                out m_stencilVisLightOffsets,
                 ref renderingData.lightData.visibleLights,
                 renderingData.lightData.additionalLightsCount != 0,
                 renderingData.cameraData.camera.worldToCameraMatrix,
@@ -473,7 +465,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         ref DeferredTiler fineTiler = ref m_Tilers[t - 1];
                         ref DeferredTiler coarseTiler = ref m_Tilers[t];
-
                         int fineTileXCount = fineTiler.TileXCount;
                         int fineTileYCount = fineTiler.TileYCount;
                         int coarseTileXCount = coarseTiler.TileXCount;
@@ -508,7 +499,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 jstart = fine_jstart,
                                 jend = fine_jend,
                             };
-
+                                
                             if (this.useJobSystem)
                                 jobHandles[jobCount++] = job.Schedule(jobHandles[jobOffset + (i / subdivX) + (j / subdivY) * superCoarseTileXCount]);
                             else
@@ -538,7 +529,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // We don't need this array anymore as all the lights have been inserted into the tile-grid structures.
-            prePunctualLights.Dispose();
+            if (prePunctualLights.IsCreated)
+                prePunctualLights.Dispose();
 
             Profiler.EndSample();
         }
@@ -571,6 +563,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_stencilVisLights.IsCreated)
                 m_stencilVisLights.Dispose();
+            if (m_stencilVisLightOffsets.IsCreated)
+                m_stencilVisLightOffsets.Dispose();
         }
 
         public bool HasTileLights()
@@ -752,7 +746,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_DeferredPass);
 
-
             Profiler.BeginSample(k_DeferredPass);
 
             // This must be set for each eye in XR mode multipass.
@@ -799,26 +792,28 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void PrecomputeLights(out NativeArray<DeferredTiler.PrePunctualLight> prePunctualLights,
                               out NativeArray<ushort> stencilVisLights,
+                              out NativeArray<ushort> stencilVisLightOffsets,
                               ref NativeArray<VisibleLight> visibleLights,
                               bool hasAdditionalLights,
                               Matrix4x4 view,
                               bool isOrthographic,
                               float zNear)
         {
+            const int lightTypeCount = (int)LightType.Disc + 1;
+
             if (!hasAdditionalLights)
             {
                 prePunctualLights = new NativeArray<DeferredTiler.PrePunctualLight>(0, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 stencilVisLights = new NativeArray<ushort>(0, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                stencilVisLightOffsets = new NativeArray<ushort>(lightTypeCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 return;
             }
 
-            const int lightTypeCount = (int)LightType.Disc + 1;
-
             // number of supported lights rendered by the TileDeferred system, for each light type (Spot, Directional, Point, Area, Rectangle, Disc, plus one slot at the end)
             NativeArray<int> tileLightOffsets = new NativeArray<int>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
-            NativeArray<int> stencilLightOffsets = new NativeArray<int>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
             NativeArray<int> tileLightCounts = new NativeArray<int>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
             NativeArray<int> stencilLightCounts = new NativeArray<int>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            stencilVisLightOffsets = new NativeArray<ushort>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
             // Count the number of lights per type.
             for (ushort visLightIndex = 0; visLightIndex < visibleLights.Length; ++visLightIndex)
@@ -828,11 +823,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (this.tiledDeferredShading && IsTileLight(vl))
                     ++tileLightOffsets[(int)vl.lightType];
                 else // All remaining lights are processed as stencil volumes.
-                    ++stencilLightOffsets[(int)vl.lightType];
+                    ++stencilVisLightOffsets[(int)vl.lightType];
             }
 
             int totalTileLightCount = tileLightOffsets[(int)LightType.Point] + tileLightOffsets[(int)LightType.Spot];
-            int totalStencilLightCount = stencilLightOffsets[(int)LightType.Spot] + stencilLightOffsets[(int)LightType.Directional] + stencilLightOffsets[(int)LightType.Point];
+            int totalStencilLightCount = stencilVisLightOffsets[(int)LightType.Spot] + stencilVisLightOffsets[(int)LightType.Directional] + stencilVisLightOffsets[(int)LightType.Point];
             prePunctualLights = new NativeArray<DeferredTiler.PrePunctualLight>(totalTileLightCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             stencilVisLights = new NativeArray<ushort>(totalStencilLightCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
@@ -843,10 +838,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 tileLightOffsets[i] = toffset;
                 toffset += c;
             }
-            for (int i = 0, soffset = 0; i < stencilLightOffsets.Length; ++i)
+            for (int i = 0, soffset = 0; i < stencilVisLightOffsets.Length; ++i)
             {
-                int c = stencilLightOffsets[i];
-                stencilLightOffsets[i] = soffset;
+                int c = stencilVisLightOffsets[i];
+                stencilVisLightOffsets[i] = (ushort)soffset;
                 soffset += c;
             }
 
@@ -876,11 +871,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     // All remaining lights are processed as stencil volumes.
                     int i = stencilLightCounts[(int)vl.lightType]++;
-                    stencilVisLights[stencilLightOffsets[(int)vl.lightType] + i] = visLightIndex;
+                    stencilVisLights[stencilVisLightOffsets[(int)vl.lightType] + i] = visLightIndex;
                 }
             }
             tileLightOffsets.Dispose();
-            stencilLightOffsets.Dispose();
             tileLightCounts.Dispose();
             stencilLightCounts.Dispose();
         }
@@ -1063,7 +1057,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
                 cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
 
-
                 int tileWidth = m_Tilers[0].TilePixelWidth;
                 int tileHeight = m_Tilers[0].TilePixelHeight;
                 cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tileWidth);
@@ -1123,133 +1116,142 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
-                int soffset = 0;
-
-                // Spot lights.
-
-                cmd.EnableShaderKeyword(ShaderKeywordStrings._SPOT);
-
-                for (; soffset < m_stencilVisLights.Length; ++soffset)
-                {
-                    ushort visLightIndex = m_stencilVisLights[soffset];
-                    VisibleLight vl = visibleLights[visLightIndex];
-                    if (vl.lightType != LightType.Spot)
-                        break;
-
-                    float alpha = Mathf.Deg2Rad * vl.spotAngle * 0.5f;
-                    float cosAlpha = Mathf.Cos(alpha);
-                    float sinAlpha = Mathf.Sin(alpha);
-                    // Artificially inflate the geometric shape to fit the analytic spot shape.
-                    // The tighter the spot shape, the lesser inflation is needed.
-                    float guard = Mathf.Lerp(1.0f, kStencilShapeGuard, sinAlpha);
-
-                    Vector4 lightAttenuation;
-                    Vector4 lightSpotDir4;
-                    UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
-                        vl.lightType, vl.range /*vl.range*/, vl.localToWorldMatrix,
-                        vl.spotAngle, vl.light?.innerSpotAngle,
-                        out lightAttenuation, out lightSpotDir4);
-
-                    int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
-                    if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
-                        cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
-                    else
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
-
-                    cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
-                    cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
-                    cmd.SetGlobalVector(ShaderConstants._SpotLightGuard, new Vector4(guard, guard, guard, cosAlpha * vl.range));
-                    cmd.SetGlobalVector(ShaderConstants._LightPosWS, vl.localToWorldMatrix.GetColumn(3));
-                    cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
-                    cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
-                    cmd.SetGlobalVector(ShaderConstants._LightDirection, new Vector3(lightSpotDir4.x, lightSpotDir4.y, lightSpotDir4.z));
-                    cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
-
-                    // Stencil pass.
-                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0);
-
-                    // Lighting pass.
-                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
-                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
-                }
-
-                cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
-                cmd.EnableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
-
-                // Directional lights.
-
-                // TODO bundle extra directional lights rendering by batches of 8.
-                // Also separate shadow caster lights from non-shadow caster.
-                for (; soffset < m_stencilVisLights.Length; ++soffset)
-                {
-                    ushort visLightIndex = m_stencilVisLights[soffset];
-                    VisibleLight vl = visibleLights[visLightIndex];
-                    if (vl.lightType != LightType.Directional)
-                        break;
-
-                    // Skip directional main light, as it is currently rendered as part of the GBuffer.
-                    if (visLightIndex == renderingData.lightData.mainLightIndex)
-                        continue;
-
-                    cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
-                    cmd.SetGlobalVector(ShaderConstants._LightDirection, -(Vector3)vl.localToWorldMatrix.GetColumn(2));
-
-                    // Lighting pass.
-                    cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 3); // Lit
-                    cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 4); // SimpleLit
-                }
-
-                cmd.DisableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
-                cmd.EnableShaderKeyword(ShaderKeywordStrings._POINT);
-
-                // Point lights.
-
-                for (; soffset < m_stencilVisLights.Length; ++soffset)
-                {
-                    ushort visLightIndex = m_stencilVisLights[soffset];
-                    VisibleLight vl = visibleLights[visLightIndex];
-                    if (vl.lightType != LightType.Point)
-                        break;
-
-                    Vector3 posWS = vl.localToWorldMatrix.GetColumn(3);
-
-                    Matrix4x4 transformMatrix = new Matrix4x4(
-                        new Vector4(vl.range,     0.0f,     0.0f, 0.0f),
-                        new Vector4(    0.0f, vl.range,     0.0f, 0.0f),
-                        new Vector4(    0.0f,     0.0f, vl.range, 0.0f),
-                        new Vector4( posWS.x,  posWS.y,  posWS.z, 1.0f)
-                    );
-
-                    Vector4 lightAttenuation;
-                    Vector4 lightSpotDir4;
-                    UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
-                        vl.lightType, vl.range /*vl.range*/, vl.localToWorldMatrix,
-                        vl.spotAngle, vl.light?.innerSpotAngle,
-                        out lightAttenuation, out lightSpotDir4);
-
-                    int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
-                    if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
-                        cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
-                    else
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
-
-                    cmd.SetGlobalVector(ShaderConstants._LightPosWS, posWS);
-                    cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
-                    cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
-                    cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
-
-                    // Stencil pass.
-                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 0);
-
-                    // Lighting pass.
-                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
-                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
-                }
-
-                cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
+                RenderStencilDirectionalLights(cmd, visibleLights, renderingData.lightData.mainLightIndex);
+                RenderStencilPointLights(cmd, visibleLights);
+                RenderStencilSpotLights(cmd, visibleLights);
             }
 
             Profiler.EndSample();
+        }
+
+        void RenderStencilDirectionalLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights, int mainLightIndex)
+        {
+            cmd.EnableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
+
+            // Directional lights.
+
+            // TODO bundle extra directional lights rendering by batches of 8.
+            // Also separate shadow caster lights from non-shadow caster.
+            for (int soffset = m_stencilVisLightOffsets[(int)LightType.Directional]; soffset < m_stencilVisLights.Length; ++soffset)
+            {
+                ushort visLightIndex = m_stencilVisLights[soffset];
+                VisibleLight vl = visibleLights[visLightIndex];
+                if (vl.lightType != LightType.Directional)
+                    break;
+
+                // Skip directional main light, as it is currently rendered as part of the GBuffer.
+                if (visLightIndex == mainLightIndex)
+                    continue;
+
+                cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor); // VisibleLight.finalColor already returns color in active color space
+                cmd.SetGlobalVector(ShaderConstants._LightDirection, -(Vector3)vl.localToWorldMatrix.GetColumn(2));
+
+                // Lighting pass.
+                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 3); // Lit
+                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 4); // SimpleLit
+            }
+
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
+        }
+
+        void RenderStencilPointLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights)
+        {
+            cmd.EnableShaderKeyword(ShaderKeywordStrings._POINT);
+
+            for (int soffset = m_stencilVisLightOffsets[(int)LightType.Point]; soffset < m_stencilVisLights.Length; ++soffset)
+            {
+                ushort visLightIndex = m_stencilVisLights[soffset];
+                VisibleLight vl = visibleLights[visLightIndex];
+                if (vl.lightType != LightType.Point)
+                    break;
+
+                Vector3 posWS = vl.localToWorldMatrix.GetColumn(3);
+
+                Matrix4x4 transformMatrix = new Matrix4x4(
+                    new Vector4(vl.range, 0.0f, 0.0f, 0.0f),
+                    new Vector4(0.0f, vl.range, 0.0f, 0.0f),
+                    new Vector4(0.0f, 0.0f, vl.range, 0.0f),
+                    new Vector4(posWS.x, posWS.y, posWS.z, 1.0f)
+                );
+
+                Vector4 lightAttenuation;
+                Vector4 lightSpotDir4;
+                UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
+                    vl.lightType, vl.range /*vl.range*/, vl.localToWorldMatrix,
+                    vl.spotAngle, vl.light?.innerSpotAngle,
+                    out lightAttenuation, out lightSpotDir4);
+
+                int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex) : -1;
+                if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+                else
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+
+                cmd.SetGlobalVector(ShaderConstants._LightPosWS, posWS);
+                cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor); // VisibleLight.finalColor already returns color in active color space
+                cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
+                cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
+
+                // Stencil pass.
+                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 0);
+
+                // Lighting pass.
+                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
+                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
+            }
+
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
+        }
+
+        void RenderStencilSpotLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights)
+        {
+            cmd.EnableShaderKeyword(ShaderKeywordStrings._SPOT);
+
+            for (int soffset = m_stencilVisLightOffsets[(int)LightType.Spot]; soffset < m_stencilVisLights.Length; ++soffset)
+            {
+                ushort visLightIndex = m_stencilVisLights[soffset];
+                VisibleLight vl = visibleLights[visLightIndex];
+                if (vl.lightType != LightType.Spot)
+                    break;
+
+                float alpha = Mathf.Deg2Rad * vl.spotAngle * 0.5f;
+                float cosAlpha = Mathf.Cos(alpha);
+                float sinAlpha = Mathf.Sin(alpha);
+                // Artificially inflate the geometric shape to fit the analytic spot shape.
+                // The tighter the spot shape, the lesser inflation is needed.
+                float guard = Mathf.Lerp(1.0f, kStencilShapeGuard, sinAlpha);
+
+                Vector4 lightAttenuation;
+                Vector4 lightSpotDir4;
+                UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
+                    vl.lightType, vl.range, vl.localToWorldMatrix,
+                    vl.spotAngle, vl.light?.innerSpotAngle,
+                    out lightAttenuation, out lightSpotDir4);
+
+                int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex) : -1;
+                if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+                else
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+
+                cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
+                cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
+                cmd.SetGlobalVector(ShaderConstants._SpotLightGuard, new Vector4(guard, guard, guard, cosAlpha * vl.range));
+                cmd.SetGlobalVector(ShaderConstants._LightPosWS, vl.localToWorldMatrix.GetColumn(3));
+                cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor); // VisibleLight.finalColor already returns color in active color space
+                cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
+                cmd.SetGlobalVector(ShaderConstants._LightDirection, new Vector3(lightSpotDir4.x, lightSpotDir4.y, lightSpotDir4.z));
+                cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
+
+                // Stencil pass.
+                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0);
+
+                // Lighting pass.
+                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
+                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
+            }
+
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
         }
 
         void RenderFog(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
