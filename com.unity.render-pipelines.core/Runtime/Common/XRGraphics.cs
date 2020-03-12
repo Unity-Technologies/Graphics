@@ -41,6 +41,13 @@ namespace UnityEngine.Rendering
 #endif
                 return 1.0f;
             }
+
+            set
+            {
+#if ENABLE_VR && ENABLE_VR_MODULE
+                XRSettings.eyeTextureResolutionScale = value;
+#endif
+            }
         }
 
         /// <summary>

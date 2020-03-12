@@ -35,7 +35,7 @@ To change how much the atmosphere attenuates light, you can change the density o
 
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
-| **Earth Preset**               | Indicates whether HDRP should simplify the Inspector an only show properties suitable to simulate Earth. |
+| **Earth Preset**               | Indicates whether HDRP should simplify the Inspector and only show properties suitable to simulate Earth. |
 | **Spherical Mode**             | Enables **Spherical Mode**. When in Spherical Mode, you can specify the location of the planet. Otherwise, the planet is always below the Camera in the world-space x-z plane. |
 | **Planetary Radius**           | The radius of the planet in meters. The radius is the distance from the center of the planet to the sea level.  Only available in **Spherical Mode**. |
 | **Planet Center Position**     | The world-space position of the planet's center in meters. This does not affect the precomputation. Only available in **Spherical Mode**. |
@@ -82,15 +82,15 @@ To make this section visible, disable **Earth Preset**.
 | **Color Saturation**     | Controls the saturation of the color of the sky.             |
 | **Alpha Saturation**     | Controls the saturation of the opacity of the sky.           |
 | **Alpha Multiplier**     | A multiplier that HDRP applies to the opacity of the sky.    |
-| **Horizon Tint**         | Specifies a color that HDRP uses to tint the the sky at the horizon. |
+| **Horizon Tint**         | Specifies a color that HDRP uses to tint the sky at the horizon. |
 | **Horizon Zenith Shift** | Controls how HDRP blends between the **Horizon Tint** and **Zenith Tint**. If you set this to **-1**, the **Zenith Tint** expands down to the horizon. If you set this to **1**, the **Horizon Tint** expands up to the zenith. |
-| **Zenith Tint**          | Specifies a color that HDRP uses to tint the the point in the sky directly above the observer (the zenith). |
+| **Zenith Tint**          | Specifies a color that HDRP uses to tint the point in the sky directly above the observer (the zenith). |
 
 ### Miscellaneous
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
-| **Number Of Bounces**     | The number of scattering events. This increases the quality of the sky visuals but also increases the pre-computation time |
+| **Number Of Bounces**     | The number of scattering events. This increases the quality of the sky visuals but also increases the pre-computation time. |
 | **Intensity Mode**        | Use the drop-down to select the method that HDRP uses to calculate the sky intensity:<br/>&#8226; **Exposure**: HDRP calculates intensity from an exposure value in EV100.<br/>&#8226; **Multiplier**: HDRP calculates intensity from a flat multiplier. |
 | **- Exposure**            | The exposure for HDRP to apply to the Scene as environmental light. HDRP uses 2 to the power of your **Exposure** value to calculate the environment light in your Scene. |
 | **- Multiplier**          | The multiplier for HDRP to apply to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value. To make this property visible, set **Intensity Mode** to **Multiplier**. |
