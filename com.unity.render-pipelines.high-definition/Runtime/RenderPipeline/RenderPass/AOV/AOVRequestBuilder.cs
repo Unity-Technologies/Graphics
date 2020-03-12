@@ -29,6 +29,28 @@ namespace UnityEngine.Rendering.HighDefinition
             return this;
         }
 
+        /// <summary>Add a AOV request.</summary>
+        /// <param name="settings">Settings to use for this frame pass.</param>
+        /// <param name="bufferAllocator">An allocator for each buffer.</param>
+        /// <param name="includedLightList">If non null, only these lights will be rendered, if none, all lights will be rendered.</param>
+        /// <param name="aovBuffers">A list of buffers to use.</param>
+        /// <param name="callback">A callback that can use the requested buffers once the rendering has completed.</param>
+        /// <returns></returns>
+        public AOVRequestBuilder Add(
+            AOVRequest settings,
+            AOVRequestBufferAllocator bufferAllocator,
+            AOVRequestCustomPassBufferAllocator customPassbufferAllocator,
+            List<GameObject> includedLightList,
+            AOVBuffers[] aovBuffers,
+            CustomPassAOVBuffers[] customPassAovBuffers,
+            FramePassCallback callback
+        )
+        {
+            (m_AOVRequestDataData ?? (m_AOVRequestDataData = ListPool<AOVRequestData>.Get())).Add(
+                new AOVRequestData(settings, bufferAllocator, customPassbufferAllocator, includedLightList, aovBuffers, customPassAovBuffers, callback));
+            return this;
+        }
+
         /// <summary>Build the frame passes. Allocated resources will be transferred to the returned value.</summary>
         /// <returns>The built collection.</returns>
         public AOVRequestDataCollection Build()
