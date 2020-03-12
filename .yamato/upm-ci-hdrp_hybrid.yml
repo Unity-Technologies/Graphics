@@ -39,8 +39,8 @@ testplatforms:
     args: --suite=playmode
   - name: playmode XR
     args: --suite=playmode --extra-editor-arg="-xr-tests"
-  - name: editmode
-    args: --suite=editor --platform=editmode
+#  - name: editmode
+#    args: --suite=editor --platform=editmode
 projects:
   - name: HDRP_Hybrid
     folder: HDRP_HybridTests
@@ -53,7 +53,7 @@ win_apis:
     cmd: -force-vulkan
 mac_apis:
   - name: metal
-  - name: openglcore
+#  - name: openglcore
 linux_apis:
   - name: OpenGLCore
     cmd: -force-glcore
