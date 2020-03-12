@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Net.Mail;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
 
@@ -181,6 +179,7 @@ namespace UnityEngine.Rendering.Universal
 
                 for (int i = 0; i < rendererFeatures.Count; ++i)
                     rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+
                 if (requiresDepthPrepass)
                 {
                     m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthTexture);
@@ -232,7 +231,6 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraColorAttachment = m_CameraColorTexture;
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
-
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
             var m_CameraColorDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
@@ -251,10 +249,8 @@ namespace UnityEngine.Rendering.Universal
             }
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
-
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
-
 
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);

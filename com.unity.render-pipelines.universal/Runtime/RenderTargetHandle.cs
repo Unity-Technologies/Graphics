@@ -1,4 +1,3 @@
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -7,8 +6,6 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct RenderTargetHandle
     {
         public int id { set; get; }
-
-        public AttachmentDescriptor targetDescriptor;
 
         public RenderTargetIdentifier identifier { set; get; }
         public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle {id = -1, identifier = BuiltinRenderTextureType.CameraTarget};

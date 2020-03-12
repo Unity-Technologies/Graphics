@@ -677,7 +677,7 @@ namespace UnityEngine.Rendering.Universal
                     if ((renderPass.clearFlag & ClearFlag.Color) != 0)
                     {
                         uint otherTargetsCount = RenderingUtils.CountDistinct(renderPass.colorAttachments, m_CameraColorTarget);
-                        var nonCameraAttachments = new RenderTargetIdentifier[renderPass.colorAttachments.Length];
+                        var nonCameraAttachments = m_TrimmedColorAttachmentCopies[otherTargetsCount];
                         int writeIndex = 0;
                         for (int readIndex = 0; readIndex < renderPass.colorAttachments.Length; ++readIndex)
                         {
@@ -705,7 +705,7 @@ namespace UnityEngine.Rendering.Universal
                     if (lastValidRTindex >= 0)
                     {
                         int rtCount = lastValidRTindex + 1;
-                        var trimmedAttachments = new RenderTargetIdentifier[rtCount];
+                        var trimmedAttachments = m_TrimmedColorAttachmentCopies[rtCount];
                         for (int i = 0; i < rtCount; ++i)
                             trimmedAttachments[i] = renderPass.colorAttachments[i];
                         SetRenderTarget(cmd, trimmedAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
@@ -836,11 +836,9 @@ namespace UnityEngine.Rendering.Universal
         }
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
-            var activeAttachment = m_ActiveColorAttachments[0];
-            activeAttachment = colorAttachment;
+            m_ActiveColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
                 m_ActiveColorAttachments[i] = 0;
-            m_ActiveColorAttachments[0] = activeAttachment;
             m_ActiveDepthAttachment = depthAttachment;
 
             RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
@@ -902,7 +900,7 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveColorAttachments = colorAttachments;
             m_ActiveDepthAttachment = depthAttachment;
 
-            CoreUtils.SetRenderTarget(cmd, colorAttachments.Select(att => att).ToArray(), depthAttachment, clearFlag, clearColor);
+            CoreUtils.SetRenderTarget(cmd, colorAttachments, depthAttachment, clearFlag, clearColor);
         }
 
         [Conditional("UNITY_EDITOR")]

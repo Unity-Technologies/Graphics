@@ -175,7 +175,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 foreach (var identifier in colorBuffers)
                 {
-
                     if (identifier != 0)
                         ++nonNullColorBuffers;
                 }
@@ -190,8 +189,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 foreach (var handle in attachments)
                 {
-                    if (handle.loadStoreTarget != 0 && handle.loadStoreTarget != -2 &&
-                        handle != ScriptableRenderPass.EmptyAttachment)
+                    if (handle.loadStoreTarget != 0 && handle != ScriptableRenderPass.EmptyAttachment)
                         ++nonNullAttachments;
                     else
                         return nonNullAttachments; // break on first failure

@@ -32,7 +32,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_GBufferDescriptors[0] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);            // albedo          albedo          albedo          occlusion       (sRGB rendertarget)
             m_GBufferDescriptors[1] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);            // specular        specular        specular        metallic        (sRGB rendertarget)
             m_GBufferDescriptors[2] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0);           // encoded-normal  encoded-normal  encoded-normal  smoothness
-            //m_GBufferDescriptors[3] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.B10G11R11_UFloatPack32, 0); // GI              GI              GI              [unused]        (lighting buffer)  // <- initialized in DeferredRenderer.cs as DeferredRenderer.m_CameraColorAttachment
 
             m_HasDepthPrepass = false;
 
@@ -73,7 +72,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Only declare GBuffer 0, 1 and 2.
             // GBuffer 3 has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
-
             for (int gbufferIndex = 0; gbufferIndex < DeferredRenderer.k_GBufferSlicesCount; ++gbufferIndex)
                 cmd.GetTemporaryRT(m_ColorAttachments[gbufferIndex].id, m_GBufferDescriptors[gbufferIndex]);
 
@@ -81,7 +79,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (int gbufferIndex = 0; gbufferIndex < m_ColorAttachments.Length; ++gbufferIndex)
                 colorAttachmentIdentifiers[gbufferIndex] = m_ColorAttachments[gbufferIndex].Identifier();
             ConfigureRenderPassDescriptor(cameraTextureDescriptor.width, cameraTextureDescriptor.height, cameraTextureDescriptor.msaaSamples);
-
 
             ConfigureTarget(colorAttachmentIdentifiers, m_DepthBufferAttachment.Identifier());
 

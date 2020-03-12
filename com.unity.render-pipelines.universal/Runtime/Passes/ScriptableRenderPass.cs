@@ -97,11 +97,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useNativeRenderPass;
 
-        internal RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget };
+        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget };
         internal AttachmentDescriptor[] m_ColorAttachmentDescriptors = new AttachmentDescriptor[8];
-        internal AttachmentDescriptor m_DepthAttachmentDescriptor;
         internal AttachmentDescriptor[] m_InputAttachmentDescriptors;
-        internal RenderTargetIdentifier m_DepthAttachment;// = RenderTargetHandle.CameraTarget;
+        RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+        internal AttachmentDescriptor m_DepthAttachmentDescriptor;
         RenderPassDescriptor m_RenderPassDescriptor;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
@@ -172,9 +172,9 @@ namespace UnityEngine.Rendering.Universal
         {
             overrideCameraTarget = true;
 
-            uint nonNullColorBuffers = RenderingUtils.GetValidAttachmentCount(colorAttachments);
-            if (nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
-                Debug.LogError("Trying to set " + nonNullColorBuffers +
+            uint nonNullColorAttachments = RenderingUtils.GetValidAttachmentCount(colorAttachments);
+            if (nonNullColorAttachments > SystemInfo.supportedRenderTargetCount)
+                Debug.LogError("Trying to set " + nonNullColorAttachments +
                                " renderTargets, which is more than the maximum supported:" +
                                SystemInfo.supportedRenderTargetCount);
 

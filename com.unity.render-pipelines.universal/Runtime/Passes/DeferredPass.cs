@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Profiling;
 using Unity.Collections;

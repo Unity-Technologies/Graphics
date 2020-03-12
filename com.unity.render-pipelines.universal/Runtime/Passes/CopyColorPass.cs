@@ -72,7 +72,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
             var cameraData = renderingData.cameraData;
 
