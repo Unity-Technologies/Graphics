@@ -170,25 +170,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
             }
 
-            var masterNode = node as IMasterNode;
-            if (masterNode != null)
-            {
-                AddToClassList("master");
-                bool validTarget = false;
-                foreach(ITargetImplementation activeTarget in node.owner.validImplementations)
-                {
-                    //if we have a valid active target implementation and render pipeline, don't display the error
-                    if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
-                    {
-                        validTarget = true;
-                        break;
-                    }
-                }
-                //if no active target implementations are valid with the current pipeline, display the error
-                if (!validTarget)
-                    AttachMessage("The active Master Node is not compatible with the current Render Pipeline. Assign a Render Pipeline in the graphics settings that is compatible with this Master Node.", ShaderCompilerMessageSeverity.Error);
-            }
-
             m_NodeSettingsView = new NodeSettingsView();
             m_NodeSettingsView.visible = false;
             Add(m_NodeSettingsView);

@@ -195,13 +195,14 @@ namespace UnityEditor.ShaderGraph
             if(m_OutputNode is IMasterNode masterNode)
             {
                 // Update supported block list for current target implementation
-                var supportedBlockTypes = m_TargetImplementations[targetIndex].GetSupportedBlocks();
+                var activeBlocks = ListPool<BlockFieldDescriptor>.Get();
+                m_TargetImplementations[targetIndex].SetActiveBlocks(ref activeBlocks);
 
                 vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
                 foreach(var block in m_GraphData.vertexContext.blocks)
                 {
                     // Add nodes and slots from supported vertex blocks
-                    if(supportedBlockTypes.Contains(block.descriptor))
+                    if(activeBlocks.Contains(block.descriptor))
                     {
                         vertexSlots.Add(block.FindSlot<MaterialSlot>(0));
                         NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, block, NodeUtils.IncludeSelf.Include);
@@ -214,7 +215,7 @@ namespace UnityEditor.ShaderGraph
                 foreach(var block in m_GraphData.fragmentContext.blocks)
                 {
                     // Add slots from supported fragment blocks
-                    if(supportedBlockTypes.Contains(block.descriptor))
+                    if(activeBlocks.Contains(block.descriptor))
                     {
                         NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, block, NodeUtils.IncludeSelf.Include);
                         pixelSlots.Add(block.FindSlot<MaterialSlot>(0));

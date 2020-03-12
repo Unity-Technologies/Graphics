@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
-
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing.Util;
@@ -27,26 +25,44 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     
     class UniversalMeshTarget : ITargetImplementation
     {
+        [SerializeField]
+        MaterialType m_MaterialType = MaterialType.Lit;
+
+        [SerializeField]
+        WorkflowMode m_WorkflowMode = WorkflowMode.Metallic;
+
+        [SerializeField]
+        SurfaceType m_SurfaceType = SurfaceType.Opaque;
+
+        [SerializeField]
+        AlphaMode m_AlphaMode = AlphaMode.Alpha;
+
+        [SerializeField]
+        bool m_TwoSided = false;
+
+        [SerializeField]
+        bool m_AlphaClip = false;
+
+        [SerializeField]
+        bool m_AddPrecomputedVelocity = false;
+
+        [SerializeField]
+        bool m_DOTSInstancing = false;
+
+        [SerializeField]
+        NormalDropOffSpace m_NormalDropOffSpace = NormalDropOffSpace.Tangent;
+
         public Type targetType => typeof(MeshTarget);
         public string displayName => "Universal";
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
-
-        public Type dataType => typeof(UniversalMeshTargetData);
-        public TargetImplementationData data { get; set; }
-        public UniversalMeshTargetData universalData => (UniversalMeshTargetData)data;
-
-        public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
-        {
-            return currentPipeline is UniversalRenderPipelineAsset;
-        }
 
         public void SetupTarget(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("ac9e1a400a9ce404c8f26b9c1238417e")); // UniversalMeshTarget
 
-            switch(universalData.materialType)
+            switch(m_MaterialType)
             {
                 case MaterialType.Lit:
                     context.SetupSubShader(UniversalSubShaders.PBR);
@@ -63,61 +79,51 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         }
 
-        public List<BlockFieldDescriptor> GetSupportedBlocks()
+        public void SetActiveBlocks(ref List<BlockFieldDescriptor> activeBlocks)
         {
-            var supportedBlocks = new List<BlockFieldDescriptor>();
-
             // Always supported Blocks
-            supportedBlocks.Add(BlockFields.VertexDescription.Position);
-            supportedBlocks.Add(BlockFields.VertexDescription.Normal);
-            supportedBlocks.Add(BlockFields.VertexDescription.Tangent);
-            supportedBlocks.Add(BlockFields.SurfaceDescription.BaseColor);
+            activeBlocks.Add(BlockFields.VertexDescription.Position);
+            activeBlocks.Add(BlockFields.VertexDescription.Normal);
+            activeBlocks.Add(BlockFields.VertexDescription.Tangent);
+            activeBlocks.Add(BlockFields.SurfaceDescription.BaseColor);
 
-            // Lit Blocks
-            if(universalData.materialType == MaterialType.Lit)
+            switch(m_MaterialType)
             {
-                if(universalData.workflowMode == WorkflowMode.Specular)
-                {
-                    supportedBlocks.Add(BlockFields.SurfaceDescription.Specular);
-                }
-                else
-                {
-                    supportedBlocks.Add(BlockFields.SurfaceDescription.Metallic);
-                }
+                case MaterialType.Lit:
+                    if(m_WorkflowMode == WorkflowMode.Specular)
+                        activeBlocks.Add(BlockFields.SurfaceDescription.Specular);
+                    else
+                        activeBlocks.Add(BlockFields.SurfaceDescription.Metallic);
 
-                supportedBlocks.Add(BlockFields.SurfaceDescription.Smoothness);
-                supportedBlocks.Add(BlockFields.SurfaceDescription.Normal);
-                supportedBlocks.Add(BlockFields.SurfaceDescription.Emission);
-                supportedBlocks.Add(BlockFields.SurfaceDescription.Occlusion);
-            }
-
-            // TODO: Move Sprite to separate Target?
-            else if(universalData.materialType == MaterialType.SpriteUnlit)
-            {
-                supportedBlocks.Add(BlockFields.SurfaceDescription.SpriteMask);
-            }
-            else if(universalData.materialType == MaterialType.SpriteLit)
-            {
-                supportedBlocks.Add(BlockFields.SurfaceDescription.SpriteMask);
-                supportedBlocks.Add(BlockFields.SurfaceDescription.Normal);
+                    activeBlocks.Add(BlockFields.SurfaceDescription.Smoothness);
+                    activeBlocks.Add(BlockFields.SurfaceDescription.Normal);
+                    activeBlocks.Add(BlockFields.SurfaceDescription.Emission);
+                    activeBlocks.Add(BlockFields.SurfaceDescription.Occlusion);
+                    break;
+                // TODO: Move Sprite to separate Target?
+                case MaterialType.SpriteLit:
+                    activeBlocks.Add(BlockFields.SurfaceDescription.SpriteMask);
+                    activeBlocks.Add(BlockFields.SurfaceDescription.Normal);
+                    break;
+                case MaterialType.SpriteUnlit:
+                    activeBlocks.Add(BlockFields.SurfaceDescription.SpriteMask);
+                    break;
             }
 
             // Alpha Blocks
-            if(universalData.surfaceType == SurfaceType.Transparent || universalData.alphaClip)
+            if(m_SurfaceType == SurfaceType.Transparent || m_AlphaClip)
             {
-                supportedBlocks.Add(BlockFields.SurfaceDescription.Alpha);
+                activeBlocks.Add(BlockFields.SurfaceDescription.Alpha);
             }
-            if(universalData.alphaClip)
+            if(m_AlphaClip)
             {
-                supportedBlocks.Add(BlockFields.SurfaceDescription.ClipThreshold);
+                activeBlocks.Add(BlockFields.SurfaceDescription.ClipThreshold);
             }
-
-            return supportedBlocks;
         }
 
         public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks)
         {
-            bool isSprite = universalData.materialType == MaterialType.SpriteLit || universalData.materialType == MaterialType.SpriteUnlit;
+            bool isSprite = m_MaterialType == MaterialType.SpriteLit || m_MaterialType == MaterialType.SpriteUnlit;
 
             return new ConditionalField[]
             {
@@ -128,26 +134,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 new ConditionalField(Fields.GraphPixel,          true),
                 
                 // Surface Type
-                new ConditionalField(Fields.SurfaceOpaque,       !isSprite && universalData.surfaceType == SurfaceType.Opaque),
-                new ConditionalField(Fields.SurfaceTransparent,  isSprite || universalData.surfaceType != SurfaceType.Opaque),
+                new ConditionalField(Fields.SurfaceOpaque,       !isSprite && m_SurfaceType == SurfaceType.Opaque),
+                new ConditionalField(Fields.SurfaceTransparent,  isSprite || m_SurfaceType != SurfaceType.Opaque),
                 
                 // Blend Mode
-                new ConditionalField(Fields.BlendAdd,            !isSprite && universalData.surfaceType != SurfaceType.Opaque && universalData.alphaMode == AlphaMode.Additive),
-                new ConditionalField(Fields.BlendAlpha,          isSprite || universalData.surfaceType != SurfaceType.Opaque && universalData.alphaMode == AlphaMode.Alpha),
-                new ConditionalField(Fields.BlendMultiply,       !isSprite && universalData.surfaceType != SurfaceType.Opaque && universalData.alphaMode == AlphaMode.Multiply),
-                new ConditionalField(Fields.BlendPremultiply,    !isSprite && universalData.surfaceType != SurfaceType.Opaque && universalData.alphaMode == AlphaMode.Premultiply),
+                new ConditionalField(Fields.BlendAdd,            !isSprite && m_SurfaceType != SurfaceType.Opaque && m_AlphaMode == AlphaMode.Additive),
+                new ConditionalField(Fields.BlendAlpha,          isSprite || m_SurfaceType != SurfaceType.Opaque && m_AlphaMode == AlphaMode.Alpha),
+                new ConditionalField(Fields.BlendMultiply,       !isSprite && m_SurfaceType != SurfaceType.Opaque && m_AlphaMode == AlphaMode.Multiply),
+                new ConditionalField(Fields.BlendPremultiply,    !isSprite && m_SurfaceType != SurfaceType.Opaque && m_AlphaMode == AlphaMode.Premultiply),
 
                 // Normal Drop Off Space
-                new ConditionalField(Fields.NormalDropOffOS,     universalData.materialType == MaterialType.Lit && universalData.normalDropOffSpace == NormalDropOffSpace.Object),
-                new ConditionalField(Fields.NormalDropOffTS,     universalData.materialType == MaterialType.Lit && universalData.normalDropOffSpace == NormalDropOffSpace.Tangent),
-                new ConditionalField(Fields.NormalDropOffWS,     universalData.materialType == MaterialType.Lit && universalData.normalDropOffSpace == NormalDropOffSpace.World),
+                new ConditionalField(Fields.NormalDropOffOS,     m_MaterialType == MaterialType.Lit && m_NormalDropOffSpace == NormalDropOffSpace.Object),
+                new ConditionalField(Fields.NormalDropOffTS,     m_MaterialType == MaterialType.Lit && m_NormalDropOffSpace == NormalDropOffSpace.Tangent),
+                new ConditionalField(Fields.NormalDropOffWS,     m_MaterialType == MaterialType.Lit && m_NormalDropOffSpace == NormalDropOffSpace.World),
 
                 // Misc
-                new ConditionalField(Fields.AlphaClip,           !isSprite && universalData.alphaClip),
-                new ConditionalField(Fields.VelocityPrecomputed, !isSprite && universalData.addPrecomputedVelocity),
-                new ConditionalField(Fields.DoubleSided,         !isSprite && universalData.twoSided),
-                new ConditionalField(Fields.SpecularSetup,       universalData.materialType == MaterialType.Lit && universalData.workflowMode == WorkflowMode.Specular),
-                new ConditionalField(Fields.Normal,              universalData.materialType == MaterialType.Lit && blocks.Contains(BlockFields.SurfaceDescription.Normal)),
+                new ConditionalField(Fields.AlphaClip,           !isSprite && m_AlphaClip),
+                new ConditionalField(Fields.VelocityPrecomputed, !isSprite && m_AddPrecomputedVelocity),
+                new ConditionalField(Fields.DoubleSided,         !isSprite && m_TwoSided),
+                new ConditionalField(Fields.SpecularSetup,       m_MaterialType == MaterialType.Lit && m_WorkflowMode == WorkflowMode.Specular),
+                new ConditionalField(Fields.Normal,              m_MaterialType == MaterialType.Lit && blocks.Contains(BlockFields.SurfaceDescription.Normal)),
             };
         }
 
@@ -157,29 +163,29 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     row.Add(new EnumField(MaterialType.Lit), (field) =>
                     {
-                        field.value = universalData.materialType;
+                        field.value = m_MaterialType;
                         field.RegisterValueChangedCallback(evt => {
-                            if (Equals(universalData.materialType, evt.newValue))
+                            if (Equals(m_MaterialType, evt.newValue))
                                 return;
 
-                            universalData.materialType = (MaterialType)evt.newValue;
+                            m_MaterialType = (MaterialType)evt.newValue;
                             onChange();
                         });
                     });
                 });
 
-            if(universalData.materialType == MaterialType.Lit)
+            if(m_MaterialType == MaterialType.Lit)
             {
                 propertySheet.Add(new PropertyRow(new Label("Workflow")), (row) =>
                     {
                         row.Add(new EnumField(WorkflowMode.Metallic), (field) =>
                         {
-                            field.value = universalData.workflowMode;
+                            field.value = m_WorkflowMode;
                             field.RegisterValueChangedCallback(evt => {
-                                if (Equals(universalData.workflowMode, evt.newValue))
+                                if (Equals(m_WorkflowMode, evt.newValue))
                                     return;
 
-                                universalData.workflowMode = (WorkflowMode)evt.newValue;
+                                m_WorkflowMode = (WorkflowMode)evt.newValue;
                                 onChange();
                             });
                         });
@@ -190,29 +196,29 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     row.Add(new EnumField(SurfaceType.Opaque), (field) =>
                     {
-                        field.value = universalData.surfaceType;
+                        field.value = m_SurfaceType;
                         field.RegisterValueChangedCallback(evt => {
-                            if (Equals(universalData.surfaceType, evt.newValue))
+                            if (Equals(m_SurfaceType, evt.newValue))
                                 return;
 
-                            universalData.surfaceType = (SurfaceType)evt.newValue;
+                            m_SurfaceType = (SurfaceType)evt.newValue;
                             onChange();
                         });
                     });
                 });
 
-            if(universalData.surfaceType == SurfaceType.Transparent)
+            if(m_SurfaceType == SurfaceType.Transparent)
             {
                 propertySheet.Add(new PropertyRow(new Label("Blend")), (row) =>
                     {
                         row.Add(new EnumField(AlphaMode.Additive), (field) =>
                         {
-                            field.value = universalData.alphaMode;
+                            field.value = m_AlphaMode;
                             field.RegisterValueChangedCallback(evt => {
-                                if (Equals(universalData.alphaMode, evt.newValue))
+                                if (Equals(m_AlphaMode, evt.newValue))
                                     return;
 
-                                universalData.alphaMode = (AlphaMode)evt.newValue;
+                                m_AlphaMode = (AlphaMode)evt.newValue;
                                 onChange();
                             });
                         });
@@ -223,12 +229,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
-                        toggle.value = universalData.alphaClip;
+                        toggle.value = m_AlphaClip;
                         toggle.OnToggleChanged(evt => {
-                            if (Equals(universalData.alphaClip, evt.newValue))
+                            if (Equals(m_AlphaClip, evt.newValue))
                                 return;
                             
-                            universalData.alphaClip = evt.newValue;
+                            m_AlphaClip = evt.newValue;
                             onChange();
                         });
                     });
@@ -238,29 +244,29 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
-                        toggle.value = universalData.twoSided;
+                        toggle.value = m_TwoSided;
                         toggle.OnToggleChanged(evt => {
-                            if (Equals(universalData.twoSided, evt.newValue))
+                            if (Equals(m_TwoSided, evt.newValue))
                                 return;
                             
-                            universalData.twoSided = evt.newValue;
+                            m_TwoSided = evt.newValue;
                             onChange();
                         });
                     });
                 });
 
-            if(universalData.materialType == MaterialType.Lit)
+            if(m_MaterialType == MaterialType.Lit)
             {
                 propertySheet.Add(new PropertyRow(new Label("Fragment Normal Space")), (row) =>
                     {
                         row.Add(new EnumField(NormalDropOffSpace.Tangent), (field) =>
                         {
-                            field.value = universalData.normalDropOffSpace;
+                            field.value = m_NormalDropOffSpace;
                             field.RegisterValueChangedCallback(evt => {
-                                if (Equals(universalData.normalDropOffSpace, evt.newValue))
+                                if (Equals(m_NormalDropOffSpace, evt.newValue))
                                     return;
 
-                                universalData.normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
+                                m_NormalDropOffSpace = (NormalDropOffSpace)evt.newValue;
                                 onChange();
                             });
                         });

@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnChange()
         {
-            m_GraphData.UpdateSupportedBlocks();
+            m_GraphData.UpdateActiveBlocks();
             m_GraphData.outputNode.Dirty(ModificationScope.Graph);
             Remove(m_PropertySheet);
             Rebuild();

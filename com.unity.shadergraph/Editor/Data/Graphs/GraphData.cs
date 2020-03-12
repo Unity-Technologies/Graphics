@@ -378,16 +378,6 @@ namespace UnityEditor.ShaderGraph
                     m_ActiveTargetImplementationBitmask) == (1 << m_ValidImplementations.IndexOf(s))).ToList();
             }
         }
-
-        // TODO: Temporary. Remove.
-        // TODO: For now simply serialize the target datas on GraphData
-        // TODO: These will need to be moved to metadata objects later to allow
-        // TODO: HDRP to strip shaders effectively
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializableTargetImplementationDatas = new List<SerializationHelper.JSONSerializedElement>();
-
-        [NonSerialized]
-        List<TargetImplementationData> m_TargetImplementationDatas = new List<TargetImplementationData>();
         #endregion
 
         public bool didActiveOutputNodeChange { get; set; }
@@ -634,28 +624,26 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Update support Blocks
-            UpdateSupportedBlocks();
+            UpdateActiveBlocks();
         }
 
-        public void UpdateSupportedBlocks()
+        public void UpdateActiveBlocks()
         {
-            // Get list of supported Block types
-            // TODO: This should be calculated by Settings object for the Target
-            var supportedBlockTypes = ListPool<string>.Get();
-            var masterNode = GetNodeFromGuid<AbstractMaterialNode>(activeOutputNodeGuid) as IMasterNode;
+            // Get list of active Block types
+            var activeBlocks = ListPool<BlockFieldDescriptor>.Get();
             foreach(var implementation in activeTargetImplementations)
             {
-                supportedBlockTypes.AddRange(implementation.GetSupportedBlocks().Select(x => $"{x.tag}.{x.name}"));
+                implementation.SetActiveBlocks(ref activeBlocks);
             }
 
             // Set Blocks as active based on supported Block list
             foreach(var vertexBlock in vertexContext.blocks)
             {
-                vertexBlock.isActive = supportedBlockTypes.Contains(vertexBlock.name);
+                vertexBlock.isActive = activeBlocks.Contains(vertexBlock.descriptor);
             }
             foreach(var fragmentBlock in fragmentContext.blocks)
             {
-                fragmentBlock.isActive = supportedBlockTypes.Contains(fragmentBlock.name);
+                fragmentBlock.isActive = activeBlocks.Contains(fragmentBlock.descriptor);
             }
         }
 
@@ -1481,10 +1469,6 @@ namespace UnityEditor.ShaderGraph
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
-
-            // Serialize implementation datas
-            // We also serialize their implementation reference here (see OnAfterDeserialize)
-            m_SerializableTargetImplementationDatas = SerializationHelper.Serialize<TargetImplementationData>(m_TargetImplementationDatas);
         }
 
         public void OnAfterDeserialize()
@@ -1571,12 +1555,6 @@ namespace UnityEditor.ShaderGraph
             // First deserialize the ContextDatas
             DeserializeContextData(m_VertexContext, ShaderStage.Vertex);
             DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
-
-            // Deserialize implementation datas
-            // Because deserialization of their implementation references requires the implementation list stored here
-            // We simply deserialize them here rather than implementing ISerializationCallbackReceiver on the data object
-            // and handling the GraphData reference there somehow (deserialization order issues)
-            m_TargetImplementationDatas = SerializationHelper.Deserialize<TargetImplementationData>(m_SerializableTargetImplementationDatas, GraphUtil.GetLegacyTypeRemapping());
         }
 
         public void OnEnable()
@@ -1605,14 +1583,6 @@ namespace UnityEditor.ShaderGraph
             List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
             foreach(var implementation in m_AllImplementations)
             {
-                // dataType property must be of type TargetImplementationData
-                // but we have no way of constraining this so we have to simply return warnings
-                if(!implementation.dataType.IsSubclassOf(typeof(TargetImplementationData)))
-                {
-                    Debug.LogWarning($"{implementation.GetType().Name} dataType does not derive from Type TargetImplementationData. Will be ignored.");
-                    continue;
-                }
-
                 // TODO: This can probably be optimised. After moving to caching the implementation on ctor
                 // TODO: this section allocs GC just to either remove PreviewTarget or return only PreviewTarget depending on if this is a Subgraph
                 if (outputNode is SubGraphOutputNode && typeof(DefaultPreviewTarget).IsAssignableFrom(implementation.GetType()))
@@ -1678,31 +1648,7 @@ namespace UnityEditor.ShaderGraph
                 m_ActiveTargetImplementationBitmask = newBitmask;
             }
             
-            UpdateTargetImplementationDatas();
-            UpdateSupportedBlocks();
-        }
-
-        void UpdateTargetImplementationDatas()
-        {
-            // Ensure that all active TargetImplementations have a matching data object
-            // Currently we never remove serialized data objects
-            foreach(var implementation in activeTargetImplementations)
-            {
-                // Get data for the TargetImplementation
-                var implementationName = implementation.GetType().FullName;
-                var data = m_TargetImplementationDatas.FirstOrDefault(s => s.implementationName == implementationName);
-                
-                // If TargetImplementation does not have an active data object we create one
-                if(data == null)
-                {
-                    data = Activator.CreateInstance(implementation.dataType) as TargetImplementationData;
-                    data.implementationName = implementationName;
-                    m_TargetImplementationDatas.Add(data);
-                }
-
-                // Update data object on TargetImplementation
-                implementation.data = data;
-            }
+            UpdateActiveBlocks();
         }
     }
 

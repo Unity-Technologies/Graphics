@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
-
+using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing;
@@ -10,48 +9,45 @@ namespace UnityEditor.ShaderGraph
 {
     class DefaultVFXTarget : ITargetImplementation
     {
+#region Serialized Fields
+        [SerializeField]
+        bool m_Lit = false;
+
+        [SerializeField]
+        bool m_AlphaTest = false;
+#endregion
+
+#region Properties
         public Type targetType => typeof(VFXTarget);
         public string displayName => "Default";
         public string passTemplatePath => null;
         public string sharedTemplateDirectory => null;
-
-        public Type dataType => typeof(DefaultVFXTargetData);
-        public TargetImplementationData data { get; set; }
-        public DefaultVFXTargetData vfxData => (DefaultVFXTargetData)data;
-
-        public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
-        {
-            return (currentPipeline != null);
-        }
+#endregion
 
         public void SetupTarget(ref TargetSetupContext context)
         {
         }
 
-        public List<BlockFieldDescriptor> GetSupportedBlocks()
+        public void SetActiveBlocks(ref List<BlockFieldDescriptor> activeBlocks)
         {
-            var supportedBlocks = new List<BlockFieldDescriptor>();
-
             // Always supported Blocks
-            supportedBlocks.Add(BlockFields.SurfaceDescription.BaseColor);
-            supportedBlocks.Add(BlockFields.SurfaceDescription.Alpha);
-
-            // Alpha Blocks
-            if(vfxData.alphaTest)
-            {
-                supportedBlocks.Add(BlockFields.SurfaceDescription.ClipThreshold);
-            }
+            activeBlocks.Add(BlockFields.SurfaceDescription.BaseColor);
+            activeBlocks.Add(BlockFields.SurfaceDescription.Alpha);
 
             // Lit Blocks
-            if(vfxData.lit)
+            if(m_Lit)
             {
-                supportedBlocks.Add(BlockFields.SurfaceDescription.Metallic);
-                supportedBlocks.Add(BlockFields.SurfaceDescription.Smoothness);
-                supportedBlocks.Add(BlockFields.SurfaceDescription.Normal);
-                supportedBlocks.Add(BlockFields.SurfaceDescription.Emission);
+                activeBlocks.Add(BlockFields.SurfaceDescription.Metallic);
+                activeBlocks.Add(BlockFields.SurfaceDescription.Smoothness);
+                activeBlocks.Add(BlockFields.SurfaceDescription.Normal);
+                activeBlocks.Add(BlockFields.SurfaceDescription.Emission);
             }
 
-            return supportedBlocks;
+            // Alpha Blocks
+            if(m_AlphaTest)
+            {
+                activeBlocks.Add(BlockFields.SurfaceDescription.ClipThreshold);
+            }
         }
 
         public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks)
@@ -65,12 +61,12 @@ namespace UnityEditor.ShaderGraph
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
-                        toggle.value = vfxData.lit;
+                        toggle.value = m_Lit;
                         toggle.OnToggleChanged(evt => {
-                            if (Equals(vfxData.lit, evt.newValue))
+                            if (Equals(m_Lit, evt.newValue))
                                 return;
                             
-                            vfxData.lit = evt.newValue;
+                            m_Lit = evt.newValue;
                             onChange();
                         });
                     });
@@ -80,12 +76,12 @@ namespace UnityEditor.ShaderGraph
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
-                        toggle.value = vfxData.alphaTest;
+                        toggle.value = m_AlphaTest;
                         toggle.OnToggleChanged(evt => {
-                            if (Equals(vfxData.alphaTest, evt.newValue))
+                            if (Equals(m_AlphaTest, evt.newValue))
                                 return;
                             
-                            vfxData.alphaTest = evt.newValue;
+                            m_AlphaTest = evt.newValue;
                             onChange();
                         });
                     });

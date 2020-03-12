@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
-
 using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph
@@ -9,21 +7,9 @@ namespace UnityEditor.ShaderGraph
     class DefaultPreviewTarget : ITargetImplementation
     {
         public Type targetType => typeof(PreviewTarget);
-
-        // TODO: How do we handle these special cases?
-        // TODO: PreviewTarget does not require a dataType
-        // TODO: but must return some Type of TargetImplementationData here...
-        public Type dataType => typeof(DefaultPreviewTargetData);
-        public TargetImplementationData data { get; set; }
-
         public string displayName => null;
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
-
-        public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
-        {
-            return (currentPipeline != null);
-        }
 
         public void SetupTarget(ref TargetSetupContext context)
         {
@@ -33,9 +19,8 @@ namespace UnityEditor.ShaderGraph
             context.SetupSubShader(PreviewTargetResources.PreviewSubShader);
         }
 
-        public List<BlockFieldDescriptor> GetSupportedBlocks()
+        public void SetActiveBlocks(ref List<BlockFieldDescriptor> activeBlocks)
         {
-            return null;
         }
 
         public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks)

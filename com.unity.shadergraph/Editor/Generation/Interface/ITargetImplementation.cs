@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph
@@ -13,13 +12,8 @@ namespace UnityEditor.ShaderGraph
         string passTemplatePath { get; }
         string sharedTemplateDirectory { get; }
 
-        Type dataType { get; }
-        TargetImplementationData data { get; set; }
-
-        bool IsPipelineCompatible(RenderPipelineAsset currentPipeline);
         void SetupTarget(ref TargetSetupContext context);
-
-        List<BlockFieldDescriptor> GetSupportedBlocks();
+        void SetActiveBlocks(ref List<BlockFieldDescriptor> activeBlocks);
         ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks);
 
         // TODO: Should we have the GUI implementation integrated in this way?
