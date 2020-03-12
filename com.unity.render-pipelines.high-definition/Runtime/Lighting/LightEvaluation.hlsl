@@ -204,7 +204,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
         float3 C = _PlanetCenterPosition;
 
         float r        = distance(X, C);
-        float cosHoriz = ComputeCosineOfHorizonAngle(r);
+        float cosHoriz = ComputeCosineOfHorizonAngleSlow(r);
         float cosTheta = dot(X - C, L) * rcp(r); // Normalize
 
         if (cosTheta >= cosHoriz) // Above horizon

@@ -50,7 +50,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float NdotV  = -cosChi;
     float r      = height + R;
-    float cosHor = ComputeCosineOfHorizonAngle(r);
+    float cosHor = ComputeCosineOfHorizonAngleSlow(r);
 
     bool lookAboveHorizon = (cosChi >= cosHor);
     bool viewAboveHorizon = (NdotV >= cosHor);

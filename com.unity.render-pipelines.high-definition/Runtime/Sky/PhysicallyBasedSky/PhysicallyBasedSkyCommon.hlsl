@@ -90,6 +90,15 @@ float3 AtmospherePhaseScatter(float LdotV, float height)
     return AirPhase(LdotV) * (AirScatter(height) + AerosolScatter(height));
 }
 
+void ApplySphericalSymmetry(float3 pos, float3 dir,
+                            out float r, out float rSq, out float rRcp, out float cosChi)
+{
+    rSq    = dot(pos, pos);
+    rRcp   = rsqrt(rSq);
+    r      = rSq * rRcp;
+    cosChi = dot(pos, dir) * rRcp; // Normalize
+}
+
 // Returns the closest hit in X and the farthest hit in Y.
 // Returns a negative number if there's no intersection.
 // (result.y >= 0) indicates success.
@@ -133,6 +142,14 @@ float2 IntersectSphere(float sphereRadius, float cosChi, float radialDistance)
     return IntersectSphere(sphereRadius, cosChi, radialDistance, rcp(radialDistance));
 }
 
+float2 IntersectSphere(float sphereRadius, float3 rayOrigin, float3 rayDirection)
+{
+    float r, rSq, rRcp, cosChi;
+
+    ApplySphericalSymmetry(rayOrigin, rayDirection, /* -> */ r, rSq, rRcp, cosChi);
+    return IntersectSphere(sphereRadius, cosChi, r, rRcp);
+}
+
 float2 IntersectRayCylinder(float3 cylAxis, float cylRadius,
                             float  radialDistance, float3 rayDir)
 {
@@ -163,7 +180,7 @@ float UnmapQuadraticHeight(float v)
     return (v * v) * _AtmosphericDepth;
 }
 
-float ComputeCosineOfHorizonAngle(float r)
+float ComputeCosineOfHorizonAngleSlow(float r)
 {
     float R      = _PlanetaryRadius;
     float sinHor = R * rcp(r);
@@ -175,7 +192,7 @@ float2 MapAerialPerspective(float cosChi, float height, float texelSize)
 {
     float R      = _PlanetaryRadius;
     float r      = height + R;
-    float cosHor = ComputeCosineOfHorizonAngle(r);
+    float cosHor = ComputeCosineOfHorizonAngleSlow(r);
 
     // Above horizon?
     float s = FastSign(cosChi - cosHor);
@@ -198,7 +215,7 @@ float2 MapAerialPerspectiveAboveHorizon(float cosChi, float height)
 {
     float R      = _PlanetaryRadius;
     float r      = height + R;
-    float cosHor = ComputeCosineOfHorizonAngle(r);
+    float cosHor = ComputeCosineOfHorizonAngleSlow(r);
 
     float u = saturate(sqrt(cosChi - cosHor) * rsqrt(1 - cosHor));
     float v = MapQuadraticHeight(height);
@@ -212,7 +229,7 @@ float2 UnmapAerialPerspective(float2 uv)
     float height = UnmapQuadraticHeight(uv.y);
     float R      = _PlanetaryRadius;
     float r      = height + R;
-    float cosHor = ComputeCosineOfHorizonAngle(r);
+    float cosHor = ComputeCosineOfHorizonAngleSlow(r);
 
     float m = uv.x * 2 - 1;
     float s = FastSign(m);
@@ -230,7 +247,7 @@ float2 UnmapAerialPerspectiveAboveHorizon(float2 uv)
     float height = UnmapQuadraticHeight(uv.y);
     float R      = _PlanetaryRadius;
     float r      = height + R;
-    float cosHor = ComputeCosineOfHorizonAngle(r);
+    float cosHor = ComputeCosineOfHorizonAngleSlow(r);
 
     float x = (uv.x * uv.x);
 
@@ -328,7 +345,7 @@ float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool aboveHorizon
 
 float3 ComputeAtmosphericOpticalDepth1(float r, float cosTheta)
 {
-    float cosHor = ComputeCosineOfHorizonAngle(r);
+    float cosHor = ComputeCosineOfHorizonAngleSlow(r);
 
     return ComputeAtmosphericOpticalDepth(r, cosTheta, cosTheta >= cosHor);
 }

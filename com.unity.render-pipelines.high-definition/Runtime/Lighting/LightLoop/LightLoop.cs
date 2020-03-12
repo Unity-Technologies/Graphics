@@ -1016,7 +1016,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return Rcp(Mathf.Sqrt(x));
         }
 
-        static float ComputeCosineOfHorizonAngle(float r, float R)
+        static float ComputeCosineOfHorizonAngleSlow(float r, float R)
         {
             float sinHoriz = R * Rcp(r);
             return -Mathf.Sqrt(Saturate(1 - sinHoriz * sinHoriz));
@@ -1049,7 +1049,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector2 z = r * rcpH;
             Vector2 Z = R * rcpH;
 
-            float cosHoriz = ComputeCosineOfHorizonAngle(r, R);
+            float cosHoriz = ComputeCosineOfHorizonAngleSlow(r, R);
 	        float sinTheta = Mathf.Sqrt(Saturate(1 - cosTheta * cosTheta));
 
             Vector2 ch;
@@ -1098,7 +1098,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float r = Vector3.Distance(X, C);
             float R = skySettings.GetPlanetaryRadius();
-            float cosHoriz = ComputeCosineOfHorizonAngle(r, R);
+            float cosHoriz = ComputeCosineOfHorizonAngleSlow(r, R);
             float cosTheta = Vector3.Dot(X - C, L) * Rcp(r);
 
             if (cosTheta > cosHoriz) // Above horizon

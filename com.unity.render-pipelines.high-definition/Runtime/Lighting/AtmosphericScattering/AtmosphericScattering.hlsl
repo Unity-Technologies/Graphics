@@ -62,7 +62,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
 
     float NdotV  = dot(N, V);
     float cosChi = -NdotV;
-    float cosHor = ComputeCosineOfHorizonAngle(r);
+    float cosHor = ComputeCosineOfHorizonAngleSlow(r);
 
     bool rayIntersectsAtmosphere = (tEntry >= 0);
     bool lookAboveHorizon        = (cosChi >= cosHor);
