@@ -59,7 +59,7 @@ testplatforms:
   - name: editmode
     args: --suite=editor --platform=editmode
 projects:
-  - name: UniversalHybrid
+  - name: Universal_Hybrid
     folder: UniversalHybridTest
 win_apis:
   - name: DX11
