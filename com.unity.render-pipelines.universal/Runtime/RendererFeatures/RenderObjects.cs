@@ -83,13 +83,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             var desc = renderingData.cameraData.cameraTargetDescriptor;
             renderObjectsPass.ConfigureRenderPassDescriptor(desc.width, desc.height,desc.msaaSamples);
+            AttachmentDescriptor color = new AttachmentDescriptor(desc.graphicsFormat);
+            AttachmentDescriptor depth = new AttachmentDescriptor(RenderTextureFormat.Depth);
+            color.ConfigureTarget(renderer.cameraColorTarget, true, true);
+            depth.ConfigureTarget(renderer.cameraDepth, true, true);
+            renderObjectsPass.ConfigureTarget(color, depth);
 
             renderer.EnqueuePass(renderObjectsPass);
-        }
-
-        public override void SetFeatureColorTarget(AttachmentDescriptor color, AttachmentDescriptor depth)
-        {
-            renderObjectsPass.ConfigureTarget(color, depth);
         }
 
     }

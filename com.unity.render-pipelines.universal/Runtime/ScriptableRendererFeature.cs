@@ -32,8 +32,5 @@ namespace UnityEngine.Rendering.Universal
         {
             Create();
         }
-
-        public abstract void SetFeatureColorTarget(AttachmentDescriptor color, AttachmentDescriptor depth);
-
     }
 }
