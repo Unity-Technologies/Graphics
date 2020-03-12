@@ -113,7 +113,7 @@ android_apis:
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
       rerun: {{ editor.rerun_strategy }}
-    - path: .yamato/upm-ci-universal.yml#Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}
+    - path: .yamato/upm-ci-universal_hybrid.yml#Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}
       rerun: {{ editor.rerun_strategy }}
   
 Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
@@ -234,7 +234,7 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
       rerun: {{ editor.rerun_strategy }}
-    - path: .yamato/upm-ci-universal.yml#Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}
+    - path: .yamato/upm-ci-universal_hybrid.yml#Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}
       rerun: {{ editor.rerun_strategy }}
   artifacts:
       logs:
@@ -429,7 +429,7 @@ Build_{{ project.name }}_Android_{{ android_api.name }}_{{ editor.version }}:
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
       rerun: {{ editor.rerun_strategy }}
-    - path: .yamato/upm-ci-universal.yml#Build_{{ project.name }}_Android_{{ android_api.name }}_{{ editor.version }}
+    - path: .yamato/upm-ci-universal_hybrid.yml#Build_{{ project.name }}_Android_{{ android_api.name }}_{{ editor.version }}
       rerun: {{ editor.rerun_strategy }}
   artifacts:
     logs:

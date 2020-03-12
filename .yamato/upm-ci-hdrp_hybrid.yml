@@ -42,7 +42,7 @@ testplatforms:
   - name: editmode
     args: --suite=editor --platform=editmode
 projects:
-  - name: HDRPHybrid
+  - name: HDRP_Hybrid
     folder: HDRP_HybridTests
 win_apis:
   - name: DX11
