@@ -6,29 +6,22 @@ namespace UnityEditor.ShaderGraph.Drawing
     [AttributeUsage(AttributeTargets.Property)]
     public class Inspectable : Attribute
     {
+        // String value to use in the Property name TextLabel
         public string labelName { get; private set; }
 
+        // The default value of this property
         public object defaultValue { get; private set; }
 
-        public Inspectable(string labelName, object defaultValue)
+        // String value to supply if you wish to use a custom style when drawing this property
+        public string customStyleName { get; private set; }
+
+        public Inspectable(string labelName, object defaultValue, string customStyleName = "")
         {
             this.labelName = labelName;
             this.defaultValue = defaultValue;
-        }
-
-    }
-
-    [AttributeUsage(AttributeTargets.Class)]
-    public class SGPropertyDrawer : Attribute
-    {
-        public Type propertyType { get; private set; }
-
-        public SGPropertyDrawer(Type propertyType)
-        {
-            this.propertyType = propertyType;
+            this.customStyleName = customStyleName;
         }
     }
-
 
     interface IInspectable
     {

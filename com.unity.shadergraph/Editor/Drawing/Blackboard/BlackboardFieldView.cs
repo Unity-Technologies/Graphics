@@ -16,7 +16,11 @@ namespace UnityEditor.ShaderGraph.Drawing
     class BlackboardFieldView : BlackboardField, IInspectable
     {
         GraphData m_GraphData;
+
         ShaderInput m_Input;
+
+        [Inspectable("Shader Input", null)]
+        private ShaderInput Input => m_Input;
 
         // Common
         TextField m_ReferenceNameField;
@@ -166,6 +170,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 #region Default Fields
         void BuildExposedField(PropertySheet propertySheet)
         {
+            //  Can put the code for OnToggleChanged into a property
             if(!m_GraphData.isSubGraph)
             {
                 var exposedToogle = new Toggle();

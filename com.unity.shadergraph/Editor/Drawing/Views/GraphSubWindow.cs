@@ -60,10 +60,6 @@ namespace Drawing.Views
             }
         }
 
-        public Action<GraphSubWindow> addItemRequested { get; set; }
-        public Action<GraphSubWindow, int, VisualElement> moveItemRequested { get; set; }
-        public Action<GraphSubWindow, VisualElement, string> editTextRequested { get; set; }
-
         // ISelection implementation
         public List<ISelectable> selection
         {
@@ -109,7 +105,7 @@ namespace Drawing.Views
             }
         }
 
-        public override VisualElement contentContainer { get { return m_ContentContainer; } }
+        public override VisualElement contentContainer => m_ContentContainer;
 
         public bool scrollable
         {
