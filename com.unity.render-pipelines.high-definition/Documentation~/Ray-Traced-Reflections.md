@@ -1,6 +1,6 @@
 # Ray-Traced Reflections
 
-Ray-Traced Reflections is a ray tracing feature in the High Definition Render Pipeline (HDRP). It is an alternative, more accurate, ray-traced solution to [Screen Space Reflection](Override-Screen-Space-Reflection) that can make use of off screen data.
+Ray-Traced Reflections is a ray tracing feature in the High Definition Render Pipeline (HDRP). It is an alternative, more accurate, ray-traced solution to [Screen Space Reflection](Override-Screen-Space-Reflection.html) that can make use of off screen data.
 
 ![](Images/RayTracedReflections1.png)
 
