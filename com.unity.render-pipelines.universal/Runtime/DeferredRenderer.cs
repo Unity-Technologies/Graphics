@@ -241,10 +241,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), true, true);
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
-            {
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
-                rendererFeatures[i].SetFeatureColorTarget(m_CameraColorDescriptor, m_CameraDepthDescriptor);
-            }
 
             int count = activeRenderPassQueue.Count;
             for (int i = count - 1; i >= 0; i--)
