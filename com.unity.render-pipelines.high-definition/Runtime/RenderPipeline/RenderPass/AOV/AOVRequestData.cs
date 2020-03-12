@@ -16,6 +16,11 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <param name="aovBufferId">The AOVBuffer to allocatE.</param>
     public delegate RTHandle AOVRequestBufferAllocator(AOVBuffers aovBufferId);
 
+    /// <summary>Called when the rendering has completed.</summary>
+    /// <param name="cmd">A command buffer that can be used.</param>
+    /// <param name="buffers">The buffers that has been requested.</param>
+    /// <param name="outputProperties">Several properties that were computed for this frame.</param>
+    public delegate void FramePassCallbackEx(CommandBuffer cmd, List<RTHandle> buffers, List<RTHandle> customPassbuffers, RenderOutputProperties outputProperties);
     /// <summary>
     /// Called to allocate a RTHandle for a specific custom pass AOVBuffer.
     /// </summary>
@@ -49,12 +54,13 @@ namespace UnityEngine.Rendering.HighDefinition
         private AOVBuffers[] m_RequestedAOVBuffers;
         private CustomPassAOVBuffers[] m_CustomPassAOVBuffers;
         private FramePassCallback m_Callback;
+        private FramePassCallbackEx m_CallbackEx;
         private readonly AOVRequestBufferAllocator m_BufferAllocator;
         private readonly AOVRequestCustomPassBufferAllocator m_CustomPassBufferAllocator;
         private List<GameObject> m_LightFilter;
 
         /// <summary>Whether this frame pass is valid.</summary>
-        public bool isValid => (m_RequestedAOVBuffers != null || m_CustomPassAOVBuffers != null) && m_Callback != null;
+        public bool isValid => (m_RequestedAOVBuffers != null || m_CustomPassAOVBuffers != null) && (m_Callback != null || m_CallbackEx != null);
 
         /// <summary>Create a new frame pass.</summary>
         /// <param name="settings">Settings to use.</param>
@@ -75,6 +81,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RequestedAOVBuffers = requestedAOVBuffers;
             m_LightFilter = lightFilter;
             m_Callback = callback;
+
+            m_CallbackEx = null;
             m_CustomPassAOVBuffers = null;
             m_CustomPassBufferAllocator = null;
         }
@@ -93,7 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
             List<GameObject> lightFilter,
             AOVBuffers[] requestedAOVBuffers,
             CustomPassAOVBuffers[] customPassAOVBuffers,
-            FramePassCallback callback
+            FramePassCallbackEx callback
         )
         {
             m_Settings = settings;
@@ -102,7 +110,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CustomPassAOVBuffers = customPassAOVBuffers;
             m_CustomPassBufferAllocator = customPassBufferAllocator;
             m_LightFilter = lightFilter;
-            m_Callback = callback;
+            m_Callback = null;
+            m_CallbackEx = callback;
         }
 
 
@@ -120,11 +129,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var bufferId in m_RequestedAOVBuffers)
                     textures.Add(m_BufferAllocator(bufferId));
             }
+        }
+
+        /// <summary>Allocate texture if required.</summary>
+        /// <param name="textures">A buffer of texture ready to use.</param>
+        public void AllocateTargetTexturesIfRequired(ref List<RTHandle> textures, ref List<RTHandle> customPassTextures)
+        {
+            if (!isValid || textures == null)
+                return;
+
+            textures.Clear();
+            customPassTextures.Clear();
+
+            if (m_RequestedAOVBuffers != null)
+            {
+                foreach (var bufferId in m_RequestedAOVBuffers)
+                    textures.Add(m_BufferAllocator(bufferId));
+            }
 
             if (m_CustomPassAOVBuffers != null)
             {
                 foreach (var aovBufferId in m_CustomPassAOVBuffers)
-                    textures.Add(m_CustomPassBufferAllocator(aovBufferId));
+                    customPassTextures.Add(m_CustomPassBufferAllocator(aovBufferId));
             }
         }
 
@@ -235,6 +261,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             m_Callback(cmd, framePassTextures, outputProperties);
+        }
+
+        /// <summary>Execute the frame pass callback. It assumes that the textures are properly initialized and filled.</summary>
+        /// <param name="cmd">The command buffer to use.</param>
+        /// <param name="framePassTextures">The textures to use.</param>
+        /// <param name="outputProperties">The properties computed for this frame.</param>
+        public void Execute(CommandBuffer cmd, List<RTHandle> framePassTextures, List<RTHandle> customPassTextures, RenderOutputProperties outputProperties)
+        {
+            if (!isValid)
+                return;
+
+            if (m_CallbackEx != null)
+            {
+                m_CallbackEx(cmd, framePassTextures, customPassTextures, outputProperties);
+            }
+            else
+            {
+                m_Callback(cmd, framePassTextures, outputProperties);
+            }
         }
 
         /// <summary>Setup the display manager if necessary.</summary>

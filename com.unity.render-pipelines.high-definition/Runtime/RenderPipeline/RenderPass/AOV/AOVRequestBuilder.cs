@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
             List<GameObject> includedLightList,
             AOVBuffers[] aovBuffers,
             CustomPassAOVBuffers[] customPassAovBuffers,
-            FramePassCallback callback
+            FramePassCallbackEx callback
         )
         {
             (m_AOVRequestDataData ?? (m_AOVRequestDataData = ListPool<AOVRequestData>.Get())).Add(
