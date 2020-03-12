@@ -340,8 +340,13 @@ namespace UnityEditor.ShaderGraph
         internal static SaveGraphDelegate onSaveGraph;
 
         #region Targets
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializableGenerationTargets = new List<SerializationHelper.JSONSerializedElement>();
+
+        [SerializeField]
+        int m_ActiveTargetIndex = 0;
+
         List<GenerationTarget> m_GenerationTargets = new List<GenerationTarget>();
-        int m_ActiveTargetIndex;
 
         // TODO: We should hand in the GenerationTarget during ctor
         // TODO: But this requires preview refactors
@@ -397,9 +402,6 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-            
-            // TODO: Get actual target index...
-            m_ActiveTargetIndex = 0;
         }
 
         // TODO: We should not have any View code here
@@ -1475,6 +1477,7 @@ namespace UnityEditor.ShaderGraph
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
+            m_SerializableGenerationTargets = SerializationHelper.Serialize<GenerationTarget>(m_GenerationTargets);
         }
 
         public void OnAfterDeserialize()
@@ -1482,6 +1485,7 @@ namespace UnityEditor.ShaderGraph
             // have to deserialize 'globals' before nodes
             m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
             m_Keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, GraphUtil.GetLegacyTypeRemapping());
+            m_GenerationTargets = SerializationHelper.Deserialize<GenerationTarget>(m_SerializableGenerationTargets, GraphUtil.GetLegacyTypeRemapping());
 
             var nodes = SerializationHelper.Deserialize<AbstractMaterialNode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
 

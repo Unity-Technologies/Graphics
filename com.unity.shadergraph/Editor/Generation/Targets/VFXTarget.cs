@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using UnityEngine.Rendering;
-
-namespace UnityEditor.ShaderGraph
+﻿namespace UnityEditor.ShaderGraph
 {
     class VFXTarget : ITarget
     {
-        public string displayName => "Visual Effect";
+        public override string displayName => "Visual Effect";
     }
 }

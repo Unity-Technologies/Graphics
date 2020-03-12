@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
     sealed class GenerationTarget : ISerializationCallbackReceiver
     {
         [SerializeField]
-        ITarget m_Target;
+        string m_SerializedTarget;
 
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedImplementations = new List<SerializationHelper.JSONSerializedElement>();
@@ -20,18 +20,23 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         int m_ActiveImplementationBitmask;
 
+        ITarget m_Target;
         List<ITargetImplementation> m_Implementations;
         List<ITargetImplementation> m_ActiveImplementations;
         string[] m_ImplementationNames;
         Dictionary<ITargetImplementation, bool> m_ImplementationFoldouts;
 
-        public GenerationTarget(ITarget target)
+        GenerationTarget()
+        {
+            m_ActiveImplementations = new List<ITargetImplementation>();
+            m_ImplementationFoldouts = new Dictionary<ITargetImplementation, bool>();
+        }
+
+        public GenerationTarget(ITarget target) : base()
         {
             // Set data
             m_Target = target;
             m_Implementations = new List<ITargetImplementation>();
-            m_ActiveImplementations = new List<ITargetImplementation>();
-            m_ImplementationFoldouts = new Dictionary<ITargetImplementation, bool>();
             m_ActiveImplementationBitmask = -1;
 
             // Get all TargetImplementation types
@@ -73,15 +78,19 @@ namespace UnityEditor.ShaderGraph
         void UpdateActiveImplementations()
         {
             // Update active TargetImplementation list
-            m_ActiveImplementations.Clear();
-            var implementationCount = m_Implementations.Count;
-            for(int i = 0; i < implementationCount; i++)
+            if(m_ActiveImplementations != null)
             {
-                if(((1 << i) & m_ActiveImplementationBitmask) == (1 << i))
+                m_ActiveImplementations.Clear();
+                var implementationCount = m_Implementations.Count;
+                for(int i = 0; i < implementationCount; i++)
                 {
-                    m_ActiveImplementations.Add(m_Implementations[i]);
-                }   
+                    if(((1 << i) & m_ActiveImplementationBitmask) == (1 << i))
+                    {
+                        m_ActiveImplementations.Add(m_Implementations[i]);
+                    }   
+                }
             }
+            
         }
 
         void UpdateDeserializedImplementations()
@@ -183,18 +192,21 @@ namespace UnityEditor.ShaderGraph
         public void OnBeforeSerialize()
         {
             // Serialize fields
+            m_SerializedTarget = m_Target.GetType().FullName;
             m_SerializedImplementations = SerializationHelper.Serialize<ITargetImplementation>(m_Implementations);
         }
 
         public void OnAfterDeserialize()
         {
             // Deserialize fields
+            m_Target = (ITarget)Activator.CreateInstance(Type.GetType(m_SerializedTarget));
             m_Implementations = SerializationHelper.Deserialize<ITargetImplementation>(m_SerializedImplementations, GraphUtil.GetLegacyTypeRemapping());
 
             // Post deserialization
             UpdateDeserializedImplementations();
 
             // Clear data
+            m_SerializedTarget = null;
             m_SerializedImplementations = null;
         }
     }

@@ -2,6 +2,6 @@
 {
     class MeshTarget : ITarget
     {
-        public string displayName => "Mesh";
+        public override string displayName => "Mesh";
     }
 }

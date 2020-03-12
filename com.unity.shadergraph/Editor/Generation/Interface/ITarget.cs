@@ -1,8 +1,10 @@
-﻿namespace UnityEditor.ShaderGraph
+﻿using System;
+
+namespace UnityEditor.ShaderGraph
 {
-    [GenerationAPI]
-    internal interface ITarget
+    [GenerationAPI][Serializable]
+    internal abstract class ITarget
     {
-        string displayName { get; }
+        public abstract string displayName { get; }
     }
 }
