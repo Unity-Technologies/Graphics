@@ -540,6 +540,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Light dimmer can now get values higher than one and was renamed to multiplier in the UI.
 - Removed info box requesting volume component for Visual Environment and updated the documentation with the relevant information.
 - Improved light selection oracle for light sampling in path tracing.
+- Stripped ray tracing subsurface passes with ray tracing is not enabled.
+- Remove LOD cross fade code for ray tracing shaders
 
 ## [7.1.1] - 2019-09-05
 

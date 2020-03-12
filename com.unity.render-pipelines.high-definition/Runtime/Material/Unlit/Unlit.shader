@@ -110,11 +110,6 @@ Shader "HDRP/Unlit"
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
-
-    //enable GPU instancing support
-    #pragma multi_compile_instancing
-    #pragma multi_compile _ DOTS_INSTANCING_ON
-
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
@@ -153,6 +148,9 @@ Shader "HDRP/Unlit"
             ZWrite On
 
             HLSLPROGRAM
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             // Note: Require _ObjectId and _PassValue variables
 
@@ -196,6 +194,10 @@ Shader "HDRP/Unlit"
             ColorMask 0 0
 
             HLSLPROGRAM
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             // Note we don't need to define WRITE_NORMAL_BUFFER
 
@@ -238,6 +240,10 @@ Shader "HDRP/Unlit"
             ColorMask 0 1
 
             HLSLPROGRAM
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             // Note we don't need to define WRITE_NORMAL_BUFFER
 
@@ -278,6 +284,9 @@ Shader "HDRP/Unlit"
             Cull [_CullMode]
 
             HLSLPROGRAM
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma multi_compile _ DEBUG_DISPLAY
 
@@ -309,6 +318,9 @@ Shader "HDRP/Unlit"
             Cull Off
 
             HLSLPROGRAM
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
@@ -342,6 +354,9 @@ Shader "HDRP/Unlit"
             ColorMask 0
 
             HLSLPROGRAM
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -376,7 +391,10 @@ Shader "HDRP/Unlit"
             Cull [_CullMode]
 
             HLSLPROGRAM
-
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+            
             #define SHADERPASS SHADERPASS_DISTORTION
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
