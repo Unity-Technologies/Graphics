@@ -1,0 +1,88 @@
+{
+    "Dependencies": [],
+    "Components": [{
+        "$type": "Unity.Build.Common.GeneralSettings, Unity.Build.Common",
+        "ProductName": "HybridHDRPSamples",
+        "CompanyName": "UnityGraphics"
+    }, {
+        "$type": "Unity.Build.Common.SceneList, Unity.Build.Common",
+        "BuildCurrentScene": false,
+        "SceneInfos": [{
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-91e6f83f2ef325942a9bda99b9791a26-102900000-0",
+            "AutoLoad": true
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-47d43bc212e12cd46a0d088c7f03060a-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-00c0785ee6fc77e408a9e64af713877f-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-be33bfd947e7f4743af7dbab5c4992dc-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-a2cac163dced9ff449791e3f3d7d9786-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-87b610885718a824ca486ef0ab428ef2-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-548edb55914bbb741bb3d7eba5f9c041-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-ccc6574d127601342bc2c74c39694b04-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-8ee73dd4cf8cf8840be0e22af3a3fd26-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-6e8fb44bbb2af0c40a5d0683f0dba343-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-989a106b61dd10247b1365264a523cc3-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-91c6bd0eb9c10634a9e19714d1bf7e20-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-ad050540b81b3be488c9c3f3b13871e7-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-3f5cee5e619a1a544b711b7d1a7b409a-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-3d98b4d5d921bcb48941c2fa13bf76f8-102900000-0",
+            "AutoLoad": false
+        }, {
+            "$type": "Unity.Build.Common.SceneList+SceneInfo, Unity.Build.Common",
+            "Scene": "GlobalObjectId_V1-1-db3be2dfe57ea8c48a36ffba68cadfee-102900000-0",
+            "AutoLoad": false
+        }],
+        "Scenes": []
+    }, {
+        "$type": "Unity.Build.Classic.ClassicBuildProfile, Unity.Build.Classic",
+        "Target": 19,
+        "Configuration": 2,
+        "Pipeline": "GlobalObjectId_V1-1-fc4360f2214633e4c829c3e16614c45e-93214019566545601-0",
+        "ExcludedAssemblies": []
+    }, {
+        "$type": "Unity.Build.Classic.ClassicScriptingSettings, Unity.Build.Classic",
+        "ScriptingBackend": 0,
+        "Il2CppCompilerConfiguration": 1,
+        "UseIncrementalGC": false
+    }]
+}
