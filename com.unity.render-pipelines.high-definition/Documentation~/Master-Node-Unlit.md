@@ -4,7 +4,7 @@ An Unlit Master node makes the Shader surface appear unlit, which means the surf
 
 ## Creating and editing an Unlit Material
 
-Unlit Materials use a Shader Graph Master node which means that you need to use a specific method to create and edit a Material that uses it. For information on how to do this, see [Creating and Editing HDRP Shader Graphs](Customizing-HDRP-materials-with-Shader-Graph). When you create a Material from the Shader Graph, the properties that you exposed in the Blackboard appear in the **Exposed Properties** section.
+Unlit Materials use a Shader Graph Master node which means that you need to use a specific method to create and edit a Material that uses it. For information on how to do this, see [Customizing HDRP materials with Shader Graph](Customizing-HDRP-materials-with-Shader-Graph.html). When you create a Material from the Shader Graph, the properties that you exposed in the Blackboard appear in the **Exposed Properties** section.
 
 ## Properties
 
@@ -64,5 +64,5 @@ These properties are in the **Exposed Properties** section of the Inspector and 
 
 | **Property**                           | **Description**                                              |
 | -------------------------------------- | ------------------------------------------------------------ |
-| **Enable GPU Instancing**              | Enable this setting to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
+| **Enable GPU Instancing**              | Enable this setting to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
 | **Double Sided Global Illumination**                           | When enabled, the lightmapper accounts for both sides of the geometry when calculating Global Illumination. Backfaces are not rendered or added to lightmaps, but get treated as valid when seen from other objects. When using the Porgressive Lightmapper backfaces bounce light using the same emission and albedo as frontfaces. |
