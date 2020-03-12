@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             void IEnumerator.Reset() => ((IEnumerator)m_Enumerator).Reset();
 
-            public T Current => m_Enumerator.Current.target;
+            public T Current => m_Enumerator.Current.value;
 
             object IEnumerator.Current => Current;
 

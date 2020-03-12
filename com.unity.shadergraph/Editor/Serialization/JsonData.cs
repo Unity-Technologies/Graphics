@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.Serialization
 {
     [Serializable]
-    struct JsonRef<T> : ISerializationCallbackReceiver
+    struct JsonData<T> : ISerializationCallbackReceiver
         where T : JsonObject
     {
         [NonSerialized]
@@ -18,6 +18,10 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         public void OnBeforeSerialize()
         {
+            if (MultiJsonInternal.isSerializing && m_Value != null && MultiJsonInternal.serializedSet.Add(m_Id))
+            {
+                MultiJsonInternal.serializationQueue.Add(m_Value);
+            }
         }
 
         public void OnAfterDeserialize()
@@ -36,24 +40,24 @@ namespace UnityEditor.ShaderGraph.Serialization
             }
         }
 
-        public static implicit operator T(JsonRef<T> jsonRef)
+        public static implicit operator T(JsonData<T> jsonRef)
         {
             return jsonRef.m_Value;
         }
 
-        public static implicit operator JsonRef<T>(T value)
+        public static implicit operator JsonData<T>(T value)
         {
-            return new JsonRef<T> { m_Value = value, m_Id = value.id };
+            return new JsonData<T> { m_Value = value, m_Id = value.id };
         }
 
-        public bool Equals(JsonRef<T> other)
+        public bool Equals(JsonData<T> other)
         {
             return EqualityComparer<T>.Default.Equals(m_Value, other.m_Value);
         }
 
         public override bool Equals(object obj)
         {
-            return obj is JsonRef<T> other && Equals(other);
+            return obj is JsonData<T> other && Equals(other);
         }
 
         public override int GetHashCode()
