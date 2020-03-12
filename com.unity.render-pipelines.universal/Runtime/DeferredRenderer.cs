@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering.Universal
             bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
             if (isOffscreenDepthTexture)
             {
-                ConfigureCameraTarget(RenderTargetHandle.CameraTarget, RenderTargetHandle.CameraTarget);
+                ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
 
                 for (int i = 0; i < rendererFeatures.Count; ++i)
                     rendererFeatures[i].AddRenderPasses(this, ref renderingData);
@@ -190,10 +190,10 @@ namespace UnityEngine.Rendering.Universal
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, context, ref cmd);
 
                 // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
-                m_DrawSkyboxPass.ConfigureTarget(m_CameraColorTexture, m_CameraDepthTexture);
+                m_DrawSkyboxPass.ConfigureTarget(m_CameraColorTexture.Identifier(), m_CameraDepthTexture.Identifier());
                 EnqueuePass(m_DrawSkyboxPass);
                 // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
-                m_RenderTransparentForwardPass.ConfigureTarget(m_CameraColorTexture, m_CameraDepthTexture);
+                m_RenderTransparentForwardPass.ConfigureTarget(m_CameraColorTexture.Identifier(), m_CameraDepthTexture.Identifier());
                 EnqueuePass(m_RenderTransparentForwardPass);
                 return;
             }
@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
 
-            ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+            ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
             var m_CameraColorDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
             m_CameraColorDescriptor.ConfigureTarget(m_CameraColorTexture.Identifier(), true, true);
@@ -288,6 +288,7 @@ namespace UnityEngine.Rendering.Universal
                 // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
                 m_DrawSkyboxPass.ConfigureTarget(m_CameraColorDescriptor, m_CameraDepthDescriptor);
                 m_DrawSkyboxPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
+
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
@@ -297,13 +298,12 @@ namespace UnityEngine.Rendering.Universal
                 // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
-
-                m_CopyColorPass.Setup(m_CameraColorTexture, m_OpaqueColor, downsamplingMethod);
+                m_CopyColorPass.Setup(m_CameraColorTexture.Identifier(), m_OpaqueColor, downsamplingMethod);
                 m_CopyColorPass.Configure(cmd, cameraTargetDescriptor);
                 var opaqueDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
                 opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, false);
                 opaqueDescriptor.ConfigureClear(Color.black, 1, 0);
-                m_CopyColorPass.inputAttachments.Clear();
+
                 m_CopyColorPass.ConfigureInputAttachment(m_CameraColorDescriptor);
                 m_CopyColorPass.ConfigureTarget(opaqueDescriptor);
 
@@ -524,8 +524,9 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_DeferredPass);
 
             //TODO: Investigate whether we need this in deferred
-            //EnqueuePass(m_RenderOpaqueForwardOnlyPass);
-
+            // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
+//            m_RenderOpaqueForwardOnlyPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
+//            EnqueuePass(m_RenderOpaqueForwardOnlyPass);
         }
 
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData, RenderTargetHandle colorTarget, RenderTargetHandle depthTarget)

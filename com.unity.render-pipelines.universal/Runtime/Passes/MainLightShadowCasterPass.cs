@@ -116,9 +116,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
 
-            m_MainLightShadowmap.identifier = new RenderTargetIdentifier(m_MainLightShadowmapTexture);
-            ConfigureTarget(m_MainLightShadowmap);
-            ConfigureDepthAttachment(m_MainLightShadowmap);
+            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
+                    m_ShadowmapHeight, k_ShadowmapBufferBits);
+            ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture));
+
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

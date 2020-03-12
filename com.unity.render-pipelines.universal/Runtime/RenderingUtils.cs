@@ -168,14 +168,15 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
-        internal static uint GetValidColorBufferCount(RenderTargetHandle[] colorBuffers)
+        internal static uint GetValidColorBufferCount(RenderTargetIdentifier[] colorBuffers)
         {
             uint nonNullColorBuffers = 0;
             if (colorBuffers != null)
             {
-                foreach (var handle in colorBuffers)
+                foreach (var identifier in colorBuffers)
                 {
-                    if (handle.Identifier() != 0 && handle.id != -2)
+
+                    if (identifier != 0)
                         ++nonNullColorBuffers;
                 }
             }
@@ -203,7 +204,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
-        internal static bool IsMRT(RenderTargetHandle[] colorBuffers)
+        internal static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
         {
             return GetValidColorBufferCount(colorBuffers) > 1;
         }
@@ -230,7 +231,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="source"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        internal static int IndexOf(RenderTargetHandle[] source, RenderTargetHandle value)
+        internal static int IndexOf(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
         {
             for (int i = 0; i < source.Length; ++i)
             {
@@ -246,12 +247,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="source"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        internal static uint CountDistinct(RenderTargetHandle[] source, RenderTargetHandle value)
+        internal static uint CountDistinct(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
         {
             uint count = 0;
             for (int i = 0; i < source.Length; ++i)
             {
-                if (source[i].Identifier() != value.Identifier() && source[i].Identifier() != 0)
+                if (source[i] != value && source[i] != 0)
                     ++count;
             }
             return count;
@@ -262,11 +263,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        internal static int LastValid(RenderTargetHandle[] source)
+        internal static int LastValid(RenderTargetIdentifier[] source)
         {
             for (int i = source.Length-1; i >= 0; --i)
             {
-                if (source[i].id != 0)
+                if (source[i] != 0)
                     return i;
             }
             return -1;
@@ -289,7 +290,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        internal static bool SequenceEqual(RenderTargetHandle[] left, RenderTargetHandle[] right)
+        internal static bool SequenceEqual(RenderTargetIdentifier[] left, RenderTargetIdentifier[] right)
         {
             if (left.Length != right.Length)
                 return false;

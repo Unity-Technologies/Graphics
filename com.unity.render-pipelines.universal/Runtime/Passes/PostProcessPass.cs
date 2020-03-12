@@ -355,10 +355,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 bool finishPostProcessOnScreen = renderingData.resolveFinalTarget || (m_Destination == RenderTargetHandle.CameraTarget || m_HasFinalPass == true);
 
+
                 if (m_IsStereo)
                 {
                     Blit(cmd, GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
-
                     // TODO: We need a proper camera texture swap chain in URP.
                     // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
                     // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
@@ -368,6 +368,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetGlobalTexture("_BlitTex", cameraTarget);
                         Blit(cmd, BuiltinRenderTextureType.CurrentActive, m_Source.id, m_BlitMaterial);
                     }
+
                 }
                 else
                 {
@@ -1063,7 +1064,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (cameraData.isStereoEnabled)
             {
-                Blit(cmd, m_Source, RenderTargetHandle.CameraTarget, material);
+                Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
             }
             else
             {
