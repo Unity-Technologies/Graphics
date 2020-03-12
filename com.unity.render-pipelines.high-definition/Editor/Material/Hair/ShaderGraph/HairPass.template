@@ -83,6 +83,8 @@ Pass
     // Dots Instancing
     $splice(DotsInstancingOptions)
 
+    $splice(HybridV1InjectedBuiltinProperties)
+
     // Includes
     $splice(PreGraphIncludes)
 
@@ -102,7 +104,6 @@ Pass
 
     // Graph Properties
     $splice(GraphProperties)
-    $splice(DotsInstancedProperties)
 
     // Graph Functions
     $splice(GraphFunctions)

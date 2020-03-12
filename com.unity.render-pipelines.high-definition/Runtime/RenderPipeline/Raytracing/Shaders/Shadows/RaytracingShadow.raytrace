@@ -664,9 +664,9 @@ void RayGenSemiTransparentShadowSegmentSingle()
     if (rayIntersection.color.x != 0.0)
     {
         rayDescriptor.Origin = rayOrigin;
-        rayDescriptor.Direction = rayDirection;
+        rayDescriptor.Direction = rayDirection.xyz;
         rayDescriptor.TMin = 0.0;
-        rayDescriptor.TMax = 1000.0;
+        rayDescriptor.TMax = rayDistance;
         rayIntersection.color = float3(1.0, 1.0, 1.0);
 
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES 
