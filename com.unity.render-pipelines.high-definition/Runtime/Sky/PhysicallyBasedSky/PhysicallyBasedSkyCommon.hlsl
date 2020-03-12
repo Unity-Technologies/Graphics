@@ -274,7 +274,7 @@ float ChapmanUpperApprox(float z, float cosTheta)
     return 0.5 * c + (n * rcp(d));
 }
 
-float ChapmanHorizontal(float z)
+float ChapmanHorizontalOld(float z)
 {
     float r = rsqrt(z);
     float s = z * r; // sqrt(z)
@@ -295,7 +295,7 @@ float RescaledChapmanFunction(float z, float Z, float cosTheta)
         // z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
         // Ch(z, theta) = 2 * exp(z - z_0) * Ch(z_0, Pi/2) - Ch(z, Pi - theta).
         float z_0 = z * sinTheta;
-        float a = 2 * ChapmanHorizontal(z_0);
+        float a = 2 * ChapmanHorizontalOld(z_0);
         float b = exp(Z - z_0); // Rescaling cancels out 'z' and adds 'Z'
         float ch_2 = a * b;
 
@@ -338,8 +338,8 @@ float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool aboveHorizon
         float2 z_0  = z * sinTheta;
         float2 b    = exp(Z - z_0); // Rescaling cancels out 'z' and adds 'Z'
         float2 a;
-        a.x         = 2 * ChapmanHorizontal(z_0.x);
-        a.y         = 2 * ChapmanHorizontal(z_0.y);
+        a.x         = 2 * ChapmanHorizontalOld(z_0.x);
+        a.y         = 2 * ChapmanHorizontalOld(z_0.y);
         float2 ch_2 = a * b;
 
         ch = ch_2 - ch;
