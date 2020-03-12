@@ -12,18 +12,25 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Normals buffer at the end of the frame.</summary>
         Normals,
         /// <summary>Motion vectors buffer at the end of the frame.</summary>
-        MotionVectors,
-        /// <summary>Custom pass buffer after the custom pass at "BeforeRendering" injection point is executed.</summary> 
-        CustomPassBufferBeforeRendering,
-        /// <summary>Custom pass buffer after the custom pass at "AfterOpaqueDepthAndNormal" injection point is executed.</summary> 
-        CustomPassBufferAfterOpaqueDepthAndNormal,
-        /// <summary>Custom pass buffer after the custom pass at "BeforePreRefraction" injection point is executed.</summary> 
-        CustomPassBufferBeforePreRefraction,
-        /// <summary>Custom pass buffer after the custom pass at "BeforeTransparent" injection point is executed.</summary> 
-        CustomPassBufferBeforeTransparent,
-        /// <summary>Custom pass buffer after the custom pass at "BeforePostProcess" injection point is executed.</summary> 
-        CustomPassBufferBeforePostProcess,
-        /// <summary>Custom pass buffer after the custom pass at "AfterPostProcess" injection point is executed.</summary> 
-        CustomPassBufferAfterPostProcess
+        MotionVectors
+    }
+
+
+    public struct CustomPassAOVBuffers
+    {
+        public enum OutputType
+        {
+            CustomPassBuffer,
+            Camera
+        }
+
+        public CustomPassInjectionPoint injectionPoint;
+        public OutputType outputType;
+
+        public CustomPassAOVBuffers(CustomPassInjectionPoint ip, OutputType ot)
+        {
+            injectionPoint = ip;
+            outputType = ot;
+        }
     }
 }

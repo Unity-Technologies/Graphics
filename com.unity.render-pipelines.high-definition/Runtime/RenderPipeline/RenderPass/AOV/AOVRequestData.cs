@@ -16,6 +16,12 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <param name="aovBufferId">The AOVBuffer to allocatE.</param>
     public delegate RTHandle AOVRequestBufferAllocator(AOVBuffers aovBufferId);
 
+    /// <summary>
+    /// Called to allocate a RTHandle for a specific custom pass AOVBuffer.
+    /// </summary>
+    /// <param name="aovBufferId">The AOVBuffer to allocatE.</param>
+    public delegate RTHandle AOVRequestCustomPassBufferAllocator(CustomPassAOVBuffers aovBufferId);
+
     /// <summary>Describes a frame pass.</summary>
     public struct AOVRequestData
     {
@@ -41,12 +47,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private AOVRequest m_Settings;
         private AOVBuffers[] m_RequestedAOVBuffers;
+        private CustomPassAOVBuffers[] m_CustomPassAOVBuffers;
         private FramePassCallback m_Callback;
         private readonly AOVRequestBufferAllocator m_BufferAllocator;
+        private readonly AOVRequestCustomPassBufferAllocator m_CustomPassBufferAllocator;
         private List<GameObject> m_LightFilter;
 
         /// <summary>Whether this frame pass is valid.</summary>
-        public bool isValid => m_RequestedAOVBuffers != null && m_Callback != null;
+        public bool isValid => (m_RequestedAOVBuffers != null || m_CustomPassAOVBuffers != null) && m_Callback != null;
 
         /// <summary>Create a new frame pass.</summary>
         /// <param name="settings">Settings to use.</param>
@@ -67,7 +75,36 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RequestedAOVBuffers = requestedAOVBuffers;
             m_LightFilter = lightFilter;
             m_Callback = callback;
+            m_CustomPassAOVBuffers = null;
+            m_CustomPassBufferAllocator = null;
         }
+
+        /// <summary>Create a new frame pass.</summary>
+        /// <param name="settings">Settings to use.</param>
+        /// <param name="bufferAllocator">Buffer allocators to use.</param>
+        /// <param name="lightFilter">If null, all light will be rendered, if not, only those light will be rendered.</param>
+        /// <param name="requestedAOVBuffers">The requested buffers for the callback.</param>
+        /// <param name="customPassAOVBuffers">The custom pass buffers that will be captured.</param>
+        /// <param name="callback">The callback to execute.</param>
+        public AOVRequestData(
+            AOVRequest settings,
+            AOVRequestBufferAllocator bufferAllocator,
+            AOVRequestCustomPassBufferAllocator customPassBufferAllocator,
+            List<GameObject> lightFilter,
+            AOVBuffers[] requestedAOVBuffers,
+            CustomPassAOVBuffers[] customPassAOVBuffers,
+            FramePassCallback callback
+        )
+        {
+            m_Settings = settings;
+            m_BufferAllocator = bufferAllocator;
+            m_RequestedAOVBuffers = requestedAOVBuffers;
+            m_CustomPassAOVBuffers = customPassAOVBuffers;
+            m_CustomPassBufferAllocator = customPassBufferAllocator;
+            m_LightFilter = lightFilter;
+            m_Callback = callback;
+        }
+
 
         /// <summary>Allocate texture if required.</summary>
         /// <param name="textures">A buffer of texture ready to use.</param>
@@ -76,12 +113,19 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!isValid || textures == null)
                 return;
 
-            Assert.IsNotNull(m_RequestedAOVBuffers);
-
             textures.Clear();
 
-            foreach (var bufferId in m_RequestedAOVBuffers)
-                textures.Add(m_BufferAllocator(bufferId));
+            if (m_RequestedAOVBuffers != null)
+            {
+                foreach (var bufferId in m_RequestedAOVBuffers)
+                    textures.Add(m_BufferAllocator(bufferId));
+            }
+
+            if (m_CustomPassAOVBuffers != null)
+            {
+                foreach (var aovBufferId in m_CustomPassAOVBuffers)
+                    textures.Add(m_CustomPassBufferAllocator(aovBufferId));
+            }
         }
 
         /// <summary>Copy a camera sized texture into the texture buffers.</summary>
@@ -98,7 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
             List<RTHandle> targets
         )
         {
-            if (!isValid)
+            if (!isValid || m_RequestedAOVBuffers == null)
                 return;
 
             Assert.IsNotNull(m_RequestedAOVBuffers);
@@ -111,18 +155,34 @@ namespace UnityEngine.Rendering.HighDefinition
             HDUtils.BlitCameraTexture(cmd, source, targets[index]);
         }
 
-        internal void PushCameraTexture(
+        internal void PushCustomPassTexture(
             CommandBuffer cmd,
-            AOVBuffers aovBufferId,
-            HDCamera camera,
-            Lazy<RTHandle> source,
+            CustomPassInjectionPoint injectionPoint,
+            RTHandle cameraSource,
+            Lazy<RTHandle> customPassSource,
             List<RTHandle> targets
         )
         {
-            if (!source.IsValueCreated)
+            if (!isValid || m_CustomPassAOVBuffers == null)
                 return;
 
-            PushCameraTexture(cmd, aovBufferId, camera, source.Value, targets);
+            Assert.IsNotNull(targets);
+
+            var index = Array.FindIndex(m_CustomPassAOVBuffers, x => x.injectionPoint == injectionPoint);
+            if (index == -1)
+                return;
+
+            if (m_CustomPassAOVBuffers[index].outputType == CustomPassAOVBuffers.OutputType.Camera)
+            {
+                HDUtils.BlitCameraTexture(cmd, cameraSource, targets[index]);
+            }
+            else
+            {
+                if (customPassSource.IsValueCreated)
+                {
+                    HDUtils.BlitCameraTexture(cmd, customPassSource.Value, targets[index]);
+                }
+            }
         }
 
         class PushCameraTexturePassData
@@ -141,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
             List<RTHandle>      targets
         )
         {
-            if (!isValid)
+            if (!isValid || m_RequestedAOVBuffers == null)
                 return;
 
             Assert.IsNotNull(m_RequestedAOVBuffers);
