@@ -45,6 +45,9 @@ namespace UnityEditor.VFX
         static VFXGraphPreprocessor()
         {
             EditorApplication.update += CheckCompilationVersion;
+
+            VisualEffectResource.onAddResourceDependencies = OnAddResourceDependencies;
+            VisualEffectResource.onCompileResource = OnCompileResource;
         }
 
         static void CheckCompilationVersion()
@@ -72,9 +75,6 @@ namespace UnityEditor.VFX
                 }
                 AssetDatabase.StopAssetEditing();
             }
-
-            VisualEffectResource.onAddResourceDependencies = OnAddResourceDependencies;
-            VisualEffectResource.onCompileResource = OnCompileResource;
         }
     }
     class VFXCacheManager : EditorWindow
