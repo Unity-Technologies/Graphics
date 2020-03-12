@@ -51,6 +51,7 @@ struct Ray
     float3 origin;
     float3 direction;
     float  frequency;
+    float  maxDist;
 };
 
 // 'l' is the length of the permutation vector (e.g. the number of strata per dimension).
@@ -105,8 +106,6 @@ float randfloat(uint i, uint p)
     return f;
 }
 
-#define CMJ_DO_NOT_DIVIDE_BY_S
-
 // Multi-dimensional correlated multi-jittered sequence.
 // We specialize it for 6D, which means we generate s^6 points.
 float cmj6D(uint pointIndex, uint dimIndex, uint seed)
@@ -160,11 +159,7 @@ float cmj6D(uint pointIndex, uint dimIndex, uint seed)
     float jitter   = randfloat(i, p3);
     float result   = (stratum + (sStratum + jitter) / stm);
 
-#ifdef CMJ_DO_NOT_DIVIDE_BY_S
-    return result;
-#else
     return result / s;
-#endif
 }
 
 #define GROUP_SIZE_1D 8 // 8^2 == 64
@@ -213,12 +208,8 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                                cmj6D(pointIndex, bounce * 3 + 2, seed));
 
     // Determine which pixel the path contributes to.
-    float2 filterOffset = rnd.xy; // TODO: do not use a box filter?
-#ifdef CMJ_DO_NOT_DIVIDE_BY_S
-    float2 intraTileOffset = filterOffset;
-#else
+    float2 filterOffset    = rnd.xy; // TODO: do not use a box filter?
     float2 intraTileOffset = filterOffset * tileSize1D;
-#endif
 
     positionSS = groupSize1D * groupCoordInDispatch
                + tileSize1D  * tileCoordInGroup
@@ -233,17 +224,45 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
     ray.origin    = rayOrigin;
     ray.frequency = floor(rnd.z * 3); // Color channel, for now...
 
-    // for (bounce = 1; bounce < bounceCount; bounce++)
-    // {
-    //     seed = permute(pathIndex, numPaths, s_RandomPrimes[bounce / 2]);
-    //     rnd  = float3(cmj6D(threadIndex, (bounce * 3 + 0) % 5, seed),
-    //                   cmj6D(threadIndex, (bounce * 3 + 1) % 5, seed),
-    //                   cmj6D(threadIndex, (bounce * 3 + 2) % 5, seed));
+    // Our atmosphere, theoretically, extends to infinity but, numerically,
+    // its density exponentially falls off to zero pretty quickly.
+    const float A = _AtmosphericRadius;
+    const float R = _PlanetaryRadius;
 
+    float2 atmosEntryExit;
+    IntersectRaySphere(ray.origin, ray.direction, A, atmosEntryExit);
 
-    // }
+    bool hitAtmosphere = atmosEntryExit.y > 0;
 
-    const float  R = _PlanetaryRadius;
+    if (!hitAtmosphere)
+    {
+        return 0; // TODO: sample the space emission texture.
+    }
+
+    // Do not start outside the atmosphere.
+    if (atmosEntryExit.x > 0)
+    {
+        ray.origin += ray.direction * atmosEntryExit.x;
+        // Careful: we may end up on the edge of the atmosphere and, numerically, outside.
+        ray.origin *= 0.99999;
+    }
+
+    float3 N      = normalize(ray.origin);
+    float  cosChi = dot(N, ray.direction);
+    float  r      = length(ray.origin);
+    float  cosHor = ComputeCosineOfHorizonAngle(r);
+
+    bool lookAboveHorizon = (cosChi >= cosHor);
+    if (lookAboveHorizon)
+    {
+    }
+
+    ray.maxDist = atmosEntryExit.y - atmosEntryExit.x;
+
+    for (bounce = 1; bounce < bounceCount; bounce++)
+    {
+
+    }
 
     return 1;
 }
