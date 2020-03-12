@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
@@ -58,7 +59,8 @@ namespace UnityEditor.Graphing
         {
             if (graph != null)
             {
-                m_SerializedGraph = SerializationHelper.Serialize(graph);
+                var json = MultiJson.Serialize(graph);
+                m_SerializedGraph = new SerializationHelper.JSONSerializedElement { JSONnodeData = json };
                 m_IsSubGraph = graph.isSubGraph;
                 m_AssetGuid = graph.assetGuid;
             }
@@ -66,10 +68,6 @@ namespace UnityEditor.Graphing
 
         public void OnAfterDeserialize()
         {
-            if (graph == null)
-            {
-                graph = DeserializeGraph();
-            }
         }
 
         public bool wasUndoRedoPerformed => m_DeserializedVersion != m_SerializedVersion;
@@ -83,11 +81,16 @@ namespace UnityEditor.Graphing
 
         GraphData DeserializeGraph()
         {
-            var deserializedGraph = SerializationHelper.Deserialize<GraphData>(m_SerializedGraph, GraphUtil.GetLegacyTypeRemapping());
+            var json = m_SerializedGraph.JSONnodeData;
+            if (!json.StartsWith("{\n    \"MonoBehaviour\":"))
+            {
+                json = $"{{\"MonoBehaviour\":{{\"m_Type\":\"{typeof(GraphData).FullName}\",{json.Substring(json.IndexOf("{")+1)}}}";
+            }
+            var deserializedGraph = MultiJson.Deserialize<GraphData>(json);
             deserializedGraph.isSubGraph = m_IsSubGraph;
             deserializedGraph.assetGuid = m_AssetGuid;
             m_DeserializedVersion = m_SerializedVersion;
-            m_SerializedGraph = default(SerializationHelper.JSONSerializedElement);
+            m_SerializedGraph = default;
             return deserializedGraph;
         }
 
@@ -102,6 +105,10 @@ namespace UnityEditor.Graphing
 
         void OnEnable()
         {
+            if (graph == null && m_SerializedGraph.JSONnodeData != null)
+            {
+                graph = DeserializeGraph();
+            }
             Validate();
         }
 
