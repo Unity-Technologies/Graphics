@@ -38,8 +38,6 @@ cbuffer ShaderVariablesVolumetric
     float4 _VBufferPrevDepthDecodingParams;
     uint _NumTileBigTileX;
     uint _NumTileBigTileY;
-    uint _EnvLightIndexShift;
-    uint _DensityVolumeIndexShift;
 };
 
 //

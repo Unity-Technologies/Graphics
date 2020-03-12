@@ -65,8 +65,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: Remove if equals to the ones in global CB?
         public uint _NumTileBigTileX;
         public uint _NumTileBigTileY;
-        public uint _EnvLightIndexShift;
-        public uint _DensityVolumeIndexShift;
     }
 
 
@@ -568,6 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture3D        volumeAtlas;
 
             public ConstantBuffer<ShaderVariablesVolumetric> volumetricCB;
+            public ConstantBuffer<ShaderVariablesLightList> lightListCB;
         }
 
         unsafe void SetPreconvolvedAmbientLightProbe(ConstantBuffer<ShaderVariablesVolumetric> cb, HDCamera hdCamera, Fog fog)
@@ -637,11 +636,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.data._VBufferPrevDepthDecodingParams = prevFrameParams.depthDecodingParams;
             cb.data._NumTileBigTileX = (uint)GetNumTileBigTileX(hdCamera);
             cb.data._NumTileBigTileY = (uint)GetNumTileBigTileY(hdCamera);
-
-            // TODO: this should probably move to a lighting specific constant buffer.
-            int decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
-            cb.data._EnvLightIndexShift = (uint)m_lightList.lights.Count;
-            cb.data._DensityVolumeIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
         }
 
         VolumeVoxelizationParameters PrepareVolumeVoxelizationParameters(HDCamera hdCamera, int frameIndex)
@@ -666,6 +660,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UpdateShaderVariableslVolumetrics(m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution, frameIndex);
             parameters.volumetricCB = m_ShaderVariablesVolumetricCB;
+            parameters.lightListCB = m_ShaderVariablesLightListCB;
+
             return parameters;
         }
 
@@ -685,6 +681,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(parameters.voxelizationCS, parameters.voxelizationKernel, HDShaderIDs._VolumeMaskAtlas, parameters.volumeAtlas);
 
             parameters.volumetricCB.Push(cmd, parameters.voxelizationCS, HDShaderIDs._ShaderVariablesVolumetric, true);
+            parameters.lightListCB.Push(cmd, parameters.voxelizationCS, HDShaderIDs._ShaderVariablesLightList, false);
 
             // The shader defines GROUP_SIZE_1D = 8.
             cmd.DispatchCompute(parameters.voxelizationCS, parameters.voxelizationKernel, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
@@ -750,6 +747,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int              viewCount;
             public bool             filterVolume;
             public ConstantBuffer<ShaderVariablesVolumetric> volumetricCB;
+            public ConstantBuffer<ShaderVariablesLightList> lightListCB;
         }
 
         VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera, int frameIndex)
@@ -777,6 +775,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UpdateShaderVariableslVolumetrics(m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution, frameIndex);
             parameters.volumetricCB = m_ShaderVariablesVolumetricCB;
+            parameters.lightListCB = m_ShaderVariablesLightListCB;
 
             return parameters;
         }
@@ -802,7 +801,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             parameters.volumetricCB.Push(cmd, parameters.volumetricLightingCS, HDShaderIDs._ShaderVariablesVolumetric, true);
-
+            parameters.lightListCB.Push(cmd, parameters.volumetricLightingCS, HDShaderIDs._ShaderVariablesLightList, false);
             // The shader defines GROUP_SIZE_1D = 8.
             cmd.DispatchCompute(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
         }

@@ -770,6 +770,10 @@ namespace UnityEditor.Rendering
                         {
                             funcSignature = "float4 " + funcSignature;
                         }
+                        else if (packedInfo.fieldType == typeof(Vector2Int))
+                        {
+                            funcSignature = "int2 " + funcSignature;
+                        }
                         funcBody += "return (" + sourceName + "." + packedInfo.fieldName + ");";
                         break;
                     default:
@@ -855,6 +859,10 @@ namespace UnityEditor.Rendering
                         else if (packedInfo.fieldType == typeof(Vector4))
                         {
                             funcSignature += "float4 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
+                        }
+                        else if (packedInfo.fieldType == typeof(Vector2Int))
+                        {
+                            funcSignature += "int2 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         }
                         funcBody += sourceName + "." + packedInfo.fieldName + " = " + newParamName + ";";
                         break;
@@ -944,6 +952,10 @@ namespace UnityEditor.Rendering
                         else if (packedInfo.fieldType == typeof(Vector4))
                         {
                             funcSignature += "float4 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
+                        }
+                        else if (packedInfo.fieldType == typeof(Vector2Int))
+                        {
+                            funcSignature += "int2 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         }
                         funcBody += sourceName + "." + packedInfo.fieldName + " = " + newParamName + ";";
                         break;
@@ -1187,6 +1199,8 @@ namespace UnityEditor.Rendering
                         EmitPrimitiveType(floatPrecision, 3, arraySize, field.Name, "", m_ShaderFields);
                     else if (fieldType == typeof(Vector4))
                         EmitPrimitiveType(floatPrecision, 4, arraySize, field.Name, "", m_ShaderFields);
+                    else if (fieldType == typeof(Vector2Int))
+                        EmitPrimitiveType(PrimitiveType.Int, 2, arraySize, field.Name, "", m_ShaderFields);
                     else if (fieldType == typeof(ShaderGenUInt4))
                         EmitPrimitiveType(PrimitiveType.UInt, 4, arraySize, field.Name, "", m_ShaderFields);
                     else if (fieldType == typeof(Matrix4x4))

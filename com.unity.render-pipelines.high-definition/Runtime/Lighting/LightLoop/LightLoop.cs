@@ -186,6 +186,32 @@ namespace UnityEngine.Rendering.HighDefinition
         DensityVolumes = 16
     };
 
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    unsafe struct ShaderVariablesLightList
+    {
+        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
+        public fixed float  g_mInvScrProjectionArr[(int)ShaderOptions.XrMaxViews * 16];
+        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
+        public fixed float  g_mScrProjectionArr[(int)ShaderOptions.XrMaxViews * 16];
+        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
+        public fixed float  g_mInvProjectionArr[(int)ShaderOptions.XrMaxViews * 16];
+        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
+        public fixed float  g_mProjectionArr[(int)ShaderOptions.XrMaxViews * 16];
+
+        public Vector4      g_screenSize;
+
+        public Vector2Int   g_viDimensions;
+        public int          g_iNrVisibLights;
+        public uint         g_isOrthographic;
+
+        public uint         g_BaseFeatureFlags;
+        public int          g_iNumSamplesMSAA;
+        public int          _EnvLightIndexShift;
+        public int          _DecalIndexShift;
+
+        public int          _DensityVolumeIndexShift;
+    }
+
     internal struct ProcessedLightData
     {
         public HDAdditionalLightData    additionalLightData;
@@ -449,8 +475,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-
-
         static readonly Matrix4x4 s_FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
 
         Matrix4x4 GetWorldToViewMatrix(HDCamera hdCamera, int viewIndex)
@@ -466,10 +490,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Matrix used for LightList building, keep them around to avoid GC
         Matrix4x4[] m_LightListProjMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
-        Matrix4x4[] m_LightListProjscrMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
-        Matrix4x4[] m_LightListInvProjscrMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
-        Matrix4x4[] m_LightListProjHMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
-        Matrix4x4[] m_LightListInvProjHMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
 
         internal class LightList
         {
@@ -535,6 +555,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Shader deferredTilePixelShader { get { return defaultResources.shaders.deferredTilePS; } }
 
+        ConstantBuffer<ShaderVariablesLightList> m_ShaderVariablesLightListCB;
 
         static int s_GenAABBKernel;
         static int s_GenAABBKernel_Oblique;
@@ -607,8 +628,6 @@ namespace UnityEngine.Rendering.HighDefinition
             { "TileLightListGen_NoDepthRT_SrcBigTile", "TileLightListGen_DepthRT_SrcBigTile_Oblique", "TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique" }
         };
         // clustered light list specific buffers and data end
-
-        static int[] s_TempScreenDimArray = new int[2]; // Used to avoid GC stress when calling SetComputeIntParams
 
         ContactShadows m_ContactShadows = null;
         bool m_EnableContactShadow = false;
@@ -867,6 +886,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Screen space shadow
             int numMaxShadows = Math.Max(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, 1);
             m_CurrentScreenSpaceShadowData = new ScreenSpaceShadowData[numMaxShadows];
+
+            m_ShaderVariablesLightListCB = new ConstantBuffer<ShaderVariablesLightList>();
         }
 
         void CleanupLightLoop()
@@ -903,6 +924,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
             CoreUtils.Destroy(m_DebugBlitMaterial);
+
+            m_ShaderVariablesLightListCB.Release();
         }
 
         void LightLoopNewRender()
@@ -2578,10 +2601,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 UpdateDataBuffers();
-
-                cmd.SetGlobalInt(HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
-                cmd.SetGlobalInt(HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
-                cmd.SetGlobalInt(HDShaderIDs._DensityVolumeIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
             }
 
             m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
@@ -2659,7 +2678,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Common
             public int totalLightCount; // Regular + Env + Decal + Density Volumes
-            public bool isOrthographic;
             public int viewCount;
             public bool runLightList;
             public bool clearLightLists;
@@ -2668,11 +2686,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool computeLightVariants;
             public bool skyEnabled;
             public LightList lightList;
-            public Matrix4x4[] lightListProjscrMatrices;
-            public Matrix4x4[] lightListInvProjscrMatrices;
-            public float nearClipPlane, farClipPlane;
-            public Vector4 screenSize;
-            public int msaaSamples;
 
             // Clear Light lists
             public ComputeShader clearLightListCS;
@@ -2681,8 +2694,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Screen Space AABBs
             public ComputeShader screenSpaceAABBShader;
             public int screenSpaceAABBKernel;
-            public Matrix4x4[] lightListProjHMatrices;
-            public Matrix4x4[] lightListInvProjHMatrices;
 
             // Big Tile
             public ComputeShader bigTilePrepassShader;
@@ -2703,13 +2714,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public int buildPerVoxelLightListKernel;
             public int numTilesClusterX;
             public int numTilesClusterY;
-            public float clusterScale;
 
             // Build dispatch indirect
             public ComputeShader buildMaterialFlagsShader;
             public ComputeShader clearDispatchIndirectShader;
             public ComputeShader buildDispatchIndirectShader;
             public bool useComputeAsPixel;
+
+            public ConstantBuffer<ShaderVariablesLightList> lightListCB;
         }
 
         struct BuildGPULightListResources
@@ -2745,6 +2757,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                         in BuildGPULightListResources resources,
                                         CommandBuffer cmd)
         {
+            // ClearLightLists is the first pass, we push the global parameters for light list building here.
+            parameters.lightListCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesLightList, true);
+
             if (parameters.clearLightLists && !parameters.runLightList)
             {
                 // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
@@ -2770,16 +2785,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var tileAndCluster = resources.tileAndClusterData;
 
-                cmd.SetComputeIntParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
-
                 // With XR single-pass, we have one set of light bounds per view to iterate over (bounds are in view space for each view)
-                cmd.SetComputeIntParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
                 cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
-
-                cmd.SetComputeMatrixArrayParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_mProjectionArr, parameters.lightListProjHMatrices);
-                cmd.SetComputeMatrixArrayParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_mInvProjectionArr, parameters.lightListInvProjHMatrices);
-
                 cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, (parameters.totalLightCount + 7) / 8, parameters.viewCount, 1);
             }
         }
@@ -2791,19 +2799,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var tileAndCluster = resources.tileAndClusterData;
 
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(parameters.bigTilePrepassShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
-
-                // TODO: These two aren't actually used...
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.lights.Count);
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._DecalIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count);
-
-                cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
-                cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
-
-                cmd.SetComputeFloatParam(parameters.bigTilePrepassShader, HDShaderIDs.g_fNearPlane, parameters.nearClipPlane);
-                cmd.SetComputeFloatParam(parameters.bigTilePrepassShader, HDShaderIDs.g_fFarPlane, parameters.farClipPlane);
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vLightList, tileAndCluster.bigTileLightList);
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs._LightVolumeData, tileAndCluster.lightVolumeDataBuffer);
@@ -2820,18 +2815,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var tileAndCluster = resources.tileAndClusterData;
 
-                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(parameters.buildPerTileLightListShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
-                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.lights.Count);
-                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count);
-                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
-
                 cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs._LightVolumeData, tileAndCluster.lightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
-
-                cmd.SetComputeMatrixArrayParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
-                cmd.SetComputeMatrixArrayParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
 
                 cmd.SetComputeTextureParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_depth_tex, resources.depthBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vLightList, tileAndCluster.lightList);
@@ -2853,7 +2839,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
                     }
-                    cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
+                    parameters.lightListCB.data.g_BaseFeatureFlags = baseFeatureFlags;
+                    parameters.lightListCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesLightList, true);
+
                     cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
                     tileFlagsWritten = true;
                 }
@@ -2870,22 +2858,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // clear atomic offset index
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, tileAndCluster.globalLightListAtomic);
                 cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
-
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
-                cmd.SetComputeMatrixArrayParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
-                cmd.SetComputeMatrixArrayParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
-
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
-
-                cmd.SetComputeVectorParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_screenSize, parameters.screenSize);
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iNumSamplesMSAA, parameters.msaaSamples);
-
-                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fNearPlane, parameters.nearClipPlane);
-                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fFarPlane, parameters.farClipPlane);
-
-                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fClustScale, parameters.clusterScale);
-                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fClustBase, k_ClustLogBase);
 
                 cmd.SetComputeTextureParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_depth_tex, resources.depthBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vLayeredLightList, tileAndCluster.perVoxelLightLists);
@@ -2941,9 +2913,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
                         }
                     }
+                    parameters.lightListCB.data.g_BaseFeatureFlags = baseFeatureFlags;
+                    parameters.lightListCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesLightList, true);
 
-                    cmd.SetComputeIntParam(parameters.buildMaterialFlagsShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
-                    cmd.SetComputeIntParams(parameters.buildMaterialFlagsShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
                     cmd.SetComputeBufferParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
 
                     for (int i = 0; i < resources.gBuffer.Length; ++i)
@@ -3000,7 +2972,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return frameSettings.IsEnabled(FrameSettingsField.DeferredTile) && (!frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) || k_PreferFragment);
         }
 
-        BuildGPULightListParameters PrepareBuildGPULightListParameters(HDCamera hdCamera)
+        unsafe BuildGPULightListParameters PrepareBuildGPULightListParameters(HDCamera hdCamera)
         {
             BuildGPULightListParameters parameters = new BuildGPULightListParameters();
 
@@ -3009,9 +2981,59 @@ namespace UnityEngine.Rendering.HighDefinition
             var w = (int)hdCamera.screenSize.x;
             var h = (int)hdCamera.screenSize.y;
 
-            s_TempScreenDimArray[0] = w;
-            s_TempScreenDimArray[1] = h;
+            // Fill the shared constant buffer.
+            var cb = m_ShaderVariablesLightListCB;
+            var temp = new Matrix4x4();
+            temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
+            temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
+            temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
+            temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
+            // camera to screen matrix (and it's inverse)
+            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+            {
+                var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : camera.projectionMatrix;
+                m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
+
+                for (int i = 0; i < 16; ++i)
+                {
+                    var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
+                    var invTempMatrix = tempMatrix.inverse;
+                    cb.data.g_mScrProjectionArr[viewIndex * 16 + i] = tempMatrix[i];
+                    cb.data.g_mInvScrProjectionArr[viewIndex * 16 + i] = invTempMatrix[i];
+                }
+            }
+
+            // camera to screen matrix (and it's inverse)
+            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+            {
+                temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+                temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+                temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
+                temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+
+                for (int i = 0; i < 16; ++i)
+                {
+                    var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
+                    var invTempMatrix = tempMatrix.inverse;
+                    cb.data.g_mProjectionArr[viewIndex * 16 + i] = tempMatrix[i];
+                    cb.data.g_mInvProjectionArr[viewIndex * 16 + i] = invTempMatrix[i];
+                }
+            }
+
+            var decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
+
+            cb.data.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
+            cb.data.g_viDimensions = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
+            cb.data.g_iNrVisibLights = m_TotalLightCount;
+            cb.data.g_isOrthographic = camera.orthographic ? 1u : 0u;
+            cb.data.g_BaseFeatureFlags = 0; // Filled for each individual pass.
+            cb.data.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
+            cb.data._EnvLightIndexShift = m_lightList.lights.Count;
+            cb.data._DecalIndexShift = m_lightList.lights.Count + m_lightList.envLights.Count;
+            cb.data._DensityVolumeIndexShift = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount;
+
+            parameters.lightListCB = m_ShaderVariablesLightListCB;
             parameters.runLightList = m_TotalLightCount > 0;
             parameters.clearLightLists = false;
 
@@ -3020,44 +3042,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 parameters.runLightList = true;
             }
-            else if(!parameters.runLightList && !m_TileAndClusterData.listsAreClear)
+            else if (!parameters.runLightList && !m_TileAndClusterData.listsAreClear)
             {
                 parameters.clearLightLists = true;
             }
-
-            var temp = new Matrix4x4();
-            temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
-            temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
-            temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
-            temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-
-            parameters.lightListProjscrMatrices = m_LightListProjscrMatrices;
-            parameters.lightListInvProjscrMatrices = m_LightListInvProjscrMatrices;
-            parameters.lightListProjHMatrices = m_LightListProjHMatrices;
-            parameters.lightListInvProjHMatrices = m_LightListInvProjHMatrices;
-
-            // camera to screen matrix (and it's inverse)
-            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-            {
-                var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : camera.projectionMatrix;
-
-                m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
-                parameters.lightListProjscrMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];
-                parameters.lightListInvProjscrMatrices[viewIndex] = parameters.lightListProjscrMatrices[viewIndex].inverse;
-            }
-
             parameters.totalLightCount = m_TotalLightCount;
-            parameters.isOrthographic = camera.orthographic;
             parameters.viewCount = hdCamera.viewCount;
             parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings);
             parameters.computeMaterialVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants);
             parameters.computeLightVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants);
-            parameters.nearClipPlane = camera.nearClipPlane;
-            parameters.farClipPlane = camera.farClipPlane;
             parameters.lightList = m_lightList;
             parameters.skyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera);
-            parameters.screenSize = hdCamera.screenSize;
-            parameters.msaaSamples = (int)hdCamera.msaaSamples;
             parameters.useComputeAsPixel = DeferredUseComputeAsPixel(hdCamera.frameSettings);
 
             bool isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
@@ -3069,17 +3064,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Screen space AABB
             parameters.screenSpaceAABBShader = buildScreenAABBShader;
             parameters.screenSpaceAABBKernel = isProjectionOblique ? s_GenAABBKernel_Oblique : s_GenAABBKernel;
-            // camera to screen matrix (and it's inverse)
-            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-            {
-                temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
-                temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
-                temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
-                temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-
-                parameters.lightListProjHMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];
-                parameters.lightListInvProjHMatrices[viewIndex] = parameters.lightListProjHMatrices[viewIndex].inverse;
-            }
 
             // Big tile prepass
             parameters.runBigTilePrepass = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
@@ -3102,18 +3086,11 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numTilesClusterX = GetNumTileClusteredX(hdCamera);
             parameters.numTilesClusterY = GetNumTileClusteredY(hdCamera);
 
-            const float C = (float)(1 << k_Log2NumClusters);
-            var geomSeries = (1.0 - Mathf.Pow(k_ClustLogBase, C)) / (1 - k_ClustLogBase); // geometric series: sum_k=0^{C-1} base^k
-            // TODO: This is computed here and then passed later on as a global shader parameters.
-            // This will be dangerous when running RenderGraph as execution will be delayed and this can change before it's executed
-            m_ClusterScale = (float)(geomSeries / (parameters.farClipPlane - parameters.nearClipPlane));
-
-            parameters.clusterScale = m_ClusterScale;
-
             // Build dispatch indirect
             parameters.buildMaterialFlagsShader = buildMaterialFlagsShader;
             parameters.clearDispatchIndirectShader = clearDispatchIndirectShader;
             parameters.buildDispatchIndirectShader = buildDispatchIndirectShader;
+
 
             return parameters;
         }
@@ -3263,10 +3240,13 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.data._EnableLightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? 1u : 0u;
             cb.data._EnvLightSkyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera) ? 1 : 0;
 
+            const float C = (float)(1 << k_Log2NumClusters);
+            var geomSeries = (1.0 - Mathf.Pow(k_ClustLogBase, C)) / (1 - k_ClustLogBase); // geometric series: sum_k=0^{C-1} base^k
+
             // Tile/Cluster
             cb.data._NumTileFtplX = (uint)GetNumTileFtplX(hdCamera);
             cb.data._NumTileFtplY = (uint)GetNumTileFtplY(hdCamera);
-            cb.data.g_fClustScale = m_ClusterScale;
+            cb.data.g_fClustScale = (float)(geomSeries / (hdCamera.camera.farClipPlane - hdCamera.camera.nearClipPlane)); ;
             cb.data.g_fClustBase = k_ClustLogBase;
             cb.data.g_fNearPlane = hdCamera.camera.nearClipPlane;
             cb.data.g_fFarPlane = hdCamera.camera.farClipPlane;
@@ -3841,7 +3821,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 parameters.cookieManager.ResetAllocator();
                 parameters.cookieManager.ClearAtlasTexture(cmd);
-                lightingDebug.clearCookieAtlas = false;
             }
 
             if (lightingDebug.displayCookieAtlas)
@@ -3874,7 +3853,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightingDebug.clearPlanarReflectionProbeAtlas)
             {
                 parameters.planarProbeCache.Clear(cmd);
-                lightingDebug.clearPlanarReflectionProbeAtlas = false;
             }
 
             if (lightingDebug.displayPlanarReflectionProbeAtlas)
