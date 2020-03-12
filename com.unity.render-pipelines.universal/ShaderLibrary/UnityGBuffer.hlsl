@@ -21,7 +21,7 @@ struct FragmentOutput
     half4 GBuffer1 : SV_Target1; // maps to GBufferPass.m_GBufferAttachments[1] on C# side
     half4 GBuffer2 : SV_Target2; // maps to GBufferPass.m_GBufferAttachments[2] on C# side
     half4 GBuffer3 : SV_Target3; // maps to DeferredPass.m_CameraColorAttachment on C# side
-    float4 Depth : SV_Target4;
+    float Depth : SV_Target4;
 };
 
 float PackMaterialFlags(uint materialFlags)

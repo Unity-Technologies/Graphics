@@ -128,8 +128,8 @@ namespace UnityEngine.Rendering.Universal
 
         const string k_SetCameraRenderStateTag = "Clear Render State";
         const string k_SetRenderTarget = "Set RenderTarget";
-        const string k_NativeRenderPass = "Execute Native RenderPass";
-        private const string k_RenderPass = "Execute Render pass";
+        const string k_NativeRenderPass = "Native RenderPass";
+        const string k_RenderPass = "ScriptableRenderPass";
         const string k_ReleaseResourcesTag = "Release Resources";
 
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
@@ -605,7 +605,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             bool firstTimeStereo = false;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_RenderPass + " " + renderPass.GetType().ToString());
+            CommandBuffer cmd = CommandBufferPool.Get(k_RenderPass);
             renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
             renderPass.eyeIndex = eyeIndex;
 

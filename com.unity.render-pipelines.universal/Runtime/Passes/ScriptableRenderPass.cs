@@ -86,12 +86,15 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
+        public bool hasInputAttachment
+        {
+            get => inputAttachmentDescriptors.Length > 0;
+        }
         internal int eyeIndex { get; set; }
 
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
-        internal bool hasInputAttachment;
         internal bool useNativeRenderPass;
 
         internal RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget };
@@ -110,11 +113,11 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_InputAttachmentDescriptors = new AttachmentDescriptor[0];
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
-            hasInputAttachment = false;
             useNativeRenderPass = false;
             EmptyAttachment.ConfigureTarget(BuiltinRenderTextureType.None, false, false);
             eyeIndex = 0;
@@ -233,13 +236,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal void ConfigureInputAttachment(AttachmentDescriptor input)
         {
-            hasInputAttachment = true;
             m_InputAttachmentDescriptors = new AttachmentDescriptor[] { input };
         }
 
         internal void ConfigureInputAttachment(AttachmentDescriptor[] inputs)
         {
-            hasInputAttachment = true;
             m_InputAttachmentDescriptors = inputs;
         }
 

@@ -155,6 +155,50 @@
 #   endif
 #endif
 
+#if defined(API_SUPPORTS_RENDER_PASS)
+//entry point
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT(idx, type) UNITY_DECLARE_FRAMEBUFFER_INPUT_##type(idx)
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_MS(idx, type) UNITY_DECLARE_FRAMEBUFFER_INPUT_##type##_MS(idx)
+// For floats
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(idx) cbuffer hlslcc_SubpassInput_f_##idx { float4 hlslcc_fbinput_##idx; }
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT_MS(idx) cbuffer hlslcc_SubpassInput_F_##idx { float4 hlslcc_fbinput_##idx[8]; }
+// For halfs
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(idx) cbuffer hlslcc_SubpassInput_h_##idx { half4 hlslcc_fbinput_##idx; }
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF_MS(idx) cbuffer hlslcc_SubpassInput_H_##idx { half4 hlslcc_fbinput_##idx[8]; }
+// For ints
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_INT(idx) cbuffer hlslcc_SubpassInput_i_##idx { int4 hlslcc_fbinput_##idx; }
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_INT_MS(idx) cbuffer hlslcc_SubpassInput_I_##idx { int4 hlslcc_fbinput_##idx[8]; }
+// For uints
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_UINT(idx) cbuffer hlslcc_SubpassInput_u_##idx { uint4 hlslcc_fbinput_##idx; }
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_UINT_MS(idx) cbuffer hlslcc_SubpassInput_U_##idx { uint4 hlslcc_fbinput_##idx[8]; }
+
+#define UNITY_READ_FRAMEBUFFER_INPUT(idx, v2fname) hlslcc_fbinput_##idx
+#define UNITY_READ_FRAMEBUFFER_INPUT_MS(idx, sampleIdx, v2fname) hlslcc_fbinput_##idx[sampleIdx]
+
+#else
+
+//Should be implemented properly per-platform
+#define TEXTURE2D_FLOAT_MS(textureName) Texture2DMS<float4> textureName
+#define TEXTURE2D_HALF_MS(textureName) Texture2DMS<half4> textureName
+#define TEXTURE2D_INT_MS(textureName) Texture2DMS<int4> textureName
+#define TEXTURE2D_UINT_MS(textureName) Texture2DMS<uint4> textureName
+
+// Renderpass inputs: General fallback paths
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT(idx, type) TEXTURE2D_##type##(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define UNITY_READ_FRAMEBUFFER_INPUT(idx, v2fvertexname) _UnityFBInput##idx.Load(uint3(v2fvertexname.xy, 0))
+#define UNITY_READ_FRAMEBUFFER_SCREENSPACE_INPUT(idx, v2fvertexname) _UnityFBInput##idx.Load(uint3(v2fvertexname.xy * _UnityFBInput##idx##_TexelSize.zw, 0))
+
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_MS(idx, type) TEXTURE2D_##type##_MS(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define UNITY_READ_FRAMEBUFFER_INPUT_MS(idx, sampleIdx, v2fvertexname) LOAD_TEXTURE2D_MSAA(_UnityFBInput##idx, v2fvertexname.xy, sampleIdx)
+#define UNITY_READ_FRAMEBUFFER_SCREENSPACE_INPUT_MS(idx, sampleIdx, v2fvertexname) LOAD_TEXTURE2D_MSAA(_UnityFBInput##idx, v2fvertexname.xy * _UnityFBInput##idx##_TexelSize.zw, sampleIdx)
+
+#undef TEXTURE2D_FLOAT_MS
+#undef TEXTURE2D_HALF_MS
+#undef TEXTURE2D_INT_MS
+#undef TEXTURE2D_UINT_MS
+
+#endif
+
 // Include language header
 #if defined(SHADER_API_XBOXONE)
 #include "Packages/com.unity.render-pipelines.xboxone/ShaderLibrary/API/XBoxOne.hlsl"

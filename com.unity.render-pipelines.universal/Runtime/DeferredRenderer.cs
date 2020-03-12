@@ -288,7 +288,6 @@ namespace UnityEngine.Rendering.Universal
                 // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
                 m_DrawSkyboxPass.ConfigureTarget(m_CameraColorDescriptor, m_CameraDepthDescriptor);
                 m_DrawSkyboxPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
-
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
@@ -300,8 +299,9 @@ namespace UnityEngine.Rendering.Universal
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
                 m_CopyColorPass.Setup(m_CameraColorTexture.Identifier(), m_OpaqueColor, downsamplingMethod);
                 m_CopyColorPass.Configure(cmd, cameraTargetDescriptor);
+
                 var opaqueDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
-                opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, false);
+                opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, true);
                 opaqueDescriptor.ConfigureClear(Color.black, 1, 0);
 
                 m_CopyColorPass.ConfigureInputAttachment(m_CameraColorDescriptor);
@@ -485,7 +485,8 @@ namespace UnityEngine.Rendering.Universal
 //#if UNITY_IOS && !UNITY_EDITOR
             gbufferDescriptors[k_GBufferSlicesCount + 1] = new AttachmentDescriptor(GraphicsFormat.R32_SFloat);
             gbufferDescriptors[k_GBufferSlicesCount + 1].ConfigureTarget(gbufferColorAttachments[k_GBufferSlicesCount + 1].Identifier(), false, false);
-            gbufferDescriptors[k_GBufferSlicesCount + 1].ConfigureClear(Color.black, 1, 0);//#endif
+            gbufferDescriptors[k_GBufferSlicesCount + 1].ConfigureClear(Color.black, 1, 0);
+//#endif
             m_GBufferPass.ConfigureTarget(gbufferDescriptors, depthDescriptor);
             m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, requiresDepthPrepass);
             m_GBufferPass.Configure(cmd, desc);
