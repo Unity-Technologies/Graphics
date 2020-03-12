@@ -90,13 +90,13 @@ float3 AtmospherePhaseScatter(float LdotV, float height)
     return AirPhase(LdotV) * (AirScatter(height) + AerosolScatter(height));
 }
 
-void ApplySphericalSymmetry(float3 pos, float3 dir,
+void ApplySphericalSymmetry(float3 pos, float3 unitDir,
                             out float r, out float rSq, out float rRcp, out float cosChi)
 {
     rSq    = dot(pos, pos);
     rRcp   = rsqrt(rSq);
     r      = rSq * rRcp;
-    cosChi = dot(pos, dir) * rRcp; // Normalize
+    cosChi = dot(pos, unitDir) * rRcp; // Normalize
 }
 
 // Returns the closest hit in X and the farthest hit in Y.
@@ -178,6 +178,13 @@ float MapQuadraticHeight(float height)
 float UnmapQuadraticHeight(float v)
 {
     return (v * v) * _AtmosphericDepth;
+}
+
+float ComputeCosineOfHorizonAngle(float rRcp)
+{
+    float R      = _PlanetaryRadius;
+    float sinHor = R * rRcp;
+    return -sqrt(saturate(1 - sinHor * sinHor));
 }
 
 float ComputeCosineOfHorizonAngleSlow(float r)

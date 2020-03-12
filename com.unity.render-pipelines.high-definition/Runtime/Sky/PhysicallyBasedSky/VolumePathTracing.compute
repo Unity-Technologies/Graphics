@@ -229,42 +229,52 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
     const float A = _AtmosphericRadius;
     const float R = _PlanetaryRadius;
 
-    float2 atmosEntryExit;
-    IntersectRaySphere(ray.origin, ray.direction, A, atmosEntryExit);
+    // Parametrize the ray interval between two points X and Y.
+    float rX, rSqX, rRcpX, cosChiX;
+    ApplySphericalSymmetry(ray.origin, ray.direction, /* -> */ rX, rSqX, rRcpX, cosChiX);
 
-    bool hitAtmosphere = atmosEntryExit.y > 0;
+    float2 atmosEntryExit = IntersectSphere(A, cosChiX, rX, rRcpX);
+    bool   hitAtmosphere  = atmosEntryExit.y > 0;
 
     if (!hitAtmosphere)
     {
         return 0; // TODO: sample the space emission texture.
     }
 
-    // Do not start outside the atmosphere.
+    // Do not path trace outside the atmosphere.
     if (atmosEntryExit.x > 0)
     {
-        ray.origin += ray.direction * atmosEntryExit.x;
+        ray.origin += atmosEntryExit.x * ray.direction;
         // Careful: we may end up on the edge of the atmosphere and, numerically, outside.
-        ray.origin *= 0.99999;
+        ray.origin *= (1 - 1e-6); // 2 orders of magnitude larger than FLT_EPS
+
+        // Update ray parameters.
+        ApplySphericalSymmetry(ray.origin, ray.direction, /* -> */ rX, rSqX, rRcpX, cosChiX);
+
+        atmosEntryExit.y -= atmosEntryExit.x;
+        atmosEntryExit.x  = 0;
     }
 
-    float3 N      = normalize(ray.origin);
-    float  cosChi = dot(N, ray.direction);
-    float  r      = length(ray.origin);
-    float  cosHor = ComputeCosineOfHorizonAngle(r);
+    float cosHorX      = ComputeCosineOfHorizonAngle(rRcpX);
+    bool  aboveHorizon = (cosChiX >= cosHorX);
 
-    bool lookAboveHorizon = (cosChi >= cosHor);
-    if (lookAboveHorizon)
+    if (aboveHorizon)
     {
+        ray.maxDist = atmosEntryExit.y;
+    }
+    else
+    {
+        ray.maxDist = IntersectSphere(R, cosChiX, rX, rRcpX).x; // Entry
+        ASSERT(ray.maxDist > 0);
     }
 
-    ray.maxDist = atmosEntryExit.y - atmosEntryExit.x;
 
     for (bounce = 1; bounce < bounceCount; bounce++)
     {
 
     }
 
-    return 1;
+    return 1 - saturate(ray.maxDist / 10000);
 }
 
 // Floating-point atomics are not supported. Use fixed-point math in units of HALF_MIN instead.
