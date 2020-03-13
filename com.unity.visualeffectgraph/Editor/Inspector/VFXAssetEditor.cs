@@ -414,13 +414,102 @@ class VisualEffectAssetEditor : Editor
 
         GUI.enabled = AssetDatabase.IsOpenForEdit(this.target, StatusQueryOptions.UseCachedIfPossible);
 
+        VFXUpdateMode initialUpdateMode = (VFXUpdateMode)0;
+        bool? initialFixedDeltaTime = null;
+        bool? initialProcessEveryFrame = null;
+        bool? initialIgnoreGameTimeScale= null;
+        if (resourceUpdateModeProperty.hasMultipleDifferentValues)
+        {
+            var resourceUpdateModeProperties = resourceUpdateModeProperty.serializedObject.targetObjects
+                                                .Select(o => new SerializedObject(o)
+                                                .FindProperty(resourceUpdateModeProperty.propertyPath))
+                                                .ToArray(); //N.B.: This will create garbage
+            var allDeltaTime = resourceUpdateModeProperties .Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.DeltaTime) == VFXUpdateMode.DeltaTime)
+                                                            .Distinct();
+            var allProcessEveryFrame = resourceUpdateModeProperties .Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep)
+                                                                    .Distinct();
+            var allIgnoreScale = resourceUpdateModeProperties.Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.IgnoreTimeScale) == VFXUpdateMode.IgnoreTimeScale)
+                                                             .Distinct();
+            if (allDeltaTime.Count() == 1)
+                initialFixedDeltaTime = !allDeltaTime.First();
+            if (allProcessEveryFrame.Count() == 1)
+                initialProcessEveryFrame = allProcessEveryFrame.First();
+            if (allIgnoreScale.Count() == 1)
+                initialIgnoreGameTimeScale = allIgnoreScale.First();
+        }
+        else
+        {
+            initialUpdateMode = (VFXUpdateMode)resourceUpdateModeProperty.intValue;
+            initialFixedDeltaTime = !((initialUpdateMode & VFXUpdateMode.DeltaTime) == VFXUpdateMode.DeltaTime);
+            initialProcessEveryFrame = (initialUpdateMode & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep;
+            initialIgnoreGameTimeScale = (initialUpdateMode & VFXUpdateMode.IgnoreTimeScale) == VFXUpdateMode.IgnoreTimeScale;
+        }
+        
+        EditorGUI.showMixedValue = !initialFixedDeltaTime.HasValue;
+        var deltaTimeContent = EditorGUIUtility.TrTextContent("Fixed Delta Time", "If enabled, use visual effect manager fixed delta time mode.");
+        var processEveryFrameContent = EditorGUIUtility.TrTextContent("Exact Fixed Time", "Only relevant for fixed delta time mode, if enabled, can process several updates per frame (e.g.: if a frame is 30ms but the fixed frame rate is set to 5ms, it will update 6 times with a 5ms deltaTime instead of one time with a 30ms deltaTime). This update mode isn't efficient and should only be used for really high quality purpose.");
+        var ignoreTimeScaleContent = EditorGUIUtility.TrTextContent("Ignore Time Scale", "If enabled, the computed visual effect delta time ignore the game time scale value (play rate is still applied).");
+
         EditorGUI.BeginChangeCheck();
-        EditorGUI.showMixedValue = resourceUpdateModeProperty.hasMultipleDifferentValues;
-        VFXUpdateMode newUpdateMode = (VFXUpdateMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Update Mode", "Specifies whether particles are updated using a fixed timestep (Fixed Delta Time), or in a frame-rate independent manner (Delta Time)."), (VFXUpdateMode)resourceUpdateModeProperty.intValue);
+
+        VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Update mode"), false, false);
+        bool newFixedDeltaTime = EditorGUILayout.Toggle(deltaTimeContent, initialFixedDeltaTime ?? false);
+        bool newExactFixedTimeStep = false;
+        EditorGUI.showMixedValue = !initialProcessEveryFrame.HasValue;
+        if (initialFixedDeltaTime.HasValue && initialFixedDeltaTime.Value || resourceUpdateModeProperty.hasMultipleDifferentValues)
+            newExactFixedTimeStep = EditorGUILayout.Toggle(processEveryFrameContent, initialProcessEveryFrame ?? false);
+        EditorGUI.showMixedValue = !initialIgnoreGameTimeScale.HasValue;
+        bool newIgnoreTimeScale = EditorGUILayout.Toggle(ignoreTimeScaleContent, initialIgnoreGameTimeScale ?? false);
+
         if (EditorGUI.EndChangeCheck())
         {
-            resourceUpdateModeProperty.intValue = (int)newUpdateMode;
-            resourceObject.ApplyModifiedProperties();
+            if (!resourceUpdateModeProperty.hasMultipleDifferentValues)
+            {
+                var newUpdateMode = (VFXUpdateMode)0;
+                if (!newFixedDeltaTime)
+                    newUpdateMode = newUpdateMode | VFXUpdateMode.DeltaTime;
+                if (newExactFixedTimeStep)
+                    newUpdateMode = newUpdateMode | VFXUpdateMode.ExactFixedTimeStep;
+                if (newIgnoreTimeScale)
+                    newUpdateMode = newUpdateMode | VFXUpdateMode.IgnoreTimeScale;
+
+                resourceUpdateModeProperty.intValue = (int)newUpdateMode;
+                resourceObject.ApplyModifiedProperties();
+            }
+            else
+            {
+                var resourceUpdateModeProperties = resourceUpdateModeProperty.serializedObject.targetObjects.Select(o => new SerializedObject(o).FindProperty(resourceUpdateModeProperty.propertyPath));
+                foreach (var property in resourceUpdateModeProperties)
+                {
+                    var updateMode = (VFXUpdateMode)property.intValue;
+
+                    if (initialFixedDeltaTime.HasValue)
+                    {
+                        if (!newFixedDeltaTime)
+                            updateMode = updateMode | VFXUpdateMode.DeltaTime;
+                        else
+                            updateMode = updateMode & ~VFXUpdateMode.DeltaTime;
+                    }
+                    else
+                    {
+                        if (newFixedDeltaTime)
+                            updateMode = updateMode & ~VFXUpdateMode.DeltaTime;
+                    }
+
+                    if (newExactFixedTimeStep)
+                        updateMode = updateMode | VFXUpdateMode.ExactFixedTimeStep;
+                    else if (initialProcessEveryFrame.HasValue)
+                        updateMode = updateMode & ~VFXUpdateMode.ExactFixedTimeStep;
+                    
+                    if (newIgnoreTimeScale)
+                        updateMode = updateMode | VFXUpdateMode.IgnoreTimeScale;
+                    else if (initialIgnoreGameTimeScale.HasValue)
+                        updateMode = updateMode & ~VFXUpdateMode.IgnoreTimeScale;
+
+                    property.intValue = (int)updateMode;
+                    property.serializedObject.ApplyModifiedProperties();
+                }
+            }
         }
 
         EditorGUILayout.BeginHorizontal();
@@ -435,6 +524,7 @@ class VisualEffectAssetEditor : Editor
         }
         EditorGUILayout.EndHorizontal();
 
+        VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Initial state"), false, false);
         if (prewarmDeltaTime != null && prewarmStepCount != null)
         {
             if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
