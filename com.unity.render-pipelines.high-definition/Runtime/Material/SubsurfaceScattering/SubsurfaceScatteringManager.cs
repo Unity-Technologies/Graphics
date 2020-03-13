@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We need to allocate the texture if we are in forward or both in case one of the cameras is in enable forward only mode
-            if (settings.supportMSAA)
+            if (settings.supportMSAA && settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
             {
                  m_SSSColorMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_SRGB, dimension: TextureXR.dimension, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "SSSBufferMSAA");
             }
@@ -246,6 +246,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4[]        filterKernels;
             public Vector4[]        shapeParams;
             public float[]          diffusionProfileHashes;
+            public ComputeBuffer    coarseStencilBuffer;
 
         }
 
@@ -280,6 +281,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.shapeParams = m_SSSShapeParams;
             parameters.diffusionProfileHashes = m_SSSDiffusionProfileHashes;
 
+            parameters.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
+
             return parameters;
         }
 
@@ -296,6 +299,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
+
+            BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
 
             var settings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
 
@@ -424,7 +429,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     resources.depthStencilBuffer = depthStencilBufferRT;
                     resources.depthTexture = depthTextureRT;
                     resources.cameraFilteringBuffer = m_SSSCameraFilteringBuffer;
-                    resources.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
+                    resources.coarseStencilBuffer = parameters.coarseStencilBuffer;
                     resources.sssBuffer = m_SSSColor;
 
                     // For Jimenez we always need an extra buffer, for Disney it depends on platform
@@ -441,7 +446,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-            
+
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
         // In the case our frame is MSAA, for the moment given the fact that we do not have read/write access to the stencil buffer of the MSAA target; we need to keep this pass MSAA

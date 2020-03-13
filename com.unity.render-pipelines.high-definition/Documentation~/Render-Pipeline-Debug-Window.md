@@ -97,22 +97,33 @@ The **Material** panel has tools that you can use to visualize different Materia
 
 The **Lighting** panel has tools that you can use to visualize various components of the lighting system in your Scene, like, shadowing and direct/indirect lighting.
 
-| **Debug Option**                     | **Description**                                              |
+| **Shadow Debug Option**              | **Description**                                              |
 | ------------------------------------ | ------------------------------------------------------------ |
-| **Show Directional Lights**          | Enable the checkbox to see Directional Lights in your Scene. Disable this checkbox to remove Directional Lights from your Scene's lighting. |
-| **Show Punctual Lights**             | Enable the checkbox to see [punctual Lights](Glossary.html#PunctualLight) in your Scene. Disable this checkbox to remove punctual Lights from your Scene's lighting. |
-| **Show Area Lights**                 | Enable the checkbox to see area Lights in your Scene. Disable this checkbox to remove punctual Lights from your Scene's lighting. |
-| **Show Reflection Probes**           | Enable the checkbox to see Reflection Probes in your Scene. Disable this checkbox to remove Reflection Probes from your Scene's lighting. |
-| **Shadow Debug Mode**                | Use the drop-down to select which shadow debug information to overlay on the screen.<br/>&#8226; **None**: Select this mode to remove the shadow debug information from the screen.<br/>&#8226; **VisualizePunctualLightAtlas**: Select this mode to overlay the shadow atlas for [punctual Lights](Glossary.html#PunctualLight) in your Scene.<br/>&#8226; **VisualizeDirectionalLightAtlas**: Select this mode to overlay the shadow atlas for Directional Lights in your Scene.<br/>&#8226; **VisualizeAreaLightAtlas**: Select this mode to overlay the shadow atlas for area Lights in your Scene.<br/>&#8226; **VisualizeShadowMap**: Select this mode to overlay a single shadow map for a Light in your Scene.<br/>&#8226; **SingleShadow**: Select this mode to replace the Scene's lighting with a single Light. To select which Light to isolate, see **Use Selection** or **Shadow Map Index**.|
+| **Debug Mode**                       | Use the drop-down to select which shadow debug information to overlay on the screen.<br/>&#8226;**None**: Select this mode to remove the shadow debug information from the screen.<br/>&#8226; **VisualizePunctualLightAtlas**: Select this mode to overlay the shadow atlas for [punctual Lights](Glossary.html#PunctualLight) in your Scene.<br/>&#8226; **VisualizeDirectionalLightAtlas**: Select this mode to overlay the shadow atlas for Directional Lights in your Scene.<br/>&#8226; **VisualizeAreaLightAtlas**: Select this mode to overlay the shadow atlas for area Lights in your Scene.<br/>&#8226; **VisualizeShadowMap**: Select this mode to overlay a single shadow map for a Light in your Scene.<br/>&#8226; **SingleShadow**: Select this mode to replace the Scene's lighting with a single Light. To select which Light to isolate, see **Use Selection** or **Shadow Map Index**.|
 | **- Use Selection**                  | Enable the checkbox to show the shadow map for the Light you select in the Scene. This property only appears when you select **VisualizeShadowMap** or **SingleShadow** from the **Shadow Debug Mode** drop-down. |
 | **- Shadow Map Index**               | Use the slider to select the index of the shadow map to view. To use this property correctly, you must have at least one [Light](Light-Component.html) in your Scene that uses shadow maps. |
-| **Global Shadow Scale Factor**       | Use the slider to set the global scale that HDRP applies to the shadow rendering resolution. |
+| **Global Scale Factor**              | Use the slider to set the global scale that HDRP applies to the shadow rendering resolution. |
 | **Clear Shadow Atlas**               | Enable the checkbox to clear the shadow atlas every frame.   |
-| **Shadow Range Minimum Value**       | Set the minimum shadow value to display in the various shadow debug overlays. |
-| **Shadow Range Maximum Value**       | Set the maximum shadow value to display in the various shadow debug overlays. |
-| **Lighting Debug Mode**              | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, and Directional Light shadow cascades. |
-| **Light Hierarchy Debug Mode**       | Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for. |
-| **Fullscreen Debug Mode**            | Use the drop-down to select a fullscreen lighting effect to debug. For example, you can visualize [Contact Shadows](Override-Contact-Shadows.html), the depth pyramid, and indirect diffuse lighting. |
+| **Range Minimum Value**              | Set the minimum shadow value to display in the various shadow debug overlays. |
+| **Range Maximum Value**              | Set the maximum shadow value to display in the various shadow debug overlays. |
+
+| **Lighting Debug Option**            | **Description**                                              |
+| ------------------------------------ | ------------------------------------------------------------ |
+| **Show Lights By Type**              | Allows the user to enable or disable lights in the scene based on their type.|
+| **- Directional Lights**             | Enable the checkbox to see Directional Lights in your Scene. Disable this checkbox to remove Directional Lights from your Scene's lighting. |
+| **- Punctual Lights**                | Enable the checkbox to see [Punctual Lights](Glossary.html#PunctualLight) in your Scene. Disable this checkbox to remove Punctual Lights from your Scene's lighting. |
+| **- Area Lights**                    | Enable the checkbox to see Area Lights in your Scene. Disable this checkbox to remove Aera Lights from your Scene's lighting. |
+| **- Reflection Probes**              | Enable the checkbox to see Reflection Probes in your Scene. Disable this checkbox to remove Reflection Probes from your Scene's lighting. |
+| **Debug Mode**                       | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, and Directional Light shadow cascades. |
+| **Hierarchy Debug Mode**             | Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for. |
+| **Light Layers Visualization**       | Enable the checkbox to visualize light layers of objects in your Scene. |
+| **- Use Selected Light**             | Enable the checkbox to visualize objects affected by the selected light. |
+| **- Switch to Light's Shadow Layers**| Enable the checkbox to visualize objects casting shadows for the selected light. |
+| **- Filter Layers**                  | Use the drop-down to filter light layers that you want to visialize. Objects having a matching layer will be displayed in a specific color. |
+| **- Layers Color**                   | Use the color pickers to select the display color of each light layer. |
+
+| **Material Override**                | **Description**                                              |
+| ------------------------------------ | ------------------------------------------------------------ |
 | **Override Smoothness**              | Enable the checkbox to override the smoothness for the entire Scene. |
 | **- Smoothness**                     | Use the slider to set the smoothness override value that HDRP uses for the entire Scene. |
 | **Override Albedo**                  | Enable the checkbox to override the albedo for the entire Scene. |
@@ -122,6 +133,10 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **- Specular Color**                 | Use the color picker to set the specular color that HDRP uses for the entire Scene. |
 | **Override Emissive Color**          | Enable the checkbox to override the emissive color for the entire Scene. |
 | **- Emissive Color**                 | Use the color picker to set the emissive color that HDRP uses for the entire Scene. |
+
+| **Debug Option**                     | **Description**                                              |
+| ------------------------------------ | ------------------------------------------------------------ |
+| **Fullscreen Debug Mode**            | Use the drop-down to select a fullscreen lighting effect to debug. For example, you can visualize [Contact Shadows](Override-Contact-Shadows.html), the depth pyramid, and indirect diffuse lighting. |
 | **Tile/Cluster Debug**               | Use the drop-down to select an internal HDRP lighting structure to visualize on screen.<br/>&#8226; **None**: Select this option to turn off this debug feature.<br/>&#8226; **Tile**: Select this option to show an overlay of each lighting tile, and the number of lights in them.<br/>&#8226; **Cluster**: Select this option to show an overlay of each lighting cluster that intersects opaque geometry, and the number of lights in them.<br/>&#8226; **Material Feature Variants**: Select this option to show the index of the lighting Shader variant that HDRP uses for a tile. You can find variant descriptions in the *lit.hlsl* file. |
 | **- Tile/Cluster Debug By Category** | Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for. The options include [Light Types](Light-Component.html), [Decals](Decal-Projector.html), and [Density Volumes](Density-Volume.html).This property only appears when you select **Tile** or **Cluster** from the **Tile/Cluster Debug** drop-down. |
 | **Display Sky Reflection**           | Enable the checkbox to display an overlay of the cube map that the current sky generates and HDRP uses for lighting. |
