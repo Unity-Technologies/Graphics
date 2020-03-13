@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now use the right-click context menu to set the precision on multiple selected nodes.
 - When you start the Editor, Shader Graph now displays Properties in the Blackboard as collapsed.
 - Updated the zoom level to let you zoom in further.
+- When you convert a node to a Sub Graph, the dialog now opens up in the directory of the original graph that contained the node. If the new Sub Graph is outside this directory, it also remembers that path for the next dialog to ease folder navigation.
 - If Unity Editor Analytics are enabled, Shader Graph collects anonymous data about which nodes you use in your graphs. This helps the Shader Graph team focus our efforts on the most common graph scenarios, and better understand the needs of our customers. We don't track edge data and cannot recreate your graphs in any form.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
 - When a Shader Graph or Sub Graph Asset associated with a open window has been deleted, Unity now displays a dialog that asks whether you would like to save the graph as a new Asset or close the window.
@@ -39,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added StencilOverride support.
 - Sticky Notes can now be grouped properly.
 - Fixed an issue where nodes couldn't be copied from a group.
+- Fixed a bug where the __Save Graph As__ dialog for a Shader or Sub Graph sometimes appeared in the wrong Project when you had multiple Unity Projects open simultaneously.
 - Fixed an issue where adding the first output to a Sub Graph without any outputs prior caused Shader Graphs containing the Sub Graph to break.
 - Fixed an issue where Shader Graph shaders using the `CameraNode` failed to build on PS4 with "incompatible argument list for call to 'mul'".
 - Fixed a bug that caused problems with Blackboard property ordering.
@@ -66,6 +68,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the error `Output value 'vert' is not initialized` displayed on all PBR graphs in Universal. [1210710](https://issuetracker.unity3d.com/issues/output-value-vert-is-not-completely-initialized-error-is-thrown-when-pbr-graph-is-created-using-urp)
 - Fixed a bug where PBR and Unlit master nodes in Universal had Alpha Clipping enabled by default.
 - Fixed an issue in where analytics wasn't always working.
+- Fixed a bug where undo would make the Master Preview visible regardless of its toggle status.
 - Fixed a bug where any change to the PBR master node settings would lose connection to the normal slot. 
 - Fixed a bug where the user couldn't open up HDRP Master Node Shader Graphs without the Render Pipeline set to HDRP.
 - Fixed a bug where adding a HDRP Master Node to a Shader Graph would softlock the Shader Graph.
