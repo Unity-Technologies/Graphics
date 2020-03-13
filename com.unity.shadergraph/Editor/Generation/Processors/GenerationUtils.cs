@@ -255,10 +255,10 @@ namespace UnityEditor.ShaderGraph
         {
             // Traverse Graph Data
             vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts);
+            NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, outputNode, NodeUtils.IncludeSelf.Include);
 
             pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts);
+            NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, outputNode, NodeUtils.IncludeSelf.Include);
         }
 
         internal static void GetActiveFieldsAndPermutationsForNodes(AbstractMaterialNode outputNode, PassDescriptor pass, 
@@ -279,8 +279,8 @@ namespace UnityEditor.ShaderGraph
                     // Get active nodes for this permutation
                     var localVertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
                     var localPixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-                    NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts, keywordCollector.permutations[i]);
-                    NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts, keywordCollector.permutations[i]);
+                    NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, outputNode, NodeUtils.IncludeSelf.Include, keywordCollector.permutations[i]);
+                    NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, outputNode, NodeUtils.IncludeSelf.Include, keywordCollector.permutations[i]);
 
                     // Track each vertex node in this permutation
                     foreach(AbstractMaterialNode vertexNode in localVertexNodes)
@@ -909,7 +909,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     foreach (var slot in slots)
                     {
-                        var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
+                        var isSlotConnected = graph.GetEdges(slot.slotReference).Any();
                         var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
                         var slotValue = isSlotConnected ?
                             ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);

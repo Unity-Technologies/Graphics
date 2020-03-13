@@ -23,9 +23,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             lightMode = "UniversalForward",
             useInPreview = true,
 
-            // Port Mask
-            vertexPorts = UniversalPortMasks.Vertex.PBR,
-            pixelPorts = UniversalPortMasks.Pixel.PBR,
+            // Block Mask
+            vertexBlocks = UniversalBlockMasks.Vertex.Default,
+            pixelBlocks = UniversalBlockMasks.Pixel.LitForward,
 
             // Fields
             structs = UniversalStructCollections.Default,
@@ -47,9 +47,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             lightMode = "DepthOnly",
             useInPreview = true,
 
-            // Port Mask
-            vertexPorts = UniversalPortMasks.Vertex.PBR,
-            pixelPorts = UniversalPortMasks.Pixel.PBRAlphaOnly,
+            // Block Mask
+            vertexBlocks = UniversalBlockMasks.Vertex.Default,
+            pixelBlocks = UniversalBlockMasks.Pixel.LitAlphaOnly,
 
             // Fields
             structs = UniversalStructCollections.Default,
@@ -68,9 +68,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "SHADERPASS_SHADOWCASTER",
             lightMode = "ShadowCaster",
 
-            // Port Mask
-            vertexPorts = UniversalPortMasks.Vertex.PBR,
-            pixelPorts = UniversalPortMasks.Pixel.PBRAlphaOnly,
+            // Block Mask
+            vertexBlocks = UniversalBlockMasks.Vertex.Default,
+            pixelBlocks = UniversalBlockMasks.Pixel.LitAlphaOnly,
 
             // Fields
             structs = UniversalStructCollections.Default,
@@ -90,9 +90,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "SHADERPASS_META",
             lightMode = "Meta",
 
-            // Port Mask
-            vertexPorts = UniversalPortMasks.Vertex.PBR,
-            pixelPorts = UniversalPortMasks.Pixel.PBRMeta,
+            // Block Mask
+            vertexBlocks = UniversalBlockMasks.Vertex.Default,
+            pixelBlocks = UniversalBlockMasks.Pixel.LitMeta,
 
             // Fields
             structs = UniversalStructCollections.Default,
@@ -112,9 +112,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "SHADERPASS_2D",
             lightMode = "Universal2D",
 
-            // Port Mask
-            vertexPorts = UniversalPortMasks.Vertex.PBR,
-            pixelPorts = UniversalPortMasks.Pixel.PBR2D,
+            // Block Mask
+            vertexBlocks = UniversalBlockMasks.Vertex.Default,
+            pixelBlocks = UniversalBlockMasks.Pixel.Unlit,
 
             // Fields
             structs = UniversalStructCollections.Default,
@@ -133,9 +133,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "SHADERPASS_UNLIT",
             useInPreview = true,
 
-            // Port Mask
-            vertexPorts = UniversalPortMasks.Vertex.Unlit,
-            pixelPorts = UniversalPortMasks.Pixel.Unlit,
+            // Block Mask
+            vertexBlocks = UniversalBlockMasks.Vertex.Default,
+            pixelBlocks = UniversalBlockMasks.Pixel.Unlit,
 
             // Fields
             structs = UniversalStructCollections.Default,
@@ -156,9 +156,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             lightMode = "Universal2D",
             useInPreview = true,
 
-            // Port Mask
-            vertexPorts = UniversalPortMasks.Vertex.SpriteLit,
-            pixelPorts = UniversalPortMasks.Pixel.SpriteLit,
+            // Block Mask
+            vertexBlocks = UniversalBlockMasks.Vertex.Default,
+            pixelBlocks = UniversalBlockMasks.Pixel.SpriteLit,
 
             // Fields
             structs = UniversalStructCollections.Default,
@@ -180,9 +180,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             lightMode = "NormalsRendering",
             useInPreview = true,
 
-            // Port Mask
-            vertexPorts = UniversalPortMasks.Vertex.SpriteLit,
-            pixelPorts = UniversalPortMasks.Pixel.SpriteNormal,
+            // Block Mask
+            vertexBlocks = UniversalBlockMasks.Vertex.Default,
+            pixelBlocks = UniversalBlockMasks.Pixel.SpriteNormal,
 
             // Fields
             structs = UniversalStructCollections.Default,
@@ -203,9 +203,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             lightMode = "UniversalForward",
             useInPreview = true,
 
-            // Port Mask
-            vertexPorts = UniversalPortMasks.Vertex.SpriteLit,
-            pixelPorts = UniversalPortMasks.Pixel.SpriteNormal,
+            // Block Mask
+            vertexBlocks = UniversalBlockMasks.Vertex.Default,
+            pixelBlocks = UniversalBlockMasks.Pixel.SpriteNormal,
 
             // Fields
             structs = UniversalStructCollections.Default,
@@ -225,9 +225,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "SHADERPASS_SPRITEUNLIT",
             useInPreview = true,
 
-            // Port Mask
-            vertexPorts = UniversalPortMasks.Vertex.SpriteUnlit,
-            pixelPorts = UniversalPortMasks.Pixel.SpriteUnlit,
+            // Block Mask
+            vertexBlocks = UniversalBlockMasks.Vertex.Default,
+            pixelBlocks = UniversalBlockMasks.Pixel.SpriteUnlit,
 
             // Fields
             structs = UniversalStructCollections.Default,

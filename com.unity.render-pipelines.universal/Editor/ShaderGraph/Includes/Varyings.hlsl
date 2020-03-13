@@ -15,16 +15,13 @@ Varyings BuildVaryings(Attributes input)
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
     
-    // Assign modified vertex attributes
-    #if defined(VERTEXDESCRIPTION_POSITION)
-        input.positionOS = vertexDescription.Position;
-    #endif //FEATURES_GRAPH_POSITION
-    #if defined(VARYINGS_NEED_NORMAL_WS) && defined(VERTEXDESCRIPTION_NORMAL)
+    input.positionOS = vertexDescription.Position;
+    #if defined(VARYINGS_NEED_NORMAL_WS)
         input.normalOS = vertexDescription.Normal;
-    #endif //FEATURES_GRAPH_NORMAL
-    #if defined(VARYINGS_NEED_TANGENT_WS) && defined(VERTEXDESCRIPTION_TANGENT)
+    #endif //FEATURES_GRAPH_NORMAL  
+    #if defined(VARYINGS_NEED_TANGENT_WS)
         input.tangentOS.xyz = vertexDescription.Tangent.xyz;
-    #endif //FEATURES GRAPH TANGENT
+    #endif
 #endif //FEATURES_GRAPH_VERTEX
 
     // TODO: Avoid path via VertexPositionInputs (Universal)

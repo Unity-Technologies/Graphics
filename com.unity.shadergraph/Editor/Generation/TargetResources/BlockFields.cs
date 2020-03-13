@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
             public static BlockFieldDescriptor Occlusion     = new BlockFieldDescriptor(SurfaceDescription.name, "Occlusion", "SURFACEDESCRIPTION_OCCLUSION",
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor Emission      = new BlockFieldDescriptor(SurfaceDescription.name, "Emission", "SURFACEDESCRIPTION_EMISSION",
-                new ColorControl(UnityEngine.Color.white, true), ShaderStage.Fragment);
+                new ColorControl(UnityEngine.Color.black, true), ShaderStage.Fragment);
             public static BlockFieldDescriptor Alpha         = new BlockFieldDescriptor(SurfaceDescription.name, "Alpha", "SURFACEDESCRIPTION_ALPHA",
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor ClipThreshold = new BlockFieldDescriptor(SurfaceDescription.name, "ClipThreshold", "SURFACEDESCRIPTION_CLIPTHRESHOLD",

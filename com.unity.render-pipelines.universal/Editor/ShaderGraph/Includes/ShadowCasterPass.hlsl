@@ -15,30 +15,11 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
 
-    // Fields required by feature blocks are not currently generated
-    // unless the corresponding data block is present
-    // Therefore we need to predefine all potential data values.
-    // Required fields should be tracked properly and generated.
-    half alpha = 1;
-    half clipThreshold = 0.5;
-
-    #if defined(FEATURES_GRAPH_PIXEL)
-        SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
-        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
-
-        // Data is overriden if the corresponding data block is present.
-        // Could use "$Tag.Field: value = surfaceDescription.Field" pattern
-        // to avoid preprocessors if this was a template file.
-        #ifdef SURFACEDESCRIPTION_ALPHA
-            alpha = surfaceDescription.Alpha;
-        #endif
-        #ifdef SURFACEDESCRIPTION_CLIPTHRESHOLD
-            clipThreshold = surfaceDescription.ClipThreshold;
-        #endif
-    #endif
+    SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
+    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
     #if _AlphaClip
-        clip(alpha - clipThreshold);
+        clip(surfaceDescription.Alpha - surfaceDescription.ClipThreshold);
     #endif
 
     return 0;
