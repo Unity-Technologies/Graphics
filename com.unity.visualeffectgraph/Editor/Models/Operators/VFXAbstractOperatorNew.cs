@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
             allowOneDimensionType = 1 << 4,
             allowSignedInteger = 1 << 5,
             allowUnsignedInteger = 1 << 6,
-            allowSpaceableNotNormalized= 1 << 7,
+            allowSpaceableNotNormalized = 1 << 7,
             allowSpaceableNormalized = 1 << 8,
 
             allowSpaceable = allowSpaceableNotNormalized | allowSpaceableNormalized,

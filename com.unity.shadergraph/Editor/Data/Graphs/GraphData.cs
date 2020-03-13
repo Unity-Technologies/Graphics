@@ -283,6 +283,7 @@ namespace UnityEditor.ShaderGraph
                     m_ActiveOutputNodeGuid = value;
                     m_OutputNode = null;
                     didActiveOutputNodeChange = true;
+                    UpdateTargets();
                 }
             }
         }
@@ -313,6 +314,16 @@ namespace UnityEditor.ShaderGraph
                 return m_OutputNode;
             }
         }
+
+        #region Targets
+        [NonSerialized]
+        List<ITarget> m_ValidTargets = new List<ITarget>();
+
+        [NonSerialized]
+        List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
+
+        public List<ITargetImplementation> validImplementations => m_ValidImplementations;
+        #endregion
 
         public bool didActiveOutputNodeChange { get; set; }
 
@@ -1348,12 +1359,65 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
+            UpdateTargets();
+
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
         }
 
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
+        }
+
+        public void UpdateTargets()
+        {
+            if(outputNode == null)
+                return;
+
+            // First get all valid TargetImplementations that are valid with the current graph
+            List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypesOrNothing())
+                {
+                    var isImplementation = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
+                    //for subgraph output nodes, preview target is the only valid target
+                    if (outputNode is SubGraphOutputNode && isImplementation && typeof(DefaultPreviewTarget).IsAssignableFrom(type))
+                    {
+                        var implementation = (DefaultPreviewTarget)Activator.CreateInstance(type);
+                        foundImplementations.Add(implementation);
+                    }
+                    else if (isImplementation && !foundImplementations.Any(s => s.GetType() == type))
+                    {
+                        var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
+                        var implementation = (ITargetImplementation)Activator.CreateInstance(type);
+                        if(implementation.IsValid(masterNode))
+                        {
+                            foundImplementations.Add(implementation);
+                        }
+                    }
+                }
+            }
+
+            // Next we get all Targets that have valid TargetImplementations
+            List<ITarget> foundTargets = new List<ITarget>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypesOrNothing())
+                {
+                    var isTarget = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITarget).IsAssignableFrom(type);
+                    if (isTarget && !foundTargets.Any(s => s.GetType() == type))
+                    {
+                        var target = (ITarget)Activator.CreateInstance(type);
+                        if(foundImplementations.Where(s => s.targetType == type).Any())
+                            foundTargets.Add(target);
+                    }
+                }
+            }
+
+            m_ValidTargets = foundTargets;
+            m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
+            
         }
     }
 

@@ -28,7 +28,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (!object.ReferenceEquals(Asset,null))
+                if (!object.ReferenceEquals(Asset, null))
                 {
                     if (Asset == null)
                         Asset = EditorUtility.InstanceIDToObject(Asset.GetInstanceID()) as PointCacheAsset;

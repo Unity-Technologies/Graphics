@@ -25,5 +25,5 @@ Point cache Assets can be referenced in a Point Cache Operator so it displays it
 You can generate point cache using various methods:
 
 * Using the Houdini pCache Exporter bundled with [VFXToolbox](https://github.com/Unity-Technologies/VFXToolbox) (located in the /DCC~ folder)
-* Using the Built-in [Point Cache Bake Tool](PointCacheBakeTool.md) 
+* Using the Built-in [Point Cache Bake Tool](PointCacheBakeTool.md)
 * By writing your own exporter to write [Point Cache](https://github.com/peeweek/pcache/blob/master/README.md) files that follow the specification.

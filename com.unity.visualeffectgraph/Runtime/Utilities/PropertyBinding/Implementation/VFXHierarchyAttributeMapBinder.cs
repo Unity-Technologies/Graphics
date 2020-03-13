@@ -78,12 +78,11 @@ namespace UnityEngine.VFX.Utility
                     sourceRadius = DefaultRadius,
                     targetRadius = DefaultRadius,
                 });
-                if(depth > 0)
-                    output.AddRange(ChildrenOf(child, depth-1));
+                if (depth > 0)
+                    output.AddRange(ChildrenOf(child, depth - 1));
             }
             return output;
         }
-
 
         void UpdateData()
         {
@@ -109,7 +108,6 @@ namespace UnityEngine.VFX.Utility
             targetPosition.Apply();
             radius.Apply();
         }
-
 
         public override bool IsValid(VisualEffect component)
         {
