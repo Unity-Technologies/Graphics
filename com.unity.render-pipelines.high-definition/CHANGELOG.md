@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the cookie atlas size and planar atlas size being too big after an upgrade of the HDRP asset.
 - Fix player build DX12
 - Fixed compilation issue with linux vulkan and raytrace shader
+- Fixed the HDRP asset migration code not being called after an upgrade of the package
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
