@@ -997,20 +997,18 @@ namespace UnityEngine.Rendering.HighDefinition
             int coarseStencilHeight = HDUtils.DivRoundUp(hdCamera.actualHeight, 8);
             m_ShaderVariablesGlobalCB.data._CoarseStencilBufferSize = new Vector4(coarseStencilWidth, coarseStencilHeight, 1.0f / coarseStencilWidth, 1.0f / coarseStencilHeight);
 
+            m_ShaderVariablesGlobalCB.data._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
-                m_ShaderVariablesGlobalCB.data._RaytracedIndirectDiffuse = ValidIndirectDiffuseState(hdCamera) ? 1 : 0;
-                m_ShaderVariablesGlobalCB.data._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
-
                 var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
                 bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
                 m_ShaderVariablesGlobalCB.data._UseRayTracedReflections = usesRaytracedReflections ? 1 : 0;
+                m_ShaderVariablesGlobalCB.data._RaytracedIndirectDiffuse = ValidIndirectDiffuseState(hdCamera) ? 1 : 0;
             }
             else
             {
-                m_ShaderVariablesGlobalCB.data._RaytracedIndirectDiffuse = 0;
-                m_ShaderVariablesGlobalCB.data._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
                 m_ShaderVariablesGlobalCB.data._UseRayTracedReflections = 0;
+                m_ShaderVariablesGlobalCB.data._RaytracedIndirectDiffuse = 0;
             }
 
             m_ShaderVariablesGlobalCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesGlobal, true);

@@ -97,9 +97,9 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
     // Generate the new sample (following values of the sequence)
     float3 inputSample = 0.0;
-    inputSample.x = GetSample(pathIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth);
-    inputSample.y = GetSample(pathIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 1);
-    inputSample.z = GetSample(pathIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 2);
+    inputSample.x = GetSample(pathIntersection.pixelCoord, _PathtracingIteration, 4 * currentDepth);
+    inputSample.y = GetSample(pathIntersection.pixelCoord, _PathtracingIteration, 4 * currentDepth + 1);
+    inputSample.z = GetSample(pathIntersection.pixelCoord, _PathtracingIteration, 4 * currentDepth + 2);
 
     // Get current path throughput
     float3 pathThroughput = pathIntersection.color;
@@ -167,7 +167,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
         float russianRouletteValue = Luminance(pathThroughput);
         float russianRouletteFactor = 1.0;
 
-        float rand = GetSample(pathIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 3);
+        float rand = GetSample(pathIntersection.pixelCoord, _PathtracingIteration, 4 * currentDepth + 3);
         if (RussianRouletteTest(russianRouletteValue, rand, russianRouletteFactor, !currentDepth))
         {
             bool isSampleBelow = IsBelow(mtlData, rayDescriptor.Direction);

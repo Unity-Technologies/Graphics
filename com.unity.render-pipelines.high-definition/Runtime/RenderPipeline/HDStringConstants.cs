@@ -463,6 +463,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingRayMaxLength          = Shader.PropertyToID("_RaytracingRayMaxLength");
         public static readonly int _PixelSpreadAngleTangent         = Shader.PropertyToID("_PixelSpreadAngleTangent");
         public static readonly int _RaytracingPixelSpreadAngle      = Shader.PropertyToID("_RaytracingPixelSpreadAngle");
+        public static readonly int _PathtracingIteration            = Shader.PropertyToID("_PathtracingIteration");
         public static readonly string _RaytracingAccelerationStructureName          = "_RaytracingAccelerationStructure";
 
         // Light Cluster

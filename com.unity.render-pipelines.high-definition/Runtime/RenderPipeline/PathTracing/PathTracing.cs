@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set the data for the ray generation
             cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._CameraColorTextureRW, outputTexture);
-            cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, (int)m_CurrentIteration);
+            cmd.SetGlobalInt(HDShaderIDs._PathtracingIteration, (int)m_CurrentIteration);
 
             // Compute an approximate pixel spread angle value (in radians)
             cmd.SetRayTracingFloatParam(pathTracingShader, HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
