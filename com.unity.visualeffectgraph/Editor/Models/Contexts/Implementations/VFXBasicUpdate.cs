@@ -241,7 +241,7 @@ namespace UnityEditor.VFX
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
             var mapper = base.GetExpressionMapper(target);
-            if (mapper != null && skipZeroDeltaUpdate)
+            if (target == VFXDeviceTarget.GPU && skipZeroDeltaUpdate)
                 mapper.AddExpression(VFXBuiltInExpression.DeltaTime, "deltaTime", - 1);
             return mapper;
         }
