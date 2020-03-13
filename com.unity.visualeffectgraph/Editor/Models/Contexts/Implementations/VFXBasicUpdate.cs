@@ -19,14 +19,12 @@ namespace UnityEditor.VFX
             public static GUIContent updateRotation = new GUIContent("Update Rotation", "When enabled, particle rotations are automatically updated using their angular velocity.");
             public static GUIContent ageParticles = new GUIContent("Age Particles", "When enabled, the particle age attribute will increase every frame based on deltaTime.");
             public static GUIContent reapParticles = new GUIContent("Reap Particles", "When enabled, particles whose age exceeds their lifetime will be destroyed.");
-            public static GUIContent skipZeroDeltaTime = new GUIContent("Skip Zero Delta Time", "When enabled, filters out block execution if deltaTime is equal to 0.");
         }
 
         SerializedProperty m_IntegrationProperty;
         SerializedProperty m_AngularIntegrationProperty;
         SerializedProperty m_AgeParticlesProperty;
         SerializedProperty m_ReapParticlesProperty;
-        SerializedProperty m_SkipZeroDeltaTimeProperty;
 
         protected new void OnEnable()
         {
@@ -35,7 +33,6 @@ namespace UnityEditor.VFX
             m_AngularIntegrationProperty = serializedObject.FindProperty("angularIntegration");
             m_AgeParticlesProperty = serializedObject.FindProperty("ageParticles");
             m_ReapParticlesProperty = serializedObject.FindProperty("reapParticles");
-            m_SkipZeroDeltaTimeProperty = serializedObject.FindProperty("skipZeroDeltaUpdate");
         }
 
         private static Func<VFXBasicUpdate, IEnumerable<string>> s_fnGetFilteredOutSettings = delegate(VFXBasicUpdate context)
@@ -77,7 +74,6 @@ namespace UnityEditor.VFX
             bool? updateRotation = null;
             bool? ageParticles = null;
             bool? reapParticles = null;
-            bool? skipZeroDeltaTimeUpdate = null;
 
             if (!m_IntegrationProperty.hasMultipleDifferentValues)
                 updatePosition = m_IntegrationProperty.enumValueIndex == (int)VFXBasicUpdate.VFXIntegrationMode.Euler;
@@ -87,8 +83,6 @@ namespace UnityEditor.VFX
                 ageParticles = m_AgeParticlesProperty.boolValue;
             if (!m_ReapParticlesProperty.hasMultipleDifferentValues)
                 reapParticles = m_ReapParticlesProperty.boolValue;
-            if (!m_SkipZeroDeltaTimeProperty.hasMultipleDifferentValues)
-                skipZeroDeltaTimeUpdate = m_SkipZeroDeltaTimeProperty.boolValue;
 
             bool filterOutUpdatePosition = targets.OfType<VFXBasicUpdate>().All(o => s_fnGetFilteredOutSettings(o).Contains("updatePosition"));
             bool filterOutUpdateRotation = targets.OfType<VFXBasicUpdate>().All(o => s_fnGetFilteredOutSettings(o).Contains("updateRotation"));
@@ -103,7 +97,6 @@ namespace UnityEditor.VFX
                 DisplayToggle(UpdateStyles.ageParticles, m_AgeParticlesProperty, ageParticles, false);
             if (!filterOutReapParticles)
                 DisplayToggle(UpdateStyles.reapParticles, m_ReapParticlesProperty, reapParticles, false);
-            DisplayToggle(UpdateStyles.skipZeroDeltaTime, m_SkipZeroDeltaTimeProperty, skipZeroDeltaTimeUpdate, false);
 
             if (serializedObject.ApplyModifiedProperties())
             {
@@ -138,9 +131,6 @@ namespace UnityEditor.VFX
 
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, particles whose age exceeds their lifetime will be destroyed.")]
         private bool reapParticles = true;
-
-        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, filters out block execution if deltaTime is equal to 0.")]
-        private bool skipZeroDeltaUpdate = false;
 
         public VFXBasicUpdate() : base(VFXContextType.Update, VFXDataType.None, VFXDataType.None) {}
         public override string name { get { return "Update " + ObjectNames.NicifyVariableName(ownedType.ToString()); } }
@@ -195,18 +185,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected override IEnumerable<VFXBlock> implicitPreBlock
-        {
-            get
-            {
-                var data = GetData();
-                if (data.IsCurrentAttributeUsed(VFXAttribute.OldPosition))
-                {
-                    yield return VFXBlock.CreateImplicitBlock<BackupOldPosition>(data);
-                }
-            }
-        }
-
         protected override IEnumerable<VFXBlock> implicitPostBlock
         {
             get
@@ -238,14 +216,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
-        {
-            var mapper = base.GetExpressionMapper(target);
-            if (mapper != null && skipZeroDeltaUpdate)
-                mapper.AddExpression(VFXBuiltInExpression.DeltaTime, "deltaTime", - 1);
-            return mapper;
-        }
-
         public override IEnumerable<string> additionalDefines
         {
             get
@@ -255,9 +225,6 @@ namespace UnityEditor.VFX
 
                 if (ownedType == VFXDataType.ParticleStrip)
                     yield return "HAS_STRIPS";
-
-                if (skipZeroDeltaUpdate)
-                    yield return "VFX_UPDATE_SKIP_ZERO_DELTA_TIME";
             }
         }
     }

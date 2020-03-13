@@ -14,18 +14,7 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    {
-                        "m_expressionOp",
-                        new object[]
-                        {
-                            VFXExpressionOperation.FrameIndex,
-                            VFXExpressionOperation.TotalTime,
-                            VFXExpressionOperation.DeltaTime,
-                            VFXExpressionOperation.SystemSeed,
-                            VFXExpressionOperation.LocalToWorld,
-                            VFXExpressionOperation.WorldToLocal
-                        }
-                    }
+                    { "m_expressionOp", VFXBuiltInExpression.All.Cast<object>().ToArray() }
                 };
             }
         }
