@@ -454,6 +454,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed DXR player build
 - Fixed the HDRP asset migration code not being called after an upgrade of the package
 - Fixed draw renderers custom pass out of bound exception
+- Fixed the PBR shader rendering in deferred
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
