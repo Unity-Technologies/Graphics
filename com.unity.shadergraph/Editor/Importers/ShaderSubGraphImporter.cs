@@ -12,6 +12,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
+    [ExcludeFromPreset]
     [ScriptedImporter(11, Extension)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
