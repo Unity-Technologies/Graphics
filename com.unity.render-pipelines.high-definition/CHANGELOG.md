@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed preview camera (eg. shader graph preview) when path tracing is on
 - Fixed DXR player build
 - Fixed compilation issue with linux vulkan and raytrace shader
+- Fixed the HDRP asset migration code not being called after an upgrade of the package
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
