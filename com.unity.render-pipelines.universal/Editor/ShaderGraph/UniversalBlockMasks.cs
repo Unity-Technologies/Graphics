@@ -26,13 +26,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Smoothness,
                 BlockFields.SurfaceDescription.Occlusion,
                 BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.ClipThreshold,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
 
             public static BlockFieldDescriptor[] LitAlphaOnly = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.ClipThreshold,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
 
             public static BlockFieldDescriptor[] LitMeta = new BlockFieldDescriptor[]
@@ -40,31 +40,40 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.Emission,
                 BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.ClipThreshold,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
             
             public static BlockFieldDescriptor[] Unlit = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.ClipThreshold,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
 
             public static BlockFieldDescriptor[] SpriteLit = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.SpriteMask,
+                BlockFields.SurfaceDescription.Alpha,
             };
 
             public static BlockFieldDescriptor[] SpriteNormal = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.Normal,
+                BlockFields.SurfaceDescription.Alpha,
+            };
+
+            public static BlockFieldDescriptor[] SpriteForward = new BlockFieldDescriptor[]
+            {
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.Alpha,
             };
 
             public static BlockFieldDescriptor[] SpriteUnlit = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.Alpha,
             };
         }
     }

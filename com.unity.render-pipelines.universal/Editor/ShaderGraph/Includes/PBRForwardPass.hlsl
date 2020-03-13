@@ -48,9 +48,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
-    
+
     #if _AlphaClip
-        clip(surfaceDescription.Alpha - surfaceDescription.ClipThreshold);
+        clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
     InputData inputData;

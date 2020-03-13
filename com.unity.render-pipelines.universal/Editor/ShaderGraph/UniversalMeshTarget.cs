@@ -78,6 +78,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public void SetActiveBlocks(ref List<BlockFieldDescriptor> activeBlocks)
         {
+            bool isSprite = m_MaterialType == MaterialType.SpriteLit || m_MaterialType == MaterialType.SpriteUnlit;
+
             // Always supported Blocks
             activeBlocks.Add(BlockFields.VertexDescription.Position);
             activeBlocks.Add(BlockFields.VertexDescription.Normal);
@@ -108,13 +110,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Alpha Blocks
-            if(m_SurfaceType == SurfaceType.Transparent || m_AlphaClip)
+            if(isSprite || m_SurfaceType == SurfaceType.Transparent || m_AlphaClip)
             {
                 activeBlocks.Add(BlockFields.SurfaceDescription.Alpha);
             }
             if(m_AlphaClip)
             {
-                activeBlocks.Add(BlockFields.SurfaceDescription.ClipThreshold);
+                activeBlocks.Add(BlockFields.SurfaceDescription.AlphaClipThreshold);
             }
         }
 

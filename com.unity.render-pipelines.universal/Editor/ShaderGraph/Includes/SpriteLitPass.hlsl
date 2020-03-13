@@ -46,5 +46,5 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
     color *= unpacked.color;
 
-    return CombinedShapeLightShared(color, spriteMask, unpacked.screenPosition.xy / unpacked.screenPosition.w);
+    return CombinedShapeLightShared(color, surfaceDescription.SpriteMask, unpacked.screenPosition.xy / unpacked.screenPosition.w);
 }

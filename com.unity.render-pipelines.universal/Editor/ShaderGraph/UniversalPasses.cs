@@ -205,7 +205,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Block Mask
             vertexBlocks = UniversalBlockMasks.Vertex.Default,
-            pixelBlocks = UniversalBlockMasks.Pixel.SpriteNormal,
+            pixelBlocks = UniversalBlockMasks.Pixel.SpriteForward,
 
             // Fields
             structs = UniversalStructCollections.Default,

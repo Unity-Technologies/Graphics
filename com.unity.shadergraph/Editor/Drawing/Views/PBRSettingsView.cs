@@ -63,7 +63,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         toggle.OnToggleChanged(ChangeTwoSided);
                     });
                 });
-            
             ps.Add(new PropertyRow(new Label("DOTS instancing")), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>

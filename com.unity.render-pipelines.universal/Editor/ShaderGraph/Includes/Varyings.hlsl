@@ -21,7 +21,7 @@ Varyings BuildVaryings(Attributes input)
     #endif //FEATURES_GRAPH_NORMAL  
     #if defined(VARYINGS_NEED_TANGENT_WS)
         input.tangentOS.xyz = vertexDescription.Tangent.xyz;
-    #endif
+    #endif //FEATURES GRAPH TANGENT
 #endif //FEATURES_GRAPH_VERTEX
 
     // TODO: Avoid path via VertexPositionInputs (Universal)

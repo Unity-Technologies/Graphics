@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph
             // Alpha Blocks
             if(m_AlphaTest)
             {
-                activeBlocks.Add(BlockFields.SurfaceDescription.ClipThreshold);
+                activeBlocks.Add(BlockFields.SurfaceDescription.AlphaClipThreshold);
             }
         }
 
