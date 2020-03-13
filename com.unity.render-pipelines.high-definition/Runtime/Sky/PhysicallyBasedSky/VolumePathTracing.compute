@@ -304,6 +304,72 @@ float3 OptDepthSpherExpMedium(float r, float viewZ, float dist, float R,
     return ch * H * seaLvlAtt;
 }
 
+float ConvertCdfToOpticalDepth(float cdf, float maxOpacity)
+{
+    // Equation 24.
+    return -log(1 - cdf * maxOpacity);
+}
+
+#define EPS_ABS  0.0001
+#define EPS_REL  0.0001
+#define MAX_ITER 20
+
+// 'optDepth' is the value to solve for.
+// 'maxOptDepth' is the maximum value along the ray, s.t. (maxOptDepth >= optDepth).
+// 'maxDist' is the maximum distance along the ray.
+float SampleSpherExpMedium(float optDepth, float r, float viewZ, float R,
+                           float2 seaLvlAtt, float2 H, float2 rcpH, // Air & aerosols
+                           float maxOptDepth, float maxDist)
+{
+    const float  rcpOptDepth = rcp(optDepth);
+    const float2 Z           = R * rcpH;
+
+    // Make an initial guess.
+    // Homogeneous assumption.
+    float t = optDepth * rcp(maxOptDepth);
+
+    uint  numIter = 0;
+    float absDiff = optDepth, relDiff = 1;
+    do // Perform a Newton–Raphson iteration.
+    {
+        float cosTheta  = -viewZ; // p = x - s * v
+        float radAtDist = RadAtDist(r, cosTheta, t);
+        float cosAtDist = CosAtDist(r, cosTheta, t);
+        // Evaluate the function and its derivatives:
+        // f  [t] = OptDepthAtDist[t] - GivenOptDepth = 0,
+        // f' [t] = AttCoefAtDist[t],
+        // f''[t] = AttCoefAtDist'[t] = -AttCoefAtDist[t] * CosAtDist[t] / H.
+        float optDepthAtDist = 0, attAtDist = 0;
+        optDepthAtDist += OptDepthSpherExpMedium(r, viewZ, t, R, seaLvlAtt.x, H.x, rcpH.x); // Air
+        optDepthAtDist += OptDepthSpherExpMedium(r, viewZ, t, R, seaLvlAtt.y, H.y, rcpH.y); // Aerosols
+        attAtDist      += seaLvlAtt.x * exp(Z.x - radAtDist * rcpH.x);
+        attAtDist      += seaLvlAtt.y * exp(Z.y - radAtDist * rcpH.y);
+
+        float  f = optDepthAtDist - optDepth;
+        float df = attAtDist;
+
+        ASSERT(df != 0);
+
+        // https://en.wikipedia.org/wiki/Newton%27s_method
+        float dt = -f * rcp(df);
+
+        // Refine the initial guess.
+        t = clamp(t + dt, 0, maxDist); // Basic overshoot handling
+
+        absDiff = abs(optDepthAtDist - optDepth);
+        relDiff = abs(optDepthAtDist * rcpOptDepth - 1);
+
+        numIter++;
+
+        // Stop when the accuracy goal has been reached.
+        // Note that this uses the accuracy of the old value of 't'.
+        // The new value of 't' we just computed should be even more accurate.
+    } while ((absDiff > EPS_ABS) && (relDiff > EPS_REL) && (numIter < MAX_ITER));
+
+    // return t;
+    return numIter == MAX_ITER ? 1 : 0;
+}
+
 #define GROUP_SIZE_1D 8 // 8^2 == 64
 #define GROUP_SIZE_2D (GROUP_SIZE_1D * GROUP_SIZE_1D)
 #define TILE_SIZE_1D  4 // 4^2 == 16
@@ -340,14 +406,15 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
     uint  tileCountInDispatch = threadCountInDispatch / tileSize2D;
     uint2 threadCoordInTile   = threadCoordInGroup % tileSize1D;
     uint  threadIndexInTile   = threadCoordInTile.y * tileSize1D + threadCoordInTile.x;
+    uint  pointIndex          = tileSize2D * passIndex + threadIndexInTile; // Tile of points per pass
+
+    uint bounce = 0;
 
     // We generate a unique point set per tile every 2 bounces.
-    uint   bounce     = 0;
-    uint   seed       = permute(tileIndexInDispatch, tileCountInDispatch, s_RandomPrimes[bounce / 2]); // Shuffle the tiles
-    uint   pointIndex = tileSize2D * passIndex + threadIndexInTile; // Tile of points per pass
-    float3 rnd        = float3(cmj6D(pointIndex, bounce * 3 + 0, seed),
-                               cmj6D(pointIndex, bounce * 3 + 1, seed),
-                               cmj6D(pointIndex, bounce * 3 + 2, seed));
+    uint   seed = permute(tileIndexInDispatch, tileCountInDispatch, s_RandomPrimes[bounce / 2]);
+    float3 rnd  = float3(cmj6D(pointIndex, bounce * 3 + 0, seed),
+                         cmj6D(pointIndex, bounce * 3 + 1, seed),
+                         cmj6D(pointIndex, bounce * 3 + 2, seed));
 
     // Determine which pixel the path contributes to.
     float2 filterOffset    = rnd.xy; // TODO: do not use a box filter?
@@ -397,7 +464,7 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
         atmosEntryExit.x  = 0;
     }
 
-    float cosHor      = ComputeCosineOfHorizonAngle(rRcp);
+    float cosHor       = ComputeCosineOfHorizonAngle(rRcp);
     bool  aboveHorizon = (cosTheta >= cosHor);
 
     if (aboveHorizon)
@@ -410,18 +477,32 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
         ASSERT(ray.maxDist > 0);
     }
 
-    float3 optDepth = 0; // Air + aerosols + ozone
-    optDepth += OptDepthSpherExpMedium(r, -cosTheta, ray.maxDist, R,
-                                       _AirSeaLevelExtinction, _AirScaleHeight, _AirDensityFalloff);
-    optDepth += OptDepthSpherExpMedium(r, -cosTheta, ray.maxDist, R,
-                                       _AerosolSeaLevelExtinction, _AerosolScaleHeight, _AerosolDensityFalloff);
-
-    for (bounce = 1; bounce < bounceCount; bounce++)
+    for (bounce = 1; bounce <= bounceCount; bounce++) // Bounces are indexed starting from 1
     {
+        seed = permute(tileIndexInDispatch, tileCountInDispatch, s_RandomPrimes[bounce / 2]);
+        rnd  = float3(cmj6D(pointIndex, bounce * 3 + 0, seed),
+                      cmj6D(pointIndex, bounce * 3 + 1, seed),
+                      cmj6D(pointIndex, bounce * 3 + 2, seed));
 
+        float3 optDepth = 0; // Air + aerosols + ozone
+        optDepth += OptDepthSpherExpMedium(r, -cosTheta, ray.maxDist, R, _AirSeaLevelExtinction,     _AirScaleHeight,     _AirDensityFalloff);
+        optDepth += OptDepthSpherExpMedium(r, -cosTheta, ray.maxDist, R, _AerosolSeaLevelExtinction, _AerosolScaleHeight, _AerosolDensityFalloff);
+
+        float maxSampledOptDepth = optDepth[(uint)ray.frequency];
+        float maxSampledOpacity  = OpacityFromOpticalDepth(maxSampledOptDepth);
+        float sampledOptDepth    = ConvertCdfToOpticalDepth(rnd.x, maxSampledOpacity);
+
+        float t = SampleSpherExpMedium(sampledOptDepth, r, -cosTheta, R,
+                                       float2(_AirSeaLevelExtinction[(uint)ray.frequency], _AerosolSeaLevelExtinction),
+                                       float2(_AirScaleHeight, _AerosolScaleHeight),
+                                       float2(_AirDensityFalloff, _AerosolDensityFalloff),
+                                       maxSampledOptDepth, ray.maxDist);
+
+        return t;
+        // return OpacityFromOpticalDepth(optDepth);
     }
 
-    return OpacityFromOpticalDepth(optDepth);
+    return 0;
 }
 
 // Floating-point atomics are not supported. Use fixed-point math in units of HALF_MIN instead.
@@ -449,33 +530,34 @@ void main(uint2 groupCoordInDispatch  : SV_GroupID,
                                    GROUP_SIZE_1D, TILE_SIZE_1D, _BounceCount, _PassIndex,
                                    origin, outPositionSS);
 
-    // Find the corresponding coordinate in the groupshared memory.
-    uint outPositionGS = (outPositionSS.y % GROUP_SIZE_1D) * GROUP_SIZE_1D
-                       + (outPositionSS.x % GROUP_SIZE_1D);
+    // // Find the corresponding coordinate in the groupshared memory.
+    // uint outPositionGS = (outPositionSS.y % GROUP_SIZE_1D) * GROUP_SIZE_1D
+    //                    + (outPositionSS.x % GROUP_SIZE_1D);
 
-    // Full clear.
-    g_RadianceR[threadIndexInGroup] = 0;
-    g_RadianceG[threadIndexInGroup] = 0;
-    g_RadianceB[threadIndexInGroup] = 0;
-    g_SampleCnt[threadIndexInGroup] = 0;
-    // Partial fill.
-    GroupMemoryBarrierWithGroupSync();
-    InterlockedAdd(g_RadianceR[outPositionGS], round(radiance.r * 16384)); // Fixed-point
-    InterlockedAdd(g_RadianceG[outPositionGS], round(radiance.g * 16384)); // Fixed-point
-    InterlockedAdd(g_RadianceB[outPositionGS], round(radiance.b * 16384)); // Fixed-point
-    InterlockedAdd(g_SampleCnt[outPositionGS], 1);
-    // Full load.
-    uint sampleCount;
-    GroupMemoryBarrierWithGroupSync();
-    radiance.r  = g_RadianceR[threadIndexInGroup] * rcp(16384);
-    radiance.g  = g_RadianceG[threadIndexInGroup] * rcp(16384);
-    radiance.b  = g_RadianceB[threadIndexInGroup] * rcp(16384);
-    sampleCount = g_SampleCnt[threadIndexInGroup];
+    // // Full clear.
+    // g_RadianceR[threadIndexInGroup] = 0;
+    // g_RadianceG[threadIndexInGroup] = 0;
+    // g_RadianceB[threadIndexInGroup] = 0;
+    // g_SampleCnt[threadIndexInGroup] = 0;
+    // // Partial fill.
+    // GroupMemoryBarrierWithGroupSync();
+    // InterlockedAdd(g_RadianceR[outPositionGS], round(radiance.r * 16384)); // Fixed-point
+    // InterlockedAdd(g_RadianceG[outPositionGS], round(radiance.g * 16384)); // Fixed-point
+    // InterlockedAdd(g_RadianceB[outPositionGS], round(radiance.b * 16384)); // Fixed-point
+    // InterlockedAdd(g_SampleCnt[outPositionGS], 1);
+    // // Full load.
+    // uint sampleCount;
+    // GroupMemoryBarrierWithGroupSync();
+    // radiance.r  = g_RadianceR[threadIndexInGroup] * rcp(16384);
+    // radiance.g  = g_RadianceG[threadIndexInGroup] * rcp(16384);
+    // radiance.b  = g_RadianceB[threadIndexInGroup] * rcp(16384);
+    // sampleCount = g_SampleCnt[threadIndexInGroup];
 
-    // We store the sample count in the alpha channel.
-    float3 oldRadiance    = _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].rgb;
-    float  oldSampleCount = round(_ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].a);
-    float  newSampleCount = oldSampleCount + sampleCount;
-    float4 newValue       = float4((oldRadiance * oldSampleCount + radiance) * rcp(max(newSampleCount, 1)), newSampleCount);
-    _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] = newValue;
+    // // We store the sample count in the alpha channel.
+    // float3 oldRadiance    = _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].rgb;
+    // float  oldSampleCount = round(_ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].a);
+    // float  newSampleCount = oldSampleCount + sampleCount;
+    // float4 newValue       = float4((oldRadiance * oldSampleCount + radiance) * rcp(max(newSampleCount, 1)), newSampleCount);
+    // _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] = newValue;
+    _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] = radiance.r;
 }
