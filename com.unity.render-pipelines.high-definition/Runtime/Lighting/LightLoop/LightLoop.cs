@@ -561,7 +561,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_shadeOpaqueIndirectShadowMaskFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
         static int s_deferredContactShadowKernel;
-        static int s_deferredContactShadowKernelMSAA;
 
         static int s_GenListPerBigTileKernel;
 
@@ -769,8 +768,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_BuildDrawProceduralIndirectKernel = buildDispatchIndirectShader.FindKernel("BuildDrawProceduralIndirect");
             s_ClearDrawProceduralIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDrawProceduralIndirect");
 
-            s_BuildMaterialFlagsOrKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen_Or");
-            s_BuildMaterialFlagsWriteKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen_Write");
+            s_BuildMaterialFlagsWriteKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen");
 
             s_shadeOpaqueDirectFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl");
             s_shadeOpaqueDirectFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl_DebugDisplay");
@@ -779,7 +777,6 @@ namespace UnityEngine.Rendering.HighDefinition
             s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_ShadowMask_Fptl_DebugDisplay");
 
             s_deferredContactShadowKernel = contactShadowComputeShader.FindKernel("DeferredContactShadow");
-            s_deferredContactShadowKernelMSAA = contactShadowComputeShader.FindKernel("DeferredContactShadowMSAA");
 
             for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
             {
@@ -2921,7 +2918,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool needModifyingTileFeatures = !tileFlagsWritten || parameters.computeMaterialVariants;
                 if (needModifyingTileFeatures)
                 {
-                    int buildMaterialFlagsKernel = (!tileFlagsWritten || !parameters.computeLightVariants) ? s_BuildMaterialFlagsWriteKernel : s_BuildMaterialFlagsOrKernel;
+                    int buildMaterialFlagsKernel = s_BuildMaterialFlagsWriteKernel;
+                    parameters.buildMaterialFlagsShader.shaderKeywords = null;
+                    if (tileFlagsWritten && parameters.computeLightVariants)
+                    {
+                        parameters.buildMaterialFlagsShader.EnableKeyword("USE_OR");
+                    }
 
                     uint baseFeatureFlags = 0;
                     if (!parameters.computeLightVariants)
@@ -3404,6 +3406,12 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new ContactShadowsParameters();
 
             parameters.contactShadowsCS = contactShadowComputeShader;
+            parameters.contactShadowsCS.shaderKeywords = null;
+            if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            {
+                parameters.contactShadowsCS.EnableKeyword("ENABLE_MSAA");
+            }
+
             parameters.rayTracingEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
@@ -3416,7 +3424,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.actualHeight = hdCamera.actualHeight;
             }
 
-            parameters.kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
+            parameters.kernel = s_deferredContactShadowKernel;
 
             float contactShadowRange = Mathf.Clamp(m_ContactShadows.fadeDistance.value, 0.0f, m_ContactShadows.maxDistance.value);
             float contactShadowFadeEnd = m_ContactShadows.maxDistance.value;

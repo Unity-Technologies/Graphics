@@ -178,8 +178,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Ambient occlusion
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAO.compute")]
             public ComputeShader GTAOCS;
-            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAODenoise.compute")]
-            public ComputeShader GTAODenoiseCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOSpatialDenoise.compute")]
+            public ComputeShader GTAOSpatialDenoiseCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOTemporalDenoise.compute")]
+            public ComputeShader GTAOTemporalDenoiseCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOCopyHistory.compute")]
+            public ComputeShader GTAOCopyHistoryCS;
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOBlurAndUpsample.compute")]
             public ComputeShader GTAOBlurAndUpsample;
 
@@ -222,6 +226,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader depthOfFieldGatherCS;
             [Reload("Runtime/PostProcessing/Shaders/DepthOfFieldCombine.compute")]
             public ComputeShader depthOfFieldCombineCS;
+            [Reload("Runtime/PostProcessing/Shaders/DepthOfFieldPreCombineFar.compute")]
+            public ComputeShader depthOfFieldPreCombineFarCS;
+            [Reload("Runtime/PostProcessing/Shaders/DepthOfFieldClearIndirectArgs.compute")]
+            public ComputeShader depthOfFieldClearIndirectArgsCS;
             [Reload("Runtime/PostProcessing/Shaders/PaniniProjection.compute")]
             public ComputeShader paniniProjectionCS;
             [Reload("Runtime/PostProcessing/Shaders/MotionBlurMotionVecPrep.compute")]
