@@ -20,5 +20,4 @@ int                                     _RayCountEnabled;
 float                                   _RaytracingCameraNearPlane;
 uint                                    _RaytracingDiffuseRay;
 int                                     _RaytracingPreExposition;
-int                                     _PathtracingIteration;
 RW_TEXTURE2D_ARRAY(uint,                _RayCountTexture);
