@@ -104,7 +104,7 @@ Shader "Hidden/VFX/GradientDashedBorder"
                     color = lerp(_ColorMiddle,_ColorEnd , (i.height - 0.5f) * 2);
                 else
                     color = lerp(_ColorStart, _ColorMiddle, i.height * 2);
-                
+
                 return float4(color.rgb,color.a*saturate(borderDist)*clipA);
             }
             ENDCG
