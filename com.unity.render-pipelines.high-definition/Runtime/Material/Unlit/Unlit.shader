@@ -148,6 +148,8 @@ Shader "HDRP/Unlit"
             ZWrite On
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -194,6 +196,8 @@ Shader "HDRP/Unlit"
             ColorMask 0 0
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -240,6 +244,8 @@ Shader "HDRP/Unlit"
             ColorMask 0 1
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -284,6 +290,8 @@ Shader "HDRP/Unlit"
             Cull [_CullMode]
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -318,6 +326,8 @@ Shader "HDRP/Unlit"
             Cull Off
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -354,6 +364,8 @@ Shader "HDRP/Unlit"
             ColorMask 0
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -391,6 +403,8 @@ Shader "HDRP/Unlit"
             Cull [_CullMode]
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -420,6 +434,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
@@ -446,6 +461,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
@@ -471,6 +487,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ LIGHTMAP_ON
@@ -504,6 +521,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
             #pragma raytracing surface_shader
 
             #define SHADOW_LOW
@@ -531,6 +549,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11                
             #pragma raytracing surface_shader
 
             #define SHADOW_LOW
