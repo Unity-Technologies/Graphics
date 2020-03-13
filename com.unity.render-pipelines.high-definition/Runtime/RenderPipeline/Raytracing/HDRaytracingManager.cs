@@ -404,6 +404,25 @@ namespace UnityEngine.Rendering.HighDefinition
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
+            // We need to process the emissive meshes of the rectangular area lights
+            for (var i = 0; i < m_RayTracingLights.hdRectLightArray.Count; i++)
+            {
+                // Fetch the current renderer of the rectangular area light (if any)
+                MeshRenderer currentRenderer = m_RayTracingLights.hdRectLightArray[i].emissiveMeshRenderer;
+
+                // If there is none it means that there is no emissive mesh for this light
+                if (currentRenderer == null) continue;
+
+                // This objects should be included into the RAS
+                AddInstanceToRAS(currentRenderer,
+                                rayTracedShadow,
+                                aoSettings.rayTracing.value, aoSettings.layerMask.value,
+                                reflSettings.rayTracing.value, reflSettings.layerMask.value,
+                                giSettings.rayTracing.value, giSettings.layerMask.value,
+                                recursiveSettings.enable.value, recursiveSettings.layerMask.value,
+                                pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
+            }
+
             int matCount = m_MaterialCRCs.Count;
 
             LODGroup[] lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();

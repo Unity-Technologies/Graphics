@@ -306,6 +306,7 @@ Shader "HDRP/LitTessellation"
     //enable GPU instancing support
     #pragma multi_compile_instancing
     #pragma instancing_options renderinglayer
+    #pragma multi_compile _ DOTS_INSTANCING_ON
 
     //-------------------------------------------------------------------------------------
     // Define

@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a path tracing test to the test suite.
 - Added a warning and workaround instructions that appear when you enable XR single-pass after the first frame with the XR SDK.
 - Added the exposure sliders to the planar reflection probe preview
+- Added support for subsurface scattering in path tracing.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -448,6 +449,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed infinite reload loop while displaying Light's Shadow's Link Light Layer in Inspector of Prefab Asset.
 - Fixed the culling was not disposed error in build log.
 - Fixed the cookie atlas size and planar atlas size being too big after an upgrade of the HDRP asset.
+- Fixed transparent SSR for shader graph.
+- Fixed an issue with emissive light meshes not being in the RAS.
+- Fixed DXR player build
+- Fixed the HDRP asset migration code not being called after an upgrade of the package
+- Fixed draw renderers custom pass out of bound exception
+- Fixed the PBR shader rendering in deferred
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -534,8 +541,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the visibility of the Indirect Lighting Controller component to public.
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
 - Improved behaviour of transmission color on transparent surfaces in path tracing.
-- Light dimmer can now get values higher than one and was renamed to multiplier in the UI. 
+- Light dimmer can now get values higher than one and was renamed to multiplier in the UI.
 - Removed info box requesting volume component for Visual Environment and updated the documentation with the relevant information.
+- Improved light selection oracle for light sampling in path tracing.
+- Stripped ray tracing subsurface passes with ray tracing is not enabled.
+- Remove LOD cross fade code for ray tracing shaders
 
 ## [7.1.1] - 2019-09-05
 
