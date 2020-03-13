@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
+- Copied nodes are now pasted at the cursor location instead of slightly offset from their original location
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
