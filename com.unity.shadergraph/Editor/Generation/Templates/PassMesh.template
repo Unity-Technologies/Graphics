@@ -1,11 +1,11 @@
 Pass
 {
     $splice(PassName)
-    Tags 
-    { 
+    Tags
+    {
         $splice(LightMode)
     }
-   
+
     // Render State
     $splice(RenderState)
 
@@ -20,10 +20,13 @@ Pass
     // Pragmas
     $splice(PassPragmas)
 
+    $splice(DotsInstancingOptions)
+    $splice(HybridV1InjectedBuiltinProperties)
+
     // Keywords
     $splice(PassKeywords)
     $splice(GraphKeywords)
-    
+
     // Defines
     $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
     $AlphaClip:                         #define _AlphaClip 1
@@ -41,7 +44,7 @@ Pass
     $Attributes.uv2:                    #define ATTRIBUTES_NEED_TEXCOORD2
     $Attributes.uv3:                    #define ATTRIBUTES_NEED_TEXCOORD3
     $Attributes.color:                  #define ATTRIBUTES_NEED_COLOR
-    $Varyings.positionWS:               #define VARYINGS_NEED_POSITION_WS 
+    $Varyings.positionWS:               #define VARYINGS_NEED_POSITION_WS
     $Varyings.normalWS:                 #define VARYINGS_NEED_NORMAL_WS
     $Varyings.tangentWS:                #define VARYINGS_NEED_TANGENT_WS
     $Varyings.texCoord0:                #define VARYINGS_NEED_TEXCOORD0
@@ -74,14 +77,13 @@ Pass
 
     // Graph Properties
     $splice(GraphProperties)
-    $splice(DotsInstancedProperties)
 
     // Graph Functions
     $splice(GraphFunctions)
 
     // Graph Vertex
     $splice(GraphVertex)
-    
+
     // Graph Pixel
     $splice(GraphPixel)
 
