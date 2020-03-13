@@ -327,7 +327,7 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
 {% endif %}
   commands:
     - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/{{ project.folder }}/utr
-    - chmod +x TestProjects/{{ project.folder }}/utr/utr
+    - chmod +x TestProjects/{{ project.folder }}/utr
 
     - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r ../ScriptableRenderPipeline/ bokken@$BOKKEN_DEVICE_IP:~/ScriptableRenderPipeline
     - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
