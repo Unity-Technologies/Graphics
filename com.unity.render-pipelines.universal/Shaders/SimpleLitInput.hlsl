@@ -12,6 +12,20 @@ half4 _EmissionColor;
 half _Cutoff;
 CBUFFER_END
 
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
+    UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
+    UNITY_DOTS_INSTANCED_PROP(float4, _SpecColor)
+    UNITY_DOTS_INSTANCED_PROP(float4, _EmissionColor)
+    UNITY_DOTS_INSTANCED_PROP(float , _Cutoff)
+UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
+
+#define _BaseColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(half4 , Metadata__BaseColor)
+#define _SpecColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(half4 , Metadata__SpecColor)
+#define _EmissionColor      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(half4 , Metadata__EmissionColor)
+#define _Cutoff             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(half  , Metadata__Cutoff)
+#endif
+
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 
 half4 SampleSpecularSmoothness(half2 uv, half alpha, half4 specColor, TEXTURE2D_PARAM(specMap, sampler_specMap))

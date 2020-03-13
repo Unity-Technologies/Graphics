@@ -16,6 +16,11 @@ platforms:
     components:
       - editor
       - il2cpp
+  - os: android
+    components:
+      - editor
+      - il2cpp
+      - android
   - os: windows
     components:
       - editor
@@ -34,6 +39,7 @@ editor:priming:{{ editor.version }}:{{ platform.os }}:
     type: Unity::VM
     image: 'cds-ops/ubuntu-16.04-base:stable'
     flavor: b1.small
+  skip_checkout: true
   variables:
     PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
     DISPLAY: ":0"
@@ -43,14 +49,7 @@ editor:priming:{{ editor.version }}:{{ platform.os }}:
   commands:
     - pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
     - >
-      unity-downloader-cli
-      {{ editor.cmd }}
-      -o {{ platform.os }}
-      --wait
-      --skip-download
-{% for component in platform.components -%}
-      -c {{ component }}
-{% endfor -%}
+      unity-downloader-cli {{ editor.cmd }} {% if platform.os == "android" %} -o windows {% else %} -o {{ platform.os }} {% endif %} --wait --skip-download {% for component in platform.components -%} -c {{ component }} {% endfor -%}
       > unity_revision.txt
   artifacts:
     unity_revision.zip:
