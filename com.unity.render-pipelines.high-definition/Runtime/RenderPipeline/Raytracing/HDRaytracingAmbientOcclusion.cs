@@ -59,7 +59,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetDefaultAmbientOcclusionTexture(CommandBuffer cmd)
         {
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, TextureXR.GetBlackTexture());
-            cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
         }
 
         public void RenderAO(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)

@@ -595,7 +595,18 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void UpdateShaderVariableGlobalCB(ConstantBuffer<ShaderVariablesGlobal> cb, HDCamera hdCamera)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            bool aoEnabled = false;
             if (IsActive(hdCamera, settings))
+            {
+                aoEnabled = true;
+                // If raytraced AO is enabled but raytracing state is wrong then we disable it.
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && !HDRenderPipeline.currentPipeline.GetRayTracingState())
+                {
+                    aoEnabled = false;
+                }
+            }
+
+            if (aoEnabled)
                 cb.data._AmbientOcclusionParam = new Vector4(0f, 0f, 0f, settings.directLightingStrength.value);
             else
                 cb.data._AmbientOcclusionParam = Vector4.zero;
