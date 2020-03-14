@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -43,6 +43,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
+        public static readonly PragmaCollection GBuffer = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target20) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES }) },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.MultiCompileFog },
+            { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
+        };
+
         public static readonly PragmaCollection DOTSDefault = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
@@ -62,6 +73,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         };
 
         public static readonly PragmaCollection DOTSForward = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.ExcludeRenderers(new[]{ Platform.D3D9, Platform.GLES }) },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.MultiCompileFog },
+            { Pragma.DOTSInstancing },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
+        };
+
+        public static readonly PragmaCollection DOTSGBuffer = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.ExcludeRenderers(new[]{ Platform.D3D9, Platform.GLES }) },

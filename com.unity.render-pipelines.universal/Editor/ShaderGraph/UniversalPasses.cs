@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -37,6 +37,29 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             pragmas = UniversalPragmas.Forward,
             keywords = UniversalKeywords.PBRForward,
             includes = UniversalIncludes.Forward,
+        };
+
+        public static PassDescriptor GBuffer = new PassDescriptor
+        {
+            // Definition
+            displayName = "Universal GBuffer",
+            referenceName = "SHADERPASS_GBUFFER",
+            lightMode = "UniversalGBuffer",
+
+            // Port Mask
+            vertexPorts = UniversalPortMasks.Vertex.PBR,
+            pixelPorts = UniversalPortMasks.Pixel.PBR,
+
+            // Fields
+            structs = UniversalStructCollections.Default,
+            requiredFields = UniversalRequiredFields.PBRGBuffer,
+            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
+
+            // Conditional State
+            renderStates = UniversalRenderStates.GBufferLit,
+            pragmas = UniversalPragmas.GBuffer,
+            keywords = UniversalKeywords.PBRGBuffer,
+            includes = UniversalIncludes.GBuffer,
         };
 
         public static PassDescriptor DepthOnly = new PassDescriptor()
@@ -147,6 +170,30 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             keywords = UniversalKeywords.Unlit,
             includes = UniversalIncludes.Unlit,
         };
+
+        public static PassDescriptor UniversalUnlit = new PassDescriptor
+        {
+            // Definition
+            displayName = "Universal Pass",
+            referenceName = "SHADERPASS_UNLIT",
+            lightMode = "UniversalForwardOnly",
+            useInPreview = true,
+
+            // Port Mask
+            vertexPorts = UniversalPortMasks.Vertex.Unlit,
+            pixelPorts = UniversalPortMasks.Pixel.Unlit,
+
+            // Fields
+            structs = UniversalStructCollections.Default,
+            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
+
+            // Conditional State
+            renderStates = UniversalRenderStates.Default,
+            pragmas = UniversalPragmas.Forward,
+            keywords = UniversalKeywords.Unlit,
+            includes = UniversalIncludes.Unlit,
+        };
+
 
         public static PassDescriptor SpriteLit = new PassDescriptor
         {

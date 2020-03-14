@@ -1,10 +1,23 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     static class UniversalRequiredFields
     {
         public static FieldCollection PBRForward = new FieldCollection()
+        {
+            StructFields.Attributes.uv1,                            // needed for meta vertex position
+            StructFields.Varyings.positionWS,
+            StructFields.Varyings.normalWS,
+            StructFields.Varyings.tangentWS,                        // needed for vertex lighting
+            StructFields.Varyings.viewDirectionWS,
+            UniversalStructFields.Varyings.lightmapUV,
+            UniversalStructFields.Varyings.sh,
+            UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
+            UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+        };
+
+        public static FieldCollection PBRGBuffer = new FieldCollection()
         {
             StructFields.Attributes.uv1,                            // needed for meta vertex position
             StructFields.Varyings.positionWS,

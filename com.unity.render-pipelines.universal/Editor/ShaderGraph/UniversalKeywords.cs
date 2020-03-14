@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -93,6 +93,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 scope = KeywordScope.Global,
             };
 
+            public static KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
+            {
+                displayName = "GBuffer normal octaedron encoding",
+                referenceName = "_GBUFFER_NORMALS_OCT",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
+            };
+            
+
             public static KeywordDescriptor SmoothnessChannel = new KeywordDescriptor()
             {
                 displayName = "Smoothness Channel",
@@ -158,6 +168,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Descriptors.AdditionalLightShadows },
             { Descriptors.ShadowsSoft },
             { Descriptors.MixedLightingSubtractive },
+        };
+
+        public static KeywordCollection PBRGBuffer = new KeywordCollection
+        {
+            { Descriptors.Lightmap },
+            { Descriptors.DirectionalLightmapCombined },
+            { Descriptors.MainLightShadows },
+            { Descriptors.MainLightShadowsCascade },
+            { Descriptors.ShadowsSoft },
+            { Descriptors.MixedLightingSubtractive },
+            { Descriptors.GBufferNormalsOct },
         };
 
         public static KeywordCollection PBRMeta = new KeywordCollection

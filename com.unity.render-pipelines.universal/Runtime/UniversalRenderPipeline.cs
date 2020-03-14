@@ -481,7 +481,7 @@ namespace UnityEngine.Rendering.Universal
             ///////////////////////////////////////////////////////////////////
             
             var renderer = baseAdditionalCameraData?.scriptableRenderer;
-            bool rendererSupportsMSAA = renderer == null || renderer.supportedRenderingFeatures.msaa;
+            bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
 
             int msaaSamples = 1;
             if (baseCamera.allowMSAA && settings.msaaSampleCount > 1 && rendererSupportsMSAA)

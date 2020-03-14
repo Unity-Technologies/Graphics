@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             passes = new PassCollection
             {
                 { UniversalPasses.Forward },
+                { UniversalPasses.GBuffer },
                 { UniversalPasses.ShadowCaster },
                 { UniversalPasses.DepthOnly },
                 { UniversalPasses.Meta },
@@ -26,12 +27,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             get
             {
                 var forward = UniversalPasses.Forward;
+                var gbuffer = UniversalPasses.GBuffer;
                 var shadowCaster = UniversalPasses.ShadowCaster;
                 var depthOnly = UniversalPasses.DepthOnly;
                 var meta = UniversalPasses.Meta;
                 var _2d = UniversalPasses._2D;
 
                 forward.pragmas = UniversalPragmas.DOTSForward;
+                gbuffer.pragmas = UniversalPragmas.DOTSGBuffer;
                 shadowCaster.pragmas = UniversalPragmas.DOTSInstanced;
                 depthOnly.pragmas = UniversalPragmas.DOTSInstanced;
                 meta.pragmas = UniversalPragmas.DOTSDefault;
@@ -44,6 +47,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passes = new PassCollection
                     {
                         { forward },
+                        { gbuffer },
                         { shadowCaster },
                         { depthOnly },
                         { meta },
@@ -60,7 +64,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             generatesPreview = true,
             passes = new PassCollection
             {
-                { UniversalPasses.Unlit },
+                { UniversalPasses.Unlit }, // This pass use legacy lightMode tag and is picked up by 2D renderer.
+                { UniversalPasses.UniversalUnlit }, // // This pass is picked up by the forward and deferred renderers.
                 { UniversalPasses.ShadowCaster },
                 { UniversalPasses.DepthOnly },
             },
@@ -71,10 +76,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             get
             {
                 var unlit = UniversalPasses.Unlit;
+                var universalUnlit = UniversalPasses.UniversalUnlit;
                 var shadowCaster = UniversalPasses.ShadowCaster;
                 var depthOnly = UniversalPasses.DepthOnly;
 
                 unlit.pragmas = UniversalPragmas.DOTSForward;
+                universalUnlit.pragmas = UniversalPragmas.DOTSForward;
                 shadowCaster.pragmas = UniversalPragmas.DOTSInstanced;
                 depthOnly.pragmas = UniversalPragmas.DOTSInstanced;
                 
@@ -85,6 +92,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passes = new PassCollection
                     {
                         { unlit },
+                        { universalUnlit },
                         { shadowCaster },
                         { depthOnly },
                     },

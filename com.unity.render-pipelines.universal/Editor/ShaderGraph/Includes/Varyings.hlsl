@@ -99,7 +99,7 @@ Varyings BuildVaryings(Attributes input)
     output.screenPosition = ComputeScreenPos(output.positionCS, _ProjectionParams.x);
 #endif
 
-#if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == defined(SHADERPASS_GBUFFER)
+#if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
     OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.lightmapUV);
     OUTPUT_SH(normalWS, output.sh);
 #endif

@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -19,6 +19,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kVaryings = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl";
         const string kShaderPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
         const string kPBRForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
+        const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl";
+        const string kPBRGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl";
         const string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
         const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
         const string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
@@ -53,6 +55,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Post-graph
             { CorePostgraph },
             { kPBRForwardPass, IncludeLocation.Postgraph },
+        };
+
+        public static IncludeCollection GBuffer = new IncludeCollection
+        {
+            // Pre-graph
+            { CorePregraph },
+            { kShadows, IncludeLocation.Pregraph },
+            { kGraphFunctions, IncludeLocation.Pregraph },
+            { kGraphVariables, IncludeLocation.Pregraph },
+
+            // Post-graph
+            { CorePostgraph },
+            { kGBuffer, IncludeLocation.Postgraph },
+            { kPBRGBufferPass, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection DepthOnly = new IncludeCollection

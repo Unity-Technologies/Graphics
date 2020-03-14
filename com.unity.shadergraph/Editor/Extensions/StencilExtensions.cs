@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -12,8 +12,13 @@ namespace UnityEditor.ShaderGraph
             {
                 builder.AppendLine($"WriteMask {descriptor.WriteMask}");
                 builder.AppendLine($"Ref {descriptor.Ref}");
-                builder.AppendLine($"Comp {descriptor.Comp}");
-                builder.AppendLine($"Pass {descriptor.Pass}");
+                builder.AppendLine($"CompFront {descriptor.CompFront}");
+                builder.AppendLine($"ZFailFront {descriptor.ZFailFront}");
+                builder.AppendLine($"FailFront {descriptor.FailFront}");
+                builder.AppendLine($"PassFront {descriptor.PassFront}");
+                builder.AppendLine($"ZFailBack {descriptor.ZFailBack}");
+                builder.AppendLine($"FailBack {descriptor.FailBack}");
+                builder.AppendLine($"PassBack {descriptor.PassBack}");
             }
             return builder.ToCodeBlock();
         }
