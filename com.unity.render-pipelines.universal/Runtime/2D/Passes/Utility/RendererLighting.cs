@@ -193,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmdBuffer.ClearRenderTarget(true, true, Color.black);
 
                 BoundingSphere lightBounds = light.GetBoundingSphere(); // Gets the local bounding sphere...
-                float shadowRadius = lightBounds.radius;
+                float shadowRadius = 1.42f * lightBounds.radius;
 
                 cmdBuffer.SetGlobalVector("_LightPos", light.transform.position);
                 cmdBuffer.SetGlobalFloat("_ShadowRadius", shadowRadius);
