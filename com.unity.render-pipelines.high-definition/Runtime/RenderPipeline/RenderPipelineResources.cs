@@ -234,8 +234,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader paniniProjectionCS;
             [Reload("Runtime/PostProcessing/Shaders/MotionBlurMotionVecPrep.compute")]
             public ComputeShader motionBlurMotionVecPrepCS;
-            [Reload("Runtime/PostProcessing/Shaders/MotionBlurTilePass.compute")]
-            public ComputeShader motionBlurTileGenCS;
+            [Reload("Runtime/PostProcessing/Shaders/MotionBlurGenTilePass.compute")]
+            public ComputeShader motionBlurGenTileCS;
+            [Reload("Runtime/PostProcessing/Shaders/MotionBlurMergeTilePass.compute")]
+            public ComputeShader motionBlurMergeTileCS;
+            [Reload("Runtime/PostProcessing/Shaders/MotionBlurNeighborhoodTilePass.compute")]
+            public ComputeShader motionBlurNeighborTileCS;
+
             [Reload("Runtime/PostProcessing/Shaders/MotionBlur.compute")]
             public ComputeShader motionBlurCS;
             [Reload("Runtime/PostProcessing/Shaders/BloomPrefilter.compute")]

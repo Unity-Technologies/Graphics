@@ -1664,15 +1664,15 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlurTileMinMax)))
             {
                 // We store R11G11B10 with RG = Max vel and B = Min vel magnitude
-                cs = m_Resources.shaders.motionBlurTileGenCS;
+                cs = m_Resources.shaders.motionBlurGenTileCS;
+                cs.shaderKeywords = null;
+                kernel = cs.FindKernel("TileGenPass");
+
                 if (m_MotionBlurSupportsScattering)
                 {
-                    kernel = cs.FindKernel("TileGenPass_Scattering");
+                    cs.EnableKeyword("SCATTERING");
                 }
-                else
-                {
-                    kernel = cs.FindKernel("TileGenPass");
-                }
+
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMinMaxMotionVec, minMaxTileVel);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
@@ -1694,15 +1694,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, m_MotionBlurSupportsScattering ? ProfilingSampler.Get(HDProfileId.MotionBlurTileScattering) : ProfilingSampler.Get(HDProfileId.MotionBlurTileNeighbourhood)))
             {
-                cs = m_Resources.shaders.motionBlurTileGenCS;
+                cs = m_Resources.shaders.motionBlurNeighborTileCS;
+                cs.shaderKeywords = null;
+                kernel = cs.FindKernel("TileNeighbourhood");
+
                 if (m_MotionBlurSupportsScattering)
                 {
-                    kernel = cs.FindKernel("TileNeighbourhood_Scattering");
+                    cs.EnableKeyword("SCATTERING");
                 }
-                else
-                {
-                    kernel = cs.FindKernel("TileNeighbourhood");
-                }
+
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMinMaxMotionVec, minMaxTileVel);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
@@ -1723,6 +1723,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_MotionBlurSupportsScattering)
             {
+                cs = m_Resources.shaders.motionBlurMergeTileCS;
+                cs.shaderKeywords = null;
+                kernel = cs.FindKernel("TileNeighbourhood");
+
                 kernel = cs.FindKernel("TileMinMaxMerge");
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMax, tileToScatterMax);
