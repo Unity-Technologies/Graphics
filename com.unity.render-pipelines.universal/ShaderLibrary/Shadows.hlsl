@@ -66,6 +66,10 @@ float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width an
 
 float4 _ShadowBias; // x: depth bias, y: normal bias
 
+
+
+float3 _fragPositionWS;//TODO: remove
+
 #define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= 0.0 || shadowCoord.z >= 1.0
 
 struct ShadowSamplingData
@@ -183,9 +187,16 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     // 1-tap hardware comparison
     attenuation = SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
 #endif
-
-    attenuation = LerpWhiteTo(attenuation, shadowStrength);
-
+#if FADE_SHADOWS
+    //LerpWhiteTo(b, t) is the lerp operation with the first paremeter set to 1: lerp(1,b,t). Which means it will lerp between 1 and b with t.
+    float3 distVec = _WorldSpaceCameraPos - _fragPositionWS;
+    float dist2 = dot(distVec, distVec);
+    float CascadesDist2 = (_CascadeShadowSplitSphereRadii.x + _CascadeShadowSplitSphereRadii.y + _CascadeShadowSplitSphereRadii.z + _CascadeShadowSplitSphereRadii.w);
+    float shadowFade = saturate(1 - dist2 / CascadesDist2);
+#else
+    float shadowFade = 1.0;
+#endif
+    attenuation = LerpWhiteTo(attenuation, shadowStrength * shadowFade);
     // Shadow coords that fall out of the light frustum volume must always return attenuation 1.0
     // TODO: We could use branch here to save some perf on some platforms.
     return BEYOND_SHADOW_FAR(shadowCoord) ? 1.0 : attenuation;
@@ -207,6 +218,7 @@ half ComputeCascadeIndex(float3 positionWS)
 
 float4 TransformWorldToShadowCoord(float3 positionWS)
 {
+    _fragPositionWS = positionWS;
 #ifdef _MAIN_LIGHT_SHADOWS_CASCADE
     half cascadeIndex = ComputeCascadeIndex(positionWS);
 #else
