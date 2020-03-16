@@ -119,7 +119,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (sourceAssetDependencyPaths != null)
             {
                 // LightWeightSpriteUnlitSubShader.cs
-                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("f2df349d00ec920488971bb77440b7bc"));
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("3ef30c5c1d5fc412f88511ef5818b654"));
             }
 
             // Master Node data
