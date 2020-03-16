@@ -950,6 +950,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                             {
                                 nodeStack.Push(connectedNodeView);
                                 nodeViews.Add((IShaderNodeView)connectedNodeView);
+                                if (connectedNodeView is MaterialNodeView connectedMatNodeView)
+                                {
+                                    if(!connectedMatNodeView.node.isActive)
+                                    {
+                                        edgeView.isGhostEdge = true;
+                                        edgeView.UpdateEdgeControl();
+                                    }   
+                                }
                             }
                         }
                     }
@@ -966,6 +974,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             nodeStack.Push(connectedNodeView);
                             nodeViews.Add((IShaderNodeView)connectedNodeView);
+                            if (connectedNodeView is MaterialNodeView connectedMatNodeView)
+                            {
+                                if(!connectedMatNodeView.node.isActive)
+                                {
+                                    edgeView.isGhostEdge = true;
+                                    edgeView.UpdateEdgeControl();
+                                }
+                            }
                         }
                     }
                 }
