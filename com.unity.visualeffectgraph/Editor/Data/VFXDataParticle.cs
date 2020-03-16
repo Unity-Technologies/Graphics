@@ -745,10 +745,12 @@ namespace UnityEditor.VFX
                 foreach (var uniform in contextData.uniformMapper.uniforms)
                     uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
                 foreach (var buffer in contextData.uniformMapper.buffers)
+                    uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(buffer), expressionGraph.GetFlattenedIndex(buffer)));
+                foreach (var texture in contextData.uniformMapper.textures)
                 {
                     // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
-                    foreach (var name in contextData.uniformMapper.GetNames(buffer))
-                        uniformMappings.Add(new VFXMapping(name, expressionGraph.GetFlattenedIndex(buffer)));
+                    foreach (var name in contextData.uniformMapper.GetNames(texture))
+                        uniformMappings.Add(new VFXMapping(name, expressionGraph.GetFlattenedIndex(texture)));
                 }
 
                 // Retrieve all cpu mappings at context level (-1)

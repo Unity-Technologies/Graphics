@@ -216,17 +216,26 @@ namespace UnityEditor.VFX
             return padding;
         }
 
-        public void WriteBuffers(VFXUniformMapper mapper)
+
+        public void WriteBuffer(VFXUniformMapper mapper)
         {
             foreach (var buffer in mapper.buffers)
             {
-                var names = mapper.GetNames(buffer);
+                var name = mapper.GetName(buffer);
+                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType), name);
+            }
+        }
 
+        public void WriteTexture(VFXUniformMapper mapper)
+        {
+            foreach (var texture in mapper.textures)
+            {
+                var names = mapper.GetNames(texture);
                 // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
                 for (int i = 0; i < names.Count; ++i)
                 {
-                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType), names[i]);
-                    if (VFXExpression.IsTexture(buffer.valueType)) //Mesh doesn't require a sampler or texel helper
+                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), names[i]);
+                    if (VFXExpression.IsTexture(texture.valueType)) //Mesh doesn't require a sampler or texel helper
                     {
                         WriteLineFormat("SamplerState sampler{0};", names[i]);
                         WriteLineFormat("float4 {0}_TexelSize;", names[i]); // TODO This is not very good to add a uniform for each texture that is hardly ever used

@@ -376,7 +376,9 @@ namespace UnityEditor.VFX
             var globalDeclaration = new VFXShaderWriter();
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteLine();
-            globalDeclaration.WriteBuffers(contextData.uniformMapper);
+            globalDeclaration.WriteBuffer(contextData.uniformMapper);
+            globalDeclaration.WriteLine();
+            globalDeclaration.WriteTexture(contextData.uniformMapper);
             globalDeclaration.WriteAttributeStruct(allCurrentAttributes.Select(a => a.attrib), "Attributes");
             globalDeclaration.WriteLine();
             globalDeclaration.WriteAttributeStruct(allSourceAttributes.Select(a => a.attrib), "SourceAttributes");

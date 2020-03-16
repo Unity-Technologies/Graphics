@@ -30,9 +30,14 @@ namespace UnityEditor.VFX
                     prefix = "uniform_";
                     expressions = m_UniformToName;
                 }
-                else if (VFXExpression.IsTextureOrMesh(exp.valueType))
+                else if (VFXExpression.IsTexture(exp.valueType))
                 {
-                    prefix = VFXExpression.IsMesh(exp.valueType) ? "mesh_" : "texture_";
+                    prefix = "texture_";
+                    expressions = m_TextureToName;
+                }
+                else if (VFXExpression.IsBufferOnGPU(exp.valueType))
+                {
+                    prefix = "buffer_";
                     expressions = m_BufferToName;
                 }
                 else
@@ -77,6 +82,7 @@ namespace UnityEditor.VFX
         private void Init(VFXExpressionMapper mapper)
         {
             m_UniformToName = new Dictionary<VFXExpression, List<string>>();
+            m_TextureToName = new Dictionary<VFXExpression, List<string>>();
             m_BufferToName = new Dictionary<VFXExpression, List<string>>();
 
             m_CurrentUniformIndex = 0;
@@ -91,12 +97,25 @@ namespace UnityEditor.VFX
         }
 
         public IEnumerable<VFXExpression> uniforms { get { return m_UniformToName.Keys; } }
+        public IEnumerable<VFXExpression> textures { get { return m_TextureToName.Keys; } }
         public IEnumerable<VFXExpression> buffers { get { return m_BufferToName.Keys; } }
 
         // Get only the first name of a uniform (For generated code, we collapse all uniforms using the same expression into a single one)
-        public string GetName(VFXExpression exp)        { return VFXExpression.IsTextureOrMesh(exp.valueType) ? m_BufferToName[exp].First() : m_UniformToName[exp].First(); }
+        public string GetName(VFXExpression exp)
+        {
+            return GetNames(exp).First();
+        }
 
-        public List<string> GetNames(VFXExpression exp) { return VFXExpression.IsTextureOrMesh(exp.valueType) ? m_BufferToName[exp] : m_UniformToName[exp]; }
+        public List<string> GetNames(VFXExpression exp)
+        {
+            if (VFXExpression.IsTexture(exp.valueType))
+                return m_TextureToName[exp];
+
+            if (VFXExpression.IsBufferOnGPU(exp.valueType))
+                return m_BufferToName[exp];
+
+            return m_UniformToName[exp];
+        }
 
         // This retrieves expression to name with additional type conversion where suitable
         public Dictionary<VFXExpression, string> expressionToCode
@@ -123,11 +142,15 @@ namespace UnityEditor.VFX
                     }
 
                     return new KeyValuePair<VFXExpression, string>(s.Key, code);
-                }).Union(m_BufferToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First()))).ToDictionary(s => s.Key, s => s.Value);
+                })
+                .Union(m_TextureToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First())))
+                .Union(m_BufferToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First())))
+                .ToDictionary(s => s.Key, s => s.Value);
             }
         }
 
         private Dictionary<VFXExpression, List<string>> m_UniformToName;
+        private Dictionary<VFXExpression, List<string>> m_TextureToName;
         private Dictionary<VFXExpression, List<string>> m_BufferToName;
         private uint m_CurrentUniformIndex;
         private bool m_FilterOutConstants;

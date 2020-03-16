@@ -217,14 +217,9 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public static bool IsTextureOrMesh(VFXValueType type)
+        public static bool IsBufferOnGPU(VFXValueType type)
         {
-            return IsTexture(type) || IsMesh(type);
-        }
-
-        public static bool IsMesh(VFXValueType type)
-        {
-            return type == VFXValueType.Mesh;
+            return type == VFXValueType.Mesh || type == VFXValueType.Buffer;
         }
 
         public static bool IsUniform(VFXValueType type)
