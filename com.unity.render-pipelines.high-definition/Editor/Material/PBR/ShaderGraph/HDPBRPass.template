@@ -92,7 +92,6 @@ Pass
     //-------------------------------------------------------------------------------------
 	$splice(DotsInstancedVars)
 
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #ifdef DEBUG_DISPLAY
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
@@ -240,7 +239,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
 #if !defined(_SURFACE_TYPE_TRANSPARENT)
-        $SurfaceDescription.VTFeedback: builtinData.vtFeedback = surfaceDescription.VTFeedback;
+        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
 #endif
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);

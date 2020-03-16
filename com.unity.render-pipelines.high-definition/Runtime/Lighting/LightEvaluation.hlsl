@@ -556,4 +556,12 @@ void InversePreExposeSsrLighting(inout float4 ssrLighting)
     ssrLighting.rgb *= prevExposureInvMultiplier;
 }
 
+void ApplyScreenSpaceReflectionWeight(inout float4 ssrLighting)
+{
+    // Note: RGB is already premultiplied by A for SSR
+#if SHADEROPTIONS_RAYTRACING
+    if (_UseRayTracedReflections)
+        ssrLighting.rgb *= ssrLighting.a;
+#endif
+}
 #endif

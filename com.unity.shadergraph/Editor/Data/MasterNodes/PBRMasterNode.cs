@@ -164,7 +164,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, 1f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1f, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
 
             // clear out slot names that do not match the slots
             // we support
@@ -236,6 +236,13 @@ namespace UnityEditor.ShaderGraph
                 validSlots.Add(slots[i]);
             }
             return validSlots.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
+        }
+
+        public override bool SupportsVirtualTexturing()
+        {
+            // This means if a render pipeline clams to support vt it at least needs to support the PBRMasterNode with VT
+            var vtRp = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline as UnityEngine.Rendering.IVirtualTexturingEnabledRenderPipeline;
+            return (vtRp != null) && vtRp.virtualTexturingEnabled;
         }
     }
 }

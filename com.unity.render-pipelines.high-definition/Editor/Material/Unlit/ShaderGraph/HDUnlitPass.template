@@ -60,7 +60,6 @@ Pass
     $splice(ShaderStages)
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
@@ -228,7 +227,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
 #if !defined(_SURFACE_TYPE_TRANSPARENT)
-        $SurfaceDescription.VTFeedback: builtinData.vtFeedback = surfaceDescription.VTFeedback;
+        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
 #endif
 
 #if (SHADERPASS == SHADERPASS_DISTORTION)

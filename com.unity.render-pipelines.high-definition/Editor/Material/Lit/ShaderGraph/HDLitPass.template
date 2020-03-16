@@ -132,7 +132,6 @@ Pass
 
 #if !defined(SHADER_STAGE_RAY_TRACING)
 
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #ifdef DEBUG_DISPLAY
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
@@ -409,7 +408,7 @@ Pass
         //Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
         //We will always overwrite vt feeback with the nearest. So behind transparent surfaces vt will not be resolved
         //This is a limitation of the current MRT approach.
-        $SurfaceDescription.VTFeedback: builtinData.vtFeedback = surfaceDescription.VTFeedback;
+        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
 
         $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 

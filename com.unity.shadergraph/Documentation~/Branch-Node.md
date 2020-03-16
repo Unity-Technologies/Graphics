@@ -2,7 +2,7 @@
 
 ## Description
 
-Provides a dynamic branch to the shader. If input **Predicate** is true the return output will be equal to input **True**, otherwise it will be equal to input **False**. This is determined per vertex or per pixel depending on shader stage. Both sides of the branch will be calculated in the shader, even if one is never output.
+Provides a dynamic branch to the shader. If input **Predicate** is true the return output will be equal to input **True**, otherwise it will be equal to input **False**. This is determined per vertex or per pixel depending on shader stage. Both sides of the branch will be evaluated in the shader, and the branch not used will be discarded.
 
 ## Ports
 
@@ -20,6 +20,6 @@ The following example code represents one possible outcome of this node.
 ```
 void Unity_Branch_float4(float Predicate, float4 True, float4 False, out float4 Out)
 {
-    Out = lerp(False, True, Predicate);
+    Out = Predicate ? True : False;
 }
 ```
