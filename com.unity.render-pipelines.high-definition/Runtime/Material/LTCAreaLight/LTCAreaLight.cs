@@ -48,14 +48,16 @@ namespace UnityEngine.Rendering.HighDefinition
             const int count = k_LtcLUTResolution * k_LtcLUTResolution;
             Color[] pixels = new Color[count];
 
+            float clampValue = (format == TextureFormat.RGBAHalf) ? 65504.0f : float.MaxValue;
+
             for (int i = 0; i < count; i++)
             {
                 // Both GGX and Disney Diffuse BRDFs have zero values in columns 1, 3, 5, 7.
                 // Column 8 contains only ones.
-                pixels[i] = new Color((float)LUTTransformInv[i, 0],
-                        (float)LUTTransformInv[i, 2],
-                        (float)LUTTransformInv[i, 4],
-                        (float)LUTTransformInv[i, 6]);
+                pixels[i] = new Color(Mathf.Min(clampValue, (float)LUTTransformInv[i, 0]),
+                        Mathf.Min(clampValue, (float)LUTTransformInv[i, 2]),
+                        Mathf.Min(clampValue, (float)LUTTransformInv[i, 4]),
+                        Mathf.Min(clampValue, (float)LUTTransformInv[i, 6]));
             }
 
             tex.SetPixels(pixels, arrayElement);

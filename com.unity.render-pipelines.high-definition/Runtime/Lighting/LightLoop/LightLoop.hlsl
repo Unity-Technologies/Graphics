@@ -246,7 +246,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         //  3. Sky Reflection / Refraction
 
         // Apply SSR.
-    #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR)
+    #if (defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR_TRANSPARENT)) || (!defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR))
         {
             IndirectLighting indirect = EvaluateBSDF_ScreenSpaceReflection(posInput, preLightData, bsdfData,
                                                                            reflectionHierarchyWeight);
@@ -383,6 +383,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             {
                 lightData.lightType = GPULIGHTTYPE_TUBE; // Enforce constant propagation
                 lightData.cookieIndex = -1;              // Enforce constant propagation
+                lightData.cookieMode = COOKIEMODE_NONE;  // Enforce constant propagation
 
                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
                 {

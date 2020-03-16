@@ -85,13 +85,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 ref var lightLoopSettings = ref data.m_RenderPipelineSettings.lightLoopSettings;
 
 #pragma warning disable 618 // Type or member is obsolete
-                int cookieAtlasSize = (int)lightLoopSettings.cookieAtlasSize * lightLoopSettings.cookieTexArraySize;
+                float cookieAtlasSize = Mathf.Sqrt((int)lightLoopSettings.cookieAtlasSize * (int)lightLoopSettings.cookieAtlasSize * lightLoopSettings.cookieTexArraySize);
+                float planarSize = Mathf.Sqrt((int)lightLoopSettings.planarReflectionAtlasSize * (int)lightLoopSettings.planarReflectionAtlasSize * lightLoopSettings.maxPlanarReflectionOnScreen);
 #pragma warning restore 618
-                int planarSize = (int)lightLoopSettings.planarReflectionAtlasSize * lightLoopSettings.maxPlanarReflectionOnScreen;
 
                 // The atlas only supports power of two sizes
-                cookieAtlasSize = Mathf.ClosestPowerOfTwo(cookieAtlasSize);
-                planarSize = Mathf.ClosestPowerOfTwo(planarSize);
+                cookieAtlasSize = (float)Mathf.NextPowerOfTwo((int)cookieAtlasSize);
+                planarSize = (float)Mathf.NextPowerOfTwo((int)planarSize);
+
                 // Clamp to avoid too large atlases
                 cookieAtlasSize = Mathf.Clamp(cookieAtlasSize, (int)CookieAtlasResolution.CookieResolution256, (int)CookieAtlasResolution.CookieResolution8192);
                 planarSize = Mathf.Clamp(planarSize, (int)PlanarReflectionAtlasResolution.PlanarReflectionResolution256, (int)PlanarReflectionAtlasResolution.PlanarReflectionResolution8192);
@@ -105,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
-        void Awake() => k_Migration.Migrate(this);
+        void OnEnable() => k_Migration.Migrate(this);
 
 #pragma warning disable 618 // Type or member is obsolete
         [SerializeField]
