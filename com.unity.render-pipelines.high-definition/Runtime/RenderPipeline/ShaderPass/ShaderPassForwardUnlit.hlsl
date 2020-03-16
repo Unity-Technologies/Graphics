@@ -2,10 +2,6 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#ifdef UNITY_VIRTUAL_TEXTURING
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
-#endif
-
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
@@ -105,6 +101,6 @@ void Frag(PackedVaryingsToPS packedInput,
     outResult = outColor;
 
 #ifdef UNITY_VIRTUAL_TEXTURING
-    outVTFeedback = GetPackedVTFeedback(builtinData.vtFeedback);
+    outVTFeedback = builtinData.vtPackedFeedback;
 #endif
 }

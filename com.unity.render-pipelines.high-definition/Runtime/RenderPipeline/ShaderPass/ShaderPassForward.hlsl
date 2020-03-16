@@ -61,10 +61,6 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif
 
 #ifdef UNITY_VIRTUAL_TEXTURING
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
-#endif
-
-#ifdef UNITY_VIRTUAL_TEXTURING
 #define VT_BUFFER_TARGET SV_Target1
 #define EXTRA_BUFFER_TARGET SV_Target2
 #else
@@ -250,6 +246,6 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
 #ifdef UNITY_VIRTUAL_TEXTURING
-    outVTFeedback = GetPackedVTFeedback(builtinData.vtFeedback);
+    outVTFeedback = builtinData.vtPackedFeedback;
 #endif
 }

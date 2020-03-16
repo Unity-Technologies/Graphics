@@ -76,8 +76,10 @@ namespace UnityEditor.ShaderGraph
 
         static void ProcessSubGraph(SubGraphAsset asset, GraphData graph)
         {
+            var includes = new IncludeRegistry(new ShaderStringBuilder());
             var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
             registry.names.Clear();
+            asset.includes.Clear();
             asset.functions.Clear();
             asset.nodeProperties.Clear();
             asset.isValid = true;
@@ -93,6 +95,7 @@ namespace UnityEditor.ShaderGraph
             asset.path = graph.path;
 
             var outputNode = (SubGraphOutputNode)graph.outputNode;
+            outputNode = VirtualTexturingFeedback.AutoInjectSubgraph(outputNode);
 
             asset.outputs.Clear();
             outputNode.GetInputSlots(asset.outputs);
@@ -160,6 +163,11 @@ namespace UnityEditor.ShaderGraph
                     generatesFunction.GenerateNodeFunction(registry, GenerationMode.ForReals);
                     registry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
                 }
+                if (node is IGeneratesInclude generatesInclude)
+                {
+                    includes.builder.currentNode = node;
+                    generatesInclude.GenerateNodeInclude(includes, GenerationMode.ForReals);
+                }
             }
 
             registry.ProvideFunction(asset.functionName, sb =>
@@ -208,6 +216,7 @@ namespace UnityEditor.ShaderGraph
                 }
             });
 
+            asset.includes.AddRange(includes.names.Select(x => new FunctionPair(x, includes.includes[x].code)));
             asset.functions.AddRange(registry.names.Select(x => new FunctionPair(x, registry.sources[x].code)));
 
             var collector = new PropertyCollector();

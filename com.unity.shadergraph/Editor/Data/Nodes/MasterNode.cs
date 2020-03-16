@@ -65,6 +65,8 @@ namespace UnityEditor.ShaderGraph
         public virtual object saveContext => null;
 
         public virtual void ProcessPreviewMaterial(Material Material) {}
+
+        public virtual bool SupportsVirtualTexturing() { return false; }
     }
 
     [Serializable]
