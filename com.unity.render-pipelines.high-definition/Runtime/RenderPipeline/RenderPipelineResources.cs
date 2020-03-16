@@ -239,8 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/PostProcessing/Shaders/MotionBlurMergeTilePass.compute")]
             public ComputeShader motionBlurMergeTileCS;
             [Reload("Runtime/PostProcessing/Shaders/MotionBlurNeighborhoodTilePass.compute")]
-            public ComputeShader motionBlurNeighborTileCS;
-
+            public ComputeShader motionBlurNeighborhoodTileCS;
             [Reload("Runtime/PostProcessing/Shaders/MotionBlur.compute")]
             public ComputeShader motionBlurCS;
             [Reload("Runtime/PostProcessing/Shaders/BloomPrefilter.compute")]

@@ -1,18 +1,14 @@
-
-#pragma kernel TileMinMaxMerge                     MERGE_PASS SCATTERING
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurTileCommon.hlsl"
-
+#pragma kernel TileMerge MERGE_PASS SCATTERING
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurTileCommon.hlsl"
 
 TEXTURE2D_X_UINT(_TileToScatterMax);
 TEXTURE2D_X(_TileToScatterMin);
 RW_TEXTURE2D_X(float3, _TileMaxNeighbourhood);
 
-
 [numthreads(8, 8, 1)]
-void TileMinMaxMerge(uint3 dispatchID : SV_DispatchThreadID)
+void TileMerge(uint3 dispatchID : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchID.z);
 
@@ -39,7 +35,7 @@ void TileMinMaxMerge(uint3 dispatchID : SV_DispatchThreadID)
         float minData2 = min(data2.x, Min3(data2.y, data2.z, data2.w));
         float minData3 = min(data3.x, Min3(data3.y, data3.z, data3.w));
 
-         minVel = min(minData0, Min3(minData1, minData2, minData3));
+        minVel = min(minData0, Min3(minData1, minData2, minData3));
     }
     else
     {

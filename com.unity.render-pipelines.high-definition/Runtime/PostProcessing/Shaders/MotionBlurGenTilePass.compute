@@ -1,13 +1,9 @@
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurTileCommon.hlsl"
+#pragma kernel TileGenPass  GEN_PASS
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-
-#pragma kernel TileGenPass  GEN_PASS 
 #pragma multi_compile _ SCATTERING
 
-#define USE_WAVE_INTRINSICS         defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
-
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurTileCommon.hlsl"
 
 #if USE_WAVE_INTRINSICS
 
