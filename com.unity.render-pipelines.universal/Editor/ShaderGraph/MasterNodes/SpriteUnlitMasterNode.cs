@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
     [Serializable]
     [Title("Master", "Sprite Unlit (Experimental)")]
     [FormerName("UnityEditor.Experimental.Rendering.LWRP.SpriteUnlitMasterNode")]
-    class SpriteUnlitMasterNode : MasterNode<ISpriteUnlitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class SpriteUnlitMasterNode : AbstractMaterialNode, IMasterNode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionName = "Vertex Position";
         public const string NormalName = "Vertex Normal";
@@ -51,6 +51,32 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 VertTangentSlotId,
                 ColorSlotId,
             });
+        }
+
+        public string renderQueueTag => $"{RenderQueue.Transparent}";
+        public string renderTypeTag => $"{RenderType.Transparent}";
+        
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass)
+        {
+            return new ConditionalField[]
+            {
+                // Features
+                new ConditionalField(Fields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+                                                                        IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
+                new ConditionalField(Fields.GraphPixel,          true),
+                
+                // Surface Type
+                new ConditionalField(Fields.SurfaceTransparent,  true),
+                
+                // Blend Mode
+                new ConditionalField(Fields.BlendAlpha,          true),
+            };
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
+
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)

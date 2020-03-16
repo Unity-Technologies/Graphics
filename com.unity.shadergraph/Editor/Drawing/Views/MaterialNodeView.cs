@@ -38,9 +38,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_Settings;
         VisualElement m_NodeSettingsView;
 
-        GraphView m_GraphView;
+        MaterialGraphView m_GraphView;
 
-        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, GraphView graphView)
+        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, MaterialGraphView graphView)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialNodeView"));
             styleSheets.Add(Resources.Load<StyleSheet>($"Styles/ColorMode"));
@@ -75,9 +75,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_ControlItems.childCount > 0)
                 contents.Add(controlsContainer);
 
-            // Node Base class toggles the 'expanded' variable already, this is on top of that call
-            m_CollapseButton.RegisterCallback<MouseUpEvent>(SetNodeExpandedStateOnSelection);
-
             if (node.hasPreview)
             {
                 // Add actual preview which floats on top of the node
@@ -99,7 +96,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     collapsePreviewButton.Add(new VisualElement { name = "icon" });
                     collapsePreviewButton.AddManipulator(new Clickable(() =>
                         {
-                            node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
                             SetPreviewExpandedStateOnSelection(false);
                         }));
                     m_PreviewImage.Add(collapsePreviewButton);
@@ -123,7 +119,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     expandPreviewButton.Add(new VisualElement { name = "icon" });
                     expandPreviewButton.AddManipulator(new Clickable(() =>
                         {
-                            node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
                             SetPreviewExpandedStateOnSelection(true);
                         }));
                     m_PreviewFiller.Add(expandPreviewButton);
@@ -163,11 +158,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (masterNode != null)
             {
                 AddToClassList("master");
-
-                if (!masterNode.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                bool validTarget = false;
+                foreach(ITargetImplementation activeTarget in node.owner.validImplementations)
                 {
-                    AttachMessage("The current render pipeline is not compatible with this master node.", ShaderCompilerMessageSeverity.Error);
+                    //if we have a valid active target implementation and render pipeline, don't display the error
+                    if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
+                    {
+                        validTarget = true;
+                        break;
+                    }
                 }
+                //if no active target implementations are valid with the current pipeline, display the error
+                if (!validTarget)
+                    AttachMessage("The active Master Node is not compatible with the current Render Pipeline. Assign a Render Pipeline in the graphics settings that is compatible with this Master Node.", ShaderCompilerMessageSeverity.Error);
             }
 
             m_NodeSettingsView = new NodeSettingsView();
@@ -358,11 +361,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         string ConvertToShader(GenerationMode mode)
         {
-            List<PropertyCollector.TextureInfo> textureInfo;
-            if (node is IMasterNode masterNode)
-                return masterNode.GetShader(mode, node.name, out textureInfo);
-
-            return node.owner.GetShader(node, mode, node.name).shader;
+            var generator = new Generator(node.owner, node, mode, node.name);
+            return generator.generatedShader;
         }
 
         void AddDefaultSettings()
@@ -423,7 +423,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_NodeSettingsView.Add(m_Settings);
                 m_NodeSettingsView.visible = true;
-                SetSelfSelected();
                 m_SettingsButton.AddToClassList("clicked");
                 RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
                 OnGeometryChanged(null);
@@ -431,52 +430,39 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 m_Settings.RemoveFromHierarchy();
-                SetSelfSelected();
                 m_NodeSettingsView.visible = false;
                 m_SettingsButton.RemoveFromClassList("clicked");
                 UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             }
         }
 
-
-        private void SetSelfSelected()
+        protected override void ToggleCollapse()
         {
-            m_GraphView.ClearSelection();
-            m_GraphView.AddToSelection(this);
-        }
+            node.owner.owner.RegisterCompleteObjectUndo(!expanded ? "Expand Nodes" : "Collapse Nodes");
+            expanded = !expanded;
 
-        void SetNodeExpandedStateOnSelection(MouseUpEvent evt)
-        {
-            if (!selected)
-                SetSelfSelected();
-            else
+            // If selected, expand/collapse the other applicable nodes that are also selected
+            if (selected)
             {
-                if (m_GraphView is MaterialGraphView)
-                {
-                    var matGraphView = m_GraphView as MaterialGraphView;
-                    matGraphView.SetNodeExpandedOnSelection(expanded);
-                }
+                m_GraphView.SetNodeExpandedForSelectedNodes(expanded, false);
             }
         }
 
         void SetPreviewExpandedStateOnSelection(bool state)
         {
-            if (!selected)
+            // If selected, expand/collapse the other applicable nodes that are also selected
+            if (selected)
             {
-                SetSelfSelected();
-                UpdatePreviewExpandedState(state);
+                m_GraphView.SetPreviewExpandedForSelectedNodes(state);
             }
             else
             {
-                if(m_GraphView is MaterialGraphView)
-                {
-                    var matGraphView = m_GraphView as MaterialGraphView;
-                    matGraphView.SetPreviewExpandedOnSelection(state);
-                }
+                node.owner.owner.RegisterCompleteObjectUndo(state ? "Expand Previews" : "Collapse Previews");
+                node.previewExpanded = state;
             }
         }
 
-        public bool CanToggleExpanded()
+        public bool CanToggleNodeExpanded()
         {
             return m_CollapseButton.enabledInHierarchy;
         }
@@ -707,11 +693,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseHover(EventBase evt)
         {
-            var graphView = GetFirstAncestorOfType<GraphEditorView>();
-            if (graphView == null)
+            var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
+            if (graphEditorView == null)
                 return;
 
-            var blackboardProvider = graphView.blackboardProvider;
+            var blackboardProvider = graphEditorView.blackboardProvider;
             if (blackboardProvider == null)
                 return;
 

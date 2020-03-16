@@ -9,11 +9,11 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
     }
 
 	HLSLINCLUDE
-	
+
 	#pragma multi_compile __ _ALPHATEST_ON
-	
+
 	ENDHLSL
-	
+
     SubShader
     {
         Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
