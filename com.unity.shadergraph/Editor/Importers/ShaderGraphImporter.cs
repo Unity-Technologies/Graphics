@@ -13,6 +13,7 @@ using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
 {
+    [ExcludeFromPreset]
     [ScriptedImporter(32, Extension, 3)]
     class ShaderGraphImporter : ScriptedImporter
     {

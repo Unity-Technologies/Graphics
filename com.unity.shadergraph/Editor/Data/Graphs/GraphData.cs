@@ -1149,7 +1149,8 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes, List<IEdge> remappedEdges)
+        internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes,
+            List<IEdge> remappedEdges)
         {
             var groupGuidMap = new Dictionary<Guid, Guid>();
             foreach (var group in graphToPaste.groups)
@@ -1185,7 +1186,8 @@ namespace UnityEditor.ShaderGraph
             }
 
             var nodeGuidMap = new Dictionary<Guid, Guid>();
-            foreach (var node in graphToPaste.GetNodes<AbstractMaterialNode>())
+            var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
+            foreach (var node in nodeList)
             {
                 AbstractMaterialNode pastedNode = node;
 
@@ -1229,12 +1231,6 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                var drawState = node.drawState;
-                var position = drawState.position;
-                position.x += 30;
-                position.y += 30;
-                drawState.position = position;
-                node.drawState = drawState;
                 remappedNodes.Add(pastedNode);
                 AddNode(pastedNode);
 

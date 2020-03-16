@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     // Main class for all post-processing related features - only includes camera effects, no
     // lighting/surface effect like SSR/AO
-    sealed class PostProcessSystem
+    sealed partial class PostProcessSystem
     {
         private enum SMAAStage
         {
@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // - If post processing is enabled, then post processing passes will either copy (exposure, color grading, etc) or process (DoF, TAA, etc) the alpha channel, if one exists.
         // If the user explicitly requests a color buffer without alpha for post-processing (for performance reasons) but the rendering passes have alpha, then the alpha will be copied.
         readonly bool m_EnableAlpha;
-        readonly bool m_KeepAlpha; 
+        readonly bool m_KeepAlpha;
         RTHandle m_AlphaTexture; // RHalf
 
         readonly TargetPool m_Pool;
@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 32, 32, colorFormat: GraphicsFormat.R16G16_SFloat,
                 enableRandomWrite: true, name: "Average Luminance Temp 32"
             );
-   
+
             m_ColorFormat = (GraphicsFormat)hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.bufferFormat;
             m_KeepAlpha = false;
 
@@ -365,7 +365,7 @@ namespace UnityEngine.Rendering.HighDefinition
             src = dst;
         }
 
-        public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RTHandle lightingBuffer, RenderTargetIdentifier finalRT, RTHandle depthBuffer, bool flipY)
+        public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RenderTargetIdentifier finalRT, RTHandle depthBuffer, bool flipY)
         {
             var dynResHandler = DynamicResolutionHandler.instance;
 
@@ -435,7 +435,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
                     {
-                        DoDynamicExposure(cmd, camera, source, lightingBuffer);
+                        DoDynamicExposure(cmd, camera, source);
 
                         // On reset history we need to apply dynamic exposure immediately to avoid
                         // white or black screen flashes when the current exposure isn't anywhere
@@ -620,7 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
                     {
                         var destination = m_Pool.Get(Vector2.one , m_ColorFormat);
-                        
+
                         var cs = m_Resources.shaders.contrastAdaptiveSharpenCS;
                         int kInit = cs.FindKernel("KInitialize");
                         int kMain = cs.FindKernel("KMain");
@@ -652,7 +652,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Final pass
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FinalPost)))
                 {
-                    DoFinalPass(cmd, camera, blueNoise, source, afterPostProcessTexture, finalRT, flipY);
+                    var finalPassParameters = PrepareFinalPass(camera, blueNoise, flipY);
+                    RTHandle alphaTexture = m_KeepAlpha ? m_AlphaTexture : TextureXR.GetWhiteTexture();
+                    DoFinalPass(finalPassParameters, source, afterPostProcessTexture, finalRT, alphaTexture, cmd);
                     PoolSource(ref source, null);
                 }
             }
@@ -832,8 +834,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ExposureCurveTexture.Apply();
         }
 
-        // TODO: Handle light buffer as a source for average luminance
-        void DoDynamicExposure(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer, RTHandle lightingBuffer)
+        void DoDynamicExposure(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer)
         {
             var cs = m_Resources.shaders.exposureCS;
             int kernel;
@@ -858,10 +859,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ExposureVariants[2] = (int)adaptationMode;
             m_ExposureVariants[3] = 0;
 
-            // Pre-pass
-            //var sourceTex = exposureSettings.luminanceSource == LuminanceSource.LightingBuffer
-            //    ? lightingBuffer
-            //    : colorBuffer;
             var sourceTex = colorBuffer;
 
             kernel = cs.FindKernel("KPrePass");
@@ -2389,68 +2386,123 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Final Pass
 
-        void DoFinalPass(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle source, RTHandle afterPostProcessTexture, RenderTargetIdentifier destination, bool flipY)
+        struct FinalPassParameters
+        {
+            public bool             postProcessEnabled;
+            public Material         finalPassMaterial;
+            public HDCamera         hdCamera;
+            public BlueNoise        blueNoise;
+            public bool             flipY;
+            public System.Random    random;
+            public bool             useFXAA;
+            public bool             enableAlpha;
+
+            public bool             filmGrainEnabled;
+            public Texture          filmGrainTexture;
+            public float            filmGrainIntensity;
+            public float            filmGrainResponse;
+
+            public bool             ditheringEnabled;
+        }
+
+        FinalPassParameters PrepareFinalPass(HDCamera hdCamera, BlueNoise blueNoise, bool flipY)
+        {
+            FinalPassParameters parameters = new FinalPassParameters();
+
+            // General
+            parameters.postProcessEnabled = m_PostProcessEnabled;
+            parameters.finalPassMaterial = m_FinalPassMaterial;
+            parameters.hdCamera = hdCamera;
+            parameters.blueNoise = blueNoise;
+            parameters.flipY = flipY;
+            parameters.random = m_Random;
+            parameters.enableAlpha = m_EnableAlpha;
+
+            var dynResHandler = DynamicResolutionHandler.instance;
+            bool dynamicResIsOn = hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
+            parameters.useFXAA = hdCamera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !dynamicResIsOn && m_AntialiasingFS;
+
+            // Film Grain
+            parameters.filmGrainEnabled = m_FilmGrain.IsActive() && m_FilmGrainFS;
+            if (m_FilmGrain.type.value != FilmGrainLookup.Custom)
+                parameters.filmGrainTexture = m_Resources.textures.filmGrainTex[(int)m_FilmGrain.type.value];
+            else
+                parameters.filmGrainTexture = m_FilmGrain.texture.value;
+            parameters.filmGrainIntensity = m_FilmGrain.intensity.value;
+            parameters.filmGrainResponse = m_FilmGrain.response.value;
+
+            // Dithering
+            parameters.ditheringEnabled = hdCamera.dithering && m_DitheringFS;
+
+            return parameters;
+        }
+
+        static void DoFinalPass(    in FinalPassParameters  parameters,
+                                    RTHandle                source,
+                                    RTHandle                afterPostProcessTexture,
+                                    RenderTargetIdentifier  destination,
+                                    RTHandle                alphaTexture,
+                                    CommandBuffer           cmd)
         {
             // Final pass has to be done in a pixel shader as it will be the one writing straight
             // to the backbuffer eventually
 
-            m_FinalPassMaterial.shaderKeywords = null;
-            m_FinalPassMaterial.SetTexture(HDShaderIDs._InputTexture, source);
+            Material finalPassMaterial = parameters.finalPassMaterial;
+            HDCamera hdCamera = parameters.hdCamera;
+            bool flipY = parameters.flipY;
+
+            finalPassMaterial.shaderKeywords = null;
+            finalPassMaterial.SetTexture(HDShaderIDs._InputTexture, source);
 
             var dynResHandler = DynamicResolutionHandler.instance;
-            bool dynamicResIsOn = camera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
+            bool dynamicResIsOn = hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
 
             if (dynamicResIsOn)
             {
                 switch (dynResHandler.filter)
                 {
                     case DynamicResUpscaleFilter.Bilinear:
-                        m_FinalPassMaterial.EnableKeyword("BILINEAR");
+                        finalPassMaterial.EnableKeyword("BILINEAR");
                         break;
                     case DynamicResUpscaleFilter.CatmullRom:
-                        m_FinalPassMaterial.EnableKeyword("CATMULL_ROM_4");
+                        finalPassMaterial.EnableKeyword("CATMULL_ROM_4");
                         break;
                     case DynamicResUpscaleFilter.Lanczos:
-                        m_FinalPassMaterial.EnableKeyword("LANCZOS");
+                        finalPassMaterial.EnableKeyword("LANCZOS");
                         break;
                     case DynamicResUpscaleFilter.ContrastAdaptiveSharpen:
-                        m_FinalPassMaterial.EnableKeyword("CONTRASTADAPTIVESHARPEN");
+                        finalPassMaterial.EnableKeyword("CONTRASTADAPTIVESHARPEN");
                         break;
                 }
             }
 
-            if (m_PostProcessEnabled)
+            if (parameters.postProcessEnabled)
             {
-                if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !dynamicResIsOn && m_AntialiasingFS)
-                    m_FinalPassMaterial.EnableKeyword("FXAA");
+                if (parameters.useFXAA)
+                    finalPassMaterial.EnableKeyword("FXAA");
 
-                if (m_FilmGrain.IsActive() && m_FilmGrainFS)
+                if (parameters.filmGrainEnabled)
                 {
-                    var texture = m_FilmGrain.texture.value;
-
-                    if (m_FilmGrain.type.value != FilmGrainLookup.Custom)
-                        texture = m_Resources.textures.filmGrainTex[(int)m_FilmGrain.type.value];
-
-                    if (texture != null) // Fail safe if the resources asset breaks :/
+                    if (parameters.filmGrainTexture != null) // Fail safe if the resources asset breaks :/
                     {
                         #if HDRP_DEBUG_STATIC_POSTFX
                         int offsetX = 0;
                         int offsetY = 0;
                         #else
-                        int offsetX = (int)(m_Random.NextDouble() * texture.width);
-                        int offsetY = (int)(m_Random.NextDouble() * texture.height);
+                        int offsetX = (int)(parameters.random.NextDouble() * parameters.filmGrainTexture.width);
+                        int offsetY = (int)(parameters.random.NextDouble() * parameters.filmGrainTexture.height);
                         #endif
 
-                        m_FinalPassMaterial.EnableKeyword("GRAIN");
-                        m_FinalPassMaterial.SetTexture(HDShaderIDs._GrainTexture, texture);
-                        m_FinalPassMaterial.SetVector(HDShaderIDs._GrainParams, new Vector2(m_FilmGrain.intensity.value * 4f, m_FilmGrain.response.value));
-                        m_FinalPassMaterial.SetVector(HDShaderIDs._GrainTextureParams, new Vector4(texture.width, texture.height, offsetX, offsetY));
+                        finalPassMaterial.EnableKeyword("GRAIN");
+                        finalPassMaterial.SetTexture(HDShaderIDs._GrainTexture, parameters.filmGrainTexture);
+                        finalPassMaterial.SetVector(HDShaderIDs._GrainParams, new Vector2(parameters.filmGrainIntensity * 4f, parameters.filmGrainResponse));
+                        finalPassMaterial.SetVector(HDShaderIDs._GrainTextureParams, new Vector4(parameters.filmGrainTexture.width, parameters.filmGrainTexture.height, offsetX, offsetY));
                     }
                 }
 
-                if (camera.dithering && m_DitheringFS)
+                if (parameters.ditheringEnabled)
                 {
-                    var blueNoiseTexture = blueNoise.textureArray16L;
+                    var blueNoiseTexture = parameters.blueNoise.textureArray16L;
 
                     #if HDRP_DEBUG_STATIC_POSTFX
                     int textureId = 0;
@@ -2458,40 +2510,32 @@ namespace UnityEngine.Rendering.HighDefinition
                     int textureId = Time.frameCount % blueNoiseTexture.depth;
                     #endif
 
-                    m_FinalPassMaterial.EnableKeyword("DITHER");
-                    m_FinalPassMaterial.SetTexture(HDShaderIDs._BlueNoiseTexture, blueNoiseTexture);
-                    m_FinalPassMaterial.SetVector(HDShaderIDs._DitherParams, new Vector3(blueNoiseTexture.width, blueNoiseTexture.height, textureId));
+                    finalPassMaterial.EnableKeyword("DITHER");
+                    finalPassMaterial.SetTexture(HDShaderIDs._BlueNoiseTexture, blueNoiseTexture);
+                    finalPassMaterial.SetVector(HDShaderIDs._DitherParams, new Vector3(blueNoiseTexture.width, blueNoiseTexture.height, textureId));
                 }
             }
 
-            if (m_KeepAlpha)
-            {
-                m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, m_AlphaTexture);
-                m_FinalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 1.0f);
-            }
+            finalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, alphaTexture);
+            finalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 1.0f);
+
+            if (parameters.enableAlpha)
+                finalPassMaterial.EnableKeyword("ENABLE_ALPHA");
             else
-            {
-                m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, TextureXR.GetWhiteTexture());
-                m_FinalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 0.0f);
-            }
+                finalPassMaterial.DisableKeyword("ENABLE_ALPHA");
 
-            if (m_EnableAlpha)
-            {
-                m_FinalPassMaterial.EnableKeyword("ENABLE_ALPHA");
-            }
-
-            m_FinalPassMaterial.SetVector(HDShaderIDs._UVTransform,
+            finalPassMaterial.SetVector(HDShaderIDs._UVTransform,
                 flipY
                 ? new Vector4(1.0f, -1.0f, 0.0f, 1.0f)
                 : new Vector4(1.0f,  1.0f, 0.0f, 0.0f)
             );
 
             // Blit to backbuffer
-            Rect backBufferRect = camera.finalViewport;
+            Rect backBufferRect = hdCamera.finalViewport;
 
             // When post process is not the final pass, we render at (0,0) so that subsequent rendering does not have to bother about viewports.
             // Final viewport is handled in the final blit in this case
-            if (!HDUtils.PostProcessIsFinalPass())
+            if (!HDUtils.PostProcessIsFinalPass(hdCamera))
             {
                 if (dynResHandler.HardwareDynamicResIsEnabled())
                 {
@@ -2502,17 +2546,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 backBufferRect.x = backBufferRect.y = 0;
             }
 
-            if (camera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
             {
-                m_FinalPassMaterial.EnableKeyword("APPLY_AFTER_POST");
-                m_FinalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, afterPostProcessTexture);
+                finalPassMaterial.EnableKeyword("APPLY_AFTER_POST");
+                finalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, afterPostProcessTexture);
             }
             else
             {
-                m_FinalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, TextureXR.GetBlackTexture());
+                finalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, TextureXR.GetBlackTexture());
             }
 
-            HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination);
+            HDUtils.DrawFullScreen(cmd, backBufferRect, finalPassMaterial, destination);
         }
 
         #endregion

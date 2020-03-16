@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -94,6 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor BlendPreserveSpecular =   new FieldDescriptor(Fields.kBlendMode, "PreserveSpecular", "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1");
         public static FieldDescriptor DisableDecals =           new FieldDescriptor(string.Empty, "DisableDecals", "_DISABLE_DECALS 1");
         public static FieldDescriptor DisableSSR =              new FieldDescriptor(string.Empty, "DisableSSR", "_DISABLE_SSR 1");
+        public static FieldDescriptor DisableSSRTransparent =   new FieldDescriptor(string.Empty, "DisableSSRTransparent", "_DISABLE_SSR_TRANSPARENT 1");
         public static FieldDescriptor BentNormal =              new FieldDescriptor(string.Empty, "BentNormal", "_BENT_NORMAL 1");
         public static FieldDescriptor AmbientOcclusion =        new FieldDescriptor(string.Empty, "AmbientOcclusion", "_AMBIENT_OCCLUSION 1");
         public static FieldDescriptor CoatMask =                new FieldDescriptor(string.Empty, "CoatMask", "_COAT_MASK 1");
