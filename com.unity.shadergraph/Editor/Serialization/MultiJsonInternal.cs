@@ -49,12 +49,12 @@ namespace UnityEditor.ShaderGraph.Serialization
             return map;
         }
 
-        public static List<MultiJsonEntry> Parse(string str)
+        public static List<MultiJsonEntry> Parse(string str, string mainTypeFallback)
         {
             var result = new List<MultiJsonEntry>();
-            var separatorStr = $"\n\n";
+            const string separatorStr = "\n\n";
             var startIndex = 0;
-            var raw = new FakeScriptableObject<FakeJsonObject>();
+            var raw = new FakeJsonObject();
 
             while (startIndex < str.Length)
             {
@@ -71,13 +71,22 @@ namespace UnityEditor.ShaderGraph.Serialization
                 }
 
                 var json = str.Substring(jsonBegin, jsonEnd - jsonBegin);
+
                 JsonUtility.FromJsonOverwrite(json, raw);
-                if (string.IsNullOrWhiteSpace(raw.MonoBehaviour.type))
+                if (string.IsNullOrWhiteSpace(raw.type))
                 {
-                    throw new InvalidOperationException("Type is null or whitespace.");
+                    if (startIndex == 0)
+                    {
+                        raw.type = mainTypeFallback;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Type is null or whitespace in JSON:\n{json}");
+                    }
                 }
-                result.Add(new MultiJsonEntry(raw.MonoBehaviour.type, raw.MonoBehaviour.id, json));
-                raw.MonoBehaviour.Reset();
+
+                result.Add(new MultiJsonEntry(raw.type, raw.id, json));
+                raw.Reset();
 
                 startIndex = jsonEnd + separatorStr.Length;
             }
@@ -147,9 +156,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                     try
                     {
                         var value = valueMap[entry.id];
-                        var fakeType = typeof(FakeScriptableObject<>).MakeGenericType(value.GetType());
-                        var fake = Activator.CreateInstance(fakeType, value);
-                        EditorJsonUtility.FromJsonOverwrite(entry.json, fake);
+                        EditorJsonUtility.FromJsonOverwrite(entry.json, value);
                         value.OnAfterDeserialize(entry.json);
                     }
                     catch (Exception e)
@@ -202,9 +209,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                 for (var i = 0; i < serializationQueue.Count; i++)
                 {
                     var value = serializationQueue[i];
-                    var fakeType = typeof(FakeScriptableObject<>).MakeGenericType(value.GetType());
-                    var fake = Activator.CreateInstance(fakeType, value);
-                    var json = EditorJsonUtility.ToJson(fake, true);
+                    var json = EditorJsonUtility.ToJson(value, true);
                     idJsonList.Add((value.id, json));
                 }
 

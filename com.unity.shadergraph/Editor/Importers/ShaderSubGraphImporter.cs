@@ -39,10 +39,6 @@ namespace UnityEditor.ShaderGraph
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
             graphAsset.assetGuid = subGraphGuid;
             var textGraph = File.ReadAllText(subGraphPath, Encoding.UTF8);
-            if (!textGraph.StartsWith("{\n    \"MonoBehaviour\":"))
-            {
-                textGraph = $"{{\"MonoBehaviour\":{{\"m_Type\":\"{typeof(GraphData).FullName}\",{textGraph.Substring(textGraph.IndexOf("{")+1)}}}";
-            }
             var graphData = MultiJson.Deserialize<GraphData>(textGraph);
             graphData.isSubGraph = true;
             graphData.assetGuid = subGraphGuid;

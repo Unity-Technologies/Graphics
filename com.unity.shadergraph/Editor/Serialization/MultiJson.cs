@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph.Serialization
     {
         public static T Deserialize<T>(string json) where T : JsonObject
         {
-            var entries = MultiJsonInternal.Parse(json);
+            var entries = MultiJsonInternal.Parse(json, typeof(T).FullName);
             return (T)MultiJsonInternal.Deserialize(entries);
         }
 

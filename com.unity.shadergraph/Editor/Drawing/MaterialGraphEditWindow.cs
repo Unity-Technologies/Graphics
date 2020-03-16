@@ -805,10 +805,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selectedGuid = assetGuid;
 
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                if (!textGraph.StartsWith("{\n    \"MonoBehaviour\":"))
-                {
-                    textGraph = $"{{\"MonoBehaviour\":{{\"m_Type\":\"{typeof(GraphData).FullName}\",{textGraph.Substring(textGraph.IndexOf("{")+1)}}}";
-                }
                 graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
                 graphObject.graph = MultiJson.Deserialize<GraphData>(textGraph);

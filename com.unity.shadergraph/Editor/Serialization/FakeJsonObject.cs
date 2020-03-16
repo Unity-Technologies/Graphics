@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.Serialization
 {
     [Serializable]
-    public struct FakeJsonObject
+    public class FakeJsonObject
     {
         [SerializeField]
         string m_Type;
