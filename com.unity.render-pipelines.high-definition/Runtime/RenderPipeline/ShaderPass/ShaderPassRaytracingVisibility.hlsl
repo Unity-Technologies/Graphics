@@ -14,7 +14,7 @@ void ClosestHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload,
     BuildFragInputsFromIntersection(currentVertex, rayIntersection.incidentDirection, fragInput);
 
     // Compute the distance of the ray
-    rayIntersection.t = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersection.origin);
+    rayIntersection.t = RayTCurrent();
 
     // Compute the velocity of the itnersection
     float3 previousPositionWS = TransformPreviousObjectToWorld(currentVertex.positionOS);
@@ -37,8 +37,7 @@ void AnyHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload, Att
     float3 viewWS = -rayIntersection.incidentDirection;
 
     // Compute the distance of the ray
-    float travelDistance = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersection.origin);
-    rayIntersection.t = travelDistance;
+    rayIntersection.t = RayTCurrent();
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
