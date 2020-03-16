@@ -67,6 +67,8 @@ namespace UnityEditor.Graphing
             if (item == null)
                 throw new ArgumentNullException("item", "Can not serialize null element");
 
+            //check if unknownnode type - if so, return saved metadata
+            //unknown node type will need onbeforeserialize to set guid and edges and all the things
             var typeInfo = GetTypeSerializableAsString(item.GetType());
             var data = JsonUtility.ToJson(item, true);
 
@@ -101,6 +103,7 @@ namespace UnityEditor.Graphing
                 info = DoTypeRemap(info, remapper);
 
             var type = GetTypeFromSerializedString(info);
+            //if type is null but T is an abstract material node, instead we create an unknowntype node
             if (type == null)
                 throw new ArgumentException(string.Format("Can not deserialize ({0}), type is invalid", info.fullName));
 
