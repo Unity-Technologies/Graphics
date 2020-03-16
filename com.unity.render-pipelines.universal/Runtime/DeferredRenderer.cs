@@ -166,21 +166,23 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-            bool requiresDepthPrepass = cameraData.isSceneViewCamera || m_PreferDepthPrepass || m_DeferredLights.tiledDeferredShading;
+            bool requiresDepthPrepass = cameraData.isSceneViewCamera || m_PreferDepthPrepass ||
+                                        m_DeferredLights.tiledDeferredShading;
 
             // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until we have a proper fix.
             if (cameraData.isStereoEnabled && cameraData.requiresDepthTexture)
                 requiresDepthPrepass = true;
             CommandBuffer cmd = CommandBufferPool.Get(k_CreateCameraTextures);
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
-            bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
+            bool isOffscreenDepthTexture = cameraData.targetTexture != null &&
+                                           cameraData.targetTexture.format == RenderTextureFormat.Depth;
             if (isOffscreenDepthTexture)
             {
                 ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
 
                 for (int i = 0; i < rendererFeatures.Count; ++i)
                 {
-                    if(rendererFeatures[i].isActive)
+                    if (rendererFeatures[i].isActive)
                         rendererFeatures[i].AddRenderPasses(this, ref renderingData);
                 }
 
@@ -196,7 +198,8 @@ namespace UnityEngine.Rendering.Universal
                 m_DrawSkyboxPass.ConfigureTarget(m_CameraColorTexture.Identifier(), m_CameraDepthTexture.Identifier());
                 EnqueuePass(m_DrawSkyboxPass);
                 // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
-                m_RenderTransparentForwardPass.ConfigureTarget(m_CameraColorTexture.Identifier(), m_CameraDepthTexture.Identifier());
+                m_RenderTransparentForwardPass.ConfigureTarget(m_CameraColorTexture.Identifier(),
+                    m_CameraDepthTexture.Identifier());
                 EnqueuePass(m_RenderTransparentForwardPass);
                 return;
             }
@@ -217,7 +220,10 @@ namespace UnityEngine.Rendering.Universal
 
             // The copying of depth should normally happen after rendering opaques only.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
-            m_CopyDepthPass1.renderPassEvent = (!cameraData.requiresDepthTexture && (applyPostProcessing || cameraData.isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
+            m_CopyDepthPass1.renderPassEvent =
+                (!cameraData.requiresDepthTexture && (applyPostProcessing || cameraData.isSceneViewCamera))
+                    ? RenderPassEvent.AfterRenderingTransparents
+                    : RenderPassEvent.AfterRenderingOpaques;
 
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
@@ -225,7 +231,8 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraColorAttachment = m_CameraColorTexture;
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
 
-                CreateCameraRenderTarget(context, ref renderingData.cameraData, m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+                CreateCameraRenderTarget(context, ref renderingData.cameraData, m_ActiveCameraColorAttachment,
+                    m_ActiveCameraDepthAttachment);
 
                 if (Camera.main == camera && camera.cameraType == CameraType.Game && cameraData.targetTexture == null)
                     SetupBackbufferFormat(1, isStereoEnabled);
@@ -235,7 +242,9 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraColorAttachment = m_CameraColorTexture;
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
-            ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
+
+            ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
+                m_ActiveCameraDepthAttachment.Identifier());
 
             var m_CameraColorDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
             m_CameraColorDescriptor.ConfigureTarget(m_CameraColorTexture.Identifier(), true, true);
@@ -244,17 +253,19 @@ namespace UnityEngine.Rendering.Universal
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
-                if(rendererFeatures[i].isActive)
+                if (rendererFeatures[i].isActive)
                     rendererFeatures[i].AddRenderPasses(this, ref renderingData);
             }
 
             int count = activeRenderPassQueue.Count;
             for (int i = count - 1; i >= 0; i--)
             {
-                if(activeRenderPassQueue[i] == null)
+                if (activeRenderPassQueue[i] == null)
                     activeRenderPassQueue.RemoveAt(i);
             }
-            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
+
+            bool hasPassesAfterPostProcessing =
+                activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
@@ -275,7 +286,10 @@ namespace UnityEngine.Rendering.Universal
             }
 
             #region RenderPass1
-            EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows, context, cmd);
+
+            EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows, context,
+                cmd);
+
             #endregion
 
             #region RenderPass2
@@ -283,8 +297,15 @@ namespace UnityEngine.Rendering.Universal
             bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
 
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
-            // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
-            if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture)
+            {
+                // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
+                m_DrawSkyboxPass.ConfigureTarget(m_CameraColorDescriptor, m_CameraDepthDescriptor);
+                m_DrawSkyboxPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height,
+                cameraTargetDescriptor.msaaSamples);
+                EnqueuePass(m_DrawSkyboxPass);
+            }
+        // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
+        if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture)
             {
                 m_CopyDepthPass1.Setup(m_CameraDepthAttachment, m_CameraDepthTexture, false);
                 EnqueuePass(m_CopyDepthPass1);
@@ -324,7 +345,7 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_RenderTransparentForwardPass);
 
             EnqueuePass(m_OnRenderObjectCallbackPass);
-
+            #endregion
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
             bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
 
@@ -538,8 +559,9 @@ namespace UnityEngine.Rendering.Universal
 
             //TODO: Investigate whether we need this in deferred
             // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
-//            m_RenderOpaqueForwardOnlyPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
-//            EnqueuePass(m_RenderOpaqueForwardOnlyPass);
+            m_RenderTransparentForwardPass.ConfigureRenderPassDescriptor(desc.width, desc.height, desc.msaaSamples);
+            m_RenderOpaqueForwardOnlyPass.ConfigureTarget(gbufferDescriptors[k_GBufferSlicesCount], depthDescriptor);
+            EnqueuePass(m_RenderOpaqueForwardOnlyPass);
         }
 
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData, RenderTargetHandle colorTarget, RenderTargetHandle depthTarget)
