@@ -57,7 +57,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 descriptor.width /= 4;
                 descriptor.height /= 4;
             }
-            ConfigureRenderPassDescriptor(cameraTextureDescriptor.width, cameraTextureDescriptor.height, cameraTextureDescriptor.msaaSamples);
 
             cmd.GetTemporaryRT(destination.id, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
         }
@@ -78,9 +77,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             switch (m_DownsamplingMethod)
             {
                 case Downsampling.None:
-                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_SamplingMaterial, 0, 1);
-                    cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+                    if (useNativeRenderPass)
+                    {
+                        cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_SamplingMaterial, 0, 1);
+                        cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix,
+                            cameraData.camera.projectionMatrix);
+                    }
+                    else
+                        Blit(cmd, source, opaqueColorRT);
                     break;
                 case Downsampling._2xBilinear:
                     Blit(cmd, source, opaqueColorRT);

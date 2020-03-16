@@ -107,8 +107,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (!success)
                     return false;
             }
-            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
-                m_ShadowmapHeight, k_ShadowmapBufferBits);
+
             return true;
         }
 

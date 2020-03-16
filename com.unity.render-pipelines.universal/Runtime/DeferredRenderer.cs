@@ -288,9 +288,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
-                Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
+                Downsampling downsamplingMethod = Downsampling.None; // Ignoring this setting as otherwise it will break RenderPass
                 m_CopyColorPass.Setup(m_CameraColorTexture.Identifier(), m_OpaqueColor, downsamplingMethod);
                 m_CopyColorPass.Configure(cmd, cameraTargetDescriptor);
+                m_CopyColorPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
 
                 var opaqueDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
                 opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, true);

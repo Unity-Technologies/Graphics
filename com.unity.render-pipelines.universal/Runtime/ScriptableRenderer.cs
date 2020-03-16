@@ -117,6 +117,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         const int k_RenderPassBlockCount = 4;
+        const int k_MaxAttachmentCount = 8;
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
@@ -534,6 +535,12 @@ namespace UnityEngine.Rendering.Universal
 
                     //Map color and input attachments for the subpass
                     descriptors = new NativeArray<AttachmentDescriptor>(attachmentSet.ToArray(), Allocator.Temp);
+                    if (descriptors.Length > k_MaxAttachmentCount)
+                    {
+                        Debug.LogError("Maximum attachment count " + k_MaxAttachmentCount + " has been exceeded");
+                        break;
+                    }
+
                     for (int i = 0; i < colorCount; i++)
                     {
                         for (int j = 0; j < descriptors.Length; j++)
@@ -564,11 +571,6 @@ namespace UnityEngine.Rendering.Universal
                     //Start the RenderPass
                     if (!renderPassStarted)
                     {
-                        if (descriptors.Length >= 8)
-                        {
-                            Debug.LogError("color attachment count is too damn high");
-                            break;
-                        }
                         context.BeginRenderPass(desc.width, desc.height, desc.sampleCount, descriptors, depthAttachmentIdx);
                         descriptors.Dispose();
                         renderPassStarted = true;
