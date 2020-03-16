@@ -557,7 +557,6 @@ namespace UnityEngine.Rendering.Universal
 
             EnqueuePass(m_DeferredPass);
 
-            //TODO: Investigate whether we need this in deferred
             // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
             m_RenderTransparentForwardPass.ConfigureRenderPassDescriptor(desc.width, desc.height, desc.msaaSamples);
             m_RenderOpaqueForwardOnlyPass.ConfigureTarget(gbufferDescriptors[k_GBufferSlicesCount], depthDescriptor);
