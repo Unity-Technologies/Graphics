@@ -1,8 +1,8 @@
 Pass
 {
     $splice(PassName)
-    Tags 
-    { 
+    Tags
+    {
         $splice(LightMode)
     }
 
@@ -11,7 +11,7 @@ Pass
 
     // Debug
     $splice(Debug)
-    
+
     // --------------------------------------------------
     // Pass
 
@@ -96,6 +96,9 @@ Pass
 
     // Dots Instancing
     $splice(DotsInstancingOptions)
+    $splice(DotsInstancedProperties)
+
+    $splice(HybridV1InjectedBuiltinProperties)
 
     // Includes
     $splice(PreGraphIncludes)
@@ -117,14 +120,13 @@ Pass
 
     // Graph Properties
     $splice(GraphProperties)
-    $splice(DotsInstancedProperties)
 
     // Graph Functions
     $splice(GraphFunctions)
 
     // Graph Vertex
     $splice(GraphVertex)
-    
+
     // Graph Pixel
     $splice(GraphPixel)
 
@@ -183,7 +185,7 @@ Pass
             surfaceData.atDistance = 1.0;
             surfaceData.transmittanceMask = 0.0;
         #endif
-        
+
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
         #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
@@ -306,14 +308,14 @@ Pass
             $AlphaTestPostpass: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
             $AlphaTestShadow:   GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
         #endif
-        
+
         $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
 
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
 
         // Builtin Data
-        // For back lighting we use the oposite vertex normal 
+        // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:

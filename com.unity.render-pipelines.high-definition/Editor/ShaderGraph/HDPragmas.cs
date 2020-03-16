@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static PragmaCollection Basic = new PragmaCollection
         {
-            { Pragma.Target(4.5) },
+            { Pragma.Target(ShaderModel.Target45) },
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
@@ -25,14 +25,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.EditorSyncCompilation },
         };
 
-        public static PragmaCollection InstancedRenderingPlayer = new PragmaCollection
+        public static PragmaCollection InstancedRenderingLayer = new PragmaCollection
         {
             { Basic },
             { Pragma.MultiCompileInstancing },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
         };
 
-        public static PragmaCollection InstancedRenderingPlayerEditorSync = new PragmaCollection
+        public static PragmaCollection InstancedRenderingLayerEditorSync = new PragmaCollection
         {
             { Basic },
             { Pragma.MultiCompileInstancing },
@@ -40,99 +40,105 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.EditorSyncCompilation },
         };
 
-        public static PragmaCollection DotsInstanced = new PragmaCollection
+        public static PragmaCollection DotsInstancedInV1AndV2 = new PragmaCollection
         {
             { Basic },
             { Pragma.MultiCompileInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, true),
-                new FieldCondition(HDFields.DotsProperties, true),
-            } },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, true),
-                new FieldCondition(HDFields.DotsProperties, false),
-            } },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, false),
-                new FieldCondition(HDFields.DotsProperties, true),
-            } },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, true),
-                new FieldCondition(HDFields.DotsProperties, true),
-            } },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, true),
-                new FieldCondition(HDFields.DotsProperties, false),
-            } },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, false),
-                new FieldCondition(HDFields.DotsProperties, true),
-            } },
+            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
+            #if ENABLE_HYBRID_RENDERER_V2
+            { Pragma.DOTSInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
+            #else
+            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
             {
                 new FieldCondition(HDFields.DotsInstancing, false),
                 new FieldCondition(HDFields.DotsProperties, false),
             } },
+            #endif
         };
 
-        public static PragmaCollection DotsInstancedEditorSync = new PragmaCollection
+        public static PragmaCollection DotsInstancedInV1AndV2EditorSync = new PragmaCollection
         {
             { Basic },
             { Pragma.MultiCompileInstancing },
             { Pragma.EditorSyncCompilation },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, true),
-                new FieldCondition(HDFields.DotsProperties, true),
-            } },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, true),
-                new FieldCondition(HDFields.DotsProperties, false),
-            } },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, false),
-                new FieldCondition(HDFields.DotsProperties, true),
-            } },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, true),
-                new FieldCondition(HDFields.DotsProperties, true),
-            } },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, true),
-                new FieldCondition(HDFields.DotsProperties, false),
-            } },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, false),
-                new FieldCondition(HDFields.DotsProperties, true),
-            } },
+            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
+            #if ENABLE_HYBRID_RENDERER_V2
+            { Pragma.DOTSInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
+            #else
+            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
             {
                 new FieldCondition(HDFields.DotsInstancing, false),
                 new FieldCondition(HDFields.DotsProperties, false),
             } },
+            #endif
+        };
+
+        public static PragmaCollection DotsInstancedInV2Only = new PragmaCollection
+        {
+            { Basic },
+            { Pragma.MultiCompileInstancing },
+            #if ENABLE_HYBRID_RENDERER_V2
+            { Pragma.DOTSInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
+            #endif
+        };
+
+        public static PragmaCollection DotsInstancedInV2OnlyEditorSync = new PragmaCollection
+        {
+            { Basic },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.EditorSyncCompilation },
+            #if ENABLE_HYBRID_RENDERER_V2
+            { Pragma.DOTSInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
+            #endif
+        };
+
+        public static PragmaCollection DotsInstancedInV2OnlyRenderingLayer = new PragmaCollection
+        {
+            { Basic },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
+            #if ENABLE_HYBRID_RENDERER_V2
+            { Pragma.DOTSInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
+            #endif
+        };
+
+        public static PragmaCollection DotsInstancedInV2OnlyRenderingLayerEditorSync = new PragmaCollection
+        {
+            { Basic },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
+            { Pragma.EditorSyncCompilation },
+            #if ENABLE_HYBRID_RENDERER_V2
+            { Pragma.DOTSInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
+            #endif
         };
 
         public static PragmaCollection RaytracingBasic = new PragmaCollection
         {
-            { Pragma.Target(4.5) },
+            { Pragma.Target(ShaderModel.Target45) },
             { Pragma.Raytracing("test") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
         };
 
         public static PragmaCollection RaytracingInstanced = new PragmaCollection
         {
-            { Pragma.Target(4.5) },
+            { Pragma.Target(ShaderModel.Target45) },
             { Pragma.Raytracing("test") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
             { Pragma.MultiCompileInstancing },

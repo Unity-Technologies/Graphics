@@ -421,6 +421,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed removal of MeshRenderer and MeshFilter on adding Light component. 
 - Fixed Ray Traced SubSurface Scattering not working with ray traced area lights
 - Fixed Ray Traced SubSurface Scattering not working in forward mode.
+- Fixed a bug in debug light volumes.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

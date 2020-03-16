@@ -32,7 +32,7 @@
 
 #if defined(SHADER_STAGE_RAY_TRACING)
 // FXC Supports the naïve "recursive" concatenation, while DXC and C do not https://github.com/pfultz2/Cloak/wiki/C-Preprocessor-tricks,-tips,-and-idioms
-// However, FXC does not support the proper pattern (the one bellow), so we only override it in the case of ray tracing subshaders for the moment. 
+// However, FXC does not support the proper pattern (the one bellow), so we only override it in the case of ray tracing subshaders for the moment.
 // Note that this should be used for all shaders when DX12 used DXC for vert/frag shaders (which it does not for the moment)
 #undef MERGE_NAME
 #define MERGE_NAME_CONCAT(Name, ...) Name ## __VA_ARGS__
@@ -483,12 +483,54 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
 #define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
 
-// Define View/Projection matrix macro
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesMatrixDefsHDCamera.hlsl"
-
 // This define allow to tell to unity instancing that we will use our camera relative functions (ApplyCameraTranslationToMatrix and  ApplyCameraTranslationToInverseMatrix) for the model view matrix
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+// Undef the matrix error macros so that the DOTS instancing macro works
+#undef unity_ObjectToWorld
+#undef unity_WorldToObject
+UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
+    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld)
+    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_WorldTransformParams)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_RenderingLayer)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAr)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAg)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAb)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBr)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBg)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHC)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
+    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_MatrixPreviousM)
+    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_MatrixPreviousMI)
+UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
+
+// Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
+#define unity_LODFade               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LODFade)
+#define unity_WorldTransformParams  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_WorldTransformParams)
+#define unity_RenderingLayer        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_RenderingLayer)
+#define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightmapST)
+#define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_DynamicLightmapST)
+#define unity_SHAr                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAr)
+#define unity_SHAg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAg)
+#define unity_SHAb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAb)
+#define unity_SHBr                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBr)
+#define unity_SHBg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBg)
+#define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBb)
+#define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHC)
+#define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
+#define unity_MatrixPreviousM       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousM)
+#define unity_MatrixPreviousMI      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousMI)
+#endif
+
+// Define View/Projection matrix macro
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesMatrixDefsHDCamera.hlsl"
 
 // This is located after the include of UnityInstancing.hlsl so it can be used for declaration
 // Undef in order to include all textures and buffers declarations
