@@ -101,18 +101,18 @@ namespace UnityEditor.ShaderGraph
 
     class NewGraphAction : EndNameEditAction
     {
-        AbstractMaterialNode m_Node;
-        public AbstractMaterialNode node
+        Type m_TargetType;
+        public Type targetType
         {
-            get { return m_Node; }
-            set { m_Node = value; }
+            get { return m_TargetType; }
+            set { m_TargetType = value; }
         }
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             var graph = new GraphData();
             graph.AddContexts();
-            graph.AddNode(node);
+            graph.SetTarget(m_TargetType);
             graph.path = "Shader Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
@@ -142,41 +142,12 @@ namespace UnityEditor.ShaderGraph
             return newText.ToString();
         }
 
-        public static void CreateNewGraph(AbstractMaterialNode node)
+        public static void CreateNewGraph<T>() where T : ITarget
         {
             var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
-            graphItem.node = node;
+            graphItem.targetType = typeof(T);
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
-        }
-
-        public static Type GetOutputNodeType(string path)
-        {
-            ShaderGraphMetadata metadata = null;
-            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
-            {
-                if (asset is ShaderGraphMetadata metadataAsset)
-                {
-                    metadata = metadataAsset;
-                    break;
-                }
-            }
-
-            if (metadata == null)
-            {
-                return null;
-            }
-
-            var outputNodeTypeName = metadata.outputNodeTypeName;
-            foreach (var type in TypeCache.GetTypesDerivedFrom<IMasterNode>())
-            {
-                if (type.FullName == outputNodeTypeName)
-                {
-                    return type;
-                }
-            }
-
-            return null;
         }
 
         public static bool IsShaderGraph(this Shader shader)

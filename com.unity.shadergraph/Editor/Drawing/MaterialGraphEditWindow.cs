@@ -352,7 +352,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
                     if (shader != null)
                     {
-                        GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as AbstractMaterialNode).saveContext);
+                        GraphData.onSaveGraph(shader, graphObject.graph.subGraphOutputNode.saveContext);
                     }                    
                 }
             }
@@ -385,7 +385,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             {
                                 var shader = AssetDatabase.LoadAssetAtPath<Shader>(newPath);
                                 // Retrieve graph context, note that if we're here the output node will always be a master node
-                                GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as AbstractMaterialNode).saveContext);
+                                GraphData.onSaveGraph(shader, (graphObject.graph.subGraphOutputNode as AbstractMaterialNode).saveContext);
                             }
                         }
                     }
@@ -663,7 +663,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var externalOutputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
             foreach (var group in uniqueOutgoingEdges)
             {
-                var outputNode = subGraph.outputNode as SubGraphOutputNode;
+                var outputNode = subGraph.subGraphOutputNode;
 
                 AbstractMaterialNode node = graphView.graph.GetNodeFromGuid(group.edges[0].outputSlot.nodeGuid);
                 MaterialSlot slot = node.FindSlot<MaterialSlot>(group.edges[0].outputSlot.slotId);

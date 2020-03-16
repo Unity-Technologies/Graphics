@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             return fields;
         }
 
-        internal static void GenerateSubShaderTags(IMasterNode masterNode, SubShaderDescriptor descriptor, ShaderStringBuilder builder)
+        internal static void GenerateSubShaderTags(ITargetImplementation implementation, SubShaderDescriptor descriptor, ShaderStringBuilder builder)
         {
             builder.AppendLine("Tags");
             using (builder.BlockScope())
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Render Type
                 string renderType = !string.IsNullOrEmpty(descriptor.renderTypeOverride) ? 
-                    descriptor.renderTypeOverride : masterNode?.renderTypeTag;
+                    descriptor.renderTypeOverride : implementation.renderTypeTag;
                 if(!string.IsNullOrEmpty(renderType))
                     builder.AppendLine($"\"RenderType\"=\"{renderType}\"");
                 else
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Render Queue
                 string renderQueue = !string.IsNullOrEmpty(descriptor.renderQueueOverride) ? 
-                    descriptor.renderQueueOverride : masterNode?.renderQueueTag;
+                    descriptor.renderQueueOverride : implementation.renderQueueTag;
                 if(!string.IsNullOrEmpty(renderQueue))
                     builder.AppendLine($"\"Queue\"=\"{renderQueue}\"");
                 else
@@ -810,7 +810,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder surfaceDescriptionFunction,
             GenerationMode mode)
         {
-            if (rootNode is IMasterNode)
+            if (rootNode == null)
             {
                 foreach (var input in slots)
                 {

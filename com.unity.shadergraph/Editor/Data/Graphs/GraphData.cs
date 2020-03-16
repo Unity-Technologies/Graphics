@@ -291,50 +291,20 @@ namespace UnityEditor.ShaderGraph
         }
 
         [NonSerialized]
-        Guid m_ActiveOutputNodeGuid;
+        private SubGraphOutputNode m_SubGraphOutputNode;
 
-        public Guid activeOutputNodeGuid
-        {
-            get { return m_ActiveOutputNodeGuid; }
-            set
-            {
-                if (value != m_ActiveOutputNodeGuid)
-                {
-                    m_ActiveOutputNodeGuid = value;
-                    m_OutputNode = null;
-                    didActiveOutputNodeChange = true;
-                }
-            }
-        }
-
-        [SerializeField]
-        string m_ActiveOutputNodeGuidSerialized;
-
-        [NonSerialized]
-        private AbstractMaterialNode m_OutputNode;
-
-        public AbstractMaterialNode outputNode
+        public SubGraphOutputNode subGraphOutputNode
         {
             get
             {
-                // find existing node
-                if (m_OutputNode == null)
+                if (m_SubGraphOutputNode == null)
                 {
-                    if (isSubGraph)
-                    {
-                        m_OutputNode = GetNodes<SubGraphOutputNode>().FirstOrDefault();
-                    }
-                    else
-                    {
-                        m_OutputNode = GetNodeFromGuid(m_ActiveOutputNodeGuid);
-                    }
+                    m_SubGraphOutputNode = GetNodes<SubGraphOutputNode>().FirstOrDefault();
                 }
 
-                return m_OutputNode;
+                return m_SubGraphOutputNode;
             }
         }
-
-        public bool didActiveOutputNodeChange { get; set; }
 
         internal delegate void SaveGraphDelegate(Shader shader, object context);
         internal static SaveGraphDelegate onSaveGraph;
@@ -358,6 +328,17 @@ namespace UnityEditor.ShaderGraph
             m_GroupItems[Guid.Empty] = new List<IGroupItem>();
             GetBlockFieldDescriptors();
             GetTargets();
+        }
+
+        public void SetTarget(Type type)
+        {
+            for(int i = 0; i < m_GenerationTargets.Count; i++)
+            {
+                if(m_GenerationTargets[i].target.GetType() == type)
+                {
+                    m_ActiveTargetIndex = i;
+                }
+            }
         }
 
         void GetBlockFieldDescriptors()
@@ -462,7 +443,6 @@ namespace UnityEditor.ShaderGraph
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
             m_MostRecentlyCreatedGroup = null;
-            didActiveOutputNodeChange = false;
         }
 
         public void AddNode(AbstractMaterialNode node)
@@ -712,7 +692,7 @@ namespace UnityEditor.ShaderGraph
             {
                 // Remove from ContextData
                 blockNode.contextData.blocks.Remove(blockNode);
-                outputNode.Dirty(ModificationScope.Graph);
+                blockNode.Dirty(ModificationScope.Graph);
             }
         }
 
@@ -1477,7 +1457,6 @@ namespace UnityEditor.ShaderGraph
             m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
-            m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
             m_SerializableGenerationTargets = SerializationHelper.Serialize<GenerationTarget>(m_GenerationTargets);
         }
 
@@ -1502,7 +1481,7 @@ namespace UnityEditor.ShaderGraph
             {
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
-                node.tempId = new Identifier(m_Nodes.Count);
+                node.tempId = new Identifier(m_Nodes.Count + 1);
                 m_Nodes.Add(node);
                 m_NodeDictionary.Add(node.guid, node);
                 m_GroupItems[node.groupGuid].Add(node);
@@ -1520,23 +1499,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);
 
-            m_OutputNode = null;
-
-            if (!isSubGraph)
-            {
-                if (string.IsNullOrEmpty(m_ActiveOutputNodeGuidSerialized))
-                {
-                    var node = (AbstractMaterialNode)GetNodes<IMasterNode>().FirstOrDefault();
-                    if (node != null)
-                    {
-                        m_ActiveOutputNodeGuid = node.guid;
-                    }
-                }
-                else
-                {
-                    m_ActiveOutputNodeGuid = new Guid(m_ActiveOutputNodeGuidSerialized);
-                }
-            }
+            m_SubGraphOutputNode = null;
 
             // --------------------------------------------------
             // Deserialize Contexts & Blocks

@@ -4,22 +4,16 @@ namespace UnityEditor.ShaderGraph
 {
     static class CreateShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/Unlit Graph", false, 208)]
-        public static void CreateUnlitMasterMaterialGraph()
+        [MenuItem("Assets/Create/Shader/Mesh Shader Graph", false, 208)]
+        public static void CreateMeshShaderGraph()
         {
-            GraphUtil.CreateNewGraph(new UnlitMasterNode());
-        }
-
-        [MenuItem("Assets/Create/Shader/PBR Graph", false, 208)]
-        public static void CreatePBRMasterMaterialGraph()
-        {
-            GraphUtil.CreateNewGraph(new PBRMasterNode());
+            GraphUtil.CreateNewGraph<MeshTarget>();
         }
 
         [MenuItem("Assets/Create/Shader/VFX Shader Graph", false, 208)]
         public static void CreateVfxShaderGraph()
         {
-            GraphUtil.CreateNewGraph(new VfxMasterNode());
+            GraphUtil.CreateNewGraph<VFXTarget>();
         }
     }
 }

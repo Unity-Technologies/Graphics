@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
 
         void GetTargetImplementations()
         {
-            if(m_OutputNode is IMasterNode masterNode)
+            if(m_OutputNode == null)
             {
                 m_TargetImplementations = m_GraphData.activeGenerationTarget.activeImplementations.ToArray();
             }
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
         public ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<BlockFieldDescriptor> blocks, ITargetImplementation targetImplementation)
         {
             var activeFields = new ActiveFields();
-            if(outputNode is IMasterNode masterNode)
+            if(outputNode == null)
             {
                 var fields = GenerationUtils.GetActiveFieldsFromConditionals(targetImplementation.GetConditionalFields(pass, blocks));
                 foreach(FieldDescriptor field in fields)
@@ -132,7 +132,7 @@ namespace UnityEditor.ShaderGraph
             m_Builder.AppendLine("SubShader");
             using(m_Builder.BlockScope())
             {
-                GenerationUtils.GenerateSubShaderTags(m_OutputNode as IMasterNode, descriptor, m_Builder);
+                GenerationUtils.GenerateSubShaderTags(m_TargetImplementations[targetIndex], descriptor, m_Builder);
 
                 foreach(PassCollection.Item pass in descriptor.passes)
                 {
@@ -192,7 +192,7 @@ namespace UnityEditor.ShaderGraph
             var pixelSlots = new List<MaterialSlot>();
             var vertexSlots = new List<MaterialSlot>();
 
-            if(m_OutputNode is IMasterNode masterNode)
+            if(m_OutputNode == null)
             {
                 // Update supported block list for current target implementation
                 var activeBlocks = ListPool<BlockFieldDescriptor>.Get();

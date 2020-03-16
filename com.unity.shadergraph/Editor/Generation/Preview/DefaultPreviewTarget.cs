@@ -10,6 +10,8 @@ namespace UnityEditor.ShaderGraph
         public string displayName => null;
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
+        public string renderTypeTag => null;
+        public string renderQueueTag => null;
 
         public void SetupTarget(ref TargetSetupContext context)
         {

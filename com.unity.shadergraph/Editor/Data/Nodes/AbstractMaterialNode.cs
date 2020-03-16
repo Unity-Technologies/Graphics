@@ -88,7 +88,7 @@ namespace UnityEditor.ShaderGraph
 
         public virtual bool canDeleteNode
         {
-            get { return owner != null && guid != owner.activeOutputNodeGuid; }
+            get { return owner != null; }
         }
 
         public DrawState drawState
@@ -149,9 +149,10 @@ namespace UnityEditor.ShaderGraph
             get { return PreviewMode.Preview2D; }
         }
 
+        // TODO: Can actually delete this
         public virtual bool allowedInSubGraph
         {
-            get { return !(this is IMasterNode); }
+            get { return !(this is BlockNode); }
         }
 
         public virtual bool allowedInMainGraph

@@ -12,6 +12,8 @@ namespace UnityEditor.ShaderGraph
         string displayName { get; }
         string passTemplatePath { get; }
         string sharedTemplateDirectory { get; }
+        string renderTypeTag { get; }
+        string renderQueueTag { get; }
 
         void SetupTarget(ref TargetSetupContext context);
         void SetActiveBlocks(ref List<BlockFieldDescriptor> activeBlocks);

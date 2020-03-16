@@ -10,15 +10,17 @@ namespace UnityEditor.ShaderGraph.Drawing
     class InspectorView : VisualElement
     {
         GraphData m_GraphData;
+        PreviewManager m_PreviewManager;
         VisualElement m_Element;
 
         // Track enabled states of foldouts
         Dictionary<ITargetImplementation, bool> m_ImplementationFoldouts;
 
-        public InspectorView(GraphData graphData)
+        public InspectorView(GraphData graphData, PreviewManager previewManager)
         {
             name = "inspectorView";
             m_GraphData = graphData;
+            m_PreviewManager = previewManager;
             m_ImplementationFoldouts = new Dictionary<ITargetImplementation, bool>();
 
             // Styles
@@ -48,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnChange()
         {
             m_GraphData.UpdateActiveBlocks();
-            m_GraphData.outputNode.Dirty(ModificationScope.Graph);
+            m_PreviewManager.UpdateMasterPreview(ModificationScope.Topological);
             Remove(m_Element);
             Rebuild();
         }

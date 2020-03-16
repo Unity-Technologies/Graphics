@@ -54,6 +54,32 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
 
+        public string renderQueueTag
+        {
+            get
+            {
+                bool isSprite = m_MaterialType == MaterialType.SpriteLit || m_MaterialType == MaterialType.SpriteUnlit;
+                if(isSprite || m_SurfaceType == SurfaceType.Transparent)
+                    return $"{RenderQueue.Transparent}";
+                else if(m_AlphaClip)
+                    return $"{RenderQueue.AlphaTest}";
+                else
+                    return $"{RenderQueue.Geometry}";
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                bool isSprite = m_MaterialType == MaterialType.SpriteLit || m_MaterialType == MaterialType.SpriteUnlit;
+                if(isSprite || m_SurfaceType == SurfaceType.Transparent)
+                    return $"{RenderType.Transparent}";
+                else
+                    return $"{RenderType.Opaque}";
+            }
+        }
+
         public void SetupTarget(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget

@@ -22,6 +22,8 @@ namespace UnityEditor.ShaderGraph
         public string displayName => "Default";
         public string passTemplatePath => null;
         public string sharedTemplateDirectory => null;
+        public string renderTypeTag => null;
+        public string renderQueueTag => null;
 #endregion
 
         public void SetupTarget(ref TargetSetupContext context)
