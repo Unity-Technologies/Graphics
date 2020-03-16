@@ -903,11 +903,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
                 var targetAnchor = targetNodeView.gvNode.inputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(targetSlot));
 
+                bool isEdgeActive = true;
+                if (!sourceNodeView.node.isActive || !targetNodeView.node.isActive)
+                    isEdgeActive = false;
+
                 var edgeView = new Edge
                 {
                     userData = edge,
                     output = sourceAnchor,
-                    input = targetAnchor
+                    input = targetAnchor,
+                    isGhostEdge = !isEdgeActive
                 };
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
@@ -950,14 +955,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                             {
                                 nodeStack.Push(connectedNodeView);
                                 nodeViews.Add((IShaderNodeView)connectedNodeView);
-                                if (connectedNodeView is MaterialNodeView connectedMatNodeView)
-                                {
-                                    if(!connectedMatNodeView.node.isActive)
-                                    {
-                                        edgeView.isGhostEdge = true;
-                                        edgeView.UpdateEdgeControl();
-                                    }   
-                                }
                             }
                         }
                     }
@@ -974,14 +971,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             nodeStack.Push(connectedNodeView);
                             nodeViews.Add((IShaderNodeView)connectedNodeView);
-                            if (connectedNodeView is MaterialNodeView connectedMatNodeView)
-                            {
-                                if(!connectedMatNodeView.node.isActive)
-                                {
-                                    edgeView.isGhostEdge = true;
-                                    edgeView.UpdateEdgeControl();
-                                }
-                            }
                         }
                     }
                 }
