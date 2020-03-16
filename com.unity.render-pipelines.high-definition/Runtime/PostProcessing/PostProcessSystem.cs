@@ -1725,7 +1725,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cs = m_Resources.shaders.motionBlurMergeTileCS;
                 cs.shaderKeywords = null;
-                kernel = cs.FindKernel("TileNeighbourhood");
 
                 kernel = cs.FindKernel("TileMinMaxMerge");
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
