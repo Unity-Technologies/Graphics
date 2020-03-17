@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
+- Copied nodes are now pasted at the cursor location instead of slightly offset from their original location
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -68,12 +69,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the error `Output value 'vert' is not initialized` displayed on all PBR graphs in Universal. [1210710](https://issuetracker.unity3d.com/issues/output-value-vert-is-not-completely-initialized-error-is-thrown-when-pbr-graph-is-created-using-urp)
 - Fixed a bug where PBR and Unlit master nodes in Universal had Alpha Clipping enabled by default.
 - Fixed an issue in where analytics wasn't always working.
+- Avoid unintended behavior by removing the ability to create presets from Shader Graph (and Sub Graph) assets. [1220914](https://issuetracker.unity3d.com/issues/shadergraph-preset-unable-to-open-editor-when-clicking-on-open-shader-editor-in-the-shadersubgraphimporter)
 - Fixed a bug where undo would make the Master Preview visible regardless of its toggle status.
 - Fixed a bug where any change to the PBR master node settings would lose connection to the normal slot. 
 - Fixed a bug where the user couldn't open up HDRP Master Node Shader Graphs without the Render Pipeline set to HDRP.
 - Fixed a bug where adding a HDRP Master Node to a Shader Graph would softlock the Shader Graph.
 - Fixed a bug where shaders fail to compile due to `#pragma target` generation when your system locale uses commas instead of periods.
 - Fixed a compilation error when using Hybrid Renderer due to incorrect positioning of macros.
+- Fixed a bug with the `Transform` node where converting from `Absolute World` space in a sub graph causes invalid subscript errors. [1190813](https://issuetracker.unity3d.com/issues/shadergraph-invalid-subscript-errors-are-thrown-when-connecting-a-subgraph-with-transform-node-with-unlit-master-node)
 
 ## [7.1.1] - 2019-09-05
 ### Added
