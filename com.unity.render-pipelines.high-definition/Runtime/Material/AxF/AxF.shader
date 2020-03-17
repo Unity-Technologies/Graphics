@@ -14,6 +14,9 @@ Shader "HDRP/AxF"
 
         [HideInInspector] _Flags( "_Flags", Int ) = 0
 
+        [ToggleUI] _MeshHasVertexBakedAO("Mesh Has Vertex Baked AO", Float) = 0.0
+        _VertexAOScale("Vertex AO Scale", Range(0.0, 1.0)) = 1.0
+
         /////////////////////////////////////////////////////////////////////////////
         // SVBRDF Parameters
 
@@ -137,6 +140,7 @@ Shader "HDRP/AxF"
     //-------------------------------------------------------------------------------------
     #pragma shader_feature_local _AXF_BRDF_TYPE_SVBRDF _AXF_BRDF_TYPE_CAR_PAINT _AXF_BRDF_TYPE_BTF
 
+    //#pragma shader_feature_local _AXF_USE_VERTEX_COLOR_RGBM_AO // For vertex baked AO encoded as RGBM, gamma = 0.5, scale = 8
     #pragma shader_feature_local _ _SPECULAR_OCCLUSION_NONE //_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
 
     #pragma shader_feature_local _ALPHATEST_ON
