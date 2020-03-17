@@ -19,6 +19,8 @@
 // Debug
 #pragma kernel WriteShadowTextureDebug
 
+#pragma only_renderers d3d11
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
@@ -30,29 +32,27 @@
 // Tile size of this compute
 #define AREA_BILLATERAL_TILE_SIZE 8
 
-// Input Denoising data
-int _RaytracingShadowSlot;
-int _RaytracingDenoiseRadius;
+// Depth buffer of the current frame
 TEXTURE2D_X(_DepthTexture);
-TEXTURE2D_X(_DenoiseInputTexture);
-RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+// Analytic buffer for the current frame
 TEXTURE2D_X(_AnalyticProbBuffer);
+// Analytic buffer from the previous frame (stored as array)
+RW_TEXTURE2D_X(float4, _AnalyticHistoryBuffer);
+// Noisy buffer produced this frame
+TEXTURE2D_X(_DenoiseInputTexture);
+// Temporal Accumulated buffer from the previous frame
+TEXTURE2D_X(_AreaShadowHistory);
+RW_TEXTURE2D_X(float4, _AreaShadowHistoryRW);
+// Output buffer for our temporal accumulation pass
+RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+// Value that tells us if the current history should be discarded based on scene-level data
+float _HistoryValidity;
 
-// Output buffers
-RWTexture2DArray<float>     _ScreenSpaceShadowsTextureRW;
-RWTexture2DArray<float>     _AnalyticHistoryBuffer;
-Texture2DArray              _AreaShadowHistory;
-RWTexture2DArray<float2>    _AreaShadowHistoryRW;
-
-// Bilateral filter parameters
-#define NORMAL_WEIGHT   1.0
-#define PLANE_WEIGHT    1.0
-#define DEPTH_WEIGHT    1.0
-#define ANALYTIC_WEIGHT 1.0
-
-// This value is the one that we have choosen for the moment as a sufficient limit for
-// the noise estimation. It would require an other pass to check if we can lower it.
-#define MAX_ESTIMATION_RADIUS 10
+// Given that area shadows history buffer are stored as buffers, we need data to know where to read and where to write
+uint _DenoisingHistorySlice;
+float4 _DenoisingHistoryMask;
+float4 _DenoisingHistoryMaskSn;
+float4 _DenoisingHistoryMaskUn;
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
 void AreaAnalyticHistoryCopy(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -62,8 +62,11 @@ void AreaAnalyticHistoryCopy(uint3 dispatchThreadId : SV_DispatchThreadID, uint2
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
 
-    // Merge them into the previous buffer
-    _AnalyticHistoryBuffer[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_RaytracingShadowSlot))] = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x;
+    // Grab the previous value stored in the buffer
+    float4 previousValue = _AnalyticHistoryBuffer[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))];
+
+    // Only replace where the mask is 1.0
+    _AnalyticHistoryBuffer[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))] = (1.0 - _DenoisingHistoryMask) * previousValue + _DenoisingHistoryMask * LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x;
 }
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
@@ -74,8 +77,13 @@ void AreaShadowHistoryCopy(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
 
-    // Merge them into the previous buffer
-    _AreaShadowHistoryRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_RaytracingShadowSlot))] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xy;
+    // Grab the previous value stored in the buffer
+    float4 previousValue = _AreaShadowHistoryRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))];
+
+    // Only replace where the mask is 1.0
+    _AreaShadowHistoryRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))] = (1.0 - _DenoisingHistoryMask) * previousValue 
+                                                                                                + _DenoisingHistoryMaskSn * LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x
+                                                                                                + _DenoisingHistoryMaskUn * LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).y;
 }
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
@@ -105,9 +113,9 @@ void AreaShadowApplyTAA(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     uint2 historyPixelCoord =  centerCoord - velocity * _ScreenSize.xy;
     // Ok so here, if we do not match cloesly the previous analytic value, it means either TAA has invalidated the sample or the pixel just appeared
     float currentAnalyticValue = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x;
-    float historyAnalyticValue = _AnalyticHistoryBuffer[uint3(historyPixelCoord, INDEX_TEXTURE2D_ARRAY_X(_RaytracingShadowSlot))];
+    float historyAnalyticValue = dot(_DenoisingHistoryMaskSn, _AnalyticHistoryBuffer[uint3(historyPixelCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))]);
 
-    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f)
+    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f || _HistoryValidity == 0.0)
     {
         // Fetch the current value
         float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).xy;
@@ -118,7 +126,8 @@ void AreaShadowApplyTAA(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     }
 
     float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).xy;
-    float2 history = Fetch4Array(_AreaShadowHistory, INDEX_TEXTURE2D_ARRAY_X(_RaytracingShadowSlot), posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).xy;
+    float4 historyArray = Fetch4Array(_AreaShadowHistory, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy);
+    float2 history = float2(dot(_DenoisingHistoryMaskSn, historyArray), dot(_DenoisingHistoryMaskUn, historyArray));
     float2 topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy).xy;
     float2 bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy).xy;
 
@@ -147,7 +156,7 @@ void AreaShadowApplyTAA(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     // Blend color & history
     // Feedback weight from unbiased luminance diff (Timothy Lottes)
     float2 historyLuma = history;
-    float2 diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
+    float2 diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, float2(0.2, 0.2));
     float2 weight = 1.0 - diff;
     weight = weight * weight;
     float2 feedback = (1.0 - weight) * FEEDBACK_MIN + weight * FEEDBACK_MAX;
@@ -158,6 +167,7 @@ void AreaShadowApplyTAA(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x, 1.0);
 }
 
+/*
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
 void AreaShadowApplyTAA2(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -210,6 +220,20 @@ void AreaShadowApplyTAA2(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(coordSS)] = float4(result, LOAD_TEXTURE2D_X(_AnalyticProbBuffer, coordSS).x, 1.0);
 }
+*/
+
+// Bilateral filter parameters
+#define NORMAL_WEIGHT   1.0
+#define PLANE_WEIGHT    1.0
+#define DEPTH_WEIGHT    1.0
+#define ANALYTIC_WEIGHT 1.0
+
+// This value is the one that we have choosen for the moment as a sufficient limit for
+// the noise estimation. It would require an other pass to check if we can lower it.
+#define MAX_ESTIMATION_RADIUS 10
+
+// Radius for our bilateral denoiser
+int _RaytracingDenoiseRadius;
 
 // Couple helper functions
 float sqr(float value)
@@ -413,7 +437,7 @@ void AREA_SHADOW_DENOISE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     {
         #if FINAL_PASS
         // Return the final ratio
-        _ScreenSpaceShadowsTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] = 0.0;
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, 0.0, 0.0);
         #else
         // Store the intermediate result
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, -1.0, 1.0);
@@ -440,7 +464,7 @@ void AREA_SHADOW_DENOISE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     {
         #if FINAL_PASS
         // Return the final ratio
-        _ScreenSpaceShadowsTextureRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_RaytracingShadowSlot))] = 0.0;
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, 0.0, 0.0);
         #else
         // Store the intermediate result
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, -1.0, noiseEstimate);
@@ -450,6 +474,10 @@ void AREA_SHADOW_DENOISE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
     for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
     {
+        // We should not tap outside of the screen (given that its a unit, if we go below zero we wrap around)
+        if ((int)tapCoord.x > _ScreenSize.x || (int)tapCoord.y > _ScreenSize.y)
+            continue;
+            
         // Compute the weight (skip computation for the center)
         const float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0;
 
@@ -459,14 +487,33 @@ void AREA_SHADOW_DENOISE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     #if FINAL_PASS
     // Return the final ratio
-    _ScreenSpaceShadowsTextureRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_RaytracingShadowSlot))] = (wSum > 0.0 && SU.y / wSum > 0.0) ? saturate(SU.x / SU.y) : 1.0;
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = SU.y != 0.0 ? saturate(SU.x / SU.y) : 1.0;
     #else
     // Store the intermediate result
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(SU / wSum, LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).z, noiseEstimate);
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(wSum != 0.0 ? SU / wSum : 0.0, analyticValue, noiseEstimate);
     #endif
 }
 
-// Separated bilateral filter (two passes, each with 2*Radius taps)
+RW_TEXTURE2D_X(float4, _ScreenSpaceShadowsTextureRW);
+
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaShadowNoDenoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+
+    // Grab the previous value stored in the buffer. We use a max with 0 to avoid using invalid values that may come from rthandle resizing
+    float4 previousValue = max(0, _ScreenSpaceShadowsTextureRW[uint3(currentCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))]);
+
+    // Compute the shadow value that we need to store
+    float shadowValue = _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].y > 0.0 ? _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].x / _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].y : 0.0;
+    
+    // Only override when the mask is 1.0
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, _DenoisingHistorySlice)] = (1.0 - _DenoisingHistoryMask) * previousValue + _DenoisingHistoryMask * shadowValue;
+}
+
+uint _DenoisingHistorySlot;
+
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
 void WriteShadowTextureDebug(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -476,14 +523,7 @@ void WriteShadowTextureDebug(uint3 dispatchThreadId : SV_DispatchThreadID, uint2
     uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
 
     // Store the intermediate result
-    float shadowValue = _ScreenSpaceShadowsTextureRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_RaytracingShadowSlot))];
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(shadowValue, shadowValue, shadowValue, 1.0);
-}
-
-[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
-void AreaShadowNoDenoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    // Compute the pixel position to process
-    uint2 currentCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
-    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, _RaytracingShadowSlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].y > 0.0 ? _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].x / _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].y : 0.0;
+    float4 shadowValue = _ScreenSpaceShadowsTextureRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlot / 4))];
+    float channelValue = shadowValue[_DenoisingHistorySlot & 0x3];
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(channelValue, channelValue, channelValue, 1.0);
 }

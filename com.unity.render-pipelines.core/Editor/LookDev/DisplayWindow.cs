@@ -8,22 +8,36 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>Interface that must implement the viewer to communicate with the compositor and data management</summary>
     public interface IViewDisplayer
     {
+        /// <summary>Get the displayed rect to use</summary>
+        /// <param name="index">Index of this view</param>
+        /// <returns>The Rect to draw</returns>
         Rect GetRect(ViewCompositionIndex index);
+        /// <summary>Set the computed texture in the view</summary>
+        /// <param name="index">Index of this view</param>
+        /// <param name="texture">The texture used</param>
         void SetTexture(ViewCompositionIndex index, Texture texture);
 
+        /// <summary>Repaint the UI</summary>
         void Repaint();
 
+        /// <summary>Callback on layout changed</summary>
         event Action<Layout, SidePanel> OnLayoutChanged;
 
+        /// <summary>Callback on RenderDoc acquisition is triggered</summary>
         event Action OnRenderDocAcquisitionTriggered;
 
+        /// <summary>Callback on ;ouse events in the view</summary>
         event Action<IMouseEvent> OnMouseEventInView;
 
+        /// <summary>Callback on object changed in the view</summary>
         event Action<GameObject, ViewCompositionIndex, Vector2> OnChangingObjectInView;
+        /// <summary>Callback on environment changed in the view</summary>
         event Action<UnityEngine.Object, ViewCompositionIndex, Vector2> OnChangingEnvironmentInView;
 
+        /// <summary>Callback on closed</summary>
         event Action OnClosed;
 
+        /// <summary>Callback on update requested</summary>
         event Action OnUpdateRequested;
     }
     
@@ -287,7 +301,7 @@ namespace UnityEditor.Rendering.LookDev
                 => sidePanel = (SidePanel)evt.newValue);
 
             // Aggregate parts
-            var toolbar = new Toolbar() { name = Style.k_ToolbarName };
+            var toolbar = new UIElements.Toolbar() { name = Style.k_ToolbarName };
             toolbar.Add(layoutRadio);
             toolbar.Add(new ToolbarSpacer());
             toolbar.Add(cameraMenu);
@@ -334,7 +348,7 @@ namespace UnityEditor.Rendering.LookDev
                 {
                     LookDev.currentContext.SetFocusedCamera(index);
                     var environment = LookDev.currentContext.GetViewContent(index).environment;
-                    if (sidePanel == SidePanel.Environment && environment != null)
+                    if (sidePanel == SidePanel.Environment && environment != null && LookDev.currentContext.environmentLibrary != null)
                         m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(environment);
                 });
             var secondManipulator = new CameraController(
@@ -344,7 +358,7 @@ namespace UnityEditor.Rendering.LookDev
                 {
                     LookDev.currentContext.SetFocusedCamera(ViewIndex.Second);
                     var environment = LookDev.currentContext.GetViewContent(ViewIndex.Second).environment;
-                    if (sidePanel == SidePanel.Environment && environment != null)
+                    if (sidePanel == SidePanel.Environment && environment != null && LookDev.currentContext.environmentLibrary != null)
                         m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(environment);
                 });
             var gizmoManipulator = new ComparisonGizmoController(LookDev.currentContext.layout.gizmoState, firstOrCompositeManipulator);

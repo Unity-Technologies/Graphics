@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.Graphing
 {
-    class PooledObject<T> : IDisposable where T : new()
+    struct PooledObject<T> : IDisposable where T : new()
     {
         private ObjectPool<T> m_ObjectPool;
 
@@ -14,20 +14,9 @@ namespace UnityEditor.Graphing
             this.value = value;
         }
 
-        private void ReleaseUnmanagedResources()
-        {
-            m_ObjectPool.Release(value);
-        }
-
         public void Dispose()
         {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
-        }
-
-        ~PooledObject()
-        {
-            ReleaseUnmanagedResources();
+            m_ObjectPool.Release(value);
         }
     }
 }

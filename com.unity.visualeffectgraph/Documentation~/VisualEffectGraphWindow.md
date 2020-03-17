@@ -1,123 +1,123 @@
-<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
-# The Visual Effect Graph Window
+# The Visual Effect Graph window
 
-The Visual Effect Graph Window is the main window of Visual Effect Graph, where users edit Visual Effect Graph assets, and subgraphs.  The window displays the workspace of systems, contexts and operators contained in a  [Visual Effect Graph Asset](VisualEffectGraphAsset.md). 
+The Visual Effect Graph window is the main window for Visual Effect Graph. This is where you can edit Visual Effect Graph Assets, and Subgraph Assets. The window displays a workspace that consists of the Systems, Contexts, and Operators that a  [Visual Effect Graph Asset](VisualEffectGraphAsset.md) contains. 
 
 ![VisualEffectGraph-Window](Images/VisualEffectGraph-Window.png)
 
-## Opening the Visual Effect Graph Window
+## Opening the Visual Effect Graph window
 
-You can open the Visual Effect Graph Window using various methods:
+To open the Visual Effect Graph window, you can use any of the following methods:
 
-* By Double-Clicking a  [Visual Effect Graph](VisualEffectGraphAsset.md) , or [SubGraph](Subgraph.md) Asset, or using the Open button in the Asset inspector.
-* By clicking the Edit Button next to the Asset Template field in the [Visual Effect Inspector](VisualEffectComponent.md) (Doing so also connects the Target Visual Effect GameObject panel to this instance)
-* From the Menu, by clicking Window / Visual Effects / Visual Effect Graph. Opening the window using this method will open an empty editor and require you to open an asset to start working on it.
+* In the Project window, double-Click a [Visual Effect Graph](VisualEffectGraphAsset.md) Asset or [SubGraph](Subgraph.md) Asset. You can also click the **Open** button in the Inspector for the respective Asset. This connects the Asset that you open to the window.
+* In the Inspector for a [Visual Effect component](VisualEffectComponent.md#the-visual-effect-inspector), click the **Edit** button next to the **Asset Template** property. This connects the Asset assigned to **Asset Template** to the window.
+* In the menu, select **Window > Visual Effects > Visual Effect Graph**. This opens an empty Visual Effect Graph window so you need to open a Visual Effect Graph Asset to use the editor.
 
- ## The Visual Effect Graph Window
+## The Visual Effect Graph window layout
 
-The Visual Effect Graph Window is composed of many zones and elements:
+Inside the Visual Effect Graph window, there are multiple zones and panels.
 
 ![VisualEffectGraphWindow](Images/VisualEffectGraph-WindowDetails.png)
 
-- **Toolbar** (Red) : Contains controls that affect the graph globally, and display additional panels
-- **Node Workspace** (Green) : This area is where the graph can be edited and navigated.
-- **Blackboard** (Blue) : This panel displays properties of the graph.
-- **Target Visual Effect GameObject** (Purple) : This panel displays controls to an attached Game Object.
+* **[Toolbar](#Toolbar)** (Red) : This bar contains controls that affect the Visual Effect Graph globally. This includes controls that specify when Unity compiles the Visual Effect Graph as well as controls that let you display/hide certain panels.
+* **[Node Workspace](#NodeWorkspace)** (Green) : This is where you can view and edit the Visual Effect Graph.
+* **[Blackboard](#Blackboard)** (Blue) : This panel displays the properties that the Visual Effect Graph uses.
+* **[Target Visual Effect GameObject](#TargetGameObject)** (Purple) : This panel displays controls for the GameObject currently attached.
 
+<a name="Toolbar"></a>
 ### Toolbar
 
-The Visual Effect Graph Window Toolbar contains functionality to operate on a Visual Effect Graph asset.
+The Visual Effect Graph window Toolbar contains functionality to operate on a Visual Effect Graph Asset.
 
 ![Toolbar](Images/Toolbar.png)
 
-| Item              | Description                                                  |
-| ----------------- | ------------------------------------------------------------ |
-| Auto              | **Toggle** : Toggles Auto-compilation of the Graph           |
-| Compile           | **Action** : Recompiles the Currently opened Graph           |
-| Show in Project   | **Action** : Pings the Currently opened Graph's Asset in the Project View. |
-| Blackboard        | **Toggle** : Toggles visibility ot the **Blackboard Panel**  |
-| Target GameObject | **Toggle** : Toggles visibility of the **Target VisualEffect GameObject Panel** |
-| Advanced          | **Menu:** Displays Advanced Properties <br/> * **Runtime Mode (Forced)**: Forces optimized compilation, even with editor open.<br/> * **Shader Validation (Forced)**: Performs a forced shader compilation upon effect recompile, even if no visual effect is visible, so the shader errors are displayed. <br/> |
+| Item                  | Description                                                  |
+| --------------------- | ------------------------------------------------------------ |
+| **Auto**              | **Toggle** : Toggles Auto-compilation of the Visual Effect Graph. |
+| **Compile**           | **Action** : Recompiles the currently opened Visual Effect Graph. |
+| **Show in Project**   | **Action** : Focuses the currently opened Visual Effect Graph's Asset in the Project window. |
+| **Blackboard**        | **Toggle** : Toggles visibility of the **Blackboard Panel**. |
+| **Target GameObject** | **Toggle** : Toggles visibility of the **Target VisualEffect GameObject Panel**. |
+| **Advanced**          | **Menu:** Displays Advanced Properties. The options are <br/>&#8226; **Runtime Mode (Forced)**: Forces optimized compilation, even when the editor is open.<br/>&#8226; **Shader Validation (Forced)**: Performs a forced Shader compilation when the effect recompiles, even if no visual effect is visible. This displays the Shader errors in the Scene. <br/>&#8226; **Refresh UI**: Refreshes the window UI. |
 
+<a name="NodeWorkspace"></a>
 ### Node Workspace
 
-The node workspace is the whole area below the toolbar where the graph can be navigated and edited. The node workspace also hold the **Blackboard** and **Target VisualEffect GameObject** panels.
+The Node workspace is the area below the toolbar. Here you can navigate around and edit the graph. The Node workspace also holds the **Blackboard** and **Target VisualEffect GameObject** panels.
 
+<a name="Blackboard"></a>
 ### Blackboard
 
-The **Blackboard** is a toggleable panel that is displayed in the Node Workspace. It is a floating panel, independent to the zoom and position of the Workspace View, and it is always displayed on top of the graph.
+The **Blackboard** is a panel that allows you to manage properties that the Visual Effect Graph uses. It is a floating panel that is independent of the zoom and position of the current Workspace view. The window always displays this panel on top of Nodes in the **Node Workspace**.
 
-This panel can be resized by dragging its bottom-right corner and dragged around using its header.
+To resize this panel, click on any edge or corner and drag. To reposition this panel, click on the header of the panel and drag.
 
+For more information, see [Blackboard](Blackboard.md).
+
+<a name="TargetGameObject"></a>
 ### Target Visual Effect GameObject
 
-The **Target Visual Effect GameObjec**t panel is a draggable panel that is displayed in the Node Workspace. It is a floating panel, independent to the zoom and position of the Workspace View, and it is always displayed on top of the graph.
+The **Target Visual Effect GameObject** panel allows you to attach the currently opened Visual Effect Graph to a GameObject and control playback options as well as trigger Events. It is a floating panel that is independent of the zoom and position of the current Workspace view. The window always displays this panel on top of Nodes in the **Node Workspace**.
 
-This panel can be resized by dragging its bottom-right corner and dragged around using its header.
+To resize this panel, click on any edge or corner and drag. To reposition this panel, click on the header of the panel and drag.
 
-## How to use the Node Workspace
+## Using the Node Workspace
 
 ### Navigating the Workspace
 
-The workspace can be navigated using common controls, here is a recap of all actions used to navigate the graph:
+The navigation controls for the Node Workspace are similar to those that other graph-based Unity features use:
 
-#### Pan the graph around :
+#### Move around the graph:
 
-* Dragging Middle Mouse button
-* Dragging Left Mouse button while holding **Alt** Key.
+* Click the Middle Mouse button and drag.
+* Hold the **Alt** key, left click and drag.
 
 #### Zoom in and out using :
 
-* Mouse Wheel
+* To zoom in, scroll the Mouse Wheel up.
+* To zoom out, scroll the Mouse Wheel down.
 
-#### Select Elements:
+#### Select elements:
 
-* By clicking on them individually:
-  * Add to/Remove from current selection by holding **Ctrl** key
-* By making a selection rectangle 
-  * Start dragging from a point in an empty space
-  * Then release the click to select all elements in the rectangle
-  * Add to/Remove from current selection by holding **Ctrl** key
-* By making a selection marquee
-  - Start dragging from a point in an empty space while holding **Shift** key
-  - Then release the click to select all elements touched by the marquee.
+* To select elements individually, click on them.
+  * To add to/remove an element from the current selection, hold the **Ctrl** key and click on it.
+* To create a selection rectangle, click in empty space and drag. This selects every element that the rectangle touches.
+  * You can use a selection rectangle to add to/remove elements from the current selection. To do this, hold the **Ctrl** key and use the method described above to create a new selection rectangle.
+* To create a selection marquee, hold the **Shift** key, click in empty space, and drag to create a path. This selects every element that the path/marquee touches.
+* To clear the current selection, click in empty space.
 
-#### Clear Selection:
+#### Focus
 
-* By clicking into an empty space
-
-#### Focus on selected nodes
-
-*  Press the F key (or on the full graph when nothing is selected)
+*  To focus on a specific Node/group of Nodes, select the Node/Nodes and press the **F** key.
+*  To focus on the entire graph, clear the current selection and press the **F** key.
 
 #### Copy, Cut and Paste, and Duplicate elements:
 
-* Right Click Context Menu items
+* Right click on an element, or group of elements, to open a menu that displays relevant commands.
 * Keyboard Shortcuts:
-  * Ctrl+C (Copy) 
-  * Ctrl+X (Cut) 
-  * Ctrl+V (Paste) 
-  * Ctrl+D (Duplicate)
-  * Ctrl+Alt+D (Duplicate with edges)
+  * **Copy**: Ctrl+C.
+  * **Cut**: Ctrl+X.
+  * **Paste**: Ctrl+V.
+  * **Duplicate**: Ctrl+D.
+  * **Duplicate with edges**: Ctrl+Alt+D.
 
 ### Adding Graph Elements
 
-You can add graph elements using various methods depending on what you need to do:
+To add graph elements, you can use any of the following methods:
 
-- **Right Click Menu** : Using the right click menu, select Add Node, then select the Node you want to add from the menu. This action is context-sensitive, based on the element that stands below your cursor and will provide you only with the graph elements that are compatible.
-- **Spacebar Menu** : This shortcut is the equivalent of making a right-click, then selecting Add Node.
-- **Interactive Connections** : While creating an edge from a port (either property or workflow), drag the edge around and release the click into an empty space to display the Node Menu. This action is context-sensitive and will provide you only the compatible graph elements that you can connect to.
+* **Right Click Menu** : Right click to open the menu, select **Add Node**, then select the **Node** you want to add from the menu. This action is context-sensitive, based on the element that is below your cursor, and only provides you with graph elements that are compatible.
+* **Spacebar Menu** : This shortcut is the equivalent of making a right-click, then selecting **Add Node**.
+* Interactive Connections : When creating an edge from a port (either property or workflow), drag the edge around and release the click into empty space to display the Node Menu. This action is context-sensitive, based on the source port's type, and only provides you with compatible graph elements that you can connect to.
 
-### Manipulating Graph Elements
+### Manipulating graph elements
 
-Graph Elements can be manipulated in the workspace :
+You can manipulate graph elements in the workspace :
 
-#### Dragging Elements
+#### Moving elements
 
-- You can Drag Elements around using the left mouse button.
-- You can Drag Blocks inside a Context or move them to another context using the left mouse button.
+* To move an element around the workspace, left click on the element's header, drag the element to a new position, and release the mouse button.
+* To move [Blocks](Blocks.md) inside a context, or move them to another context, click on the Block's header, drag the Block to a new position, and release the mouse button.
 
-#### Resizing Elements
+#### Resizing elements
 
-Some Elements, such as Sticky Notes, can be resized by dragging their outline or their corners.
+Some elements, such as Sticky Notes, support resizing. To do this, click on any edge or corner, drag until you reach the desired element size, and release the mouse button.
 

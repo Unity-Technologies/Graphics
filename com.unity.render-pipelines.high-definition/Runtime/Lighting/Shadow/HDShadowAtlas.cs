@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int frameOfCacheValidity { get; private set; }
         public int atlasShapeID { get; private set; }
 
-        // TODO: This whole caching system needs to be refactored. At the moment there is lots of unecessary data being copied often. 
+        // TODO: This whole caching system needs to be refactored. At the moment there is lots of unecessary data being copied often.
         HDShadowResolutionRequest[] m_CachedResolutionRequests;
         int m_CachedResolutionRequestsCounter = 0;
 
@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Since we are starting caching light resolution requests, it means that data cached from now on will be valid.
             frameOfCacheValidity++;
 
-            // If it is already registered, we do nothing. 
+            // If it is already registered, we do nothing.
             int shadowIndex = -1;
             for(int i=0; i< m_ListOfCachedShadowRequests.Count; ++i)
             {
@@ -225,7 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (shadowIndex == -1)
             {
-                // First we search if we have a hole we can fill with it. 
+                // First we search if we have a hole we can fill with it.
                 float resolutionOfNewLight = request.atlasViewport.width;
                 request.lastFrameActive = frameCounter;
 
@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (holeWithRightSize >= 0)
                 {
-                    m_ListOfCachedShadowRequests[holeWithRightSize] = request;
+                    m_ListOfCachedShadowRequests[holeWithRightSize] = request.ShallowCopy();
                     return holeWithRightSize;
                 }
                 else
@@ -319,12 +319,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_HasResizedAtlas = true;
                             return true;
                         }
-                        
+
                         return false;
                     }
                     else
                     {
-                        // We can still prune 
+                        // We can still prune
                         PruneDeadCachedLightSlots();
                         // Remove cached slots from the currently sorted list (instead of rebuilding it).
                         // Since it is ordered, the order post deletion is guaranteed.
@@ -552,39 +552,36 @@ namespace UnityEngine.Rendering.HighDefinition
             return (m_BlurAlgorithm == BlurAlgorithm.EVSM) && m_AtlasMoments[0] != null;
         }
 
-        static void EVSMBlurMoments( RenderShadowsParameters parameters,
+        // This is a 9 tap filter, a gaussian with std. dev of 3. This standard deviation with this amount of taps probably cuts
+        // the tail of the gaussian a bit too much, and it is a very fat curve, but it seems to work fine for our use case.
+        static readonly Vector4[] evsmBlurWeights = {
+            new Vector4(0.1531703f, 0.1448929f, 0.1226492f, 0.0929025f),
+            new Vector4(0.06297021f, 0.0f, 0.0f, 0.0f),
+        };
+
+        unsafe static void EVSMBlurMoments( RenderShadowsParameters parameters,
                                             RTHandle atlasRenderTexture,
                                             RTHandle[] momentAtlasRenderTextures,
                                             CommandBuffer cmd)
         {
             ComputeShader shadowBlurMomentsCS = parameters.evsmShadowBlurMomentsCS;
 
-            using (new ProfilingSample(cmd, "Render & Blur Moment Shadows", CustomSamplerId.RenderShadowMaps.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderEVSMShadowMaps)))
             {
                 int generateAndBlurMomentsKernel = shadowBlurMomentsCS.FindKernel("ConvertAndBlur");
                 int blurMomentsKernel = shadowBlurMomentsCS.FindKernel("Blur");
                 int copyMomentsKernel = shadowBlurMomentsCS.FindKernel("CopyMoments");
 
-                Vector4[] blurWeights = new Vector4[2];
-
-                // This is a 9 tap filter, a gaussian with std. dev of 3. This standard deviation with this amount of taps probably cuts
-                // the tail of the gaussian a bit too much, and it is a very fat curve, but it seems to work fine for our use case.
-                blurWeights[0].x = 0.1531703f;
-                blurWeights[0].y = 0.1448929f;
-                blurWeights[0].z = 0.1226492f;
-                blurWeights[0].w = 0.0929025f;
-                blurWeights[1].x = 0.06297021f;
-
                 cmd.SetComputeTextureParam(shadowBlurMomentsCS, generateAndBlurMomentsKernel, HDShaderIDs._DepthTexture, atlasRenderTexture);
-                cmd.SetComputeVectorArrayParam(shadowBlurMomentsCS, HDShaderIDs._BlurWeightsStorage, blurWeights);
+                cmd.SetComputeVectorArrayParam(shadowBlurMomentsCS, HDShaderIDs._BlurWeightsStorage, evsmBlurWeights);
 
                 // We need to store in which of the two moment texture a request will have its last version stored in for a final patch up at the end.
-                int[] finalAtlasTexture = new int[parameters.shadowRequests.Count];
+                var finalAtlasTexture = stackalloc int[parameters.shadowRequests.Count];
 
                 int requestIdx = 0;
                 foreach (var shadowRequest in parameters.shadowRequests)
                 {
-                    using (new ProfilingSample(cmd, "EVSM conversion and blur", CustomSamplerId.RenderShadowMaps.GetSampler()))
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderEVSMShadowMapsBlur)))
                     {
                         int downsampledWidth = Mathf.CeilToInt(shadowRequest.atlasViewport.width * 0.5f);
                         int downsampledHeight = Mathf.CeilToInt(shadowRequest.atlasViewport.height * 0.5f);
@@ -617,7 +614,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         finalAtlasTexture[requestIdx++] = currentAtlasMomentSurface;
-
                     }
                 }
 
@@ -626,7 +622,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (finalAtlasTexture[i] != 0)
                     {
-                        using (new ProfilingSample(cmd, "Copy into main atlas.", CustomSamplerId.RenderShadowMaps.GetSampler()))
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderEVSMShadowMapsCopyToAtlas)))
                         {
                             var shadowRequest = parameters.shadowRequests[i];
                             int downsampledWidth = Mathf.CeilToInt(shadowRequest.atlasViewport.width * 0.5f);
@@ -657,7 +653,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ComputeShader momentCS = parameters.imShadowBlurMomentsCS;
             if (momentCS == null) return;
 
-            using (new ProfilingSample(cmd, "Render Moment Shadows", CustomSamplerId.RenderShadowMaps.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderMomentShadowMaps)))
             {
                 int computeMomentKernel = momentCS.FindKernel("ComputeMomentShadows");
                 int summedAreaHorizontalKernel = momentCS.FindKernel("MomentSummedAreaTableHorizontal");

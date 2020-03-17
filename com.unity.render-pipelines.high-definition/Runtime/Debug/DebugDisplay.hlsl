@@ -12,6 +12,8 @@
 CBUFFER_START(UnityDebugDisplay)
 // Set of parameters available when switching to debug shader mode
 int _DebugLightingMode; // Match enum DebugLightingMode
+int _DebugLightLayersMask;
+float4 _DebugRenderingLayersColors[32];
 int _DebugShadowMapMode;
 float _DebugViewMaterialArray[11]; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
 int _DebugMipMapMode; // Match enum DebugMipMapMode
@@ -39,7 +41,7 @@ uint _DebugContactShadowLightIndex;
 CBUFFER_END
 
 // Local shader variables
-static float g_DebugShadowAttenuation = 0;
+static DirectionalShadowType g_DebugShadowAttenuation = 0;
 
 StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 

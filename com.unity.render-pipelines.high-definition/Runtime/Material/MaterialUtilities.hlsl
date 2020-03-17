@@ -28,10 +28,8 @@ void GetNormalWS(FragInputs input, float3 normalTS, out float3 normalWS, float3 
 #else // SURFACE_GRADIENT
 
 #ifdef _DOUBLESIDED_ON
-    // Just flip the TB in the 'flip normal' mode. Conceptually wrong, but it works.
     float flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.x;
-    input.tangentToWorld[0] = flipSign * input.tangentToWorld[0]; // tangent
-    input.tangentToWorld[1] = flipSign * input.tangentToWorld[1]; // bitangent
+    normalTS.xy *= flipSign;
 #endif // _DOUBLESIDED_ON
 
     // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)

@@ -8,6 +8,34 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class AxF : RenderPipelineMaterial
     {
+        // Misc flags:
+        //
+        // Warning: first bits are those from the importer, make sure they match.
+        //
+        // Others are for further material customization.
+        // Note that contrary to the usual HDRP shaders' MaterialFeatureFlags,
+        // these are NOT necessarily known at static time since we haven't created
+        // shader features for each of them to then set eg surfaceData.materialFeatures.
+        // For this reason, these flags are set in the same shader property than used
+        // by the importer, _Flags.
+        // Some may become static shader_features later and thus become just UI state.
+        [GenerateHLSL(PackingRules.Exact)]
+        public enum FeatureFlags
+        {
+            AxfAnisotropy           = 1 << 0,
+            AxfClearCoat            = 1 << 1,
+            AxfClearCoatRefraction  = 1 << 2,
+            AxfUseHeightMap         = 1 << 3,
+            AxfBRDFColorDiagonalClamp = 1 << 4,
+            //Some TODO:
+            AxfHonorMinRoughness    = 1 << 8,
+            AxfHonorMinRoughnessCoat = 1 << 9,  // the X-Rite viewer never shows a specular highlight on coat for dirac lights
+            //Experimental:
+            //
+            // Warning: don't go over 23, or need to use float and bitcast on the UI side, and in the shader,
+            // use float property/uniform and bitcast in hlsl code asuint()
+        };
+
         //-----------------------------------------------------------------------------
         // SurfaceData
         //-----------------------------------------------------------------------------
@@ -167,8 +195,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Caution: This need to match order define in AxFLTCAreaLight
             LTCAreaLight.LoadLUT(m_LtcData, 0, TextureFormat.RGBAHalf, LTCAreaLight.s_LtcMatrixData_GGX);
+            // Warning: check /Material/AxF/AxFLTCAreaLight/LtcData.GGX2.cs: 5 columns are needed, the entries are NOT normalized!
+            // For now, we patch for this in LoadLUT, which should affect the loading of s_LtcGGXMatrixData for the rest of the materials
+            // (Lit, etc.)
 
             m_LtcData.Apply();
+
+            // TODO BugFix:
+            // We still bind the original data for now, see AxFLTCAreaLight.hlsl: when using a local table, results differ,
+            // even if we patch the non-normalization error in the 8th column when calling the LTCInvMatrix loading routine (LoadLUT).
+            LTCAreaLight.instance.Build();
         }
 
         public override void Cleanup()
@@ -185,6 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // LTC data
             CoreUtils.Destroy(m_LtcData);
+            LTCAreaLight.instance.Cleanup();
         }
 
         public override void RenderInit(CommandBuffer cmd)
@@ -194,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            using (new ProfilingSample(cmd, "PreIntegratedFGD Material Generation for Ward & Cook-Torrance BRDF"))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PreIntegradeWardCookTorrance)))
             {
                 CoreUtils.DrawFullScreen(cmd, m_preIntegratedFGDMaterial_Ward, new RenderTargetIdentifier(m_preIntegratedFGD_Ward));
                 CoreUtils.DrawFullScreen(cmd, m_preIntegratedFGDMaterial_CookTorrance, new RenderTargetIdentifier(m_preIntegratedFGD_CookTorrance));
@@ -215,6 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // LTC Data
             cmd.SetGlobalTexture(_AxFLtcData, m_LtcData);
+            LTCAreaLight.instance.Bind(cmd);
         }
     }
 }

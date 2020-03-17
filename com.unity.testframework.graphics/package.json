@@ -1,11 +1,11 @@
 {
     "name": "com.unity.testframework.graphics",
     "displayName":"Graphics Tests Framework",
-    "version": "8.0.0",
+    "version": "9.0.0-preview.0",
     "unity": "2020.1",
-    "unityRelease": "0a15",
+    "unityRelease": "0a23",
     "description": "Provides test framework helpers for writing tests for graphics code, such as image comparison assertions and automatic management of reference images.",
     "keywords": ["qa", "test", "testing", "tests", "graphics"],
     "dependencies": {
-    }
+      "com.unity.external.test-protocol": "0.0.1-preview.6"}
 }

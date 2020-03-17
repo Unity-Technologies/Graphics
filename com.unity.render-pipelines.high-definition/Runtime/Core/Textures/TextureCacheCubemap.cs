@@ -1,24 +1,35 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     class TextureCacheCubemap : TextureCache
     {
-        private CubemapArray m_Cache;
+        private RenderTexture m_Cache;
 
         const int k_NbFace = 6;
 
         // the member variables below are only in use when TextureCache.supportsCubemapArrayTextures is false
-        private Texture2DArray m_CacheNoCubeArray;
-        private RenderTexture[] m_StagingRTs;
-        private int m_NumPanoMipLevels;
-        private Material m_CubeBlitMaterial;
-        private int m_CubeMipLevelPropName;
-        private int m_cubeSrcTexPropName;
+        Texture2DArray m_CacheNoCubeArray;
+        RenderTexture[] m_StagingRTs;
+        int m_NumPanoMipLevels;
+        Material m_CubeBlitMaterial;
+        int m_CubeMipLevelPropName;
+        int m_cubeSrcTexPropName;
+        Material m_BlitCubemapFaceMaterial;
+        MaterialPropertyBlock m_BlitCubemapFaceProperties;
 
         public TextureCacheCubemap(string cacheName = "", int sliceSize = 1)
             : base(cacheName, sliceSize)
         {
+            var res = HDRenderPipeline.defaultAsset.renderPipelineResources;
+            m_BlitCubemapFaceMaterial = CoreUtils.CreateEngineMaterial(res.shaders.blitCubeTextureFacePS);
+            m_BlitCubemapFaceProperties = new MaterialPropertyBlock();
+        }
+
+        override public bool IsCreated()
+        {
+            return m_Cache.IsCreated();
         }
 
         override protected bool TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture[] textureArray)
@@ -48,16 +59,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (textureArray[0] is Cubemap)
                 {
-                    mismatch |= (m_Cache.format != (textureArray[0] as Cubemap).format);
+                    mismatch |= (m_Cache.graphicsFormat != (textureArray[0] as Cubemap).graphicsFormat);
                 }
 
                 for (int texIDx = 0; texIDx < textureArray.Length; ++texIDx)
                 {
                     if (mismatch)
                     {
+                        m_BlitCubemapFaceProperties.SetTexture(HDShaderIDs._InputTex, textureArray[texIDx]);
+                        m_BlitCubemapFaceProperties.SetFloat(HDShaderIDs._LoD, 0);
                         for (int f = 0; f < 6; f++)
                         {
-                            cmd.ConvertTexture(textureArray[texIDx], f, m_Cache, 6 * (m_SliceSize * sliceIndex + texIDx) + f);
+                            m_BlitCubemapFaceProperties.SetFloat(HDShaderIDs._FaceIndex, (float)f);
+                            CoreUtils.SetRenderTarget(cmd, m_Cache, ClearFlag.None, Color.black, depthSlice: 6 * (m_SliceSize * sliceIndex + texIDx) + f);
+                            CoreUtils.DrawFullScreen(cmd, m_BlitCubemapFaceMaterial, m_BlitCubemapFaceProperties);
                         }
                     }
                     else
@@ -76,7 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return !TextureCache.supportsCubemapArrayTextures ? (Texture)m_CacheNoCubeArray : m_Cache;
         }
 
-        public bool AllocTextureArray(int numCubeMaps, int width, TextureFormat format, bool isMipMapped, Material cubeBlitMaterial)
+        public bool AllocTextureArray(int numCubeMaps, int width, GraphicsFormat format, bool isMipMapped, Material cubeBlitMaterial)
         {
             var res = AllocTextureArray(numCubeMaps);
             m_NumMipLevels = GetNumMips(width, width);      // will calculate same way whether we have cube array or not
@@ -97,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     wrapModeV = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Trilinear,
                     anisoLevel = 0,
-                    name = CoreUtils.GetTextureAutoName(panoWidthTop, panoHeightTop, format, TextureDimension.Tex2DArray, depth: numCubeMaps, name: m_CacheName)
+                    name = CoreUtils.GetTextureAutoName(panoWidthTop, panoHeightTop, TextureFormat.RGBAHalf, TextureDimension.Tex2DArray, depth: numCubeMaps, name: m_CacheName)
                 };
 
                 m_NumPanoMipLevels = isMipMapped ? GetNumMips(panoWidthTop, panoHeightTop) : 1;
@@ -116,17 +131,49 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                m_Cache = new CubemapArray(width, numCubeMaps, format, isMipMapped)
+                var desc = new RenderTextureDescriptor(width, width, format, 0)
+                {
+                    dimension = TextureDimension.CubeArray,
+                    volumeDepth = numCubeMaps * 6, // We need to multiply by the face count of a cubemap here
+                    autoGenerateMips = false,
+                    useMipMap = isMipMapped,
+                    msaaSamples = 1,
+                };
+
+                m_Cache = new RenderTexture(desc)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
                     wrapMode = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Trilinear,
                     anisoLevel = 0, // It is important to set 0 here, else unity force anisotropy filtering
-                    name = CoreUtils.GetTextureAutoName(width, width, format, TextureDimension.CubeArray, depth: numCubeMaps, name: m_CacheName)
+                    name = CoreUtils.GetTextureAutoName(width, width, format, desc.dimension, depth: numCubeMaps, name: m_CacheName, mips: isMipMapped)
                 };
+
+                // We need to clear the content in case it is read on first frame, since on console we have no guarantee that
+                // the content won't be NaN
+                ClearCache();
+                m_Cache.Create();
             }
 
             return res;
+        }
+
+        internal void ClearCache()
+        {
+            var desc = m_Cache.descriptor;
+            bool isMipped = desc.useMipMap;
+            int mipCount = isMipped ? GetNumMips(desc.width, desc.height) : 1;
+            for (int depthSlice = 0; depthSlice < desc.volumeDepth; ++depthSlice)
+            {
+                for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
+                {
+                    for(int faceIdx = 0; faceIdx < 6; ++faceIdx)
+                    {
+                        Graphics.SetRenderTarget(m_Cache, mipIdx, (CubemapFace)faceIdx, depthSlice);
+                        GL.Clear(false, true, Color.clear);
+                    }
+                }
+            }
         }
 
         public void Release()
@@ -142,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.Destroy(m_CubeBlitMaterial);
             }
 
-            CoreUtils.Destroy(m_Cache);
+            m_Cache.Release();
         }
 
         private bool TransferToPanoCache(CommandBuffer cmd, int sliceIndex, Texture[] textureArray)

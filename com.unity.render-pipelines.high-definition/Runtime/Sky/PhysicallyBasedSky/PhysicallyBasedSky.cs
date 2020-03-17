@@ -2,7 +2,10 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [VolumeComponentMenu("Sky/Physically Based Sky (Preview)")]
+    /// <summary>
+    /// Physically Based Sky Volume Component.
+    /// </summary>
+    [VolumeComponentMenu("Sky/Physically Based Sky")]
     [SkyUniqueID((int)SkyType.PhysicallyBased)]
     public class PhysicallyBasedSky : SkySettings
     {
@@ -16,70 +19,128 @@ namespace UnityEngine.Rendering.HighDefinition
         const float k_DefaultAirAlbedoG     = 0.9f; // due to the ozone layer. We assume that ozone
         const float k_DefaultAirAlbedoB     = 1.0f; // has the same height distribution as air (most certainly WRONG).
 
-        [Tooltip("Simplifies the interface by using paramters suitable to simulate Earth.")]
+        /// <summary> Simplifies the interface by using parameters suitable to simulate Earth. </summary>
+        [Tooltip("When enabled, Unity simplifies the interface and only exposes properties suitable to simulate Earth.")]
         public BoolParameter earthPreset = new BoolParameter(true);
-        [Tooltip("Allows to specify the location of the planet. If disabled, the planet is fixed below the camera in the world-space X-Z plane.")]
+
+        /// <summary> Allows to specify the location of the planet. If disabled, the planet is always below the camera in the world-space X-Z plane. </summary>
+        [Tooltip("When enabled, you can define the planet in terms of a world-space position and radius. Otherwise, the planet is always below the Camera in the world-space x-z plane.")]
         public BoolParameter sphericalMode = new BoolParameter(true);
-        [Tooltip("World-space Y coordinate of the sea level of the planet. Units: meters.")]
+
+        /// <summary> World-space Y coordinate of the sea level of the planet. Units: meters. </summary>
+        [Tooltip("Sets the world-space y coordinate of the planet's sea level in meters.")]
         public FloatParameter seaLevel = new FloatParameter(0);
-        [Tooltip("Radius of the planet (distance from the center to the sea level). Units: meters.")]
+
+        /// <summary> Radius of the planet (distance from the center of the planet to the sea level). Units: meters. </summary>
+        [Tooltip("Sets the radius of the planet in meters. This is distance from the center of the planet to the sea level.")]
         public MinFloatParameter planetaryRadius = new MinFloatParameter(k_DefaultEarthRadius, 0);
-        [Tooltip("Position of the center of the planet in the world space. Units: meters.")]
-        // Does not affect the precomputation.
+
+        /// <summary> Position of the center of the planet in the world space. Units: meters. Does not affect the precomputation. </summary>
+        [Tooltip("Sets the world-space position of the planet's center in meters.")]
         public Vector3Parameter planetCenterPosition = new Vector3Parameter(new Vector3(0, -k_DefaultEarthRadius, 0));
-        [Tooltip("Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith.")]
+
+        /// <summary> Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith. </summary>
+        [Tooltip("Controls the red color channel opacity of air at the point in the sky directly above the observer (zenith).")]
         public ClampedFloatParameter airDensityR = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirScatteringR, k_DefaultAirScaleHeight), 0, 1);
+
+        /// <summary> Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith. </summary>
+        [Tooltip("Controls the green color channel opacity of air at the point in the sky directly above the observer (zenith).")]
         public ClampedFloatParameter airDensityG = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirScatteringG, k_DefaultAirScaleHeight), 0, 1);
+
+        /// <summary> Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith. </summary>
+        [Tooltip("Controls the blue color channel opacity of air at the point in the sky directly above the observer (zenith).")]
         public ClampedFloatParameter airDensityB = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirScatteringB, k_DefaultAirScaleHeight), 0, 1);
-        [Tooltip("Single scattering albedo of air molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones.")]
+
+        /// <summary> Single scattering albedo of air molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones. </summary>
+        [Tooltip("Specifies the color that HDRP tints the air to. This controls the single scattering albedo of air molecules (per color channel). A value of 0 results in absorbing molecules, and a value of 1 results in scattering ones.")]
         public ColorParameter airTint = new ColorParameter(new Color(k_DefaultAirAlbedoR, k_DefaultAirAlbedoG, k_DefaultAirAlbedoB), hdr: false, showAlpha: false, showEyeDropper: true);
-        [Tooltip("Depth of the atmospheric layer (from the sea level) composed of air particles. Controls the rate of height-based density falloff. Units: meters.")]
+
+        /// <summary> Depth of the atmospheric layer (from the sea level) composed of air particles. Controls the rate of height-based density falloff. Units: meters. </summary>
+        [Tooltip("Sets the depth, in meters, of the atmospheric layer, from sea level, composed of air particles. Controls the rate of height-based density falloff.")]
         // We assume the exponential falloff of density w.r.t. the height.
         // We can interpret the depth as the height at which the density drops to 0.1% of the initial (sea level) value.
         public MinFloatParameter airMaximumAltitude = new MinFloatParameter(LayerDepthFromScaleHeight(k_DefaultAirScaleHeight), 0);
+
+        /// <summary> Opacity of aerosols as measured by an observer on the ground looking towards the zenith. </summary>
+        [Tooltip("Controls the opacity of aerosols at the point in the sky directly above the observer (zenith).")]
         // Note: aerosols are (fairly large) solid or liquid particles suspended in the air.
-        [Tooltip("Opacity of aerosols as measured by an observer on the ground looking towards the zenith.")]
         public ClampedFloatParameter aerosolDensity = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(10.0f / 1000000, 1200), 0, 1);
-        [Tooltip("Single scattering albedo of aerosol molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones.")]
+
+        /// <summary> Single scattering albedo of aerosol molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones. </summary>
+        [Tooltip("Specifies the color that HDRP tints aerosols to. This controls the single scattering albedo of aerosol molecules (per color channel). A value of 0 results in absorbing molecules, and a value of 1 results in scattering ones.")]
         public ColorParameter aerosolTint = new ColorParameter(new Color(0.9f, 0.9f, 0.9f), hdr: false, showAlpha: false, showEyeDropper: true);
-        [Tooltip("Depth of the atmospheric layer (from the sea level) composed of aerosol particles. Controls the rate of height-based density falloff. Units: meters.")]
+
+        /// <summary> Depth of the atmospheric layer (from the sea level) composed of aerosol particles. Controls the rate of height-based density falloff. Units: meters. </summary>
+        [Tooltip("Sets the depth, in meters, of the atmospheric layer, from sea level, composed of aerosol particles. Controls the rate of height-based density falloff.")]
         // We assume the exponential falloff of density w.r.t. the height.
         // We can interpret the depth as the height at which the density drops to 0.1% of the initial (sea level) value.
         public MinFloatParameter aerosolMaximumAltitude = new MinFloatParameter(LayerDepthFromScaleHeight(1200), 0);
-        [Tooltip("+1: forward  scattering. 0: almost isotropic. -1: backward scattering.")]
+
+        /// <summary> Positive values for forward scattering, 0 for isotropic scattering. negative values for backward scattering. </summary>
+        [Tooltip("Controls the direction of anisotropy. Set this to a positive value for forward scattering, a negative value for backward scattering, or 0 for isotropic scattering.")]
         public ClampedFloatParameter aerosolAnisotropy = new ClampedFloatParameter(0, -1, 1);
-        [Tooltip("Number of scattering events.")]
+
+        /// <summary> Number of scattering events. </summary>
+        [Tooltip("Sets the number of scattering events. This increases the quality of the sky visuals but also increases the pre-computation time.")]
         public ClampedIntParameter numberOfBounces = new ClampedIntParameter(8, 1, 10);
-        [Tooltip("Albedo of the planetary surface.")]
+
+        /// <summary> Ground tint. </summary>
+        [Tooltip("Specifies a color that HDRP uses to tint the Ground Color Texture.")]
         public ColorParameter groundTint = new ColorParameter(new Color(0.4f, 0.25f, 0.15f), hdr: false, showAlpha: false, showEyeDropper: false);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Ground color texture. Does not affect the precomputation. </summary>
+        [Tooltip("Specifies a Texture that represents the planet's surface. Does not affect the precomputation.")]
         public CubemapParameter groundColorTexture = new CubemapParameter(null);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Ground emission texture. Does not affect the precomputation. </summary>
+        [Tooltip("Specifies a Texture that represents the emissive areas of the planet's surface. Does not affect the precomputation.")]
         public CubemapParameter groundEmissionTexture = new CubemapParameter(null);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Ground emission multiplier. Does not affect the precomputation. </summary>
+        [Tooltip("Sets the multiplier that HDRP applies to the Ground Emission Texture.")]
         public MinFloatParameter groundEmissionMultiplier = new MinFloatParameter(1, 0);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Rotation of the planet. Does not affect the precomputation. </summary>
+        [Tooltip("Sets the orientation of the planet. Does not affect the precomputation.")]
         public Vector3Parameter planetRotation = new Vector3Parameter(Vector3.zero);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Space emission texture. Does not affect the precomputation. </summary>
+        [Tooltip("Specifies a Texture that represents the emissive areas of space. Does not affect the precomputation.")]
         public CubemapParameter spaceEmissionTexture = new CubemapParameter(null);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Space emission multiplier. Does not affect the precomputation. </summary>
+        [Tooltip("Sets the multiplier that HDRP applies to the Space Emission Texture. Does not affect the precomputation.")]
         public MinFloatParameter spaceEmissionMultiplier = new MinFloatParameter(1, 0);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Rotation of space. Does not affect the precomputation. </summary>
+        [Tooltip("Sets the orientation of space. Does not affect the precomputation.")]
         public Vector3Parameter spaceRotation = new Vector3Parameter(Vector3.zero);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Color saturation. Does not affect the precomputation. </summary>
+        [Tooltip("Controls the saturation of the sky color. Does not affect the precomputation.")]
         public ClampedFloatParameter colorSaturation = new ClampedFloatParameter(1, 0, 1);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Opacity saturation. Does not affect the precomputation. </summary>
+        [Tooltip("Controls the saturation of the sky opacity. Does not affect the precomputation.")]
         public ClampedFloatParameter alphaSaturation = new ClampedFloatParameter(1, 0, 1);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Opacity multiplier. Does not affect the precomputation. </summary>
+        [Tooltip("Sets the multiplier that HDRP applies to the opacity of the sky. Does not affect the precomputation.")]
         public ClampedFloatParameter alphaMultiplier = new ClampedFloatParameter(1, 0, 1);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Horizon tint. Does not affect the precomputation. </summary>
+        [Tooltip("Specifies a color that HDRP uses to tint the sky at the horizon. Does not affect the precomputation.")]
         public ColorParameter horizonTint = new ColorParameter(Color.white, hdr: false, showAlpha: false, showEyeDropper: false);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Zenith tint. Does not affect the precomputation. </summary>
+        [Tooltip("Specifies a color that HDRP uses to tint the point in the sky directly above the observer (the zenith). Does not affect the precomputation.")]
         public ColorParameter zenithTint = new ColorParameter(Color.white, hdr: false, showAlpha: false, showEyeDropper: false);
-        // Hack. Does not affect the precomputation.
+
+        /// <summary> Horizon-zenith shift. Does not affect the precomputation. </summary>
+        [Tooltip("Controls how HDRP blends between the Horizon Tint and Zenith Tint. Does not affect the precomputation.")]
         public ClampedFloatParameter horizonZenithShift = new ClampedFloatParameter(0, -1, 1);
 
-        static float ScaleHeightFromLayerDepth(float d)
+        static internal float ScaleHeightFromLayerDepth(float d)
         {
             // Exp[-d / H] = 0.001
             // -d / H = Log[0.001]
@@ -87,12 +148,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return d * 0.144765f;
         }
 
-        static float LayerDepthFromScaleHeight(float H)
+        static internal float LayerDepthFromScaleHeight(float H)
         {
             return H / 0.144765f;
         }
 
-        static float ExtinctionFromZenithOpacityAndScaleHeight(float alpha, float H)
+        static internal float ExtinctionFromZenithOpacityAndScaleHeight(float alpha, float H)
         {
             float opacity  = Mathf.Min(alpha, 0.999999f);
             float optDepth = -Mathf.Log(1 - opacity, 2.71828183f); // product of extinction and H
@@ -100,14 +161,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return optDepth / H;
         }
 
-        static float ZenithOpacityFromExtinctionAndScaleHeight(float ext, float H)
+        static internal float ZenithOpacityFromExtinctionAndScaleHeight(float ext, float H)
         {
             float optDepth = ext * H;
 
             return 1 - Mathf.Exp(-optDepth);
         }
 
-        public float GetAirScaleHeight()
+        internal float GetAirScaleHeight()
         {
             if (earthPreset.value)
             {
@@ -119,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public float GetPlanetaryRadius()
+        internal float GetPlanetaryRadius()
         {
             if (earthPreset.value)
             {
@@ -131,7 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public Vector3 GetPlanetCenterPosition(Vector3 camPosWS)
+        internal Vector3 GetPlanetCenterPosition(Vector3 camPosWS)
         {
             if (sphericalMode.value)
             {
@@ -146,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public Vector3 GetAirExtinctionCoefficient()
+        internal Vector3 GetAirExtinctionCoefficient()
         {
             Vector3 airExt = new Vector3();
 
@@ -166,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return airExt;
         }
 
-        public Vector3 GetAirAlbedo()
+        internal Vector3 GetAirAlbedo()
         {
             Vector3 airAlb = new Vector3();
 
@@ -186,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return airAlb;
         }
 
-        public Vector3 GetAirScatteringCoefficient()
+        internal Vector3 GetAirScatteringCoefficient()
         {
             Vector3 airExt = GetAirExtinctionCoefficient();
             Vector3 airAlb = GetAirAlbedo();
@@ -197,17 +258,17 @@ namespace UnityEngine.Rendering.HighDefinition
                                airExt.z * airAlb.z);
         }
 
-        public float GetAerosolScaleHeight()
+        internal float GetAerosolScaleHeight()
         {
             return ScaleHeightFromLayerDepth(aerosolMaximumAltitude.value);
         }
 
-        public float GetAerosolExtinctionCoefficient()
+        internal float GetAerosolExtinctionCoefficient()
         {
             return ExtinctionFromZenithOpacityAndScaleHeight(aerosolDensity.value, GetAerosolScaleHeight());
         }
 
-        public Vector3 GetAerosolScatteringCoefficient()
+        internal Vector3 GetAerosolScatteringCoefficient()
         {
             float aerExt = GetAerosolExtinctionCoefficient();
 
@@ -218,15 +279,52 @@ namespace UnityEngine.Rendering.HighDefinition
 
         PhysicallyBasedSky()
         {
-            displayName = "Physically Based Sky (Preview)";
+            displayName = "Physically Based Sky";
         }
 
-        public int GetPrecomputationHashCode()
+        internal int GetPrecomputationHashCode()
         {
             int hash = base.GetHashCode();
 
             unchecked
             {
+#if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
+                // These parameters affect precomputation.
+                hash = hash * 23 + earthPreset.value.GetHashCode();
+                hash = hash * 23 + planetaryRadius.value.GetHashCode();
+                hash = hash * 23 + groundTint.value.GetHashCode();
+
+                hash = hash * 23 + airMaximumAltitude.value.GetHashCode();
+                hash = hash * 23 + airDensityR.value.GetHashCode();
+                hash = hash * 23 + airDensityG.value.GetHashCode();
+                hash = hash * 23 + airDensityB.value.GetHashCode();
+                hash = hash * 23 + airTint.value.GetHashCode();
+
+                hash = hash * 23 + aerosolMaximumAltitude.value.GetHashCode();
+                hash = hash * 23 + aerosolDensity.value.GetHashCode();
+                hash = hash * 23 + aerosolTint.value.GetHashCode();
+                hash = hash * 23 + aerosolAnisotropy.value.GetHashCode();
+
+                hash = hash * 23 + numberOfBounces.value.GetHashCode();
+
+                // These parameters affect precomputation.
+                hash = hash * 23 + earthPreset.overrideState.GetHashCode();
+                hash = hash * 23 + planetaryRadius.overrideState.GetHashCode();
+                hash = hash * 23 + groundTint.overrideState.GetHashCode();
+
+                hash = hash * 23 + airMaximumAltitude.overrideState.GetHashCode();
+                hash = hash * 23 + airDensityR.overrideState.GetHashCode();
+                hash = hash * 23 + airDensityG.overrideState.GetHashCode();
+                hash = hash * 23 + airDensityB.overrideState.GetHashCode();
+                hash = hash * 23 + airTint.overrideState.GetHashCode();
+
+                hash = hash * 23 + aerosolMaximumAltitude.overrideState.GetHashCode();
+                hash = hash * 23 + aerosolDensity.overrideState.GetHashCode();
+                hash = hash * 23 + aerosolTint.overrideState.GetHashCode();
+                hash = hash * 23 + aerosolAnisotropy.overrideState.GetHashCode();
+
+                hash = hash * 23 + numberOfBounces.overrideState.GetHashCode();
+#else
                 // These parameters affect precomputation.
                 hash = hash * 23 + earthPreset.GetHashCode();
                 hash = hash * 23 + planetaryRadius.GetHashCode();
@@ -244,17 +342,74 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + aerosolAnisotropy.GetHashCode();
 
                 hash = hash * 23 + numberOfBounces.GetHashCode();
+#endif
             }
 
             return hash;
         }
 
+        /// <summary> Returns the hash code of the parameters of the sky. </summary>
+        /// <returns> The hash code of the parameters of the sky. </returns>
         public override int GetHashCode()
         {
             int hash = GetPrecomputationHashCode();
 
             unchecked
             {
+#if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
+                // These parameters do NOT affect precomputation.
+                hash = hash * 23 + sphericalMode.value.GetHashCode();
+                hash = hash * 23 + seaLevel.value.GetHashCode();
+                hash = hash * 23 + planetCenterPosition.value.GetHashCode();
+                hash = hash * 23 + planetRotation.value.GetHashCode();
+
+                if (groundColorTexture.value != null)
+                    hash = hash * 23 + groundColorTexture.value.GetHashCode();
+
+                if (groundEmissionTexture.value != null)
+                    hash = hash * 23 + groundEmissionTexture.value.GetHashCode();
+
+                hash = hash * 23 + groundEmissionMultiplier.value.GetHashCode();
+
+                hash = hash * 23 + spaceRotation.value.GetHashCode();
+
+                if (spaceEmissionTexture.value != null)
+                    hash = hash * 23 + spaceEmissionTexture.value.GetHashCode();
+
+                hash = hash * 23 + spaceEmissionMultiplier.value.GetHashCode();
+                hash = hash * 23 + colorSaturation.value.GetHashCode();
+                hash = hash * 23 + alphaSaturation.value.GetHashCode();
+                hash = hash * 23 + alphaMultiplier.value.GetHashCode();
+                hash = hash * 23 + horizonTint.value.GetHashCode();
+                hash = hash * 23 + zenithTint.value.GetHashCode();
+                hash = hash * 23 + horizonZenithShift.value.GetHashCode();
+
+                hash = hash * 23 + sphericalMode.overrideState.GetHashCode();
+                hash = hash * 23 + seaLevel.overrideState.GetHashCode();
+                hash = hash * 23 + planetCenterPosition.overrideState.GetHashCode();
+                hash = hash * 23 + planetRotation.overrideState.GetHashCode();
+
+                if (groundColorTexture.value != null)
+                    hash = hash * 23 + groundColorTexture.overrideState.GetHashCode();
+
+                if (groundEmissionTexture.value != null)
+                    hash = hash * 23 + groundEmissionTexture.overrideState.GetHashCode();
+
+                hash = hash * 23 + groundEmissionMultiplier.overrideState.GetHashCode();
+
+                hash = hash * 23 + spaceRotation.overrideState.GetHashCode();
+
+                if (spaceEmissionTexture.value != null)
+                    hash = hash * 23 + spaceEmissionTexture.overrideState.GetHashCode();
+
+                hash = hash * 23 + spaceEmissionMultiplier.overrideState.GetHashCode();
+                hash = hash * 23 + colorSaturation.overrideState.GetHashCode();
+                hash = hash * 23 + alphaSaturation.overrideState.GetHashCode();
+                hash = hash * 23 + alphaMultiplier.overrideState.GetHashCode();
+                hash = hash * 23 + horizonTint.overrideState.GetHashCode();
+                hash = hash * 23 + zenithTint.overrideState.GetHashCode();
+                hash = hash * 23 + horizonZenithShift.overrideState.GetHashCode();
+#else
                 // These parameters do NOT affect precomputation.
                 hash = hash * 23 + sphericalMode.GetHashCode();
                 hash = hash * 23 + seaLevel.GetHashCode();
@@ -281,11 +436,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + horizonTint.GetHashCode();
                 hash = hash * 23 + zenithTint.GetHashCode();
                 hash = hash * 23 + horizonZenithShift.GetHashCode();
+#endif
             }
 
             return hash;
         }
 
+        /// <summary> Returns the type of the sky renderer. </summary>
+        /// <returns> PhysicallyBasedSkyRenderer type. </returns>
         public override Type GetSkyRendererType() { return typeof(PhysicallyBasedSkyRenderer); }
     }
 }

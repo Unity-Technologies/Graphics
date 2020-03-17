@@ -9,7 +9,7 @@ Subgraphs can be used in graphs as three main usages:
 * **Block Subgraph** : A set of [Blocks](Blocks.md) and [Operators](Operators.md) packaged together and used as a Block
 * **Operator Subgraph** : A set of [Operators](Operators.md) packaged together and used as an Operator.
 
-Subgraphs enable factorizing commonly used sets of nodes in a graph into reusable assets and adds them to the Library.
+Subgraphs enable factorizing commonly used sets of Nodes in a graph into reusable Assets and adds them to the Library.
 
 ## System Subgraphs
 
@@ -32,14 +32,14 @@ You can create a System Subgraph using the following:
 
 ### Editing Block Subgraphs
 
-You can edit a System Subgraph by opening it in the Visual Effect Graph Window:
+You can edit a System Subgraph by opening it in the Visual Effect Graph window:
 
 - By double clicking the Visual Effect Graph Asset in the Project view
 - By right-clicking the System Subgraph Context and selecting Enter Subgraph in the context menu.
 
 ### Using a System Subgraph in a Visual Effect Graph
 
-You can add a System Subgraph Node to your Graph by dragging a Visual Effect Graph from your Project View to the Visual Effect Graph Window.
+You can add a System Subgraph Node to your Graph by dragging a Visual Effect Graph from your Project View to the Visual Effect Graph window.
 
 ### Customizing System Subgraph Nodes
 
@@ -64,18 +64,18 @@ You can create a Block Subgraph using the following:
 
 ### Editing Block Subgraphs
 
-You can edit a Block Subgraph by opening it in the Visual Effect Graph Window:
+You can edit a Block Subgraph by opening it in the Visual Effect Graph window:
 
 * By double clicking the Subgraph Asset in the Project view
-* By right-clicking the subgraph block and selecting Enter Subgraph in the context menu.
+* By right-clicking the subgraph Block and selecting Enter Subgraph in the context menu.
 
 
 
 ![](Images/BlockSubgraphContext.png)
 
-Block Subgraphs display a non-removable Context named "Block Subgraph" where blocks can be added.
+Block Subgraphs display a non-removable Context named "Block Subgraph" where Blocks can be added.
 
-* All blocks present in the context will be executed in their order when used as a subgraph
+* All Blocks present in the context will be executed in their order when used as a subgraph
 * Context can be customized using the following Properties:
   * **Suitable Contexts** : Determine Which Context types are compatible with the Block Subgraph
 
@@ -83,12 +83,12 @@ Block Subgraphs display a non-removable Context named "Block Subgraph" where blo
 
 You can add a Block Subgraph Node to your Graph:
 
-*  By dragging a Visual Effect Subgraph Block asset from your Project View to the Visual Effect Graph Window, inside a Context's Block Area.
-* Using the Add Block Menu, by typing the Block Subgraph asset name.
+*  By dragging a Visual Effect Subgraph Block Asset from your Project View to the Visual Effect Graph window, inside a Context's Block Area.
+* Using the Add Block Menu, by typing the Block Subgraph Asset name.
 
 ### Customizing Block Subgraphs
 
-You can customize properties just like they would be on a regular block, but you can also use Operators to create custom expressions in order to extend the behavior of the block used as subgraph.
+You can customize properties just like they would be on a regular Block, but you can also use Operators to create custom expressions in order to extend the behavior of the Block used as subgraph.
 
 ## Operator Subgraphs
 
@@ -107,10 +107,10 @@ You can create an Operator Subgraph using the following:
 
 ### Editing Operator Subgraphs
 
-You can edit an Operator Subgraph by opening it in the Visual Effect Graph Window:
+You can edit an Operator Subgraph by opening it in the Visual Effect Graph window:
 
 - By double clicking the Subgraph Asset in the Project view
-- By right-clicking the subgraph block and selecting Enter Subgraph in the context menu.
+- By right-clicking the subgraph Block and selecting Enter Subgraph in the context menu.
 
 You can set up Input and Output Properties for the Operator using the Blackboard Window:
 
@@ -121,9 +121,9 @@ You can set up Input and Output Properties for the Operator using the Blackboard
 
 You can add an Operator Subgraph Node to your Graph:
 
-- By dragging a Visual Effect Subgraph Block asset from your Project View to the Visual Effect Graph Window, inside a Context's Block Area.
-- Using the Add Block Menu, by typing the Block Subgraph asset name.
+- By dragging a Visual Effect Subgraph Block Asset from your Project View to the Visual Effect Graph window, inside a Context's Block Area.
+- Using the Add Block Menu, by typing the Block Subgraph Asset name.
 
 ### Customizing Operator Subgraphs
 
-You can customize properties just like they would be on a regular block, but you can also use Operators to create custom expressions in order to extend the behavior of the block used as subgraph.
+You can customize properties just like they would be on a regular Block, but you can also use Operators to create custom expressions in order to extend the behavior of the Block used as subgraph.

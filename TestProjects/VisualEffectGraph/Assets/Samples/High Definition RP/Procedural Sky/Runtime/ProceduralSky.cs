@@ -25,6 +25,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
+#if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
+                hash = hash * 23 + sunSize.value.GetHashCode();
+                hash = hash * 23 + sunSizeConvergence.value.GetHashCode();
+                hash = hash * 23 + atmosphereThickness.value.GetHashCode();
+                hash = hash * 23 + skyTint.value.GetHashCode();
+                hash = hash * 23 + groundColor.value.GetHashCode();
+                hash = hash * 23 + multiplier.value.GetHashCode();
+                hash = hash * 23 + enableSunDisk.value.GetHashCode();
+
+                hash = hash * 23 + sunSize.overrideState.GetHashCode();
+                hash = hash * 23 + sunSizeConvergence.overrideState.GetHashCode();
+                hash = hash * 23 + atmosphereThickness.overrideState.GetHashCode();
+                hash = hash * 23 + skyTint.overrideState.GetHashCode();
+                hash = hash * 23 + groundColor.overrideState.GetHashCode();
+                hash = hash * 23 + multiplier.overrideState.GetHashCode();
+                hash = hash * 23 + enableSunDisk.overrideState.GetHashCode();
+#else
                 hash = hash * 23 + sunSize.GetHashCode();
                 hash = hash * 23 + sunSizeConvergence.GetHashCode();
                 hash = hash * 23 + atmosphereThickness.GetHashCode();
@@ -32,6 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + groundColor.GetHashCode();
                 hash = hash * 23 + multiplier.GetHashCode();
                 hash = hash * 23 + enableSunDisk.GetHashCode();
+#endif
             }
 
             return hash;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -599,12 +600,13 @@ namespace UnityEditor.VFX.UI
             else if (e.controller is VFXNodeController)
             {
                 UpdateUIBounds();
-                if (e.controller is VFXContextController)
+                if (e.controller is VFXContextController && e.target is VFXContextUI)
                 {
                     if (m_ComponentBoard != null)
                     {
                         m_ComponentBoard.UpdateEventList();
                     }
+                    UpdateSystemNames();
                 }
             }
         }
@@ -670,7 +672,7 @@ namespace UnityEditor.VFX.UI
             }
 
             m_InControllerChanged = false;
-            if(change != VFXViewController.Change.dataEdge)
+            if (change != VFXViewController.Change.dataEdge)
                 UpdateSystems();
 
             if (m_UpdateUIBounds)
@@ -1140,9 +1142,10 @@ namespace UnityEditor.VFX.UI
 
         void OnCompile()
         {
-            var graph = controller.graph;
-            graph.SetExpressionGraphDirty();
-            graph.RecompileIfNeeded(false, false);
+            if( controller.model.isSubgraph)
+                controller.graph.RecompileIfNeeded(false, false);
+            else
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
         }
 
 
@@ -1602,7 +1605,7 @@ namespace UnityEditor.VFX.UI
             object result = VFXCopy.Copy(sourceControllers, bounds);
 
             var targetControllers = new List<VFXNodeController>();
-            VFXPaste.Paste(controller, pasteCenter, result, null, null, targetControllers);
+            VFXPaste.Paste(controller, pasteCenter, result, this, null, targetControllers);
 
             ClearSelection();
             for (int i = 0; i < sourceControllers.Count; ++i)
@@ -1610,7 +1613,11 @@ namespace UnityEditor.VFX.UI
                 if(targetControllers[i] != null)
                 {
                     CopyInputLinks(sourceControllers[i] as VFXNodeController, targetControllers[i]);
-                    AddToSelection(rootNodes[targetControllers[i]]);
+
+                    if (targetControllers[i] is VFXBlockController blkController)
+                        AddToSelection((rootNodes[blkController.contextController] as VFXContextUI).GetAllBlocks().First(t=> t.controller == blkController));
+                    else
+                        AddToSelection(rootNodes[targetControllers[i]]);
                 }
             }
 
@@ -1823,7 +1830,7 @@ namespace UnityEditor.VFX.UI
                 evt.menu.InsertAction(evt.target is VFXContextUI ? 1 : 0, "Group Selection", (e) => { GroupSelection(); },
                     (e) => { return canGroupSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
 
-                if( node.controller.model is VFXSubgraphOperator || node.controller.model is VFXSubgraphContext || node.controller.model is VFXSubgraphBlock)
+                if( (node.controller.model is VFXSubgraphOperator subOp && subOp.subgraph != null )|| (node.controller.model is VFXSubgraphContext subCont && subCont.subgraph != null ) || (node.controller.model is VFXSubgraphBlock subBlk && subBlk.subgraph != null ))
                 {
                     evt.menu.AppendAction("Enter Subgraph",OnEnterSubgraph,e=>DropdownMenuAction.Status.Normal, node.controller.model);
                 }
@@ -1852,7 +1859,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                if( VFXViewWindow.currentWindow.resourceHistory.Count() > 0)
+                if( VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.resourceHistory.Count() > 0)
                 {
                     evt.menu.AppendAction(" Back To Parent Graph", e => VFXViewWindow.currentWindow.PopResource());
                 }
@@ -1937,6 +1944,20 @@ namespace UnityEditor.VFX.UI
 
         List<VFXSystemBorder> m_Systems = new List<VFXSystemBorder>();
 
+        public ReadOnlyCollection<VFXSystemBorder> systems
+        {
+            get { return m_Systems.AsReadOnly(); }
+        }
+
+        public void UpdateSystemNames()
+        {
+            if (m_Systems != null)
+                foreach (var system in m_Systems)
+                {
+                    system.Update();
+                }
+        }
+
         public void UpdateSystems()
         {
             while (m_Systems.Count() > controller.systems.Count())
@@ -1946,10 +1967,7 @@ namespace UnityEditor.VFX.UI
                 border.RemoveFromHierarchy();
             }
 
-            foreach(var system in m_Systems)
-            {
-                system.Update();
-            }
+            UpdateSystemNames();
 
             while (m_Systems.Count() < controller.systems.Count())
             {
@@ -1958,10 +1976,17 @@ namespace UnityEditor.VFX.UI
                 AddElement(border);
                 border.controller = controller.systems[m_Systems.Count() - 1];
             }
+
+            foreach(var context in GetAllContexts())
+            {
+                context.UpdateLabel();
+            }
         }
 
         void OnDragUpdated(DragUpdatedEvent e)
         {
+            if (controller == null)
+                return;
             if (DragAndDrop.GetGenericData("DragSelection") != null && selection.Any(t => t is VFXBlackboardField && (t as VFXBlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null))
             {
                 VFXBlackboardField selectedField = selection.OfType<VFXBlackboardField>().Where(t => t.GetFirstAncestorOfType<VFXBlackboardRow>() != null).First();
@@ -2006,6 +2031,8 @@ namespace UnityEditor.VFX.UI
 
         void OnDragPerform(DragPerformEvent e)
         {
+            if (controller == null)
+                return;
             var groupNode = GetPickedGroupNode(e.mousePosition);
 
             if (DragAndDrop.GetGenericData("DragSelection") != null && selection.Any(t => t is BlackboardField && (t as BlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null))

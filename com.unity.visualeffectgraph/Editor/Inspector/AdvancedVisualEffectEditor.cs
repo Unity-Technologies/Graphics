@@ -131,6 +131,10 @@ namespace UnityEditor.VFX
             {
                 base.OnDisable();
             }
+            else
+            {
+                OnDisableWithoutResetting();
+            }
 
             m_ContextsPerComponent.Clear();
             EditMode.editModeStarted -= OnEditModeStart;
@@ -155,19 +159,17 @@ namespace UnityEditor.VFX
                 OnEditEnd();
         }
 
-        protected override void AssetField()
+        protected override void AssetField(VisualEffectResource resource)
         {
             using (new GUILayout.HorizontalScope())
             {
                 EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
 
-                GUI.enabled = ! m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+                GUI.enabled = !m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null && resource != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
                 if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
                 {
                     VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-
                     var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
-
                     window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
                 }
                 GUI.enabled = true;
@@ -184,14 +186,14 @@ namespace UnityEditor.VFX
             );
         }
 
-        VFXParameter GetParameter(string name)
+        VFXParameter GetParameter(string name, VisualEffectResource resource)
         {
             VisualEffect effect = (VisualEffect)target;
 
             if (effect.visualEffectAsset == null)
                 return null;
 
-            VFXGraph graph = effect.visualEffectAsset.GetResource().graph as VFXGraph;
+            VFXGraph graph = resource.graph as VFXGraph;
             if (graph == null)
                 return null;
 
@@ -206,19 +208,19 @@ namespace UnityEditor.VFX
 
         List<VFXParameter> m_GizmoableParameters = new List<VFXParameter>();
 
-        protected override void EmptyLineControl(string name, string tooltip, int depth)
+        protected override void EmptyLineControl(string name, string tooltip, int depth, VisualEffectResource resource)
         {
             if (depth != 1)
             {
-                base.EmptyLineControl(name, tooltip, depth);
+                base.EmptyLineControl(name, tooltip, depth, resource);
                 return;
             }
 
-            VFXParameter parameter = GetParameter(name);
+            VFXParameter parameter = GetParameter(name, resource);
 
             if (!VFXGizmoUtility.HasGizmo(parameter.type))
             {
-                base.EmptyLineControl(name, tooltip, depth);
+                base.EmptyLineControl(name, tooltip, depth, resource);
                 return;
             }
 
@@ -230,7 +232,7 @@ namespace UnityEditor.VFX
             m_GizmoableParameters.Add(parameter);
             if (!m_GizmoDisplayed)
             {
-                base.EmptyLineControl(name, tooltip, depth);
+                base.EmptyLineControl(name, tooltip, depth, resource);
                 return;
             }
 
@@ -314,7 +316,7 @@ namespace UnityEditor.VFX
         {
             base.OnSceneViewGUI(sv);
 
-            if (m_GizmoDisplayed && m_GizmoedParameter != null)
+            if (m_GizmoDisplayed && m_GizmoedParameter != null && m_GizmoableParameters.Count > 0 && ((VisualEffect)target).visualEffectAsset != null)
             {
                 ContextAndGizmo context = GetGizmo();
 

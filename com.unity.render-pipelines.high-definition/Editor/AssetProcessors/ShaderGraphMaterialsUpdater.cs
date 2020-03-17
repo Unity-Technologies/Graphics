@@ -1,16 +1,17 @@
+using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
-using UnityEditor;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     class HDSaveContext
     {
-        public bool updateMaterials; 
+        public bool updateMaterials;
     }
 
     [InitializeOnLoad]
-    public class ShaderGraphMaterialsUpdater
+    class ShaderGraphMaterialsUpdater
     {
         const string kMaterialFilter = "t:Material";
 
@@ -21,6 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void OnShaderGraphSaved(Shader shader, object saveContext)
         {
+            HDRenderPipeline.currentPipeline.ResetPathTracing();
+
             // In case the shader is not HDRP
             if (!(saveContext is HDSaveContext hdSaveContext))
                 return;

@@ -8,39 +8,33 @@ using System.Text;
 
 namespace UnityEditor.VFX
 {
-    class VFXDataMesh : VFXData, ISerializationCallbackReceiver
+    class VFXDataMesh : VFXData
     {
         [SerializeField, FormerlySerializedAs("shader")]
         private Shader m_Shader;
 
         [SerializeField]
-        private string shaderGUID;
+        private string m_ShaderName;
 
         public Shader shader
         {
-            get { return m_Shader; }
+            get {
+                //This is needed for standard shaders ( for instance Unlit/Color ) that are not deserialized correctly during first import.
+                if (m_Shader == null && !object.ReferenceEquals(m_Shader,null) && !string.IsNullOrEmpty(m_ShaderName))
+                {
+                    Shader newShader = Shader.Find(m_ShaderName);
+                    if (newShader != null)
+                        m_Shader = newShader;
+                }
+                return m_Shader;
+            }
             set
             {
                 m_Shader = value;
                 DestroyCachedMaterial();
+                if( m_Shader != null)
+                    m_ShaderName = m_Shader.name;
             }
-        }
-
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
-        {
-            if (m_Shader != null)
-            {
-                string assetPath = AssetDatabase.GetAssetPath(m_Shader);
-                if( ! string.IsNullOrEmpty(assetPath))
-                    shaderGUID = AssetDatabase.AssetPathToGUID(assetPath);
-            }
-            else
-                shaderGUID = null;
-        }
-
-        void ISerializationCallbackReceiver.OnAfterDeserialize()
-        {
-            //Restoration code moved to OnEnable
         }
 
         private Material m_CachedMaterial = null; // Transient material used to retrieve key words and properties
@@ -50,18 +44,17 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
-            if( ! object.ReferenceEquals(shader,null)) // try to get back the correct object from the instance id in case we point on a "null" ScriptableObject which can exists because of reimport.
-                shader = EditorUtility.InstanceIDToObject(shader.GetInstanceID()) as Shader;
 
-            if ( shader == null && !string.IsNullOrEmpty(shaderGUID))
+            if (object.ReferenceEquals(shader,null)) shader = VFXResources.defaultResources.shader;
+
+            if( m_Shader != null)
             {
-                // restore shader from saved GUID in case of loss
-                string assetPath = AssetDatabase.GUIDToAssetPath(shaderGUID);
-                if( !string.IsNullOrEmpty(assetPath))
-                shader = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
+                if(m_ShaderName != m_Shader.name )
+                {
+                    m_ShaderName = m_Shader.name;
+                    EditorUtility.SetDirty(this);
+                }
             }
-
-            if (shader == null) shader = VFXResources.defaultResources.shader;
         }
 
         public void RefreshShader()
@@ -118,7 +111,8 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
-            Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
+            Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
+            VFXSystemNames systemNames = null)
         {
             var context = m_Owners[0];
             var contextData = contextToCompiledData[context];

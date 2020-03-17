@@ -11,6 +11,9 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl" // Require for GetIndexColor auto generated
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.cs.hlsl"
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+
 //-----------------------------------------------------------------------------
 // helper macro
 //-----------------------------------------------------------------------------
@@ -63,13 +66,13 @@ void DecodeDistortion(float4 inBuffer, out float2 distortion, out float distorti
     isValidSource = (inBuffer.z != 0.0);
 }
 
-void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 result, inout bool needLinearToSRGB)
+void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, PositionInputs posInput, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBuiltinDataDebug(paramId, builtinData, result, needLinearToSRGB);
 
     switch (paramId)
     {
-    case DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING:
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_BAKED_DIFFUSE_LIGHTING:
         // TODO: require a remap
         // TODO: we should not gamma correct, but easier to debug for now without correct high range value
         result = builtinData.bakeDiffuseLighting; needLinearToSRGB = true;
@@ -79,6 +82,25 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION:
         result = float3((builtinData.distortion / (abs(builtinData.distortion) + 1) + 1) * 0.5, 0.5);
+        break;
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS:
+        // Only 8 first rendering layers are currently in use (used by light layers)
+        // This mode shows only those layers
+
+        uint stripeSize = 8;
+        int lightLayers = (builtinData.renderingLayers & _DebugLightLayersMask) & 0xFF;
+        uint layerId = 0, layerCount = countbits(lightLayers);
+
+        result = float3(0, 0, 0);
+        for (uint i = 0; (i < 8) && (layerId < layerCount); i++)
+        {
+            if (lightLayers & (1 << i))
+            {
+                if ((posInput.positionSS.y / stripeSize) % layerCount == layerId)
+                    result = _DebugRenderingLayersColors[i].xyz;
+                layerId++;
+            }
+        }
         break;
     }
 }

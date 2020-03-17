@@ -173,6 +173,7 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>Draw the hull which means the boxes without the handles</summary>
+        /// <param name="filled">If true, also fill the faces of the hull</param>
         public void DrawHull(bool filled)
         {
             Color previousColor = Handles.color;

@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipelineRayTracingResources : ScriptableObject
+    partial class HDRenderPipelineRayTracingResources : ScriptableObject
     {
         // Reflection
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Reflections/RaytracingReflections.raytrace")]
@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Shadows
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadow.raytrace")]
         public RayTracingShader shadowRaytracingRT;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RayTracingContactShadow.raytrace")]
+        public RayTracingShader contactShadowRayTracingRT;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadow.compute")]
         public ComputeShader shadowRaytracingCS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadowFilter.compute")]
@@ -34,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Shader lightClusterDebugS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute")]
         public ComputeShader lightClusterDebugCS;
-        
+
         // Indirect Diffuse
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuse/RaytracingIndirectDiffuse.raytrace")]
         public RayTracingShader indirectDiffuseRaytracingRT;
@@ -45,6 +47,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace")]
         public RayTracingShader aoRaytracing;
 
+        // Sub-Surface Scattering
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RayTracingSubSurface.raytrace")]
+        public RayTracingShader subSurfaceRayTracing;
+
         // Denoising
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/TemporalFilter.compute")]
         public ComputeShader temporalFilterCS;
@@ -54,6 +60,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ComputeShader diffuseDenoiserCS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReflectionDenoiser.compute")]
         public ComputeShader reflectionDenoiserCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseShadowDenoiser.compute")]
+        public ComputeShader diffuseShadowDenoiserCS;
 
         // Deferred Lighting
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingGBuffer.raytrace")]
@@ -76,6 +84,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Filtering for reflections
         [Reload("Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png")]
         public Texture2D reflectionFilterMapping;
+        [Reload("Runtime/RenderPipelineResources/Texture/ShadowKernelMapping.asset")]
+        public Texture3D shadowFilterMapping;
+        
 
 #if UNITY_EDITOR
         [UnityEditor.CustomEditor(typeof(HDRenderPipelineRayTracingResources))]
@@ -89,8 +100,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
                     && GUILayout.Button("Reload All"))
                 {
-                    var resources = target as HDRenderPipelineRayTracingResources;
-                    resources = null;
+                    foreach (var field in typeof(HDRenderPipelineRayTracingResources).GetFields())
+                        field.SetValue(target, null);
+
                     ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
                 }
             }

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public sealed partial class DiffusionProfileSettingsEditor
+    sealed partial class DiffusionProfileSettingsEditor
     {
         sealed class Styles
         {

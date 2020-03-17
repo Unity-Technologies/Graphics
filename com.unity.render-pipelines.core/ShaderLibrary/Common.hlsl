@@ -91,6 +91,7 @@
 
 #define real2x2 half2x2
 #define real2x3 half2x3
+#define real2x4 half2x4
 #define real3x2 half3x2
 #define real3x3 half3x3
 #define real3x4 half3x4
@@ -126,6 +127,7 @@
 
 #define real2x2 float2x2
 #define real2x3 float2x3
+#define real2x4 float2x4
 #define real3x2 float3x2
 #define real3x3 float3x3
 #define real3x4 float3x4
@@ -157,9 +159,9 @@
 
 // Include language header
 #if defined(SHADER_API_XBOXONE)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/XBoxOne.hlsl"
+#include "Packages/com.unity.render-pipelines.xboxone/ShaderLibrary/API/XBoxOne.hlsl"
 #elif defined(SHADER_API_PSSL)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/PSSL.hlsl"
+#include "Packages/com.unity.render-pipelines.ps4/ShaderLibrary/API/PSSL.hlsl"
 #elif defined(SHADER_API_D3D11)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl"
 #elif defined(SHADER_API_METAL)
@@ -913,7 +915,7 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 t
     ZERO_INITIALIZE(PositionInputs, posInput);
 
     posInput.positionNDC = positionSS;
-#if SHADER_STAGE_COMPUTE || SHADER_STAGE_RAYTRACING
+#if defined(SHADER_STAGE_COMPUTE) || defined(SHADER_STAGE_RAY_TRACING)
     // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
     posInput.positionNDC.xy += float2(0.5, 0.5);
 #endif
@@ -1097,7 +1099,7 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
     return float4(x, y, z, 1.0);
 }
 
-#if !defined(SHADER_API_GLES)
+#if !defined(SHADER_API_GLES) && !defined(SHADER_STAGE_RAY_TRACING)
 
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0
@@ -1120,11 +1122,11 @@ void LODDitheringTransition(uint2 fadeMaskSeed, float ditherFactor)
 // while on other APIs is in the red channel. Note that on some platform, always using the green channel might work, but is not guaranteed.
 uint GetStencilValue(uint2 stencilBufferVal)
 {
-#if defined(SHADER_API_D3D11)
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE)  
     return stencilBufferVal.y;
 #else
     return stencilBufferVal.x;
 #endif
-}
+} 
 
 #endif // UNITY_COMMON_INCLUDED

@@ -18,6 +18,8 @@ To set up refraction on your Material, you need to do the following:
 
 For more information on the properties that control refraction, see [Surface Type](Surface-Type.html). 
 
+Note that, intuitively, the less smooth the material is for the refracting object the blurrier the refraction will be.
+
 Settings up a Probe Proxy Volume is also necessary if you want to use screen space refraction effectively. This is because screen space refraction uses the Probe Proxy Volume to approximate the scene and find the correct refracted color. To obtain the best results, the proxy volume should approximate as much of the Scene where refracted rays are intended to land as possible. For more information on proxy volumes, see  the [Reflection Proxy Volume](Reflection-Proxy-Volume.html) page. 
 
 ## Refraction calculation

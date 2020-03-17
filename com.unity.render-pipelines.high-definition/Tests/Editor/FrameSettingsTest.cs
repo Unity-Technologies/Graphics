@@ -29,6 +29,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             var values = Enum.GetValues(typeof(FrameSettingsField));
             var singleValues = (values as IEnumerable<int>).Distinct();
 
+#pragma warning disable 0612 // Type or member is obsolete
+            var excluded = new List<FrameSettingsField> { FrameSettingsField.RoughRefraction };
+#pragma warning restore 0612 // Type or member is obsolete
+
             //gathering helpful debug info
             var messageDuplicates = new StringBuilder();
             if (values.Length != singleValues.Count())
@@ -36,9 +40,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 var names = Enum.GetNames(typeof(FrameSettingsField));
                 for (int i = 0; i < values.Length - 1; ++i)
                 {
-                    var a = values.GetValue(i);
-                    var b = values.GetValue(i + 1);
-                    if ((int)values.GetValue(i) == (int)values.GetValue(i + 1))
+                    var a = (int)values.GetValue(i);
+                    var b = (int)values.GetValue(i + 1);
+                    if (a == b && !excluded.Contains((FrameSettingsField)a))
                     {
                         messageDuplicates.AppendFormat("{{ {0}: {1}, {2}", (int)values.GetValue(i), names[i], names[i + 1]);
                         ++i;
@@ -63,8 +67,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     availables.AppendFormat("{0} ", i);
             }
             Debug.Log($"Available bit in FrameSettings: {availables}");
-
-            Assert.AreEqual(values.Length, singleValues.Count(), String.Format("Double bit index found: {0}\nNumber of bit index against number of distinct bit index:", messageDuplicates.ToString()));
+            // Weirdly if we pass directly the String.Format statement, the assert.Equal function generates an exception so we create it here.
+            var errorMessage = String.Format("Double bit index found: {0}\nNumber of bit index against number of distinct bit index:", messageDuplicates.ToString());
+            Assert.AreEqual(values.Length - excluded.Count, singleValues.Count(), errorMessage);
         }
 
         // deactivate this test for template package making issue
@@ -322,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             public bool enableMotionVectors = false; // Enable/disable whole motion vectors pass (Camera + Object).
             public bool enableObjectMotionVectors = false;
             public bool enableDecals = false;
-            public bool enableRoughRefraction = false; // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
+            public bool enableRoughRefraction = false; // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable refraction ?
             public bool enableTransparentPostpass = false;
             public bool enableDistortion = false;
             public bool enablePostprocess = false;
@@ -426,7 +431,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual(legacyFrameSettingsData.enableMotionVectors, frameSettingsData.IsEnabled(FrameSettingsField.MotionVectors));
                 Assert.AreEqual(legacyFrameSettingsData.enableObjectMotionVectors, frameSettingsData.IsEnabled(FrameSettingsField.ObjectMotionVectors));
                 Assert.AreEqual(legacyFrameSettingsData.enableDecals, frameSettingsData.IsEnabled(FrameSettingsField.Decals));
-                Assert.AreEqual(legacyFrameSettingsData.enableRoughRefraction, frameSettingsData.IsEnabled(FrameSettingsField.RoughRefraction));
+                Assert.AreEqual(legacyFrameSettingsData.enableRoughRefraction, frameSettingsData.IsEnabled(FrameSettingsField.Refraction));
                 Assert.AreEqual(legacyFrameSettingsData.enableTransparentPostpass, frameSettingsData.IsEnabled(FrameSettingsField.TransparentPostpass));
                 Assert.AreEqual(legacyFrameSettingsData.enableDistortion, frameSettingsData.IsEnabled(FrameSettingsField.Distortion));
                 Assert.AreEqual(legacyFrameSettingsData.enablePostprocess, frameSettingsData.IsEnabled(FrameSettingsField.Postprocess));
@@ -465,7 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.MotionVectors) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.MotionVectors]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.ObjectMotionVectors) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.ObjectMotionVectors]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.Decals) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.Decals]);
-                Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.RoughRefraction) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.RoughRefraction]);
+                Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.RoughRefraction) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.Refraction]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.TransparentPostpass) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.TransparentPostpass]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.Distortion) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.Distortion]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.Postprocess) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.Postprocess]);

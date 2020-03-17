@@ -1,49 +1,47 @@
-<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
 # Blocks
 
-Blocks are Nodes that define the behavior of a [Context](Contexts.md). They are placed by the user and can be reordered in a Context Block Area. During the execution of the Effect Behavior they are executed from top to bottom.
+Blocks are Nodes that define the behavior of a [Context](Contexts.md). You can create and reorder Blocks within a Context and, when Unity plays a visual effect, Blocks execute from top to bottom.
 
 ![](Images/BlockUI.png)
 
-Blocks can be used for many purposes, from simple value storage (for example, random Color) to high-level complex operations such as Noise Turbulence, Forces or Collisions.
+You can use Blocks for many purposes, from simple value storage (for example, a random Color) to high-level complex operations such as Noise Turbulence, Forces, or Collisions.
 
 ## Adding Blocks
 
-You can add Blocks to a context by:
+To add a Block to a Context, either:
 
-* Right Clicking the context and selecting "Create Block" from the context menu.
-* Pressing the spacebar with the cursor hovering  a context.
+* Right click the Context and select **Create Block** from the context menu.
+* With the cursor above a Context, press the spacebar.
 
-> Tip: The block newly created will be placed at the closest position of the cursor. Use this to place blocks directly at the correct position.
+**Note**: Unity places the Block that you create at the closest position to the cursor. Use this behavior to place Blocks in the correct position.
 
 ## Manipulating Blocks
 
-Blocks are nodes that you can manipulate in a bit different way than regular nodes. They are stacked into a container and their workflow logic connect vertically without visible links.
+Blocks are essentially Nodes that have a different workflow logic. Blocks are always stacked within a container, called a [Context](Contexts.md) and their workflow logic connects vertically without visible links.
 
-* You can reorder Blocks by Dragging their header using the mouse...
-  * ...among the same Context container.
-  * ... to another compatible Context.
-* You can cut, copy, paste, and duplicate blocks
-  * Using the Right-click context menu
-  * Using the following Keyboard Shortcuts:
-    * * On Windows 
-        - Ctrl + X : Cut
-        - Ctrl + C : Copy
-        - Ctrl + D : Duplicate
-      - Ctrl + V : Paste
-      * On OSX
-        - Cmd + X : Cut
-        - Cmd + C : Copy
-        - Cmd + D : Duplicate
-        - Cmd + V : Paste
+* To move a Block, click the Block's header and drag it to another compatible Context.
   
-* You can Disable a block by unticking its enabled checkbox located in the top-right corner.
-  * Disabling a block will disable it totally and will remove it from the compilation.
-  * Toggling block will require a recompilation of the graph.
+* To reorder a Block, click click the Block's header and drag it to a different position in the same Context.
+  
+* You can also cut, copy, paste, and duplicate Blocks. To do this:
+  * Right click on the Bode and select the command from the context menu.
+  * Select the Block and use the following Keyboard shortcuts:
+	    * On Windows
+          * **Copy**: Ctrl+C.
+          * **Cut**: Ctrl+X.
+          * **Paste**: Ctrl+V.
+          * **Duplicate**: Ctrl+D.
+	    * On OSX
+          * **Copy**: Cmd+C.
+          * **Cut**: Cmd+X.
+          * **Paste**: Cmd+V.
+          * **Duplicate**: Cmd+D.
+  
+* To disable a Block, disable the checkbox to the right of the Block's header. This requires you to recompile the graph.
 
 ## Configuring Blocks
 
-Adjusting Block [Settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector can change the way the Block looks and behaves. 
+To change the way that the Block looks and behaves, adjust the Block's [Settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector. 
 
-> For instance, Changing the Composition Setting (in inspector) of a `Set Velocity` block, from Overwrite to Blend, will change the node title to `Blend Velocity` , and will add a Blend property to the Node UI as well.
+For example, if, in the Inspector, you change the Composition Settings of a **Set Velocity** Block from **Overwrite** to **Blend**, this changes the title of the Node to **Blend Velocity** and adds a **Blend** property to the Node UI.
 

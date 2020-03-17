@@ -1,77 +1,129 @@
 using System;
+using UnityEngine.Serialization;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     // RenderRenderPipelineSettings represent settings that are immutable at runtime.
     // There is a dedicated RenderRenderPipelineSettings for each platform
 
+    /// <summary>
+    /// Possible values for the cubemap texture size used for reflection probes.
+    /// </summary>
     [Serializable]
     public enum CubeReflectionResolution
     {
+        /// <summary>Size 128</summary>
         CubeReflectionResolution128 = 128,
+        /// <summary>Size 256</summary>
         CubeReflectionResolution256 = 256,
+        /// <summary>Size 512</summary>
         CubeReflectionResolution512 = 512,
+        /// <summary>Size 1024</summary>
         CubeReflectionResolution1024 = 1024,
+        /// <summary>Size 2048</summary>
         CubeReflectionResolution2048 = 2048,
+        /// <summary>Size 4096</summary>
         CubeReflectionResolution4096 = 4096
     }
 
+    /// <summary>
+    /// Possible values for the texture 2D size used for planar reflection probes.
+    /// </summary>
     [Serializable]
-    public enum PlanarReflectionResolution
+    public enum PlanarReflectionAtlasResolution
     {
+        /// <summary>Size 64</summary>
         PlanarReflectionResolution64 = 64,
+        /// <summary>Size 128</summary>
         PlanarReflectionResolution128 = 128,
+        /// <summary>Size 256</summary>
         PlanarReflectionResolution256 = 256,
+        /// <summary>Size 512</summary>
         PlanarReflectionResolution512 = 512,
+        /// <summary>Size 1024</summary>
         PlanarReflectionResolution1024 = 1024,
+        /// <summary>Size 2048</summary>
         PlanarReflectionResolution2048 = 2048,
+        /// <summary>Size 4096</summary>
         PlanarReflectionResolution4096 = 4096,
+        /// <summary>Size 8192</summary>
         PlanarReflectionResolution8192 = 8192,
+        /// <summary>Size 16384</summary>
         PlanarReflectionResolution16384 = 16384
     }
 
+    /// <summary>
+    /// Possible values for the texture 2D size used for cookies.
+    /// </summary>
     [Serializable]
-    public enum CookieResolution
+    public enum CookieAtlasResolution
     {
+        /// <summary>Size 64</summary>
         CookieResolution64 = 64,
+        /// <summary>Size 128</summary>
         CookieResolution128 = 128,
+        /// <summary>Size 256</summary>
         CookieResolution256 = 256,
+        /// <summary>Size 512</summary>
         CookieResolution512 = 512,
+        /// <summary>Size 1024</summary>
         CookieResolution1024 = 1024,
+        /// <summary>Size 2048</summary>
         CookieResolution2048 = 2048,
+        /// <summary>Size 4096</summary>
         CookieResolution4096 = 4096,
+        /// <summary>Size 8192</summary>
         CookieResolution8192 = 8192,
+        /// <summary>Size 16384</summary>
         CookieResolution16384 = 16384
     }
 
+    /// <summary>
+    /// Possible values for the cubemap texture size used for cookies.
+    /// </summary>
     [Serializable]
     public enum CubeCookieResolution
     {
+        /// <summary>Size 64</summary>
         CubeCookieResolution64 = 64,
+        /// <summary>Size 128</summary>
         CubeCookieResolution128 = 128,
+        /// <summary>Size 256</summary>
         CubeCookieResolution256 = 256,
+        /// <summary>Size 512</summary>
         CubeCookieResolution512 = 512,
+        /// <summary>Size 1024</summary>
         CubeCookieResolution1024 = 1024,
+        /// <summary>Size 2048</summary>
         CubeCookieResolution2048 = 2048,
+        /// <summary>Size 4096</summary>
         CubeCookieResolution4096 = 4096
     }
 
+    /// <summary>
+    /// Global Light Loop Settings.
+    /// </summary>
     [Serializable]
     public struct GlobalLightLoopSettings
     {
+        internal static readonly GlobalLightLoopSettings @default = default;
         /// <summary>Default GlobalDecalSettings</summary>
-        [Obsolete("Since 2019.3, use GlobalLightLoopSettings.NewDefault() instead.")]
-        public static readonly GlobalLightLoopSettings @default = default;
-        /// <summary>Default GlobalDecalSettings</summary>
-        public static GlobalLightLoopSettings NewDefault() => new GlobalLightLoopSettings()
+        internal static GlobalLightLoopSettings NewDefault() => new GlobalLightLoopSettings()
         {
-            cookieSize = CookieResolution.CookieResolution128,
-            cookieTexArraySize = 16,
+            cookieAtlasSize = CookieAtlasResolution.CookieResolution2048,
+            cookieFormat = CookieAtlasGraphicsFormat.R11G11B10,
             pointCookieSize = CubeCookieResolution.CubeCookieResolution128,
             cubeCookieTexArraySize = 16,
 
-            planarReflectionProbeCacheSize = 2,
-            planarReflectionTextureSize = PlanarReflectionResolution.PlanarReflectionResolution1024,
+            cookieAtlasLastValidMip = 0,
+
+// We must keep this value for migration purpose (when we create a new HDRP asset it is migrated to the last version)
+#pragma warning disable 618 // Type or member is obsolete
+            cookieTexArraySize = 1,
+#pragma warning restore 618
+
+            planarReflectionAtlasSize = PlanarReflectionAtlasResolution.PlanarReflectionResolution1024,
             reflectionProbeCacheSize = 64,
             reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256,
 
@@ -83,28 +135,54 @@ namespace UnityEngine.Rendering.HighDefinition
             maxAreaLightsOnScreen = 64,
             maxEnvLightsOnScreen = 64,
             maxDecalsOnScreen = 512,
+            maxPlanarReflectionOnScreen = 16,
         };
 
-        public CookieResolution cookieSize;
-        public int cookieTexArraySize;
+        /// <summary>Cookie atlas resolution.</summary>
+        [FormerlySerializedAs("cookieSize")]
+        public CookieAtlasResolution cookieAtlasSize;
+        /// <summary>Cookie atlas graphics format.</summary>
+        public CookieAtlasGraphicsFormat cookieFormat;
+        /// <summary>Cookie atlas resolution for point lights.</summary>
         public CubeCookieResolution pointCookieSize;
+        /// <summary>Maximum number of cached cookies for point lights.</summary>
         public int cubeCookieTexArraySize;
+        /// <summary>Last valid mip for cookie atlas.</summary>
+        public int cookieAtlasLastValidMip;
+        // We keep this property for the migration code (we need to know how many cookies we could have before).
+        [SerializeField, Obsolete("There is no more texture array for cookies, use cookie atlases properties instead.")]
+        internal int cookieTexArraySize;
 
-        public int planarReflectionProbeCacheSize;
-        public PlanarReflectionResolution planarReflectionTextureSize;
+        /// <summary>Planar reflections atlas resolution.</summary>
+        [FormerlySerializedAs("planarReflectionTextureSize")]
+        public PlanarReflectionAtlasResolution planarReflectionAtlasSize;
+        /// <summary>Maximum number of cached reflection probes.</summary>
         public int reflectionProbeCacheSize;
+        /// <summary>Reflection probes resolution.</summary>
         public CubeReflectionResolution reflectionCubemapSize;
+        /// <summary>Enable reflection probe cache compression.</summary>
         public bool reflectionCacheCompressed;
+        /// <summary>Enable planar probe cache compression.</summary>
         public bool planarReflectionCacheCompressed;
 
+        /// <summary>Resolution of the sky reflection cubemap.</summary>
         public SkyResolution skyReflectionSize;
+        /// <summary>LayerMask used for sky lighting override.</summary>
         public LayerMask skyLightingOverrideLayerMask;
+        /// <summary>Enable fabric specific convolution for probes and sky lighting.</summary>
         public bool supportFabricConvolution;
 
+        /// <summary>Maximum number of directional lights at the same time on screen.</summary>
         public int maxDirectionalLightsOnScreen;
+        /// <summary>Maximum number of punctual lights at the same time on screen.</summary>
         public int maxPunctualLightsOnScreen;
+        /// <summary>Maximum number of area lights at the same time on screen.</summary>
         public int maxAreaLightsOnScreen;
+        /// <summary>Maximum number of environment lights at the same time on screen.</summary>
         public int maxEnvLightsOnScreen;
+        /// <summary>Maximum number of decals at the same time on screen.</summary>
         public int maxDecalsOnScreen;
+        /// <summary>Maximum number of planar reflections at the same time on screen.</summary>
+        public int maxPlanarReflectionOnScreen;
     }
 }

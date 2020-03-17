@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         );
 
         [SerializeField]
-        Version m_CSVersion;
+        Version m_CSVersion = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_CSVersion; set => m_CSVersion = value; }
 
         // Obsolete fields
@@ -34,7 +34,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("m_BoxInfiniteProjection"), Obsolete("Kept only for compatibility. Use m_Shape instead")]
         bool m_ObsoleteBoxInfiniteProjection = false;
 
+        /// <summary>Serialization callback</summary>
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }
+        /// <summary>Serialization callback</summary>
         void ISerializationCallbackReceiver.OnAfterDeserialize() => k_Migration.Migrate(this);
     }
 }
