@@ -725,7 +725,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 ShowCookieTextureWarnings(serialized.settings.cookie);
             }
-            else if (serialized.areaLightShape == AreaLightShape.Rectangle)
+            else if (serialized.areaLightShape == AreaLightShape.Rectangle || serialized.areaLightShape == AreaLightShape.Disc)
             {
                 EditorGUILayout.ObjectField( serialized.areaLightCookie, s_Styles.areaLightCookie );
                 ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture);

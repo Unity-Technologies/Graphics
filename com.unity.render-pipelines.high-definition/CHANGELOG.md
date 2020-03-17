@@ -84,6 +84,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the exposure sliders to the planar reflection probe preview
 - Added support for subsurface scattering in path tracing.
 - Added a new mode that improves the filtering of ray traced shadows (directional, point and spot) based on the distance to the occluder.
+- Added support of cookie baking and add support on Disc light.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
