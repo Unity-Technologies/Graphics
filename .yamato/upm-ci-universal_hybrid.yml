@@ -26,14 +26,14 @@ platforms:
     components:
       - editor
       - il2cpp
-  - name: OSX_OpenGLCore
-    os: macos
-    type: Unity::VM::osx
-    image: buildfarm/mac:stable
-    flavor: m1.mac
-    components:
-      - editor
-      - il2cpp
+#  - name: OSX_OpenGLCore
+#    os: macos
+#    type: Unity::VM::osx
+#    image: buildfarm/mac:stable
+#    flavor: m1.mac
+#    components:
+#      - editor
+#      - il2cpp
   - name: Linux
     os: linux
     type: Unity::VM::GPU
