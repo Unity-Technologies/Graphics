@@ -19,6 +19,20 @@
 #define VFX_FLT_MIN 1.175494351e-38
 #define VFX_EPSILON 1e-5
 
+//Could be programmatically generated if modified
+#define VERTEXATTRIBUTEFORMAT_FLOAT32   0
+#define VERTEXATTRIBUTEFORMAT_FLOAT16   1
+#define VERTEXATTRIBUTEFORMAT_UNORM8    2
+#define VERTEXATTRIBUTEFORMAT_SNORM8    3
+#define VERTEXATTRIBUTEFORMAT_UNORM16   4
+#define VERTEXATTRIBUTEFORMAT_SNORM16   5
+#define VERTEXATTRIBUTEFORMAT_UINT8     6
+#define VERTEXATTRIBUTEFORMAT_SINT8     7
+#define VERTEXATTRIBUTEFORMAT_UINT16    8
+#define VERTEXATTRIBUTEFORMAT_SINT16    9
+#define VERTEXATTRIBUTEFORMAT_UINT32    10
+#define VERTEXATTRIBUTEFORMAT_SINT32    11
+
 #pragma warning(disable : 3557) // disable warning for auto unrolling of single iteration loop
 
 struct VFXSampler2D
@@ -287,12 +301,50 @@ float FixedRand(uint seed)
 ///////////////////
 // Mesh sampling //
 ///////////////////
+float4 SampleMeshFloat4(Buffer<float> vertices, uint offset, uint channelFormatAndDimension)
+{
+    if (channelFormatAndDimension == -1)
+        return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    return float4(vertices[offset], vertices[offset + 1u], vertices[offset + 2u], vertices[offset + 3u]);
+}
+
+float3 SampleMeshFloat3(Buffer<float> vertices, uint offset, uint channelFormatAndDimension)
+{
+    if (channelFormatAndDimension == -1)
+        return float3(0.0f, 0.0f, 0.0f);
+    return float3(vertices[offset], vertices[offset + 1u], vertices[offset + 2u]);
+}
+
+float2 SampleMeshFloat2(Buffer<float> vertices, uint offset, uint channelFormatAndDimension)
+{
+    if (channelFormatAndDimension == -1)
+        return float2(0.0f, 0.0f);
+    return float2(vertices[offset], vertices[offset + 1]);
+}
+
+float SampleMeshFloat(Buffer<float> vertices, uint offset, uint channelFormatAndDimension)
+{
+    if (channelFormatAndDimension == -1)
+        return 0.0f;
+    return vertices[offset];
+}
+
+float4 SampleMeshColor(Buffer<float> vertices, uint offset, uint channelFormatAndDimension)
+{
+    if (channelFormatAndDimension == -1)
+        return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    uint colorByte = asuint(vertices[offset]);
+    float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
+    return float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
+}
+
+//Deprecated function for compatibility 2020.1
 float4 SampleMeshFloat4(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
     if (channelOffset == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
     uint offset = vertexIndex * vertexStride + channelOffset;
-    return float4(vertices[offset], vertices[offset + 1u], vertices[offset + 2u], vertices[offset + 3u]);
+    return SampleMeshFloat4(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (4 << 8));
 }
 
 float3 SampleMeshFloat3(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
@@ -300,7 +352,7 @@ float3 SampleMeshFloat3(Buffer<float> vertices, uint vertexIndex, uint channelOf
     if (channelOffset == -1)
         return float3(0.0f, 0.0f, 0.0f);
     uint offset = vertexIndex * vertexStride + channelOffset;
-    return float3(vertices[offset], vertices[offset + 1u], vertices[offset + 2u]);
+    return SampleMeshFloat3(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (3 << 8));
 }
 
 float2 SampleMeshFloat2(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
@@ -308,25 +360,26 @@ float2 SampleMeshFloat2(Buffer<float> vertices, uint vertexIndex, uint channelOf
     if (channelOffset == -1)
         return float2(0.0f, 0.0f);
     uint offset = vertexIndex * vertexStride + channelOffset;
-    return float2(vertices[offset], vertices[offset + 1]);
+    return SampleMeshFloat2(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (2 << 8));
 }
 
 float SampleMeshFloat(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
 {
     if (channelOffset == -1)
         return 0.0f;
-    int offset = vertexIndex * vertexStride + channelOffset;
-    return vertices[offset];
+    uint offset = vertexIndex * vertexStride + channelOffset;
+    return SampleMeshFloat(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (1 << 8));
 }
 
 float4 SampleMeshColor(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
 {
     if (channelOffset == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    uint colorByte = asuint(vertices[vertexIndex * vertexStride + channelOffset]);
-    float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
-    return float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
+
+    uint offset = vertexIndex * vertexStride + channelOffset;
+    return SampleMeshColor(vertices, offset, VERTEXATTRIBUTEFORMAT_UNORM8 | (4 << 8));
 }
+//En of deprecated function for 2020.1 compatibility
 
 ///////////////////////////
 // Color transformations //

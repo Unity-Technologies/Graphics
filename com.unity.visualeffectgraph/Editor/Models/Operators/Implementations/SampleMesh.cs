@@ -81,7 +81,12 @@ namespace UnityEditor.VFX.Operator
                 case VertexAttributeFlag.TexCoord4:
                 case VertexAttributeFlag.TexCoord5:
                 case VertexAttributeFlag.TexCoord6:
-                case VertexAttributeFlag.TexCoord7: return typeof(Vector2);
+                case VertexAttributeFlag.TexCoord7:
+#if UNITY_2020_2_OR_NEWER
+                    return typeof(Vector2);
+#else
+                    return typeof(Vector4);
+#endif
                 case VertexAttributeFlag.BlendWeight: return typeof(Vector4);
                 case VertexAttributeFlag.BlendIndices: return typeof(Vector4);
                 default: throw new InvalidOperationException("Unexpected attribute : " + attribute);
@@ -126,17 +131,33 @@ namespace UnityEditor.VFX.Operator
         {
             var mesh = inputExpression[0];
 
-            var meshVertexStride = new VFXExpressionMeshVertexStride(mesh);
-            var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
-            var vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshVertexCount, adressingMode);
+            VFXExpression meshVertexStride = new VFXExpressionMeshVertexStride(mesh);
+            VFXExpression meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
+            VFXExpression vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshVertexCount, adressingMode);
 
             var outputExpressions = new List<VFXExpression>();
             foreach (var vertexAttribute in GetOutputVertexAttributes())
             {
-                var meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<uint>((uint)GetActualVertexAttribute(vertexAttribute)));
+                var channelIndex = VFXValue.Constant<uint>((uint)GetActualVertexAttribute(vertexAttribute));
+                var meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, channelIndex);
 
                 var outputType = GetOutputType(vertexAttribute);
                 VFXExpression sampled = null;
+
+#if UNITY_2020_2_OR_NEWER
+                var meshChannelFormatAndDimension = new VFXExpressionMeshChannelFormatAndDimension(mesh, channelIndex);
+                var vertexOffset = vertexIndex * meshVertexStride + meshChannelOffset;
+                if (vertexAttribute == VertexAttributeFlag.Color)
+                    sampled = new VFXExpressionSampleMeshColor(mesh, vertexOffset, meshChannelFormatAndDimension);
+                else if (outputType == typeof(float))
+                    sampled = new VFXExpressionSampleMeshFloat(mesh, vertexOffset, meshChannelFormatAndDimension);
+                else if (outputType == typeof(Vector2))
+                    sampled = new VFXExpressionSampleMeshFloat2(mesh, vertexOffset, meshChannelFormatAndDimension);
+                else if (outputType == typeof(Vector3))
+                    sampled = new VFXExpressionSampleMeshFloat3(mesh, vertexOffset, meshChannelFormatAndDimension);
+                else
+                    sampled = new VFXExpressionSampleMeshFloat4(mesh, vertexOffset, meshChannelFormatAndDimension);
+#else
                 if (vertexAttribute == VertexAttributeFlag.Color)
                     sampled = new VFXExpressionSampleMeshColor(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
                 else if (outputType == typeof(float))
@@ -147,6 +168,7 @@ namespace UnityEditor.VFX.Operator
                     sampled = new VFXExpressionSampleMeshFloat3(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
                 else
                     sampled = new VFXExpressionSampleMeshFloat4(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
+#endif
                 outputExpressions.Add(sampled);
             }
             return outputExpressions.ToArray();

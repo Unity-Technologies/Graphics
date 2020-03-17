@@ -14,6 +14,162 @@ namespace UnityEditor.VFX
         public static readonly VFXExpression.Flags kCommonFlag = VFXExpression.Flags.InvalidConstant;
     }
 
+#if UNITY_2020_2_OR_NEWER
+    class VFXExpressionSampleMeshFloat : VFXExpression
+    {
+        public VFXExpressionSampleMeshFloat() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionSampleMeshFloat(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        {
+        }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshWithFormatFloat; } }
+
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var meshReduce = constParents[0];
+            var vertexOffsetReduce = constParents[1];
+            var channelFormatAndDimensionReduce = constParents[2];
+
+            var mesh = meshReduce.Get<Mesh>();
+            var vertexOffset = vertexOffsetReduce.Get<uint>();
+            var channelFormatAndDimension = channelFormatAndDimensionReduce.Get<uint>();
+
+            return VFXValue.Constant(VFXExpressionMesh.GetFloat(mesh, vertexOffset, channelFormatAndDimension));
+        }
+
+        public sealed override string GetCodeString(string[] parents)
+        {
+            return string.Format("SampleMeshFloat({0}, {1}, {2})", parents[0], parents[1], parents[2]);
+        }
+    }
+
+    class VFXExpressionSampleMeshFloat2 : VFXExpression
+    {
+        public VFXExpressionSampleMeshFloat2() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionSampleMeshFloat2(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        {
+        }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshWithFormatFloat2; } }
+
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var meshReduce = constParents[0];
+            var vertexOffsetReduce = constParents[1];
+            var channelFormatAndDimensionReduce = constParents[2];
+
+            var mesh = meshReduce.Get<Mesh>();
+            var vertexOffset = vertexOffsetReduce.Get<uint>();
+            var channelFormatAndDimension = channelFormatAndDimensionReduce.Get<uint>();
+
+            return VFXValue.Constant(VFXExpressionMesh.GetFloat2(mesh, vertexOffset, channelFormatAndDimension));
+        }
+
+        public sealed override string GetCodeString(string[] parents)
+        {
+            return string.Format("SampleMeshFloat2({0}, {1}, {2})", parents[0], parents[1], parents[2]);
+        }
+    }
+
+    class VFXExpressionSampleMeshFloat3 : VFXExpression
+    {
+        public VFXExpressionSampleMeshFloat3() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionSampleMeshFloat3(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelOffset) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[] { mesh, vertexOffset, channelOffset })
+        {
+        }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshWithFormatFloat3; } }
+
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var meshReduce = constParents[0];
+            var vertexOffsetReduce = constParents[1];
+            var channelFormatAndDimensionReduce = constParents[2];
+
+            var mesh = meshReduce.Get<Mesh>();
+            var vertexOffset = vertexOffsetReduce.Get<uint>();
+            var channelFormatAndDimension = channelFormatAndDimensionReduce.Get<uint>();
+
+            return VFXValue.Constant(VFXExpressionMesh.GetFloat3(mesh, vertexOffset, channelFormatAndDimension));
+        }
+
+        public sealed override string GetCodeString(string[] parents)
+        {
+            return string.Format("SampleMeshFloat3({0}, {1}, {2})", parents[0], parents[1], parents[2]);
+        }
+    }
+
+    class VFXExpressionSampleMeshFloat4 : VFXExpression
+    {
+        public VFXExpressionSampleMeshFloat4() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionSampleMeshFloat4(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        {
+        }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshWithFormatFloat4; } }
+
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var meshReduce = constParents[0];
+            var vertexOffsetReduce = constParents[1];
+            var channelFormatAndDimensionReduce = constParents[2];
+
+            var mesh = meshReduce.Get<Mesh>();
+            var vertexOffset = vertexOffsetReduce.Get<uint>();
+            var channelFormatAndDimension = channelFormatAndDimensionReduce.Get<uint>();
+
+            return VFXValue.Constant(VFXExpressionMesh.GetFloat4(mesh, vertexOffset, channelFormatAndDimension));
+        }
+
+        public sealed override string GetCodeString(string[] parents)
+        {
+            return string.Format("SampleMeshFloat4({0}, {1}, {2})", parents[0], parents[1], parents[2]);
+        }
+    }
+
+    class VFXExpressionSampleMeshColor : VFXExpression
+    {
+        public VFXExpressionSampleMeshColor() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionSampleMeshColor(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        {
+        }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshWithFormatColor; } }
+
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var meshReduce = constParents[0];
+            var vertexOffsetReduce = constParents[1];
+            var channelFormatAndDimensionReduce = constParents[2];
+
+            var mesh = meshReduce.Get<Mesh>();
+            var vertexOffset = vertexOffsetReduce.Get<uint>();
+            var channelFormatAndDimension = channelFormatAndDimensionReduce.Get<uint>();
+
+            return VFXValue.Constant(VFXExpressionMesh.GetColor(mesh, vertexOffset, channelFormatAndDimension));
+        }
+
+        public sealed override string GetCodeString(string[] parents)
+        {
+            return string.Format("SampleMeshColor({0}, {1}, {2})", parents[0], parents[1], parents[2]);
+        }
+    }
+#else
     class VFXExpressionSampleMeshFloat : VFXExpression
     {
         public VFXExpressionSampleMeshFloat() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
@@ -158,6 +314,7 @@ namespace UnityEditor.VFX
             return string.Format("SampleMeshColor({0}, {1}, {2}, {3})", parents[0], parents[1], parents[2], parents[3]);
         }
     }
+#endif
 
     class VFXExpressionMeshVertexCount : VFXExpression
     {
@@ -202,6 +359,32 @@ namespace UnityEditor.VFX
             return VFXValue.Constant(VFXExpressionMesh.GetChannelOffset(mesh, channelIndex));
         }
     }
+
+#if UNITY_2020_2_OR_NEWER
+    class VFXExpressionMeshChannelFormatAndDimension : VFXExpression
+    {
+        public VFXExpressionMeshChannelFormatAndDimension() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionMeshChannelFormatAndDimension(VFXExpression mesh, VFXExpression channelIndex) : base(MeshFlags.kCommonFlag | Flags.InvalidOnGPU, new VFXExpression[2] { mesh, channelIndex })
+        {
+        }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.MeshChannelFormatAndDimension; } }
+
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var meshReduce = constParents[0];
+            var channelIndexReduce = constParents[1];
+
+            var mesh = meshReduce.Get<Mesh>();
+            var channelIndex = channelIndexReduce.Get<uint>();
+
+            return VFXValue.Constant(VFXExpressionMesh.GetChannelFormatAndDimension(mesh, channelIndex));
+        }
+    }
+#endif
 
     class VFXExpressionMeshVertexStride : VFXExpression
     {

@@ -38,9 +38,6 @@ namespace UnityEditor.VFX.Block
 
                 var mesh = inputSlots[0].GetExpression();
 
-                yield return new VFXNamedExpression(new VFXExpressionMeshVertexStride(mesh), "meshVertexStride");
-                yield return new VFXNamedExpression(new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position)), "meshPositionOffset");
-                yield return new VFXNamedExpression(new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal)), "meshNormalOffset");
                 var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
                 VFXExpression vertexIndex;
                 if (spawnMode == SpawnMode.Custom)
@@ -52,7 +49,21 @@ namespace UnityEditor.VFX.Block
                     var rand = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false);
                     vertexIndex = new VFXExpressionCastFloatToUint(rand * new VFXExpressionCastUintToFloat(meshVertexCount));
                 }
-                yield return new VFXNamedExpression(vertexIndex, "vertexIndex");
+
+                var vertexStride = new VFXExpressionMeshVertexStride(mesh);
+                var positionOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position));
+                var normalOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal));
+
+#if UNITY_2020_2_OR_NEWER
+                yield return new VFXNamedExpression(vertexStride * vertexIndex + positionOffset, "positionVertexOffset");
+                yield return new VFXNamedExpression(vertexStride * vertexIndex + normalOffset, "normalVertexOffset");
+                yield return new VFXNamedExpression(new VFXExpressionMeshChannelFormatAndDimension(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position)), "positionChannelFormatAndDimension");
+                yield return new VFXNamedExpression(new VFXExpressionMeshChannelFormatAndDimension(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal)), "normalChannelFormatAndDimension");
+#else
+                yield return new VFXNamedExpression(vertexStride, "meshVertexStride");
+                yield return new VFXNamedExpression(positionOffset, "meshPositionOffset");
+                yield return new VFXNamedExpression(normalOffset, "meshNormalOffset");
+#endif
             }
         }
 
@@ -89,10 +100,15 @@ namespace UnityEditor.VFX.Block
             {
                 string source = "";
 
+#if UNITY_2020_2_OR_NEWER
+                source += @"
+position = SampleMeshFloat3(mesh, positionVertexOffset, positionChannelFormatAndDimension);
+direction = SampleMeshFloat3(mesh, normalVertexOffset, normalChannelFormatAndDimension);";
+#else
                 source += @"
 position = SampleMeshFloat3(mesh, vertexIndex, meshPositionOffset, meshVertexStride);
 direction = SampleMeshFloat3(mesh, vertexIndex, meshNormalOffset, meshVertexStride);";
-
+#endif
                 return source;
             }
         }
