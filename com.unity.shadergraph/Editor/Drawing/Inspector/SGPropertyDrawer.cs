@@ -35,7 +35,8 @@ namespace Drawing.Inspector
     {
         internal delegate void ValueChangedCallback(Enum newValue);
 
-        internal VisualElement CreateGUIForField(ValueChangedCallback valueChangedCallback,
+        internal VisualElement CreateGUIForField(
+            ValueChangedCallback valueChangedCallback,
             Enum fieldToDraw,
             string labelName,
             Enum defaultValue,
@@ -107,7 +108,8 @@ namespace Drawing.Inspector
     {
         internal delegate void ValueChangedCallback(string newValue);
 
-        internal VisualElement CreateGUIForField(ValueChangedCallback valueChangedCallback,
+        internal VisualElement CreateGUIForField(
+            ValueChangedCallback valueChangedCallback,
             string fieldToDraw,
             string labelName,
             out VisualElement propertyTextField)
@@ -134,189 +136,109 @@ namespace Drawing.Inspector
         }
     }
 
-    [SGPropertyDrawer(typeof(float))]
-    class SliderPropertyDrawer : IPropertyDrawer
+    [SGPropertyDrawer(typeof(int))]
+    class IntegerPropertyDrawer : IPropertyDrawer
     {
-        internal delegate void ChangeValueCallback(object newValue);
-        internal delegate void CommitValueCallback(FocusOutEvent evt);
-
-        private Vector2 _range;
-        private float _value;
-        private ChangeValueCallback _valueChangedCallback;
-        private CommitValueCallback _valueCommittedCallback;
-        private ChangeValueCallback _minimumChangedCallback;
-        private CommitValueCallback _minimumCommittedCallback;
-        private ChangeValueCallback _maximumChangedCallback;
-        private CommitValueCallback _maximumCommittedCallback;
-
-        public void GetPropertyData(Vector2 range,
-                                    ChangeValueCallback valueChangedCallback,
-                                    CommitValueCallback valueCommittedCallback,
-                                    ChangeValueCallback minimumChangedCallback,
-                                    CommitValueCallback minimumCommittedCallback,
-                                    ChangeValueCallback maximumChangedCallback,
-                                    CommitValueCallback maximumCommittedCallback)
-        {
-            this._range = range;
-            this._valueChangedCallback = valueChangedCallback;
-            this._valueCommittedCallback = valueCommittedCallback;
-            this._minimumChangedCallback = minimumChangedCallback;
-            this._minimumCommittedCallback = minimumCommittedCallback;
-            this._maximumChangedCallback = maximumChangedCallback;
-            this._maximumCommittedCallback = maximumCommittedCallback;
-        }
+        internal delegate void ChangeValueCallback(int newValue);
 
         internal VisualElement CreateGUIForField(
-            float fieldToDraw,
-            out VisualElement propertyFloatField,
-            out VisualElement minFloatField,
-            out VisualElement maxFloatField)
+            ChangeValueCallback changeValueCallback,
+            int fieldToDraw,
+            string labelName,
+            out VisualElement propertyFloatField)
         {
-            this._value = fieldToDraw;
-            float min = Mathf.Min(this._value, _range.x);
-            float max = Mathf.Max(this._value, _range.y);
-            _range = new Vector2(min, max);
+            var integerField = new IntegerField {value = fieldToDraw};
 
-            var defaultField = new FloatField {value = this._value};
-            var minField = new FloatField {value = _range.x};
-            var maxField = new FloatField {value = _range.y};
-
-            defaultField.RegisterValueChangedCallback(evt =>
+            integerField.RegisterValueChangedCallback(evt =>
             {
-                this._value = (float)evt.newValue;
-                this._valueChangedCallback((float) evt.newValue);
-            });
-            defaultField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
-            {
-                float minValue = Mathf.Min(this._value, _range.x);
-                float maxValue = Mathf.Max(this._value, _range.y);
-                _range = new Vector2(minValue, maxValue);
-                minField.value = minValue;
-                maxField.value = maxValue;
-                this._valueCommittedCallback(evt);
-            });
-            minField.RegisterValueChangedCallback(evt =>
-            {
-                _range = new Vector2((float) evt.newValue, _range.y);
-                this._minimumChangedCallback((float)evt.newValue);
-            });
-            minField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
-            {
-                this._value = Mathf.Max(Mathf.Min(this._value, _range.y), _range.x);
-                defaultField.value = this._value;
-                this._minimumCommittedCallback(evt);
-            });
-            maxField.RegisterValueChangedCallback(evt =>
-            {
-                _range = new Vector2(_range.x, (float) evt.newValue);
-                this._maximumChangedCallback((float) evt.newValue);
-            });
-            maxField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
-            {
-                this._value = Mathf.Max(Mathf.Min(this._value, _range.y), _range.x);
-                defaultField.value = this._value;
-                this._maximumCommittedCallback(evt);
+                changeValueCallback((int) evt.newValue);
             });
 
-            propertyFloatField = defaultField;
-            minFloatField = minField;
-            maxFloatField = maxField;
+            propertyFloatField = integerField;
 
-            var propertySheet = new PropertySheet();
-            var defaultRow = new PropertyRow(new Label("Default"));
-            defaultRow.Add(defaultField);
-            var minRow = new PropertyRow(new Label("Min"));
-            minRow.Add(minField);
-            var maxRow = new PropertyRow(new Label("Max"));
-            maxRow.Add(maxField);
-
-            propertySheet.Add(defaultRow);
-            propertySheet.Add(minRow);
-            propertySheet.Add(maxRow);
-
-            return propertySheet;
+            var defaultRow = new PropertyRow(new Label(labelName));
+            defaultRow.Add(propertyFloatField);
+            return defaultRow;
         }
 
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
         {
-            // How to draw a property with the 7 other callbacks?!
-
-            throw new NotImplementedException();
+            return this.CreateGUIForField(
+                // Use the setter from the provided property as the callback
+                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
+                (int) propertyInfo.GetValue(actualObject),
+                attribute.labelName,
+                out var propertyVisualElement);
         }
     }
 
     [SGPropertyDrawer(typeof(float))]
     class FloatPropertyDrawer : IPropertyDrawer
     {
-        internal delegate void ChangeValueCallback(object newValue);
+        internal delegate void ChangeValueCallback(float newValue);
 
         internal VisualElement CreateGUIForField(
-            ChangeValueCallback valueChangedCallback,
+            ChangeValueCallback changeValueCallback,
             float fieldToDraw,
+            string labelName,
             out VisualElement propertyFloatField)
         {
-            var defaultField = new FloatField {value = fieldToDraw};
+            var floatField = new FloatField {value = fieldToDraw};
 
-            defaultField.RegisterValueChangedCallback(evt =>
+            floatField.RegisterValueChangedCallback(evt =>
             {
-                valueChangedCallback((float) evt.newValue);
+                changeValueCallback((float) evt.newValue);
             });
 
-            var propertySheet = new PropertySheet();
-            var defaultRow = new PropertyRow(new Label("Default"));
-            defaultRow.Add(defaultField);
+            propertyFloatField = floatField;
 
-            propertySheet.Add(defaultRow);
-
-            propertyFloatField = defaultField;
-
-            return propertySheet;
+            var defaultRow = new PropertyRow(new Label(labelName));
+            defaultRow.Add(propertyFloatField);
+            return defaultRow;
         }
 
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
         {
-            throw new NotImplementedException();
+            return this.CreateGUIForField(
+                // Use the setter from the provided property as the callback
+                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
+                (float) propertyInfo.GetValue(actualObject),
+                attribute.labelName,
+                out var propertyVisualElement);
         }
     }
 
     [SGPropertyDrawer(typeof(ShaderInput))]
     class ShaderInputPropertyDrawer : IPropertyDrawer
     {
+        private PropertySheet _shaderInputVisualElement;
         internal delegate void ChangeExposedFieldCallback(bool newValue);
         internal delegate void ChangeReferenceNameCallback(string newValue);
         internal delegate void ChangeValueCallback(object newValue);
-        internal delegate void CommitValueCallback();
+        internal delegate void PreChangeValueCallback(string actionName);
+        internal delegate void PostChangeValueCallback();
 
         public void GetPropertyData(bool isSubGraph,
             ChangeExposedFieldCallback exposedFieldCallback,
             ChangeReferenceNameCallback referenceNameCallback,
-            ChangeValueCallback propertyValueChangedCallback,
-            CommitValueCallback propertyValueCommittedCallback,
-            ChangeValueCallback changeMinimumCallback,
-            CommitValueCallback commitMinimumCallback,
-            ChangeValueCallback changeMaximumCallback,
-            CommitValueCallback commitMaximumCallback)
+            ChangeValueCallback changeValueCallback,
+            PreChangeValueCallback preChangeValueCallback,
+            PostChangeValueCallback postChangeValueCallback)
         {
             this.isSubGraph = isSubGraph;
-            this.ExposedFieldCallback = exposedFieldCallback;
-            this.ReferenceNameChangedCallback = referenceNameCallback;
-            this.PropertyChangeCallback = propertyValueChangedCallback;
-            this.PropertyCommitCallback = propertyValueCommittedCallback;
-            this.MinimumChangeCallback = changeMinimumCallback;
-            this.MinimumCommitCallback = commitMinimumCallback;
-            this.MaximumChangeCallback = changeMaximumCallback;
-            this.MaximumCommitCallback = commitMaximumCallback;
+            this._exposedFieldCallback = exposedFieldCallback;
+            this._referenceNameChangedCallback = referenceNameCallback;
+            this._propertyChangeCallback = changeValueCallback;
+            this._preChangeValueCallback = preChangeValueCallback;
+            this._postChangeValueCallback = postChangeValueCallback;
         }
 
         private bool isSubGraph { get ; set;  }
-        private ChangeExposedFieldCallback ExposedFieldCallback;
-        private ChangeReferenceNameCallback ReferenceNameChangedCallback;
-        private ChangeValueCallback PropertyChangeCallback;
-        private CommitValueCallback PropertyCommitCallback;
-        private ChangeValueCallback MinimumChangeCallback;
-        private CommitValueCallback MinimumCommitCallback;
-        private ChangeValueCallback MaximumChangeCallback;
-        private CommitValueCallback MaximumCommitCallback;
+        private ChangeExposedFieldCallback _exposedFieldCallback;
+        private ChangeReferenceNameCallback _referenceNameChangedCallback;
+        private ChangeValueCallback _propertyChangeCallback;
+        private PreChangeValueCallback _preChangeValueCallback;
+        private PostChangeValueCallback _postChangeValueCallback;
 
         public VisualElement DrawProperty(
             PropertyInfo propertyInfo,
@@ -338,7 +260,7 @@ namespace Drawing.Inspector
             {
                 var boolPropertyDrawer = new BoolPropertyDrawer();
                 propertySheet.Add(boolPropertyDrawer.CreateGUIForField(
-                    evt => ExposedFieldCallback(evt.isOn),
+                    evt => _exposedFieldCallback(evt.isOn),
                     new ToggleData(shaderInput.generatePropertyBlock),
                     "Exposed",
                     out var propertyToggle));
@@ -352,7 +274,7 @@ namespace Drawing.Inspector
             {
                 var textPropertyDrawer = new TextPropertyDrawer();
                 propertySheet.Add(textPropertyDrawer.CreateGUIForField(
-                    evt => ReferenceNameChangedCallback(evt),
+                    evt => _referenceNameChangedCallback(evt),
                     (string)shaderInput.referenceName,
                     "Reference",
                     out var propertyVisualElement));
@@ -383,32 +305,104 @@ namespace Drawing.Inspector
 
         private void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
         {
+            // Handle vector 1 mode parameters
             switch (vector1ShaderProperty.floatType)
             {
                 case FloatType.Slider:
-                    // Handle slider type
-                    var sliderPropertyDrawer = new SliderPropertyDrawer();
-                    sliderPropertyDrawer.GetPropertyData(vector1ShaderProperty.rangeValues,
-                                    newValue => this.PropertyChangeCallback(newValue),
-                                                        evt => this.PropertyCommitCallback(),
-                                                        newValue => this.MinimumChangeCallback(newValue),
-                                                        evt => this.MinimumCommitCallback(),
-                                                            newValue => this.MaximumChangeCallback(newValue),
-                                                            evt => this.MaximumCommitCallback());
+                    var sliderFloatPropertyDrawer = new FloatPropertyDrawer();
+                    // Default field
+                    propertySheet.Add(sliderFloatPropertyDrawer.CreateGUIForField(
+                        newValue => _propertyChangeCallback(newValue),
+                        vector1ShaderProperty.value,
+                        "Default",
+                        out var propertyFloatField));
+                    propertyFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+                        {
+                            _preChangeValueCallback("Change Property Value");
+                            float minValue = Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.x);
+                            float maxValue = Mathf.Max(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y);
+                            vector1ShaderProperty.rangeValues = new Vector2(minValue, maxValue);
+                            _postChangeValueCallback();
+                        });
 
-                    propertySheet.Add(sliderPropertyDrawer.CreateGUIForField(vector1ShaderProperty.value,
-                        out var propertyFloatField,
-                        out var minFloatField,
+                    // Min field
+                    var minFieldChangedCallback = new ChangeValueCallback(newValue =>
+                        {
+                            _preChangeValueCallback("Change Range Property Minimum");
+                            vector1ShaderProperty.rangeValues = new Vector2((float)newValue, vector1ShaderProperty.rangeValues.x);
+                            _postChangeValueCallback();
+                        });
+                    propertySheet.Add(sliderFloatPropertyDrawer.CreateGUIForField(
+                        newValue => minFieldChangedCallback(newValue),
+                        vector1ShaderProperty.rangeValues.x,
+                        "Min",
+                        out var minFloatField));
+                    minFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+                    {
+                        vector1ShaderProperty.value = Mathf.Max(Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y), vector1ShaderProperty.rangeValues.x);
+                        _postChangeValueCallback();
+                    });
+
+                    // Max field
+                    var maxFieldChangedCallback = new ChangeValueCallback(newValue =>
+                    {
+                        this._preChangeValueCallback("Change Range Property Maximum");
+                        vector1ShaderProperty.rangeValues = new Vector2(vector1ShaderProperty.rangeValues.x, (float)newValue);
+                        this._postChangeValueCallback();
+                    });
+                    propertySheet.Add(sliderFloatPropertyDrawer.CreateGUIForField(
+                        newValue => maxFieldChangedCallback(newValue),
+                        vector1ShaderProperty.rangeValues.y,
+                        "Max",
                         out var maxFloatField));
-
+                    maxFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+                    {
+                        vector1ShaderProperty.value = Mathf.Max(Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y), vector1ShaderProperty.rangeValues.x);
+                        this._postChangeValueCallback();
+                    });
                     break;
                 case FloatType.Integer:
-                    // Handle integer
+                    var integerPropertyDrawer = new IntegerPropertyDrawer();
+                    // Default field
+                    propertySheet.Add(integerPropertyDrawer.CreateGUIForField(
+                        newValue => this._propertyChangeCallback(newValue),
+                        (int)vector1ShaderProperty.value,
+                        "Default",
+                        out var integerPropertyField));
                     break;
                 default:
-
-                    // Handle Enum
+                    var defaultFloatPropertyDrawer = new FloatPropertyDrawer();
+                    // Default field
+                    propertySheet.Add(defaultFloatPropertyDrawer.CreateGUIForField(
+                        newValue => this._propertyChangeCallback(newValue),
+                        vector1ShaderProperty.value,
+                        "Default",
+                        out var defaultFloatPropertyField));
+                    defaultFloatPropertyField.RegisterCallback<FocusOutEvent>(evt =>
+                    {
+                        this._preChangeValueCallback("Change Property Value");
+                        float minValue = Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.x);
+                        float maxValue = Mathf.Max(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y);
+                        vector1ShaderProperty.rangeValues = new Vector2(minValue, maxValue);
+                        this._postChangeValueCallback();
+                    });
                     break;
+            }
+
+            if (!isSubGraph)
+            {
+                var enumPropertyDrawer = new EnumPropertyDrawer();
+                propertySheet.Add(enumPropertyDrawer.CreateGUIForField(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Vector1 Mode");
+                        vector1ShaderProperty.floatType = (FloatType)newValue;
+                        this._postChangeValueCallback();
+                    },
+                    vector1ShaderProperty.floatType,
+                    "Mode",
+                     FloatType.Default,
+                    out var modePropertyEnumField));
             }
         }
     }

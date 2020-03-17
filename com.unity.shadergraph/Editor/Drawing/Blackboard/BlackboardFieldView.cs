@@ -22,7 +22,55 @@ namespace UnityEditor.ShaderGraph.Drawing
         ShaderInput _mShaderInput;
 
         [Inspectable("Shader Input", null)]
-        public ShaderInput shaderInput => _mShaderInput;
+        public ShaderInput shaderInput
+        {
+            get { return _mShaderInput; }
+            set
+            {
+                var property = _mShaderInput as AbstractShaderProperty;
+                if(property == null)
+                    return;
+
+                switch(property)
+                {
+                    case Vector1ShaderProperty vector1Property:
+                        vector1Property.value = vector1Property.value;
+                        break;
+                    case Vector2ShaderProperty vector2Property:
+                        break;
+                    case Vector3ShaderProperty vector3Property:
+                        break;
+                    case Vector4ShaderProperty vector4Property:
+                        break;
+                    case ColorShaderProperty colorProperty:
+                        break;
+                    case Texture2DShaderProperty texture2DProperty:
+                        break;
+                    case Texture2DArrayShaderProperty texture2DArrayProperty:
+                        break;
+                    case Texture3DShaderProperty texture3DProperty:
+                        break;
+                    case CubemapShaderProperty cubemapProperty:
+                        break;
+                    case BooleanShaderProperty booleanProperty:
+                        break;
+                    case Matrix2ShaderProperty matrix2Property:
+                        break;
+                    case Matrix3ShaderProperty matrix3Property:
+                        break;
+                    case Matrix4ShaderProperty matrix4Property:
+                        break;
+                    case SamplerStateShaderProperty samplerStateProperty:
+                        break;
+                    case GradientShaderProperty gradientProperty:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                this.MarkDirtyRepaint();
+            }
+        }
 
         // Common
         TextField m_ReferenceNameField;
@@ -321,12 +369,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 shaderInputPropertyDrawer.GetPropertyData(_graphData.isSubGraph,
                     this.ChangeExposedField,
                     this.ChangeReferenceNameField,
-                    this.ChangeFloatProperty,
-                    this.CommitFloatProperty,
-                    this.ChangeFloatRangeMinimum,
-                    this.CommitFloatRangeMinimum,
-                    this.ChangeFloatRangeMaximum,
-                    this.CommitFloatRangeMaximum);
+                    this.ChangePropertyValue,
+                    this.RegistryPropertyChangeUndo,
+                    this.MarkNodesAsDirty);
             }
         }
 
@@ -361,7 +406,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateReferenceNameResetMenu();
         }
 
-        void ChangeFloatProperty(object newValue)
+        void RegistryPropertyChangeUndo(string actionName)
+        {
+            _graphData.owner.RegisterCompleteObjectUndo(actionName);
+        }
+
+        void MarkNodesAsDirty()
+        {
+            DirtyNodes();
+        }
+
+        void ChangePropertyValue(object newValue)
         {
             var property = _mShaderInput as AbstractShaderProperty;
             if(property == null)
@@ -406,7 +461,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             this.MarkDirtyRepaint();
         }
-
         void CommitFloatProperty()
         {
             var property = shaderInput as Vector1ShaderProperty;
@@ -541,7 +595,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     _graphData.owner.RegisterCompleteObjectUndo("Change Vector1 Mode");
                     property.floatType = (FloatType)evt.newValue;
-                    // Rebuild();
+                    //Rebuild();
                 });
                 AddRow(propertySheet, "Mode", modeField);
             }
