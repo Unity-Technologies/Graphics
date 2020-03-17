@@ -54,6 +54,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
 - Light dimmer can now get values higher than one and was renamed to multiplier in the UI. 
 - Removed info box requesting volume component for Visual Environment and updated the documentation with the relevant information.
+- Add range-based clipping to box lights (case 1178780)
+- Improve area light culling (case 1085873)
 
 ## [7.2.0] - 2020-02-10
 
