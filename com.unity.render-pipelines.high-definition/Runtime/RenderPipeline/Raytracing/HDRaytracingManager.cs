@@ -438,7 +438,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Renderer currentRenderer = currentLOD.renderers[rendererIdx];
                         // Add this fella to the renderer list
-                        m_RayTracingRendererReference.Add(currentRenderer.GetInstanceID(), 1);
+                        // Unfortunately, we need to check that this renderer was not already pushed into the list (happens if the user uses the same mesh renderer
+                        // for two LODs)
+                        if (!m_RayTracingRendererReference.ContainsKey(currentRenderer.GetInstanceID()))
+                            m_RayTracingRendererReference.Add(currentRenderer.GetInstanceID(), 1);
                     }
                 }
             }
