@@ -2140,6 +2140,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.SetupGlobalParams(cmd, m_FrameCount);
                 }
 
+                hdCamera.xr.StartSinglePass(cmd);
+
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
                     // Update the light clusters that we need to update
@@ -2190,9 +2192,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderContactShadows(hdCamera, cmd);
                     PushFullScreenDebugTexture(hdCamera, cmd, m_ContactShadowBuffer, FullScreenDebugMode.ContactShadows);
 
-                    hdCamera.xr.StartSinglePass(cmd);
                     RenderScreenSpaceShadows(hdCamera, cmd);
-                    hdCamera.xr.StopSinglePass(cmd);
 
                 if (hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
                 {
@@ -2225,8 +2225,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     SSRTask.End(cmd, hdCamera);
                 }
-
-                hdCamera.xr.StartSinglePass(cmd);
 
                 RenderDeferredLighting(hdCamera, cmd);
 
@@ -3849,9 +3847,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
             if (usesRaytracedReflections)
             {
-                hdCamera.xr.StartSinglePass(cmd);
                 RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
-                hdCamera.xr.StopSinglePass(cmd);
             }
             else
             {
