@@ -488,11 +488,11 @@ namespace UnityEngine.Rendering.Universal
 
 
             RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[k_GBufferSlicesCount +
-//#if UNITY_IOS && !UNITY_EDITOR //TODO: investigate needsDepthBBIdx as it does pretty much the same thing as here, but in engine code, this applies to all these #ifs
+#if UNITY_IOS && !UNITY_EDITOR //TODO: investigate needsDepthBBIdx as it does pretty much the same thing as here, but in engine code, this applies to all these #ifs
                                                                                   2];
-//#else
-//                                                                                  1];
-//#endif
+#else
+                                                                                  1];
+#endif
             AttachmentDescriptor[] gbufferDescriptors = new AttachmentDescriptor[gbufferColorAttachments.Length];
             for (int gbufferIndex = 0; gbufferIndex < k_GBufferSlicesCount; ++gbufferIndex)
             {
@@ -506,11 +506,11 @@ namespace UnityEngine.Rendering.Universal
             gbufferDescriptors[k_GBufferSlicesCount].ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), false, true);
             gbufferDescriptors[k_GBufferSlicesCount].ConfigureClear(Color.black, 1, 0);//#endif
 
-//#if UNITY_IOS && !UNITY_EDITOR
+#if UNITY_IOS && !UNITY_EDITOR
             gbufferDescriptors[k_GBufferSlicesCount + 1] = new AttachmentDescriptor(GraphicsFormat.R32_SFloat);
             gbufferDescriptors[k_GBufferSlicesCount + 1].ConfigureTarget(gbufferColorAttachments[k_GBufferSlicesCount + 1].Identifier(), false, false);
             gbufferDescriptors[k_GBufferSlicesCount + 1].ConfigureClear(Color.black, 1, 0);
-//#endif
+#endif
             m_GBufferPass.ConfigureTarget(gbufferDescriptors, depthDescriptor);
             m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, hasDepthPrepass);
             m_GBufferPass.Configure(cmd, desc);
@@ -549,11 +549,11 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredPass.Configure(cmd, desc);
             m_DeferredPass.ConfigureTarget(gbufferDescriptors[k_GBufferSlicesCount]);
             m_DeferredPass.ConfigureInputAttachment(new[] {gbufferDescriptors[0], gbufferDescriptors[1], gbufferDescriptors[2]
-//#if UNITY_IOS && !UNITY_EDITOR
+#if UNITY_IOS && !UNITY_EDITOR
                 , gbufferDescriptors[4]});
-//#else
-//            });
-//#endif
+#else
+            , depthDescriptor});
+#endif
 
             EnqueuePass(m_DeferredPass);
 

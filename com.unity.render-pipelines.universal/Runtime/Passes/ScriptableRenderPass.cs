@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.Universal
             m_InputAttachmentDescriptors = inputs;
         }
 
-        internal void ConfigureRenderPassDescriptor(int width, int height, int sampleCount, bool readOnlyDepth = false)
+        internal void ConfigureRenderPassDescriptor(int width, int height, int sampleCount, bool readOnlyDepth = true)
         {
             m_RenderPassDescriptor.width = width;
             m_RenderPassDescriptor.height = height;
