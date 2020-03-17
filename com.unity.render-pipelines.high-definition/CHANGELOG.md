@@ -83,6 +83,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a warning and workaround instructions that appear when you enable XR single-pass after the first frame with the XR SDK.
 - Added the exposure sliders to the planar reflection probe preview
 - Added support for subsurface scattering in path tracing.
+- Added a new mode that improves the filtering of ray traced shadows (directional, point and spot) based on the distance to the occluder.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -455,6 +456,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the HDRP asset migration code not being called after an upgrade of the package
 - Fixed draw renderers custom pass out of bound exception
 - Fixed the PBR shader rendering in deferred
+- Fixed some typos in debug menu (case 1224594)
+- Fixed ray traced point and spot lights shadows not rejecting istory when semi-transparent or colored.
+- Fixed a warning due to StaticLightingSky when reloading domain in some cases.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
