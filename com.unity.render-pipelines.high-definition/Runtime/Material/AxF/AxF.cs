@@ -44,6 +44,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1200)]
         public struct SurfaceData
         {
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
+            [SurfaceDataAttributes("Ambient Occlusion")]
+            public float ambientOcclusion;
+
+            [SurfaceDataAttributes("Specular Occlusion")]
+            public float specularOcclusion;
+
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
             [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
             public Vector3  normalWS;
@@ -102,6 +109,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1250)]
         public struct BSDFData
         {
+            public float ambientOcclusion;
+            public float specularOcclusion;
+
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3  normalWS;
             [SurfaceDataAttributes("", true)]

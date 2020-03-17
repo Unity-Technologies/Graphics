@@ -63,6 +63,10 @@ Shader "HDRP/AxF"
         _CarPaint2_CTCoeffs("_CarPaint2_CTCoeffs", Vector) = (1,1,1,1)
         _CarPaint2_CTSpreads("_CarPaint2_CTSpreads", Vector) = (1,1,1,1)
 
+        // GUI inspector only - saves state in material meta, read back from SetupMaterialKeywordsAndPass
+        //[Enum(Off, 0, From Ambient Occlusion, 1, From Bent Normals, 2)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
+        [Enum(Off, 0, From Ambient Occlusion, 1)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
+
         [ToggleUI]  _UseShadowThreshold("_UseShadowThreshold", Float) = 0.0
         [ToggleUI]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -132,6 +136,8 @@ Shader "HDRP/AxF"
     // Variant
     //-------------------------------------------------------------------------------------
     #pragma shader_feature_local _AXF_BRDF_TYPE_SVBRDF _AXF_BRDF_TYPE_CAR_PAINT _AXF_BRDF_TYPE_BTF
+
+    #pragma shader_feature_local _ _SPECULAR_OCCLUSION_NONE //_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
 
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
