@@ -129,6 +129,23 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.clearcoatColor = 0;
 #endif
 
+    // TODO
+    // Assume same xyz encoding for AxF bent normal as other normal maps.
+    //float3 bentNormalWS;
+    //GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_BentNormalMap, sampler_BentNormalMap, UV0).xyz - 1.0, bentNormalWS, doubleSidedConstants);
+
+    float perceptualRoughness = RoughnessToPerceptualRoughness(GetScalarRoughness(surfaceData.specularLobe));
+
+    //TODO 
+//#if defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
+    // Note: we use normalWS as it will always exist and be equal to clearcoatNormalWS if there's no coat
+    // (otherwise we do SO with the base lobe, might be wrong depending on way AO is computed, will be wrong either way with a single non-lobe specific value)
+    //surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, perceptualRoughness);
+//#endif
+#if !defined(_SPECULAR_OCCLUSION_NONE)
+    surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, perceptualRoughness);
+#endif
+
     // Propagate the geometry normal
     surfaceData.geomNormalWS = input.tangentToWorld[2];
 

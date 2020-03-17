@@ -375,6 +375,31 @@ float GetScalarRoughnessFromAnisoRoughness(float roughnessT, float roughnessB)
     return 0.5 * (roughnessT + roughnessB);
 }
 
+float GetScalarRoughness(float3 roughness)
+{
+    float singleRoughness = 0.5;
+
+#if defined(_AXF_BRDF_TYPE_SVBRDF)
+
+    singleRoughness = (HasAnisotropy()) ? GetScalarRoughnessFromAnisoRoughness(roughness.x, roughness.y) : roughness.x;
+
+#elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
+    float sumCoeffXRoughness = 0.0;
+    float sumCoeff = 0.0;
+    UNITY_UNROLL
+    for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++) // TODO remove all variable lobecnt code
+    {
+        float coeff = _CarPaint2_CTCoeffs[lobeIndex];
+        float spread = roughness[lobeIndex];
+        sumCoeff += coeff;
+        sumCoeffXRoughness += spread * coeff;
+    }
+    singleRoughness = min(1.0, SafeDiv(sumCoeffXRoughness,sumCoeff));
+#endif
+
+    return singleRoughness;
+}
+
 NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
 {
     NormalData normalData;
@@ -683,6 +708,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
     BSDFData    bsdfData;
     //  ZERO_INITIALIZE(BSDFData, data);
+
+    bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
+    bsdfData.specularOcclusion = surfaceData.specularOcclusion;
 
     bsdfData.normalWS = surfaceData.normalWS;
     bsdfData.tangentWS = surfaceData.tangentWS;
@@ -2539,9 +2567,11 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 {
     // There is no AmbientOcclusion from data with AxF, but let's apply our SSAO
     AmbientOcclusionFactor aoFactor;
-    GetScreenSpaceAmbientOcclusionMultibounce(  posInput.positionSS, preLightData.NdotV_UnderCoat,
-                                                RoughnessToPerceptualRoughness(GetScalarRoughnessFromAnisoRoughness(bsdfData.roughness.x, bsdfData.roughness.y)),
-                                                1.0, 1.0, GetColorBaseDiffuse(bsdfData), GetColorBaseFresnelF0(bsdfData), aoFactor);
+    GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV_UnderCoat,
+                                              RoughnessToPerceptualRoughness(GetScalarRoughness(bsdfData.roughness)),
+                                              bsdfData.ambientOcclusion, bsdfData.specularOcclusion,
+                                              GetColorBaseDiffuse(bsdfData), GetColorBaseFresnelF0(bsdfData), aoFactor);
+
     ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
 
     diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
