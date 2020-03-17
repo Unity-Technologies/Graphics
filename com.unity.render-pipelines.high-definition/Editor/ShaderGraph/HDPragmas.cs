@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -131,17 +131,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PragmaCollection RaytracingBasic = new PragmaCollection
         {
-            { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.Target(ShaderModel.Target50) },
             { Pragma.Raytracing("test") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
-        };
-
-        public static PragmaCollection RaytracingInstanced = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.Raytracing("test") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
-            { Pragma.MultiCompileInstancing },
+            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
         };
     }
 }

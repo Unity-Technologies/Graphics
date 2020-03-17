@@ -30,7 +30,17 @@ There are multiple methods that you can use to control the resolution of your re
 * **Dynamic Resolution**: You can use the [dynamic resolution system](Dynamic-Resolution.md) to change the resolution at runtime. This is the best method to use if you want to change the resolution at runtime.
 * **Eye Texture**: You can set the device back-buffer resolution by changing [XRSettings.eyeTextureResolutionScale](https://docs.unity3d.com/ScriptReference/XR.XRSettings-eyeTextureResolutionScale.html). This is a resource intensive operation that reallocates all render targets.
 
-Be aware that SteamVR will apply a default 150% supersampling value. You can change this value in the settings of SteamVR.
+Be aware that SteamVR will apply a default 150% supersampling value. You can change this value in the settings of SteamVR.?
+## Enable VR single-pass after startup
+
+Due to some technical limitations that will be resolved in later versions, you need the following code in your script if your app does not boot directly in VR mode:
+
+```csharp
+private void Awake()
+{
+    TextureXR.maxViews = 2;
+}
+```
 
 ## C# defines
 
