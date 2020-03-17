@@ -246,7 +246,7 @@ namespace UnityEditor.ShaderGraph
 
             if (isInError)
             {
-                ((GraphData) owner).AddValidationError(tempId, errorMessage);
+                ((GraphData) owner).AddValidationError(guid, errorMessage);
             }
             else
             {
