@@ -326,7 +326,7 @@ float SampleSpherExpMedium(float optDepth, float r, float viewZ, float R,
 
     // Make an initial guess.
     // Homogeneous assumption.
-    float t = optDepth * rcp(maxOptDepth);
+    float t = maxDist * (optDepth * rcp(maxOptDepth));
 
     uint  numIter = 0;
     float absDiff = optDepth, relDiff = 1;
