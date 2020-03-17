@@ -40,13 +40,13 @@ namespace UnityEngine.Rendering.HighDefinition
         internal readonly Mesh occlusionMesh;
         internal readonly int textureArraySlice;
 
-        internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, Matrix4x4 clusterDisplayParams_, int dstSlice)
+        internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, Matrix4x4 clusterDisplay, int dstSlice)
         {
             projMatrix = proj;
             viewMatrix = view;
             viewport = vp;
-            clusterDisplayParams = clusterDisplayParams_;
             occlusionMesh = null;
+            clusterDisplayParams = clusterDisplay;
             textureArraySlice = dstSlice;
         }
 
