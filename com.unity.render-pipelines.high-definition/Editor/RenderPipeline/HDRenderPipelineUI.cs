@@ -892,7 +892,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth.intValue, 0);
 
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight, Styles.probeVolumeAtlasOctahedralDepthWidth);
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight, Styles.probeVolumeAtlasOctahedralDepthHeight);
                 if (EditorGUI.EndChangeCheck())
                     serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight.intValue, 0);
 

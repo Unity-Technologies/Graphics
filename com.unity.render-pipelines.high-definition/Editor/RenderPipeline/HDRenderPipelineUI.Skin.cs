@@ -115,8 +115,8 @@ namespace UnityEditor.Rendering.HighDefinition
         	public static readonly GUIContent probeVolumeAtlasWidth = EditorGUIUtility.TrTextContent("Atlas Width", "Width (resolution in X) of the atlas containing visible ProbeVolumes.");
         	public static readonly GUIContent probeVolumeAtlasHeight = EditorGUIUtility.TrTextContent("Atlas Height", "Height (resolution in Y) of the atlas containing visible ProbeVolumes.");
             public static readonly GUIContent probeVolumeAtlasDepth = EditorGUIUtility.TrTextContent("Atlas Depth", "Depth (resolution in Z) of the atlas containing visible ProbeVolumes.");
-            public static readonly GUIContent probeVolumeAtlasOctahedralDepthWidth = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas width", "Width of the atlas containing visible ProbeVolumes octahedral depth data");
-            public static readonly GUIContent probeVolumeAtlasOctahedralDepthHeight = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas height", "Height of the atlas containing visible ProbeVolumes octahedral depth data.");
+            public static readonly GUIContent probeVolumeAtlasOctahedralDepthWidth = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas Width", "Width of the atlas containing visible ProbeVolumes octahedral depth data");
+            public static readonly GUIContent probeVolumeAtlasOctahedralDepthHeight = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas Height", "Height of the atlas containing visible ProbeVolumes octahedral depth data.");
 
 
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
