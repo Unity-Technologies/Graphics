@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for a user defined default material to 2DRendererData.
 - Added the option to toggle shadow receiving on transparent objects.
 - Added XR multipass rendering. Multipass rendering is a requirement on many VR platforms and allows graceful fallback when single-pass rendering isn't available.
-- Added the deferred renderer.
 - Added support for Camera Stacking when using the Forward Renderer. This introduces the Camera `Render Type` property. A Base Camera can be initialized with either the Skybox or Solid Color, and can combine its output with that of one or more Overlay Cameras. An Overlay Camera is always initialized with the contents of the previous Camera that rendered in the Camera Stack.
 - Fixed NaNs in tonemap algorithms (neutral and ACES) on Nintendo Switch.
 - Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX.
@@ -123,6 +122,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where NullReferenceException might be thrown when creating 2D Lights. [case 1219374](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-threw-on-adding-the-light-2d-experimental-component-when-2d-render-data-not-assigned) 
 - Fixed an issue with a blurry settings icon. [case 1201895](https://issuetracker.unity3d.com/issues/urp-setting-icon-blurred-in-universalrendererpipelineasset)
 - Fixed issue that caused the QualitySettings anti-aliasing changing without user interaction. [case 1195272](https://issuetracker.unity3d.com/issues/lwrp-the-anti-alias-quality-settings-value-is-changing-without-user-interaction)
+- Fixed an issue where Shader Graph shaders generate undeclared identifier 'GetWorldSpaceNormalizeViewDir' error.
 - Fixed an issue where rendering into RenderTexture with Single Pass Instanced renders both eyes overlapping.
 - Fixed an issue where Renderscale setting has no effect when using XRSDK.
 - Fixed an issue where renderScale != 1 or Display.main.requiresBlitToBackbuffer forced an unnecessary blit on XR.
