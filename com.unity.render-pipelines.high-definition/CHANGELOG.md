@@ -556,6 +556,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed legacy VR code
 - Add range-based clipping to box lights (case 1178780)
 - Improve area light culling (case 1085873)
+- Fixed error in the console when switching shader to decal in the material UI.
 
 ## [7.1.1] - 2019-09-05
 
