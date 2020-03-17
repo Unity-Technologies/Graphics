@@ -82,10 +82,6 @@ namespace UnityEditor.Graphing
         GraphData DeserializeGraph()
         {
             var json = m_SerializedGraph.JSONnodeData;
-            if (!json.StartsWith("{\n    \"MonoBehaviour\":"))
-            {
-                json = $"{{\"MonoBehaviour\":{{\"m_Type\":\"{typeof(GraphData).FullName}\",{json.Substring(json.IndexOf("{")+1)}}}";
-            }
             var deserializedGraph = MultiJson.Deserialize<GraphData>(json);
             deserializedGraph.isSubGraph = m_IsSubGraph;
             deserializedGraph.assetGuid = m_AssetGuid;
