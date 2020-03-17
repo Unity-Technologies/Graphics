@@ -124,6 +124,12 @@ namespace UnityEditor.Rendering.HighDefinition
         static string               m_FlagsText = "_Flags";
         MaterialProperty  m_Flags;
 
+        static string               m_MeshHasVertexBakedAOText = "_MeshHasVertexBakedAO";
+        MaterialProperty  m_MeshHasVertexBakedAO;
+
+        static string               m_VertexAOScaleText = "_VertexAOScale";
+        MaterialProperty  m_VertexAOScale;
+
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // SVBRDF Parameters
         static string               m_SVBRDF_BRDFTypeText = "_SVBRDF_BRDFType";
@@ -231,6 +237,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_Flags = FindProperty(m_FlagsText);
 
+            m_VertexAOScale = FindProperty(m_VertexAOScaleText);
+            m_MeshHasVertexBakedAO = FindProperty(m_MeshHasVertexBakedAOText);
+
             //////////////////////////////////////////////////////////////////////////
             // SVBRDF
             m_SVBRDF_BRDFType = FindProperty(m_SVBRDF_BRDFTypeText);
@@ -323,6 +332,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawAxfSurfaceOptionsGUI()
         {
+            if (m_MeshHasVertexBakedAO != null)
+            {
+                materialEditor.ShaderProperty(m_MeshHasVertexBakedAO, "Mesh Has Vertex Baked AO");
+
+                if (m_MeshHasVertexBakedAO.floatValue > 0.0f && m_VertexAOScale != null)
+                {
+                    materialEditor.ShaderProperty(m_VertexAOScale, "Vertex AO Scale");
+                }
+            }
+
             materialEditor.ShaderProperty(m_MaterialTilingU, "Material Tiling U");
             materialEditor.ShaderProperty(m_MaterialTilingV, "Material Tiling V");
 
