@@ -155,10 +155,17 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
-        [Retry(3)]
+        static List<int> s_receivedEvent;
+        static void OnEventReceived(VisualEffect.OutputEventArgs evt)
+        {
+            s_receivedEvent.Add(evt.nameId);
+        }
+
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner_And_Output_Event()
         {
+            yield return new EnterPlayMode();
+
             //This mainly cover return value & expected behavior, event attribute values are covered by a graphic test
             var spawnCountValue = 1.0f; //We running these test at 10FPS
             VisualEffect vfxComponent;
@@ -170,13 +177,10 @@ namespace UnityEditor.VFX.Test
             var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
             graph.AddChild(outputEvent);
             outputEvent.LinkFrom(basicSpawner);
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            var receivedEvent = new List<int>();
-            vfxComponent.outputEventReceived += o =>
-            {
-                receivedEvent.Add(o.nameId);
-            };
+            s_receivedEvent = new List<int>();
+            vfxComponent.outputEventReceived += OnEventReceived;
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
@@ -189,25 +193,27 @@ namespace UnityEditor.VFX.Test
             vfxComponent.GetOutputEventNames(outputEventNames);
             Assert.AreEqual(1u, outputEventNames.Count);
             var outputEventName = outputEventNames[0];
-
             //Checking invalid event (waiting for the first event)
-            Assert.AreEqual(0u, receivedEvent.Count);
+            Assert.AreEqual(0u, s_receivedEvent.Count);
 
             //Checking on valid event while there is an event
-            maxFrame = 512; receivedEvent.Clear();
-            while (receivedEvent.Count == 0u && --maxFrame > 0)
+            maxFrame = 512; s_receivedEvent.Clear();
+            while (s_receivedEvent.Count == 0u && --maxFrame > 0)
             {
                 yield return null;
             }
             Assert.IsTrue(maxFrame > 0);
-            Assert.IsTrue(receivedEvent.Count > 0);
+            Assert.IsTrue(s_receivedEvent.Count > 0);
+            s_receivedEvent.Clear();
 
-            yield return null;
+            yield return new ExitPlayMode();
         }
 
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner_And_Output_Event_Expected_Count()
         {
+            yield return new EnterPlayMode();
+
             //This mainly cover return value & expected behavior, event attribute values are covered by a graphic test
             var spawnCountValue = 1.0f; //We running these test at 10FPS
             VisualEffect vfxComponent;
@@ -219,13 +225,10 @@ namespace UnityEditor.VFX.Test
             var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
             graph.AddChild(outputEvent);
             outputEvent.LinkFrom(basicSpawner);
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            var receivedEvent = new List<int>();
-            vfxComponent.outputEventReceived += o =>
-            {
-                receivedEvent.Add(o.nameId);
-            };
+            s_receivedEvent = new List<int>();
+            vfxComponent.outputEventReceived += OnEventReceived;
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
@@ -238,19 +241,21 @@ namespace UnityEditor.VFX.Test
             float deltaTime = 0.1f;
             uint count = 32;
             vfxComponent.Simulate(deltaTime, count);
-            Assert.AreEqual(0u, receivedEvent.Count); //The simulate is asynchronous
+            Assert.AreEqual(0u, s_receivedEvent.Count); //The simulate is asynchronous
 
             float simulateTime = deltaTime * count;
             uint expectedEventCount = (uint)Mathf.Floor(simulateTime / spawnCountValue);
 
-            maxFrame = 64; receivedEvent.Clear();
+            maxFrame = 64; s_receivedEvent.Clear();
             cameraObj.SetActive(false);
-            while (receivedEvent.Count == 0u && --maxFrame > 0)
+            while (s_receivedEvent.Count == 0u && --maxFrame > 0)
             {
                 yield return null;
             }
-            Assert.AreEqual(expectedEventCount, (uint)receivedEvent.Count);
+            Assert.AreEqual(expectedEventCount, (uint)s_receivedEvent.Count);
             yield return null;
+
+            yield return new ExitPlayMode();
         }
 
 
