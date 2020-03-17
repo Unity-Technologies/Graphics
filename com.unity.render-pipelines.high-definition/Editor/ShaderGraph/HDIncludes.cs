@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -398,64 +398,83 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             //pregraph includes
             { kCommon, IncludeLocation.Pregraph },
-            { kShaderVariables, IncludeLocation.Pregraph },
+
             { kFragInputs, IncludeLocation.Pregraph },
             { kShaderPass, IncludeLocation.Pregraph },
+
+            // Ray Tracing macros should be included before shader variables to guarantee that the macros are overriden
             { kRaytracingMacros, IncludeLocation.Pregraph },
+            { kShaderVariables, IncludeLocation.Pregraph },
             { kMaterial, IncludeLocation.Pregraph },
             { kShaderVariablesRaytracing, IncludeLocation.Pregraph },
+
             { kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },
-            { kRaytracingIntersectionGBuffer, IncludeLocation.Pregraph,
-                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true)},
+
+            // We want the gbuffer payload only if we are in the gbuffer pass 
+            { kRaytracingIntersectionGBuffer, IncludeLocation.Pregraph, new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true)},
+
+            // We want the sub-surface payload if we are in the subsurface sub shader and this not an unlit
             { kRaytracingIntersectionSubSurface, IncludeLocation.Pregraph, new FieldCondition[]{
                 new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, true),
                 new FieldCondition(HDFields.SubShader.Unlit, false) }},
+
+            // We want the generic payload if this is not a gbuffer or a subsurface subshader
             { kRaytracingIntersection, IncludeLocation.Pregraph, new FieldCondition[]{
                 new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, false),
                 new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false) }},
+
+            // We want to have the lighting include if this is an indirect sub-shader, a forward one or the path tracing (and this is not an unlit)
             { kLighting, IncludeLocation.Pregraph, new FieldCondition[]{
                 new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, false),
-                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false),
                 new FieldCondition(HDFields.ShaderPass.RaytracingVisibility, false),
+                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false),
                 new FieldCondition(HDFields.SubShader.Unlit, false) }},
             { kLightLoopDef, IncludeLocation.Pregraph, new FieldCondition[]{
                 new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, false),
-                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false),
                 new FieldCondition(HDFields.ShaderPass.RaytracingVisibility, false),
+                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false),
                 new FieldCondition(HDFields.SubShader.Unlit, false) }},
-            { kLit, IncludeLocation.Pregraph,
-                new FieldCondition(HDFields.SubShader.Lit, true)},
-            { kFabric, IncludeLocation.Pregraph,
-                new FieldCondition(HDFields.SubShader.Fabric, true)},
-            { kUnlit, IncludeLocation.Pregraph,
-                new FieldCondition(HDFields.SubShader.Unlit, true )},
+
+            // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+            { kLit, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Lit, true)},
+            { kFabric, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Fabric, true)},
+            { kUnlit, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Unlit, true )},
+
+            // We want to have the normal buffer include if this is a gbuffer and unlit shader
             { kNormalBuffer, IncludeLocation.Pregraph, new FieldCondition[]{
-                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true ),
-                new FieldCondition(HDFields.SubShader.Unlit, true ) }},
+                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true),
+                new FieldCondition(HDFields.SubShader.Unlit, true) }},
+                
+            // If this is the gbuffer sub-shader, we want the standard lit data
             { kStandardLit, IncludeLocation.Pregraph,
                 new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true)},
-            { kLitRaytracing, IncludeLocation.Pregraph,
-                new FieldCondition(HDFields.SubShader.Lit, true)},
-            { kFabricRaytracing, IncludeLocation.Pregraph,
-                new FieldCondition(HDFields.SubShader.Fabric, true)},
-            { kUnlitRaytracing, IncludeLocation.Pregraph,
-                new FieldCondition(HDFields.SubShader.Unlit, true )},
+
+            // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+            { kLitRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Lit, true)},
+            { kFabricRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Fabric, true)},
+            { kUnlitRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Unlit, true )},
+      
+
+            // We want to have the ray tracing light loop if this is an indirect sub-shader or a forward one and it is not the unlit shader
+            { kRaytracingLightLoop, IncludeLocation.Pregraph, new FieldCondition[]{
+                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, false),
+                new FieldCondition(HDFields.ShaderPass.RaytracingVisibility, false),
+                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false),
+                new FieldCondition(HDFields.ShaderPass.RaytracingPathTracing, false),
+                new FieldCondition(HDFields.SubShader.Unlit, false) }},
+
             { CoreUtility },
             { kRaytracingCommon, IncludeLocation.Pregraph },
             { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            //post graph includes
-            { kPassRaytracingIndirect, IncludeLocation.Postgraph,
-                new FieldCondition(HDFields.ShaderPass.RaytracingIndirect, true) },
-            { kPassRaytracingVisbility, IncludeLocation.Postgraph,
-                new FieldCondition(HDFields.ShaderPass.RaytracingVisibility, true) },
-            { kPassRaytracingForward, IncludeLocation.Postgraph,
-                new FieldCondition(HDFields.ShaderPass.RaytracingForward, true) },
-            { kPassRaytracingGBuffer, IncludeLocation.Postgraph,
-                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true) },
-            { kPassPathTracing, IncludeLocation.Postgraph,
-                new FieldCondition(HDFields.ShaderPass.RaytracingPathTracing, true) },
-            { kPassRaytracingSubSurface, IncludeLocation.Postgraph,
-                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, true) }
+
+            // post graph includes
+            // The shader passes should always be post graph and are a 1 to 1 mapping to the shader pass name
+            { kPassRaytracingIndirect, IncludeLocation.Postgraph, new FieldCondition(HDFields.ShaderPass.RaytracingIndirect, true) },
+            { kPassRaytracingVisbility, IncludeLocation.Postgraph, new FieldCondition(HDFields.ShaderPass.RaytracingVisibility, true) },
+            { kPassRaytracingForward, IncludeLocation.Postgraph, new FieldCondition(HDFields.ShaderPass.RaytracingForward, true) },
+            { kPassRaytracingGBuffer, IncludeLocation.Postgraph, new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true) },
+            { kPassPathTracing, IncludeLocation.Postgraph, new FieldCondition(HDFields.ShaderPass.RaytracingPathTracing, true) },
+            { kPassRaytracingSubSurface, IncludeLocation.Postgraph,  new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, true) }
         };
 #endregion
     }

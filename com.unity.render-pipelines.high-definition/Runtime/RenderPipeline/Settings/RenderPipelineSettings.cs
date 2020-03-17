@@ -118,6 +118,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportShadowMask;
         /// <summary>Support screen space reflections.</summary>
         public bool supportSSR;
+        /// <summary>Support transparent screen space reflections.</summary>
+        public bool supportSSRTransparent;
         /// <summary>Support screen space ambient occlusion.</summary>
         public bool supportSSAO;
         /// <summary>Support subsurface scattering.</summary>

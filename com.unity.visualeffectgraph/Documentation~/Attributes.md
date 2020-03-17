@@ -39,7 +39,7 @@ The current Attribute location refers to the **current** system data container t
 
 * Particle Data from a Particle System.
 * ParticleStrip Data from a ParticleStrip System.
-* SpawnEvent Data from a Spawn Context or sent through a [SendEvent](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VisualEffect.SendEvent.html) [EventAttribute](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VFXEventAttribute.html) Payload.
+* SpawnEvent Data from a Spawn Context or sent through a [SendEvent](https://docs.unity3d.com/Documentation/ScriptReference/VFX.VisualEffect.SendEvent.html) [EventAttribute](https://docs.unity3d.com/Documentation/ScriptReference/VFX.VFXEventAttribute.html) Payload.
 
 ### Source
 

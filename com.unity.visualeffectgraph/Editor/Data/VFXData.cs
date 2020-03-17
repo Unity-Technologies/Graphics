@@ -41,23 +41,6 @@ namespace UnityEditor.VFX
 
         public string title;
 
-        public int index
-        {
-            get; set;
-        }
-
-        public string fileName
-        {
-            get
-            {
-                if (!string.IsNullOrWhiteSpace(title))
-                    return title;
-                int i = this.index;
-                if (i < 0)
-                    return string.Empty;
-                return string.Format("System {0}", i);
-            }
-        }
 
         public IEnumerable<VFXContext> implicitContexts
         {

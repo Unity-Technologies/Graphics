@@ -91,6 +91,7 @@
 
 #define real2x2 half2x2
 #define real2x3 half2x3
+#define real2x4 half2x4
 #define real3x2 half3x2
 #define real3x3 half3x3
 #define real3x4 half3x4
@@ -126,6 +127,7 @@
 
 #define real2x2 float2x2
 #define real2x3 float2x3
+#define real2x4 float2x4
 #define real3x2 float3x2
 #define real3x3 float3x3
 #define real3x4 float3x4
@@ -1097,7 +1099,7 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
     return float4(x, y, z, 1.0);
 }
 
-#if !defined(SHADER_API_GLES)
+#if !defined(SHADER_API_GLES) && !defined(SHADER_STAGE_RAY_TRACING)
 
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0

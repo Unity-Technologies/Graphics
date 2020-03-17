@@ -4110,6 +4110,14 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     lighting.diffuse *= lightData.color;
     lighting.specular *= lightData.color;
 
+#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    float shadow = 1.0;
+    if ((lightData.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
+        shadow = GetScreenSpaceShadow(posInput, lightData.screenSpaceShadowIndex);
+    lighting.diffuse *= shadow;
+    lighting.specular *= shadow;
+#endif // defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {

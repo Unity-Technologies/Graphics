@@ -242,7 +242,14 @@ namespace UnityEngine.TestTools.Graphics
                 int allocationCountOfRenderPipeline = gcAllocRecorder.sampleBlockCount - gcAllocThreshold;
 
                 if (allocationCountOfRenderPipeline > 0)
-                    throw new Exception($"Memory allocation test failed, {allocationCountOfRenderPipeline} allocations detected. Look for GraphicTests_GC_Alloc_Check in the profiler for more details");
+                    throw new Exception(
+                        $@"Memory allocation test failed, {allocationCountOfRenderPipeline} allocations detected. Steps to find where your allocation is:
+                        - Open the profiler window (ctrl-7) and enabled deep profiling.
+                        - Run your the test that fails and wait (it can take much longer because deep profiling is enabled).
+                        - In the CPU section of the profiler search for the 'GraphicTests_GC_Alloc_Check' marker.
+                        - This should give you one result, click on it and press f to go to the frame where it hapended.
+                        - Click on the GC Alloc column to sort by allocation and unfold the hierarchy under the 'GraphicTests_GC_Alloc_Check' marker."
+                    );
 
                 camera.targetTexture = null;
             }

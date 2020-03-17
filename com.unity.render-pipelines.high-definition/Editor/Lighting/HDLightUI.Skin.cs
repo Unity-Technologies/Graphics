@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent affectDiffuse = new GUIContent("Affect Diffuse", "When disabled, HDRP does not calculate diffuse lighting for this Light. Does not increase performance as HDRP still calculates the diffuse lighting.");
             public readonly GUIContent affectSpecular = new GUIContent("Affect Specular", "When disabled, HDRP does not calculate specular lighting for this Light. Does not increase performance as HDRP still calculates the specular lighting.");
             public readonly GUIContent nonLightmappedOnly = new GUIContent("Shadowmask Mode", "Species the behavior of  the shadowmask when using Mixed lighting. Distance Shadowmask: HDRP uses real-time shadows to Shadow Distance and baked shadows after. Shadowmask: Static shadow casters always use baked shadows.");
-            public readonly GUIContent lightDimmer = new GUIContent("Dimmer", "Controls a dimming effect of the Light as a percentage of its intensity. This is useful for reducing the intensity of multiple Lights simultaneously without needing know the intensity of each Light.");
+            public readonly GUIContent lightDimmer = new GUIContent("Intensity Multiplier", "Multiplies the intensity of the Light by the given number. This is useful for modifying the intensity of multiple Lights simultaneously without needing know the intensity of each Light.");
             public readonly GUIContent fadeDistance = new GUIContent("Fade Distance", "The distance at which light smoothly fades out before HDRP culls it completely. This minimizes popping.");
             public readonly GUIContent spotInnerPercent = new GUIContent("Inner Angle (%)", "Controls size of the angular attenuation, in percent, of the base angle of the Spot Light's cone.");
             public readonly GUIContent spotLightShape = new GUIContent("Shape", "The shape of the Spot Light. Impacts the the cookie transformation and the Light's angular attenuation.");
@@ -75,6 +75,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shapeHeightBox = new GUIContent("Size Y", "Sets the height of the Box Light.");
             public readonly GUIContent applyRangeAttenuation = new GUIContent("Range Attenuation", "Allows you to enable or disable range attenuation. Range attenuation is useful for indoor environments because you can avoid having to set up a large range for a Light to get correct inverse square attenuation that may leak out of the indoor environment.");
             public readonly GUIContent displayAreaLightEmissiveMesh = new GUIContent("Display Emissive Mesh", "Generate an emissive mesh using the size, Color and Intensity of the Area Light.");
+            public readonly GUIContent areaLightEmissiveMeshCastShadow = new GUIContent("Cast Shadows", "Specify wether the generated geometry create shadow or not when a shadow casting Light shines on it");
+            public readonly GUIContent areaLightEmissiveMeshMotionVector = new GUIContent("Motion Vectors", "Specify wether the generated Mesh renders 'Per Object Motion', 'Camera Motion' or 'No Motion' vectors to the Camera Motion Vector Texture.");
             public readonly GUIContent lightLayer = new GUIContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
 
             public readonly GUIContent interactsWithSky = new GUIContent("Affect Physically Based Sky", "Check this option to make the light and the Physically Based sky affect one another.");
@@ -93,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Volumetric Additional light data
             public readonly GUIContent volumetricEnable = new GUIContent("Enable", "When enabled, this Light uses Volumetrics.");
-            public readonly GUIContent volumetricDimmer = new GUIContent("Dimmer", "Controls the intensity of the scattered Volumetric lighting.");
+            public readonly GUIContent volumetricDimmer = new GUIContent("Multiplier", "Controls the intensity of the scattered Volumetric lighting.");
             // Volumetric Additional shadow data
             public readonly GUIContent volumetricShadowDimmer = new GUIContent("Shadow Dimmer", "Dims the volumetric shadows this Light casts.");
 

@@ -44,6 +44,15 @@ namespace UnityEditor.VFX
 
         static VFXGraphPreprocessor()
         {
+            EditorApplication.update += CheckCompilationVersion;
+
+            VisualEffectResource.onAddResourceDependencies = OnAddResourceDependencies;
+            VisualEffectResource.onCompileResource = OnCompileResource;
+        }
+
+        static void CheckCompilationVersion()
+        {
+            EditorApplication.update -= CheckCompilationVersion;
             string[] allVisualEffectAssets = AssetDatabase.FindAssets("t:VisualEffectAsset");
 
             UnityObject vfxmanager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/VFXManager.asset").FirstOrDefault();
@@ -66,9 +75,6 @@ namespace UnityEditor.VFX
                 }
                 AssetDatabase.StopAssetEditing();
             }
-
-            VisualEffectResource.onAddResourceDependencies = OnAddResourceDependencies;
-            VisualEffectResource.onCompileResource = OnCompileResource;
         }
     }
     class VFXCacheManager : EditorWindow
@@ -209,32 +215,6 @@ namespace UnityEditor.VFX
         // 4: TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
         public static readonly int CurrentVersion = 4;
 
-        string shaderNamePrefix = "Hidden/VFX";
-        public string GetContextShaderName(VFXContext context)
-        {
-            string prefix = shaderNamePrefix;
-            if (context.GetData() != null)
-            {
-                string dataName = context.GetData().fileName;
-                if (!string.IsNullOrEmpty(dataName))
-                    prefix += "/" + dataName;
-            }
-
-            if (context.letter != '\0')
-            {
-                if (string.IsNullOrEmpty(context.label))
-                    return string.Format("{2}/({0}) {1}", context.letter, libraryName, prefix);
-                else
-                    return string.Format("{2}/({0}) {1}", context.letter, context.label, prefix);
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(context.label))
-                    return string.Format("{1}/{0}", libraryName, prefix);
-                else
-                    return string.Format("{1}/{0}", context.label, prefix);
-            }
-        }
 
         public override void OnEnable()
         {
@@ -682,24 +662,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void ComputeDataIndices()
-        {
-            VFXContext[] directContexts = children.OfType<VFXContext>().ToArray();
-
-            HashSet<ScriptableObject> dependencies = new HashSet<ScriptableObject>();
-            CollectDependencies(dependencies, false);
-
-            VFXContext[] allContexts = dependencies.OfType<VFXContext>().ToArray();
-
-            IEnumerable<VFXData> datas = allContexts.Select(t => t.GetData()).Where(t => t != null).Distinct().OrderBy(t => directContexts.Contains(t.owners.First()) ? 0 : 1);
-
-            int cpt = 1;
-            foreach (var data in datas)
-            {
-                data.index = cpt++;
-            }
-        }
-
         //Explicit compile must be used if we want to force compilation even if a dependency is needed, which me must not do on a deleted library import.
         public static bool explicitCompile { get; set; } = false;
 
@@ -727,7 +689,6 @@ namespace UnityEditor.VFX
                 SanitizeGraph();
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();
-                ComputeDataIndices();
 
                 compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
             }
@@ -746,8 +707,6 @@ namespace UnityEditor.VFX
                 {
                     BuildSubgraphDependencies();
                     PrepareSubgraphs();
-
-                    ComputeDataIndices();
 
                     compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
                 }
