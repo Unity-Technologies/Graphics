@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Reflection;
+using Drawing.Inspector;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
@@ -421,6 +423,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public string displayName => $"{m_Title.text} (Sticky Note)";
         public object GetUnderlyingObject()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public PropertyInfo[] GetPropertyInfo()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer)
         {
             throw new System.NotImplementedException();
         }

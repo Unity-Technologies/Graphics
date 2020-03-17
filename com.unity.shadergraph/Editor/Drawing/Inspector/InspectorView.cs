@@ -20,41 +20,24 @@ namespace Drawing.Inspector
     class InspectorView : GraphSubWindow
     {
         // References
-        GraphData m_GraphData;
-
-        IList<Type> m_PropertyDrawerList = new List<Type>();
+        readonly GraphData m_GraphData;
+        readonly IList<Type> m_PropertyDrawerList = new List<Type>();
 
         protected override string windowTitle => "Inspector";
         protected override string elementName => "InspectorView";
         protected override string styleName => "InspectorView";
 
-        // Passing both the manager and the data here is really bad
-        // Inspector preview should be directly reactive to the preview manager
         public InspectorView(GraphData graphData, GraphView graphView) : base(graphView)
         {
             m_GraphData = graphData;
 
-            // Register property drawer types here - Can we use Unity inbuilt property drawers instead?
+            // Register property drawer types here
             RegisterPropertyDrawer(typeof(BoolPropertyDrawer));
             RegisterPropertyDrawer(typeof(EnumPropertyDrawer));
-
-            BuildView();
+            RegisterPropertyDrawer(typeof(ShaderInputPropertyDrawer));
         }
 
-        void BuildView()
-        {
-            BuildContentContainer();
-        }
-        void BuildContentContainer()
-        {
-        }
-
-
-#region Content
-        void BuildContent(VisualElement container)
-        {
-        }
-
+#region PropertyDrawing
         void RegisterPropertyDrawer(Type propertyDrawerType)
         {
             // #TODO: Look into the right way to warn the user that there are errors they should probably be aware of
@@ -94,6 +77,9 @@ namespace Drawing.Inspector
             return false;
         }
 
+#endregion
+
+#region Selection
         public void UpdateSelection(List<ISelectable> selectedObjects)
         {
             // Remove current properties
@@ -127,12 +113,15 @@ namespace Drawing.Inspector
                     if (selectable is IInspectable inspectable)
                     {
                         dataObject = inspectable.GetUnderlyingObject();
-                        properties = dataObject.GetType().GetProperties();
+                        if (dataObject == null)
+                            throw new NullReferenceException("DataObject returned by Inspectable is null!");
+
+                        properties = inspectable.GetPropertyInfo();
+                        if (properties == null)
+                            throw new NullReferenceException("PropertyInfos returned by Inspectable is null!");
                     }
                     else
                         continue;
-                    // #TODO: When the inspector encounters certain types like BlackboardFieldView that have more complex representations for their data,
-                    // #TODO: need to check those first before doing a property-by-property check and handle it directly
 
                     foreach (var propertyInfo in properties)
                     {
@@ -145,8 +134,10 @@ namespace Drawing.Inspector
                         if (IsPropertyTypeHandled(propertyType, out var propertyDrawerTypeToUse))
                         {
                             var propertyDrawerInstance = (IPropertyDrawer)Activator.CreateInstance(propertyDrawerTypeToUse);
-                            var propertyRow = propertyDrawerInstance.HandleProperty(propertyInfo, dataObject, attribute);
-                            propertySheet.Add(propertyRow);
+                            // Supply any required data to this particular kind of property drawer
+                            inspectable.SupplyDataToPropertyDrawer(propertyDrawerInstance);
+                            var propertyGUI = propertyDrawerInstance.DrawProperty(propertyInfo, dataObject, attribute);
+                            propertySheet.Add(propertyGUI);
                         }
                     }
                 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Reflection;
+using Drawing.Inspector;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -27,5 +29,9 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         string displayName { get; }
         object GetUnderlyingObject();
+
+        PropertyInfo[] GetPropertyInfo();
+
+        void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer);
     }
 }

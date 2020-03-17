@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
+using Drawing.Inspector;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing;
@@ -53,6 +55,16 @@ namespace UnityEditor.ShaderGraph
         }
 
         public object GetUnderlyingObject()
+        {
+            throw new NotImplementedException();
+        }
+
+        public PropertyInfo[] GetPropertyInfo()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer)
         {
             throw new NotImplementedException();
         }
