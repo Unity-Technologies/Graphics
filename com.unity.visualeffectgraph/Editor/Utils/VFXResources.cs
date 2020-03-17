@@ -33,7 +33,7 @@ namespace UnityEditor.VFX
             }
             return asset;
         }
-        private void Initialize()
+        private static void Initialize()
         {
 
             VFXResources newAsset = new VFXResources();
