@@ -479,10 +479,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex
                 , RTHandle shadowHistoryArray, RTHandle shadowHistoryValidityArray)
             {
-                // We only support ray traced area shadows if we are in deferred mode
-                if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
-                    return;
-
                 // Texture dimensions
                 int texWidth = hdCamera.actualWidth;
                 int texHeight = hdCamera.actualHeight;
@@ -527,11 +523,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind the input buffers
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
-                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
-                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
-                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
+                if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
+                {
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
+                }
+                else
+                {
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[0], TextureXR.GetBlackTexture());
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[1], TextureXR.GetBlackTexture());
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[2], TextureXR.GetBlackTexture());
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[3], TextureXR.GetBlackTexture());
+                }
+
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
+                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._StencilTexture, sharedRTManager.GetDepthStencilBuffer(), 0, RenderTextureSubElement.Stencil);
 
                 // Bind the output buffers
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._RaytracedAreaShadowIntegration, intermediateBufferRGBA0);
@@ -577,11 +585,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Input Buffers
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
-                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
-                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
-                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
+
+                    if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
+                    {
+                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
+                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
+                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
+                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
+                    }
+                    else
+                    {
+                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[0], TextureXR.GetBlackTexture());
+                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[1], TextureXR.GetBlackTexture());
+                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[2], TextureXR.GetBlackTexture());
+                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[3], TextureXR.GetBlackTexture());
+                    }
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._StencilTexture, sharedRTManager.GetDepthStencilBuffer(), 0, RenderTextureSubElement.Stencil);
 
                     // Output buffers
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._RaytracedAreaShadowSample, intermediateBufferRGBA1);

@@ -552,6 +552,20 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_ReceivesSSRTransparent = true;
+        public ToggleData receiveSSRTransparent
+        {
+            get { return new ToggleData(m_ReceivesSSRTransparent); }
+            set
+            {
+                if (m_ReceivesSSRTransparent == value.isOn)
+                    return;
+                m_ReceivesSSRTransparent = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         bool m_AddPrecomputedVelocity = false;
 
         public ToggleData addPrecomputedVelocity
@@ -781,7 +795,8 @@ namespace UnityEditor.Rendering.HighDefinition
             hash |= (alphaTest.isOn ? 0 : 1) << 0;
             hash |= (alphaTestShadow.isOn ? 0 : 1) << 1;
             hash |= (receiveSSR.isOn ? 0 : 1) << 2;
-            hash |= (RequiresSplitLighting() ? 0 : 1) << 3;
+            hash |= (receiveSSRTransparent.isOn ? 0 : 1) << 3;
+            hash |= (RequiresSplitLighting() ? 0 : 1) << 4;
 
             return hash;
         }
@@ -1125,6 +1140,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.TransparentWritesMotionVec,   surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
                 new ConditionalField(HDFields.DisableDecals,                !receiveDecals.isOn),
                 new ConditionalField(HDFields.DisableSSR,                   !receiveSSR.isOn),
+                new ConditionalField(HDFields.DisableSSRTransparent,        !receiveSSRTransparent.isOn),
                 new ConditionalField(Fields.VelocityPrecomputed,                addPrecomputedVelocity.isOn),
                 new ConditionalField(HDFields.SpecularAA,                   specularAA.isOn && 
                                                                                 pass.pixelPorts.Contains(SpecularAAThresholdSlotId) &&
@@ -1267,7 +1283,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn, receiveSSRTransparent.isOn);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 surfaceType,

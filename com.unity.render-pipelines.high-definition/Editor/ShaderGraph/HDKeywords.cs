@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -6,6 +6,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static class Descriptors
         {
+
+            public static KeywordDescriptor WriteNormalBufferDefine = new KeywordDescriptor()
+            {
+                displayName = "Write Normal Buffer",
+                referenceName = "WRITE_NORMAL_BUFFER",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Global,
+            };
+            
             public static KeywordDescriptor WriteNormalBuffer = new KeywordDescriptor()
             {
                 displayName = "Write Normal Buffer",
@@ -179,7 +189,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
                     new KeywordEntry() { displayName = "Alpha", referenceName = "ALPHA" },
                     new KeywordEntry() { displayName = "Add", referenceName = "ADD" },
-                    new KeywordEntry() { displayName = "Multiply", referenceName = "MULTIPLY" },
+                    new KeywordEntry() { displayName = "PreMultiply", referenceName = "PRE_MULTIPLY" },
                 }
             };
 
@@ -269,6 +279,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { HDBase },
             { Descriptors.AlphaTest, new FieldCondition(HDFields.AlphaTestPrepass, true) },
+            { Descriptors.WriteNormalBufferDefine, new FieldCondition(HDFields.DisableSSRTransparent, false) },
         };
 
         public static KeywordCollection TransparentDepthPostpass = new KeywordCollection
