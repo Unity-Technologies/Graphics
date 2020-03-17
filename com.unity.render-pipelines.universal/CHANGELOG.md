@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-### Fixed
-- Fixed an issue where Shader Graph subshaders referenced incorrect asset GUIDs. 
-
 ## [7.3.0] - 2020-03-11
 
 ### Added
@@ -44,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that causes double sRGB correction on Quest. [case 1209292](https://issuetracker.unity3d.com/product/unity/issues/guid/1209292)
 - Fixed an issue where terrain DepthOnly pass does not work for XR.
 - Fixed an issue where Shaders that used Texture Arrays and FrontFace didn't compile at build time, which caused the build to fail.
+- Fixed an issue where Shader Graph subshaders referenced incorrect asset GUIDs. 
 
 ### Added
 - If Unity Editor Analytics are enabled, Universal collects anonymous data about usage of Universal. This helps the Universal team focus our efforts on the most common scenarios, and better understand the needs of our customers.
