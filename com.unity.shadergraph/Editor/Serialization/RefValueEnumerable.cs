@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.Serialization
 {
-    struct TargetEnumerable<T> : IEnumerable<T>
+    struct RefValueEnumerable<T> : IEnumerable<T>
         where T : JsonObject
     {
         List<JsonRef<T>> m_List;
 
-        public TargetEnumerable(List<JsonRef<T>> list)
+        public RefValueEnumerable(List<JsonRef<T>> list)
         {
             m_List = list;
         }
