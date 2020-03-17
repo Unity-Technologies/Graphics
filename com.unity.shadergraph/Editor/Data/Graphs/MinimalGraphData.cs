@@ -5,7 +5,7 @@ using System.Text;
 using UnityEditor.Graphing;
 using UnityEngine;
 
- namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
     /// <summary>
     /// Minimal version of <see cref="GraphData"/> used for gathering dependencies. This allows us to not deserialize
@@ -19,7 +19,7 @@ using UnityEngine;
     {
         static Dictionary<string, Type> s_MinimalTypeMap = CreateMinimalTypeMap();
 
-         static Dictionary<string, Type> CreateMinimalTypeMap()
+        static Dictionary<string, Type> CreateMinimalTypeMap()
         {
             var types = new Dictionary<string, Type>();
             foreach (var nodeType in TypeCache.GetTypesWithAttribute<HasDependenciesAttribute>())
@@ -31,23 +31,24 @@ using UnityEngine;
                     continue;
                 }
 
-                 types.Add(nodeType.FullName, dependencyAttribute.minimalType);
+                types.Add(nodeType.FullName, dependencyAttribute.minimalType);
 
-                 var formerNameAttributes = (FormerNameAttribute[])nodeType.GetCustomAttributes(typeof(FormerNameAttribute), false);
+                var formerNameAttributes = (FormerNameAttribute[])nodeType.GetCustomAttributes(typeof(FormerNameAttribute), false);
                 foreach (var formerNameAttribute in formerNameAttributes)
                 {
                     types.Add(formerNameAttribute.fullName, dependencyAttribute.minimalType);
                 }
             }
+
             return types;
         }
 
-         [SerializeField]
+        [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
 
-         public List<string> dependencies { get; set; }
+        public List<string> dependencies { get; set; }
 
-         public void OnAfterDeserialize()
+        public void OnAfterDeserialize()
         {
             foreach (var element in m_SerializableNodes)
             {
@@ -60,18 +61,16 @@ using UnityEngine;
             }
         }
 
-         public void OnBeforeSerialize()
-        {
-        }
+        public void OnBeforeSerialize() { }
 
-         public static string[] GetDependencyPaths(string assetPath)
+        public static string[] GetDependencyPaths(string assetPath)
         {
             var dependencies = new List<string>();
             GetDependencyPaths(assetPath, dependencies);
             return dependencies.ToArray();
         }
 
-         public static void GetDependencyPaths(string assetPath, List<string> dependencies)
+        public static void GetDependencyPaths(string assetPath, List<string> dependencies)
         {
             var textGraph = File.ReadAllText(assetPath, Encoding.UTF8);
             var minimalGraphData = new MinimalGraphData { dependencies = dependencies };
