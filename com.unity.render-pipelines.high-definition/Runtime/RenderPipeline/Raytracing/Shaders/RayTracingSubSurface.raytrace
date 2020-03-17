@@ -30,6 +30,7 @@ TEXTURE2D_X_UINT2(_StencilTexture);
 RW_TEXTURE2D_X(float4, _ThroughputTextureRW);
 RW_TEXTURE2D_X(float4, _PositionTextureRW);
 RW_TEXTURE2D_X(float4, _NormalTextureRW);
+RW_TEXTURE2D_X(float4, _DirectionTextureRW);
 RW_TEXTURE2D_X(float4, _DiffuseLightingTextureRW);
 
 [shader("miss")]
@@ -50,7 +51,7 @@ void RayGenSubSurface()
 
     // Force the throughput value of this pixel to black in case we do not need to compute sss for it
     _ThroughputTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    
+
     // Does this pixel have SSS?
     uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentPixelCoord));
     if ((stencilValue & STENCILUSAGE_SUBSURFACE_SCATTERING) == 0)
@@ -66,29 +67,25 @@ void RayGenSubSurface()
     PositionInputs posInput = GetPositionInput(currentPixelCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     posInput.positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
-    // Read the bsdf data and builtin data from the gbuffer
-    BSDFData bsdfData;
-    ZERO_INITIALIZE(BSDFData, bsdfData);
-    BuiltinData builtinData;
-    ZERO_INITIALIZE(BuiltinData, builtinData);
-    uint featureFlags = MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
-    DecodeFromGBuffer(currentPixelCoord, featureFlags, bsdfData, builtinData);
+    // Read the normal data
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
     // Read the SSS Data
     SSSData sssData;
     DECODE_FROM_SSSBUFFER(posInput.positionSS, sssData);
-    float3 shapeParam  = _ShapeParams[sssData.diffusionProfileIndex].rgb;
+    float3 shapeParam  = _ShapeParams[sssData.diffusionProfileIndex].rgb * _WorldScales[sssData.diffusionProfileIndex].x;
 
     // Deduce our scattering distance
     // For some reason the value in shapeParam is negative, convert it to milimeters while we are there.
     float3 scatteringDistance = -1.0 / shapeParam * 0.001;
-    
+
     // Define which sample in the sequence we are up to.
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
 
     // Do our walk
     ScatteringResult scatteringResult;
-    ScatteringWalk(bsdfData.normalWS, bsdfData.diffuseColor, scatteringDistance, currentPixelCoord, globalSampleIndex, posInput.positionWS, scatteringResult);
+    ScatteringWalk(normalData.normalWS, sssData.diffuseColor, scatteringDistance, currentPixelCoord, globalSampleIndex, posInput.positionWS, scatteringResult);
 
     // Normalize the throughput
     scatteringResult.outputThroughput /= (float)_RaytracingNumSamples;
@@ -97,5 +94,6 @@ void RayGenSubSurface()
     _ThroughputTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(scatteringResult.outputThroughput, 1.0f);
     _PositionTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(scatteringResult.outputPosition, 1.0f);
     _NormalTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(scatteringResult.outputNormal, 1.0f);
+    _DirectionTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(scatteringResult.outputDirection, 1.0f);
     _DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(scatteringResult.outputDiffuse, 1.0f);
 }

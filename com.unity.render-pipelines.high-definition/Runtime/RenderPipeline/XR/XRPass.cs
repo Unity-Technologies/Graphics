@@ -200,6 +200,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
+                if (xrSdkEnabled)
+                {
+                    Debug.LogWarning("If you're trying to enable XR single-pass after the first frame, you need to set TextureXR.maxViews to 2 before the render pipeline is created (typically in a script with Awake()).");
+                }
+                
                 throw new NotImplementedException($"Invalid XR setup for single-pass, trying to add too many views! Max supported: {maxSupportedViews}");
             }
         }

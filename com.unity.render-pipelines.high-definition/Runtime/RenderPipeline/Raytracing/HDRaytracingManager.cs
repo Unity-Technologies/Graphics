@@ -85,6 +85,10 @@ namespace UnityEngine.Rendering.HighDefinition
         ReflectionProbe reflectionProbe = new ReflectionProbe();
         List<Material> materialArray = new List<Material>(maxNumSubMeshes);
 
+        // Used to detect material changes for Path Tracing
+        Dictionary<int, int> m_MaterialCRCs = new Dictionary<int, int>();
+        bool m_MaterialsDirty = false;
+
         // Ray Direction/Distance buffers
         RTHandle m_RayTracingDirectionBuffer;
         RTHandle m_RayTracingDistanceBuffer;
@@ -220,6 +224,22 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Force it to be non single sided if it has the keyword if there is a reason
                         bool doubleSided = currentMaterial.doubleSidedGI || currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
                         singleSided |= !doubleSided;
+
+                        // Check if the material has changed since last time we were here
+                        if (!m_MaterialsDirty)
+                        {
+                            int matId = currentMaterial.GetInstanceID();
+                            int matPrevCRC, matCurCRC = currentMaterial.ComputeCRC();
+                            if (m_MaterialCRCs.TryGetValue(matId, out matPrevCRC))
+                            {
+                                m_MaterialCRCs[matId] = matCurCRC;
+                                m_MaterialsDirty |= (matCurCRC != matPrevCRC);
+                            }
+                            else
+                            {
+                                m_MaterialCRCs.Add(matId, matCurCRC);
+                            }
+                        }
                     }
                 }
 
@@ -384,6 +404,27 @@ namespace UnityEngine.Rendering.HighDefinition
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
+            // We need to process the emissive meshes of the rectangular area lights
+            for (var i = 0; i < m_RayTracingLights.hdRectLightArray.Count; i++)
+            {
+                // Fetch the current renderer of the rectangular area light (if any)
+                MeshRenderer currentRenderer = m_RayTracingLights.hdRectLightArray[i].emissiveMeshRenderer;
+
+                // If there is none it means that there is no emissive mesh for this light
+                if (currentRenderer == null) continue;
+
+                // This objects should be included into the RAS
+                AddInstanceToRAS(currentRenderer,
+                                rayTracedShadow,
+                                aoSettings.rayTracing.value, aoSettings.layerMask.value,
+                                reflSettings.rayTracing.value, reflSettings.layerMask.value,
+                                giSettings.rayTracing.value, giSettings.layerMask.value,
+                                recursiveSettings.enable.value, recursiveSettings.layerMask.value,
+                                pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
+            }
+
+            int matCount = m_MaterialCRCs.Count;
+
             LODGroup[] lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
             for (var i = 0; i < lodGroupArray.Length; i++)
             {
@@ -446,7 +487,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Does this object have a reflection probe component? if yes we do not want to have it in the acceleration structure
                 if (gameObject.TryGetComponent<ReflectionProbe>(out reflectionProbe)) continue;
 
-                // This objects should but included into the RAS
+                // This objects should be included into the RAS
                 AddInstanceToRAS(currentRenderer,
                                 rayTracedShadow,
                                 aoSettings.rayTracing.value, aoSettings.layerMask.value,
@@ -455,6 +496,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 recursiveSettings.enable.value, recursiveSettings.layerMask.value,
                                 pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
             }
+
+            // Check if the amount of materials being tracked has changed
+            m_MaterialsDirty |= (matCount != m_MaterialCRCs.Count);
 
             // build the acceleration structure
             m_CurrentRAS.Build();

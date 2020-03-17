@@ -87,12 +87,33 @@ EditorBuildSettings:
     path: Assets/Scenes/707_SpotContactShadow.unity
     guid: 8c2434edc9ef0ff468dcb254cf0a17ba
   - enabled: 1
-    path: Assets/Scenes/801_SubSurfaceScattering.unity
+    path: Assets/Scenes/801_SubSurfaceScatteringDeferred.unity
     guid: c939ce56b901d264baab16d584624b30
   - enabled: 1
-    path: Assets/Scenes/3001_AreaShadows.unity
+    path: Assets/Scenes/802_SubSurfaceScatteringForward.unity
+    guid: 45325940ed3cc4d44a619c66066ec3d6
+  - enabled: 1
+    path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
   - enabled: 1
-    path: Assets/Scenes/3002_AreaShadows_Denoiser.unity
+    path: Assets/Scenes/3001_AreaShadowsForward.unity
+    guid: 18a3a10168d8d3847abf880a745f365e
+  - enabled: 1
+    path: Assets/Scenes/3002_AreaShadowsDeferred_Denoiser.unity
+    guid: 41b45b20479911741adc4a16ec5a07f0
+  - enabled: 1
+    path: Assets/Scenes/3002_AreaShadowsForward_Denoiser.unity
     guid: 22e35301dfb0fdf468a423c8a8390b13
+  - enabled: 1
+    path: Assets/Scenes/5001_PathTracing.unity
+    guid: 3666dc8006745714997c368c4375f316
+  - enabled: 1
+    path: Assets/Scenes/5002_PathTracing_GI.unity
+    guid: 0ab35aa39f371ab4c8d53b46c225d0a5
+  - enabled: 1
+    path: Assets/Scenes/5003_PathTracing_transparency.unity
+    guid: 1f55baf6eaf625e4fab7fa2e4228a3d0
+  - enabled: 1
+    path: Assets/Scenes/5004_PathTracing_arealight.unity
+    guid: 0bd00ddb543475c41bdd787c636d904f
   m_configObjects: {}
