@@ -35,6 +35,7 @@ The version number for this package has increased due to a version update of a r
 - Fix LookDev used Cubemap when asset is deleted
 - Fixed the definition of `rcp()` for GLES2.
 - Fix LookDev issue when adding a GameObject containing a Volume into the LookDev's view.
+- Fixed duplicated entry for com.unity.modules.xr in the runtime asmdef file
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
