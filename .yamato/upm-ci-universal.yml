@@ -311,7 +311,7 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
         - "**/test-results/**"
     players:
       paths:
-        - "players/**"
+        - "build/players/**"
         
         
 {{ project.name }}_OSX_Metal_Standalone_{{ editor.version }}:
