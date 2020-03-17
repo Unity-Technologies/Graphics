@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+- Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
+- Fix an exception in case two LOD levels are using the same mesh renderer.
+- Fixed error in the console when switching shader to decal in the material UI.
+- Fixed z-fighting in scene view when scene lighting is off (case 1203927)
+- Fixed issue that prevented cubemap thumbnails from rendering.
+
 ## [7.3.0] - 2020-03-11
 
 ### Added
@@ -52,6 +59,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
 - Light dimmer can now get values higher than one and was renamed to multiplier in the UI. 
 - Removed info box requesting volume component for Visual Environment and updated the documentation with the relevant information.
+- Add range-based clipping to box lights (case 1178780)
+- Improve area light culling (case 1085873)
 
 ## [7.2.0] - 2020-02-10
 
@@ -544,6 +553,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed init of debug for FrameSettingsHistory on SceneView camera
 - Added a fix script to handle the warning 'referenced script in (GameObject 'SceneIDMap') is missing'
 - Fix Wizard load when none selected for RenderPipelineAsset
+- Fixed issue with unclear naming of debug menu for decals.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
