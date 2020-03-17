@@ -1065,7 +1065,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // If we're not in decoupled mode for light layers, we sync light with shadow layers:
             foreach (Light target in owner.targets)
-                target.renderingLayerMask = serialized.lightlayersMask.intValue;
+                if (target.renderingLayerMask != serialized.lightlayersMask.intValue)
+                    target.renderingLayerMask = serialized.lightlayersMask.intValue;
         }
 
         static void DrawContactShadowsContent(SerializedHDLight serialized, Editor owner)

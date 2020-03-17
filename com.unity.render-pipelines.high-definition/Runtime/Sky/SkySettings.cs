@@ -175,12 +175,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static int GetUniqueID<T>()
+        /// <summary>
+        /// Returns the sky type unique ID.
+        /// Use this to override the skyType in the Visual Environment volume component.
+        /// </summary>
+        /// <typeparam name="T">Type of the sky.</typeparam>
+        /// <returns>The unique ID for the requested sky type.</returns>
+        public static int GetUniqueID<T>()
         {
             return GetUniqueID(typeof(T));
         }
 
-        internal static int GetUniqueID(Type type)
+        /// <summary>
+        /// Returns the sky type unique ID.
+        /// Use this to override the skyType in the Visual Environment volume component.
+        /// </summary>
+        /// <param name="type">Type of the sky.</param>
+        /// <returns>The unique ID for the requested sky type.</returns>
+        public static int GetUniqueID(Type type)
         {
             int uniqueID;
 

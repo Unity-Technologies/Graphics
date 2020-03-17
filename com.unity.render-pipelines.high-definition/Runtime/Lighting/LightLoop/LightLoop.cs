@@ -2678,6 +2678,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 screenSize;
             public int msaaSamples;
 
+            // Clear Light lists
+            public ComputeShader clearLightListCS;
+            public int clearLightListKernel;
+
             // Screen Space AABBs
             public ComputeShader screenSpaceAABBShader;
             public int screenSpaceAABBKernel;
@@ -2730,6 +2734,37 @@ namespace UnityEngine.Rendering.HighDefinition
             resources.gBuffer = m_GbufferManager.GetBuffers();
 
             return resources;
+        }
+
+        static void ClearLightList(in BuildGPULightListParameters parameters, CommandBuffer cmd, ComputeBuffer bufferToClear)
+        {
+            cmd.SetComputeBufferParam(parameters.clearLightListCS, parameters.clearLightListKernel, HDShaderIDs._LightListToClear, bufferToClear);
+            cmd.SetComputeIntParam(parameters.clearLightListCS, HDShaderIDs._LightListEntries, bufferToClear.count);
+
+            int groupSize = 64;
+            cmd.DispatchCompute(parameters.clearLightListCS, parameters.clearLightListKernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
+        }
+
+        static void ClearLightLists(    in BuildGPULightListParameters parameters,
+                                        in BuildGPULightListResources resources,
+                                        CommandBuffer cmd)
+        {
+            if (parameters.clearLightLists && !parameters.runLightList)
+            {
+                // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
+                // to changes to the inner workings of the lists.
+                // Also, we clear all the lists and to be resilient to changes in pipeline.
+                ClearLightList(parameters, cmd, resources.tileAndClusterData.bigTileLightList);
+                ClearLightList(parameters, cmd, resources.tileAndClusterData.lightList);
+                ClearLightList(parameters, cmd, resources.tileAndClusterData.perVoxelOffset);
+
+                // No need to clear it anymore until we start and stop running light list building.
+                resources.tileAndClusterData.listsAreClear = true;
+            }
+            else if (parameters.runLightList)
+            {
+                resources.tileAndClusterData.listsAreClear = false;
+            }
         }
 
         // generate screen-space AABBs (used for both fptl and clustered).
@@ -3031,6 +3066,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
+            // Clear light lsts
+            parameters.clearLightListCS = defaultResources.shaders.clearLightListsCS;
+            parameters.clearLightListKernel = parameters.clearLightListCS.FindKernel("ClearList");
+
             // Screen space AABB
             parameters.screenSpaceAABBShader = buildScreenAABBShader;
             parameters.screenSpaceAABBKernel = isProjectionOblique ? s_GenAABBKernel_Oblique : s_GenAABBKernel;
@@ -3083,19 +3122,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        void ClearLightList(HDCamera camera, CommandBuffer cmd, ComputeBuffer bufferToClear)
-        {
-            // We clear them all to be on the safe side when switching pipes.
-            var cs = defaultResources.shaders.clearLightListsCS;
-            var kernel = cs.FindKernel("ClearList");
-
-            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._LightListToClear, bufferToClear);
-            cmd.SetComputeIntParam(cs, HDShaderIDs._LightListEntries, bufferToClear.count);
-
-            int groupSize = 64;
-            cmd.DispatchCompute(cs, kernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
-        }
-
         void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildLightList)))
@@ -3109,23 +3135,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool tileFlagsWritten = false;
 
-                if(parameters.clearLightLists && !parameters.runLightList)
-                {
-                    // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
-                    // to changes to the inner workings of the lists.
-                    // Also, we clear all the lists and to be resilient to changes in pipeline.
-                    ClearLightList(hdCamera, cmd, resources.tileAndClusterData.bigTileLightList);
-                    ClearLightList(hdCamera, cmd, resources.tileAndClusterData.lightList);
-                    ClearLightList(hdCamera, cmd, resources.tileAndClusterData.perVoxelOffset);
-
-                    // No need to clear it anymore until we start and stop running light list building.
-                    m_TileAndClusterData.listsAreClear = true;
-                }
-                else if(parameters.runLightList)
-                {
-                    m_TileAndClusterData.listsAreClear = false;
-                }
-
+                ClearLightLists(parameters, resources, cmd);
                 GenerateLightsScreenSpaceAABBs(parameters, resources, cmd);
                 BigTilePrepass(parameters, resources, cmd);
                 BuildPerTileLightList(parameters, resources, ref tileFlagsWritten, cmd);

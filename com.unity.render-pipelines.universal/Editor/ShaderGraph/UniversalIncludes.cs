@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Pre-graph
             { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
-
+            { kGraphVariables, IncludeLocation.Pregraph },
             // Post-graph
             { CorePostgraph },
             { kPBR2DPass, IncludeLocation.Postgraph },
@@ -120,6 +120,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Pre-graph
             { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
+            { kGraphVariables, IncludeLocation.Pregraph },
             { k2DLightingUtil, IncludeLocation.Pregraph },
 
             // Post-graph
@@ -132,6 +133,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Pre-graph
             { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
+            { kGraphVariables, IncludeLocation.Pregraph },
             { k2DNormal, IncludeLocation.Pregraph },
 
             // Post-graph
@@ -144,6 +146,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Pre-graph
             { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
+            { kGraphVariables, IncludeLocation.Pregraph },
 
             // Post-graph
             { CorePostgraph },
@@ -155,6 +158,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Pre-graph
             { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
+            { kGraphVariables, IncludeLocation.Pregraph },
 
             // Post-graph
             { CorePostgraph },
