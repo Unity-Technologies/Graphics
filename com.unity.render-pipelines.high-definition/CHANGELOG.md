@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed draw renderers custom pass out of bound exception
 - Fixed an issue with emissive light meshes not being in the RAS.
 - Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
+- Fix LookDev issue when adding a GameObject containing a Volume into the LookDev's view.
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
