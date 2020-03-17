@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering
 }
 
 
-// TODO: Remove when breaking changes
+// TODO: Remove when breaking changes (introduced in 8.x.x)
 // Namespace is invalid
 // We will remove it in a future release but keep an obsolete version for compatibility.
 // Instead, we should use 'UnityEngine.Rendering'
