@@ -870,11 +870,42 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
             {
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth, Styles.probeVolumeAtlasWidth);
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight, Styles.probeVolumeAtlasHeight);
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth, Styles.probeVolumeAtlasDepth);
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth, Styles.probeVolumeAtlasOctahedralDepthWidth);
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight, Styles.probeVolumeAtlasOctahedralDepthHeight);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth, Styles.probeVolumeAtlasWidth);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth.intValue, 0);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight, Styles.probeVolumeAtlasHeight);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue, 0);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth, Styles.probeVolumeAtlasDepth);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue, 0);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth, Styles.probeVolumeAtlasOctahedralDepthWidth);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth.intValue, 0);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight, Styles.probeVolumeAtlasOctahedralDepthWidth);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight.intValue, 0);
+
+                if (serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue <= 0)
+                {
+                    // Detected legacy 2D probe volume atlas (degenerate Z axis resolution).
+                    // Initialize with default 3D atlas values.
+                    // TODO: (Nick) This can be removed in release. It's currently here to reduce user pain on internal projects actively using this WIP tech.
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth.intValue = GlobalProbeVolumeSettings.@default.atlasWidth;
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue = GlobalProbeVolumeSettings.@default.atlasHeight;
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue = GlobalProbeVolumeSettings.@default.atlasDepth;
+                }
+
                 --EditorGUI.indentLevel;
             }
 

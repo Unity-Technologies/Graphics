@@ -8,8 +8,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Default GlobalDecalSettings</summary>
         public static readonly GlobalProbeVolumeSettings @default = new GlobalProbeVolumeSettings()
         {
-            atlasWidth = 1024,
-            atlasHeight = 1024,
+            atlasWidth = 128,
+            atlasHeight = 128,
+            atlasDepth = 512,
             atlasOctahedralDepthWidth = 2048,
             atlasOctahedralDepthHeight = 2048
         };
