@@ -554,6 +554,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public int version { get; set; }
+        public virtual bool canCutNode => true;
         public virtual bool canCopyNode => true;
         //True if error
         protected virtual bool CalculateNodeHasError(ref string errorMessage)

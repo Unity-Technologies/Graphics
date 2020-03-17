@@ -33,6 +33,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<MouseMoveEvent>(OnMouseMoveEvent);
         }
 
+        protected override bool canCutSelection
+        {
+            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCutNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
+        }
+
         protected override bool canCopySelection
         {
             get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCopyNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
@@ -179,6 +184,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (selectedObject is Group)
                             return DropdownMenuAction.Status.Disabled;
                         GraphElement ge = selectedObject as GraphElement;
+                        if (ge.userData is BlockNode)
+                        {
+                            return DropdownMenuAction.Status.Disabled;
+                        }
                         if (ge.userData is IGroupItem)
                         {
                             filteredSelection.Add(ge);

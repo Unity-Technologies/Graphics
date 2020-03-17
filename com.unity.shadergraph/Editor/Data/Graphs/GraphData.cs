@@ -1326,6 +1326,11 @@ namespace UnityEditor.ShaderGraph
             var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
             foreach (var node in nodeList)
             {
+                if(node is BlockNode blockNode)
+                {
+                    continue;
+                }
+
                 AbstractMaterialNode pastedNode = node;
 
                 var oldGuid = node.guid;

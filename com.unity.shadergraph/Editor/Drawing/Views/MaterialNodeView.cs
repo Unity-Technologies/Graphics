@@ -468,7 +468,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public bool CanToggleNodeExpanded()
         {
-            return m_CollapseButton.enabledInHierarchy;
+            return !(node is BlockNode) && m_CollapseButton.enabledInHierarchy;
         }
 
         void UpdatePreviewExpandedState(bool expanded)

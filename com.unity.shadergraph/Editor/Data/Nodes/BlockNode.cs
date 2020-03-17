@@ -33,6 +33,9 @@ namespace UnityEditor.ShaderGraph
         public BlockNode()
         {
         }
+        
+        public override bool canCutNode => false;
+        public override bool canCopyNode => false;
 
         // Because the GraphData is deserialized after its child elements
         // the descriptor list is not built (and owner is not set)
