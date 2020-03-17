@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with emissive light meshes not being in the RAS.
 - Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
 - Fixed error in the console when switching shader to decal in the material UI.
+- Fixed z-fighting in scene view when scene lighting is off (case 1203927)
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
@@ -460,7 +461,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed alpha clipping test (comparison was '>', now '>=')
 - Fixed preview camera (eg. shader graph preview) when path tracing is on
 - Fixed issue with unclear naming of debug menu for decals.
-- Fixed z-fighting in scene view when scene lighting is off (case 1203927)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
