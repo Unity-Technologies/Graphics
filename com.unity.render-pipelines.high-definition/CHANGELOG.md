@@ -460,6 +460,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed alpha clipping test (comparison was '>', now '>=')
 - Fixed preview camera (eg. shader graph preview) when path tracing is on
 - Fixed issue with unclear naming of debug menu for decals.
+- Fixed z-fighting in scene view when scene lighting is off (case 1203927)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
