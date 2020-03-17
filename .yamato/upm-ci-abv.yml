@@ -82,7 +82,7 @@ all_project_ci_nightly_{{ editor.version }}:
   triggers:
     recurring:
       - branch: master
-        frequency: daily     
+        frequency: 0 * * ?     
   {% endif %}
 {% endfor %}
 
