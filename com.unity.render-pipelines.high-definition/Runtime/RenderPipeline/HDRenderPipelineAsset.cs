@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void OnEnable()
         {
-            //virtualTexturingSettings = new VirtualTexturingSettings();
+
         }
 
         void Reset() => OnValidate();
@@ -183,9 +183,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
 
-        [SerializeField]
-        internal VirtualTexturingSettings virtualTexturingSettings;
-
         void UpdateRenderingLayerNames()
         {
             m_RenderingLayerNames = new string[32];
@@ -261,6 +258,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
         [SerializeField]
         internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
+#if ENABLE_VIRTUALTEXTURES
+        [SerializeField]
+        public VirtualTexturingSettingsSRP virtualTexturingSettings;
+#endif
 
 #if UNITY_EDITOR
         /// <summary>HDRP default material.</summary>

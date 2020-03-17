@@ -360,13 +360,13 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if ENABLE_VIRTUALTEXTURES
-            if (asset.virtualTexturingSettings)
+            if (asset.virtualTexturingSettings != null)
             {
-                VirtualTexturing.System.ApplyVirtualTexturingSettings(asset.virtualTexturingSettings.settings);
+                VirtualTexturing.System.ApplyVirtualTexturingSettings(asset.virtualTexturingSettings.GetSettings());
             }
             else
             {
-                VirtualTexturing.System.ApplyVirtualTexturingSettings(VirtualTexturingSettings.Default);
+                VirtualTexturing.System.ApplyVirtualTexturingSettings(VirtualTexturingSettingsSRP.Default);
             }
 #endif
 

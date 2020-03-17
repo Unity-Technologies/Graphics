@@ -16,11 +16,13 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty allowShaderVariantStripping;
         public SerializedProperty enableSRPBatcher;
         public SerializedProperty shaderVariantLogLevel;
-        public SerializedProperty virtualTexturingSettings;
         public SerializedRenderPipelineSettings renderPipelineSettings;
         public SerializedFrameSettings defaultFrameSettings;
         public SerializedFrameSettings defaultBakedOrCustomReflectionFrameSettings;
         public SerializedFrameSettings defaultRealtimeReflectionFrameSettings;
+#if ENABLE_VIRTUALTEXTURES
+        public SerializedVirtualTexturingSettings virtualTexturingSettings;
+#endif
 
         //RenderPipelineResources not always exist and thus cannot be serialized normally.
         public bool editorResourceHasMultipleDifferentValues
@@ -59,12 +61,15 @@ namespace UnityEditor.Rendering.HighDefinition
             allowShaderVariantStripping = serializedObject.Find((HDRenderPipelineAsset s) => s.allowShaderVariantStripping);
             enableSRPBatcher = serializedObject.Find((HDRenderPipelineAsset s) => s.enableSRPBatcher);
             shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineAsset s) => s.shaderVariantLogLevel);
-            virtualTexturingSettings = serializedObject.Find((HDRenderPipelineAsset s) => s.virtualTexturingSettings);
 
             renderPipelineSettings = new SerializedRenderPipelineSettings(serializedObject.FindProperty("m_RenderPipelineSettings"));
             defaultFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultCameraFrameSettings"), null); //no overrides in HDRPAsset
             defaultBakedOrCustomReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), null); //no overrides in HDRPAsset
             defaultRealtimeReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), null); //no overrides in HDRPAsset
+
+#if ENABLE_VIRTUALTEXTURES
+            virtualTexturingSettings = new SerializedVirtualTexturingSettings(serializedObject.FindProperty("virtualTexturingSettings"));
+#endif
         }
 
         public void Update()

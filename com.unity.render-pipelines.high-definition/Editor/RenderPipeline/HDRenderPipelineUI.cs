@@ -69,6 +69,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static SelectedFrameSettings selectedFrameSettings;
 
+#if ENABLE_VIRTUALTEXTURES
+        internal static VirtualTexturingSettingsUI virtualTexturingSettingsUI = new VirtualTexturingSettingsUI();
+#endif
+
         static HDRenderPipelineUI()
         {
             Inspector = CED.Group(
@@ -100,8 +104,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.FoldoutGroup(Styles.bloomQualitySettings, Expandable.BloomQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionBloomQualitySettings),
                     CED.FoldoutGroup(Styles.chromaticAberrationQualitySettings, Expandable.ChromaticAberrationQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionChromaticAberrationQualitySettings)
                     ),
-                CED.FoldoutGroup(Styles.xrTitle, Expandable.XR, k_ExpandedState, Drawer_SectionXRSettings),
-                CED.FoldoutGroup(EditorGUIUtility.TrTextContent("Virtual Texturing"), Expandable.VirtualTexturing, k_ExpandedState, Drawer_VirtualTexturingSettings)
+                CED.FoldoutGroup(Styles.xrTitle, Expandable.XR, k_ExpandedState, Drawer_SectionXRSettings)
+#if ENABLE_VIRTUALTEXTURES
+                ,CED.FoldoutGroup(Styles.virtualTexturingTitle, Expandable.VirtualTexturing, k_ExpandedState, Drawer_SectionVTSettings)
+#endif
             );
 
             // fix init of selection along what is serialized
@@ -573,6 +579,13 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.occlusionMesh, Styles.XROcclusionMesh);
         }
 
+#if ENABLE_VIRTUALTEXTURES
+        static void Drawer_SectionVTSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            virtualTexturingSettingsUI.OnGUI(serialized, owner);
+        }
+#endif
+
         static private bool m_ShowDoFLowQualitySection = false;
         static private bool m_ShowDoFMediumQualitySection = false;
         static private bool m_ShowDoFHighQualitySection = false;
@@ -897,11 +910,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
         {
             EditorGUI.ObjectField(rect, element, EditorGUIUtility.TrTextContent("Profile " + index));
-        }
-
-        static void Drawer_VirtualTexturingSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
-        {
-            EditorGUILayout.PropertyField(serialized.virtualTexturingSettings, EditorGUIUtility.TrTextContent("Virtual Texturing Settings"));
         }
 
         const string supportedFormaterMultipleValue = "\u2022 {0} --Multiple different values--";
