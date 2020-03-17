@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
+- Fixed error in the console when switching shader to decal in the material UI.
 
 ## [7.3.0] - 2020-03-11
 
