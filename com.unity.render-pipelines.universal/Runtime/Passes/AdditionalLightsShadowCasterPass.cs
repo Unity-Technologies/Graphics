@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        public int GetShadowLightIndexForLightIndex(int visibleLightIndex)
+        public int GetShadowLightIndexFromLightIndex(int visibleLightIndex)
         {
             if (visibleLightIndex < 0 || visibleLightIndex >= m_ShadowCastingLightIndicesMap.Count)
                 return -1;
