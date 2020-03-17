@@ -54,11 +54,9 @@ all_project_ci_{{ editor.version }}:
       paths:
         - "**/test-results/**"
   {% if editor.version == "fast-2020.1" %}
+  # run abv for non-draft PRs that are not docs
   triggers:
-    branches:
-      only:
-        - trying
-        - staging
+    expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
   {% endif %}
 {% endfor %}
 
@@ -79,12 +77,12 @@ all_project_ci_nightly_{{ editor.version }}:
   {% endfor %}
     - path: .yamato/upm-ci-packages.yml#all_package_ci_{{ editor.version }}
       rerun: always
-    - path: .yamato/upm-ci-universal.yml#Universal_Android_OpenGLES_{{ editor.version }}
+    - path: .yamato/upm-ci-universal.yml#Universal_Android_OpenGLES3_{{ editor.version }}
       rerun: always
   triggers:
     recurring:
       - branch: master
-        frequency: daily     
+        frequency: 0 * * ?     
   {% endif %}
 {% endfor %}
 

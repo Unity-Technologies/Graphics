@@ -14,7 +14,7 @@ The Emission Node allows you to apply emission in your Shader Graph.
 You can use two [physical light units](Physical-Light-Units.html) to control the strength of the emission:
 
 * [Nits](Physical-Light-Units.html#Nits).
-* [EV<sub>100</sub>](Physical-Light-Units#EV).
+* [EV<sub>100</sub>](Physical-Light-Units.html#EV).
 
 
 ## Exposure Weight

@@ -23,6 +23,27 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Metallic,
     }
     
+    class DOTSUniversalMeshTarget : UniversalMeshTarget//
+    {
+        public override string displayName => "Universal (DOTS)";
+
+        public override void SetupTarget(ref TargetSetupContext context)
+        {
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("ac9e1a400a9ce404c8f26b9c1238417e")); // UniversalMeshTarget
+
+            switch(materialType)
+            {
+                case MaterialType.Lit:
+                    context.SetupSubShader(UniversalSubShaders.DOTSPBR);
+                    break;
+                case MaterialType.Unlit:
+                    context.SetupSubShader(UniversalSubShaders.DOTSUnlit);
+                    break;
+            }
+        }
+    }
+    
     class UniversalMeshTarget : ITargetImplementation
     {
         [SerializeField]
@@ -50,9 +71,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         NormalDropOffSpace m_NormalDropOffSpace = NormalDropOffSpace.Tangent;
 
         public Type targetType => typeof(MeshTarget);
-        public string displayName => "Universal";
+        public virtual string displayName => "Universal";
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
+        public MaterialType materialType => m_MaterialType;
 
         public string renderQueueTag
         {
@@ -80,7 +102,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         }
 
-        public void SetupTarget(ref TargetSetupContext context)
+        public virtual void SetupTarget(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("ac9e1a400a9ce404c8f26b9c1238417e")); // UniversalMeshTarget

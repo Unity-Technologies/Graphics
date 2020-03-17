@@ -13,6 +13,7 @@ using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
 {
+    [ExcludeFromPreset]
     [ScriptedImporter(32, Extension, 3)]
     class ShaderGraphImporter : ScriptedImporter
     {
@@ -59,7 +60,7 @@ Shader ""Hidden/GraphErrorShader2""
     }
     Fallback Off
 }";
-        
+
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
@@ -96,7 +97,6 @@ Shader ""Hidden/GraphErrorShader2""
             if (graph.activeGenerationTarget.target.GetType() == typeof(VFXTarget))
             {
                 UnityEngine.Object vfxAsset = null;// GenerateVfxShaderGraphAsset(vfxMasterNode);
-                
                 mainObject = vfxAsset;
             }
             else
@@ -108,7 +108,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 foreach (var pair in graph.messageManager.GetNodeMessages())
                 {
-                    var node = graph.GetNodeFromTempId(pair.Key);
+                    var node = graph.GetNodeFromGuid(pair.Key);
                     MessageManager.Log(node, path, pair.Value.First(), shader);
                 }
             }

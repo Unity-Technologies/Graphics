@@ -74,9 +74,6 @@ namespace UnityEditor.ShaderGraph
         #region Node data
 
         [NonSerialized]
-        Stack<Identifier> m_FreeNodeTempIds = new Stack<Identifier>();
-
-        [NonSerialized]
         List<AbstractMaterialNode> m_Nodes = new List<AbstractMaterialNode>();
 
         [NonSerialized]
@@ -642,19 +639,7 @@ namespace UnityEditor.ShaderGraph
                 throw new InvalidOperationException("Cannot add a node whose group doesn't exist.");
             }
             node.owner = this;
-            if (m_FreeNodeTempIds.Any())
-            {
-                var id = m_FreeNodeTempIds.Pop();
-                id.IncrementVersion();
-                node.tempId = id;
-                m_Nodes[id.index] = node;
-            }
-            else
-            {
-                var id = new Identifier(m_Nodes.Count);
-                node.tempId = id;
-                m_Nodes.Add(node);
-            }
+            m_Nodes.Add(node);
             m_NodeDictionary.Add(node.guid, node);
             m_AddedNodes.Add(node);
             m_GroupItems[node.groupGuid].Add(node);
@@ -677,10 +662,9 @@ namespace UnityEditor.ShaderGraph
                 throw new InvalidOperationException("Cannot remove a node that doesn't exist.");
             }
 
-            m_Nodes[node.tempId.index] = null;
-            m_FreeNodeTempIds.Push(node.tempId);
+            m_Nodes.Remove(node);
             m_NodeDictionary.Remove(node.guid);
-            messageManager?.RemoveNode(node.tempId);
+            messageManager?.RemoveNode(node.guid);
             m_RemovedNodes.Add(node);
 
             if (m_GroupItems.TryGetValue(node.groupGuid, out var groupItems))
@@ -824,18 +808,6 @@ namespace UnityEditor.ShaderGraph
         {
             AbstractMaterialNode node;
             m_NodeDictionary.TryGetValue(guid, out node);
-            return node;
-        }
-
-        public AbstractMaterialNode GetNodeFromTempId(Identifier tempId)
-        {
-            if (tempId.index > m_Nodes.Count)
-                throw new ArgumentException("Trying to retrieve a node using an identifier that does not exist.");
-            var node = m_Nodes[tempId.index];
-            if (node == null)
-                throw new Exception("Trying to retrieve a node using an identifier that does not exist.");
-            if (node.tempId.version != tempId.version)
-                throw new Exception("Trying to retrieve a node that was removed from the graph.");
             return node;
         }
 
@@ -1133,8 +1105,8 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            var temporaryMarks = IndexSetPool.Get();
-            var permanentMarks = IndexSetPool.Get();
+            var temporaryMarks = PooledHashSet<Guid>.Get();
+            var permanentMarks = PooledHashSet<Guid>.Get();
             var slots = ListPool<MaterialSlot>.Get();
 
             // Make sure we process a node's children before the node itself.
@@ -1146,19 +1118,19 @@ namespace UnityEditor.ShaderGraph
             while (stack.Count > 0)
             {
                 var node = stack.Pop();
-                if (permanentMarks.Contains(node.tempId.index))
+                if (permanentMarks.Contains(node.guid))
                 {
                     continue;
                 }
 
-                if (temporaryMarks.Contains(node.tempId.index))
+                if (temporaryMarks.Contains(node.guid))
                 {
                     node.ValidateNode();
-                    permanentMarks.Add(node.tempId.index);
+                    permanentMarks.Add(node.guid);
                 }
                 else
                 {
-                    temporaryMarks.Add(node.tempId.index);
+                    temporaryMarks.Add(node.guid);
                     stack.Push(node);
                     node.GetInputSlots(slots);
                     foreach (var inputSlot in slots)
@@ -1180,8 +1152,8 @@ namespace UnityEditor.ShaderGraph
 
             StackPool<AbstractMaterialNode>.Release(stack);
             ListPool<MaterialSlot>.Release(slots);
-            IndexSetPool.Release(temporaryMarks);
-            IndexSetPool.Release(permanentMarks);
+            temporaryMarks.Dispose();
+            permanentMarks.Dispose();
 
             foreach (var edge in m_AddedEdges.ToList())
             {
@@ -1206,7 +1178,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void AddValidationError(Identifier id, string errorMessage,
+        public void AddValidationError(Guid id, string errorMessage,
             ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
             messageManager?.AddOrAppendError(this, id, new ShaderMessage(errorMessage, severity));
@@ -1314,7 +1286,8 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes, List<IEdge> remappedEdges)
+        internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes,
+            List<IEdge> remappedEdges)
         {
             var groupGuidMap = new Dictionary<Guid, Guid>();
             foreach (var group in graphToPaste.groups)
@@ -1350,7 +1323,8 @@ namespace UnityEditor.ShaderGraph
             }
 
             var nodeGuidMap = new Dictionary<Guid, Guid>();
-            foreach (var node in graphToPaste.GetNodes<AbstractMaterialNode>())
+            var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
+            foreach (var node in nodeList)
             {
                 AbstractMaterialNode pastedNode = node;
 
@@ -1394,12 +1368,6 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                var drawState = node.drawState;
-                var position = drawState.position;
-                position.x += 30;
-                position.y += 30;
-                drawState.position = position;
-                node.drawState = drawState;
                 remappedNodes.Add(pastedNode);
                 AddNode(pastedNode);
 
@@ -1481,7 +1449,6 @@ namespace UnityEditor.ShaderGraph
             {
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
-                node.tempId = new Identifier(m_Nodes.Count + 1);
                 m_Nodes.Add(node);
                 m_NodeDictionary.Add(node.guid, node);
                 m_GroupItems[node.groupGuid].Add(node);

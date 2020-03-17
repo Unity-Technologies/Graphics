@@ -23,12 +23,6 @@ namespace UnityEditor.Rendering.Universal
             return k_Order;
         }
 
-        [CollectImportedDependencies(typeof(ModelImporter), 1)]
-        public static string[] CollectImportedDependenciesForModelImporter(string assetPath)
-        {
-            return new[] {k_ShaderPath, k_ShaderTransparentPath };
-        }
-
         static bool IsMayaArnoldStandardSurfaceMaterial(MaterialDescription description)
         {
             float typeId;
