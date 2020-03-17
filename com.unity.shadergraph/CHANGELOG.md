@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the user couldn't open up HDRP Master Node Shader Graphs without the Render Pipeline set to HDRP.
 - Fixed a bug where adding a HDRP Master Node to a Shader Graph would softlock the Shader Graph.
 - Fixed a bug where fog density node always returns 0 in the shader preview window when connected to an Unlit Master node. 
+- Fixed a bug with the `Transform` node where converting from `Absolute World` space in a sub graph causes invalid subscript errors. [1190813](https://issuetracker.unity3d.com/issues/shadergraph-invalid-subscript-errors-are-thrown-when-connecting-a-subgraph-with-transform-node-with-unlit-master-node)
 
 ## [7.2.0] - 2020-02-10
 

@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
 - Fix an exception in case two LOD levels are using the same mesh renderer.
+- Fixed error in the console when switching shader to decal in the material UI.
+- Fixed z-fighting in scene view when scene lighting is off (case 1203927)
+- Fixed issue that prevented cubemap thumbnails from rendering.
 
 ## [7.3.0] - 2020-03-11
 
@@ -50,9 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the HDRP asset migration code not being called after an upgrade of the package
 - Fixed draw renderers custom pass out of bound exception
 - Fixed an issue with emissive light meshes not being in the RAS.
-- Fixed error in the console when switching shader to decal in the material UI.
-- Fixed z-fighting in scene view when scene lighting is off (case 1203927)
-- Fixed issue that prevented cubemap thumbnails from rendering.
+- Fixed a warning due to StaticLightingSky when reloading domain in some cases.
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
