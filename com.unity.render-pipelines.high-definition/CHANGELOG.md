@@ -554,6 +554,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Stripped ray tracing subsurface passes with ray tracing is not enabled.
 - Remove LOD cross fade code for ray tracing shaders
 - Removed legacy VR code
+- Add range-based clipping to box lights (case 1178780)
+- Improve area light culling (case 1085873)
 
 ## [7.1.1] - 2019-09-05
 
