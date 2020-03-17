@@ -106,12 +106,12 @@ namespace UnityEngine.Rendering.HighDefinition
         static ComputeBuffer s_ProbeVolumeAtlasBlitDataBuffer = null;
         static ComputeBuffer s_ProbeVolumeAtlasBlitDataValidityBuffer = null;
         static ComputeBuffer s_ProbeVolumeAtlasOctahedralDepthBuffer = null;
-        static int s_ProbeVolumeAtlasWidth = 128;
-        static int s_ProbeVolumeAtlasHeight = 128;
-        static int s_ProbeVolumeAtlasDepth = 128;
-        static int s_ProbeVolumeAtlasOctahedralDepthWidth = 4096;
-        static int s_ProbeVolumeAtlasOctahedralDepthHeight = 1024;
-        static int k_MaxProbeVolumeAtlasOctahedralDepthProbeCount = (s_ProbeVolumeAtlasOctahedralDepthWidth / 8) * (s_ProbeVolumeAtlasOctahedralDepthHeight / 8);
+        static int s_ProbeVolumeAtlasWidth;
+        static int s_ProbeVolumeAtlasHeight;
+        static int s_ProbeVolumeAtlasDepth;
+        static int s_ProbeVolumeAtlasOctahedralDepthWidth;
+        static int s_ProbeVolumeAtlasOctahedralDepthHeight;
+        static int k_MaxProbeVolumeAtlasOctahedralDepthProbeCount;
         public const int k_ProbeOctahedralDepthWidth = 8;
         public const int k_ProbeOctahedralDepthHeight = 8;
 
