@@ -301,44 +301,73 @@ float FixedRand(uint seed)
 ///////////////////
 // Mesh sampling //
 ///////////////////
+float4 SampleMeshReadFloat(Buffer<float> vertices, uint offset, uint channelFormatAndDimension, uint maxRead)
+{
+    float4 r = (float4)0.0f;
+    if (channelFormatAndDimension != -1)
+    {
+        uint format = channelFormatAndDimension & 0xff;
+        uint dimension = (channelFormatAndDimension >> 8) & 0xff;
+
+        if (format == VERTEXATTRIBUTEFORMAT_FLOAT32)
+        {
+            //for (uint i = 0u; i < maxRead && i < dimension; ++i)
+            //    r[i] = vertices[offset + i];
+            //^ Equivalent be less branch in generated IL (maxRead evaluation are constand folded)
+            r.x = vertices[offset + 0];
+            if (maxRead > 1u) r.y = dimension > 1 ? vertices[offset + 1] : 0.0f;
+            if (maxRead > 2u) r.z = dimension > 2 ? vertices[offset + 2] : 0.0f;
+            if (maxRead > 3u) r.w = dimension > 3 ? vertices[offset + 3] : 0.0f;
+        }
+        else
+        {
+            //Other format aren't supported yet.
+        }
+    }
+    return r;
+}
+
 float4 SampleMeshFloat4(Buffer<float> vertices, uint offset, uint channelFormatAndDimension)
 {
-    if (channelFormatAndDimension == -1)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    return float4(vertices[offset], vertices[offset + 1u], vertices[offset + 2u], vertices[offset + 3u]);
+    return SampleMeshReadFloat(vertices, offset, channelFormatAndDimension, 4u);
 }
 
 float3 SampleMeshFloat3(Buffer<float> vertices, uint offset, uint channelFormatAndDimension)
 {
-    if (channelFormatAndDimension == -1)
-        return float3(0.0f, 0.0f, 0.0f);
-    return float3(vertices[offset], vertices[offset + 1u], vertices[offset + 2u]);
+    return SampleMeshReadFloat(vertices, offset, channelFormatAndDimension, 3u).xyz;
 }
 
 float2 SampleMeshFloat2(Buffer<float> vertices, uint offset, uint channelFormatAndDimension)
 {
-    if (channelFormatAndDimension == -1)
-        return float2(0.0f, 0.0f);
-    return float2(vertices[offset], vertices[offset + 1]);
+    return SampleMeshReadFloat(vertices, offset, channelFormatAndDimension, 2u).xy;
 }
 
 float SampleMeshFloat(Buffer<float> vertices, uint offset, uint channelFormatAndDimension)
 {
-    if (channelFormatAndDimension == -1)
-        return 0.0f;
-    return vertices[offset];
+    return SampleMeshReadFloat(vertices, offset, channelFormatAndDimension, 1u).x;
 }
 
+//Only SampleMeshColor support VERTEXATTRIBUTEFORMAT_UNORM8
 float4 SampleMeshColor(Buffer<float> vertices, uint offset, uint channelFormatAndDimension)
 {
     if (channelFormatAndDimension == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    uint colorByte = asuint(vertices[offset]);
-    float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
+
+    float4 colorSRGB = (float4)0.0f
+    uint format = channelFormatAndDimension & 0xff;
+    if (format == VERTEXATTRIBUTEFORMAT_UNORM8)
+    {
+        uint colorByte = asuint(vertices[offset]);
+        colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
+    }
+    else
+    {
+        colorSRGB = SampleMeshFloat4(vertices, offset, channelFormatAndDimension);
+    }
     return float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
 }
 
-//Deprecated function for compatibility 2020.1
+//Deprecated function for compatibility 2020.1, can be removed with 2021.1
 float4 SampleMeshFloat4(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
     if (channelOffset == -1)
@@ -379,7 +408,7 @@ float4 SampleMeshColor(Buffer<float> vertices, int vertexIndex, int channelOffse
     uint offset = vertexIndex * vertexStride + channelOffset;
     return SampleMeshColor(vertices, offset, VERTEXATTRIBUTEFORMAT_UNORM8 | (4 << 8));
 }
-//En of deprecated function for 2020.1 compatibility
+//End of deprecated function for 2020.1 compatibility
 
 ///////////////////////////
 // Color transformations //
