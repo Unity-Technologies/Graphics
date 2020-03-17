@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeProbeVolumes()
         {
-            if (ShaderConfig.s_ProbeVolumes == 0)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return;
 
             m_SupportProbeVolume = asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
@@ -262,7 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PushProbeVolumesGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
-            if (ShaderConfig.s_ProbeVolumes == 0)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return;
 
             if (!m_SupportProbeVolume)
@@ -339,7 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void ReleaseProbeVolumeFromAtlas(ProbeVolume volume)
         {
-            if (ShaderConfig.s_ProbeVolumes == 0)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return;
 
             if (!m_SupportProbeVolume)
@@ -552,7 +552,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ProbeVolumeList probeVolumes = new ProbeVolumeList();
 
-            if (ShaderConfig.s_ProbeVolumes == 0)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return probeVolumes;
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
@@ -624,6 +624,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
 
                     // Handle camera-relative rendering.
+                    // TODO: (Nick): Should conditionally apply this offset based on if camera relative rendering is enabled or disabled.
                     obb.center -= camOffset;
 
                     // TODO: cache these?
@@ -717,7 +718,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DisplayProbeVolumeAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, int sliceMode)
         {
-            if (ShaderConfig.s_ProbeVolumes == 0)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return;
 
             if (!m_SupportProbeVolume)

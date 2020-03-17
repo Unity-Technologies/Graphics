@@ -23,12 +23,19 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     // If there is no lightmap, it assume lightprobe
 #if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
 
-#if defined(SHADEROPTIONS_PROBE_VOLUMES)
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 // SHADEROPTIONS_PROBE_VOLUMES can be defined in ShaderConfig.cs.hlsl but set to 0 for disabled.
-#if SHADEROPTIONS_PROBE_VOLUMES
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
     // ProbeVolumes are incompatible with legacy Light probes
     if (_EnableProbeVolumes)
         return UNINITIALIZED_GI;
+
+#elif SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+    if (_EnableProbeVolumes)
+    {
+        // TODO: Evaluate Probe Volumes here.
+        return float3((1 << 11), 0, 0);
+    }
 #endif
 #endif
 

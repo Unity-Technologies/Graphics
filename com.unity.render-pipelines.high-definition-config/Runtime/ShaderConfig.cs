@@ -13,6 +13,14 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL(PackingRules.Exact)]
+    public enum ProbeVolumesEvaluationModes
+    {
+        Disabled = 0,
+        LightLoop = 1,
+        GBuffer = 2,
+    }
+
+    [GenerateHLSL(PackingRules.Exact)]
     public enum ShaderOptions
     {
         CameraRelativeRendering = 1, // Rendering sets the origin of the world to the position of the primary (scene view) camera
@@ -28,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
         XrMaxViews = 1,
 #endif
-        ProbeVolumes = 0,
+        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.GBuffer,
         AreaLights = 1,
 
         DeferredShadowFiltering = HDShadowFilteringQuality.Medium,
@@ -43,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_PreExposition = (int)ShaderOptions.PreExposition;
         public static int s_XrMaxViews = (int)ShaderOptions.XrMaxViews;
         public static int s_PrecomputedAtmosphericAttenuation = (int)ShaderOptions.PrecomputedAtmosphericAttenuation;
-        public static int s_ProbeVolumes = (int)ShaderOptions.ProbeVolumes;
+        public static ProbeVolumesEvaluationModes s_ProbeVolumesEvaluationMode = (ProbeVolumesEvaluationModes)ShaderOptions.ProbeVolumesEvaluationMode;
         public static int s_AreaLights = (int)ShaderOptions.AreaLights;
         public static int s_BarnDoor = (int)ShaderOptions.BarnDoor;
         public static HDShadowFilteringQuality s_DeferredShadowFiltering = (HDShadowFilteringQuality)ShaderOptions.DeferredShadowFiltering;

@@ -348,7 +348,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnValidate()
         {
-            if (ShaderConfig.s_ProbeVolumes == 0)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return;
 
             ProbeVolumeSettingsKey bakeKeyCurrent = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);

@@ -415,7 +415,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
-#if SHADEROPTIONS_PROBE_VOLUMES
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
     if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
     {
         EvaluateProbeVolumes(posInput, bsdfData, builtinData);

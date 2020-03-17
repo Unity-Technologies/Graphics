@@ -186,5 +186,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ContrastAdaptiveSharpen,
 		PrepareProbeVolumeList,
         ProbeVolumeDebug,
+        BuildGPULightListProbeVolumes,
     }
 }
