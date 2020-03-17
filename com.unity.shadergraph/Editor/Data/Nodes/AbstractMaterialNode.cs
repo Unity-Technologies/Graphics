@@ -5,11 +5,12 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class AbstractMaterialNode : ISerializationCallbackReceiver, IGroupItem
+    abstract class AbstractMaterialNode : JsonObject, IGroupItem
     {
         [NonSerialized]
         private Guid m_Guid;
@@ -692,14 +693,14 @@ namespace UnityEditor.ShaderGraph
             return this.GetInputSlots<ISlot>().Where(x => !owner.GetEdges(GetSlotReference(x.id)).Any());
         }
 
-        public virtual void OnBeforeSerialize()
+        public override void OnBeforeSerialize()
         {
             m_GuidSerialized = m_Guid.ToString();
             m_GroupGuidSerialized = m_GroupGuid.ToString();
             m_SerializableSlots = SerializationHelper.Serialize<ISlot>(m_Slots);
         }
 
-        public virtual void OnAfterDeserialize()
+        public override void OnAfterDeserialize()
         {
             if (!string.IsNullOrEmpty(m_GuidSerialized))
                 m_Guid = new Guid(m_GuidSerialized);
