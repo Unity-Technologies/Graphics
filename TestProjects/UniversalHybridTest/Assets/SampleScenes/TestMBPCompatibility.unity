@@ -119,7 +119,7 @@ NavMeshSettings:
     tileSize: 256
     accuratePlacement: 0
     maxJobWorkers: 0
-    keepTiles: 0
+    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
@@ -1359,7 +1359,7 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.001
     AverageCorrectnessThreshold: 0.0015
     UseHDR: 0
-  WaitFrames: 10
+  WaitFrames: 30
 --- !u!114 &2015559428
 MonoBehaviour:
   m_ObjectHideFlags: 0
