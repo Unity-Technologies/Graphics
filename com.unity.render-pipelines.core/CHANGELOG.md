@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev SunPosition button position
 - Fix LookDev EnvironmentLibrary tab when asset is deleted
 - Fix LookDev used Cubemap when asset is deleted
+- Fix LookDev issue when adding a GameObject containing a Volume into the LookDev's view.
 
 ### Changed
 - Updated macros to be compatible with the new shader preprocessor.
