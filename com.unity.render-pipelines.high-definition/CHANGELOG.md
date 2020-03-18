@@ -562,6 +562,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add range-based clipping to box lights (case 1178780)
 - Improve area light culling (case 1085873)
 - Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
+- Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 
 ## [7.1.1] - 2019-09-05
 
