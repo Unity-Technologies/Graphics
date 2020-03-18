@@ -542,7 +542,6 @@ namespace UnityEngine.Rendering.Universal
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
-            bool firstTimeStereo = false;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
@@ -566,7 +565,6 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraColorTargetIndex != -1 && (m_FirstTimeCameraColorTargetIsBound))
                 {
                     m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
-                    firstTimeStereo = true;
 
                     // Overlay cameras composite on top of previous ones. They don't clear.
                     // MTT: Commented due to not implemented yet
@@ -589,7 +587,6 @@ namespace UnityEngine.Rendering.Universal
                 // note: should be split m_XRRenderTargetNeedsClear into m_XRColorTargetNeedsClear and m_XRDepthTargetNeedsClear and use m_XRDepthTargetNeedsClear here?
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
-                    //firstTimeStereo = true; // <- we do not call this here as the first render pass might be a shadow pass (non-stereo)
                     needCustomCameraDepthClear = (cameraClearFlag & ClearFlag.Depth) != (renderPass.clearFlag & ClearFlag.Depth);
 
                     //m_XRRenderTargetNeedsClear = false; // note: is it possible that XR camera multi-pass target gets clear first when bound as depth target?
@@ -670,7 +667,6 @@ namespace UnityEngine.Rendering.Universal
 
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
                     finalClearColor = CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
-                    firstTimeStereo = true;
 
                     if (m_FirstTimeCameraDepthTargetIsBound)
                     {
@@ -695,8 +691,6 @@ namespace UnityEngine.Rendering.Universal
                     m_FirstTimeCameraDepthTargetIsBound = false;
 
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Depth);
-
-                    //firstTimeStereo = true; // <- we do not call this here as the first render pass might be a shadow pass (non-stereo)
 
                     // finalClearFlag |= (cameraClearFlag & ClearFlag.Color);  // <- m_CameraDepthTarget is never a color-surface, so no need to add this here.
                 }

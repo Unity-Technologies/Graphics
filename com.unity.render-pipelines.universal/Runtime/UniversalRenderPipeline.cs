@@ -223,6 +223,7 @@ namespace UnityEngine.Rendering.Universal
             foreach (XRPass xrPass in xrPasses)
             {
                 cameraData.xrPass = xrPass;
+                cameraData.isStereoEnabled = IsStereoEnabled(camera) && cameraData.xrPass.enabled;
 
                 if (!TryGetCullingParameters(cameraData, out var cullingParameters))
                     return;
@@ -453,7 +454,6 @@ namespace UnityEngine.Rendering.Universal
         {
             var settings = asset;
             cameraData.targetTexture = baseCamera.targetTexture;
-            cameraData.isStereoEnabled = IsStereoEnabled(baseCamera) && cameraData.xrPass.enabled;
             cameraData.isSceneViewCamera = baseCamera.cameraType == CameraType.SceneView;
 
             ///////////////////////////////////////////////////////////////////
@@ -588,7 +588,7 @@ namespace UnityEngine.Rendering.Universal
             // Overlay cameras inherit viewport from base.
             // If the viewport is different between them we might need to patch the projection to adjust aspect ratio
             // matrix to prevent squishing when rendering objects in overlay cameras.
-            if (isOverlayCamera && !camera.orthographic && !cameraData.isStereoEnabled && cameraData.pixelRect != camera.pixelRect)
+            if (isOverlayCamera && !camera.orthographic && cameraData.pixelRect != camera.pixelRect)
             {
                 // m00 = (cotangent / aspect), therefore m00 * aspect gives us cotangent.
                 float cotangent = camera.projectionMatrix.m00 * camera.aspect;
