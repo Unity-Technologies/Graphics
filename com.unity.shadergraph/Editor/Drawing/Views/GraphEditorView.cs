@@ -772,7 +772,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     .FirstOrDefault(p => p.userData is IEdge && Equals((IEdge) p.userData, edge));
                 if (edgeView != null)
                 {
-                    var nodeView = (IShaderNodeView)edgeView.input.node;
+                    var nodeView = (IShaderNodeView)edgeView.output.node;
                     if (nodeView?.node != null)
                     {
                         nodesToUpdate.Add(nodeView);

@@ -161,7 +161,7 @@ namespace UnityEditor.Graphing
 
             // If the only downstream node is this node
             // This is the end of the chain and should always be active
-            if(nodes.Count == 1 && nodes[0] == node)
+            if(nodes.Count == 1 && nodes[0] == node && !(node is BlockNode))
             {
                 node.isActive = true;
             }

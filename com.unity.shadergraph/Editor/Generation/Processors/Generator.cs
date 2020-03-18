@@ -248,6 +248,7 @@ namespace UnityEditor.ShaderGraph
                         block = new BlockNode();
                         block.Init(blockFieldDescriptor);
                         block.owner = m_GraphData;
+                        block.concretePrecision = m_GraphData.concretePrecision;
                     }
                     // Dont collect properties from temp nodes
                     else
