@@ -17,9 +17,9 @@
 #define MAKE_FLT(sgn, exponent, fraction) asfloat((((sgn) & 0x1) << 31) | (((exponent) & 0xFF) << 23) | ((fraction) & 0xFFFFFF))
 #define FLT_SNAN MAKE_FLT(0x1, 0xFF, 0x1)
 #ifdef DEBUG
-    #define ASSERT(x) if (!(bool)(x)) return FLT_SNAN
+    #define assert(x) if (!(bool)(x)) return FLT_SNAN
 #else  // DEBUG
-    #define ASSERT(x) x
+    #define assert(x) x
 #endif // DEBUG
 
 static const uint s_RandomPrimes[10] = { 0xD974CF83, 0xFAF269B5, 0xAE727FA9, 0x5BA52335, 0xA4E819D5, 0xDD638559, 0xC0972367, 0x4B190D9B, 0xD1894DB5, 0xA78BCBB3 };
@@ -57,7 +57,7 @@ struct Ray
 // 'l' is the length of the permutation vector (e.g. the number of strata per dimension).
 uint permute(uint i, uint l, uint p)
 {
-    ASSERT(l != 0);
+    assert(l != 0);
 
     if (p == 0) return i; // Identity permutation when (p == 0)
 
@@ -101,7 +101,7 @@ float randfloat(uint i, uint p)
 
     float f = i * (1.0f / 4294967808.0f);
 
-    ASSERT(0 <= f && f < 1);
+    assert(0 <= f && f < 1);
 
     return f;
 }
@@ -119,8 +119,8 @@ float cmj6D(uint pointIndex, uint dimIndex, uint seed)
     const uint i = permute(pointIndex, n, p); // Shuffle the points
     const uint j = dimIndex;
 
-    ASSERT(i < n);
-    ASSERT(j < t);
+    assert(i < n);
+    assert(j < t);
 
     const uint p1 = (p * (j + 1)) * 0x51633e2d;
     const uint p2 = (p * (j + 1)) * 0x68bc21eb;
@@ -181,6 +181,7 @@ float Exp2Erfc(float x)
         0.0161315329733252248) * u + 0.0390976845588484035) * u +
         0.00249367200053503304;
 #else
+    // TODO: refit for single precision.
     y = (0.0019898212777384947 * u + 0.039833135938877856) * u +
         0.0034132959838498976;
 #endif
@@ -195,22 +196,22 @@ float Exp2Erfc(float x)
     return z;
 }
 
-float ChapmanUpper(float z, float cosTheta)
+float ChapmanUpper(float z, float absCosTheta)
 {
-    float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
+    float sinTheta = sqrt(saturate(1 - absCosTheta * absCosTheta));
 
-    float zm12 = rsqrt(z);        // z^(-1/2)
-    float zp12 = z * zm12;        // z^(+1/2)
+    float zm12 = rsqrt(z);           // z^(-1/2)
+    float zp12 = z * zm12;           // z^(+1/2)
 
-    float tp   = 1 + sinTheta;    // 1 + Sin
-    float rstp = rsqrt(tp);       // 1 / Sqrt[1 + Sin]
-    float rtp  = rstp * rstp;     // 1 / (1 + Sin)
-    float stm  = cosTheta * rstp; // Sqrt[1 - Sin] = Cos / Sqrt[1 + Sin]
-    float arg  = zp12 * stm;      // Sqrt[z - z * Sin], argument of Erfc
-    float e2ec = Exp2Erfc(arg);   // Exp[x^2] * Erfc[x]
+    float tp   = 1 + sinTheta;       // 1 + Sin
+    float rstp = rsqrt(tp);          // 1 / Sqrt[1 + Sin]
+    float rtp  = rstp * rstp;        // 1 / (1 + Sin)
+    float stm  = absCosTheta * rstp; // Sqrt[1 - Sin] = Abs[Cos / Sqrt[1 + Sin]]
+    float arg  = zp12 * stm;         // Sqrt[z - z * Sin], argument of Erfc
+    float e2ec = Exp2Erfc(arg);      // Exp[x^2] * Erfc[x]
 
     // Term 1 of Equation 46.
-    float mul1 = cosTheta * rtp; // Sqrt[(1 - Sin) / (1 + Sin)] = Cos / (1 + Sin)
+    float mul1 = absCosTheta * rtp;  // Sqrt[(1 - Sin) / (1 + Sin)] = Abs[Cos / (1 + Sin)]
     float trm1 = mul1 * (1 - 0.5 * rtp);
 
     // Term 2 of Equation 46.
@@ -313,7 +314,7 @@ float ConvertCdfToOpticalDepth(float cdf, float maxOpacity)
 
 #define EPS_ABS  0.0001
 #define EPS_REL  0.0001
-#define MAX_ITER 20
+#define MAX_ITER 8
 
 // 'optDepth' is the value to solve for.
 // 'maxOptDepth' is the maximum value along the ray, s.t. (maxOptDepth >= optDepth).
@@ -328,9 +329,14 @@ float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, flo
     // Make an initial guess.
     // Homogeneous assumption.
     float t = maxDist * (optDepth * rcp(maxOptDepth));
+    // Establish the range of valid values.
+    float range[2];
+    range[0] = 0;
+    range[1] = maxDist;
 
     uint  numIter = 0;
     float absDiff = optDepth, relDiff = 1;
+
     do // Perform a Newton–Raphson iteration.
     {
         float cosTheta  = -viewZ; // p = x - s * v
@@ -340,22 +346,51 @@ float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, flo
         // f  [t] = OptDepthAtDist[t] - GivenOptDepth = 0,
         // f' [t] = AttCoefAtDist[t],
         // f''[t] = AttCoefAtDist'[t] = -AttCoefAtDist[t] * CosAtDist[t] / H.
-        float optDepthAtDist = 0, attAtDist = 0;
+        float optDepthAtDist = 0, attAtDist = 0, attAtDistDeriv = 0;
         optDepthAtDist += OptDepthSpherExpMedium(r, rRcp, viewZ, t, R, seaLvlAtt.x, H.x, rcpH.x); // Air
         optDepthAtDist += OptDepthSpherExpMedium(r, rRcp, viewZ, t, R, seaLvlAtt.y, H.y, rcpH.y); // Aerosols
-        attAtDist      += seaLvlAtt.x * exp(Z.x - radAtDist * rcpH.x);
-        attAtDist      += seaLvlAtt.y * exp(Z.y - radAtDist * rcpH.y);
+        attAtDist      += seaLvlAtt.x * exp(Z.x - radAtDist * rcpH.x);                            // Air
+        attAtDist      += seaLvlAtt.y * exp(Z.y - radAtDist * rcpH.y);                            // Aerosols
+        attAtDistDeriv -= seaLvlAtt.x * exp(Z.x - radAtDist * rcpH.x) * cosAtDist * rcpH.x;       // Air
+        attAtDistDeriv -= seaLvlAtt.y * exp(Z.y - radAtDist * rcpH.y) * cosAtDist * rcpH.y;       // Aerosols
 
-        float  f = optDepthAtDist - optDepth;
-        float df = attAtDist;
+        float   f = optDepthAtDist - optDepth;
+        float  df = attAtDist;
+        float ddf = attAtDistDeriv;
 
-        ASSERT(df != 0);
+        assert(df != 0);
 
+    #if 0
         // https://en.wikipedia.org/wiki/Newton%27s_method
         float dt = -f * rcp(df);
+    #else
+        // https://en.wikipedia.org/wiki/Halley%27s_method
+        float dt = -f * rcp(df - 0.5 * f * (ddf * rcp(df)));
+    #endif
 
-        // Refine the initial guess.
-        t = clamp(t + dt, 0, maxDist); // Basic overshoot handling
+        // Find the boundary value we are stepping towards:
+        // supremum for positive 'dt', infimum for negative 'dt'.
+        uint  sgn   = asuint(dt) >> 31;
+        float bound = range[1 - sgn];
+
+        float bisectStep = 0.5 * (bound - t);
+
+        // Bisect if Newton is out of range, or is not converging fast enough.
+        // See "Numerical Recipes in C++", 3rd Edition, Chapter 9.4.
+        bool isInRange = (range[0] <= (t + dt)) && ((t + dt) <= range[1]);
+
+        if (!isInRange)
+        {
+            // The Newton's algorithm has effectively run out of digits of precision.
+            // While it's possible to continue improving precision (to a certain degree)
+            // via bisection, it is costly, and the convergence rate is low.
+            // We choose to perform a single bisection step, and stop here.
+            dt      = bisectStep;
+            numIter = MAX_ITER;
+        }
+
+        range[sgn] = t; // Adjust the range using the previous value of 't'
+        t = t + dt;     // Step
 
         absDiff = abs(optDepthAtDist - optDepth);
         relDiff = abs(optDepthAtDist * rcpOptDepth - 1);
@@ -475,7 +510,7 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
     else // Intersect the planet
     {
         ray.maxDist = IntersectSphere(R, cosTheta, r, rRcp).x; // Entry
-        ASSERT(ray.maxDist > 0);
+        assert(ray.maxDist > 0);
     }
 
     for (bounce = 1; bounce <= bounceCount; bounce++) // Bounces are indexed starting from 1
