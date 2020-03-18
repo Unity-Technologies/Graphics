@@ -58,22 +58,18 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
             var nodeEntries = new List<NodeEntry>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var type in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
             {
-                foreach (var type in assembly.GetTypesOrNothing())
+                if ((!type.IsClass || type.IsAbstract)
+                    || type == typeof(PropertyNode)
+                    || type == typeof(KeywordNode)
+                    || type == typeof(SubGraphNode))
+                    continue;
+
+                if (type.GetCustomAttributes(typeof(TitleAttribute), false) is TitleAttribute[] attrs && attrs.Length > 0)
                 {
-                    if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode)))
-                        && type != typeof(PropertyNode)
-                        && type != typeof(KeywordNode)
-                        && type != typeof(SubGraphNode))
-                    {
-                        var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
-                        if (attrs != null && attrs.Length > 0)
-                        {
-                            var node = (AbstractMaterialNode)Activator.CreateInstance(type);
-                            AddEntries(node, attrs[0].title, nodeEntries);
-                        }
-                    }
+                    var node = (AbstractMaterialNode) Activator.CreateInstance(type);
+                    AddEntries(node, attrs[0].title, nodeEntries);
                 }
             }
 
@@ -82,7 +78,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
                 var node = new SubGraphNode { asset = asset };
                 var title = asset.path.Split('/').ToList();
-                
+
                 if (asset.descendents.Contains(m_Graph.assetGuid) || asset.assetGuid == m_Graph.assetGuid)
                 {
                     continue;
