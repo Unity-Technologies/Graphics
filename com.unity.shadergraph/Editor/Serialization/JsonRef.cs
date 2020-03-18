@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         public static implicit operator JsonRef<T>(T value)
         {
-            return new JsonRef<T> { m_Value = value, m_Id = value.id };
+            return new JsonRef<T> { m_Value = value, m_Id = value?.id };
         }
 
         public bool Equals(JsonRef<T> other)

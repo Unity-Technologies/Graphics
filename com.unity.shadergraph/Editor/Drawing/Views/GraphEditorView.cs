@@ -538,7 +538,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in dependentNodes)
             {
                 var theViews = m_GraphView.nodes.ToList().OfType<IShaderNodeView>();
-                var viewsFound = theViews.Where(x => x.node.guid == node.guid).ToList();
+                var viewsFound = theViews.Where(x => x.node == node).ToList();
                 foreach (var drawableNodeData in viewsFound)
                     drawableNodeData.OnModified(scope);
             }
@@ -567,7 +567,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 node.UnregisterCallback(OnNodeChanged);
                 var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
-                    .FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
+                    .FirstOrDefault(p => p.node != null && p.node == node);
                 if (nodeView != null)
                 {
                     nodeView.Dispose();
@@ -613,7 +613,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 GraphElement graphElement = null;
                 if (groupChange.groupItem is AbstractMaterialNode node)
                 {
-                    graphElement = m_GraphView.GetNodeByGuid(node.guid.ToString());
+                    graphElement = m_GraphView.GetNodeByGuid(node.id);
                 }
                 else if (groupChange.groupItem is StickyNoteData stickyNote)
                 {
@@ -656,7 +656,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.pastedNodes)
             {
                 var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
-                    .FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
+                    .FirstOrDefault(p => p.node != null && p.node == node);
                 m_GraphView.AddToSelection((Node)nodeView);
             }
 
@@ -733,9 +733,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var messageData in m_MessageManager.GetNodeMessages())
             {
-                var node = m_Graph.GetNodeFromGuid(messageData.Key);
+                var node = m_Graph.GetNodeFromId(messageData.Key);
 
-                if (!(m_GraphView.GetNodeByGuid(node.guid.ToString()) is MaterialNodeView nodeView))
+                if (!(m_GraphView.GetNodeByGuid(node.id) is MaterialNodeView nodeView))
                     continue;
 
                 if (messageData.Value.Count == 0)
@@ -776,7 +776,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             node.RegisterCallback(OnNodeChanged);
             nodeView.MarkDirtyRepaint();
 
-            if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
+            if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.node == node)
             {
                 m_SearchWindowProvider.nodeNeedsRepositioning = false;
                 foreach (var element in nodeView.inputContainer.Children().Union(nodeView.outputContainer.Children()))
@@ -870,7 +870,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         Edge AddEdge(IEdge edge)
         {
-            var sourceNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+            var sourceNode = edge.outputSlot.node;
             if (sourceNode == null)
             {
                 Debug.LogWarning("Source node is null");
@@ -878,7 +878,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             var sourceSlot = sourceNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
 
-            var targetNode = m_Graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+            var targetNode = edge.inputSlot.node;
             if (targetNode == null)
             {
                 Debug.LogWarning("Target node is null");

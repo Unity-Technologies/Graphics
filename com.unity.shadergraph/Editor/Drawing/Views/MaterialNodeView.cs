@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_ConnectorListener = connectorListener;
             node = inNode;
-            viewDataKey = node.guid.ToString();
+            viewDataKey = node.id;
             UpdateTitle();
 
             // Add controls container
@@ -307,7 +307,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (evt.target is Node)
             {
                 var isMaster = node is IMasterNode;
-                var isActive = node.guid == node.owner.activeOutputNodeGuid;
+                var isActive = node == node.owner.outputNode;
                 if (isMaster)
                 {
                     evt.menu.AppendAction("Set Active", SetMasterAsActive,
@@ -335,7 +335,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void SetMasterAsActive(DropdownMenuAction action)
         {
-            node.owner.activeOutputNodeGuid = node.guid;
+            node.owner.outputNode = node;
         }
 
         void CopyToClipboard(DropdownMenuAction action)
@@ -354,7 +354,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var mode = (GenerationMode)action.userData;
 
             string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}{3}.shader", SanitizeName(name),
-                SanitizeName(node.name), node.guid, mode == GenerationMode.Preview ? "-Preview" : "");
+                SanitizeName(node.name), node.id, mode == GenerationMode.Preview ? "-Preview" : "");
             if (GraphUtil.WriteToFile(path, ConvertToShader(mode)))
                 GraphUtil.OpenFile(path);
         }
@@ -628,7 +628,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var port = (ShaderPort)evt.target;
             var inputViews = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
-            
+
             // Ensure PortInputViews are initialized correctly
             // Dynamic port lists require one update to validate before init
             if(inputViews.Count() != 0)
@@ -636,7 +636,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var inputView = inputViews.First();
                 SetPortInputPosition(port, inputView);
             }
-            
+
             port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
         }
 

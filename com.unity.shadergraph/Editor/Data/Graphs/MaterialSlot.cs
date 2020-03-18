@@ -168,7 +168,7 @@ namespace UnityEditor.ShaderGraph
 
         public SlotReference slotReference
         {
-            get { return new SlotReference(owner.guid, m_Id); }
+            get { return new SlotReference(owner, m_Id); }
         }
 
         public AbstractMaterialNode owner { get; set; }
@@ -291,7 +291,7 @@ namespace UnityEditor.ShaderGraph
 
         bool Equals(MaterialSlot other)
         {
-            return m_Id == other.m_Id && owner.guid.Equals(other.owner.guid);
+            return m_Id == other.m_Id && owner == other.owner;
         }
 
         public bool Equals(ISlot other)

@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         GraphData m_Graph;
         MessageManager m_Messenger;
-        Dictionary<Guid, PreviewRenderData> m_RenderDatas = new Dictionary<Guid, PreviewRenderData>();
+        Dictionary<string, PreviewRenderData> m_RenderDatas = new Dictionary<string, PreviewRenderData>();
         PreviewRenderData m_MasterRenderData;
         HashSet<AbstractMaterialNode> m_NodesToUpdate = new HashSet<AbstractMaterialNode>();
         HashSet<AbstractMaterialNode> m_NodesToDraw = new HashSet<AbstractMaterialNode>();
@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public PreviewRenderData GetPreview(AbstractMaterialNode node)
         {
-            return m_RenderDatas[node.guid];
+            return m_RenderDatas[node.id];
         }
 
         void AddPreview(AbstractMaterialNode node)
@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (node is IMasterNode || node is SubGraphOutputNode)
             {
-                if (masterRenderData != null || (node is IMasterNode && node.guid != node.owner.activeOutputNodeGuid))
+                if (masterRenderData != null || (node is IMasterNode && node != node.owner.outputNode))
                 {
                     return;
                 }
@@ -113,7 +113,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             shaderData.mat = new Material(shaderData.shader) {hideFlags = HideFlags.HideAndDontSave};
             renderData.shaderData = shaderData;
 
-            m_RenderDatas.Add(node.guid, renderData);
+            m_RenderDatas.Add(node.id, renderData);
             node.RegisterCallback(OnNodeModified);
 
             if (node.RequiresTime())
@@ -193,8 +193,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     // We look at each node we feed into.
                     var connectedSlot = (dir == PropagationDirection.Downstream) ? edge.inputSlot : edge.outputSlot;
-                    var connectedNodeGuid = connectedSlot.nodeGuid;
-                    var connectedNode = m_Graph.GetNodeFromGuid(connectedNodeGuid);
+                    var connectedNode = connectedSlot.node;
 
                     // If the input node is already in the set, we don't need to process it.
                     if (connections.Contains(connectedNode))
@@ -210,12 +209,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_Graph.didActiveOutputNodeChange)
             {
-                DestroyPreview(masterRenderData.shaderData.node.guid);
+                DestroyPreview(masterRenderData.shaderData.node.id);
             }
 
             foreach (var node in m_Graph.removedNodes)
             {
-                DestroyPreview(node.guid);
+                DestroyPreview(node.id);
                 m_NodesToUpdate.Remove(node);
                 m_NodesToDraw.Remove(node);
                 m_RefreshTimedNodes = true;
@@ -231,7 +230,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var edge in m_Graph.removedEdges)
             {
-                var node = m_Graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                var node = edge.inputSlot.node;
                 if (node != null)
                 {
                     m_NodesToUpdate.Add(node);
@@ -240,7 +239,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             foreach (var edge in m_Graph.addedEdges)
             {
-                var node = m_Graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                var node = edge.inputSlot.node;
                 if(node != null)
                 {
                     m_NodesToUpdate.Add(node);
@@ -293,7 +292,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if(node == null || !node.hasPreview || !node.previewExpanded)
                     continue;
 
-                var renderData = m_RenderDatas[node.guid];
+                var renderData = m_RenderDatas[node.id];
 
                 CollectShaderProperties(node, renderData);
                 renderData.shaderData.mat.SetVector("_TimeParameters", timeParameters);
@@ -434,7 +433,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_NodesToUpdate)
             {
-                if (node is IMasterNode && node == masterRenderData.shaderData.node && !(node is VfxMasterNode))
+                if (node is IMasterNode && masterRenderData != null && node == masterRenderData.shaderData.node && !(node is VfxMasterNode))
                 {
                     UpdateMasterNodeShader();
                     continue;
@@ -443,9 +442,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (!node.hasPreview && !(node is SubGraphOutputNode || node is VfxMasterNode))
                     continue;
 
-                Guid id = node.guid;
-                var renderData = m_RenderDatas[id];
-                if (renderData == null)
+                if (!m_RenderDatas.TryGetValue(node.id, out var renderData))
                 {
                     continue;
                 }
@@ -544,7 +541,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var messages = ShaderUtil.GetShaderMessages(shaderData.shader);
                 if (messages.Length > 0)
                 {
-                    m_Messenger.AddOrAppendError(this, shaderData.node.guid, messages[0]);
+                    m_Messenger.AddOrAppendError(this, shaderData.node.id, messages[0]);
                 }
             }
         }
@@ -605,7 +602,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 renderData.shaderData.node.UnregisterCallback(OnNodeModified);
         }
 
-        void DestroyPreview(Guid nodeId)
+        void DestroyPreview(string nodeId)
         {
             if (!m_RenderDatas.TryGetValue(nodeId, out var renderData))
             {
@@ -619,7 +616,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (masterRenderData == renderData)
             {
                 m_MasterRenderData = null;
-                if (!m_Graph.isSubGraph && renderData.shaderData.node.guid != m_Graph.activeOutputNodeGuid)
+                if (!m_Graph.isSubGraph && renderData.shaderData.node != m_Graph.outputNode)
                 {
                     AddPreview(m_Graph.outputNode);
                 }

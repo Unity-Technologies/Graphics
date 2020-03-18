@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph
 
                     // get the output details
                     var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                    var outputNode = outputSlotRef.node;
                     if (outputNode == null)
                         continue;
 
@@ -251,7 +251,7 @@ namespace UnityEditor.ShaderGraph
 
             if (isInError)
             {
-                ((GraphData) owner).AddValidationError(guid, errorMessage);
+                ((GraphData) owner).AddValidationError(id, errorMessage);
             }
             else
             {
@@ -302,7 +302,7 @@ namespace UnityEditor.ShaderGraph
                 var edges = owner.GetEdges(slots[i].slotReference).ToList();
                 if (!edges.Any())
                     continue;
-                var outputNode = owner.GetNodeFromGuid(edges[0].outputSlot.nodeGuid);
+                var outputNode = edges[0].outputSlot.node;
                 var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
                 if (outputSlot.concreteValueType == ConcreteSlotValueType.Matrix4
                     || outputSlot.concreteValueType == ConcreteSlotValueType.Matrix3
@@ -317,7 +317,7 @@ namespace UnityEditor.ShaderGraph
             var edges = owner.GetEdges(slot.slotReference).ToList();
             if (!edges.Any())
                 return;
-            var outputNode = owner.GetNodeFromGuid(edges[0].outputSlot.nodeGuid);
+            var outputNode = edges[0].outputSlot.node;
             var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
             slot.SetConcreteType(outputSlot.concreteValueType);
         }

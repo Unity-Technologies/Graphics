@@ -8,5 +8,9 @@ namespace UnityEditor.ShaderGraph.Legacy
     class GraphData0
     {
         public List<SerializationHelper.JSONSerializedElement> m_SerializableNodes;
+
+        public List<SerializationHelper.JSONSerializedElement> m_SerializableEdges;
+
+        public string m_ActiveOutputNodeGuidSerialized;
     }
 }

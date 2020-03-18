@@ -109,7 +109,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 foreach (var pair in graph.messageManager.GetNodeMessages())
                 {
-                    var node = graph.GetNodeFromGuid(pair.Key);
+                    var node = graph.GetNodeFromId(pair.Key);
                     MessageManager.Log(node, path, pair.Value.First(), shader);
                 }
             }
@@ -322,7 +322,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var message = new StringBuilder($"Precision mismatch for function {name}:");
                     foreach (var node in source.nodes)
                     {
-                        message.AppendLine($"{node.name} ({node.guid}): {node.concretePrecision}");
+                        message.AppendLine($"{node.name} ({node.id}): {node.concretePrecision}");
                     }
                     throw new InvalidOperationException(message.ToString());
                 }

@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
                     graphAsset.isValid = false;
                     foreach (var pair in messageManager.GetNodeMessages())
                     {
-                        var node = graphData.GetNodeFromGuid(pair.Key);
+                        var node = graphData.GetNodeFromId(pair.Key);
                         foreach (var message in pair.Value)
                         {
                             MessageManager.Log(node, subGraphPath, message, graphAsset);

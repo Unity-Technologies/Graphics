@@ -616,7 +616,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // foreach (var group in uniqueIncomingEdges)
             // {
             //     var sr = group.slotRef;
-            //     var fromNode = graphObject.graph.GetNodeFromGuid(sr.nodeGuid);
+            //     var fromNode = graphObject.graph.sr.node;
             //     var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(sr.slotId);
             //
             //     AbstractShaderProperty prop;

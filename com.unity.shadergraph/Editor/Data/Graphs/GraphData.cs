@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
         List<JsonData<AbstractMaterialNode>> m_Nodes = new List<JsonData<AbstractMaterialNode>>();
 
         [NonSerialized]
-        Dictionary<Guid, AbstractMaterialNode> m_NodeDictionary = new Dictionary<Guid, AbstractMaterialNode>();
+        Dictionary<string, AbstractMaterialNode> m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>();
 
         public IEnumerable<T> GetNodes<T>()
         {
@@ -203,19 +203,13 @@ namespace UnityEditor.ShaderGraph
 
         #region Edge data
 
-        [NonSerialized]
+        [SerializeField]
         List<Edge> m_Edges = new List<Edge>();
 
-        public IEnumerable<Edge> edges
-        {
-            get { return m_Edges; }
-        }
-
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializableEdges = new List<SerializationHelper.JSONSerializedElement>();
+        public IEnumerable<Edge> edges => m_Edges;
 
         [NonSerialized]
-        Dictionary<Guid, List<IEdge>> m_NodeEdges = new Dictionary<Guid, List<IEdge>>();
+        Dictionary<string, List<IEdge>> m_NodeEdges = new Dictionary<string, List<IEdge>>();
 
         [NonSerialized]
         List<IEdge> m_AddedEdges = new List<IEdge>();
@@ -272,49 +266,13 @@ namespace UnityEditor.ShaderGraph
             set => m_ConcretePrecision = value;
         }
 
-        [NonSerialized]
-        Guid m_ActiveOutputNodeGuid;
-
-        public Guid activeOutputNodeGuid
-        {
-            get { return m_ActiveOutputNodeGuid; }
-            set
-            {
-                if (value != m_ActiveOutputNodeGuid)
-                {
-                    m_ActiveOutputNodeGuid = value;
-                    m_OutputNode = null;
-                    didActiveOutputNodeChange = true;
-                    UpdateTargets();
-                }
-            }
-        }
-
         [SerializeField]
-        string m_ActiveOutputNodeGuidSerialized;
-
-        [NonSerialized]
-        private AbstractMaterialNode m_OutputNode;
+        JsonRef<AbstractMaterialNode> m_OutputNode;
 
         public AbstractMaterialNode outputNode
         {
-            get
-            {
-                // find existing node
-                if (m_OutputNode == null)
-                {
-                    if (isSubGraph)
-                    {
-                        m_OutputNode = GetNodes<SubGraphOutputNode>().FirstOrDefault();
-                    }
-                    else
-                    {
-                        m_OutputNode = GetNodeFromGuid(m_ActiveOutputNodeGuid);
-                    }
-                }
-
-                return m_OutputNode;
-            }
+            get => m_OutputNode;
+            set => m_OutputNode = value;
         }
 
         #region Targets
@@ -497,7 +455,7 @@ namespace UnityEditor.ShaderGraph
             }
             node.owner = this;
             m_Nodes.Add(node);
-            m_NodeDictionary.Add(node.guid, node);
+            m_NodeDictionary.Add(node.id, node);
             m_AddedNodes.Add(node);
             m_GroupItems[node.groupGuid].Add(node);
         }
@@ -506,7 +464,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (!node.canDeleteNode)
             {
-                throw new InvalidOperationException($"Node {node.name} ({node.guid}) cannot be deleted.");
+                throw new InvalidOperationException($"Node {node.name} ({node.id}) cannot be deleted.");
             }
             RemoveNodeNoValidate(node);
             ValidateGraph();
@@ -514,14 +472,14 @@ namespace UnityEditor.ShaderGraph
 
         void RemoveNodeNoValidate(AbstractMaterialNode node)
         {
-            if (!m_NodeDictionary.ContainsKey(node.guid))
+            if (!m_NodeDictionary.ContainsKey(node.id))
             {
                 throw new InvalidOperationException("Cannot remove a node that doesn't exist.");
             }
 
             m_Nodes.Remove(node);
-            m_NodeDictionary.Remove(node.guid);
-            messageManager?.RemoveNode(node.guid);
+            m_NodeDictionary.Remove(node.id);
+            messageManager?.RemoveNode(node.id);
             m_RemovedNodes.Add(node);
 
             if (m_GroupItems.TryGetValue(node.groupGuid, out var groupItems))
@@ -533,20 +491,20 @@ namespace UnityEditor.ShaderGraph
         void AddEdgeToNodeEdges(IEdge edge)
         {
             List<IEdge> inputEdges;
-            if (!m_NodeEdges.TryGetValue(edge.inputSlot.nodeGuid, out inputEdges))
-                m_NodeEdges[edge.inputSlot.nodeGuid] = inputEdges = new List<IEdge>();
+            if (!m_NodeEdges.TryGetValue(edge.inputSlot.node.id, out inputEdges))
+                m_NodeEdges[edge.inputSlot.node.id] = inputEdges = new List<IEdge>();
             inputEdges.Add(edge);
 
             List<IEdge> outputEdges;
-            if (!m_NodeEdges.TryGetValue(edge.outputSlot.nodeGuid, out outputEdges))
-                m_NodeEdges[edge.outputSlot.nodeGuid] = outputEdges = new List<IEdge>();
+            if (!m_NodeEdges.TryGetValue(edge.outputSlot.node.id, out outputEdges))
+                m_NodeEdges[edge.outputSlot.node.id] = outputEdges = new List<IEdge>();
             outputEdges.Add(edge);
         }
 
         IEdge ConnectNoValidate(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
-            var fromNode = GetNodeFromGuid(fromSlotRef.nodeGuid);
-            var toNode = GetNodeFromGuid(toSlotRef.nodeGuid);
+            var fromNode = fromSlotRef.node;
+            var toNode = toSlotRef.node;
 
             if (fromNode == null || toNode == null)
                 return null;
@@ -609,7 +567,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (!node.canDeleteNode)
                 {
-                    throw new InvalidOperationException($"Node {node.name} ({node.guid}) cannot be deleted.");
+                    throw new InvalidOperationException($"Node {node.name} ({node.id}) cannot be deleted.");
                 }
             }
 
@@ -644,53 +602,47 @@ namespace UnityEditor.ShaderGraph
             m_Edges.Remove(e as Edge);
 
             List<IEdge> inputNodeEdges;
-            if (m_NodeEdges.TryGetValue(e.inputSlot.nodeGuid, out inputNodeEdges))
+            if (m_NodeEdges.TryGetValue(e.inputSlot.node.id, out inputNodeEdges))
                 inputNodeEdges.Remove(e);
 
             List<IEdge> outputNodeEdges;
-            if (m_NodeEdges.TryGetValue(e.outputSlot.nodeGuid, out outputNodeEdges))
+            if (m_NodeEdges.TryGetValue(e.outputSlot.node.id, out outputNodeEdges))
                 outputNodeEdges.Remove(e);
 
             m_RemovedEdges.Add(e);
         }
 
-        public AbstractMaterialNode GetNodeFromGuid(Guid guid)
+        public AbstractMaterialNode GetNodeFromId(string nodeId)
         {
-            AbstractMaterialNode node;
-            m_NodeDictionary.TryGetValue(guid, out node);
-            return node;
+            if (m_NodeDictionary.TryGetValue(nodeId, out var node))
+            {
+                return node;
+            }
+            return null;
         }
 
-        public bool ContainsNodeGuid(Guid guid)
+        public T GetNodeFromId<T>(string nodeId) where T : class
         {
-            return m_NodeDictionary.ContainsKey(guid);
+            return m_NodeDictionary[nodeId] as T;
         }
 
-        public T GetNodeFromGuid<T>(Guid guid) where T : AbstractMaterialNode
+        public bool ContainsNode(AbstractMaterialNode node)
         {
-            var node = GetNodeFromGuid(guid);
-            if (node is T)
-                return (T)node;
-            return default(T);
+            return m_NodeDictionary.ContainsKey(node.id);
         }
 
         public void GetEdges(SlotReference s, List<IEdge> foundEdges)
         {
-            var node = GetNodeFromGuid(s.nodeGuid);
-            if (node == null)
-            {
-                return;
-            }
-            ISlot slot = node.FindSlot<ISlot>(s.slotId);
+            ISlot slot = s.slot;
 
             List<IEdge> candidateEdges;
-            if (!m_NodeEdges.TryGetValue(s.nodeGuid, out candidateEdges))
+            if (!m_NodeEdges.TryGetValue(s.node.id, out candidateEdges))
                 return;
 
             foreach (var edge in candidateEdges)
             {
                 var cs = slot.isInputSlot ? edge.inputSlot : edge.outputSlot;
-                if (cs.nodeGuid == s.nodeGuid && cs.slotId == s.slotId)
+                if (cs.node == s.node && cs.slotId == s.slotId)
                     foundEdges.Add(edge);
             }
         }
@@ -934,12 +886,12 @@ namespace UnityEditor.ShaderGraph
             //debug view.
             foreach (var edge in edges.ToArray())
             {
-                var outputNode = GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                var inputNode = GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                var outputNode = edge.outputSlot.node;
+                var inputNode = edge.inputSlot.node;
 
                 MaterialSlot outputSlot = null;
                 MaterialSlot inputSlot = null;
-                if (outputNode != null && inputNode != null)
+                if (ContainsNode(outputNode) && ContainsNode(inputNode))
                 {
                     outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
                     inputSlot = inputNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
@@ -955,8 +907,8 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            var temporaryMarks = PooledHashSet<Guid>.Get();
-            var permanentMarks = PooledHashSet<Guid>.Get();
+            var temporaryMarks = PooledHashSet<string>.Get();
+            var permanentMarks = PooledHashSet<string>.Get();
             var slots = ListPool<MaterialSlot>.Get();
 
             // Make sure we process a node's children before the node itself.
@@ -968,19 +920,19 @@ namespace UnityEditor.ShaderGraph
             while (stack.Count > 0)
             {
                 var node = stack.Pop();
-                if (permanentMarks.Contains(node.guid))
+                if (permanentMarks.Contains(node.id))
                 {
                     continue;
                 }
 
-                if (temporaryMarks.Contains(node.guid))
+                if (temporaryMarks.Contains(node.id))
                 {
                     node.ValidateNode();
-                    permanentMarks.Add(node.guid);
+                    permanentMarks.Add(node.id);
                 }
                 else
                 {
-                    temporaryMarks.Add(node.guid);
+                    temporaryMarks.Add(node.id);
                     stack.Push(node);
                     node.GetInputSlots(slots);
                     foreach (var inputSlot in slots)
@@ -989,7 +941,7 @@ namespace UnityEditor.ShaderGraph
                         foreach (var edge in nodeEdges)
                         {
                             var fromSocketRef = edge.outputSlot;
-                            var childNode = GetNodeFromGuid(fromSocketRef.nodeGuid);
+                            var childNode = fromSocketRef.node;
                             if (childNode != null)
                             {
                                 stack.Push(childNode);
@@ -1007,16 +959,16 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var edge in m_AddedEdges.ToList())
             {
-                if (!ContainsNodeGuid(edge.outputSlot.nodeGuid) || !ContainsNodeGuid(edge.inputSlot.nodeGuid))
+                if (!ContainsNode(edge.outputSlot.node) || !ContainsNode(edge.inputSlot.node))
                 {
-                    Debug.LogWarningFormat("Added edge is invalid: {0} -> {1}\n{2}", edge.outputSlot.nodeGuid, edge.inputSlot.nodeGuid, Environment.StackTrace);
+                    Debug.LogWarningFormat("Added edge is invalid: {0} -> {1}\n{2}", edge.outputSlot.node.id, edge.inputSlot.node.id, Environment.StackTrace);
                     m_AddedEdges.Remove(edge);
                 }
             }
 
             foreach (var groupChange in m_ParentGroupChanges.ToList())
             {
-                if (groupChange.groupItem is AbstractMaterialNode node && !ContainsNodeGuid(node.guid))
+                if (groupChange.groupItem is AbstractMaterialNode node && !ContainsNode(node))
                 {
                     m_ParentGroupChanges.Remove(groupChange);
                 }
@@ -1028,7 +980,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void AddValidationError(Guid id, string errorMessage,
+        public void AddValidationError(string id, string errorMessage,
             ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
             messageManager?.AddOrAppendError(this, id, new ShaderMessage(errorMessage, severity));
@@ -1099,11 +1051,10 @@ namespace UnityEditor.ShaderGraph
                     RemoveEdgeNoValidate(edge);
             }
 
-            using (var removedNodesPooledObject = ListPool<Guid>.GetDisposable())
+            using (var removedNodeIds = PooledList<string>.Get())
             {
-                var removedNodeGuids = removedNodesPooledObject.value;
-                removedNodeGuids.AddRange(m_Nodes.Select(n => n.value.guid));
-                foreach (var nodeGuid in removedNodeGuids)
+                removedNodeIds.AddRange(m_Nodes.Select(n => n.value.id));
+                foreach (var nodeGuid in removedNodeIds)
                     RemoveNodeNoValidate(m_NodeDictionary[nodeGuid]);
             }
 
@@ -1265,7 +1216,6 @@ namespace UnityEditor.ShaderGraph
             m_Edges.Sort();
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
-            m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
 
         static JsonObject DeserializeLegacy(string typeString, string json)
@@ -1287,14 +1237,44 @@ namespace UnityEditor.ShaderGraph
             if (m_Version == 0)
             {
                 var graphData0 = JsonUtility.FromJson<GraphData0>(json);
+
+                var nodeGuidMap = new Dictionary<string, AbstractMaterialNode>();
+
                 foreach (var serializedElement in graphData0.m_SerializableNodes)
                 {
+                    var node0 = JsonUtility.FromJson<AbstractMaterialNode0>(serializedElement.JSONnodeData);
                     var node = (AbstractMaterialNode)DeserializeLegacy(serializedElement.typeInfo.fullName, serializedElement.JSONnodeData);
                     if (node == null)
                     {
                         continue;
                     }
+                    nodeGuidMap.Add(node0.m_GuidSerialized, node);
                     m_Nodes.Add(node);
+                }
+
+                if (isSubGraph)
+                {
+                    m_OutputNode = GetNodes<SubGraphOutputNode>().FirstOrDefault();
+                }
+                else if (!string.IsNullOrEmpty(graphData0.m_ActiveOutputNodeGuidSerialized))
+                {
+                    m_OutputNode = nodeGuidMap[graphData0.m_ActiveOutputNodeGuidSerialized];
+                }
+                else
+                {
+                    m_OutputNode = (AbstractMaterialNode)GetNodes<IMasterNode>().FirstOrDefault();
+                }
+
+                foreach (var serializedElement in graphData0.m_SerializableEdges)
+                {
+                    var edge0 = JsonUtility.FromJson<Edge0>(serializedElement.JSONnodeData);
+                    m_Edges.Add(new Edge(
+                        new SlotReference(
+                            nodeGuidMap[edge0.m_OutputSlot.m_NodeGUIDSerialized],
+                            edge0.m_OutputSlot.m_SlotId),
+                        new SlotReference(
+                            nodeGuidMap[edge0.m_InputSlot.m_NodeGUIDSerialized],
+                            edge0.m_InputSlot.m_SlotId)));
                 }
             }
 
@@ -1307,7 +1287,7 @@ namespace UnityEditor.ShaderGraph
             m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
             m_Keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, GraphUtil.GetLegacyTypeRemapping());
 
-            m_NodeDictionary = new Dictionary<Guid, AbstractMaterialNode>(m_Nodes.Count);
+            m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>(m_Nodes.Count);
 
             foreach (var group in m_Groups)
             {
@@ -1318,7 +1298,7 @@ namespace UnityEditor.ShaderGraph
             {
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
-                m_NodeDictionary.Add(node.guid, node);
+                m_NodeDictionary.Add(node.id, node);
                 m_GroupItems[node.groupGuid].Add(node);
             }
 
@@ -1327,28 +1307,8 @@ namespace UnityEditor.ShaderGraph
                 m_GroupItems[stickyNote.groupGuid].Add(stickyNote);
             }
 
-            m_Edges = SerializationHelper.Deserialize<Edge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
-            m_SerializableEdges = null;
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);
-
-            m_OutputNode = null;
-
-            if (!isSubGraph)
-            {
-                if (string.IsNullOrEmpty(m_ActiveOutputNodeGuidSerialized))
-                {
-                    var node = (AbstractMaterialNode)GetNodes<IMasterNode>().FirstOrDefault();
-                    if (node != null)
-                    {
-                        m_ActiveOutputNodeGuid = node.guid;
-                    }
-                }
-                else
-                {
-                    m_ActiveOutputNodeGuid = new Guid(m_ActiveOutputNodeGuidSerialized);
-                }
-            }
         }
 
         public void OnEnable()
@@ -1388,7 +1348,7 @@ namespace UnityEditor.ShaderGraph
                     }
                     else if (isImplementation && !foundImplementations.Any(s => s.GetType() == type))
                     {
-                        var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
+                        var masterNode = outputNode as IMasterNode;
                         var implementation = (ITargetImplementation)Activator.CreateInstance(type);
                         if(implementation.IsValid(masterNode))
                         {

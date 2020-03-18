@@ -115,7 +115,7 @@ namespace UnityEditor.Graphing
             {
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
                 {
-                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    var outputNode = edge.outputSlot.node;
                     if (outputNode != null)
                         DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation);
                 }
@@ -131,7 +131,7 @@ namespace UnityEditor.Graphing
             var graph = node.owner;
             foreach (var edge in graph.GetEdges(node.GetSlotReference(slot.id)))
             {
-                var outputNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                var outputNode = edge.outputSlot.node;
                 if (outputNode != null)
                 {
                     CollectNodeSet(nodeSet, outputNode);
@@ -169,7 +169,7 @@ namespace UnityEditor.Graphing
             {
                 foreach (var edge in node.owner.GetEdges(slot.slotReference))
                 {
-                    var inputNode = node.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                    var inputNode = edge.inputSlot.node;
                     CollectNodesNodeFeedsInto(nodeList, inputNode);
                 }
             }
@@ -200,7 +200,7 @@ namespace UnityEditor.Graphing
                 {
                     foreach (var edge in graph.GetEdges(slot.slotReference))
                     {
-                        var node = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                        var node = edge.outputSlot.node;
                         s_SlotStack.Push(node.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId));
                     }
                 }
@@ -208,7 +208,7 @@ namespace UnityEditor.Graphing
                 {
                     foreach (var edge in graph.GetEdges(slot.slotReference))
                     {
-                        var node = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                        var node = edge.inputSlot.node;
                         s_SlotStack.Push(node.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId));
                     }
                 }
@@ -243,7 +243,7 @@ namespace UnityEditor.Graphing
                 {
                     foreach (var edge in graph.GetEdges(slot.slotReference))
                     {
-                        var node = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                        var node = edge.outputSlot.node;
                         s_SlotStack.Push(node.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId));
                     }
                 }
@@ -251,7 +251,7 @@ namespace UnityEditor.Graphing
                 {
                     foreach (var edge in graph.GetEdges(slot.slotReference))
                     {
-                        var node = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                        var node = edge.inputSlot.node;
                         s_SlotStack.Push(node.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId));
                     }
                 }

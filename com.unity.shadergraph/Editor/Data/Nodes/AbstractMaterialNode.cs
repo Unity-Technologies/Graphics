@@ -13,12 +13,6 @@ namespace UnityEditor.ShaderGraph
     abstract class AbstractMaterialNode : JsonObject, IGroupItem
     {
         [NonSerialized]
-        private Guid m_Guid;
-
-        [SerializeField]
-        private string m_GuidSerialized;
-
-        [NonSerialized]
         Guid m_GroupGuid;
 
         [SerializeField]
@@ -62,11 +56,6 @@ namespace UnityEditor.ShaderGraph
                 m_OnModified(this, scope);
         }
 
-        public Guid guid
-        {
-            get { return m_Guid; }
-        }
-
         public Guid groupGuid
         {
             get { return m_GroupGuid; }
@@ -82,10 +71,7 @@ namespace UnityEditor.ShaderGraph
         protected virtual string documentationPage => name;
         public virtual string documentationURL => NodeUtils.GetDocumentationString(documentationPage);
 
-        public virtual bool canDeleteNode
-        {
-            get { return owner != null && guid != owner.activeOutputNodeGuid; }
-        }
+        public virtual bool canDeleteNode => owner != null && owner.outputNode != this;
 
         public DrawState drawState
         {
@@ -171,17 +157,15 @@ namespace UnityEditor.ShaderGraph
 
         string m_DefaultVariableName;
         string m_NameForDefaultVariableName;
-        Guid m_GuidForDefaultVariableName;
 
         string defaultVariableName
         {
             get
             {
-                if (m_NameForDefaultVariableName != name || m_GuidForDefaultVariableName != guid)
+                if (m_NameForDefaultVariableName != name)
                 {
-                    m_DefaultVariableName = string.Format("{0}_{1}", NodeUtils.GetHLSLSafeName(name ?? "node"), GuidEncoder.Encode(guid));
+                    m_DefaultVariableName = string.Format("{0}_{1}", NodeUtils.GetHLSLSafeName(name ?? "node"), id);
                     m_NameForDefaultVariableName = name;
-                    m_GuidForDefaultVariableName = guid;
                 }
                 return m_DefaultVariableName;
             }
@@ -211,14 +195,7 @@ namespace UnityEditor.ShaderGraph
         protected AbstractMaterialNode()
         {
             m_DrawState.expanded = true;
-            m_Guid = Guid.NewGuid();
             version = 0;
-        }
-
-        public Guid RewriteGuid()
-        {
-            m_Guid = Guid.NewGuid();
-            return m_Guid;
         }
 
         public void GetInputSlots<T>(List<T> foundSlots) where T : ISlot
@@ -277,11 +254,9 @@ namespace UnityEditor.ShaderGraph
             if (edges.Any())
             {
                 var fromSocketRef = edges[0].outputSlot;
-                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(fromSocketRef.nodeGuid);
-                if (fromNode == null)
-                    return string.Empty;
+                var fromNode = fromSocketRef.node;
 
-                var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
+                var slot = fromNode?.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
                 if (slot == null)
                     return string.Empty;
 
@@ -361,7 +336,6 @@ namespace UnityEditor.ShaderGraph
 
                 // Otherwise compare precisions from inputs
                 var precisionsToCompare = new List<int>();
-                bool isInError = false;
 
                 foreach (var inputSlot in tempSlots)
                 {
@@ -375,13 +349,7 @@ namespace UnityEditor.ShaderGraph
 
                     // Get output node from edge
                     var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
-                    if (outputNode == null)
-                    {
-                        errorMessage = string.Format("Failed to find Node with Guid {0}", outputSlotRef.nodeGuid);
-                        isInError = true;
-                        continue;
-                    }
+                    var outputNode = outputSlotRef.node;
 
                     // Use precision from connected Node
                     precisionsToCompare.Add((int)outputNode.concretePrecision);
@@ -391,7 +359,7 @@ namespace UnityEditor.ShaderGraph
                 m_ConcretePrecision = (ConcretePrecision)precisionsToCompare.OrderBy(x => x).First();
 
                 // Clean up
-                return isInError;
+                return false;
             }
         }
 
@@ -426,7 +394,7 @@ namespace UnityEditor.ShaderGraph
 
                     // get the output details
                     var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                    var outputNode = outputSlotRef.node;
                     if (outputNode == null)
                         continue;
 
@@ -513,7 +481,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (isInError)
                 {
-                    ((GraphData) owner).AddValidationError(guid, errorMessage);
+                    ((GraphData) owner).AddValidationError(id, errorMessage);
                 }
                 else
                 {
@@ -538,7 +506,7 @@ namespace UnityEditor.ShaderGraph
                 if (slot.isConnected)
                 {
                     var edge = owner.GetEdges(slot.slotReference).First();
-                    var outputNode = owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    var outputNode = edge.outputSlot.node;
                     var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
                     if (!slot.IsCompatibleWith(outputSlot))
                     {
@@ -655,7 +623,7 @@ namespace UnityEditor.ShaderGraph
             var slot = FindSlot<ISlot>(slotId);
             if (slot == null)
                 throw new ArgumentException("Slot could not be found", "slotId");
-            return new SlotReference(guid, slotId);
+            return new SlotReference(this, slotId);
         }
 
         public T FindSlot<T>(int slotId) where T : ISlot
@@ -695,18 +663,12 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnBeforeSerialize()
         {
-            m_GuidSerialized = m_Guid.ToString();
             m_GroupGuidSerialized = m_GroupGuid.ToString();
             m_SerializableSlots = SerializationHelper.Serialize<ISlot>(m_Slots);
         }
 
         public override void OnAfterDeserialize()
         {
-            if (!string.IsNullOrEmpty(m_GuidSerialized))
-                m_Guid = new Guid(m_GuidSerialized);
-            else
-                m_Guid = Guid.NewGuid();
-
             if (m_NodeVersion != GetCompiledNodeVersion())
             {
                 UpgradeNodeWithVersion(m_NodeVersion, GetCompiledNodeVersion());

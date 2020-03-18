@@ -157,7 +157,7 @@ namespace UnityEditor.ShaderGraph
 
                     // get the output details
                     var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                    var outputNode = outputSlotRef.node;
                     if (outputNode == null)
                         continue;
 
@@ -246,7 +246,7 @@ namespace UnityEditor.ShaderGraph
 
             if (isInError)
             {
-                ((GraphData) owner).AddValidationError(guid, errorMessage);
+                ((GraphData) owner).AddValidationError(id, errorMessage);
             }
             else
             {
