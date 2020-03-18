@@ -722,7 +722,7 @@ namespace UnityEditor.ShaderGraph
             collector.CalculateKeywordPermutations();
         }
 
-        public void AddGraphInput(ShaderInput input)
+        public void AddGraphInput(ShaderInput input, int index = -1)
         {
             if (input == null)
                 return;
@@ -732,17 +732,27 @@ namespace UnityEditor.ShaderGraph
                 case AbstractShaderProperty property:
                     if (m_Properties.Contains(property))
                         return;
-                    m_Properties.Add(property);
+
+                    if (index < 0)
+                        m_Properties.Add(property);
+                    else
+                        m_Properties.Insert(index, property);
+
                     break;
                 case ShaderKeyword keyword:
                     if (m_Keywords.Contains(keyword))
                         return;
-                    m_Keywords.Add(keyword);
+
+                    if (index < 0)
+                        m_Keywords.Add(keyword);
+                    else
+                        m_Keywords.Insert(index, keyword);
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
+            
             m_AddedInputs.Add(input);
         }
 
