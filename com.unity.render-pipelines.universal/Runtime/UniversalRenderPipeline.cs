@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.Universal
                     VFX.VFXManager.PrepareCamera(camera);
 #endif
                     UpdateVolumeFramework(camera, null);
-                    
+
                     RenderSingleCamera(renderContext, camera);
                     EndCameraRendering(renderContext, camera);
                 }
@@ -330,6 +330,7 @@ namespace UnityEngine.Rendering.Universal
             List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
+            anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             // We need to know the last active camera in the stack to be able to resolve
             // rendering to screen when rendering it. The last camera in the stack is not
@@ -448,7 +449,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
                     layerMask = mainAdditionalCameraData.volumeLayerMask;
-                
+
                 trigger = mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null ? mainAdditionalCameraData.volumeTrigger : trigger;
             }
 
@@ -702,7 +703,7 @@ namespace UnityEngine.Rendering.Universal
                 camera.TryGetComponent(out cameraData.postProcessLayer);
                 cameraData.postProcessEnabled &= cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
             }
-			
+
             bool depthRequiredForPostFX = settings.postProcessingFeatureSet == PostProcessingFeatureSet.PostProcessingV2
                 ? cameraData.postProcessEnabled
                 : CheckPostProcessForDepth(cameraData);
