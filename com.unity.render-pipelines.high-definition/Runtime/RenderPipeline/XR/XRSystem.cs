@@ -1,6 +1,6 @@
 // XRSystem is where information about XR views and passes are read from 2 exclusive sources:
 // - XRDisplaySubsystem from the XR SDK
-// - custom XR layout (only internal for now)
+// - XRLayout (only internal for now, used by test framework)
 
 using System;
 using System.Collections.Generic;
