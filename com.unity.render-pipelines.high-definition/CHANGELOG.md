@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that prevented cubemap thumbnails from rendering.
 - Fix an exception in ray tracing that happens if two LOD levels are using the same mesh renderer.
 - Fix some typos in the debug menu.
+- Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
