@@ -97,6 +97,13 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new int[] {0});
         }
 
+        public override string GetVariableNameForNode()
+        {
+            // Temporary block nodes have temporary guids that cannot be used to set preview data
+            // Since each block is unique anyway we just omit the guid
+            return NodeUtils.GetHLSLSafeName(name);
+        }
+
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             if(m_Descriptor == null || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())

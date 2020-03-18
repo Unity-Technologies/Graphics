@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         HashSet<AbstractMaterialNode> m_NodesToUpdate = new HashSet<AbstractMaterialNode>();
         HashSet<AbstractMaterialNode> m_NodesToDraw = new HashSet<AbstractMaterialNode>();
         HashSet<AbstractMaterialNode> m_TimedNodes = new HashSet<AbstractMaterialNode>();
+        HashSet<BlockNode> m_Blocks = new HashSet<BlockNode>();
         bool m_RefreshTimedNodes;
         bool m_FirstTime = true;
 
@@ -338,13 +339,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             // TODO: While Master nodes still exist, branch and collect Blocks instead
             if(node == null)
             {
-                foreach(var vertexBlock in m_Graph.vertexContext.blocks)
+                foreach(var block in m_Blocks)
                 {
-                    m_PropertyNodes.Add(vertexBlock);
-                }
-                foreach(var fragmentBlock in m_Graph.fragmentContext.blocks)
-                {
-                    m_PropertyNodes.Add(fragmentBlock);
+                    m_PropertyNodes.Add(block);
                 }
             }
             else
@@ -703,6 +700,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 ShaderUtil.ClearCachedData(shaderData.shader);
+            }
+
+            // Blocks from the generation include those temporarily created for missing stack blocks
+            // We need to hold on to these to set preview property values during CollectShaderProperties
+            m_Blocks.Clear();
+            foreach(var block in generator.blocks)
+            {
+                m_Blocks.Add(block);
             }
 
             BeginCompile(masterRenderData, shaderData.shaderString);

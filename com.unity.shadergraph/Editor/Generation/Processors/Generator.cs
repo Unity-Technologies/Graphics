@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph
         public string generatedShader => m_Builder.ToCodeBlock();
         public List<PropertyCollector.TextureInfo> configuredTextures => m_ConfiguredTextures;
         public List<string> assetDependencyPaths => m_AssetDependencyPaths;
+        public List<BlockNode> blocks => m_Blocks;
 
         public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name)
         {
@@ -164,9 +165,11 @@ namespace UnityEditor.ShaderGraph
             {
                 GenerationUtils.GenerateSubShaderTags(m_TargetImplementations[targetIndex], descriptor, m_Builder);
 
+                // Get block descriptor list here as we will add temporary blocks to m_Blocks during pass evaluations
+                var blockFieldDescriptors = m_Blocks.Select(x => x.descriptor).ToList();
+
                 foreach(PassCollection.Item pass in descriptor.passes)
                 {
-                    var blockFieldDescriptors = m_Blocks.Select(x => x.descriptor).ToList();
                     var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, blockFieldDescriptors, m_TargetImplementations[targetIndex]);
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
@@ -219,69 +222,51 @@ namespace UnityEditor.ShaderGraph
                 var activeBlocks = ListPool<BlockFieldDescriptor>.Get();
                 m_TargetImplementations[targetIndex].SetActiveBlocks(ref activeBlocks);
 
+                void ProcessStackForPass(ContextData contextData, BlockFieldDescriptor[] passBlockMask,
+                    List<AbstractMaterialNode> nodeList, List<MaterialSlot> slotList)
+                {
+                    foreach(var blockFieldDescriptor in passBlockMask)
+                    {
+                        // Mask blocks on active state
+                        // TODO: Can we merge these?
+                        if(!activeBlocks.Contains(blockFieldDescriptor))
+                            continue;
+                        
+                        // Attempt to get BlockNode from the stack
+                        var block = contextData.blocks.FirstOrDefault(x => x.descriptor == blockFieldDescriptor);
+
+                        // If the BlockNode doesnt exist in the stack we need to create one
+                        // TODO: Can we do the code gen without a node instance?
+                        if(block == null)
+                        {
+                            block = new BlockNode();
+                            block.Init(blockFieldDescriptor);
+                            block.owner = m_GraphData;
+
+                            // Add temporary blocks to m_Blocks
+                            // This is used by the PreviewManager to generate a PreviewProperty
+                            m_Blocks.Add(block);
+                        }
+                        // Dont collect properties from temp nodes
+                        else
+                        {
+                            block.CollectShaderProperties(propertyCollector, m_Mode);
+                        }
+
+                        // Add nodes and slots from supported vertex blocks
+                        NodeUtils.DepthFirstCollectNodesFromNode(nodeList, block, NodeUtils.IncludeSelf.Include);
+                        slotList.Add(block.FindSlot<MaterialSlot>(0));
+                        activeFields.baseInstance.Add(block.descriptor);
+                    }
+                }
+
                 // Mask blocks per pass
                 vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-                foreach(var blockFieldDescriptor in pass.vertexBlocks)
-                {
-                    // Mask blocks on active state
-                    // TODO: Can we merge these?
-                    if(!activeBlocks.Contains(blockFieldDescriptor))
-                        continue;
-                    
-                    // Attempt to get BlockNode from the stack
-                    var block = m_GraphData.vertexContext.blocks.FirstOrDefault(x => x.descriptor == blockFieldDescriptor);
-
-                    // If the BlockNode doesnt exist in the stack we need to create one
-                    // TODO: Can we do the code gen without a node instance?
-                    if(block == null)
-                    {
-                        block = new BlockNode();
-                        block.Init(blockFieldDescriptor);
-                        block.owner = m_GraphData;
-                    }
-                    // Dont collect properties from temp nodes
-                    else
-                    {
-                        block.CollectShaderProperties(propertyCollector, m_Mode);
-                    }
-
-                    // Add nodes and slots from supported vertex blocks
-                    NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, block, NodeUtils.IncludeSelf.Include);
-                    vertexSlots.Add(block.FindSlot<MaterialSlot>(0));
-                    activeFields.baseInstance.Add(block.descriptor);
-                }
-
                 pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-                foreach(var blockFieldDescriptor in pass.pixelBlocks)
-                {
-                    // Mask blocks on active state
-                    // TODO: Can we merge these?
-                    if(!activeBlocks.Contains(blockFieldDescriptor))
-                        continue;
 
-                    // Attempt to get BlockNode from the stack
-                    var block = m_GraphData.fragmentContext.blocks.FirstOrDefault(x => x.descriptor == blockFieldDescriptor);
-
-                    // If the BlockNode doesnt exist in the stack we need to create one
-                    // TODO: Can we do the code gen without a node instance?
-                    if(block == null)
-                    {
-                        block = new BlockNode();
-                        block.Init(blockFieldDescriptor);
-                        block.owner = m_GraphData;
-                        block.concretePrecision = m_GraphData.concretePrecision;
-                    }
-                    // Dont collect properties from temp nodes
-                    else
-                    {
-                        block.CollectShaderProperties(propertyCollector, m_Mode);
-                    }
-
-                    // Add nodes and slots from supported fragment blocks
-                    NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, block, NodeUtils.IncludeSelf.Include);
-                    pixelSlots.Add(block.FindSlot<MaterialSlot>(0));
-                    activeFields.baseInstance.Add(block.descriptor);
-                }
+                // Process stack for vertex and fragment
+                ProcessStackForPass(m_GraphData.vertexContext, pass.vertexBlocks, vertexNodes, vertexSlots);
+                ProcessStackForPass(m_GraphData.fragmentContext, pass.pixelBlocks, pixelNodes, pixelSlots);
             }
             else if(m_OutputNode is SubGraphOutputNode)
             {
