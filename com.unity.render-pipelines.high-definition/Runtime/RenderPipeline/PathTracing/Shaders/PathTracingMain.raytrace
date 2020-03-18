@@ -11,13 +11,15 @@
 
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 
 // Path tracing includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 
 // Input(s)
 float4x4 _PixelCoordToViewDirWS;
+int      _RaytracingCameraSkyEnabled;
+float3   _RaytracingCameraClearColor;
 
 // Output(s)
 RWTexture2D<float4> _CameraColorTextureRW;
@@ -25,11 +27,15 @@ RWTexture2D<float4> _AccumulatedFrameTexture;
 
 void AddConvergenceCue(uint2 pixelCoord, uint sampleCount, inout float3 color)
 {
+    // If we reached 100%, do not display the bar anymore
+    if (sampleCount >= _RaytracingNumSamples)
+        return;
+
     uint width, height;
     _CameraColorTextureRW.GetDimensions(width, height);
 
-    // Change color only in a region corresponding to a progress bar, on the bottom 1% of the screen
-    if (pixelCoord.y < 0.01 * height && (float)pixelCoord.x / width <= (float)sampleCount / (_RaytracingNumSamples - 1))
+    // Change color only in a region corresponding to a progress bar, at the bottom of the screen
+    if (pixelCoord.y < 4 && (float)pixelCoord.x / width <= (float)sampleCount / _RaytracingNumSamples)
     {
         float lum = Luminance(color);
 
@@ -45,13 +51,23 @@ void AddConvergenceCue(uint2 pixelCoord, uint sampleCount, inout float3 color)
 }
 
 [shader("miss")]
-void Miss(inout RayIntersection rayIntersection : SV_RayPayload)
+void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
 {
-    // Grab depth information
-    uint currentDepth = _RaytracingMaxRecursion - rayIntersection.remainingDepth;
+    // If the _RaytracingCameraClearColor content is positive, we override the camera sky display with a bg color
+    pathIntersection.value = _EnvLightSkyEnabled && _RaytracingCameraSkyEnabled ?
+        SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, WorldRayDirection(), 0.0, 0) : _RaytracingCameraClearColor * GetInverseCurrentExposureMultiplier();
+}
 
-    rayIntersection.color = !currentDepth || currentDepth >= _RaytracingMinRecursion ?
-        SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, WorldRayDirection(), 0.0f, 0) : 0.0;
+[shader("miss")]
+void MissLight(inout PathIntersection pathIntersection : SV_RayPayload)
+{
+}
+
+[shader("miss")]
+void MissMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
+{
+    pathIntersection.value = _EnvLightSkyEnabled && (_RaytracingMaxRecursion - pathIntersection.remainingDepth) >= _RaytracingMinRecursion ?
+        SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, WorldRayDirection(), 0.0, 0) : 0.0;
 }
 
 [shader("raygeneration")]
@@ -70,10 +86,10 @@ void RayGen()
         return;
     }
 
-    // Jitter them
+    // Jitter them (we use 4x10 dimensions of our sequence during path tracing atm, so pick the next available ones)
     float3 jitteredPixelCoord = float3(currentPixelCoord, 1.0);
-    jitteredPixelCoord.x += GetSample(currentPixelCoord, _RaytracingFrameIndex, 254);
-    jitteredPixelCoord.y += GetSample(currentPixelCoord, _RaytracingFrameIndex, 255);
+    jitteredPixelCoord.x += GetSample(currentPixelCoord, _RaytracingFrameIndex, 40);
+    jitteredPixelCoord.y += GetSample(currentPixelCoord, _RaytracingFrameIndex, 41);
 
     // Compute the ray direction, from those coordinates
     float3 directionWS = -normalize(mul(jitteredPixelCoord, (float3x3)_PixelCoordToViewDirWS));
@@ -85,37 +101,37 @@ void RayGen()
     rayDescriptor.TMin = _RaytracingCameraNearPlane;
     rayDescriptor.TMax = FLT_INF;
 
-    // Create and init the RayIntersection structure for this
-    RayIntersection rayIntersection;
-    rayIntersection.color = 1.0;
-    rayIntersection.remainingDepth = _RaytracingMaxRecursion;
-    rayIntersection.pixelCoord = currentPixelCoord;
-    rayIntersection.maxRoughness = 0.001;
+    // Create and init the PathIntersection structure for this
+    PathIntersection pathIntersection;
+    pathIntersection.value = 1.0;
+    pathIntersection.remainingDepth = _RaytracingMaxRecursion;
+    pathIntersection.pixelCoord = currentPixelCoord;
+    pathIntersection.maxRoughness = 0.001;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-    rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
-    rayIntersection.cone.width = 0.0;
+    pathIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
+    pathIntersection.cone.width = 0.0;
 
     // Evaluate the ray intersection
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_FORCE_OPAQUE, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, rayDescriptor, pathIntersection);
 
     // Accumulate the result
     if (sampleCount++)
-        rayIntersection.color = (_AccumulatedFrameTexture[currentPixelCoord].xyz * (sampleCount - 1) + rayIntersection.color) / sampleCount;
-    _AccumulatedFrameTexture[currentPixelCoord] = float4(rayIntersection.color, 1.0);
+        pathIntersection.value = (_AccumulatedFrameTexture[currentPixelCoord].xyz * (sampleCount - 1) + pathIntersection.value) / sampleCount;
+    _AccumulatedFrameTexture[currentPixelCoord] = float4(pathIntersection.value, 1.0);
 
     // Apply exposure modifier
-    rayIntersection.color *= GetCurrentExposureMultiplier();
+    pathIntersection.value *= GetCurrentExposureMultiplier();
 
     // Add a little convergence cue to our result
-    AddConvergenceCue(currentPixelCoord, sampleCount, rayIntersection.color);
+    AddConvergenceCue(currentPixelCoord, sampleCount, pathIntersection.value);
 
-    _CameraColorTextureRW[currentPixelCoord] = float4(rayIntersection.color, 1.0);
+    _CameraColorTextureRW[currentPixelCoord] = float4(pathIntersection.value, 1.0);
 }
 
 // This should never be called, return magenta just in case
 [shader("closesthit")]
-void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
-    rayIntersection.color = float3(1.0, 0.0, 0.5);
+    pathIntersection.value = float3(1.0, 0.0, 0.5);
 }

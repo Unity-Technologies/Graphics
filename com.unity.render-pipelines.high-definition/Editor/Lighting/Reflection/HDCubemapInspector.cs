@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
         float m_CameraDistance = 2.0f;
         Vector2 m_PreviousMousePosition = Vector2.zero;
 
-        Cubemap cubemap => target as Cubemap;
+        Texture targetTexture => target as Texture;
 
         public float previewExposure = 0f;
         public float mipLevelPreview = 0f;
@@ -94,8 +94,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var mipmapCount = 0;
             var rt = target as RenderTexture;
-            if (cubemap != null)
-                mipmapCount = cubemap.mipmapCount;
+            if (targetTexture != null)
+                mipmapCount = targetTexture.mipmapCount;
             if (rt != null)
                 mipmapCount = rt.useMipMap
                     ? (int)(Mathf.Log(Mathf.Max(rt.width, rt.height)) / Mathf.Log(2))
@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition
             GUILayout.Box(s_MipMapLow, s_PreLabel, GUILayout.MaxWidth(20));
         }
 
-        public override string GetInfoString() => $"{cubemap.width}x{cubemap.height} {GraphicsFormatUtility.GetFormatString(cubemap.graphicsFormat)}";
+        public override string GetInfoString() => $"{targetTexture.width}x{targetTexture.height} {GraphicsFormatUtility.GetFormatString(targetTexture.graphicsFormat)}";
 
         void InitPreview()
         {
@@ -190,6 +190,23 @@ namespace UnityEditor.Rendering.HighDefinition
             s_MipMapHigh = EditorGUIUtility.IconContent("PreTextureMipMapHigh");
             s_ExposureLow = EditorGUIUtility.IconContent("SceneViewLighting");
             s_PreLabel = "preLabel";
+        }
+        public override Texture2D RenderStaticPreview(string assetPath, Object[] subAssets, int width, int height)
+        {
+            m_CameraDistance = 1.25f;
+            m_CameraPhi = Mathf.PI * 0.33f;
+            m_CameraTheta = Mathf.PI;
+
+            InitPreview();
+
+            UpdateCamera();
+
+            m_PreviewUtility.ambientColor = Color.black;
+            m_PreviewUtility.BeginStaticPreview(new Rect(0, 0, width, height));
+            m_PreviewUtility.DrawMesh(sphereMesh, Matrix4x4.identity, m_ReflectiveMaterial, 0);
+            m_PreviewUtility.camera.Render();
+
+            return m_PreviewUtility.EndStaticPreview();
         }
     }
 }

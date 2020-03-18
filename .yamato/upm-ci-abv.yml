@@ -79,10 +79,12 @@ all_project_ci_nightly_{{ editor.version }}:
       rerun: always
     - path: .yamato/upm-ci-universal.yml#Universal_Android_OpenGLES3_{{ editor.version }}
       rerun: always
+    - path: .yamato/upm-ci-universal.yml#Universal_Android_Vulkan_{{ editor.version }}
+      rerun: always
   triggers:
     recurring:
       - branch: master
-        frequency: daily     
+        frequency: 0 * * ?     
   {% endif %}
 {% endfor %}
 

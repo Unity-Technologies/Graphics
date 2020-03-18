@@ -59,6 +59,35 @@ namespace UnityEngine.Rendering.HighDefinition
         IndirectPlanarProbe = 1 << 8,
     }
 
+    /// <summary>
+    /// Debug Light Layers Filtering.
+    /// </summary>
+    [GenerateHLSL]
+    [Flags]
+    public enum DebugLightLayersMask
+    {
+        /// <summary>No light layer debug.</summary>
+        None = 0,
+        /// <summary>Debug light layer 1.</summary>
+        LightLayer1 = 1 << 0,
+        /// <summary>Debug light layer 2.</summary>
+        LightLayer2 = 1 << 1,
+        /// <summary>Debug light layer 3.</summary>
+        LightLayer3 = 1 << 2,
+        /// <summary>Debug light layer 4.</summary>
+        LightLayer4 = 1 << 3,
+        /// <summary>Debug light layer 5.</summary>
+        LightLayer5 = 1 << 4,
+        /// <summary>Debug light layer 6.</summary>
+        LightLayer6 = 1 << 5,
+        /// <summary>Debug light layer 7.</summary>
+        LightLayer7 = 1 << 6,
+        /// <summary>Debug light layer 8.</summary>
+        LightLayer8 = 1 << 7,
+    }
+
+
+
     static class DebugLightHierarchyExtensions
     {
         public static bool IsEnabledFor(
@@ -137,6 +166,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return debugLightingMode != DebugLightingMode.None
                 || debugLightFilterMode != DebugLightFilterMode.None
+                || debugLightLayers
                 || overrideSmoothness
                 || overrideAlbedo
                 || overrideNormal
@@ -150,6 +180,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public DebugLightFilterMode debugLightFilterMode = DebugLightFilterMode.None;
         /// <summary>Current Full Screen Lighting debug mode.</summary>
         public DebugLightingMode    debugLightingMode = DebugLightingMode.None;
+        /// <summary>True if light layers visualization is enabled.</summary>
+        public bool                 debugLightLayers = false;
+        /// <summary>Current Light Layers Filtering mode.</summary>
+        public DebugLightLayersMask  debugLightLayersFilterMask = (DebugLightLayersMask)(-1); // Select Everything by default
+        /// <summary>True if light layers visualization uses light layers of the selected light.</summary>
+        public bool                 debugSelectionLightLayers = false;
+        /// <summary>True if light layers visualization uses shadow layers of the selected light.</summary>
+        public bool                 debugSelectionShadowLayers = false;
+        /// <summary>Rendering Layers Debug Colors.</summary>
+        public Vector4[]            debugRenderingLayersColors = GetDefaultRenderingLayersColorPalette();
         /// <summary>Current Shadow Maps debug mode.</summary>
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
         /// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
@@ -241,5 +281,30 @@ namespace UnityEngine.Rendering.HighDefinition
             return debugLightingMode != DebugLightingMode.None && debugLightingMode != DebugLightingMode.MatcapView;
         }
 
+        internal static Vector4[] GetDefaultRenderingLayersColorPalette()
+        {
+            var colors = new Vector4[32];
+
+            var lightLayers = new Vector4[]
+            {
+                new Vector4(230, 159, 0) / 255,
+                new Vector4(86, 180, 233) / 255,
+                new Vector4(255, 182, 291) / 255,
+                new Vector4(0, 158, 115) / 255,
+                new Vector4(240, 228, 66) / 255,
+                new Vector4(0, 114, 178) / 255,
+                new Vector4(213, 94, 0) / 255,
+                new Vector4(170, 68, 170) / 255
+            };
+
+            int i = 0;
+            for (; i < lightLayers.Length; i++)
+                colors[i] = lightLayers[i];
+
+            for (; i < colors.Length; i++)
+                colors[i] = new Vector4(0, 0, 0);
+
+            return colors;
+        }
     }
 }

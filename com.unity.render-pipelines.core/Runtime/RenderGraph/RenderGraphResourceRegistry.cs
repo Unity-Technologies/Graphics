@@ -1,13 +1,62 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
+    #region Resource Descriptors
+    // BEHOLD C# COPY PASTA
+    // Struct can't be inherited and can't have default member values
+    // Hence the copy paste and the ugly IsValid implementation.
+
+    /// <summary>
+    /// Texture resource handle.
+    /// </summary>
+    [DebuggerDisplay("Texture ({handle})")]
+    public struct TextureHandle
+    {
+        bool m_IsValid;
+        internal int handle { get; private set; }
+        internal TextureHandle(int handle) { this.handle = handle; m_IsValid = true; }
+        /// <summary>
+        /// Conversion to int.
+        /// </summary>
+        /// <param name="handle">Texture handle to convert.</param>
+        /// <returns>The integer representation of the handle.</returns>
+        public static implicit operator int(TextureHandle handle) { return handle.handle; }
+        /// <summary>
+        /// Return true if the handle is valid.
+        /// </summary>
+        /// <returns>True if the handle is valid.</returns>
+        public bool IsValid() => m_IsValid;
+    }
+
+    /// <summary>
+    /// Renderer List resource handle.
+    /// </summary>
+    [DebuggerDisplay("RendererList ({handle})")]
+    public struct RendererListHandle
+    {
+        bool m_IsValid;
+        internal int handle { get; private set; }
+        internal RendererListHandle(int handle) { this.handle = handle; m_IsValid = true; }
+        /// <summary>
+        /// Conversion to int.
+        /// </summary>
+        /// <param name="handle">Renderer List handle to convert.</param>
+        /// <returns>The integer representation of the handle.</returns>
+        public static implicit operator int(RendererListHandle handle) { return handle.handle; }
+        /// <summary>
+        /// Return true if the handle is valid.
+        /// </summary>
+        /// <returns>True if the handle is valid.</returns>
+        public bool IsValid() => m_IsValid;
+    }
+
     /// <summary>
     /// The mode that determines the size of a Texture.
     /// </summary>
-    #region Resource Descriptors
     public enum TextureSizeMode
     {
         ///<summary>Explicit size.</summary>
@@ -268,12 +317,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
         #endregion
+
         DynamicArray<TextureResource>       m_TextureResources = new DynamicArray<TextureResource>();
         Dictionary<int, Stack<RTHandle>>    m_TexturePool = new Dictionary<int, Stack<RTHandle>>();
         DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
         RTHandleSystem                      m_RTHandleSystem = new RTHandleSystem();
         RenderGraphDebugParams              m_RenderGraphDebug;
         RenderGraphLogger                   m_Logger;
+
+        RTHandle                            m_CurrentBackbuffer;
 
         // Diagnostic only
         List<(int, RTHandle)>               m_AllocatedTextures = new List<(int, RTHandle)>();
@@ -283,14 +335,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Returns the RTHandle associated with the provided resource handle.
         /// </summary>
         /// <param name="handle">Handle to a texture resource.</param>
-        /// <returns>The RTHandle associated with the provided resource handle.</returns>
-        public RTHandle GetTexture(in RenderGraphResource handle)
+        /// <returns>The RTHandle associated with the provided resource handle or null if the handle is invalid.</returns>
+        public RTHandle GetTexture(in TextureHandle handle)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (handle.type != RenderGraphResourceType.Texture)
-                throw new InvalidOperationException("Trying to access a RenderGraphResource that is not a texture.");
+            if (!handle.IsValid())
+                return null;
 
-            var res = m_TextureResources[handle.handle];
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+
+            var res = m_TextureResources[handle];
 
             if (res.rt == null && !res.wasReleased)
                 throw new InvalidOperationException(string.Format("Trying to access texture \"{0}\" that was never created. Check that it was written at least once before trying to get it.", res.desc.name));
@@ -298,21 +351,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (res.rt == null && res.wasReleased)
                 throw new InvalidOperationException(string.Format("Trying to access texture \"{0}\" that was already released. Check that the last pass where it's read is after this one.", res.desc.name));
 #endif
-            return m_TextureResources[handle.handle].rt;
+            return m_TextureResources[handle].rt;
         }
 
         /// <summary>
         /// Returns the RendererList associated with the provided resource handle.
         /// </summary>
         /// <param name="handle">Handle to a Renderer List resource.</param>
-        /// <returns>The Renderer List associated with the provided resource handle.</returns>
-        public RendererList GetRendererList(in RenderGraphResource handle)
+        /// <returns>The Renderer List associated with the provided resource handle or a null renderer list if the handle is invalid.</returns>
+        public RendererList GetRendererList(in RendererListHandle handle)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (handle.type != RenderGraphResourceType.RendererList)
-                throw new InvalidOperationException("Trying to access a RenderGraphResource that is not a RendererList.");
-#endif
-            return m_RendererListResources[handle.handle].rendererList;
+            if (!handle.IsValid())
+                return RendererList.nullRendererList;
+
+            return m_RendererListResources[handle].rendererList;
         }
         #endregion
 
@@ -337,21 +389,32 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal RTHandleProperties GetRTHandleProperties() { return m_RTHandleSystem.rtHandleProperties; }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
-        internal RenderGraphMutableResource ImportTexture(RTHandle rt, int shaderProperty = 0)
+        internal TextureHandle ImportTexture(RTHandle rt, int shaderProperty = 0)
         {
             int newHandle = m_TextureResources.Add(new TextureResource(rt, shaderProperty));
-            return new RenderGraphMutableResource(newHandle, RenderGraphResourceType.Texture);
+            return new TextureHandle(newHandle);
         }
 
-        internal RenderGraphMutableResource CreateTexture(in TextureDesc desc, int shaderProperty = 0)
+        internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
+        {
+            if (m_CurrentBackbuffer != null)
+                m_RTHandleSystem.Release(m_CurrentBackbuffer);
+
+            m_CurrentBackbuffer = m_RTHandleSystem.Alloc(rt);
+
+            int newHandle = m_TextureResources.Add(new TextureResource(m_CurrentBackbuffer, 0));
+            return new TextureHandle(newHandle);
+        }
+
+        internal TextureHandle CreateTexture(in TextureDesc desc, int shaderProperty = 0)
         {
             ValidateTextureDesc(desc);
 
             int newHandle = m_TextureResources.Add(new TextureResource(desc, shaderProperty));
-            return new RenderGraphMutableResource(newHandle, RenderGraphResourceType.Texture);
+            return new TextureHandle(newHandle);
         }
 
-        internal void UpdateTextureFirstWrite(RenderGraphResource tex, int passIndex)
+        internal void UpdateTextureFirstWrite(TextureHandle tex, int passIndex)
         {
             ref var res = ref GetTextureResource(tex);
             res.firstWritePassIndex = Math.Min(passIndex, res.firstWritePassIndex);
@@ -369,31 +432,31 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             //res.lastReadPassIndex = Math.Max(passIndex, res.lastReadPassIndex);
         }
 
-        internal void UpdateTextureLastRead(RenderGraphResource tex, int passIndex)
+        internal void UpdateTextureLastRead(TextureHandle tex, int passIndex)
         {
             ref var res = ref GetTextureResource(tex);
             res.lastReadPassIndex = Math.Max(passIndex, res.lastReadPassIndex);
         }
 
-        ref TextureResource GetTextureResource(RenderGraphResource res)
+        ref TextureResource GetTextureResource(TextureHandle res)
         {
-            return ref m_TextureResources[res.handle];
+            return ref m_TextureResources[res];
         }
 
-        internal TextureDesc GetTextureResourceDesc(RenderGraphResource res)
+        internal TextureDesc GetTextureResourceDesc(TextureHandle res)
         {
-            return m_TextureResources[res.handle].desc;
+            return m_TextureResources[res].desc;
         }
 
-        internal RenderGraphResource CreateRendererList(in RendererListDesc desc)
+        internal RendererListHandle CreateRendererList(in RendererListDesc desc)
         {
             ValidateRendererListDesc(desc);
 
             int newHandle = m_RendererListResources.Add(new RendererListResource(desc));
-            return new RenderGraphResource(newHandle, RenderGraphResourceType.RendererList);
+            return new RendererListHandle(newHandle);
         }
 
-        internal void CreateAndClearTexturesForPass(RenderGraphContext rgContext, int passIndex, List<RenderGraphMutableResource> textures)
+        internal void CreateAndClearTexturesForPass(RenderGraphContext rgContext, int passIndex, List<TextureHandle> textures)
         {
             foreach (var rgResource in textures)
             {
@@ -463,7 +526,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             resource.cachedHash = hashCode;
         }
 
-        void SetGlobalTextures(RenderGraphContext rgContext, List<RenderGraphResource> textures, bool bindDummyTexture)
+        void SetGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures, bool bindDummyTexture)
         {
             foreach (var resource in textures)
             {
@@ -480,17 +543,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
 
-        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, List<RenderGraphResource> textures)
+        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures)
         {
             SetGlobalTextures(rgContext, textures, false);
         }
 
-        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, List<RenderGraphResource> textures)
+        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures)
         {
             SetGlobalTextures(rgContext, textures, true);
         }
 
-        internal void ReleaseTexturesForPass(RenderGraphContext rgContext, int passIndex, List<RenderGraphResource> readTextures, List<RenderGraphMutableResource> writtenTextures)
+        internal void ReleaseTexturesForPass(RenderGraphContext rgContext, int passIndex, List<TextureHandle> readTextures, List<TextureHandle> writtenTextures)
         {
             foreach (var resource in readTextures)
             {
@@ -524,11 +587,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void ReleaseTextureForPass(RenderGraphResource res)
+        void ReleaseTextureForPass(TextureHandle res)
         {
-            Debug.Assert(res.type == RenderGraphResourceType.Texture);
-
-            ref var resource = ref m_TextureResources[res.handle];
+            ref var resource = ref m_TextureResources[res];
 
             // This can happen because we release texture in two passes (see ReleaseTexturesForPass) and texture can be present in both passes
             if (resource.rt != null)
@@ -624,15 +685,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return false;
         }
 
-        internal void CreateRendererLists(List<RenderGraphResource> rendererLists)
+        internal void CreateRendererLists(List<RendererListHandle> rendererLists)
         {
             // For now we just create a simple structure
             // but when the proper API is available in trunk we'll kick off renderer lists creation jobs here.
             foreach (var rendererList in rendererLists)
             {
-                Debug.Assert(rendererList.type == RenderGraphResourceType.RendererList);
-
-                ref var rendererListResource = ref m_RendererListResources[rendererList.handle];
+                ref var rendererListResource = ref m_RendererListResources[rendererList];
                 ref var desc = ref rendererListResource.desc;
                 RendererList newRendererList = RendererList.Create(desc);
                 rendererListResource.rendererList = newRendererList;
