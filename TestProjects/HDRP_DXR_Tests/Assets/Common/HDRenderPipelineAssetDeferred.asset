@@ -154,7 +154,8 @@ MonoBehaviour:
     type: 2}
   m_DefaultVolumeProfile: {fileID: 11400000, guid: 4414889870ba0db42b20b120a434b7f5,
     type: 2}
-  m_DefaultLookDevProfile: {fileID: 0}
+  m_DefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
+    type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 65899829919581
@@ -271,7 +272,7 @@ MonoBehaviour:
       maxPunctualShadowMapResolution: 2048
       maxAreaShadowMapResolution: 2048
       supportScreenSpaceShadows: 1
-      maxScreenSpaceShadowSlots: 10
+      maxScreenSpaceShadowSlots: 24
       screenSpaceShadowBufferFormat: 48
     decalSettings:
       drawDistance: 1000
