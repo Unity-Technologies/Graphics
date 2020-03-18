@@ -87,7 +87,9 @@ android_apis:
 {% for testplatform in testplatforms %}
 {% for win_api in win_apis %}
 
-{% if testplatform.name == "Standalone" %}
+#{% if testplatform.name == "Standalone" %}
+# Win standalone is disabled due to limitation of workaround for Subscene cache (we are running OSX Metal standalone test instead)
+{% if testplatform.name == "StandaloneDisabled" %}
 {{ project.name }}_Win_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
   name : Test {{ project.name }} on Win_{{ win_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
