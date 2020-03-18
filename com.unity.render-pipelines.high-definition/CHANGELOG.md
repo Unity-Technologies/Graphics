@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.3.0] - 2020-03-11
 
+### Changed
+- Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
+
 ### Added
 - Added the exposure sliders to the planar reflection probe preview
 - Added a warning and workaround instructions that appear when you enable XR single-pass after the first frame with the XR SDK.
