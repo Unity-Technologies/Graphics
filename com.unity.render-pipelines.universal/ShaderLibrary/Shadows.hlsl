@@ -43,7 +43,7 @@ float4      _CascadeShadowSplitSpheres0;
 float4      _CascadeShadowSplitSpheres1;
 float4      _CascadeShadowSplitSpheres2;
 float4      _CascadeShadowSplitSpheres3;
-float4      _CascadeShadowSplitSphereRadii;
+float4      _CascadeShadowSplitSphereRadii; //(x: is used as shadow dist if the cascades is not in use.)
 half4       _MainLightShadowOffset0;
 half4       _MainLightShadowOffset1;
 half4       _MainLightShadowOffset2;
@@ -188,14 +188,41 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     attenuation = SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
 #endif
 #if FADE_SHADOWS
-    //LerpWhiteTo(b, t) is the lerp operation with the first paremeter set to 1: lerp(1,b,t). Which means it will lerp between 1 and b with t.
-    float3 distVec = _WorldSpaceCameraPos - _fragPositionWS;
-    float dist2 = dot(distVec, distVec);
-    float CascadesDist2 = (_CascadeShadowSplitSphereRadii.x + _CascadeShadowSplitSphereRadii.y + _CascadeShadowSplitSphereRadii.z + _CascadeShadowSplitSphereRadii.w);
-    float shadowFade = saturate(1 - dist2 / CascadesDist2);
+#if defined(_MAIN_LIGHT_SHADOWS_CASCADE)
+    float3 fromCenter0 = _WorldSpaceCameraPos - _CascadeShadowSplitSpheres0.xyz;
+    float3 fromCenter1 = _WorldSpaceCameraPos - _CascadeShadowSplitSpheres1.xyz;
+    float3 fromCenter2 = _WorldSpaceCameraPos - _CascadeShadowSplitSpheres2.xyz;
+    float3 fromCenter3 = _WorldSpaceCameraPos - _CascadeShadowSplitSpheres3.xyz;
+    float4 worldToCascadeDistances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
+
+    half4 weights = half4(_CascadeShadowSplitSphereRadii > 0);
+    weights.xyz = saturate(weights.xyz-weights.yzw);
+    float lastCascadeDistanceFromCam2 = dot(weights, worldToCascadeDistances2);
+    float lastCascadeRadius = dot(weights, _CascadeShadowSplitSphereRadii);
+    float3 lastCascadeCenter =
+        weights.x * _CascadeShadowSplitSpheres0
+        + weights.y * _CascadeShadowSplitSpheres1
+        + weights.z * _CascadeShadowSplitSpheres2
+        + weights.w * _CascadeShadowSplitSpheres3;
+
+    float3 camToFrag = _WorldSpaceCameraPos - _fragPositionWS;
+    float camToFragDist2 = dot(camToFrag, camToFrag);
+
+    float fragFromCenter = _fragPositionWS - lastCascadeCenter;
+    float fragDistFromCenter2 = dot(fragFromCenter, fragFromCenter);
+
+    bool isWithoutFade = lastCascadeDistanceFromCam2 > camToFragDist2;
+
+    float shadowFade = isWithoutFade + !isWithoutFade * saturate(1 - 2*fragDistFromCenter2 / lastCascadeRadius);
+#else
+    float3 camToFrag = _WorldSpaceCameraPos - _fragPositionWS;
+    float camToFragDist2 = dot(camToFrag, camToFrag);
+    float shadowFade = saturate(1-(camToFragDist2/_CascadeShadowSplitSphereRadii.x)*(camToFragDist2 / _CascadeShadowSplitSphereRadii.x));
+#endif
 #else
     float shadowFade = 1.0;
 #endif
+    //LerpWhiteTo(b, t) is the lerp operation with the first paremeter set to 1: lerp(1,b,t). Which means it will lerp between 1 and b with t.
     attenuation = LerpWhiteTo(attenuation, shadowStrength * shadowFade);
     // Shadow coords that fall out of the light frustum volume must always return attenuation 1.0
     // TODO: We could use branch here to save some perf on some platforms.
