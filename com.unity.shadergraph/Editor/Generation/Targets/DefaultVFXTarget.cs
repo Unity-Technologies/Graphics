@@ -24,6 +24,9 @@ namespace UnityEditor.ShaderGraph
         public string sharedTemplateDirectory => null;
         public string renderTypeTag => null;
         public string renderQueueTag => null;
+
+        public bool lit => m_Lit;
+        public bool alphaTest => m_AlphaTest;
 #endregion
 
         public void SetupTarget(ref TargetSetupContext context)
