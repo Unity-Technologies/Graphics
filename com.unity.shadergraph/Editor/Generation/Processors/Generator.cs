@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph
         GraphData m_GraphData;
         AbstractMaterialNode m_OutputNode;
         ITargetImplementation[] m_TargetImplementations;
+        List<BlockNode> m_Blocks;
         GenerationMode m_Mode;
         string m_Name;
 
@@ -53,6 +54,19 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        void GetBlocksFromStack()
+        {
+            m_Blocks = ListPool<BlockNode>.Get();
+            foreach(var vertexBlock in m_GraphData.vertexContext.blocks)
+            {
+                m_Blocks.Add(vertexBlock);
+            }
+            foreach(var fragmentBlock in m_GraphData.fragmentContext.blocks)
+            {
+                m_Blocks.Add(fragmentBlock);
+            }
+        }
+
         void GetAssetDependencyPaths(TargetSetupContext context)
         {
             foreach(string assetDependency in context.assetDependencyPaths)
@@ -80,8 +94,26 @@ namespace UnityEditor.ShaderGraph
 
         void BuildShader()
         {
+            GetTargetImplementations();
+            GetBlocksFromStack();
+
             var activeNodeList = ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, m_OutputNode);
+            if(m_OutputNode == null)
+            {
+                foreach(var block in m_Blocks)
+                {
+                    // IsActive is equal to if any active implementation has set active blocks
+                    // This avoids another call to SetActiveBlocks on each TargetImplementation
+                    if(!block.isActive)
+                        continue;
+                    
+                    NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, block, NodeUtils.IncludeSelf.Include);
+                }
+            }
+            else
+            {
+                NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, m_OutputNode);
+            }
 
             var shaderProperties = new PropertyCollector();
             var shaderKeywords = new KeywordCollector();
@@ -95,8 +127,6 @@ namespace UnityEditor.ShaderGraph
                 m_ConfiguredTextures = shaderProperties.GetConfiguredTexutres();
                 m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader);
             }
-
-            GetTargetImplementations();
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
                 activeNode.CollectShaderProperties(shaderProperties, m_Mode);
@@ -136,17 +166,8 @@ namespace UnityEditor.ShaderGraph
 
                 foreach(PassCollection.Item pass in descriptor.passes)
                 {
-                    var blocks = new List<BlockFieldDescriptor>();
-                    foreach(var vertexBlock in m_GraphData.vertexContext.blocks)
-                    {
-                        blocks.Add(vertexBlock.descriptor);
-                    }
-                    foreach(var fragmentBlock in m_GraphData.fragmentContext.blocks)
-                    {
-                        blocks.Add(fragmentBlock.descriptor);
-                    }
-
-                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, blocks, m_TargetImplementations[targetIndex]);
+                    var blockFieldDescriptors = m_Blocks.Select(x => x.descriptor).ToList();
+                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, blockFieldDescriptors, m_TargetImplementations[targetIndex]);
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
                     if(m_Mode == GenerationMode.Preview)
