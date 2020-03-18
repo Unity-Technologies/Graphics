@@ -1448,7 +1448,7 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
     float  F = 1.0;
     switch (_SVBRDF_BRDFVariants & 3)
     {
-    case 1: F_FresnelDieletricSafe(Fresnel0ToIorSafe(bsdfData.fresnelF0.r), LdotH); break;
+    case 1: F = F_FresnelDieletricSafe(Fresnel0ToIorSafe(bsdfData.fresnelF0.r), LdotH); break;
     case 2: F = F_Schlick(bsdfData.fresnelF0.r, LdotH); break;
     }
 
