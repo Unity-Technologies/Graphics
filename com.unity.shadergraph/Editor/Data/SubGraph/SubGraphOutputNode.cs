@@ -6,7 +6,6 @@ using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Rendering;
-using UnityEngine.Rendering.ShaderGraph;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
@@ -20,8 +19,7 @@ namespace UnityEditor.ShaderGraph
             name = "Output";
         }
 
-        // Link to the Sub Graph overview page instead of the specific Node page, seems more useful
-        public override string documentationURL => Documentation.GetPageLink("Sub-graph");
+        public override string documentationURL => $"{NodeUtils.docURL}Sub-graph.md";
 
         void ValidateShaderStage()
             {
@@ -56,7 +54,7 @@ namespace UnityEditor.ShaderGraph
                 var error = NodeUtils.ValidateSlotName(slot.RawDisplayName(), out string errorMessage);
                 if (error)
                 {
-                    owner.AddValidationError(guid, errorMessage);
+                    owner.AddValidationError(tempId, errorMessage);
                     break;
                 }
             }
@@ -68,7 +66,7 @@ namespace UnityEditor.ShaderGraph
 
             if (!this.GetInputSlots<MaterialSlot>().Any())
             {
-                owner.AddValidationError(guid, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
+                owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
 
             base.ValidateNode();
@@ -83,7 +81,7 @@ namespace UnityEditor.ShaderGraph
         public int AddSlot(ConcreteSlotValueType concreteValueType)
         {
             var index = this.GetInputSlots<ISlot>().Count() + 1;
-            name = NodeUtils.GetDuplicateSafeNameForSlot(this, index, "Out_" + concreteValueType.ToString());
+            string name = string.Format("Out_{0}", NodeUtils.GetDuplicateSafeNameForSlot(this, index, concreteValueType.ToString()));
             AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name,
                 NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));
             return index;

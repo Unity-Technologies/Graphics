@@ -16,9 +16,6 @@ using UnityEditor.Recorder;
 
 namespace UnityEngine.Rendering
 {
-    /// <summary>
-    /// Bridge class for camera captures.
-    /// </summary>
     public static class CameraCaptureBridge
     {
 #if USE_REFLECTION
@@ -64,9 +61,6 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-        /// <summary>
-        /// Enable camera capture.
-        /// </summary>
         public static bool enabled
         {
             get

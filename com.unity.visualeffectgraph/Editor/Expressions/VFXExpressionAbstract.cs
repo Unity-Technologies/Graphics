@@ -5,8 +5,6 @@ using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.VFX;
 
-using UnityObject = UnityEngine.Object;
-
 namespace UnityEditor.VFX
 {
     static class VFXReflectionHelper

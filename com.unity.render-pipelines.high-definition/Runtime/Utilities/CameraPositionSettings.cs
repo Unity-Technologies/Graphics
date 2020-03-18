@@ -10,7 +10,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Since 2019.3, use CameraPositionSettings.NewDefault() instead.")]
         public static readonly CameraPositionSettings @default = default;
         /// <summary>Default value.</summary>
-        /// <returns>The default value.</returns>
         public static CameraPositionSettings NewDefault() => new CameraPositionSettings
         {
             mode = Mode.ComputeWorldToCameraMatrix,
@@ -53,10 +52,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return GeometryUtils.CalculateWorldToCameraMatrixRHS(position, rotation);
         }
 
-        /// <summary>
-        /// Compute the world to camera matrix to use.
-        /// </summary>
-        /// <returns>The world to camera matrix to use.</returns>
         public Matrix4x4 GetUsedWorldToCameraMatrix()
         {
             switch (mode)

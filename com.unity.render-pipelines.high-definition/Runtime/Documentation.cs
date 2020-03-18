@@ -13,10 +13,5 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string baseURL = "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@";
         internal const string subURL = "/manual/";
         internal const string endURL = ".html";
-
-        internal static string GetPageLink(string pageName)
-        {
-            return baseURL + version + subURL + pageName + endURL;
-        }
     }
 }

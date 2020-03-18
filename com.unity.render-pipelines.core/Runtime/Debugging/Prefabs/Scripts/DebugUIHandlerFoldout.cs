@@ -2,14 +2,9 @@ using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
 {
-    /// <summary>
-    /// DebugUIHandler for foldout widget.
-    /// </summary>
     public class DebugUIHandlerFoldout : DebugUIHandlerWidget
     {
-        /// <summary>Name of the Foldout.</summary>
         public Text nameLabel;
-        /// <summary>Toggle value of the Foldout.</summary>
         public UIFoldout valueToggle;
 
         DebugUI.Foldout m_Field;
@@ -47,12 +42,6 @@ namespace UnityEngine.Rendering.UI
             UpdateValue();
         }
 
-        /// <summary>
-        /// OnSelection implementation.
-        /// </summary>
-        /// <param name="fromNext">True if the selection wrapped around.</param>
-        /// <param name="previous">Previous widget.</param>
-        /// <returns>True if the selection is allowed.</returns>
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
             if (fromNext || valueToggle.isOn == false)
@@ -75,37 +64,23 @@ namespace UnityEngine.Rendering.UI
             return true;
         }
 
-        /// <summary>
-        /// OnDeselection implementation.
-        /// </summary>
         public override void OnDeselection()
         {
             nameLabel.color = colorDefault;
         }
 
-        /// <summary>
-        /// OnIncrement implementation.
-        /// </summary>
-        /// <param name="fast">True if incrementing fast.</param>
         public override void OnIncrement(bool fast)
         {
             m_Field.SetValue(true);
             UpdateValue();
         }
 
-        /// <summary>
-        /// OnDecrement implementation.
-        /// </summary>
-        /// <param name="fast">Trye if decrementing fast.</param>
         public override void OnDecrement(bool fast)
         {
             m_Field.SetValue(false);
             UpdateValue();
         }
 
-        /// <summary>
-        /// OnAction implementation.
-        /// </summary>
         public override void OnAction()
         {
             bool value = !m_Field.GetValue();
@@ -118,10 +93,6 @@ namespace UnityEngine.Rendering.UI
             valueToggle.isOn = m_Field.GetValue();
         }
 
-        /// <summary>
-        /// Next implementation.
-        /// </summary>
-        /// <returns>Next widget UI handler, parent if there is none.</returns>
         public override DebugUIHandlerWidget Next()
         {
             if (!m_Field.GetValue() || m_Container == null)

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -59,6 +58,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+        [Obsolete("The use of the Post-processing Stack V2 is deprecated in the Universal Render Pipeline. Use the builtin post-processing effects instead.")]
+        public static UnityEngine.Rendering.PostProcessing.PostProcessRenderContext postProcessRenderContext => null;
+#endif
+
         internal static bool useStructuredBuffer
         {
             // There are some performance issues with StructuredBuffers in some platforms.
@@ -75,6 +79,7 @@ namespace UnityEngine.Rendering.Universal
                 //    (deviceType == GraphicsDeviceType.Metal || deviceType == GraphicsDeviceType.Vulkan ||
                 //     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.XboxOne);
             }
+            
         }
 
         static Material s_ErrorMaterial;
@@ -95,32 +100,6 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 return s_ErrorMaterial;
-            }
-        }
-
-        /// <summary>
-        /// Set view and projection matrices.
-        /// This function will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to given view and projection matrices.
-        /// If <c>setInverseMatrices</c> is set to true this function will also set <c>UNITY_MATRIX_I_V</c> and <c>UNITY_MATRIX_I_VP</c>.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
-        /// <param name="viewMatrix">View matrix to be set.</param>
-        /// <param name="projectionMatrix">Projection matrix to be set.</param>
-        /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
-        public static void SetViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, bool setInverseMatrices)
-        {
-            Matrix4x4 viewAndProjectionMatrix = projectionMatrix * viewMatrix;
-            cmd.SetGlobalMatrix(ShaderPropertyId.viewMatrix, viewMatrix);
-            cmd.SetGlobalMatrix(ShaderPropertyId.projectionMatrix, projectionMatrix);
-            cmd.SetGlobalMatrix(ShaderPropertyId.viewAndProjectionMatrix, viewAndProjectionMatrix);
-
-            if (setInverseMatrices)
-            {
-                Matrix4x4 inverseMatrix = Matrix4x4.Inverse(viewMatrix);
-                // Note: inverse projection is currently undefined
-                Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
-                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewMatrix, inverseMatrix);
-                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
             }
         }
 
@@ -148,14 +127,12 @@ namespace UnityEngine.Rendering.Universal
             context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
         }
 
-        // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat and IsFormatSupported allocate memory due to boxing.
+        // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat allocates memory due to boxing.
         static Dictionary<RenderTextureFormat, bool> m_RenderTextureFormatSupport = new Dictionary<RenderTextureFormat, bool>();
-        static Dictionary<GraphicsFormat, bool> m_GraphicsFormatSupport = new Dictionary<GraphicsFormat, bool>();
 
         internal static void ClearSystemInfoCache()
         {
             m_RenderTextureFormatSupport.Clear();
-            m_GraphicsFormatSupport.Clear();
         }
 
         /// <summary>
@@ -173,162 +150,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return support;
-        }
-
-        /// <summary>
-        /// Checks if a texture format is supported by the run-time system.
-        /// Similar to <see cref="SystemInfo.IsFormatSupported"/>, but doesn't allocate memory.
-        /// </summary>
-        /// <param name="format">The format to look up.</param>
-        /// <param name="usage">The format usage to look up.</param>
-        /// <returns>Returns true if the graphics card supports the given <c>GraphicsFormat</c></returns>
-        public static bool SupportsGraphicsFormat(GraphicsFormat format, FormatUsage usage)
-        {
-            if (!m_GraphicsFormatSupport.TryGetValue(format, out var support))
-            {
-                support = SystemInfo.IsFormatSupported(format, usage);
-                m_GraphicsFormatSupport.Add(format, support);
-            }
-
-            return support;
-        }
-
-        /// <summary>
-        /// Return the last colorBuffer index actually referring to an existing RenderTarget
-        /// </summary>
-        /// <param name="colorBuffers"></param>
-        /// <returns></returns>
-        internal static int GetLastValidColorBufferIndex(RenderTargetIdentifier[] colorBuffers)
-        {
-            int i = colorBuffers.Length - 1;
-            for(; i>=0; --i)
-            {
-                if (colorBuffers[i] != 0)
-                    break;
-            }
-            return i;
-        }
-
-        /// <summary>
-        /// Return the number of items in colorBuffers actually referring to an existing RenderTarget
-        /// </summary>
-        /// <param name="colorBuffers"></param>
-        /// <returns></returns>
-        internal static uint GetValidColorBufferCount(RenderTargetIdentifier[] colorBuffers)
-        {
-            uint nonNullColorBuffers = 0;
-            if (colorBuffers != null)
-            {
-                foreach (var identifier in colorBuffers)
-                {
-                    if (identifier != 0)
-                        ++nonNullColorBuffers;
-                }
-            }
-            return nonNullColorBuffers;
-        }
-
-        /// <summary>
-        /// Return true if colorBuffers is an actual MRT setup
-        /// </summary>
-        /// <param name="colorBuffers"></param>
-        /// <returns></returns>
-        internal static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
-        {
-            return GetValidColorBufferCount(colorBuffers) > 1;
-        }
-
-        /// <summary>
-        /// Return true if value can be found in source (without recurring to Linq)
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        internal static bool Contains(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
-        {
-            foreach (var identifier in source)
-            {
-                if (identifier == value)
-                    return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Return the index where value was found source. Otherwise, return -1. (without recurring to Linq)
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        internal static int IndexOf(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
-        {
-            for (int i = 0; i < source.Length; ++i)
-            {
-                if (source[i] == value)
-                    return i;
-            }
-            return -1;
-        }
-
-        /// <summary>
-        /// Return the number of RenderTargetIdentifiers in "source" that are valid (not 0) and different from "value" (without recurring to Linq)
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        internal static uint CountDistinct(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
-        {
-            uint count = 0;
-            for (int i = 0; i < source.Length; ++i)
-            {
-                if (source[i] != value && source[i] != 0)
-                    ++count;
-            }
-            return count;
-        }
-
-        /// <summary>
-        /// Return the index of last valid (i.e different from 0) RenderTargetIdentifiers in "source" (without recurring to Linq)
-        /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        internal static int LastValid(RenderTargetIdentifier[] source)
-        {
-            for (int i = source.Length-1; i >= 0; --i)
-            {
-                if (source[i] != 0)
-                    return i;
-            }
-            return -1;
-        }
-
-        /// <summary>
-        /// Return true if ClearFlag a contains ClearFlag b
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        internal static bool Contains(ClearFlag a, ClearFlag b)
-        {
-            return (a & b) == b;
-        }
-
-        /// <summary>
-        /// Return true if "left" and "right" are the same (without recurring to Linq)
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns></returns>
-        internal static bool SequenceEqual(RenderTargetIdentifier[] left, RenderTargetIdentifier[] right)
-        {
-            if (left.Length != right.Length)
-                return false;
-
-            for (int i = 0; i < left.Length; ++i)
-                if (left[i] != right[i])
-                    return false;
-
-            return true;
         }
     }
 }

@@ -1,21 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
 {
     using UnityObject = UnityEngine.Object;
 
-    /// <summary>
-    /// Set of utility functions for the Core Scriptable Render Pipeline Library
-    /// </summary>
     public static class CoreUtils
     {
-        /// <summary>
-        /// List of look at matrices for cubemap faces.
-        /// Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
-        /// </summary>
+        // Data useful for various cubemap processes.
+        // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
         static public readonly Vector3[] lookAtList =
         {
             new Vector3(1.0f, 0.0f, 0.0f),
@@ -26,10 +20,6 @@ namespace UnityEngine.Rendering
             new Vector3(0.0f, 0.0f, -1.0f),
         };
 
-        /// <summary>
-        /// List of up vectors for cubemap faces.
-        /// Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
-        /// </summary>
         static public readonly Vector3[] upVectorList =
         {
             new Vector3(0.0f, 1.0f, 0.0f),
@@ -40,27 +30,15 @@ namespace UnityEngine.Rendering
             new Vector3(0.0f, 1.0f, 0.0f),
         };
 
-        /// <summary>Edit Menu priority 1</summary>
         public const int editMenuPriority1 = 320;
-        /// <summary>Edit Menu priority 2</summary>
         public const int editMenuPriority2 = 331;
-        /// <summary>Edit Menu priority 3</summary>
         public const int editMenuPriority3 = 342;
-        /// <summary>Edit Menu priority 4</summary>
-        public const int editMenuPriority4 = 353;
-        /// <summary>Asset Create Menu priority 1</summary>
         public const int assetCreateMenuPriority1 = 230;
-        /// <summary>Asset Create Menu priority 2</summary>
         public const int assetCreateMenuPriority2 = 241;
-        /// <summary>Asset Create Menu priority 3</summary>
         public const int assetCreateMenuPriority3 = 300;
-        /// <summary>Game Object Menu priority</summary>
         public const int gameObjectMenuPriority = 10;
 
         static Cubemap m_BlackCubeTexture;
-        /// <summary>
-        /// Black cubemap texture.
-        /// </summary>
         public static Cubemap blackCubeTexture
         {
             get
@@ -78,9 +56,6 @@ namespace UnityEngine.Rendering
         }
 
         static Cubemap m_MagentaCubeTexture;
-        /// <summary>
-        /// Magenta cubemap texture.
-        /// </summary>
         public static Cubemap magentaCubeTexture
         {
             get
@@ -98,9 +73,6 @@ namespace UnityEngine.Rendering
         }
 
         static CubemapArray m_MagentaCubeTextureArray;
-        /// <summary>
-        /// Black cubemap array texture.
-        /// </summary>
         public static CubemapArray magentaCubeTextureArray
         {
             get
@@ -121,9 +93,6 @@ namespace UnityEngine.Rendering
         }
 
         static Cubemap m_WhiteCubeTexture;
-        /// <summary>
-        /// White cubemap texture.
-        /// </summary>
         public static Cubemap whiteCubeTexture
         {
             get
@@ -141,9 +110,6 @@ namespace UnityEngine.Rendering
         }
 
         static RenderTexture m_EmptyUAV;
-        /// <summary>
-        /// Empty 1x1 texture usable as a dummy UAV.
-        /// </summary>
         public static RenderTexture emptyUAV
         {
             get
@@ -160,9 +126,6 @@ namespace UnityEngine.Rendering
         }
 
         static Texture3D m_BlackVolumeTexture;
-        /// <summary>
-        /// Black 3D texture.
-        /// </summary>
         public static Texture3D blackVolumeTexture
         {
             get
@@ -179,12 +142,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        /// <summary>
-        /// Clear the currently bound render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="clearFlag">Specify how the render texture should be cleared.</param>
-        /// <param name="clearColor">Specify with which color the render texture should be cleared.</param>
         public static void ClearRenderTarget(CommandBuffer cmd, ClearFlag clearFlag, Color clearColor)
         {
             if (clearFlag != ClearFlag.None)
@@ -209,76 +166,29 @@ namespace UnityEngine.Rendering
             return depthSlice;
         }
 
-        /// <summary>
-        /// Set the current render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="buffer">RenderTargetIdentifier of the render texture.</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
-        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
-        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
-        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
-        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
+        // Render Target Management.
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             depthSlice = FixupDepthSlice(depthSlice, cubemapFace);
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
-        /// <summary>
-        /// Set the current render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="buffer">RenderTargetIdentifier of the render texture.</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
-        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
-        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
-        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
+
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             SetRenderTarget(cmd, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        /// <summary>
-        /// Set the current render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="colorBuffer">RenderTargetIdentifier of the color render texture.</param>
-        /// <param name="depthBuffer">RenderTargetIdentifier of the depth render texture.</param>
-        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
-        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
-        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        /// <summary>
-        /// Set the current render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="colorBuffer">RenderTargetIdentifier of the color render texture.</param>
-        /// <param name="depthBuffer">RenderTargetIdentifier of the depth render texture.</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
-        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
-        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
-        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        /// <summary>
-        /// Set the current render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="colorBuffer">RenderTargetIdentifier of the color render texture.</param>
-        /// <param name="depthBuffer">RenderTargetIdentifier of the depth render texture.</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
-        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
-        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
-        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
-        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             depthSlice = FixupDepthSlice(depthSlice, cubemapFace);
@@ -286,37 +196,16 @@ namespace UnityEngine.Rendering
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
-        /// <summary>
-        /// Set the current multiple render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="colorBuffers">RenderTargetIdentifier array of the color render textures.</param>
-        /// <param name="depthBuffer">RenderTargetIdentifier of the depth render texture.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer)
         {
             SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, Color.clear);
         }
 
-        /// <summary>
-        /// Set the current multiple render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="colorBuffers">RenderTargetIdentifier array of the color render textures.</param>
-        /// <param name="depthBuffer">RenderTargetIdentifier of the depth render texture.</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag = ClearFlag.None)
         {
             SetRenderTarget(cmd, colorBuffers, depthBuffer, clearFlag, Color.clear);
         }
 
-        /// <summary>
-        /// Set the current multiple render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="colorBuffers">RenderTargetIdentifier array of the color render textures.</param>
-        /// <param name="depthBuffer">RenderTargetIdentifier of the depth render texture.</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
-        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
             cmd.SetRenderTarget(colorBuffers, depthBuffer, 0, CubemapFace.Unknown, -1);
@@ -324,46 +213,17 @@ namespace UnityEngine.Rendering
         }
 
         // Explicit load and store actions
-        /// <summary>
-        /// Set the current render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="buffer">Color buffer RenderTargetIdentifier.</param>
-        /// <param name="loadAction">Load action.</param>
-        /// <param name="storeAction">Store action.</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
-        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag, Color clearColor)
         {
             cmd.SetRenderTarget(buffer, loadAction, storeAction);
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
-        /// <summary>
-        /// Set the current render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="buffer">Color buffer RenderTargetIdentifier.</param>
-        /// <param name="loadAction">Load action.</param>
-        /// <param name="storeAction">Store action.</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag)
         {
             SetRenderTarget(cmd, buffer, loadAction, storeAction, clearFlag, Color.clear);
         }
 
-        /// <summary>
-        /// Set the current render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="colorBuffer">Color buffer RenderTargetIdentifier.</param>
-        /// <param name="colorLoadAction">Color buffer load action.</param>
-        /// <param name="colorStoreAction">Color buffer store action.</param>
-        /// <param name="depthBuffer">Depth buffer RenderTargetIdentifier.</param>
-        /// <param name="depthLoadAction">Depth buffer load action.</param>
-        /// <param name="depthStoreAction">Depth buffer store action.</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
-        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
             RenderTargetIdentifier depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
             ClearFlag clearFlag, Color clearColor)
@@ -372,17 +232,6 @@ namespace UnityEngine.Rendering
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
-        /// <summary>
-        /// Set the current render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="colorBuffer">Color buffer RenderTargetIdentifier.</param>
-        /// <param name="colorLoadAction">Color buffer load action.</param>
-        /// <param name="colorStoreAction">Color buffer store action.</param>
-        /// <param name="depthBuffer">Depth buffer RenderTargetIdentifier.</param>
-        /// <param name="depthLoadAction">Depth buffer load action.</param>
-        /// <param name="depthStoreAction">Depth buffer store action.</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
             RenderTargetIdentifier depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
             ClearFlag clearFlag)
@@ -407,19 +256,8 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-        // This set of RenderTarget management methods is supposed to be used when rendering RTHandle render texture.
-        // This will automatically set the viewport based on the RTHandle System reference size and the RTHandle scaling info.
-
-        /// <summary>
-        /// Setup the current render texture using an RTHandle
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands</param>
-        /// <param name="buffer">Color buffer RTHandle</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
-        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
-        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
-        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
-        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
+        // This set of RenderTarget management methods is supposed to be used when rendering into a camera dependent render texture.
+        // This will automatically set the viewport based on the camera size and the RTHandle scaling info.
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             depthSlice = FixupDepthSlice(depthSlice, buffer);
@@ -427,27 +265,9 @@ namespace UnityEngine.Rendering
             SetViewportAndClear(cmd, buffer, clearFlag, clearColor);
         }
 
-        /// <summary>
-        /// Setup the current render texture using an RTHandle
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands</param>
-        /// <param name="buffer">Color buffer RTHandle</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
-        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
-        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
-        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
             => SetRenderTarget(cmd, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
 
-        /// <summary>
-        /// Setup the current render texture using an RTHandle
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands</param>
-        /// <param name="colorBuffer">Color buffer RTHandle</param>
-        /// <param name="depthBuffer">Depth buffer RTHandle</param>
-        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
-        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
-        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
@@ -460,16 +280,6 @@ namespace UnityEngine.Rendering
             SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        /// <summary>
-        /// Setup the current render texture using an RTHandle
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands</param>
-        /// <param name="colorBuffer">Color buffer RTHandle</param>
-        /// <param name="depthBuffer">Depth buffer RTHandle</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
-        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
-        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
-        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
@@ -482,17 +292,6 @@ namespace UnityEngine.Rendering
             SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        /// <summary>
-        /// Setup the current render texture using an RTHandle
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands</param>
-        /// <param name="colorBuffer">Color buffer RTHandle</param>
-        /// <param name="depthBuffer">Depth buffer RTHandle</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
-        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
-        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
-        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
-        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
@@ -506,39 +305,18 @@ namespace UnityEngine.Rendering
             SetViewportAndClear(cmd, colorBuffer, clearFlag, clearColor);
         }
 
-        /// <summary>
-        /// Set the current multiple render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="colorBuffers">RenderTargetIdentifier array of the color render textures.</param>
-        /// <param name="depthBuffer">Depth Buffer RTHandle.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer)
         {
             CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer.rt, ClearFlag.None, Color.clear);
             SetViewport(cmd, depthBuffer);
         }
 
-        /// <summary>
-        /// Set the current multiple render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="colorBuffers">RenderTargetIdentifier array of the color render textures.</param>
-        /// <param name="depthBuffer">Depth Buffer RTHandle.</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag = ClearFlag.None)
         {
             CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer.rt); // Don't clear here, viewport needs to be set before we do.
             SetViewportAndClear(cmd, depthBuffer, clearFlag, Color.clear);
         }
 
-        /// <summary>
-        /// Set the current multiple render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="colorBuffers">RenderTargetIdentifier array of the color render textures.</param>
-        /// <param name="depthBuffer">Depth Buffer RTHandle.</param>
-        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
-        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
             cmd.SetRenderTarget(colorBuffers, depthBuffer, 0, CubemapFace.Unknown, -1);
@@ -546,16 +324,10 @@ namespace UnityEngine.Rendering
         }
 
         // Scaling viewport is done for auto-scaling render targets.
-        // In the context of SRP, every auto-scaled RT is scaled against the maximum RTHandles reference size (that can only grow).
+        // In the context of HDRP, every auto-scaled RT is scaled against the maximum RTHandles reference size (that can only grow).
         // When we render using a camera whose viewport is smaller than the RTHandles reference size (and thus smaller than the RT actual size), we need to set it explicitly (otherwise, native code will set the viewport at the size of the RT)
         // For auto-scaled RTs (like for example a half-resolution RT), we need to scale this viewport accordingly.
         // For non scaled RTs we just do nothing, the native code will set the viewport at the size of the RT anyway.
-
-        /// <summary>
-        /// Setup the viewport to the size of the provided RTHandle.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="target">RTHandle from which to compute the proper viewport.</param>
         public static void SetViewport(CommandBuffer cmd, RTHandle target)
         {
             if (target.useScaling)
@@ -565,37 +337,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        /// <summary>
-        /// Generate a name based on render texture parameters.
-        /// </summary>
-        /// <param name="width">With of the texture.</param>
-        /// <param name="height">Height of the texture.</param>
-        /// <param name="depth">Depth of the texture.</param>
-        /// <param name="format">Format of the render texture.</param>
-        /// <param name="name">Base name of the texture.</param>
-        /// <param name="mips">True if the texture has mip maps.</param>
-        /// <param name="enableMSAA">True if the texture is multisampled.</param>
-        /// <param name="msaaSamples">Number of MSAA samples.</param>
-        /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
-            
-        /// <summary>
-        /// Generate a name based on render texture parameters.
-        /// </summary>
-        /// <param name="width">With of the texture.</param>
-        /// <param name="height">Height of the texture.</param>
-        /// <param name="depth">Depth of the texture.</param>
-        /// <param name="format">Graphics format of the render texture.</param>
-        /// <param name="name">Base name of the texture.</param>
-        /// <param name="mips">True if the texture has mip maps.</param>
-        /// <param name="enableMSAA">True if the texture is multisampled.</param>
-        /// <param name="msaaSamples">Number of MSAA samples.</param>
-        /// <returns>Generated names bassed on the provided parameters.</returns>
-        public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
-
-        static string GetRenderTargetAutoName(int width, int height, int depth, string format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
         {
             string result = string.Format("{0}_{1}x{2}", name, width, height);
 
@@ -613,35 +355,7 @@ namespace UnityEngine.Rendering
             return result;
         }
 
-        /// <summary>
-        /// Generate a name based on texture parameters.
-        /// </summary>
-        /// <param name="width">With of the texture.</param>
-        /// <param name="height">Height of the texture.</param>
-        /// <param name="format">Format of the texture.</param>
-        /// <param name="dim">Dimension of the texture.</param>
-        /// <param name="name">Base name of the texture.</param>
-        /// <param name="mips">True if the texture has mip maps.</param>
-        /// <param name="depth">Depth of the texture.</param>
-        /// <returns>Generated names based on the provided parameters.</returns>
         public static string GetTextureAutoName(int width, int height, TextureFormat format, TextureDimension dim = TextureDimension.None, string name = "", bool mips = false, int depth = 0)
-            => GetTextureAutoName(width, height, format.ToString(), dim, name, mips, depth);
-
-        /// <summary>
-        /// Generate a name based on texture parameters.
-        /// </summary>
-        /// <param name="width">With of the texture.</param>
-        /// <param name="height">Height of the texture.</param>
-        /// <param name="format">Graphics format of the texture.</param>
-        /// <param name="dim">Dimension of the texture.</param>
-        /// <param name="name">Base name of the texture.</param>
-        /// <param name="mips">True if the texture has mip maps.</param>
-        /// <param name="depth">Depth of the texture.</param>
-        /// <returns>Generated names based on the provided parameters.</returns>
-        public static string GetTextureAutoName(int width, int height, GraphicsFormat format, TextureDimension dim = TextureDimension.None, string name = "", bool mips = false, int depth = 0)
-            => GetTextureAutoName(width, height, format.ToString(), dim, name, mips, depth);
-
-        static string GetTextureAutoName(int width, int height, string format, TextureDimension dim = TextureDimension.None, string name = "", bool mips = false, int depth = 0)
         {
             string temp;
             if (depth == 0)
@@ -653,13 +367,6 @@ namespace UnityEngine.Rendering
             return temp;
         }
 
-        /// <summary>
-        /// Clear a cubemap render texture.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
-        /// <param name="renderTexture">Cubemap render texture that needs to be cleared.</param>
-        /// <param name="clearColor">Color used for clearing.</param>
-        /// <param name="clearMips">Set to true to clear the mip maps of the render texture.</param>
         public static void ClearCubemap(CommandBuffer cmd, RenderTexture renderTexture, Color clearColor, bool clearMips = false)
         {
             int mipCount = 1;
@@ -677,27 +384,13 @@ namespace UnityEngine.Rendering
             }
         }
 
-        /// <summary>
-        /// Draws a full screen triangle.
-        /// </summary>
-        /// <param name="commandBuffer">CommandBuffer used for rendering commands.</param>
-        /// <param name="material">Material used on the full screen triangle.</param>
-        /// <param name="properties">Optional material property block for the provided material.</param>
-        /// <param name="shaderPassId">Index of the material pass.</param>
+        // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        /// <summary>
-        /// Draws a full screen triangle.
-        /// </summary>
-        /// <param name="commandBuffer">CommandBuffer used for rendering commands.</param>
-        /// <param name="material">Material used on the full screen triangle.</param>
-        /// <param name="colorBuffer">RenderTargetIdentifier of the color buffer that needs to be set before drawing the full screen triangle.</param>
-        /// <param name="properties">Optional material property block for the provided material.</param>
-        /// <param name="shaderPassId">Index of the material pass.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -706,15 +399,6 @@ namespace UnityEngine.Rendering
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        /// <summary>
-        /// Draws a full screen triangle.
-        /// </summary>
-        /// <param name="commandBuffer">CommandBuffer used for rendering commands.</param>
-        /// <param name="material">Material used on the full screen triangle.</param>
-        /// <param name="colorBuffer">RenderTargetIdentifier of the color buffer that needs to be set before drawing the full screen triangle.</param>
-        /// <param name="depthStencilBuffer">RenderTargetIdentifier of the depth buffer that needs to be set before drawing the full screen triangle.</param>
-        /// <param name="properties">Optional material property block for the provided material.</param>
-        /// <param name="shaderPassId">Index of the material pass.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -723,15 +407,6 @@ namespace UnityEngine.Rendering
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        /// <summary>
-        /// Draws a full screen triangle.
-        /// </summary>
-        /// <param name="commandBuffer">CommandBuffer used for rendering commands.</param>
-        /// <param name="material">Material used on the full screen triangle.</param>
-        /// <param name="colorBuffers">RenderTargetIdentifier array of the color buffers that needs to be set before drawing the full screen triangle.</param>
-        /// <param name="depthStencilBuffer">RenderTargetIdentifier of the depth buffer that needs to be set before drawing the full screen triangle.</param>
-        /// <param name="properties">Optional material property block for the provided material.</param>
-        /// <param name="shaderPassId">Index of the material pass.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -741,15 +416,6 @@ namespace UnityEngine.Rendering
         }
 
         // Important: the first RenderTarget must be created with 0 depth bits!
-
-        /// <summary>
-        /// Draws a full screen triangle.
-        /// </summary>
-        /// <param name="commandBuffer">CommandBuffer used for rendering commands.</param>
-        /// <param name="material">Material used on the full screen triangle.</param>
-        /// <param name="colorBuffers">RenderTargetIdentifier array of the color buffers that needs to be set before drawing the full screen triangle.</param>
-        /// <param name="properties">Optional material property block for the provided material.</param>
-        /// <param name="shaderPassId">Index of the material pass.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier[] colorBuffers,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -762,32 +428,17 @@ namespace UnityEngine.Rendering
         }
 
         // Color space utilities
-        /// <summary>
-        /// Converts the provided sRGB color to the current active color space.
-        /// </summary>
-        /// <param name="color">Input color.</param>
-        /// <returns>Linear color if the active color space is ColorSpace.Linear, the original input otherwise.</returns>
         public static Color ConvertSRGBToActiveColorSpace(Color color)
         {
             return (QualitySettings.activeColorSpace == ColorSpace.Linear) ? color.linear : color;
         }
 
-        /// <summary>
-        /// Converts the provided linear color to the current active color space.
-        /// </summary>
-        /// <param name="color">Input color.</param>
-        /// <returns>sRGB color if the active color space is ColorSpace.Gamma, the original input otherwise.</returns>
         public static Color ConvertLinearToActiveColorSpace(Color color)
         {
             return (QualitySettings.activeColorSpace == ColorSpace.Linear) ? color : color.gamma;
         }
 
-        /// <summary>
-        /// Creates a Material with the provided shader path.
-        /// hideFlags will be set to HideFlags.HideAndDontSave.
-        /// </summary>
-        /// <param name="shaderPath">Path of the shader used for the material.</param>
-        /// <returns>A new Material instance using the shader found at the provided path.</returns>
+        // Unity specifics
         public static Material CreateEngineMaterial(string shaderPath)
         {
             Shader shader = Shader.Find(shaderPath);
@@ -804,12 +455,6 @@ namespace UnityEngine.Rendering
             return mat;
         }
 
-        /// <summary>
-        /// Creates a Material with the provided shader.
-        /// hideFlags will be set to HideFlags.HideAndDontSave.
-        /// </summary>
-        /// <param name="shader">Shader used for the material.</param>
-        /// <returns>A new Material instance using the provided shader.</returns>
         public static Material CreateEngineMaterial(Shader shader)
         {
             if (shader == null)
@@ -825,24 +470,11 @@ namespace UnityEngine.Rendering
             return mat;
         }
 
-        /// <summary>
-        /// Bitfield flag test.
-        /// </summary>
-        /// <typeparam name="T">Type of the enum flag.</typeparam>
-        /// <param name="mask">Bitfield to test the flag against.</param>
-        /// <param name="flag">Flag to be tested against the provided mask.</param>
-        /// <returns>True if the flag is present in the mask.</returns>
         public static bool HasFlag<T>(T mask, T flag) where T : IConvertible
         {
             return (mask.ToUInt32(null) & flag.ToUInt32(null)) != 0;
         }
 
-        /// <summary>
-        /// Swaps two values.
-        /// </summary>
-        /// <typeparam name="T">Type of the values</typeparam>
-        /// <param name="a">First value.</param>
-        /// <param name="b">Second value.</param>
         public static void Swap<T>(ref T a, ref T b)
         {
             var tmp = a;
@@ -850,12 +482,6 @@ namespace UnityEngine.Rendering
             b = tmp;
         }
 
-        /// <summary>
-        /// Set a global keyword using a CommandBuffer
-        /// </summary>
-        /// <param name="cmd">CommandBuffer on which to set the global keyword.</param>
-        /// <param name="keyword">Keyword to be set.</param>
-        /// <param name="state">Value of the keyword to be set.</param>
         public static void SetKeyword(CommandBuffer cmd, string keyword, bool state)
         {
             if (state)
@@ -865,24 +491,31 @@ namespace UnityEngine.Rendering
         }
 
         // Caution: such a call should not be use interlaced with command buffer command, as it is immediate
-        /// <summary>
-        /// Set a keyword immediatly on a Material.
-        /// </summary>
-        /// <param name="material">Material on which to set the keyword.</param>
-        /// <param name="keyword">Keyword to set on the material.</param>
-        /// <param name="state">Value of the keyword to set on the material.</param>
-        public static void SetKeyword(Material material, string keyword, bool state)
+        public static void SetKeyword(Material m, string keyword, bool state)
         {
             if (state)
-                material.EnableKeyword(keyword);
+                m.EnableKeyword(keyword);
             else
-                material.DisableKeyword(keyword);
+                m.DisableKeyword(keyword);
         }
 
-        /// <summary>
-        /// Destroys a UnityObject safely.
-        /// </summary>
-        /// <param name="obj">Object to be destroyed.</param>
+        public static void SelectKeyword(Material material, string keyword1, string keyword2, bool enableFirst)
+        {
+            material.EnableKeyword(enableFirst ? keyword1 : keyword2);
+            material.DisableKeyword(enableFirst ? keyword2 : keyword1);
+        }
+
+        public static void SelectKeyword(Material material, string[] keywords, int enabledKeywordIndex)
+        {
+            material.EnableKeyword(keywords[enabledKeywordIndex]);
+
+            for (int i = 0; i < keywords.Length; i++)
+            {
+                if (i != enabledKeywordIndex)
+                    material.DisableKeyword(keywords[i]);
+            }
+        }
+
         public static void Destroy(UnityObject obj)
         {
             if (obj != null)
@@ -900,10 +533,6 @@ namespace UnityEngine.Rendering
 
         static IEnumerable<Type> m_AssemblyTypes;
 
-        /// <summary>
-        /// Returns all assembly types.
-        /// </summary>
-        /// <returns>The list of all assembly types of the current domain.</returns>
         public static IEnumerable<Type> GetAllAssemblyTypes()
         {
             if (m_AssemblyTypes == null)
@@ -925,11 +554,6 @@ namespace UnityEngine.Rendering
             return m_AssemblyTypes;
         }
 
-        /// <summary>
-        /// Returns a list of types that inherit from the provided type.
-        /// </summary>
-        /// <typeparam name="T">Parent Type</typeparam>
-        /// <returns>A list of types that inherit from the provided type.</returns>
         public static IEnumerable<Type> GetAllTypesDerivedFrom<T>()
         {
 #if UNITY_EDITOR && UNITY_2019_2_OR_NEWER
@@ -939,22 +563,21 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-        /// <summary>
-        /// Safely release a Compute Buffer.
-        /// </summary>
-        /// <param name="buffer">Compute Buffer that needs to be released.</param>
+        public static void Destroy(params UnityObject[] objs)
+        {
+            if (objs == null)
+                return;
+
+            foreach (var o in objs)
+                Destroy(o);
+        }
+
         public static void SafeRelease(ComputeBuffer buffer)
         {
             if (buffer != null)
                 buffer.Release();
         }
 
-        /// <summary>
-        /// Creates a cube mesh.
-        /// </summary>
-        /// <param name="min">Minimum corner coordinates in local space.</param>
-        /// <param name="max">Maximum corner coordinates in local space.</param>
-        /// <returns>A new instance of a cube Mesh.</returns>
         public static Mesh CreateCubeMesh(Vector3 min, Vector3 max)
         {
             Mesh mesh = new Mesh();
@@ -991,11 +614,39 @@ namespace UnityEngine.Rendering
             return mesh;
         }
 
-        /// <summary>
-        /// Returns true if "Post Processes" are enabled for the view associated with the given camera.
-        /// </summary>
-        /// <param name="camera">Input camera.</param>
-        /// <returns>True if "Post Processes" are enabled for the view associated with the given camera.</returns>
+        public static void DisplayUnsupportedMessage(string msg)
+        {
+            Debug.LogError(msg);
+
+#if UNITY_EDITOR
+            foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                sv.ShowNotification(new GUIContent(msg));
+#endif
+        }
+
+        public static void DisplayUnsupportedAPIMessage(string graphicAPI = null)
+        {
+            // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
+#if UNITY_EDITOR
+            var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
+            string currentPlatform = buildTarget.ToString();
+            graphicAPI = graphicAPI ?? UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
+#else
+            string currentPlatform = SystemInfo.operatingSystem;
+            graphicAPI = graphicAPI ?? SystemInfo.graphicsDeviceType.ToString();
+#endif
+
+            string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported, no rendering will occur";
+            DisplayUnsupportedMessage(msg);
+        }
+
+        public static void DisplayUnsupportedXRMessage()
+        {
+            string msg = "AR/VR devices are not supported, no rendering will occur";
+            DisplayUnsupportedMessage(msg);
+        }
+
+        // Returns 'true' if "Post Processes" are enabled for the view associated with the given camera.
         public static bool ArePostProcessesEnabled(Camera camera)
         {
             bool enabled = true;
@@ -1025,17 +676,13 @@ namespace UnityEngine.Rendering
             return enabled;
         }
 
-        /// <summary>
-        /// Returns true if "Animated Materials" are enabled for the view associated with the given camera.
-        /// </summary>
-        /// <param name="camera">Input camera.</param>
-        /// <returns>True if "Animated Materials" are enabled for the view associated with the given camera.</returns>
-        public static bool AreAnimatedMaterialsEnabled(Camera camera)
+        // Returns 'true' if "Animated Materials" are enabled for the view associated with the given camera.
+        public static  bool AreAnimatedMaterialsEnabled(Camera camera)
         {
             bool animateMaterials = true;
 
         #if UNITY_EDITOR
-            animateMaterials = Application.isPlaying; // For Game and VR views; Reflection views pass the parent camera
+            animateMaterials = Application.isPlaying;
 
             if (camera.cameraType == CameraType.SceneView)
             {
@@ -1054,15 +701,24 @@ namespace UnityEngine.Rendering
             }
             else if (camera.cameraType == CameraType.Preview)
             {
-                // Enable for previews so the shader graph main preview works with time parameters.
-                animateMaterials = true;
-            }
-            else if (camera.cameraType == CameraType.Reflection)
-            {
-                // Reflection cameras should be handled outside this function.
-                // Debug.Assert(false, "Unexpected View type.");
+                animateMaterials = false;
+
+                // Determine whether the "Animated Materials" checkbox is checked for the current view.
+                foreach (UnityEditor.MaterialEditor med in materialEditors())
+                {
+                    // Warning: currently, there's no way to determine whether a given camera corresponds to this MaterialEditor.
+                    // Therefore, if at least one of the visible MaterialEditors is in Play Mode, all of them will play.
+                    if (med.isVisible && med.RequiresConstantRepaint())
+                    {
+                        animateMaterials = true;
+                        break;
+                    }
+                }
             }
 
+            // TODO: how to handle reflection views? We don't know the parent window they are being rendered into,
+            // so we don't know whether we can animate them...
+            //
             // IMHO, a better solution would be:
             // A window invokes a camera render. The camera knows which window called it, so it can query its properies
             // (such as animated materials). This camera provides the space-time position. It should also be able
@@ -1080,11 +736,6 @@ namespace UnityEngine.Rendering
             return animateMaterials;
         }
 
-        /// <summary>
-        /// Returns true if "Scene Lighting" is enabled for the view associated with the given camera.
-        /// </summary>
-        /// <param name="camera">Input camera.</param>
-        /// <returns>True if "Scene Lighting" is enabled for the view associated with the given camera.</returns>
         public static bool IsSceneLightingDisabled(Camera camera)
         {
             bool disabled = false;
@@ -1111,7 +762,7 @@ namespace UnityEngine.Rendering
 
         static CoreUtils()
         {
-            //quicker than standard reflection as it is compiled
+            //quicker than standard reflection as it is compilated
             System.Reflection.FieldInfo field = typeof(UnityEditor.MaterialEditor).GetField("s_MaterialEditors", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             var fieldExpression = System.Linq.Expressions.Expression.Field(null, field);
             var lambda = System.Linq.Expressions.Expression.Lambda<Func<List<UnityEditor.MaterialEditor>>>(fieldExpression);
@@ -1119,11 +770,6 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        /// <summary>
-        /// Returns true if "Fog" is enabled for the view associated with the given camera.
-        /// </summary>
-        /// <param name="camera">Input camera.</param>
-        /// <returns>True if "Fog" is enabled for the view associated with the given camera.</returns>
         public static bool IsSceneViewFogEnabled(Camera camera)
         {
             bool fogEnable = true;

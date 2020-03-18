@@ -30,9 +30,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    /// <summary>
-    /// An attribute set on deprecated volume components.
-    /// </summary>
+    // TODO: Do not document & remove this and use System.Obsolete instead
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class VolumeComponentDeprecated : Attribute
     {

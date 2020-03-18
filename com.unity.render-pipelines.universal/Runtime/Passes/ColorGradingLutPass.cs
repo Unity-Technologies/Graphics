@@ -58,7 +58,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_InternalLut = internalLut;
         }
 
-        /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get(k_ProfilerTag);
@@ -170,8 +169,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBufferPool.Release(cmd);
         }
 
-        /// <inheritdoc/>
-        public override void OnFinishCameraStackRendering(CommandBuffer cmd)
+        public override void FrameCleanup(CommandBuffer cmd)
         {
             cmd.ReleaseTemporaryRT(m_InternalLut.id);
         }

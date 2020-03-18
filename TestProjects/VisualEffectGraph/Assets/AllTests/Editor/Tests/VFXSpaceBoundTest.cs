@@ -16,11 +16,30 @@ namespace UnityEditor.VFX.Test
 {
     public class VFXSpaceBoundTest
     {
+        string tempFilePath = "Assets/TmpTests/vfxTest.vfx";
+
+        VFXGraph MakeTemporaryGraph()
+        {
+            if (System.IO.File.Exists(tempFilePath))
+            {
+                AssetDatabase.DeleteAsset(tempFilePath);
+            }
+
+            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
+
+            VisualEffectResource resource = asset.GetResource(); // force resource creation
+
+            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
+
+            graph.visualEffectResource = resource;
+
+            return graph;
+        }
 
         [TearDown]
         public void CleanUp()
         {
-            VFXTestCommon.DeleteAllTemporaryGraph();
+            AssetDatabase.DeleteAsset(tempFilePath);
         }
 
 #pragma warning disable 0414
@@ -33,8 +52,9 @@ namespace UnityEditor.VFX.Test
             var objectPosition = new Vector3(0.123f, 0.0f, 0.0f);
             var boundPosition = new Vector3(0.0f, 0.0987f, 0.0f);
 
-            yield return new EnterPlayMode();
-            var graph = VFXTestCommon.MakeTemporaryGraph();
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+
+            var graph = MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var blockConstantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
@@ -63,7 +83,7 @@ namespace UnityEditor.VFX.Test
             basicInitialize.inputSlots[0][0].value = boundPosition;
             basicInitialize.inputSlots[0][1].value = Vector3.one * 5.0f;
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            graph.RecompileIfNeeded();
 
             var gameObj = new GameObject("CreateAssetAndComponentToCheckBound");
             gameObj.transform.position = objectPosition;
@@ -120,7 +140,9 @@ namespace UnityEditor.VFX.Test
                 //Unknown case, should not happen
                 Assert.IsFalse(true);
             }
-            yield return new ExitPlayMode();
+
+            UnityEngine.Object.DestroyImmediate(vfxComponent);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
         }
     }
 }

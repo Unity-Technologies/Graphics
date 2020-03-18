@@ -74,6 +74,9 @@ namespace UnityEditor.ShaderGraph
         #region Node data
 
         [NonSerialized]
+        Stack<Identifier> m_FreeNodeTempIds = new Stack<Identifier>();
+
+        [NonSerialized]
         List<AbstractMaterialNode> m_Nodes = new List<AbstractMaterialNode>();
 
         [NonSerialized]
@@ -280,7 +283,6 @@ namespace UnityEditor.ShaderGraph
                     m_ActiveOutputNodeGuid = value;
                     m_OutputNode = null;
                     didActiveOutputNodeChange = true;
-                    UpdateTargets();
                 }
             }
         }
@@ -311,16 +313,6 @@ namespace UnityEditor.ShaderGraph
                 return m_OutputNode;
             }
         }
-
-        #region Targets
-        [NonSerialized]
-        List<ITarget> m_ValidTargets = new List<ITarget>();
-
-        [NonSerialized]
-        List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
-
-        public List<ITargetImplementation> validImplementations => m_ValidImplementations;
-        #endregion
 
         public bool didActiveOutputNodeChange { get; set; }
 
@@ -491,7 +483,19 @@ namespace UnityEditor.ShaderGraph
                 throw new InvalidOperationException("Cannot add a node whose group doesn't exist.");
             }
             node.owner = this;
-            m_Nodes.Add(node);
+            if (m_FreeNodeTempIds.Any())
+            {
+                var id = m_FreeNodeTempIds.Pop();
+                id.IncrementVersion();
+                node.tempId = id;
+                m_Nodes[id.index] = node;
+            }
+            else
+            {
+                var id = new Identifier(m_Nodes.Count);
+                node.tempId = id;
+                m_Nodes.Add(node);
+            }
             m_NodeDictionary.Add(node.guid, node);
             m_AddedNodes.Add(node);
             m_GroupItems[node.groupGuid].Add(node);
@@ -514,9 +518,10 @@ namespace UnityEditor.ShaderGraph
                 throw new InvalidOperationException("Cannot remove a node that doesn't exist.");
             }
 
-            m_Nodes.Remove(node);
+            m_Nodes[node.tempId.index] = null;
+            m_FreeNodeTempIds.Push(node.tempId);
             m_NodeDictionary.Remove(node.guid);
-            messageManager?.RemoveNode(node.guid);
+            messageManager?.RemoveNode(node.tempId);
             m_RemovedNodes.Add(node);
 
             if (m_GroupItems.TryGetValue(node.groupGuid, out var groupItems))
@@ -653,6 +658,18 @@ namespace UnityEditor.ShaderGraph
         {
             AbstractMaterialNode node;
             m_NodeDictionary.TryGetValue(guid, out node);
+            return node;
+        }
+
+        public AbstractMaterialNode GetNodeFromTempId(Identifier tempId)
+        {
+            if (tempId.index > m_Nodes.Count)
+                throw new ArgumentException("Trying to retrieve a node using an identifier that does not exist.");
+            var node = m_Nodes[tempId.index];
+            if (node == null)
+                throw new Exception("Trying to retrieve a node using an identifier that does not exist.");
+            if (node.tempId.version != tempId.version)
+                throw new Exception("Trying to retrieve a node that was removed from the graph.");
             return node;
         }
 
@@ -950,8 +967,8 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            var temporaryMarks = PooledHashSet<Guid>.Get();
-            var permanentMarks = PooledHashSet<Guid>.Get();
+            var temporaryMarks = IndexSetPool.Get();
+            var permanentMarks = IndexSetPool.Get();
             var slots = ListPool<MaterialSlot>.Get();
 
             // Make sure we process a node's children before the node itself.
@@ -963,19 +980,19 @@ namespace UnityEditor.ShaderGraph
             while (stack.Count > 0)
             {
                 var node = stack.Pop();
-                if (permanentMarks.Contains(node.guid))
+                if (permanentMarks.Contains(node.tempId.index))
                 {
                     continue;
                 }
 
-                if (temporaryMarks.Contains(node.guid))
+                if (temporaryMarks.Contains(node.tempId.index))
                 {
                     node.ValidateNode();
-                    permanentMarks.Add(node.guid);
+                    permanentMarks.Add(node.tempId.index);
                 }
                 else
                 {
-                    temporaryMarks.Add(node.guid);
+                    temporaryMarks.Add(node.tempId.index);
                     stack.Push(node);
                     node.GetInputSlots(slots);
                     foreach (var inputSlot in slots)
@@ -997,8 +1014,8 @@ namespace UnityEditor.ShaderGraph
 
             StackPool<AbstractMaterialNode>.Release(stack);
             ListPool<MaterialSlot>.Release(slots);
-            temporaryMarks.Dispose();
-            permanentMarks.Dispose();
+            IndexSetPool.Release(temporaryMarks);
+            IndexSetPool.Release(permanentMarks);
 
             foreach (var edge in m_AddedEdges.ToList())
             {
@@ -1023,7 +1040,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void AddValidationError(Guid id, string errorMessage,
+        public void AddValidationError(Identifier id, string errorMessage,
             ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
             messageManager?.AddOrAppendError(this, id, new ShaderMessage(errorMessage, severity));
@@ -1121,8 +1138,7 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes,
-            List<IEdge> remappedEdges)
+        internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes, List<IEdge> remappedEdges)
         {
             var groupGuidMap = new Dictionary<Guid, Guid>();
             foreach (var group in graphToPaste.groups)
@@ -1158,8 +1174,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             var nodeGuidMap = new Dictionary<Guid, Guid>();
-            var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
-            foreach (var node in nodeList)
+            foreach (var node in graphToPaste.GetNodes<AbstractMaterialNode>())
             {
                 AbstractMaterialNode pastedNode = node;
 
@@ -1203,6 +1218,12 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
+                var drawState = node.drawState;
+                var position = drawState.position;
+                position.x += 30;
+                position.y += 30;
+                drawState.position = position;
+                node.drawState = drawState;
                 remappedNodes.Add(pastedNode);
                 AddNode(pastedNode);
 
@@ -1258,7 +1279,9 @@ namespace UnityEditor.ShaderGraph
             m_SerializableNodes = SerializationHelper.Serialize(nodes.AsEnumerable());
             m_Edges.Sort();
             m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
+            m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
+            m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
@@ -1283,6 +1306,7 @@ namespace UnityEditor.ShaderGraph
             {
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
+                node.tempId = new Identifier(m_Nodes.Count);
                 m_Nodes.Add(node);
                 m_NodeDictionary.Add(node.guid, node);
                 m_GroupItems[node.groupGuid].Add(node);
@@ -1326,65 +1350,12 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
-            UpdateTargets();
-
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
         }
 
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
-        }
-
-        public void UpdateTargets()
-        {
-            if(outputNode == null)
-                return;
-
-            // First get all valid TargetImplementations that are valid with the current graph
-            List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetTypesOrNothing())
-                {
-                    var isImplementation = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
-                    //for subgraph output nodes, preview target is the only valid target
-                    if (outputNode is SubGraphOutputNode && isImplementation && typeof(DefaultPreviewTarget).IsAssignableFrom(type))
-                    {
-                        var implementation = (DefaultPreviewTarget)Activator.CreateInstance(type);
-                        foundImplementations.Add(implementation);
-                    }
-                    else if (isImplementation && !foundImplementations.Any(s => s.GetType() == type))
-                    {
-                        var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
-                        var implementation = (ITargetImplementation)Activator.CreateInstance(type);
-                        if(implementation.IsValid(masterNode))
-                        {
-                            foundImplementations.Add(implementation);
-                        }
-                    }
-                }
-            }
-
-            // Next we get all Targets that have valid TargetImplementations
-            List<ITarget> foundTargets = new List<ITarget>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetTypesOrNothing())
-                {
-                    var isTarget = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITarget).IsAssignableFrom(type);
-                    if (isTarget && !foundTargets.Any(s => s.GetType() == type))
-                    {
-                        var target = (ITarget)Activator.CreateInstance(type);
-                        if(foundImplementations.Where(s => s.targetType == type).Any())
-                            foundTargets.Add(target);
-                    }
-                }
-            }
-
-            m_ValidTargets = foundTargets;
-            m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
-            
         }
     }
 

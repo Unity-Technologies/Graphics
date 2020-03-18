@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Universal
 {
-    class AutodeskInteractiveMaterialImport : AssetPostprocessor
+    public class AutodeskInteractiveMaterialImport : AssetPostprocessor
     {
         static readonly uint k_Version = 1;
         static readonly int k_Order = 3;

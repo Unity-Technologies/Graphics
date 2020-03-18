@@ -1,49 +1,49 @@
+<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
 # Systems
 
-A System refers to one or many [Contexts](Contexts.md) that define a standalone part of a visual effect. A System can be a Particle System, a Particle Strip System, a Mesh, or a Spawn machine. In the graph view, a System draws a dashed line box around the Contexts that it consists of.
+Systems are compounds of one or many  [Contexts](Contexts.md) that define a standalone part of a Visual Effect. A system can be a Particle System, a Particle Strip System, a Mesh, or a Spawn machine.
 
-![](Images/SystemDrawBox.png)
+<u>Systems can interact between themselves among a Visual Effect Graph :</u> 
 
-Multiple Systems can interact with each other within a Visual Effect Graph:
+* A **Spawn** System can **spawn particles** in one or many Particle or Systems : This is the main method of spawning particles.
 
-* A **Spawn** System can **spawn particles** in one or many Particle Systems. This is the main method for spawning particles.
+* **Particle Systems** can **spawn particles** in **other particle systems** through GPU Events : This alternate method can spawn particles from other particles based on simulation events (for example : death of a particle).
 
-* **Particle Systems** can use GPU Events to **spawn particles** in **other particle systems**. This alternate method can spawn particles from other particles based on simulation events such as the death of particle.
+* A **Spawn** System can **Turn on/off** other **Spawn Systems** : This enables synchronizing emission by using a master Spawn System to orchestrate other Spawn Systems.
 
-* A **Spawn** System can **enable and disable** other **Spawn Systems**. This allows you to use a master Spawn System that manages other Spawn Systems to synchronize particle emission.
+  
 
+## Creating System from Templates
 
-## Creating System from templates
+Visual Effect Graph comes with Built-in templates that you can add to your graph using the following:
 
-The Visual Effect Graph comes with pre-built System templates that you can add to your graph. To create a System from a template:
-
-1.  Right Click in an empty space of your workspace and select **Create Node**.
-2.  In The menu, select **System**.
-3.  Select a template from the list.
+1.  Right Click in an empty space of your workspace, then select Create Node
+2. In The Node Creation Menu, Select **System** Category
+3. Select a template from the system list to add a template system.
 
 ![](Images/SystemAddTemplate.png)
 
-## System simulation spaces
+## System Spaces
 
-Some Systems use a simulation space property to define the reference space that it uses to simulate its contents:
+Some systems embed a Space property that will define the reference space that will be used to simulate its contents:
 
-* **Local space** Systems simulate the effect locally to the GameObject that holds the [Visual Effect component](VisualEffectComponent.md).
-* **World space** Systems simulate the effect independently of the GameObject that holds the [Visual Effect component](VisualEffectComponent.md).
+* Local Space will simulate locally to the Game Object that holds the  [Visual Effect Component](VisualEffectComponent.md) 
+* World space will simulate independently of the Game Object that holds the [Visual Effect Component](VisualEffectComponent.md) 
 
-Regardless of the System's simulation space, you can use [Spaceable Properties](Properties.md#spaceable-properties) to access Local or World Values.
+> Regardless of the System's Simulation Space you can use [Spaceable Properties](Properties.md#spaceable-properties) in order to access Local or World Values.
 
-### Setting a System simulation space
+### Setting a System Space
 
-A System displays its simulation space in the top-right corner of each Context it consists of. This is the System's **simulation space identifier**. If a Context does not use process anything that depends on simulation space, it does not display the simulation space identifier.
+In order to know the Space of a System, you can look at the Top-Right corner of its contexts and look for the **System Space Identifier**. If the Context does not compute anything regarding to space, its top-right corner will not display any System Space identifier.
 
 ![](Images/SystemSpaceIdentifier.png)
 
-To change the simulation space for a System, click the System's simulation space identifier to cycle through the compatible spaces.
+In order to change the System space, just click the System Space Identifier to cycle through the compatible spaces.
 
 ![](Images/SystemSpaceLocalWorld.png)
 
-### Simulation space identifiers in Properties
+### System Space Identifiers in Properties
 
-Some [Spaceable Properties](Properties.md) display a smaller version of the simulation space identifier. This does not change the System's simulation space, but instead allows you to express a value in a space that is different from the System's simulation space. For example, a System could simulate in world space but a Property could be a local position.
+Some [Spaceable Properties](Properties.md) display a smaller version of the System Space Identifier. This doesn't change the system simulation space but instead enable expressing a value in a space tha't s different from the System simulation Space. (For instance, a local position while system is simulating in world space).
 
 ![](Images/SystemSpaceLocalWorldSmall.png)

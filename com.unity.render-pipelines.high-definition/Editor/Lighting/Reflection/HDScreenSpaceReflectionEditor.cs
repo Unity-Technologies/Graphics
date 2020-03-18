@@ -8,7 +8,6 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(ScreenSpaceReflection))]
     class HDScreenSpaceReflectionEditor : VolumeComponentWithQualityEditor
     {
-        SerializedDataParameter m_Enable;
         SerializedDataParameter m_RayTracing;
 
         // Shared data
@@ -27,13 +26,14 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ClampValue;
         SerializedDataParameter m_Denoise;
         SerializedDataParameter m_DenoiserRadius;
-        SerializedDataParameter m_Mode;
 
-        // Performance
+        // Tier 1
         SerializedDataParameter m_UpscaleRadius;
         SerializedDataParameter m_FullResolution;
+        SerializedDataParameter m_DeferredMode;
+        SerializedDataParameter m_RayBinning;
 
-        // Quality
+        // Tier 2
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_BounceCount;
 
@@ -42,18 +42,17 @@ namespace UnityEditor.Rendering.HighDefinition
             base.OnEnable();
 
             var o = new PropertyFetcher<ScreenSpaceReflection>(serializedObject);
-            m_Enable                        = Unpack(o.Find(x => x.enabled));
-            m_RayTracing                    = Unpack(o.Find(x => x.rayTracing));
+            m_RayTracing              = Unpack(o.Find(x => x.rayTracing));
 
             // Shared data
-            m_MinSmoothness                 = Unpack(o.Find(x => x.minSmoothness));
-            m_SmoothnessFadeStart           = Unpack(o.Find(x => x.smoothnessFadeStart));
-            m_ReflectSky                    = Unpack(o.Find(x => x.reflectSky));
+            m_MinSmoothness = Unpack(o.Find(x => x.minSmoothness));
+            m_SmoothnessFadeStart = Unpack(o.Find(x => x.smoothnessFadeStart));
+            m_ReflectSky          = Unpack(o.Find(x => x.reflectSky));
 
             // SSR Data
-            m_DepthBufferThickness          = Unpack(o.Find(x => x.depthBufferThickness));
-            m_RayMaxIterations              = Unpack(o.Find(x => x.rayMaxIterations));
-            m_ScreenFadeDistance            = Unpack(o.Find(x => x.screenFadeDistance));
+            m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
+            m_RayMaxIterations = Unpack(o.Find(x => x.rayMaxIterations));
+            m_ScreenFadeDistance = Unpack(o.Find(x => x.screenFadeDistance));
 
             // Generic ray tracing
             m_LayerMask                     = Unpack(o.Find(x => x.layerMask));
@@ -61,13 +60,14 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ClampValue                    = Unpack(o.Find(x => x.clampValue));
             m_Denoise                       = Unpack(o.Find(x => x.denoise));
             m_DenoiserRadius                = Unpack(o.Find(x => x.denoiserRadius));
-            m_Mode                          = Unpack(o.Find(x => x.mode));
 
-            // Performance
+            // Tier 1
             m_UpscaleRadius                 = Unpack(o.Find(x => x.upscaleRadius));
             m_FullResolution                = Unpack(o.Find(x => x.fullResolution));
+            m_DeferredMode                  = Unpack(o.Find(x => x.deferredMode));
+            m_RayBinning                    = Unpack(o.Find(x => x.rayBinning));
 
-            // Quality
+            // Tier 2
             m_SampleCount                   = Unpack(o.Find(x => x.sampleCount));
             m_BounceCount                   = Unpack(o.Find(x => x.bounceCount));
         }
@@ -82,9 +82,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("Enable"));
-
-            bool rayTracingSupported = HDRenderPipeline.pipelineSupportsRayTracing;
+            // If the current pipeline supports ray tracing, display first the ray tracing checkbox
+            bool rayTracingSupported = (RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported;
             if (rayTracingSupported)
                 PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced reflections."));
 
@@ -100,30 +99,35 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for screen space reflection."));
                 PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of reflection rays."));
                 PropertyField(m_ClampValue, EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity."));
-                PropertyField(m_Mode, EditorGUIUtility.TrTextContent("Mode", "Controls which version of the effect should be used."));
-
-                EditorGUI.indentLevel++;
-                switch (m_Mode.value.GetEnumValue<RayTracingMode>())
+                RenderPipelineSettings.RaytracingTier currentTier = currentAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
+                switch (currentTier)
                 {
-                    case RayTracingMode.Performance:
+                    case RenderPipelineSettings.RaytracingTier.Tier1:
                     {
                         PropertyField(m_UpscaleRadius, EditorGUIUtility.TrTextContent("Upscale Radius", "Controls the size of the upscale radius."));
                         PropertyField(m_FullResolution, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
+                        PropertyField(m_DeferredMode, EditorGUIUtility.TrTextContent("Deferred Mode", "Enables deferred mode."));
+                        PropertyField(m_RayBinning, EditorGUIUtility.TrTextContent("Ray Binning", "Enables ray binning."));
+                        PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced reflections."));
+                        {
+                            EditorGUI.indentLevel++;
+                            PropertyField(m_DenoiserRadius, EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of reflection denoiser."));
+                            EditorGUI.indentLevel--;
+                        }
                     }
                     break;
-                    case RayTracingMode.Quality:
+                    case RenderPipelineSettings.RaytracingTier.Tier2:
                     {
                         PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for reflections."));
                         PropertyField(m_BounceCount, EditorGUIUtility.TrTextContent("Bounce Count", "Number of bounces for reflection rays."));
+                        PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced reflections."));
+                        {
+                            EditorGUI.indentLevel++;
+                            PropertyField(m_DenoiserRadius, EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of reflection denoiser."));
+                            EditorGUI.indentLevel--;
+                        }
                     }
                     break;
-                }
-                EditorGUI.indentLevel--;
-                PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced reflections."));
-                {
-                    EditorGUI.indentLevel++;
-                    PropertyField(m_DenoiserRadius, EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of reflection denoiser."));
-                    EditorGUI.indentLevel--;
                 }
             }
             else

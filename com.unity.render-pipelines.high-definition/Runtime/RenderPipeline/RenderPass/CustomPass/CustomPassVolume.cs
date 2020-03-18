@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
     /// Unity Monobehavior that manages the execution of custom passes.
-    /// It provides
+    /// It provides 
     /// </summary>
     [ExecuteAlways]
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Custom-Pass" + Documentation.endURL)]
@@ -28,6 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// List of custom passes to execute
         /// </summary>
+        /// <typeparam name="CustomPass"></typeparam>
+        /// <returns></returns>
         [SerializeReference]
         public List<CustomPass> customPasses = new List<CustomPass>();
 
@@ -37,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public CustomPassInjectionPoint injectionPoint = CustomPassInjectionPoint.BeforeTransparent;
 
         /// <summary>
-        /// Fade value between 0 and 1. it represent how close you camera is from the collider of the custom pass.
+        /// Fade value between 0 and 1. it represent how close you camera is from the collider of the custom pass.  
         /// 0 when the camera is outside the volume + fade radius and 1 when it is inside the collider.
         /// </summary>
         /// <value>The fade value that should be applied to the custom pass effect</value>
@@ -71,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDisable() => UnRegister(this);
 
-        void OnDestroy() => CleanupPasses();
+        void OnDestroy() => Cleanup();
 
         internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
         {
@@ -85,28 +87,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var pass in customPasses)
             {
-                if (pass != null && pass.WillBeExecuted(hdCamera))
-                {
-                    pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
-                    executed = true;
-                }
-            }
-
-            return executed;
-        }
-
-        internal bool WillExecuteInjectionPoint(HDCamera hdCamera)
-        {
-            bool executed = false;
-
-            // We never execute volume if the layer is not within the culling layers of the camera
-            if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
-                return false;
-
-            foreach (var pass in customPasses)
-            {
-                if (pass != null && pass.WillBeExecuted(hdCamera))
-                    executed = true;
+                if (pass != null && pass.enabled)
+                    using (new ProfilingSample(cmd, pass.name))
+                    {
+                        pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
+                        executed = true;
+                    }
             }
 
             return executed;
@@ -156,21 +142,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!collider || !collider.enabled)
                         continue;
-
+                    
                     // We don't support concave colliders
                     if (collider is MeshCollider m && !m.convex)
                         continue;
 
                     var closestPoint = collider.ClosestPoint(triggerPos);
                     var d = (closestPoint - triggerPos).sqrMagnitude;
-
+                    
                     minSqrDistance = Mathf.Min(minSqrDistance, d);
 
                     // Update the list of overlapping colliders
                     if (d <= sqrFadeRadius)
                         volume.m_OverlappingColliders.Add(collider);
                 }
-
+                
                 // update the fade value:
                 volume.fadeValue = 1.0f - Mathf.Clamp01(Mathf.Sqrt(minSqrDistance / sqrFadeRadius));
 
@@ -191,7 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (v1.isGlobal && v2.isGlobal) return 0;
                 if (v1.isGlobal) return 1;
                 if (v2.isGlobal) return -1;
-
+                
                 return GetVolumeExtent(v1).CompareTo(GetVolumeExtent(v2));
             });
         }
@@ -218,13 +204,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // By default we don't want the culling to return any objects
             cullingParameters.cullingMask = 0;
-            cullingParameters.cullingOptions = CullingOptions.None;
+            cullingParameters.cullingOptions &= CullingOptions.Stereo; // We just keep stereo if enabled and clear the other flags
 
             foreach (var injectionPoint in injectionPoints)
                 GetActivePassVolume(injectionPoint)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
 
-            // If we don't have anything to cull or the pass is asking for the same culling layers than the camera, we don't have to re-do the culling
-            if (cullingParameters.cullingMask != 0 && (cullingParameters.cullingMask & hdCamera.camera.cullingMask) != cullingParameters.cullingMask)
+            // If we don't have anything to cull or the pass have the same culling mask than the camera, we don't have to re-do the culling
+            if (cullingParameters.cullingMask != 0 || cullingParameters.cullingMask == hdCamera.camera.cullingMask)
                 result = renderContext.Cull(ref cullingParameters);
 
             return result;
@@ -237,12 +223,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 pass.CleanupPasses();
             }
         }
-
-        /// <summary>
-        /// Gets the currently active Custom Pass Volume for a given injection point.
-        /// </summary>
-        /// <param name="injectionPoint">The injection point to get the currently active Custom Pass Volume for.</param>
-        /// <returns>Returns the Custom Pass Volume instance associated with the injection point.</returns>
+        
         public static CustomPassVolume GetActivePassVolume(CustomPassInjectionPoint injectionPoint)
         {
             foreach (var volume in m_OverlappingPassVolumes)

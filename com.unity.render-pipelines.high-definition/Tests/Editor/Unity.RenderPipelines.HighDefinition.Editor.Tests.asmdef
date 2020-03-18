@@ -18,7 +18,5 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [
-		"UNITY_INCLUDE_TESTS"
-		]
+    "defineConstraints": []
 }

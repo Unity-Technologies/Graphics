@@ -48,12 +48,12 @@ namespace UnityEditor.VFX
 
         public string fileName {
             get {
-                if(!string.IsNullOrWhiteSpace(title))
+                if( ! string.IsNullOrWhiteSpace(title))
                     return title;
                 int i = this.index;
                 if (i < 0)
                     return string.Empty;
-                return string.Format("System {0}", i);
+                return string.IsNullOrEmpty(title)?string.Format("System {0}",i):title;
             }
         }
 
@@ -144,9 +144,7 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
-            Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
-            VFXSystemNames systemNames = null)
-
+            Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
             // Empty implementation by default
         }

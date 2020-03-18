@@ -343,36 +343,34 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            s_TempSlots.Clear();
+            GetOutputSlots(s_TempSlots);
+            foreach (var outSlot in s_TempSlots)
             {
-                GetOutputSlots(tempSlots);
-                foreach (var outSlot in tempSlots)
-                {
-                    sb.AppendLine(outSlot.concreteValueType.ToShaderString() + " " + GetVariableNameForSlot(outSlot.id) + ";");
-                }
-
-                string call = GetFunctionName() + "(";
-                bool first = true;
-                tempSlots.Clear();
-                GetSlots(tempSlots);
-                tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
-                foreach (var slot in tempSlots)
-                {
-                    if (!first)
-                    {
-                        call += ", ";
-                    }
-                    first = false;
-
-                    if (slot.isInputSlot)
-                        call += GetSlotValue(slot.id, generationMode);
-                    else
-                        call += GetVariableNameForSlot(slot.id);
-                }
-                call += ");";
-
-                sb.AppendLine(call);
+                sb.AppendLine(outSlot.concreteValueType.ToShaderString() + " " + GetVariableNameForSlot(outSlot.id) + ";");
             }
+
+            string call = GetFunctionName() + "(";
+            bool first = true;
+            s_TempSlots.Clear();
+            GetSlots(s_TempSlots);
+            s_TempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
+            foreach (var slot in s_TempSlots)
+            {
+                if (!first)
+                {
+                    call += ", ";
+                }
+                first = false;
+
+                if (slot.isInputSlot)
+                    call += GetSlotValue(slot.id, generationMode);
+                else
+                    call += GetVariableNameForSlot(slot.id);
+            }
+            call += ");";
+
+            sb.AppendLine(call);
         }
 
         private string GetFunctionName()
@@ -387,27 +385,24 @@ namespace UnityEditor.ShaderGraph
         {
             string header = "void " + GetFunctionName() + "(";
 
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            s_TempSlots.Clear();
+            GetSlots(s_TempSlots);
+            s_TempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
+            var first = true;
+            foreach (var slot in s_TempSlots)
             {
-                GetSlots(tempSlots);
-                tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
-                var first = true;
-                foreach (var slot in tempSlots)
-                {
-                    if (!first)
-                        header += ", ";
+                if (!first)
+                    header += ", ";
 
-                    first = false;
+                first = false;
 
-                    if (slot.isOutputSlot)
-                        header += "out ";
+                if (slot.isOutputSlot)
+                    header += "out ";
 
-                    header += slot.concreteValueType.ToShaderString() + " " + slot.shaderOutputName;
-                }
-
-                header += ")";
+                header += slot.concreteValueType.ToShaderString() + " " + slot.shaderOutputName;
             }
 
+            header += ")";
             return header;
         }
 
@@ -427,17 +422,14 @@ namespace UnityEditor.ShaderGraph
             if (string.IsNullOrEmpty(result))
                 return string.Empty;
 
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            s_TempSlots.Clear();
+            GetSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
             {
-                GetSlots(tempSlots);
-                foreach (var slot in tempSlots)
-                {
-                    var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
-                    var replacement = NodeUtils.GetSlotDimension(slot.concreteValueType);
-                    result = result.Replace(toReplace, replacement);
-                }
+                var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
+                var replacement = NodeUtils.GetSlotDimension(slot.concreteValueType);
+                result = result.Replace(toReplace, replacement);
             }
-
             return result;
         }
 
@@ -461,106 +453,87 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             var binding = NeededCoordinateSpace.None;
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
-            {
-                GetInputSlots(tempSlots);
-                foreach (var slot in tempSlots)
-                    binding |= slot.RequiresNormal();
-                return binding;
-            }
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
+                binding |= slot.RequiresNormal();
+            return binding;
         }
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
         {
             var binding = NeededCoordinateSpace.None;
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
-            {
-                GetInputSlots(tempSlots);
-                foreach (var slot in tempSlots)
-                    binding |= slot.RequiresViewDirection();
-                return binding;
-            }
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
+                binding |= slot.RequiresViewDirection();
+            return binding;
         }
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
-            {
-                GetInputSlots(tempSlots);
-                var binding = NeededCoordinateSpace.None;
-                foreach (var slot in tempSlots)
-                    binding |= slot.RequiresPosition();
-                return binding;
-            }
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            var binding = NeededCoordinateSpace.None;
+            foreach (var slot in s_TempSlots)
+                binding |= slot.RequiresPosition();
+            return binding;
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
-            {
-                GetInputSlots(tempSlots);
-                var binding = NeededCoordinateSpace.None;
-                foreach (var slot in tempSlots)
-                    binding |= slot.RequiresTangent();
-                return binding;
-            }
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            var binding = NeededCoordinateSpace.None;
+            foreach (var slot in s_TempSlots)
+                binding |= slot.RequiresTangent();
+            return binding;
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
-            {
-                GetInputSlots(tempSlots);
-                var binding = NeededCoordinateSpace.None;
-                foreach (var slot in tempSlots)
-                    binding |= slot.RequiresBitangent();
-                return binding;
-            }
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            var binding = NeededCoordinateSpace.None;
+            foreach (var slot in s_TempSlots)
+                binding |= slot.RequiresBitangent();
+            return binding;
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
             {
-                GetInputSlots(tempSlots);
-                foreach (var slot in tempSlots)
-                {
-                    if (slot.RequiresMeshUV(channel))
-                        return true;
-                }
-
-                return false;
+                if (slot.RequiresMeshUV(channel))
+                    return true;
             }
+            return false;
         }
 
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
             {
-                GetInputSlots(tempSlots);
-                foreach (var slot in tempSlots)
-                {
-                    if (slot.RequiresScreenPosition())
-                        return true;
-                }
-
-                return false;
+                if (slot.RequiresScreenPosition())
+                    return true;
             }
+            return false;
         }
 
         public bool RequiresVertexColor(ShaderStageCapability stageCapability)
         {
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var slot in s_TempSlots)
             {
-                GetInputSlots(tempSlots);
-                foreach (var slot in tempSlots)
-                {
-                    if (slot.RequiresVertexColor())
-                        return true;
-                }
-
-                return false;
+                if (slot.RequiresVertexColor())
+                    return true;
             }
+            return false;
         }
     }
 }

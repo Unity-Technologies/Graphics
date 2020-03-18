@@ -76,12 +76,6 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 )
 {
-#ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
-    // Init outMotionVector here to solve compiler warning (potentially unitialized variable)
-    // It is init to the value of forceNoMotion (with 2.0)
-    outMotionVec = float4(2.0, 0.0, 0.0, 0.0);
-#endif
-
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
@@ -148,7 +142,7 @@ void Frag(PackedVaryingsToPS packedInput,
 
                 GetPropertiesDataDebug(indexMaterialProperty, result, needLinearToSRGB);
                 GetVaryingsDataDebug(indexMaterialProperty, input, result, needLinearToSRGB);
-                GetBuiltinDataDebug(indexMaterialProperty, builtinData, posInput, result, needLinearToSRGB);
+                GetBuiltinDataDebug(indexMaterialProperty, builtinData, result, needLinearToSRGB);
                 GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
                 GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
             }
@@ -214,8 +208,11 @@ void Frag(PackedVaryingsToPS packedInput,
 #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
             VaryingsPassToPS inputPass = UnpackVaryingsPassToPS(packedInput.vpass);
             bool forceNoMotion = any(unity_MotionVectorsParams.yw == 0.0);
-            // outMotionVec is already initialize at the value of forceNoMotion (see above)
-            if (!forceNoMotion)
+            if (forceNoMotion)
+            {
+                outMotionVec = float4(2.0, 0.0, 0.0, 0.0);
+            }
+            else
             {
                 float2 motionVec = CalculateMotionVector(inputPass.positionCS, inputPass.previousPositionCS);
                 EncodeMotionVector(motionVec * 0.5, outMotionVec);

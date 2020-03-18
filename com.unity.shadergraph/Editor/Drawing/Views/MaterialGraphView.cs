@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -29,7 +27,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             deleteSelection = DeleteSelectionImplementation;
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
-            RegisterCallback<MouseMoveEvent>(OnMouseMoveEvent);
         }
 
         protected override bool canCopySelection
@@ -44,7 +41,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public GraphData graph { get; private set; }
         public Action onConvertToSubgraphClick { get; set; }
-        public Vector2 cachedMousePosition { get; private set; }
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
@@ -274,7 +270,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         expandPreviewAction = DropdownMenuAction.Status.Normal;
                 }
 
-                if (selectedNode.CanToggleNodeExpanded())
+                if (selectedNode.CanToggleExpanded())
                 {
                     if (selectedNode.expanded)
                         minimizeAction = DropdownMenuAction.Status.Normal;
@@ -284,13 +280,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             // Create the menu options
-            evt.menu.AppendAction(collapsePortText, _ => SetNodeExpandedForSelectedNodes(false), (a) => minimizeAction);
-            evt.menu.AppendAction(expandPortText, _ => SetNodeExpandedForSelectedNodes(true), (a) => maximizeAction);
+            evt.menu.AppendAction(collapsePortText, _ => SetNodeExpandedOnSelection(false), (a) => minimizeAction);
+            evt.menu.AppendAction(expandPortText, _ => SetNodeExpandedOnSelection(true), (a) => maximizeAction);
 
             evt.menu.AppendSeparator("View/");
 
-            evt.menu.AppendAction(expandPreviewText, _ => SetPreviewExpandedForSelectedNodes(true), (a) => expandPreviewAction);
-            evt.menu.AppendAction(collapsePreviewText, _ => SetPreviewExpandedForSelectedNodes(false), (a) => collapsePreviewAction);
+            evt.menu.AppendAction(expandPreviewText, _ => SetPreviewExpandedOnSelection(true), (a) => expandPreviewAction);
+            evt.menu.AppendAction(collapsePreviewText, _ => SetPreviewExpandedOnSelection(false), (a) => collapsePreviewAction);
         }
 
         void ChangeCustomNodeColor(DropdownMenuAction menuAction)
@@ -378,27 +374,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void SetNodeExpandedForSelectedNodes(bool state, bool recordUndo = true)
+        public void SetNodeExpandedOnSelection(bool state)
         {
-            if (recordUndo)
-            {
-                graph.owner.RegisterCompleteObjectUndo(state ? "Expand Nodes" : "Collapse Nodes");
-            }
-
+            graph.owner.RegisterCompleteObjectUndo("Toggle Expansion");
             foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
             {
-                if (selectedNode.CanToggleNodeExpanded() && selectedNode.expanded != state)
-                {
+                if(selectedNode.CanToggleExpanded())
                     selectedNode.expanded = state;
-                    selectedNode.node.Dirty(ModificationScope.Topological);
-                }
             }
         }
 
-        public void SetPreviewExpandedForSelectedNodes(bool state)
+        public void SetPreviewExpandedOnSelection(bool state)
         {
-            graph.owner.RegisterCompleteObjectUndo(state ? "Expand Nodes" : "Collapse Nodes");
-
+            graph.owner.RegisterCompleteObjectUndo("Toggle Preview Visibility");
             foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
             {
                 selectedNode.node.previewExpanded = state;
@@ -430,7 +418,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         void CollapsePreviews(DropdownMenuAction action)
         {
             graph.owner.RegisterCompleteObjectUndo("Collapse Previews");
-
             foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
             {
                 node.previewExpanded = false;
@@ -440,7 +427,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ExpandPreviews(DropdownMenuAction action)
         {
             graph.owner.RegisterCompleteObjectUndo("Expand Previews");
-
             foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
             {
                 node.previewExpanded = true;
@@ -571,7 +557,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         void UnserializeAndPasteImplementation(string operationName, string serializedData)
         {
             graph.owner.RegisterCompleteObjectUndo(operationName);
-
             var pastedGraph = CopyPasteGraph.FromJson(serializedData);
             this.InsertCopyPasteGraph(pastedGraph);
         }
@@ -737,11 +722,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void OnMouseMoveEvent(MouseMoveEvent evt)
-        {
-            this.cachedMousePosition = evt.mousePosition;
-        }
-
         void CreateNode(object obj, Vector2 nodePosition)
         {
             var texture2D = obj as Texture2D;
@@ -841,17 +821,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     case AbstractShaderProperty property:
                     {
-                        // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
-                        if (graph.properties.FirstOrDefault(p => p.guid == property.guid) == null)
-                        {
-                            var copy = (AbstractShaderProperty)property.Copy();
-                            graph.SanitizeGraphInputName(copy);
-                            graph.SanitizeGraphInputReferenceName(copy, property.overrideReferenceName); // We do want to copy the overrideReferenceName
-
-                            property = copy;
-                            graph.AddGraphInput(property);
-                        }
-
                         var node = new PropertyNode();
                         var drawState = node.drawState;
                         drawState.position =  new Rect(nodePosition, drawState.position.size);
@@ -864,17 +833,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     case ShaderKeyword keyword:
                     {
-                        // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
-                        if (graph.keywords.FirstOrDefault(k => k.guid == keyword.guid) == null)
-                        {
-                            var copy = (ShaderKeyword)keyword.Copy();
-                            graph.SanitizeGraphInputName(copy);
-                            graph.SanitizeGraphInputReferenceName(copy, keyword.overrideReferenceName); // We do want to copy the overrideReferenceName
-
-                            keyword = copy;
-                            graph.AddGraphInput(keyword);
-                        }
-
                         var node = new KeywordNode();
                         var drawState = node.drawState;
                         drawState.position =  new Rect(nodePosition, drawState.position.size);
@@ -957,16 +915,38 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             using (var remappedNodesDisposable = ListPool<AbstractMaterialNode>.GetDisposable())
             {
-
                 using (var remappedEdgesDisposable = ListPool<IEdge>.GetDisposable())
                 {
                     var remappedNodes = remappedNodesDisposable.value;
                     var remappedEdges = remappedEdgesDisposable.value;
-                    var nodeList = copyGraph.GetNodes<AbstractMaterialNode>();
-
-                    ClampNodesWithinView(graphView, nodeList);
-
                     graphView.graph.PasteGraph(copyGraph, remappedNodes, remappedEdges);
+
+                    if (graphView.graph.assetGuid != copyGraph.sourceGraphGuid)
+                    {
+                        // Compute the mean of the copied nodes.
+                        Vector2 centroid = Vector2.zero;
+                        var count = 1;
+                        foreach (var node in remappedNodes)
+                        {
+                            var position = node.drawState.position.position;
+                            centroid = centroid + (position - centroid) / count;
+                            ++count;
+                        }
+
+                        // Get the center of the current view
+                        var viewCenter = graphView.contentViewContainer.WorldToLocal(graphView.layout.center);
+
+                        foreach (var node in remappedNodes)
+                        {
+                            var drawState = node.drawState;
+                            var positionRect = drawState.position;
+                            var position = positionRect.position;
+                            position += viewCenter - centroid;
+                            positionRect.position = position;
+                            drawState.position = positionRect;
+                            node.drawState = drawState;
+                        }
+                    }
 
                     // Add new elements to selection
                     graphView.ClearSelection();
@@ -979,66 +959,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 graphView.AddToSelection((Node)nodeView);
                         });
                 }
-            }
-        }
-
-        private static void ClampNodesWithinView(MaterialGraphView graphView, IEnumerable<AbstractMaterialNode> nodeList)
-        {
-            // Compute the centroid of the copied nodes at their original positions
-            var nodePositions = nodeList.Select(n => n.drawState.position.position);
-            var centroid = UIUtilities.CalculateCentroid(nodePositions);
-
-            /* Ensure nodes get pasted at cursor */
-            var graphMousePosition = graphView.contentViewContainer.WorldToLocal(graphView.cachedMousePosition);
-            var copiedNodesOrigin = graphMousePosition;
-            float xMin = float.MaxValue, xMax = float.MinValue, yMin = float.MaxValue, yMax = float.MinValue;
-
-            // Calculate bounding rectangle min and max coordinates for these nodes, to use in clamping later
-            foreach (var node in nodeList)
-            {
-                var drawState = node.drawState;
-                var position = drawState.position;
-                xMin = Mathf.Min(xMin, position.x);
-                yMin = Mathf.Min(yMin, position.y);
-                xMax = Mathf.Max(xMax, position.x);
-                yMax = Mathf.Max(yMax, position.y);
-            }
-
-            // Get center of the current view
-            var center = graphView.contentViewContainer.WorldToLocal(graphView.layout.center);
-            // Get offset from center of view to mouse position
-            var mouseOffset = center - graphMousePosition;
-
-            var zoomAdjustedViewScale = 1.0f / graphView.scale;
-            var graphViewScaledHalfWidth = (graphView.layout.width * zoomAdjustedViewScale) / 2.0f;
-            var graphViewScaledHalfHeight = (graphView.layout.height * zoomAdjustedViewScale) / 2.0f;
-            const float widthThreshold = 40.0f;
-            const float heightThreshold = 20.0f;
-
-            if ((Mathf.Abs(mouseOffset.x) + widthThreshold > graphViewScaledHalfWidth ||
-                 (Mathf.Abs(mouseOffset.y) + heightThreshold > graphViewScaledHalfHeight)))
-            {
-                // Out of bounds - Adjust taking into account the size of the bounding box around nodes and the current graph zoom level
-                var adjustedPositionX = (xMax - xMin) + widthThreshold * zoomAdjustedViewScale;
-                var adjustedPositionY = (yMax - yMin) + heightThreshold * zoomAdjustedViewScale;
-                adjustedPositionY *= -1.0f * Mathf.Sign(copiedNodesOrigin.y);
-                adjustedPositionX *= -1.0f * Mathf.Sign(copiedNodesOrigin.x);
-                copiedNodesOrigin.x += adjustedPositionX;
-                copiedNodesOrigin.y += adjustedPositionY;
-            }
-
-            foreach (var node in nodeList)
-            {
-                var drawState = node.drawState;
-                var position = drawState.position;
-
-                // Get the relative offset from the calculated centroid
-                var relativeOffsetFromCentroid = position.position - centroid;
-                // Reapply that offset to ensure node positions are consistent when multiple nodes are copied
-                position.x = copiedNodesOrigin.x + relativeOffsetFromCentroid.x;
-                position.y = copiedNodesOrigin.y + relativeOffsetFromCentroid.y;
-                drawState.position = position;
-                node.drawState = drawState;
             }
         }
     }

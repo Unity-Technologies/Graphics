@@ -1,23 +1,16 @@
 editors:
-  - version: 2020.1
-    rerun_strategy: on-new-revision
-  - version: fast-2020.1
-    rerun_strategy: on-new-revision
   - version: trunk
-    rerun_strategy: on-new-revision
+    cmd: -u trunk
   - version: fast-trunk
-    rerun_strategy: on-new-revision
+    cmd: -u trunk --fast
   - version: CUSTOM-REVISION
-    rerun_strategy: always
+    cmdwin: -r %CUSTOM_REVISION%
+    cmdposix: -r $CUSTOM_REVISION
 platforms:
   - name: Win
-    os: windows
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
     flavor: b1.large
-    components:
-      - editor
-      - il2cpp
 testplatforms:
   - name: Standalone
     args: --suite=playmode --platform=Standalone
@@ -32,72 +25,11 @@ projects:
 {% for project in projects %}
 {% for editor in editors %}
 {% for platform in platforms %}
-
 {% for testplatform in testplatforms %}
-
-{% if testplatform.name == "Standalone" %}
-{{ project.name }}_Win_{{ testplatform.name }}_{{ editor.version }}:
-  name : Test {{ project.name }} on Win_{{ testplatform.name }} on version {{ editor.version }}
+{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}:
+  name : {{ project.name }} on {{ platform.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
-    flavor: b1.large
-    type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
-  skip_checkout: true
-{% if editor.version == 'CUSTOM-REVISION' %}
-  variables:
-    CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
-  commands:
-    - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
-    
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
-
-    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
-  artifacts:
-    logs:
-      paths:
-        - "**/test-results/**"
-  dependencies:
-    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
-      rerun: {{ editor.rerun_strategy }}
-    - path: .yamato/upm-ci-universal_stereo.yml#Build_{{ project.name }}_Win_Player_{{ editor.version }}
-      rerun: {{ editor.rerun_strategy }}
-  
-Build_{{ project.name }}_Win_Player_{{ editor.version }}:
-  name : Build {{ project.name }} on Win_{{ win_api.name }}_Player on version {{ editor.version }}
-  agent:
-    flavor: b1.xlarge
-    type: Unity::VM
-    image: sdet/gamecode_win10:stable
-{% if editor.version == 'CUSTOM-REVISION' %}
-  variables:
-    CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
-  commands:
-    - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
-    
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
-
-    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64  --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
-  dependencies:
-    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
-      rerun: {{ editor.rerun_strategy }}
-  artifacts:
-    logs:
-      paths:
-        - "**/test-results/**"
-    players:
-      paths:
-        - "players/**"
-  
-{% else %}
-
-{{ project.name }}_Win_{{ testplatform.name }}_{{ editor.version }}:
-  name : {{ project.name }} on Win_{{ testplatform.name }} on version {{ editor.version }}
-  agent:
-    {% if testplatform.name == "editmode" %}
+    {% if testplatform.name == "editmode" and platform.name == "Windows64" %}
     type: Unity::VM
     {% else %}
     type: {{ platform.type }}
@@ -109,24 +41,27 @@ Build_{{ project.name }}_Win_Player_{{ editor.version }}:
     CUSTOM_REVISION: custom_revision_not_set
 {% endif %}
   commands:
+    - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
-
+    {% if editor.version == 'CUSTOM-REVISION' %}
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmdwin }} -c editor --wait --published
+    {% else %}
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
+    {% endif %}
+    
+    {% if testplatform.name == "Standalone" %}
+    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200
+    {% else %}
     - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
-  dependencies:
-    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
-      rerun: {{ editor.rerun_strategy }}
+    {% endif %}
+            
   artifacts:
     logs:
       paths:
-        - "**/test-results/**"
-
-{% endif %}
-
-
-{% endfor %}    
+        - "**/upm-ci~/test-results/**/*"       
+{% endfor %}
 {% endfor %}
 
 
@@ -145,9 +80,18 @@ All_{{ project.name }}_{{ editor.version }}:
   dependencies:
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
-    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
-      rerun: {{ editor.rerun_strategy }}
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
   {% endfor %}
   {% endfor %}
+  {% if editor.version == "fast-trunk" %}
+  triggers:
+    changes:
+      only:
+        - "com.unity.render-pipelines.universal/**/*"
+        - "TestProjects/Universal*/**/*"
+      except:
+        - "**/*.md"
+  {% endif %}
+  
 {% endfor %}
 {% endfor %}

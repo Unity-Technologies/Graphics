@@ -1,8 +1,7 @@
 using UnityEngine;
+using UnityEditor.Rendering;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.HighDefinition;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -67,16 +66,8 @@ namespace UnityEditor.Rendering.HighDefinition
     class HDCameraContextualMenu : IRemoveAdditionalDataContextualMenu<Camera>
     {
         //The call is delayed to the dispatcher to solve conflict with other SRP
-        public void RemoveComponent(Camera camera, IEnumerable<Component> dependencies)
+        public void RemoveComponent(Camera camera)
         {
-            // do not use keyword is to remove the additional data. It will not work
-            dependencies = dependencies.Where(c => c.GetType() != typeof(HDAdditionalCameraData));
-            if (dependencies.Count() > 0)
-            {
-                EditorUtility.DisplayDialog("Can't remove component", $"Can't remove Camera because {dependencies.First().GetType().Name} depends on it.", "Ok");
-                return;
-            }
-
             Undo.SetCurrentGroupName("Remove HD Camera");
             var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
             if (additionalCameraData)

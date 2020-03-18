@@ -1,12 +1,8 @@
 Shader "Hidden/HDRP/ApplyDistortion"
 {
-    Properties
-    {
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 2
-        [HideInInspector] _StencilMask("_StencilMask", Int) = 2
-    }
-
     HLSLINCLUDE
+
+
 
         #pragma target 4.5
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
@@ -109,9 +105,9 @@ Shader "Hidden/HDRP/ApplyDistortion"
         {
             Stencil
             {
-                WriteMask [_StencilMask]
-                ReadMask [_StencilMask] 
-                Ref  [_StencilRef]
+                WriteMask 64
+                ReadMask 64 // StencilBitMask.DistortionVectors
+                Ref  64     // StencilBitMask.DistortionVectors
                 Comp Equal
                 Pass Zero   // We can clear the bit since we won't need anymore.
             }

@@ -17,8 +17,6 @@ public class DebugViewController : MonoBehaviour
     [Header("Rendering")]
     [SerializeField] int fullScreenDebugMode = 0;
 
-    [SerializeField] bool lightlayers = false;
-
     [ContextMenu("Set Debug View")]
     public void SetDebugView()
     {
@@ -28,16 +26,12 @@ public class DebugViewController : MonoBehaviour
         {
             case SettingType.Material:
                 hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(gBuffer);
+                hdPipeline.debugDisplaySettings.data.fullScreenDebugMode = FullScreenDebugMode.None;
                 break;
             case SettingType.Rendering:
-                hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode) fullScreenDebugMode);
+                hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(0);
+                hdPipeline.debugDisplaySettings.data.fullScreenDebugMode = (FullScreenDebugMode) fullScreenDebugMode;
                 break;
-        }
-
-        if (lightlayers)
-        {
-            hdPipeline.debugDisplaySettings.SetDebugLightLayersMode(true);
-            hdPipeline.debugDisplaySettings.data.lightingDebugSettings.debugLightLayersFilterMask = (DebugLightLayersMask)0b10111101;
         }
     }
 
@@ -45,6 +39,9 @@ public class DebugViewController : MonoBehaviour
     {
         HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         if (hdPipeline != null)
-            ((IDebugData)hdPipeline.debugDisplaySettings).GetReset().Invoke();
+        {
+            hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(0);
+            hdPipeline.debugDisplaySettings.data.fullScreenDebugMode = FullScreenDebugMode.None;
+        }
     }
 }

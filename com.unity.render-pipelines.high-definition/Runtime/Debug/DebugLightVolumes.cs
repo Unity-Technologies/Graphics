@@ -131,7 +131,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     case HDLightType.Point:
                         mpb.SetColor(_ColorShaderID, new Color(0.0f, 0.5f, 0.0f, 1.0f));
                         mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
-                        mpb.SetVector(_RangeShaderID, new Vector3(currentLegacyLight.range, currentLegacyLight.range, currentLegacyLight.range));
                         cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, parameters.debugLightVolumeMaterial, 0, 0, mpb);
                         break;
                     case HDLightType.Spot:
@@ -165,13 +164,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             case AreaLightShape.Rectangle:
                                 mpb.SetColor(_ColorShaderID, new Color(0.0f, 1.0f, 1.0f, 1.0f));
                                 mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
-                                mpb.SetVector(_RangeShaderID, new Vector3(currentLegacyLight.range, currentLegacyLight.range, currentLegacyLight.range));
                                 cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, parameters.debugLightVolumeMaterial, 0, 0, mpb);
                                 break;
                             case AreaLightShape.Tube:
                                 mpb.SetColor(_ColorShaderID, new Color(1.0f, 0.0f, 0.5f, 1.0f));
                                 mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
-                                mpb.SetVector(_RangeShaderID, new Vector3(currentLegacyLight.range, currentLegacyLight.range, currentLegacyLight.range));
                                 cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, parameters.debugLightVolumeMaterial, 0, 0, mpb);
                                 break;
                             default:
@@ -237,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderLightVolumes(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, LightingDebugSettings lightDebugSettings, RTHandle finalRT)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayLightVolume)))
+            using (new ProfilingSample(cmd, "Display Light Volumes"))
             {
                 // Clear the buffers
                 CoreUtils.SetRenderTarget(cmd, m_ColorAccumulationBuffer, ClearFlag.Color, Color.black);

@@ -16,7 +16,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
     int _HasGroundAlbedoTexture;    // bool...
     int _HasGroundEmissionTexture;  // bool...
@@ -77,7 +76,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         float3 N; float r; // These params correspond to the entry point
         float tEntry = IntersectAtmosphere(O, V, N, r).x;
-        float tExit  = IntersectAtmosphere(O, V, N, r).y;
 
         float NdotV  = dot(N, V);
         float cosChi = -NdotV;
@@ -100,10 +98,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                 // Use scalar or integer cores (more efficient).
                 bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
 
-                // Celestial body must be outside the atmosphere (request from Pierre D).
-                float lightDist = max(light.distanceFromCamera, tExit);
-
-                if (interactsWithSky && asint(light.angularDiameter) != 0 && lightDist < tFrag)
+                if (interactsWithSky && asint(light.angularDiameter) != 0 && light.distanceFromCamera <= tFrag)
                 {
                     // We may be able to see the celestial body.
                     float3 L = -light.forward.xyz;
@@ -114,8 +109,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     float cosInner = cos(radInner);
                     float cosOuter = cos(radInner + light.flareSize);
 
-                    // float solidAngle = TWO_PI * (1 - cosInner);
                     float solidAngle = 1; // Don't scale...
+                    // float solidAngle = TWO_PI * (1 - cosInner);
 
                     if (LdotV >= cosOuter)
                     {
@@ -126,20 +121,18 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                         if (LdotV >= cosInner) // Sun disk.
                         {
-                            tFrag = lightDist;
+                            tFrag = light.distanceFromCamera;
 
-                            if (light.surfaceTextureScaleOffset.x > 0)
+                            if (light.surfaceTextureIndex != -1)
                             {
                                 // The cookie code de-normalizes the axes.
                                 float2 proj   = float2(dot(-V, normalize(light.right)), dot(-V, normalize(light.up)));
                                 float2 angles = HALF_PI - acos(proj);
                                 float2 uv     = angles * rcp(radInner) * 0.5 + 0.5;
 
-                                color *= SampleCookie2D(uv, light.surfaceTextureScaleOffset);
-                                // color *= SAMPLE_TEXTURE2D_ARRAY(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex).rgb;
+                                color *= SAMPLE_TEXTURE2D_ARRAY(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex).rgb;
+                                color *= light.surfaceTint;
                             }
-                            
-                            color *= light.surfaceTint;
                         }
                         else // Flare region.
                         {
@@ -150,7 +143,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                             scale *= pow(w, light.flareFalloff);
                         }
 
-                        radiance += color * scale;
+                        radiance = color * scale;
                     }
                 }
             }

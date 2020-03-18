@@ -39,6 +39,18 @@ namespace UnityEngine.Rendering.HighDefinition
         internal readonly Matrix4x4 clusterDisplayParams;
         internal readonly Mesh occlusionMesh;
         internal readonly int textureArraySlice;
+        internal readonly Camera.StereoscopicEye legacyStereoEye;
+
+        internal XRView(Camera camera, Camera.StereoscopicEye eye, int dstSlice)
+        {
+            projMatrix = camera.GetStereoProjectionMatrix(eye);
+            viewMatrix = camera.GetStereoViewMatrix(eye);
+            viewport = camera.pixelRect;
+            clusterDisplayParams = Matrix4x4.zero;
+            occlusionMesh = null;
+            textureArraySlice = dstSlice;
+            legacyStereoEye = eye;
+        }
 
         internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, Matrix4x4 clusterDisplay, int dstSlice)
         {
@@ -48,6 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
             occlusionMesh = null;
             clusterDisplayParams = clusterDisplay;
             textureArraySlice = dstSlice;
+            legacyStereoEye = (Camera.StereoscopicEye)(-1);
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -58,6 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
             viewport = renderParameter.viewport;
             occlusionMesh = renderParameter.occlusionMesh;
             textureArraySlice = renderParameter.textureArraySlice;
+            legacyStereoEye = (Camera.StereoscopicEye)(-1);
 
             // Convert viewport from normalized to screen space
             viewport.x      *= renderPass.renderTargetDesc.width;
@@ -87,10 +101,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool                    renderTargetValid { get => renderTarget != invalidRT; }
 
         // Access to view information
-        internal Matrix4x4 GetProjMatrix(int viewIndex = 0)           { return views[viewIndex].projMatrix; }
-        internal Matrix4x4 GetViewMatrix(int viewIndex = 0)           { return views[viewIndex].viewMatrix; }
-        internal int GetTextureArraySlice(int viewIndex = 0)          { return views[viewIndex].textureArraySlice; }
-        internal Rect GetViewport(int viewIndex = 0)                  { return views[viewIndex].viewport; }
+        internal Matrix4x4 GetProjMatrix(int viewIndex = 0)  { return views[viewIndex].projMatrix; }
+        internal Matrix4x4 GetViewMatrix(int viewIndex = 0)  { return views[viewIndex].viewMatrix; }
+        internal int GetTextureArraySlice(int viewIndex = 0) { return views[viewIndex].textureArraySlice; }
+        internal Rect GetViewport(int viewIndex = 0)         { return views[viewIndex].viewport; }
         internal Matrix4x4 GetClusterDisplayParams(int viewIndex = 0) { return views[viewIndex].clusterDisplayParams; }
 
         // Combined projection and view matrices for culling
@@ -107,6 +121,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public delegate void CustomMirrorView(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport);
         CustomMirrorView customMirrorView = null;
         internal void SetCustomMirrorView(CustomMirrorView callback) => customMirrorView = callback;
+
+        // Legacy multipass support
+        internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
+        internal bool legacyMultipassEnabled  { get => enabled && !singlePassEnabled && legacyMultipassEye >= 0; }
 
         internal static XRPass Create(XRPassCreateInfo createInfo)
         {
@@ -134,6 +152,11 @@ namespace UnityEngine.Rendering.HighDefinition
             passInfo.copyDepth = false;
 
             return passInfo;
+        }
+
+        internal void AddView(Camera camera, Camera.StereoscopicEye eye, int textureArraySlice = -1)
+        {
+            AddViewInternal(new XRView(camera, eye, textureArraySlice));
         }
 
         internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, Matrix4x4 clusterDisplayParams, int textureArraySlice = -1)
@@ -183,26 +206,32 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                if (xrSdkEnabled)
-                {
-                    Debug.LogWarning("If you're trying to enable XR single-pass after the first frame, you need to set TextureXR.maxViews to 2 before the render pipeline is created (typically in a script with Awake()).");
-                }
-
                 throw new NotImplementedException($"Invalid XR setup for single-pass, trying to add too many views! Max supported: {maxSupportedViews}");
             }
         }
 
-        /// <summary>
-        /// Enable XR single-pass rendering.
-        /// </summary>
-        public void StartSinglePass(CommandBuffer cmd)
+        internal void StartSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
         {
             if (enabled)
             {
                 // Required for some legacy shaders (text for example)
                 cmd.SetViewProjectionMatrices(GetViewMatrix(), GetProjMatrix());
 
-                if (singlePassEnabled)
+                if (camera.stereoEnabled)
+                {
+                    // Reset scissor and viewport for C++ stereo code
+                    cmd.DisableScissorRect();
+                    cmd.SetViewport(camera.pixelRect);
+
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+
+                    if (legacyMultipassEnabled)
+                        renderContext.StartMultiEye(camera, legacyMultipassEye);
+                    else
+                        renderContext.StartMultiEye(camera);
+                }
+                else if (singlePassEnabled)
                 {
                     if (viewCount <= TextureXR.slices)
                     {
@@ -217,43 +246,44 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>
-        /// Disable XR single-pass rendering.
-        /// </summary>
-        public void StopSinglePass(CommandBuffer cmd)
+        internal void StopSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
         {
             if (enabled)
             {
-                cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
-                cmd.SetInstanceMultiplier(1);
+                if (camera.stereoEnabled)
+                {
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+                    renderContext.StopMultiEye(camera);
+                }
+                else
+                {
+                    cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
+                    cmd.SetInstanceMultiplier(1);
+                }
             }
         }
 
-        /// <summary>Obsolete</summary>
-        [Obsolete]
-        public void StartSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
-        {
-            StartSinglePass(cmd);
-        }
-
-        /// <summary>Obsolete</summary>
-        [Obsolete]
-        public void StopSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
-        {
-            StopSinglePass(cmd);
-        }
-
-        internal void EndCamera(CommandBuffer cmd, HDCamera hdCamera)
+        internal void EndCamera(CommandBuffer cmd, HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
             if (!enabled)
                 return;
 
-            StopSinglePass(cmd);
+            StopSinglePass(cmd, hdCamera.camera, renderContext);
+
+            // Legacy VR - push to XR headset and/or display mirror
+            if (hdCamera.camera.stereoEnabled)
+            {
+                if (legacyMultipassEnabled)
+                    renderContext.StereoEndRender(hdCamera.camera, legacyMultipassEye, legacyMultipassEye == 1);
+                else
+                    renderContext.StereoEndRender(hdCamera.camera);
+            }
 
             // Callback for custom mirror view
             if (customMirrorView != null)
             {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.XRCustomMirrorView)))
+                using (new ProfilingSample(cmd, "XR Custom Mirror View"))
                 {
                     customMirrorView(this, cmd, hdCamera.camera.targetTexture, hdCamera.camera.pixelRect);
                 }
@@ -264,7 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
             {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.XROcclusionMesh)))
+                using (new ProfilingSample(cmd, "XR Occlusion Mesh"))
                 {
                     Matrix4x4 m = Matrix4x4.Ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
 

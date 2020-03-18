@@ -2,7 +2,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     // Deprecated, kept for migration
     [VolumeComponentDeprecated()]
-    class VolumetricFog : AtmosphericScattering
+    public class VolumetricFog : AtmosphericScattering
     {
         public ColorParameter        albedo                 = new ColorParameter(Color.white);
         public MinFloatParameter     meanFreePath           = new MinFloatParameter(1000000.0f, 1.0f);

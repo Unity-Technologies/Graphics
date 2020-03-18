@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 224;
+            return 180;
         }
     }
 
@@ -60,7 +60,6 @@ namespace UnityEditor.VFX.UI
     {
         public Matrix4x4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            m_FieldParent.style.flexDirection = FlexDirection.Row;
         }
 
         public override float GetPreferredControlWidth()
@@ -77,7 +76,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 120;
+            return 100;
         }
     }
 

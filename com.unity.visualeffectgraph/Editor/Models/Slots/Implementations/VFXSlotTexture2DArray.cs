@@ -6,11 +6,11 @@ using UnityEngine.Rendering;
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(Texture2DArray))]
-    class VFXSlotTexture2DArray : VFXSlotObject
+    class VFXSlotTexture2DArray : VFXSlot
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXTexture2DArrayValue(0, mode);
+            return new VFXTexture2DArrayValue(null, mode);
         }
     }
 }

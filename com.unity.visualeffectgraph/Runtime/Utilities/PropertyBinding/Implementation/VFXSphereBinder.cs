@@ -1,4 +1,3 @@
-#if VFX_HAS_PHYSICS
 using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
@@ -55,4 +54,3 @@ namespace UnityEngine.VFX.Utility
         }
     }
 }
-#endif

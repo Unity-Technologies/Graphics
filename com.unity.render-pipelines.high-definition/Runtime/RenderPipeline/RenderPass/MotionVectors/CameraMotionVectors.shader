@@ -1,11 +1,5 @@
 Shader "Hidden/HDRP/CameraMotionVectors"
 {
-    Properties
-    {
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 128
-        [HideInInspector] _StencilMask("_StencilMask", Int) = 128
-    }
-
     HLSLINCLUDE
 
         #pragma target 4.5
@@ -15,7 +9,7 @@ Shader "Hidden/HDRP/CameraMotionVectors"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"        
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
         struct Attributes
         {
@@ -78,9 +72,9 @@ Shader "Hidden/HDRP/CameraMotionVectors"
             // We will perform camera motion vector only where there is no object motion vectors
             Stencil
             {
-                WriteMask [_StencilMask]
-                ReadMask [_StencilMask]
-                Ref [_StencilRef]
+                WriteMask 128
+                ReadMask 128
+                Ref  128 // StencilBitMask.ObjectMotionVectors
                 Comp NotEqual
                 Fail Zero   // We won't need the bit anymore.
             }

@@ -5,12 +5,12 @@
 void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     // The first thing that we should do is grab the intersection vertice
-    IntersectionVertex currentVertex;
-    GetCurrentIntersectionVertex(attributeData, currentVertex);
+    IntersectionVertex currentvertex;
+    GetCurrentIntersectionVertex(attributeData, currentvertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, rayIntersectionGbuffer.incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentvertex, rayIntersectionGbuffer.incidentDirection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersectionGbuffer.incidentDirection;
@@ -26,8 +26,7 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    bool isVisible;
-    GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersectionGbuffer.cone, isVisible);
+    GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersectionGbuffer.cone, surfaceData, builtinData);
 
     // Sometimes, we only  want to use the diffuse when we compute the indirect diffuse
     #ifdef DIFFUSE_LIGHTING_ONLY
@@ -53,12 +52,12 @@ void AnyHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_RayP
     IgnoreHit();
 #else
     // The first thing that we should do is grab the intersection vertice
-    IntersectionVertex currentVertex;
-    GetCurrentIntersectionVertex(attributeData, currentVertex);
+    IntersectionVertex currentvertex;
+    GetCurrentIntersectionVertex(attributeData, currentvertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, rayIntersectionGbuffer.incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentvertex, rayIntersectionGbuffer.incidentDirection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersectionGbuffer.incidentDirection;
@@ -70,8 +69,7 @@ void AnyHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_RayP
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    bool isVisible;
-    GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersectionGbuffer.cone, isVisible);
+    bool isVisible = GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersectionGbuffer.cone, surfaceData, builtinData);
 
     // If this fella should be culled, then we cull it
     if(!isVisible)

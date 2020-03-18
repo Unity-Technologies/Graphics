@@ -110,27 +110,38 @@ namespace UnityEditor.Rendering.HighDefinition
     internal static class MaterialExtension
     {
         public static SurfaceType   GetSurfaceType(this Material material)
-            => material.HasProperty(kSurfaceType) ? (SurfaceType)material.GetFloat(kSurfaceType) : SurfaceType.Opaque;
+        {
+            return material.HasProperty(kSurfaceType) ? (SurfaceType)material.GetFloat(kSurfaceType) : SurfaceType.Opaque;
+        }
 
         public static MaterialId    GetMaterialId(this Material material)
-            => material.HasProperty(kMaterialID) ? (MaterialId)material.GetFloat(kMaterialID) : MaterialId.LitStandard;
+        {
+            return material.HasProperty(kMaterialID) ? (MaterialId)material.GetFloat(kMaterialID) : MaterialId.LitStandard;
+        }
 
         public static BlendMode     GetBlendMode(this Material material)
-            => material.HasProperty(kBlendMode) ? (BlendMode)material.GetFloat(kBlendMode) : BlendMode.Additive;
+        {
+            return material.HasProperty(kBlendMode) ? (BlendMode)material.GetFloat(kBlendMode) : BlendMode.Additive;
+        }
 
         public static int           GetLayerCount(this Material material)
-            => material.HasProperty(kLayerCount) ? material.GetInt(kLayerCount) : 1;
+        {
+            return material.HasProperty(kLayerCount) ? material.GetInt(kLayerCount) : 1;
+        }
 
         public static bool          GetZWrite(this Material material)
-            => material.HasProperty(kZWrite) ? material.GetInt(kZWrite) == 1 : false;
-
-        public static bool          GetTransparentZWrite(this Material material)
-            => material.HasProperty(kTransparentZWrite) ? material.GetInt(kTransparentZWrite) == 1 : false;
+        {
+            return material.HasProperty(kZWrite) ? material.GetInt(kZWrite) == 1 : false;
+        }
 
         public static CullMode      GetTransparentCullMode(this Material material)
-            => material.HasProperty(kTransparentCullMode) ? (CullMode)material.GetInt(kTransparentCullMode) : CullMode.Back;
+        {
+            return material.HasProperty(kTransparentCullMode) ? (CullMode)material.GetInt(kTransparentCullMode) : CullMode.Back;
+        }
 
         public static CompareFunction   GetTransparentZTest(this Material material)
-            => material.HasProperty(kZTestTransparent) ? (CompareFunction)material.GetInt(kZTestTransparent) : CompareFunction.LessEqual;
+        {
+            return material.HasProperty(kZTestTransparent) ? (CompareFunction)material.GetInt(kZTestTransparent) : CompareFunction.LessEqual;
+        }
     }
 }

@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_MotionVectorsRT = null;
         RTHandle m_CameraDepthStencilBuffer = null;
         // Needed in case passes will need to read stencil per pixel rather than per sample
-        // The best we can do for resolve is an OR of all samples, however this is inaccurate by nature.
+        // The best we can do for resolve is an OR of all samples, however this is inaccurate by nature. 
         RTHandle m_StencilBufferResolved;
         RTHandle m_CameraDepthBufferMipChain;
         RTHandle m_CameraHalfResDepthBuffer = null;
@@ -23,8 +23,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_CameraDepthStencilMSAABuffer;
         // This texture stores a set of depth values that are required for evaluating a bunch of effects in MSAA mode (R = Samples Max Depth, G = Samples Min Depth, G =  Samples Average Depth)
         RTHandle m_CameraDepthValuesBuffer = null;
-
-        ComputeBuffer m_CoarseStencilBuffer = null;
 
         // MSAA resolve materials
         Material m_DepthResolveMaterial  = null;
@@ -51,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void InitSharedBuffers(GBufferManager gbufferManager, RenderPipelineSettings settings, RenderPipelineResources resources)
         {
             // Set the flags
-            m_MSAASupported = settings.supportMSAA && settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
+            m_MSAASupported = settings.supportMSAA;
             m_MSAASamples = m_MSAASupported ? settings.msaaSampleCount : MSAASamples.None;
             m_MotionVectorsSupport = settings.supportMotionVectors;
             m_ReuseGBufferMemory = settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
@@ -95,8 +93,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.depthValuesPS);
                 m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.colorResolvePS);
             }
-
-            AllocateCoarseStencilBuffer(RTHandles.maxWidth, RTHandles.maxHeight, TextureXR.slices);
 
             // If we are in the forward only mode
             if (!m_ReuseGBufferMemory)
@@ -214,11 +210,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public ComputeBuffer GetCoarseStencilBuffer()
-        {
-            return m_CoarseStencilBuffer;
-        }
-
         public RTHandle GetLowResDepthBuffer()
         {
             return m_CameraHalfResDepthBuffer;
@@ -264,17 +255,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void AllocateCoarseStencilBuffer(int width, int height, int viewCount)
-        {
-            if(width > 8 && height > 8)
-                m_CoarseStencilBuffer = new ComputeBuffer(HDUtils.DivRoundUp(width, 8) * HDUtils.DivRoundUp(height, 8) * viewCount, sizeof(uint));
-        }
-
-        public void DisposeCoarseStencilBuffer()
-        {
-            CoreUtils.SafeRelease(m_CoarseStencilBuffer);
-        }
-
         public void Cleanup()
         {
             if (!m_ReuseGBufferMemory)
@@ -294,7 +274,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_CameraDepthStencilBuffer);
             RTHandles.Release(m_CameraDepthBufferMipChain);
             RTHandles.Release(m_CameraHalfResDepthBuffer);
-            DisposeCoarseStencilBuffer();
 
             if (m_MSAASupported)
             {
@@ -340,18 +319,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAADepth)))
+                using (new ProfilingSample(cmd, "ComputeDepthValues", CustomSamplerId.VolumeUpdate.GetSampler()))
                 {
                     // Grab the RTIs and set the output render targets
-                    m_RTIDs3[0] = m_CameraDepthValuesBuffer.nameID;
-                    m_RTIDs3[1] = m_NormalRT.nameID;
-                    m_RTIDs3[2] = m_MotionVectorsRT.nameID;
-                    CoreUtils.SetRenderTarget(cmd, m_RTIDs3, m_CameraDepthStencilBuffer);
+                    m_RTIDs2[0] = m_CameraDepthValuesBuffer.nameID;
+                    m_RTIDs2[1] = m_NormalRT.nameID;
+                    CoreUtils.SetRenderTarget(cmd, m_RTIDs2, m_CameraDepthStencilBuffer);
 
                     // Set the input textures
                     Shader.SetGlobalTexture(HDShaderIDs._NormalTextureMS, m_NormalMSAART);
                     Shader.SetGlobalTexture(HDShaderIDs._DepthTextureMS, m_DepthAsColorMSAART);
-                    Shader.SetGlobalTexture(HDShaderIDs._MotionVectorTextureMS, m_MotionVectorsMSAART);
 
                     // Resolve the depth and normal buffers
                     cmd.DrawProcedural(Matrix4x4.identity, m_DepthResolveMaterial, SampleCountToPassIndex(m_MSAASamples), MeshTopology.Triangles, 3, 1);
@@ -363,7 +340,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAAColor)))
+                using (new ProfilingSample(cmd, "ResolveColor", CustomSamplerId.VolumeUpdate.GetSampler()))
                 {
                     // Grab the RTIs and set the output render targets
                     CoreUtils.SetRenderTarget(cmd, simpleTarget);

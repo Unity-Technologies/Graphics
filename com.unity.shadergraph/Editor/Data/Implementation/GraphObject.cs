@@ -104,10 +104,5 @@ namespace UnityEditor.Graphing
         {
             Validate();
         }
-
-        void OnDestroy()
-        {
-            graph?.OnDisable();
-        }
     }
 }

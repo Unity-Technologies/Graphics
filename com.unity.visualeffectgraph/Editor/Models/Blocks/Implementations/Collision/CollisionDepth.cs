@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.Block
             {
                 var expressions = CameraHelper.AddCameraExpressions(base.parameters, camera);
 
-                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions, ((VFXDataParticle)GetData()).space);
+                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions);
 
                 // Filter unused expressions
                 expressions = expressions.Where(t =>

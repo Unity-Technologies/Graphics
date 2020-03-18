@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.VFX;
 
-class IncrementStripIndexOnStart : VFXSpawnerCallbacks
+public class IncrementStripIndexOnStart : VFXSpawnerCallbacks
 {
     public class InputProperties
     {

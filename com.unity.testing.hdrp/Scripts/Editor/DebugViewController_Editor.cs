@@ -13,16 +13,12 @@ public class DebugViewController_Editor : Editor
     SerializedProperty s_gBuffer;
     SerializedProperty s_fullScreenDebugMode;
 
-    SerializedProperty s_lightlayers;
-
     public void OnEnable()
     {
         s_settingType = serializedObject.FindProperty("settingType");
 
         s_gBuffer = serializedObject.FindProperty("gBuffer");
         s_fullScreenDebugMode = serializedObject.FindProperty("fullScreenDebugMode");
-
-        s_lightlayers = serializedObject.FindProperty("lightlayers");
     }
 
     public override void OnInspectorGUI()
@@ -48,8 +44,6 @@ public class DebugViewController_Editor : Editor
                     s_fullScreenDebugMode.intValue = EditorGUILayout.IntPopup(new GUIContent("GBuffer"), s_fullScreenDebugMode.intValue, DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues);
                     break;
             }
-
-            s_lightlayers.boolValue = GUILayout.Toggle(s_lightlayers.boolValue, "Enable light layers debug");
         }
 
         if ( serializedObject.ApplyModifiedProperties() )

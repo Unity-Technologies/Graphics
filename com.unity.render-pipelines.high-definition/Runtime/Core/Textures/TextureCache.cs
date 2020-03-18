@@ -55,10 +55,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_NumMipLevels = 0;
         }
 
-        virtual public bool IsCreated()
-        {
-            return true;
-        }
         public string GetCacheName()
         {
             return m_CacheName;
@@ -164,8 +160,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_SliceArray[sliceIndex].countLRU = 0;      // mark slice as in use this frame
             }
-
-            needUpdate |= !IsCreated();
 
             return sliceIndex;
         }

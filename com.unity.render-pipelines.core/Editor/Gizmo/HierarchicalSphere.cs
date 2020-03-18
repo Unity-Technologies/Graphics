@@ -115,7 +115,6 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>Draw the hull which means the boxes without the handles</summary>
-        /// <param name="filled">If true, also draw the surface of the hull's sphere</param>
         public void DrawHull(bool filled)
         {
             Color wireframeColor = m_HandleColor;

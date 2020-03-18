@@ -179,7 +179,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             public int totalLights;
             public int totalNormalMapUsage;
             public int totalVolumetricUsage;
-            public uint blendStylesUsed;
         }
 
         /// <summary>
@@ -283,20 +282,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             Light2DManager.cullingGroup.SetBoundingSpheres(Light2DManager.boundingSpheres);
             Light2DManager.cullingGroup.SetBoundingSphereCount(currentLightCullingIndex);
-        }
-
-        internal static bool IsSceneLit(Camera camera)
-        {
-            for (int layer = 0; layer < Light2DManager.lights.Length; layer++)
-            {
-                List<Light2D> lightList = Light2DManager.lights[layer];
-                for (int lightIndex = 0; lightIndex < lightList.Count; lightIndex++)
-                {
-                    if (lightList[lightIndex].lightType == LightType.Global || lightList[lightIndex].IsLightVisible(camera))
-                        return true;
-                }
-            }
-            return false;
         }
 
         internal static List<Light2D> GetLightsByBlendStyle(int blendStyleIndex)
@@ -506,9 +491,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         if (light.volumeOpacity > 0)
                             returnStats.totalVolumetricUsage++;
                     }
-
-                    uint blendStyleUsed = (uint)(1 << light.blendStyleIndex);
-                    returnStats.blendStylesUsed |= blendStyleUsed;
                 }
 
             }

@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(PhysicallyBasedSky))]
-    class PhysicallyBasedSkyEditor : SkySettingsEditor
+    public class PhysicallyBasedSkyEditor : SkySettingsEditor
     {
         SerializedDataParameter m_EarthPreset;
         SerializedDataParameter m_SphericalMode;

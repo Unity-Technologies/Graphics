@@ -4,17 +4,17 @@ These are the post-processing effects that are available in the Universal Render
 
 
 
-* [Bloom](post-processing-bloom.md)
+* Bloom
 
 * [Channel Mixed](Post-Processing-Channel-Mixer.md)
 
-* [Chromatic Aberration](post-processing-chromatic-aberration.md)
+* Chromatic Aberration
 
 * [Color Adjustments](Post-Processing-Color-Adjustments.md)
 
 * [Color Curves](Post-Processing-Color-Curves.md)
 
-* [Depth of Field](post-processing-depth-of-field.md)
+* Depth of Field
 
 * [Film Grain](Post-Processing-Film-Grain.md)
 
@@ -28,11 +28,11 @@ These are the post-processing effects that are available in the Universal Render
 
 * [Shadows Midtones Highlights](Post-Processing-Shadows-Midtones-Highlights.md)
 
-* [Split Toning](Post-Processing-Split-Toning.md)
+* [Split Tones](Post-Processing-Split-Tones.md)
 
-* [Tonemapping](post-processing-tonemapping.md)
+* Tonemapping
 
-* [Vignette](post-processing-vignette.md)
+* Vignette
 
 * [White Balance](Post-Processing-White-Balance.md)
 

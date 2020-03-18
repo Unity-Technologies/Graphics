@@ -4,7 +4,7 @@ using UnityEditor.AssetImporters;
 
 namespace UnityEditor.Rendering.Universal
 {
-    class SketchupMaterialDescriptionPreprocessor : AssetPostprocessor
+    public class SketchupMaterialDescriptionPreprocessor : AssetPostprocessor
     {
         static readonly uint k_Version = 1;
         static readonly int k_Order = 2;

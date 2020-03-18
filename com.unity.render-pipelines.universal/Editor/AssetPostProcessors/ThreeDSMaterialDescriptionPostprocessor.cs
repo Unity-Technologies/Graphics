@@ -1,11 +1,10 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 using UnityEditor.AssetImporters;
 
 namespace UnityEditor.Rendering.Universal
 {
-    class ThreeDSMaterialDescriptionPreprocessor : AssetPostprocessor
+    public class ThreeDSMaterialDescriptionPreprocessor : AssetPostprocessor
     {
         static readonly uint k_Version = 1;
         static readonly int k_Order = 2;

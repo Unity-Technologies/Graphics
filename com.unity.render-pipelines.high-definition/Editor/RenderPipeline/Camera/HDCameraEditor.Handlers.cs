@@ -35,7 +35,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // We need to explicitly reset the camera type here
             // It is probably a CameraType.Game, because we copied the source camera's properties.
             m_PreviewCamera.cameraType = CameraType.Preview;
-            m_PreviewCamera.gameObject.SetActive(false);
 
             var previewTexture = GetPreviewTextureWithSize((int)previewSize.x, (int)previewSize.y);
             m_PreviewCamera.targetTexture = previewTexture;

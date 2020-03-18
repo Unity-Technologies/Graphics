@@ -33,8 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty shadowFilteringQuality;
 
         public SerializedProperty supportScreenSpaceShadows;
-        public SerializedProperty maxScreenSpaceShadowSlots;
-        public SerializedProperty screenSpaceShadowBufferFormat;
+        public SerializedProperty maxScreenSpaceShadows;
 
         public SerializedHDShadowInitParameters(SerializedProperty root)
         {
@@ -59,8 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             shadowFilteringQuality = root.Find((HDShadowInitParameters s) => s.shadowFilteringQuality);
             supportScreenSpaceShadows = root.Find((HDShadowInitParameters s) => s.supportScreenSpaceShadows);
-            maxScreenSpaceShadowSlots = root.Find((HDShadowInitParameters s) => s.maxScreenSpaceShadowSlots);
-            screenSpaceShadowBufferFormat = root.Find((HDShadowInitParameters s) => s.screenSpaceShadowBufferFormat);
+            maxScreenSpaceShadows = root.Find((HDShadowInitParameters s) => s.maxScreenSpaceShadows);
         }
     }
 }

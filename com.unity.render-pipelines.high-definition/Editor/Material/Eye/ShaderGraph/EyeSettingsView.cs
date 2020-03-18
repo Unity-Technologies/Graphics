@@ -223,7 +223,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-
             ps.Add(new PropertyRow(CreateLabel("Support LOD CrossFade", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>

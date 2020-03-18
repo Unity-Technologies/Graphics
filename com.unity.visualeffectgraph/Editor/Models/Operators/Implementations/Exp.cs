@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                return ValidTypeRule.allowEverythingExceptIntegerAndDirection;
+                return ValidTypeRule.allowEverythingExceptInteger;
             }
         }
     }

@@ -40,6 +40,19 @@ namespace UnityEditor.VFX
         public bool valid => field != null && instance != null;
         public string name => field != null ? field.Name : null;
 
-        public object value => field.GetValue(instance);
+        public object value
+        {
+            get
+            {
+                return field.GetValue(instance);
+            }
+
+            set
+            {
+                field.SetValue(instance, value);
+                instance.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+            }
+        }
+
     }
 }

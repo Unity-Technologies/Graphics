@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Visual Effect")]
-    sealed class VfxMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition
+    sealed class VfxMasterNode : MasterNode, IMayRequirePosition
     {
         const string BaseColorSlotName = "Base Color";
         const string MetallicSlotName = "Metallic";
@@ -106,6 +106,10 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(usedSlots);
         }
 
+        public override void ProcessPreviewMaterial(Material previewMaterial)
+        {
+        }
+
         class SettingsView : VisualElement
         {
             readonly VfxMasterNode m_Node;
@@ -142,22 +146,9 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public VisualElement CreateSettingsElement()
+        protected override VisualElement CreateCommonSettingsElement()
         {
             return new SettingsView(this);
-        }
-
-        public string renderQueueTag => null;
-        public string renderTypeTag => null;
-
-        public ConditionalField[] GetConditionalFields(PassDescriptor pass)
-        {
-            return null;
-        }
-
-        public void ProcessPreviewMaterial(Material material)
-        {
-
         }
 
         public override bool hasPreview => false;
@@ -176,6 +167,21 @@ namespace UnityEditor.ShaderGraph
                 validSlots.Add(slots[i]);
             }
             return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
+        }
+
+        public override string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
+        {
+            return true;
+        }
+
+        public override int GetPreviewPassIndex()
+        {
+            return 0;
         }
     }
 }

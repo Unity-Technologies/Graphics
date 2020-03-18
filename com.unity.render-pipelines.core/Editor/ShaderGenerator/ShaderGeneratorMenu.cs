@@ -2,7 +2,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    class ShaderGeneratorMenu
+    public class ShaderGeneratorMenu
     {
         [MenuItem("Edit/Render Pipeline/Generate Shader Includes", priority = CoreUtils.editMenuPriority1)]
         static void GenerateShaderIncludes()

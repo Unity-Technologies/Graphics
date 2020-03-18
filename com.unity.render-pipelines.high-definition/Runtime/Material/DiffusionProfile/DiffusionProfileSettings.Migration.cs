@@ -14,20 +14,22 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Initial,                // 16 profiles per asset
             DiffusionProfileRework, // one profile per asset
+            // This must stay updated to the latest version
+            Last = DiffusionProfileRework,
         }
 
         [Obsolete("Profiles are obsolete, only one diffusion profile per asset is allowed.")]
-        internal DiffusionProfile this[int index]
+        public DiffusionProfile this[int index]
         {
             get => profile;
         }
 
         [SerializeField]
-        Version m_Version = MigrationDescription.LastVersion<Version>();
+        Version m_Version;
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
         [Obsolete("Profiles are obsolete, only one diffusion profile per asset is allowed.")]
-        internal DiffusionProfile[] profiles;
+        public DiffusionProfile[] profiles;
 
         static readonly MigrationDescription<Version, DiffusionProfileSettings> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.DiffusionProfileRework, (DiffusionProfileSettings d) =>
@@ -160,33 +162,24 @@ namespace UnityEngine.Rendering.HighDefinition
             if (mat.shader.name.StartsWith("HDRP/"))
             {
                 // Set the reference value for the stencil test.
-                int stencilRef = (int)StencilUsage.Clear;
-                int stencilWriteMask = (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering;
-                int stencilGBufferRef = (int)StencilUsage.RequiresDeferredLighting;
-                int stencilGBufferMask = (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering;
-
+                int stencilRef = (int)StencilLightingUsage.RegularLighting;
+                int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
                 if (mat.HasProperty("_MaterialID") && (int)mat.GetFloat("_MaterialID") == 0) // 0 is MaterialId.LitSSS
                 {
-                    stencilRef = (int)StencilUsage.SubsurfaceScattering;
-                    stencilGBufferRef |= (int)StencilUsage.SubsurfaceScattering;
+                    stencilRef = (int)StencilLightingUsage.SplitLighting;
                 }
 
-                if(mat.HasProperty("_ReceivesSSR") && mat.GetInt("_ReceivesSSR") == 1)
+                if(mat.HasProperty("_ReceivesSSR") && mat.GetInt("_ReceivesSSR") == 0)
                 {
-                    stencilWriteMask |= (int)StencilUsage.TraceReflectionRay;
-                    stencilRef |= (int)StencilUsage.TraceReflectionRay;
-                    stencilGBufferMask |= (int)StencilUsage.TraceReflectionRay;
-                    stencilGBufferRef |= (int)StencilUsage.TraceReflectionRay;
-
+                    stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+                    stencilRef |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
                 }
 
                 // As we tag both during motion vector pass and Gbuffer pass we need a separate state and we need to use the write mask
                 mat.SetInt("_StencilRef", stencilRef);
                 mat.SetInt("_StencilWriteMask", stencilWriteMask);
-                mat.SetInt("_StencilRefGBuffer", stencilGBufferRef);
-                mat.SetInt("_StencilWriteMaskGBuffer", stencilGBufferMask);
-                mat.SetInt("_StencilRefMV", (int)StencilUsage.ObjectMotionVector);
-                mat.SetInt("_StencilWriteMaskMV", (int)StencilUsage.ObjectMotionVector);
+                mat.SetInt("_StencilRefMV", (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors);
+                mat.SetInt("_StencilWriteMaskMV", (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors);
             }
         }
 

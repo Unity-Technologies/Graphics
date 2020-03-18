@@ -60,7 +60,6 @@ namespace UnityEditor.VFX
                 yield return "blendMode";
                 yield return "castShadows";
                 yield return "sort";
-                yield return "useAlphaClipping";
             }
         }
 
@@ -121,11 +120,6 @@ namespace UnityEditor.VFX
                 shaderTags.Write("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXShaderTags}", shaderTags);
-
-                foreach (var additionnalStencilReplacement in subOutput.GetStencilStateOverridesStr())
-                {
-                    yield return additionnalStencilReplacement;
-                }
             }
         }
 

@@ -2,7 +2,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    partial class RenderPipelineResources : ScriptableObject, IVersionable<RenderPipelineResources.Version>
+    public partial class RenderPipelineResources : ScriptableObject, IVersionable<RenderPipelineResources.Version>
     {
         enum Version
         {
@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [HideInInspector, SerializeField, FormerlySerializedAs("version")]
-        Version m_Version = MigrationDescription.LastVersion<Version>();
+        Version m_Version = Version.First;  //keep former creation affectation
 
         Version IVersionable<Version>.version
         {

@@ -62,8 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
             var hdrp = HDRenderPipeline.defaultAsset;
-            if (hdrp != null)
-                m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
+            m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
             m_ReadBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
         }
 
@@ -80,8 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
 
-            // null material can happen when no HDRP asset is present.
-            if (hdri == null || m_IntegrateHDRISkyMaterial == null)
+            if (hdri == null)
                 return;
 
             m_IntegrateHDRISkyMaterial.SetTexture(HDShaderIDs._Cubemap, hdri);

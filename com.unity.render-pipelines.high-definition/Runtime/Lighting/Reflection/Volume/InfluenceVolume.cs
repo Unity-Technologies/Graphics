@@ -3,9 +3,6 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    /// <summary>
-    /// An influence volume.
-    /// </summary>
     [Serializable]
     public partial class InfluenceVolume
     {
@@ -220,9 +217,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Compute the minimal FOV required to see the full influence volume from <paramref name="viewerPositionWS"/>
         ///     while looking at <paramref name="lookAtPositionWS"/>.
         /// </summary>
-        /// <param name="viewerPositionWS">The viewer position in world space.</param>
-        /// <param name="lookAtPositionWS">The look at position in world space.</param>
-        /// <param name="influenceToWorld">The influence to world matrix.</param>
         /// <returns></returns>
         public float ComputeFOVAt(Vector3 viewerPositionWS, Vector3 lookAtPositionWS, Matrix4x4 influenceToWorld)
         {

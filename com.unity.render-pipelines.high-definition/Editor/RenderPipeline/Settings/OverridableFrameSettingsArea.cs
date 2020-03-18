@@ -16,9 +16,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly Dictionary<FrameSettingsField, FrameSettingsFieldAttribute> attributes;
         static Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>> attributesGroup = new Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>>();
 
-        /// <summary>Enumerates the keywords corresponding to frame settings properties.</summary>
-        internal static readonly string[] frameSettingsKeywords;
-
         FrameSettings defaultFrameSettings;
         SerializedFrameSettings serializedFrameSettings;
 
@@ -31,10 +28,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 attributes[value] = type.GetField(Enum.GetName(type, value)).GetCustomAttribute<FrameSettingsFieldAttribute>();
             }
-
-            frameSettingsKeywords = attributes
-                .Values.Where(v => !string.IsNullOrEmpty(v?.displayedName))
-                .Select(v => v.displayedName?.ToLowerInvariant()).ToArray();
         }
 
         private struct Field
@@ -171,7 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Rect fieldRect = lineRect;
             fieldRect.x = labelRect.xMax + k_LabelFieldSeparator;
             fieldRect.width -= fieldRect.x - lineRect.x;
-
+            
             if (withOverride)
             {
                 int currentIndent = EditorGUI.indentLevel;
@@ -182,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 overrideRect.yMin += 4f;
 
                 // MixedValueState is handled by style for small tickbox for strange reason
-                //EditorGUI.showMixedValue = mixedValue;
+                //EditorGUI.showMixedValue = mixedValue; 
                 bool modifiedValue = EditorGUI.Toggle(overrideRect, overrideTooltip, originalValue, mixedValue? CoreEditorStyles.smallMixedTickbox : CoreEditorStyles.smallTickbox);
                 //EditorGUI.showMixedValue = false;
 
@@ -195,7 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using(new SerializedFrameSettings.TitleDrawingScope(labelRect, field.label, serializedFrameSettings))
             {
-                HDEditorUtils.HandlePrefixLabelWithIndent(lineRect, labelRect, field.label);
+                EditorGUI.LabelField(labelRect, field.label);
             }
 
             using (new EditorGUI.DisabledScope(shouldBeDisabled))

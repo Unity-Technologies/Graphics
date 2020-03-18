@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
         {
             //The event shouldn't be able to report if this is disabled but if we know we're not going to report
             //Lets early out and not waste time gathering all the data
-            if (!EditorAnalytics.enabled)
+            if (!UnityEngine.Analytics.Analytics.enabled)
                 return;
 
             if (!EnableAnalytics())

@@ -1,8 +1,5 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    /// <summary>
-    /// Base class for sky rendering.
-    /// </summary>
     public abstract class SkyRenderer
     {
         int m_LastFrameUpdate = -1;
@@ -20,7 +17,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// HDRP calls this function once every frame. Implement it if your SkyRenderer needs to iterate independently of the user defined update frequency (see SkySettings UpdateMode).
         /// </summary>
-        /// <param name="builtinParams">Engine parameters that you can use to update the sky.</param>
         /// <returns>True if the update determines that sky lighting needs to be re-rendered. False otherwise.</returns>
         protected virtual bool Update(BuiltinSkyParameters builtinParams) { return false; }
 
@@ -80,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        internal bool DoUpdate(BuiltinSkyParameters parameters)
+        public bool DoUpdate(BuiltinSkyParameters parameters)
         {
             if (m_LastFrameUpdate < parameters.frameIndex)
             {

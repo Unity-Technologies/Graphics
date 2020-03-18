@@ -78,10 +78,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Shaders
             s_GroundIrradiancePrecomputationCS    = hdrpResources.shaders.groundIrradiancePrecomputationCS;
             s_InScatteredRadiancePrecomputationCS = hdrpResources.shaders.inScatteredRadiancePrecomputationCS;
+            s_PbrSkyMaterial                      = CoreUtils.CreateEngineMaterial(hdrpResources.shaders.physicallyBasedSkyPS);
             s_PbrSkyMaterialProperties            = new MaterialPropertyBlock();
-
-            if (s_PbrSkyMaterial == null) // Material instance is static.
-                s_PbrSkyMaterial = CoreUtils.CreateEngineMaterial(hdrpResources.shaders.physicallyBasedSkyPS);
 
             Debug.Assert(s_GroundIrradiancePrecomputationCS    != null);
             Debug.Assert(s_InScatteredRadiancePrecomputationCS != null);
@@ -198,7 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PrecomputeTables(CommandBuffer cmd)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.InScatteredRadiancePrecomputation)))
+            using (new ProfilingSample(cmd, "In-Scattered Radiance Precomputation"))
             {
                 int order = m_LastPrecomputedBounce + 1;
                 {

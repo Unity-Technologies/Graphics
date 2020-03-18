@@ -40,28 +40,17 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SerializedHDLight = new SerializedHDLight(m_AdditionalLightDatas, settings);
 
             // Update emissive mesh and light intensity when undo/redo
-            Undo.undoRedoPerformed += OnUndoRedo;
-        }
-
-        void OnDisable()
-        {
-            // Update emissive mesh and light intensity when undo/redo
-            Undo.undoRedoPerformed -= OnUndoRedo;
-        }
-
-        void OnUndoRedo()
-        {
-            // Serialized object is lossing references after an undo
-            if (m_SerializedHDLight.serializedObject.targetObject != null)
+            Undo.undoRedoPerformed += () =>
             {
-                m_SerializedHDLight.serializedObject.ApplyModifiedProperties();
-                foreach (var hdLightData in m_AdditionalLightDatas)
-                    if (hdLightData != null)
-                        hdLightData.UpdateAreaLightEmissiveMesh();
-            }
-
-            // if Type or ShowEmissive Mesh undone, we must fetxh again the emissive meshes
-            m_SerializedHDLight.FetchAreaLightEmissiveMeshComponents();
+                // Serialized object is lossing references after an undo
+                if (m_SerializedHDLight.serializedObject.targetObject != null)
+                {
+                    m_SerializedHDLight.serializedObject.ApplyModifiedProperties();
+                    foreach (var hdLightData in m_AdditionalLightDatas)
+                        if (hdLightData != null)
+                            hdLightData.UpdateAreaLightEmissiveMesh();
+                }
+            };
         }
 
         public override void OnInspectorGUI()
@@ -92,6 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var hdLightData in m_AdditionalLightDatas)
             {
                 hdLightData.UpdateAreaLightEmissiveMesh();
+                hdLightData.UpdateEmissiveMeshComponents();
             }
 
             m_SerializedHDLight.needUpdateAreaLightEmissiveMeshComponents = false;
@@ -102,9 +92,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // UX team decided that we should always show component in inspector.
             // However already authored scene save this settings, so force the component to be visible
+            // var flags = hide ? HideFlags.HideInInspector : HideFlags.None;
+            var flags = HideFlags.None;
+
             foreach (var t in m_SerializedHDLight.serializedObject.targetObjects)
-                if (((HDAdditionalLightData)t).hideFlags == HideFlags.HideInInspector)
-                    ((HDAdditionalLightData)t).hideFlags = HideFlags.None;
+                ((HDAdditionalLightData)t).hideFlags = flags;
         }
 
         protected override void OnSceneGUI()

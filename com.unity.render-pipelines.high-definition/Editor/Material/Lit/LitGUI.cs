@@ -21,8 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new TessellationOptionsUIBlock(MaterialUIBlock.Expandable.Tesselation),
             new LitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input, features: litSurfaceFeatures),
             new DetailInputsUIBlock(MaterialUIBlock.Expandable.Detail),
-            // We don't want distortion in Lit
-            new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency, features: TransparencyUIBlock.Features.All & ~TransparencyUIBlock.Features.Distortion),
+            new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency),
             new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance),
         };
@@ -32,7 +31,13 @@ namespace UnityEditor.Rendering.HighDefinition
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
                 uiBlocks.OnGUI(materialEditor, props);
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
+
+                // Apply material keywords and pass:
+                if (changed.changed)
+                {
+                    foreach (var material in uiBlocks.materials)
+                        SetupMaterialKeywordsAndPassInternal(material);
+                }
             }
         }
 
@@ -103,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             BaseLitGUI.SetupBaseLitKeywords(material);
             BaseLitGUI.SetupBaseLitMaterialPass(material);
-            BaseLitGUI.SetupStencil(material, material.GetSurfaceType() == SurfaceType.Opaque ? material.GetInt(kReceivesSSR) != 0 : material.GetInt(kReceivesSSRTransparent) != 0, material.GetMaterialId() == MaterialId.LitSSS);
+            BaseLitGUI.SetupStencil(material, material.GetInt(kReceivesSSR) != 0, material.GetMaterialId() == MaterialId.LitSSS);
 
             if (material.HasProperty(kNormalMapSpace))
             {
@@ -204,11 +209,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(kRefractionModel))
             {
                 var refractionModelValue = (ScreenSpaceRefraction.RefractionModel)material.GetFloat(kRefractionModel);
-                // We can't have refraction in pre-refraction queue and the material needs to be transparent
-                var canHaveRefraction = material.GetSurfaceType() == SurfaceType.Transparent && !HDRenderQueue.k_RenderQueue_PreRefraction.Contains(material.renderQueue);
-                CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Box) && canHaveRefraction);
+                // We can't have refraction in pre-refraction queue
+                var canHaveRefraction = !HDRenderQueue.k_RenderQueue_PreRefraction.Contains(material.renderQueue);
+                CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Box || refractionModelValue == ScreenSpaceRefraction.RefractionModel.Thin) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
-                CoreUtils.SetKeyword(material, "_REFRACTION_THIN", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Thin) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
             }
 

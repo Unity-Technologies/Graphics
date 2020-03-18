@@ -4,7 +4,7 @@ using UnityEditor.AssetImporters;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class ThreeDSMaterialDescriptionPreprocessor : AssetPostprocessor
+    public class ThreeDSMaterialDescriptionPreprocessor : AssetPostprocessor
     {
         static readonly uint k_Version = 1;
         static readonly int k_Order = 2;

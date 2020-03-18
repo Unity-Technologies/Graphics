@@ -542,30 +542,15 @@ namespace UnityEditor.VFX.UI
     {
         public abstract INotifyValueChanged<U> CreateField();
 
-        protected VisualElement m_FieldParent;
-        protected VisualElement m_TooltipHolder;
-
         public SimpleUIPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_Field = CreateField();
             isDelayed = VFXPropertyAttribute.IsDelayed(m_Provider.attributes);
 
-            m_FieldParent = new VisualElement();
-
             VisualElement fieldElement = m_Field as VisualElement;
             fieldElement.AddToClassList("fieldContainer");
             fieldElement.RegisterCallback<ChangeEvent<U>>(OnValueChanged);
-            m_FieldParent.Add(fieldElement);
-            m_FieldParent.style.flexGrow = 1;
-
-            m_TooltipHolder = new VisualElement();
-            m_TooltipHolder.style.position = UnityEngine.UIElements.Position.Absolute;
-            m_TooltipHolder.style.top = 0;
-            m_TooltipHolder.style.left = 0;
-            m_TooltipHolder.style.right = 0;
-            m_TooltipHolder.style.bottom = 0;
-
-            Add(m_FieldParent);
+            Add(fieldElement);
         }
 
         public virtual T Convert(object value)
@@ -600,17 +585,6 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateEnabled()
         {
             (m_Field as VisualElement).SetEnabled(propertyEnabled);
-
-            if( propertyEnabled)
-            {
-                if (m_TooltipHolder.parent != null)
-                    m_TooltipHolder.RemoveFromHierarchy();
-            }
-            else
-            {
-                if (m_TooltipHolder.parent == null)
-                    m_FieldParent.Add(m_TooltipHolder);
-            }
         }
 
         protected override void UpdateIndeterminate()
@@ -633,8 +607,16 @@ namespace UnityEditor.VFX.UI
             {
                 try
                 {
-                    var value = (U)System.Convert.ChangeType(m_Value, typeof(U));
-                    m_Field.SetValueWithoutNotify(value);
+                    {
+                        try
+                        {
+                            m_Field.SetValueWithoutNotify((U)System.Convert.ChangeType(m_Value, typeof(U)));
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Debug.LogError("Catching exception to not break graph in UpdateGUI" + ex.Message);
+                        }
+                    }
                 }
                 catch (System.Exception ex)
                 {
@@ -666,22 +648,6 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateIndeterminate()
         {
             fieldControl.indeterminate = indeterminate;
-        }
-
-        protected override void UpdateEnabled()
-        {
-            fieldControl.SetEnabled(propertyEnabled);
-
-            if( propertyEnabled)
-            {
-                if (m_TooltipHolder.parent != null)
-                    m_TooltipHolder.RemoveFromHierarchy();
-            }
-            else
-            {
-                if (m_TooltipHolder.parent == null)
-                    m_FieldParent.Add(m_TooltipHolder);
-            }
         }
 
         public override void UpdateGUI(bool force)

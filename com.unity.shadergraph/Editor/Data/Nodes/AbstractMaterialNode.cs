@@ -11,6 +11,10 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     abstract class AbstractMaterialNode : ISerializationCallbackReceiver, IGroupItem
     {
+        protected static List<MaterialSlot> s_TempSlots = new List<MaterialSlot>();
+        protected static List<IEdge> s_TempEdges = new List<IEdge>();
+        protected static List<PreviewProperty> s_TempPreviewProperties = new List<PreviewProperty>();
+
         [NonSerialized]
         private Guid m_Guid;
 
@@ -40,6 +44,8 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableSlots = new List<SerializationHelper.JSONSerializedElement>();
+
+        public Identifier tempId { get; set; }
 
         public GraphData owner { get; set; }
 
@@ -78,8 +84,7 @@ namespace UnityEditor.ShaderGraph
             set { m_Name = value; }
         }
 
-        protected virtual string documentationPage => name;
-        public virtual string documentationURL => NodeUtils.GetDocumentationString(documentationPage);
+        public virtual string documentationURL => NodeUtils.GetDocumentationString(this);
 
         public virtual bool canDeleteNode
         {
@@ -146,7 +151,7 @@ namespace UnityEditor.ShaderGraph
 
         public virtual bool allowedInSubGraph
         {
-            get { return !(this is IMasterNode); }
+            get { return true; }
         }
 
         public virtual bool allowedInMainGraph
@@ -164,9 +169,6 @@ namespace UnityEditor.ShaderGraph
             get { return m_HasError; }
             protected set { m_HasError = value; }
         }
-
-        //needed for HDRP material update system
-        public virtual object saveContext => null;
 
         string m_DefaultVariableName;
         string m_NameForDefaultVariableName;
@@ -284,7 +286,7 @@ namespace UnityEditor.ShaderGraph
                 if (slot == null)
                     return string.Empty;
 
-                return GenerationUtils.AdaptNodeOutput(fromNode, slot.id, inputSlot.concreteValueType);
+                return ShaderGenerator.AdaptNodeOutput(fromNode, slot.id, inputSlot.concreteValueType);
             }
 
             return inputSlot.GetDefaultValue(generationMode);
@@ -346,52 +348,51 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Get inputs
-            using(var tempSlots = PooledList<MaterialSlot>.Get())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+
+            // If no inputs were found use the precision of the Graph
+            // This can be removed when parameters are considered as true inputs
+            if (s_TempSlots.Count == 0)
             {
-                GetInputSlots(tempSlots);
-
-                // If no inputs were found use the precision of the Graph
-                // This can be removed when parameters are considered as true inputs
-                if (tempSlots.Count == 0)
-                {
-                    m_ConcretePrecision = owner.concretePrecision;
-                    return false;
-                }
-
-                // Otherwise compare precisions from inputs
-                var precisionsToCompare = new List<int>();
-                bool isInError = false;
-
-                foreach (var inputSlot in tempSlots)
-                {
-                    // If input port doesnt have an edge use the Graph's precision for that input
-                    var edges = owner.GetEdges(inputSlot.slotReference).ToList();
-                    if (!edges.Any())
-                    {
-                        precisionsToCompare.Add((int)owner.concretePrecision);
-                        continue;
-                    }
-
-                    // Get output node from edge
-                    var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
-                    if (outputNode == null)
-                    {
-                        errorMessage = string.Format("Failed to find Node with Guid {0}", outputSlotRef.nodeGuid);
-                        isInError = true;
-                        continue;
-                    }
-
-                    // Use precision from connected Node
-                    precisionsToCompare.Add((int)outputNode.concretePrecision);
-                }
-
-                // Use highest precision from all input sources
-                m_ConcretePrecision = (ConcretePrecision)precisionsToCompare.OrderBy(x => x).First();
-
-                // Clean up
-                return isInError;
+                m_ConcretePrecision = owner.concretePrecision;
+                return false;
             }
+
+            // Otherwise compare precisions from inputs
+            var precisionsToCompare = new List<int>();
+            bool isInError = false;
+
+            foreach (var inputSlot in s_TempSlots)
+            {
+                // If input port doesnt have an edge use the Graph's precision for that input
+                var edges = owner.GetEdges(inputSlot.slotReference).ToList();
+                if (!edges.Any())
+                {
+                    precisionsToCompare.Add((int)owner.concretePrecision);
+                    continue;
+                }
+
+                // Get output node from edge
+                var outputSlotRef = edges[0].outputSlot;
+                var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                if (outputNode == null)
+                {
+                    errorMessage = string.Format("Failed to find Node with Guid {0}", outputSlotRef.nodeGuid);
+                    isInError = true;
+                    continue;
+                }
+
+                // Use precision from connected Node
+                precisionsToCompare.Add((int)outputNode.concretePrecision);
+            }
+
+            // Use highest precision from all input sources
+            m_ConcretePrecision = (ConcretePrecision)precisionsToCompare.OrderBy(x => x).First();
+
+            // Clean up
+            s_TempSlots.Clear();
+            return isInError;
         }
 
         public virtual void ValidateNode()
@@ -406,125 +407,123 @@ namespace UnityEditor.ShaderGraph
             var skippedDynamicMatrixSlots = ListPool<DynamicMatrixMaterialSlot>.Get();
 
             // iterate the input slots
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var inputSlot in s_TempSlots)
             {
-                GetInputSlots(tempSlots);
-                foreach (var inputSlot in tempSlots)
+                inputSlot.hasError = false;
+                // if there is a connection
+                var edges = owner.GetEdges(inputSlot.slotReference).ToList();
+                if (!edges.Any())
                 {
-                    inputSlot.hasError = false;
-                    // if there is a connection
-                    var edges = owner.GetEdges(inputSlot.slotReference).ToList();
-                    if (!edges.Any())
-                    {
-                        if (inputSlot is DynamicVectorMaterialSlot)
-                            skippedDynamicSlots.Add(inputSlot as DynamicVectorMaterialSlot);
-                        if (inputSlot is DynamicMatrixMaterialSlot)
-                            skippedDynamicMatrixSlots.Add(inputSlot as DynamicMatrixMaterialSlot);
-                        continue;
-                    }
-
-                    // get the output details
-                    var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
-                    if (outputNode == null)
-                        continue;
-
-                    var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotId);
-                    if (outputSlot == null)
-                        continue;
-
-                    if (outputSlot.hasError)
-                    {
-                        inputSlot.hasError = true;
-                        continue;
-                    }
-
-                    var outputConcreteType = outputSlot.concreteValueType;
-                    // dynamic input... depends on output from other node.
-                    // we need to compare ALL dynamic inputs to make sure they
-                    // are compatible.
                     if (inputSlot is DynamicVectorMaterialSlot)
-                    {
-                        dynamicInputSlotsToCompare.Add((DynamicVectorMaterialSlot) inputSlot, outputConcreteType);
-                        continue;
-                    }
-                    else if (inputSlot is DynamicMatrixMaterialSlot)
-                    {
-                        dynamicMatrixInputSlotsToCompare.Add((DynamicMatrixMaterialSlot) inputSlot, outputConcreteType);
-                        continue;
-                    }
+                        skippedDynamicSlots.Add(inputSlot as DynamicVectorMaterialSlot);
+                    if (inputSlot is DynamicMatrixMaterialSlot)
+                        skippedDynamicMatrixSlots.Add(inputSlot as DynamicMatrixMaterialSlot);
+                    continue;
                 }
 
-                // we can now figure out the dynamic slotType
-                // from here set all the
-                var dynamicType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
-                foreach (var dynamicKvP in dynamicInputSlotsToCompare)
-                    dynamicKvP.Key.SetConcreteType(dynamicType);
-                foreach (var skippedSlot in skippedDynamicSlots)
-                    skippedSlot.SetConcreteType(dynamicType);
+                // get the output details
+                var outputSlotRef = edges[0].outputSlot;
+                var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                if (outputNode == null)
+                    continue;
 
-                // and now dynamic matrices
-                var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicMatrixInputSlotsToCompare.Values);
-                foreach (var dynamicKvP in dynamicMatrixInputSlotsToCompare)
-                    dynamicKvP.Key.SetConcreteType(dynamicMatrixType);
-                foreach (var skippedSlot in skippedDynamicMatrixSlots)
-                    skippedSlot.SetConcreteType(dynamicMatrixType);
+                var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotId);
+                if (outputSlot == null)
+                    continue;
 
-                tempSlots.Clear();
-                GetInputSlots(tempSlots);
-                var inputError = tempSlots.Any(x => x.hasError);
-
-                // configure the output slots now
-                // their slotType will either be the default output slotType
-                // or the above dynamic slotType for dynamic nodes
-                // or error if there is an input error
-                tempSlots.Clear();
-                GetOutputSlots(tempSlots);
-                foreach (var outputSlot in tempSlots)
+                if (outputSlot.hasError)
                 {
-                    outputSlot.hasError = false;
-
-                    if (inputError)
-                    {
-                        outputSlot.hasError = true;
-                        continue;
-                    }
-
-                    if (outputSlot is DynamicVectorMaterialSlot)
-                    {
-                        (outputSlot as DynamicVectorMaterialSlot).SetConcreteType(dynamicType);
-                        continue;
-                    }
-                    else if (outputSlot is DynamicMatrixMaterialSlot)
-                    {
-                        (outputSlot as DynamicMatrixMaterialSlot).SetConcreteType(dynamicMatrixType);
-                        continue;
-                    }
+                    inputSlot.hasError = true;
+                    continue;
                 }
 
-                isInError |= inputError;
-                tempSlots.Clear();
-                GetOutputSlots(tempSlots);
-                isInError |= tempSlots.Any(x => x.hasError);
-                isInError |= CalculateNodeHasError(ref errorMessage);
-                isInError |= ValidateConcretePrecision(ref errorMessage);
-                hasError = isInError;
-
-                if (isInError)
+                var outputConcreteType = outputSlot.concreteValueType;
+                // dynamic input... depends on output from other node.
+                // we need to compare ALL dynamic inputs to make sure they
+                // are compatible.
+                if (inputSlot is DynamicVectorMaterialSlot)
                 {
-                    ((GraphData) owner).AddValidationError(guid, errorMessage);
+                    dynamicInputSlotsToCompare.Add((DynamicVectorMaterialSlot)inputSlot, outputConcreteType);
+                    continue;
                 }
-                else
+                else if (inputSlot is DynamicMatrixMaterialSlot)
                 {
-                    ++version;
+                    dynamicMatrixInputSlotsToCompare.Add((DynamicMatrixMaterialSlot)inputSlot, outputConcreteType);
+                    continue;
                 }
-
-                ListPool<DynamicVectorMaterialSlot>.Release(skippedDynamicSlots);
-                DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
-
-                ListPool<DynamicMatrixMaterialSlot>.Release(skippedDynamicMatrixSlots);
-                DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
             }
+
+            // we can now figure out the dynamic slotType
+            // from here set all the
+            var dynamicType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+            foreach (var dynamicKvP in dynamicInputSlotsToCompare)
+                dynamicKvP.Key.SetConcreteType(dynamicType);
+            foreach (var skippedSlot in skippedDynamicSlots)
+                skippedSlot.SetConcreteType(dynamicType);
+
+            // and now dynamic matrices
+            var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicMatrixInputSlotsToCompare.Values);
+            foreach (var dynamicKvP in dynamicMatrixInputSlotsToCompare)
+                dynamicKvP.Key.SetConcreteType(dynamicMatrixType);
+            foreach (var skippedSlot in skippedDynamicMatrixSlots)
+                skippedSlot.SetConcreteType(dynamicMatrixType);
+
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            var inputError = s_TempSlots.Any(x => x.hasError);
+
+            // configure the output slots now
+            // their slotType will either be the default output slotType
+            // or the above dynamic slotType for dynamic nodes
+            // or error if there is an input error
+            s_TempSlots.Clear();
+            GetOutputSlots(s_TempSlots);
+            foreach (var outputSlot in s_TempSlots)
+            {
+                outputSlot.hasError = false;
+
+                if (inputError)
+                {
+                    outputSlot.hasError = true;
+                    continue;
+                }
+
+                if (outputSlot is DynamicVectorMaterialSlot)
+                {
+                    (outputSlot as DynamicVectorMaterialSlot).SetConcreteType(dynamicType);
+                    continue;
+                }
+                else if (outputSlot is DynamicMatrixMaterialSlot)
+                {
+                    (outputSlot as DynamicMatrixMaterialSlot).SetConcreteType(dynamicMatrixType);
+                    continue;
+                }
+            }
+
+            isInError |= inputError;
+            s_TempSlots.Clear();
+            GetOutputSlots(s_TempSlots);
+            isInError |= s_TempSlots.Any(x => x.hasError);
+            isInError |= CalculateNodeHasError(ref errorMessage);
+            isInError |= ValidateConcretePrecision(ref errorMessage);
+            hasError = isInError;
+
+            if (isInError)
+            {
+                ((GraphData) owner).AddValidationError(tempId, errorMessage);
+            }
+            else
+            {
+                ++version;
+            }
+
+            ListPool<DynamicVectorMaterialSlot>.Release(skippedDynamicSlots);
+            DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
+
+            ListPool<DynamicMatrixMaterialSlot>.Release(skippedDynamicMatrixSlots);
+            DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
         }
 
         public int version { get; set; }
@@ -552,27 +551,23 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
-            using (var tempPreviewProperties = PooledList<PreviewProperty>.Get())
-            using (var tempEdges = PooledList<IEdge>.Get())
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            foreach (var s in s_TempSlots)
             {
-                GetInputSlots(tempSlots);
-                foreach (var s in tempSlots)
+                s_TempPreviewProperties.Clear();
+                s_TempEdges.Clear();
+                owner.GetEdges(s.slotReference, s_TempEdges);
+                if (s_TempEdges.Any())
+                    continue;
+
+                s.GetPreviewProperties(s_TempPreviewProperties, GetVariableNameForSlot(s.id));
+                for (int i = 0; i < s_TempPreviewProperties.Count; i++)
                 {
-                    tempPreviewProperties.Clear();
-                    tempEdges.Clear();
-                    owner.GetEdges(s.slotReference, tempEdges);
-                    if (tempEdges.Any())
+                    if (s_TempPreviewProperties[i].name == null)
                         continue;
 
-                    s.GetPreviewProperties(tempPreviewProperties, GetVariableNameForSlot(s.id));
-                    for (int i = 0; i < tempPreviewProperties.Count; i++)
-                    {
-                        if (tempPreviewProperties[i].name == null)
-                            continue;
-
-                        properties.Add(tempPreviewProperties[i]);
-                    }
+                    properties.Add(s_TempPreviewProperties[i]);
                 }
             }
         }

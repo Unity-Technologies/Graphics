@@ -7,6 +7,9 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     static class EditorDefaultSettings
     {
+        static string k_DefaultVolumeAssetPath =
+            $@"Packages/com.unity.render-pipelines.high-definition/Editor/RenderPipelineResources/DefaultSettingsVolumeProfile.asset";
+
         /// <summary>Get the current default VolumeProfile asset. If it is missing, the builtin one is assigned to the current settings.</summary>
         /// <returns>The default VolumeProfile if an HDRenderPipelineAsset is the base SRP asset, null otherwise.</returns>
         internal static VolumeProfile GetOrAssignDefaultVolumeProfile()
@@ -24,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (hdrpAsset.defaultVolumeProfile == null || hdrpAsset.defaultVolumeProfile.Equals(null))
                 hdrpAsset.defaultVolumeProfile =
-                    hdrpAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile;
+                    AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_DefaultVolumeAssetPath);
 
             return hdrpAsset.defaultVolumeProfile;
         }
@@ -44,11 +47,11 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <returns>The default VolumeProfile if an HDRenderPipelineAsset is the base SRP asset, null otherwise.</returns>
         internal static VolumeProfile GetOrAssignLookDevVolumeProfile(HDRenderPipelineAsset hdrpAsset)
         {
-            if (hdrpAsset.defaultLookDevProfile == null || hdrpAsset.defaultLookDevProfile.Equals(null))
-                hdrpAsset.defaultLookDevProfile =
-                    hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+            if (hdrpAsset.defaultVolumeProfile == null || hdrpAsset.defaultVolumeProfile.Equals(null))
+                hdrpAsset.defaultVolumeProfile =
+                    AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_DefaultVolumeAssetPath);
 
-            return hdrpAsset.defaultLookDevProfile;
+            return hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
         }
     }
 }

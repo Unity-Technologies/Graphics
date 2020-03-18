@@ -36,7 +36,7 @@ HDRP provides you with the [Render Pipeline Wizard](Render-Pipeline-Wizard.html)
 
 ## Volumes
 
-[Volumes](Volumes.html) allow you to partition your Scene into areas so that you can control lighting and effects at a finer level, rather than tuning an entire Scene. You can add as many volumes to your Scene as you want, to create different spaces, and then light them all individually for realistic effect. Each volume has an environment, so you can adjust its sky, fog, and shadow settings. You can also create custom [Volume Profiles](Volume-Profile.html) and switch between them.
+[Volumes](Volumes.html) allow you to partition your Scene into areas so that you can control lighting and effects at a finer level, rather than tuning an entire Scene. You can add as many volumes to your Scene as you want, to create different spaces, and then light them all individually for realistic effect. Each volume has an environment, so you can adjust its sky, fog, and shadow settings. You can also create custom [Volume Profiles](Volume-Profiles.html) and switch between them.
 
 To add a Volume to your Scene and edit its Volume Profile:
 
@@ -60,8 +60,6 @@ HDRP provides Shaders that allow you to create a wide variety of different Mater
 ## Lighting
 
 To apply realistic lighting to your Scenes, HDRP uses Physical Light Units (PLU), which are based on real-life measurable values, just like you would see when looking for light bulbs at a store or measuring light with a photographic light meter. Note that for lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter). For more information, see [Physical Light Units](Physical-Light-Units.html).
-
-Also note that because of that, the HDRI sky used by HDRP by default has an exposure of 10. However, newly created directional lights have an intensity of 3.14 which can cause objects to look black because of the auto exposure compensating for the overly bright sky. Setting a value of 10000 to your directional light should work fine for a mix of indoor and outdoor scenes. If the HDRP wizard was setup properly, newly created scenes should have coherent values out of the box.
 
 For more information, see [HDRP Lighting features](HDRP-Features.html#Lighting). For advice on adding lights to your Scene, see [Light](Light-Component.html).
 

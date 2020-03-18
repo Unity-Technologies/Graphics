@@ -56,16 +56,6 @@ namespace UnityEditor.VFX.UI
             return name.ToLower();
         }
 
-        public void UpdateLabel()
-        {
-            var graph = controller.model.GetGraph();
-
-            if (graph != null && controller.model.contextType == VFXContextType.Spawner)
-                m_Label.text = graph.systemNames.GetUniqueSystemName(controller.model);
-            else
-                m_Label.text = controller.model.label;
-        }
-
         protected override void SelfChange()
         {
             base.SelfChange();
@@ -217,8 +207,7 @@ namespace UnityEditor.VFX.UI
             }
             Profiler.EndSample();
 
-            UpdateLabel();
-
+            m_Label.text = controller.model.label;
             if (string.IsNullOrEmpty(m_Label.text))
             {
                 m_Label.AddToClassList("empty");
@@ -773,7 +762,7 @@ namespace UnityEditor.VFX.UI
             var contextType = controller.model.GetType();
             foreach (var setting in newContextController.model.GetSettings(true))
             {
-                if((newContextController.model is VFXPlanarPrimitiveOutput || newContextController.model.GetType().Name == "VFXLitPlanarPrimitiveOutput") && setting.field.Name == "primitiveType")
+                if(newContextController.model is VFXPlanarPrimitiveOutput && setting.field.Name == "primitiveType")
                     continue;
                 
                 if (!setting.valid || setting.field.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)

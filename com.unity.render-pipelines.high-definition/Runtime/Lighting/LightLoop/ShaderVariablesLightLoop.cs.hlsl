@@ -16,7 +16,6 @@
     float4 _AreaShadowAtlasSize;
     float4x4 _Env2DCaptureVP[32];
     float _Env2DCaptureForward[96];
-    float4 _Env2DAtlasScaleOffset[32];
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;
@@ -24,9 +23,6 @@
     uint _EnvProxyCount;
     int _EnvLightSkyEnabled;
     int _DirectionalShadowIndex;
-    float4 _CookieAtlasSize;
-    float4 _CookieAtlasData;
-    float4 _PlanarAtlasData;
     float _MicroShadowOpacity;
     float _DirectionalTransmissionMultiplier;
     uint _NumTileFtplX;
@@ -42,6 +38,7 @@
     uint _CascadeShadowCount;
     int _DebugSingleShadowIndex;
     int _EnvSliceSize;
+    uint _CookieSizePOT;
     int _RaytracedIndirectDiffuse;
 
 

@@ -38,9 +38,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // If platform is supported all good
             GraphicsDeviceType  unsupportedGraphicDevice = GraphicsDeviceType.Null;
-            if (HDUtils.AreGraphicsAPIsSupported(report.summary.platform, out unsupportedGraphicDevice)
-                && HDUtils.IsSupportedBuildTarget(report.summary.platform)
-                && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
+            if (HDUtils.IsSupportedBuildTarget(report.summary.platform)
+                && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem)
+                && HDUtils.AreGraphicsAPIsSupported(report.summary.platform, out unsupportedGraphicDevice))
                 return;
 
             unsupportedGraphicDevice = (unsupportedGraphicDevice == GraphicsDeviceType.Null) ? SystemInfo.graphicsDeviceType : unsupportedGraphicDevice;

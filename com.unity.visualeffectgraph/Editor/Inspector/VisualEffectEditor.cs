@@ -120,19 +120,13 @@ namespace UnityEditor.VFX
 
         protected void OnDisable()
         {
+            SceneView.duringSceneGui -= OnSceneViewGUI;
             VisualEffect effect = ((VisualEffect)targets[0]);
             if (effect != null)
             {
                 effect.pause = false;
                 effect.playRate = 1.0f;
             }
-            OnDisableWithoutResetting();
-        }
-        
-        protected void OnDisableWithoutResetting()
-        {
-            SceneView.duringSceneGui -= OnSceneViewGUI;
-            
             s_AllEditors.Remove(this);
         }
 
@@ -445,8 +439,6 @@ namespace UnityEditor.VFX
         protected virtual void SceneViewGUICallback(UnityObject target, SceneView sceneView)
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
-            if (effect == null)
-                return;
 
             var buttonWidth = GUILayout.Width(52);
             GUILayout.BeginHorizontal();
@@ -504,13 +496,10 @@ namespace UnityEditor.VFX
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Show Bounds", GUILayout.Width(192));
-            VisualEffectUtility.renderBounds = EditorGUILayout.Toggle(VisualEffectUtility.renderBounds, GUILayout.Width(18));
-            GUILayout.EndHorizontal();
 
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Show Event Tester", GUILayout.Width(192));
-            VFXEventTesterWindow.visible = EditorGUILayout.Toggle(VFXEventTesterWindow.visible, GUILayout.Width(18));
+            GUILayout.Label("Show Bounds", GUILayout.Width(192));
+
+            VisualEffectUtility.renderBounds = EditorGUILayout.Toggle(VisualEffectUtility.renderBounds, GUILayout.Width(18));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -530,9 +519,10 @@ namespace UnityEditor.VFX
 
         protected virtual void OnSceneViewGUI(SceneView sv)
         {
-            SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, target,SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+            SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
         }
 
+        private VisualEffectAsset m_asset;
         private VFXGraph m_graph;
 
         protected struct NameNTooltip
@@ -568,7 +558,7 @@ namespace UnityEditor.VFX
             return result;
         }
 
-        protected virtual void EmptyLineControl(string name, string tooltip, int depth, VisualEffectResource resource)
+        protected virtual void EmptyLineControl(string name, string tooltip, int depth)
         {
             GUILayout.BeginHorizontal();
             GUILayout.Space(overrideWidth); // the 4 is so that Labels are aligned with elements having an override toggle.
@@ -607,7 +597,7 @@ namespace UnityEditor.VFX
             return result;
         }
 
-        protected virtual void AssetField(VisualEffectResource resource)
+        protected virtual void AssetField()
         {
             EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
         }
@@ -636,7 +626,26 @@ namespace UnityEditor.VFX
             EditorGUILayout.PropertyField(m_ReseedOnPlay, Contents.reseedOnPlay);
         }
 
-        void InitialEventField(VisualEffectResource resource)
+        private static readonly MethodInfo k_InitialEventNameMethod = FindInitialEventNameMethod();
+        private static MethodInfo FindInitialEventNameMethod()
+        {
+            var property = typeof(VisualEffectResource).GetProperty("initialEventName");
+            if (property == null)
+                return null;
+            return property.GetGetMethod();
+        }
+
+        private static readonly Func<VisualEffectResource, string> GetInitialEventName = delegate (VisualEffectResource effectResource)
+        {
+            //component.visualEffectAsset.GetResource().initialEventName (but using reflection to support an early merge)
+            if (k_InitialEventNameMethod != null)
+            {
+                return k_InitialEventNameMethod.Invoke(effectResource, null) as string;
+            }
+            return "OnPlay";
+        };
+
+        void InitialEventField()
         {
             if (m_InitialEventName == null)
                 return;
@@ -651,7 +660,8 @@ namespace UnityEditor.VFX
 
                 s_FakeObjectSerializedCache.Update();
                 var fakeInitialEventNameField = s_FakeObjectSerializedCache.FindProperty("m_InitialEventName");
-                fakeInitialEventNameField.stringValue = resource != null ? resource.initialEventName : "OnPlay";
+                var component = (VisualEffect)target;
+                fakeInitialEventNameField.stringValue = component.visualEffectAsset != null ? GetInitialEventName(component.visualEffectAsset.GetResource()) : "OnPlay";
 
                 EditorGUI.BeginChangeCheck();
                 bool resultOverriden = EditorGUI.Toggle(toggleRect, m_InitialEventNameOverriden.boolValue, Styles.toggleStyle);
@@ -729,53 +739,44 @@ namespace UnityEditor.VFX
                 }
             }
 
-            VisualEffectResource resource = null;
-            if (!m_VisualEffectAsset.hasMultipleDifferentValues)
-            {
-                VisualEffect effect = ((VisualEffect)targets[0]);
-                var asset = effect.visualEffectAsset;
-                if (asset != null)
-                {
-                    resource = asset.GetResource(); //This resource could be null if asset is actually in an AssetBundle
-                }
-            }
-
             if(showGeneralCategory)
             {
-                AssetField(resource);
+                AssetField();
                 SeedField();
             }
 
             if (!m_VisualEffectAsset.hasMultipleDifferentValues)
             {
-                if (showGeneralCategory)
-                    InitialEventField(resource);
-
+                InitialEventField();
                 DrawRendererProperties();
-                DrawParameters(resource);
+                DrawParameters();
             }
 
             serializedObject.ApplyModifiedProperties();
             GUI.enabled = true;
         }
 
-        protected virtual void DrawParameters(VisualEffectResource resource)
+        protected virtual void DrawParameters()
         {
             var component = (VisualEffect)target;
-            VFXGraph graph = null;
-            if (resource != null)
-                graph = resource.GetOrCreateGraph();
-
+            if (m_graph == null || m_asset != component.visualEffectAsset)
+            {
+                m_asset = component.visualEffectAsset;
+                if (m_asset != null)
+                {
+                    m_graph = m_asset.GetResource().GetOrCreateGraph();
+                }
+            }
 
             GUI.enabled = true;
-            if (graph != null)
+            if (m_graph != null)
             {
-                if (graph.m_ParameterInfo == null)
+                if (m_graph.m_ParameterInfo == null)
                 {
-                    graph.BuildParameterInfo();
+                    m_graph.BuildParameterInfo();
                 }
 
-                if (graph.m_ParameterInfo != null)
+                if (m_graph.m_ParameterInfo != null)
                 {
                     bool newShowParameterCategory = ShowHeader(Contents.headerProperties, true, showPropertyCategory);
                     if( newShowParameterCategory != showPropertyCategory)
@@ -787,7 +788,7 @@ namespace UnityEditor.VFX
                     if(showPropertyCategory)
                     {
                         var stack = new List<int>();
-                        int currentCount = graph.m_ParameterInfo.Length;
+                        int currentCount = m_graph.m_ParameterInfo.Length;
                         if (currentCount == 0)
                         {
                             GUILayout.Label("No Property exposed in the Visual Effect Graph");
@@ -799,7 +800,7 @@ namespace UnityEditor.VFX
 
                         bool ignoreUntilNextCat = false;
 
-                        foreach (var param in graph.m_ParameterInfo)
+                        foreach (var param in m_graph.m_ParameterInfo)
                         {
                             EditorGUI.indentLevel = stack.Count;
                             --currentCount;
@@ -844,7 +845,7 @@ namespace UnityEditor.VFX
 
                                     }
                                     else if (!ignoreUntilNextCat)
-                                        EmptyLineControl(parameter.name, parameter.tooltip, stack.Count, resource);
+                                        EmptyLineControl(parameter.name, parameter.tooltip, stack.Count);
                                 }
                             }
                             else if (!ignoreUntilNextCat)

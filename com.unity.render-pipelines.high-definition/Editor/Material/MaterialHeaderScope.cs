@@ -21,19 +21,11 @@ namespace UnityEditor.Rendering.HighDefinition
     internal struct MaterialHeaderScope : IDisposable
     {
         public readonly bool expanded;
-        bool spaceAtEnd;
-#if !UNITY_2020_1_OR_NEWER
-        int oldIndentLevel;
-#endif
+        private bool spaceAtEnd;
 
         public MaterialHeaderScope(string title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, Color colorDot = default(Color), bool subHeader = false)
         {
             bool beforeExpended = materialEditor.GetExpandedAreas(bitExpanded);
-
-#if !UNITY_2020_1_OR_NEWER
-            oldIndentLevel = EditorGUI.indentLevel;
-            EditorGUI.indentLevel = subHeader ? 1 : 0; //fix for preset in 2019.3 (preset are one more indentation depth in material)
-#endif
 
             this.spaceAtEnd = spaceAtEnd;
             if (!subHeader)
@@ -74,10 +66,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Space();
                 --EditorGUI.indentLevel;
             }
-
-#if !UNITY_2020_1_OR_NEWER
-            EditorGUI.indentLevel = oldIndentLevel;
-#endif
             GUILayout.EndVertical();
         }
     }

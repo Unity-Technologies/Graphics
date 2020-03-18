@@ -7,10 +7,6 @@
 
 #define CLAMP_MAX       65472.0 // HALF_MAX minus one (2 - 2^-9) * 2^15
 
-#if !defined(CTYPE)
-    #define CTYPE float3
-#endif
-
 #if UNITY_REVERSED_Z
     #define COMPARE_DEPTH(a, b) step(b, a)
 #else
@@ -36,10 +32,10 @@ float4 Fetch4(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
     return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0);
 }
 
-float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, float2 scale)
+float2 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, float2 scale)
 {
     float2 uv = (coords + offset * _ScreenSize.zw) * scale;
-    return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, s_linear_clamp_sampler, uv, slot, 0);
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, s_linear_clamp_sampler, uv, slot, 0).xy;
 }
 
 float3 Map(float3 x)
@@ -115,16 +111,16 @@ float2 GetClosestFragment(float2 positionSS)
     return positionSS + closest.xy;
 }
 
-CTYPE ClipToAABB(CTYPE color, CTYPE minimum, CTYPE maximum)
+float3 ClipToAABB(float3 color, float3 minimum, float3 maximum)
 {
     // note: only clips towards aabb center (but fast!)
-    CTYPE center  = 0.5 * (maximum + minimum);
-    CTYPE extents = 0.5 * (maximum - minimum);
+    float3 center  = 0.5 * (maximum + minimum);
+    float3 extents = 0.5 * (maximum - minimum);
 
     // This is actually `distance`, however the keyword is reserved
-    CTYPE offset = color - center;
+    float3 offset = color - center;
     
-    CTYPE ts = abs(extents) / max(abs(offset), 1e-4);
+    float3 ts = abs(extents) / max(abs(offset), 1e-4);
     float t = saturate(Min3(ts.x, ts.y,  ts.z));
     return center + offset * t;
 }

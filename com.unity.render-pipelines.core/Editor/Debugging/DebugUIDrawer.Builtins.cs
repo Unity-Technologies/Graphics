@@ -4,18 +4,9 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    /// <summary>
-    /// Builtin Drawer for Value Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.Value))]
     public sealed class DebugUIDrawerValue : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for Value DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.Value>(widget);
@@ -25,18 +16,9 @@ namespace UnityEditor.Rendering
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Button Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.Button))]
     public sealed class DebugUIDrawerButton : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for Button DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.Button>(widget);
@@ -52,18 +34,9 @@ namespace UnityEditor.Rendering
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Boolean Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.BoolField))]
     public sealed class DebugUIDrawerBoolField : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for Boolean DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.BoolField>(widget);
@@ -80,19 +53,9 @@ namespace UnityEditor.Rendering
             return true;
         }
     }
-
-    /// <summary>
-    /// Builtin Drawer for History Boolean Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.HistoryBoolField))]
     public sealed class DebugUIDrawerHistoryBoolField : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for History Boolean DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.HistoryBoolField>(widget);
@@ -129,18 +92,9 @@ namespace UnityEditor.Rendering
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Integer Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.IntField))]
     public sealed class DebugUIDrawerIntField : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for Integer DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.IntField>(widget);
@@ -160,18 +114,9 @@ namespace UnityEditor.Rendering
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Unsigned Integer Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.UIntField))]
     public sealed class DebugUIDrawerUIntField : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for Unsigned Integer DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.UIntField>(widget);
@@ -194,18 +139,9 @@ namespace UnityEditor.Rendering
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Float Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.FloatField))]
     public sealed class DebugUIDrawerFloatField : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for Float DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.FloatField>(widget);
@@ -225,18 +161,9 @@ namespace UnityEditor.Rendering
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Enum Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.EnumField))]
     public sealed class DebugUIDrawerEnumField : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for Enum DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.EnumField>(widget);
@@ -277,19 +204,9 @@ namespace UnityEditor.Rendering
             return true;
         }
     }
-
-    /// <summary>
-    /// Builtin Drawer for History Enum Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.HistoryEnumField))]
     public sealed class DebugUIDrawerHistoryEnumField : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for History Enum DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.HistoryEnumField>(widget);
@@ -349,18 +266,9 @@ namespace UnityEditor.Rendering
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Bitfield Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.BitField))]
     public sealed class DebugUIDrawerBitField : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for Bitfield DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.BitField>(widget);
@@ -369,13 +277,7 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             Enum value = w.GetValue();
             var rect = PrepareControlRect();
-
-            // Skip first element (with value 0) because EditorGUI.MaskField adds a 'Nothing' field anyway
-            var enumNames = new string[w.enumNames.Length - 1];
-            for (int i = 0; i < enumNames.Length; i++)
-                enumNames[i] = w.enumNames[i + 1].text;
-            var index = EditorGUI.MaskField(rect, EditorGUIUtility.TrTextContent(w.displayName), (int)Convert.ToInt32(value), enumNames);
-            value = Enum.Parse(value.GetType(), index.ToString()) as Enum;
+            value = EditorGUI.EnumFlagsField(rect, EditorGUIUtility.TrTextContent(w.displayName), value);
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -384,17 +286,9 @@ namespace UnityEditor.Rendering
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Foldout Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.Foldout))]
     public sealed class DebugUIDrawerFoldout : DebugUIDrawer
     {
-        /// <summary>
-        /// Begin implementation for Foldout DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
         public override void Begin(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.Foldout>(widget);
@@ -427,41 +321,21 @@ namespace UnityEditor.Rendering
             EditorGUI.indentLevel++;
         }
 
-        /// <summary>
-        /// OnGUI implementation for Foldout DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
-        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        public override bool OnGUI(DebugUI.Widget node, DebugState state)
         {
             var s = Cast<DebugStateBool>(state);
             return s.value;
         }
 
-        /// <summary>
-        /// End implementation for Foldout DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        public override void End(DebugUI.Widget widget, DebugState state)
+        public override void End(DebugUI.Widget node, DebugState state)
         {
             EditorGUI.indentLevel--;
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Color Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.ColorField))]
     public sealed class DebugUIDrawerColorField : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for Color DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.ColorField>(widget);
@@ -479,18 +353,9 @@ namespace UnityEditor.Rendering
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Vector2 Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.Vector2Field))]
     public sealed class DebugUIDrawerVector2Field : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for Vector2 DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.Vector2Field>(widget);
@@ -507,18 +372,9 @@ namespace UnityEditor.Rendering
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Vector3 Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.Vector3Field))]
     public sealed class DebugUIDrawerVector3Field : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for Vector3 DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.Vector3Field>(widget);
@@ -535,18 +391,9 @@ namespace UnityEditor.Rendering
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Vector4 Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.Vector4Field))]
     public sealed class DebugUIDrawerVector4Field : DebugUIDrawer
     {
-        /// <summary>
-        /// OnGUI implementation for Vector4 DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.Vector4Field>(widget);
@@ -563,17 +410,9 @@ namespace UnityEditor.Rendering
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Container Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.Container))]
     public sealed class DebugUIDrawerContainer : DebugUIDrawer
     {
-        /// <summary>
-        /// Begin implementation for Container DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
         public override void Begin(DebugUI.Widget widget, DebugState state)
         {
             if (!string.IsNullOrEmpty(widget.displayName))
@@ -582,65 +421,34 @@ namespace UnityEditor.Rendering
             EditorGUI.indentLevel++;
         }
 
-        /// <summary>
-        /// End implementation for Container DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
         public override void End(DebugUI.Widget widget, DebugState state)
         {
             EditorGUI.indentLevel--;
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Horizontal Box Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.HBox))]
     public sealed class DebugUIDrawerHBox : DebugUIDrawer
     {
-        /// <summary>
-        /// Begin implementation for Horizontal Box DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
         public override void Begin(DebugUI.Widget widget, DebugState state)
         {
             EditorGUILayout.BeginHorizontal();
         }
 
-        /// <summary>
-        /// End implementation for Horizontal Box DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
         public override void End(DebugUI.Widget widget, DebugState state)
         {
             EditorGUILayout.EndHorizontal();
         }
     }
 
-    /// <summary>
-    /// Builtin Drawer for Vertical Box Debug Items.
-    /// </summary>
     [DebugUIDrawer(typeof(DebugUI.VBox))]
     public sealed class DebugUIDrawerVBox : DebugUIDrawer
     {
-        /// <summary>
-        /// Begin implementation for Vertical Box DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
         public override void Begin(DebugUI.Widget widget, DebugState state)
         {
             EditorGUILayout.BeginVertical();
         }
 
-        /// <summary>
-        /// End implementation for Vertical Box DebugUIDrawer.
-        /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
         public override void End(DebugUI.Widget widget, DebugState state)
         {
             EditorGUILayout.EndVertical();

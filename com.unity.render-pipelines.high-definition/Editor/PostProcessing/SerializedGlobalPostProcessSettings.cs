@@ -7,7 +7,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty lutSize;
         public SerializedProperty lutFormat;
-        public SerializedProperty bufferFormat;
 
         public SerializedGlobalPostProcessSettings(SerializedProperty root)
         {
@@ -15,7 +14,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             lutSize = root.FindPropertyRelative("m_LutSize");
             lutFormat = root.FindPropertyRelative("lutFormat");
-            bufferFormat = root.FindPropertyRelative("bufferFormat");
         }
     }
 }

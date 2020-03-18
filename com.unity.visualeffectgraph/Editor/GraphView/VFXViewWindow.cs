@@ -225,11 +225,12 @@ namespace  UnityEditor.VFX.UI
 
         void OnFocus()
         {
-            if(graphView != null) // OnFocus can be somehow called before OnEnable
-                graphView.OnFocus();
+            graphView.OnFocus();
         }
 
         public bool autoCompile {get; set; }
+
+        public bool autoCompileDependent { get; set; }
 
         void Update()
         {
@@ -257,13 +258,9 @@ namespace  UnityEditor.VFX.UI
                         {
                             filename += "*";
                         }
-                        if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
-                        {
-                            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
-                        }
-                        else
-                            graph.RecompileIfNeeded(true, true);
 
+
+                        graph.RecompileIfNeeded(!autoCompile,!autoCompileDependent);
                         controller.RecompileExpressionGraphIfNeeded();
                     }
                 }

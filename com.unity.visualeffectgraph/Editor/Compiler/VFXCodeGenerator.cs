@@ -182,12 +182,10 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static public StringBuilder Build(VFXContext context, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies)
+        static public StringBuilder Build(VFXContext context, VFXCompilationMode compilationMode, VFXContextCompiledData contextData)
         {
             var templatePath = string.Format("{0}.template", context.codeGeneratorTemplate);
-
-            dependencies.Add(AssetDatabase.AssetPathToGUID(templatePath));
-            return Build(context, templatePath, compilationMode, contextData, dependencies);
+            return Build(context, templatePath, compilationMode, contextData);
         }
 
         static private void GetFunctionName(VFXBlock block, out string functionName, out string comment)
@@ -261,7 +259,7 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static private StringBuilder GetFlattenedTemplateContent(string path, List<string> includes, IEnumerable<string> defines, HashSet<string> dependencies)
+        static private StringBuilder GetFlattenedTemplateContent(string path, List<string> includes, IEnumerable<string> defines)
         {
             var formattedPath = FormatPath(path);
 
@@ -282,7 +280,6 @@ namespace UnityEditor.VFX
                 var renderPipelineInclude = groups[1].Value == "RP";
                 var includePath = groups[2].Value;
 
-
                 if (groups.Count > 3 && !String.IsNullOrEmpty(groups[2].Value))
                 {
                     var allDefines = groups[3].Value.Split(new char[] {',', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
@@ -300,9 +297,8 @@ namespace UnityEditor.VFX
                     absolutePath = VFXLibrary.currentSRPBinder.templatePath + "/" + includePath;
                 else
                     absolutePath = VisualEffectGraphPackageInfo.assetPackagePath + "/" + includePath;
-                dependencies.Add(AssetDatabase.AssetPathToGUID(absolutePath));
 
-                var includeBuilder = GetFlattenedTemplateContent(absolutePath, includes, defines, dependencies);
+                var includeBuilder = GetFlattenedTemplateContent(absolutePath, includes, defines);
                 ReplaceMultiline(templateContent, groups[0].Value, includeBuilder);
             }
 
@@ -361,11 +357,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies)
+        static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData)
         {
             if (!context.SetupCompilation())
                 return null;
-            var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines, dependencies);
+            var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines);
 
             var allCurrentAttributes = context.GetData().GetAttributes().Where(a =>
                 (context.GetData().IsCurrentAttributeUsed(a.attrib, context)) ||
@@ -427,7 +423,7 @@ namespace UnityEditor.VFX
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
 
             if (renderPipePasses != null)
-                globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), context.additionalDefines, dependencies));
+                globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), context.additionalDefines));
 
             if (context.GetData() is ISpaceable)
             {

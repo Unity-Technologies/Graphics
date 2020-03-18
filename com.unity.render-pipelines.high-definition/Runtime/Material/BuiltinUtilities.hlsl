@@ -38,8 +38,7 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
 
     builtinData.opacity = alpha;
 
-    // We only want to read the screen space buffer that holds the indirect diffuse signal if this is not a transparent surface
-#if RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD) && !defined(_SURFACE_TYPE_TRANSPARENT)
+#if RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)
     if (_RaytracedIndirectDiffuse == 1)
     {
         #if SHADERPASS == SHADERPASS_GBUFFER

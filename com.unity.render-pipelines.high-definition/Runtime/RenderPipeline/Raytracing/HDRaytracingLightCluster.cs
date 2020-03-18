@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint lightIndex;
     }
 
-    internal class HDRaytracingLightCluster
+    class HDRaytracingLightCluster
     {
         // External data
         RenderPipelineResources m_RenderPipelineResources = null;
@@ -142,10 +142,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Release the previous buffer
             if (m_LightCluster != null)
             {
-                // If it is not null and it has already the right size, we are pretty much done
-                if (m_LightCluster.count == bufferSize)
-                    return;
-
                 CoreUtils.SafeRelease(m_LightCluster);
                 m_LightCluster = null;
             }
@@ -162,10 +158,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Release the previous buffer
             if (m_LightCullResult != null)
             {
-                // If it is not null and it has already the right size, we are pretty much done
-                if (m_LightCullResult.count == numLights)
-                    return;
-
                 CoreUtils.SafeRelease(m_LightCullResult);
                 m_LightCullResult = null;
             }
@@ -182,10 +174,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Release the previous buffer
             if (m_LightVolumeGPUArray != null)
             {
-                // If it is not null and it has already the right size, we are pretty much done
-                if (m_LightVolumeGPUArray.count == numLights)
-                    return;
-
                 CoreUtils.SafeRelease(m_LightVolumeGPUArray);
                 m_LightVolumeGPUArray = null;
             }
@@ -200,14 +188,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ResizeLightDataBuffer(int numLights)
         {
-            // Release the previous buffer 
+            // Release the previous buffer
             if (m_LightDataGPUArray != null)
             {
-                // If it is not null and it has already the right size, we are pretty much done
-                if (m_LightDataGPUArray.count == numLights)
-                    return;
-
-                // It is not the right size, free it to be reallocated
                 CoreUtils.SafeRelease(m_LightDataGPUArray);
                 m_LightDataGPUArray = null;
             }
@@ -224,10 +207,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Release the previous buffer
             if (m_EnvLightDataGPUArray != null)
             {
-                // If it is not null and it has already the right size, we are pretty much done
-                if (m_EnvLightDataGPUArray.count == numEnvLights)
-                    return;
-
                 CoreUtils.SafeRelease(m_EnvLightDataGPUArray);
                 m_EnvLightDataGPUArray = null;
             }
@@ -267,9 +246,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     Light light = currentLight.gameObject.GetComponent<Light>();
                     if (light == null || !light.enabled) continue;
 
-                    // Reserve space in the cookie atlas
-                    m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light);
-
                     float lightRange = light.range;
                     m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
                     m_LightVolumesCPUArray[realIndex].position = currentLight.gameObject.transform.position;
@@ -278,13 +254,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (currentLight.type != HDLightType.Area)
                     {
-                        m_LightVolumesCPUArray[realIndex].shape = 0;
                         m_LightVolumesCPUArray[realIndex].lightType = 0;
                         punctualLightCount++;
                     }
                     else
                     {
-                        m_LightVolumesCPUArray[realIndex].shape = 1;
                         m_LightVolumesCPUArray[realIndex].lightType = 1;
                         areaLightCount++;
                     }
@@ -327,7 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void EvaluateClusterVolume(HDCamera hdCamera)
         {
-            var settings = hdCamera.volumeStack.GetComponent<LightCluster>();
+            var settings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
             clusterCenter = hdCamera.camera.gameObject.transform.position;
             minClusterPos.Set(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -365,7 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void CullLights(CommandBuffer cmd)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingCullLights)))
+            using (new ProfilingSample(cmd, "Cull Light Cluster", CustomSamplerId.RaytracingCullLights.GetSampler()))
             {
                 // Make sure the culling buffer has the right size
                 if (m_LightCullResult == null || m_LightCullResult.count != totalLightCount)
@@ -392,11 +366,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildLightCluster(HDCamera hdCamera, CommandBuffer cmd)
+        void BuildLightCluster(CommandBuffer cmd)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingBuildCluster)))
+            using (new ProfilingSample(cmd, "Build Light Cluster", CustomSamplerId.RaytracingBuildCluster.GetSampler()))
             {
-                var lightClusterSettings = hdCamera.volumeStack.GetComponent<LightCluster>();
+                var lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
                 numLightsPerCell = lightClusterSettings.maxNumLightsPercell.value;
 
                 // Make sure the Cluster buffer has the right size
@@ -525,7 +499,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.up = light.transform.up;
                 lightData.right = light.transform.right;
 
-                lightData.boxLightSafeExtent = 1.0f;
                 if (lightData.lightType == GPULightType.ProjectorBox)
                 {
                     // Rescale for cookies and windowing.
@@ -596,39 +569,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.specularDimmer = lightDistanceFade * (additionalLightData.affectSpecular ? additionalLightData.lightDimmer * hdCamera.frameSettings.specularGlobalDimmer : 0);
                 lightData.volumetricLightDimmer = lightDistanceFade * (additionalLightData.volumetricDimmer);
 
-                lightData.cookieMode = CookieMode.None;
                 lightData.contactShadowMask = 0;
                 lightData.cookieIndex = -1;
                 lightData.shadowIndex = -1;
                 lightData.screenSpaceShadowIndex = -1;
 
-
-                if (light != null && light.cookie != null)
+                if (light.cookie != null)
                 {
                     // TODO: add texture atlas support for cookie textures.
+                    // TODO: why not using GPULightData here too?
                     switch (lightType)
                     {
                         case HDLightType.Spot:
-                            lightData.cookieMode = (additionalLightData.legacyLight.cookie.wrapMode == TextureWrapMode.Repeat) ? CookieMode.Repeat : CookieMode.Clamp;
-                            lightData.cookieScaleOffset = m_RenderPipeline.m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, light.cookie);
+                            lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cookieTexArray.FetchSlice(cmd, light.cookie);
                             break;
                         case HDLightType.Point:
-                            lightData.cookieMode = CookieMode.Clamp;
-                            lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, light.cookie);
+                        case HDLightType.Area:
+                            lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cubeCookieTexArray.FetchSlice(cmd, light.cookie);
                             break;
                     }
                 }
+                // TODO: why not using GPULightData here too?
                 else if (lightType == HDLightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
                 {
                     // Projectors lights must always have a cookie texture.
                     // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
-                    lightData.cookieMode = CookieMode.Clamp;
-                    lightData.cookieScaleOffset = m_RenderPipeline.m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
+                    lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
                 }
                 else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
                 {
-                    lightData.cookieMode = CookieMode.Clamp;
-                    lightData.cookieScaleOffset = m_RenderPipeline.m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie);
+                    lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
                 }
 
                 {
@@ -684,20 +654,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Make sure the Cpu list is empty
             m_EnvLightDataCPUArray.Clear();
-            ProcessedProbeData processedProbe = new ProcessedProbeData();
 
             // Build the data for every light
             for (int lightIdx = 0; lightIdx < lights.reflectionProbeArray.Count; ++lightIdx)
             {
                 HDProbe probeData = lights.reflectionProbeArray[lightIdx];
-
-                // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
-                if (!probeData.HasValidRenderedData()) continue;
-
-                HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
-
                 var envLightData = new EnvLightData();
-                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, m_RenderPipeline.m_CurrentDebugDisplaySettings, ref envLightData);
+                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, probeData, m_RenderPipeline.m_CurrentDebugDisplaySettings, ref envLightData);
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.
@@ -846,7 +809,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CullLights(cmd);
 
             // Build the light Cluster
-            BuildLightCluster(hdCamera, cmd);
+            BuildLightCluster(cmd);
 
             // Build the light data
             BuildLightData(cmd, hdCamera, rayTracingLights);

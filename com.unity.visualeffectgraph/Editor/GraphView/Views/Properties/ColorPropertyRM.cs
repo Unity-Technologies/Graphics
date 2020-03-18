@@ -1,7 +1,14 @@
 #define USE_MY_COLOR_FIELD
 
+using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor.UIElements;
+using UnityEditor.VFX;
+using UnityEditor.VFX.UIElements;
+using Object = UnityEngine.Object;
+using Type = System.Type;
 using FloatField = UnityEditor.VFX.UI.VFXLabeledField<UnityEditor.UIElements.FloatField, float>;
 
 
@@ -29,63 +36,45 @@ namespace UnityEditor.VFX.UI
             VisualElement fieldContainer = new VisualElement();
             fieldContainer.AddToClassList("fieldContainer");
 
-            m_FloatFields = new FloatField[4];
-            m_TooltipHolders = new VisualElement[4];
-            m_FieldParents = new VisualElement[4];
-            for (int i = 0; i < 4; ++i)
-            {
-                m_FloatFields[i] = new FloatField(names[i]);
-                m_FloatFields[i].RegisterCallback<ChangeEvent<float>>(OnValueChanged);
+            m_RFloatField = new FloatField("R");
+            m_RFloatField.RegisterCallback<ChangeEvent<float>>(OnValueChanged);
 
-                m_FieldParents[i] = new VisualElement();
-                m_FieldParents[i].Add(m_FloatFields[i]);
-                m_FieldParents[i].style.flexGrow = 1;
-                m_TooltipHolders[i] = new VisualElement();
-                m_TooltipHolders[i].style.position = UnityEngine.UIElements.Position.Absolute;
-                m_TooltipHolders[i].style.top = 0;
-                m_TooltipHolders[i].style.left = 0;
-                m_TooltipHolders[i].style.right = 0;
-                m_TooltipHolders[i].style.bottom = 0;
-                fieldContainer.Add(m_FieldParents[i]);
-            }
+            m_GFloatField = new FloatField("G");
+            m_GFloatField.RegisterCallback<ChangeEvent<float>>(OnValueChanged);
+
+            m_BFloatField = new FloatField("B");
+            m_BFloatField.RegisterCallback<ChangeEvent<float>>(OnValueChanged);
+
+            m_AFloatField = new FloatField("A");
+            m_AFloatField.RegisterCallback<ChangeEvent<float>>(OnValueChanged);
+
+            fieldContainer.Add(m_RFloatField);
+            fieldContainer.Add(m_GFloatField);
+            fieldContainer.Add(m_BFloatField);
+            fieldContainer.Add(m_AFloatField);
 
             m_MainContainer.Add(fieldContainer);
-
-            m_FloatFields[0].label.AddToClassList("first");
 
             Add(m_MainContainer);
         }
 
         public override float GetPreferredControlWidth()
         {
-            return 224;
+            return 200;
         }
 
         protected override void UpdateEnabled()
         {
-            bool enabled = propertyEnabled;
-            m_ColorField.SetEnabled(enabled);
-            for (int i = 0; i < 4; ++i)
-            {
-                m_FloatFields[i].SetEnabled(enabled);
-                if (enabled)
-                {
-                    if (m_TooltipHolders[i].parent != null)
-                        m_TooltipHolders[i].RemoveFromHierarchy();
-                }
-                else
-                {
-                    if (m_TooltipHolders[i].parent == null)
-                        m_FieldParents[i].Add(m_TooltipHolders[i]);
-                }
-            }
+            m_MainContainer.SetEnabled(propertyEnabled);
         }
 
         protected override void UpdateIndeterminate()
         {
             m_ColorField.indeterminate = indeterminate;
-            for(int i = 0; i < 4; ++i)
-                m_FloatFields[i].indeterminate = indeterminate;
+            m_RFloatField.indeterminate = indeterminate;
+            m_GFloatField.indeterminate = indeterminate;
+            m_BFloatField.indeterminate = indeterminate;
+            m_AFloatField.indeterminate = indeterminate;
         }
 
         public void OnValueChanged(ChangeEvent<Color> e)
@@ -107,7 +96,7 @@ namespace UnityEditor.VFX.UI
         {
             if (fromField)
             {
-                Color newValue = new Color(m_FloatFields[0].value, m_FloatFields[1].value, m_FloatFields[2].value, m_FloatFields[3].value);
+                Color newValue = new Color(m_RFloatField.value, m_GFloatField.value, m_BFloatField.value, m_AFloatField.value);
                 if (newValue != m_Value)
                 {
                     m_Value = newValue;
@@ -125,19 +114,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        FloatField[] m_FloatFields;
-
-        VisualElement[] m_FieldParents;
-        VisualElement[] m_TooltipHolders;
-
-        readonly string[] names = new string[]
-        {
-            "R",
-            "G",
-            "B",
-            "A"
-        };
-
+        FloatField m_RFloatField;
+        FloatField m_GFloatField;
+        FloatField m_BFloatField;
+        FloatField m_AFloatField;
 
 #if USE_MY_COLOR_FIELD
         UnityEditor.VFX.UI.VFXColorField m_ColorField;
@@ -148,11 +128,10 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI(bool force)
         {
             m_ColorField.value = m_Value;
-            for (int i = 0; i < 4; ++i)
-            {
-                m_FloatFields[i].SetValueWithoutNotify(m_Value[i]);
-                m_TooltipHolders[i].tooltip = m_Value[i].ToString();
-            }
+            m_RFloatField.SetValueWithoutNotify(m_Value.r);
+            m_GFloatField.SetValueWithoutNotify(m_Value.g);
+            m_BFloatField.SetValueWithoutNotify(m_Value.b);
+            m_AFloatField.SetValueWithoutNotify(m_Value.a);
         }
 
         public override bool showsEverything { get { return true; } }

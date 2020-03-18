@@ -7,7 +7,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    abstract class BaseShaderPreprocessor
+    public abstract class BaseShaderPreprocessor
     {
         // Common keyword list
         protected ShaderKeyword m_Transparent;

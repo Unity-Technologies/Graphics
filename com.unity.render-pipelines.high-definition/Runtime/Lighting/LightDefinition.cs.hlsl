@@ -23,13 +23,6 @@
 #define GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION (1)
 
 //
-// UnityEngine.Rendering.HighDefinition.CookieMode:  static fields
-//
-#define COOKIEMODE_NONE (0)
-#define COOKIEMODE_CLAMP (1)
-#define COOKIEMODE_REPEAT (2)
-
-//
 // UnityEngine.Rendering.HighDefinition.EnvShapeType:  static fields
 //
 #define ENVSHAPETYPE_NONE (0)
@@ -40,13 +33,20 @@
 //
 // UnityEngine.Rendering.HighDefinition.EnvConstants:  static fields
 //
-#define ENVCONSTANTS_CONVOLUTION_MIP_COUNT (7)
+#define ENVCONSTANTS_SPEC_CUBE_LOD_STEP (6)
 
 //
 // UnityEngine.Rendering.HighDefinition.EnvCacheType:  static fields
 //
 #define ENVCACHETYPE_TEXTURE2D (0)
 #define ENVCACHETYPE_CUBEMAP (1)
+
+//
+// UnityEngine.Rendering.HighDefinition.StencilLightingUsage:  static fields
+//
+#define STENCILLIGHTINGUSAGE_NO_LIGHTING (0)
+#define STENCILLIGHTINGUSAGE_SPLIT_LIGHTING (1)
+#define STENCILLIGHTINGUSAGE_REGULAR_LIGHTING (2)
 
 // Generated from UnityEngine.Rendering.HighDefinition.DirectionalLightData
 // PackingRules = Exact
@@ -57,12 +57,11 @@ struct DirectionalLightData
     float lightDimmer;
     float volumetricLightDimmer;
     float3 forward;
-    int cookieMode;
-    float4 cookieScaleOffset;
+    int cookieIndex;
     float3 right;
-    int shadowIndex;
+    int tileCookie;
     float3 up;
-    int contactShadowIndex;
+    int shadowIndex;
     float3 color;
     int contactShadowMask;
     float3 shadowTint;
@@ -83,7 +82,7 @@ struct DirectionalLightData
     float3 flareTint;
     float flareSize;
     float3 surfaceTint;
-    float4 surfaceTextureScaleOffset;
+    int surfaceTextureIndex;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightData
@@ -104,10 +103,9 @@ struct LightData
     float rangeAttenuationScale;
     float3 color;
     float rangeAttenuationBias;
-    int cookieMode;
     int cookieIndex;
+    int tileCookie;
     int shadowIndex;
-    float4 cookieScaleOffset;
     int contactShadowMask;
     float3 shadowTint;
     float shadowDimmer;

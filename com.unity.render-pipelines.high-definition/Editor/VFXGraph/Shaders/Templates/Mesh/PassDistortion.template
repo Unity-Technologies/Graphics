@@ -3,7 +3,13 @@ Pass
 {		
 	Tags { "LightMode"="DistortionVectors" }
 
-    ${VFXStencilDistortionVectors}
+	Stencil
+	{
+		WriteMask 64
+		Ref 64
+		Comp Always
+		Pass Replace
+	}
 
 	HLSLPROGRAM
 	#pragma target 4.5

@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable]
-    class DiffusionProfile : IEquatable<DiffusionProfile>
+    public sealed class DiffusionProfile : IEquatable<DiffusionProfile>
     {
         public enum TexturingMode : uint
         {
@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ior                = 1.4f; // Typical value for skin specular reflectance
         }
 
-        internal void Validate()
+        public void Validate()
         {
             thicknessRemap.y = Mathf.Max(thicknessRemap.y, 0f);
             thicknessRemap.x = Mathf.Clamp(thicknessRemap.x, 0f, thicknessRemap.y);
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar.
-        void UpdateKernel()
+        public void UpdateKernel()
         {
             if (filterKernelNearField == null || filterKernelNearField.Length != DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD)
                 filterKernelNearField = new Vector2[DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD];
@@ -199,18 +199,17 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Diffusion-Profile" + Documentation.endURL)]
-    internal partial class DiffusionProfileSettings : ScriptableObject
+    public sealed partial class DiffusionProfileSettings : ScriptableObject
     {
-        [SerializeField]
-        internal DiffusionProfile profile;
+        public DiffusionProfile profile;
 
-        [NonSerialized] internal Vector4 thicknessRemaps;           // Remap: 0 = start, 1 = end - start
-        [NonSerialized] internal Vector4 worldScales;               // X = meters per world unit; Y = world units per meter
-        [NonSerialized] internal Vector4 shapeParams;               // RGB = S = 1 / D, A = filter radius
-        [NonSerialized] internal Vector4 transmissionTintsAndFresnel0; // RGB = color, A = fresnel0
-        [NonSerialized] internal Vector4 disabledTransmissionTintsAndFresnel0; // RGB = black, A = fresnel0 - For debug to remove the transmission
-        [NonSerialized] internal Vector4[] filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
-        [NonSerialized] internal int updateCount;
+        [NonSerialized] public Vector4 thicknessRemaps;           // Remap: 0 = start, 1 = end - start
+        [NonSerialized] public Vector4 worldScales;               // X = meters per world unit; Y = world units per meter
+        [NonSerialized] public Vector4 shapeParams;               // RGB = S = 1 / D, A = filter radius
+        [NonSerialized] public Vector4 transmissionTintsAndFresnel0; // RGB = color, A = fresnel0
+        [NonSerialized] public Vector4 disabledTransmissionTintsAndFresnel0; // RGB = black, A = fresnel0 - For debug to remove the transmission
+        [NonSerialized] public Vector4[] filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
+        [NonSerialized] public int updateCount;
 
         void OnEnable()
         {
@@ -221,9 +220,9 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateCache();
 
 #if UNITY_EDITOR
-            if (m_Version != MigrationDescription.LastVersion<Version>())
+            if (m_Version != Version.Last)
             {
-                // We delay the upgrade of the diffusion profile because in the OnEnable we are still
+                // We delay the upgrade of the diffusion profile because ni the OnEnable we are still
                 // in the import of the current diffusion profile, so we can't create new assets of the same
                 // type from here otherwise it will freeze the editor in an infinite import loop.
                 // Thus we delay the upgrade of one editor frame so the import of this asset is finished.
@@ -234,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        internal void UpdateCache()
+        public void UpdateCache()
         {
             if (filterKernels == null)
                 filterKernels = new Vector4[DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD];
@@ -268,14 +267,12 @@ namespace UnityEngine.Rendering.HighDefinition
             updateCount++;
         }
 
-        internal bool HasChanged(int update)
+        public bool HasChanged(int update)
         {
             return update == updateCount;
         }
 
-        /// <summary>
-        /// Initialize the settings for the default diffusion profile.
-        /// </summary>
+        // Initialize the settings for the default diffusion  profile
         public void SetDefaultParams()
         {
             worldScales = Vector4.one;

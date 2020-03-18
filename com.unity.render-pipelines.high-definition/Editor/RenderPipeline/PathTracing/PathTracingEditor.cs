@@ -1,9 +1,6 @@
-using System;
-
 using UnityEditor.Rendering;
-
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HighDefinition
 {
@@ -41,8 +38,15 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             }
 
             // If ray tracing is supported display the content of the volume component
-            if (HDRenderPipeline.pipelineSupportsRayTracing)
+            if (((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported))
             {
+                if (currentAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier != RenderPipelineSettings.RaytracingTier.Tier2)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.HelpBox("The current HDRP Asset does not support Path Tracing.", MessageType.Error, wide: true);
+                    return;
+                }
+
                 PropertyField(m_Enable);
 
                 if (m_Enable.overrideState.boolValue && m_Enable.value.boolValue)
@@ -54,9 +58,6 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                     PropertyField(m_MaxDepth);
                     PropertyField(m_MaxIntensity);
                     EditorGUI.indentLevel--;
-
-                    // Make sure MaxDepth is always greater or equal than MinDepth
-                    m_MaxDepth.value.intValue = Math.Max(m_MinDepth.value.intValue, m_MaxDepth.value.intValue);
                 }
             }
         }

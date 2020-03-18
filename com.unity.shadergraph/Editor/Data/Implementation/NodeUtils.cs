@@ -6,7 +6,6 @@ using System.Text;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
-using UnityEngine.Rendering.ShaderGraph;
 
 namespace UnityEditor.Graphing
 {
@@ -19,7 +18,7 @@ namespace UnityEditor.Graphing
 
     static class NodeUtils
     {
-        static string NodeDocSuffix = "-Node";
+        public static string docURL = "https://github.com/Unity-Technologies/ScriptableRenderPipeline/tree/master/com.unity.shadergraph/Documentation%7E/";
 
         public static void SlotConfigurationExceptionIfBadConfiguration(AbstractMaterialNode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots)
         {
@@ -82,7 +81,7 @@ namespace UnityEditor.Graphing
             Exclude
         }
 
-        public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node,
+        public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, 
             IncludeSelf includeSelf = IncludeSelf.Include, IEnumerable<int> slotIds = null, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
         {
             // no where to start
@@ -177,9 +176,9 @@ namespace UnityEditor.Graphing
                 nodeList.Add(node);
         }
 
-        public static string GetDocumentationString(string pageName)
+        public static string GetDocumentationString(AbstractMaterialNode node)
         {
-            return Documentation.GetPageLink(pageName.Replace(" ", "-") + NodeDocSuffix);
+            return $"{docURL}{node.name.Replace(" ", "-")}"+"-Node.md";
         }
 
         static Stack<MaterialSlot> s_SlotStack = new Stack<MaterialSlot>();
@@ -336,42 +335,15 @@ namespace UnityEditor.Graphing
         public static string FloatToShaderValue(float value)
         {
             if (Single.IsPositiveInfinity(value))
-            {
                 return "1.#INF";
-            }
-            if (Single.IsNegativeInfinity(value))
-            {
+            else if (Single.IsNegativeInfinity(value))
                 return "-1.#INF";
-            }
-            if (Single.IsNaN(value))
-            {
+            else if (Single.IsNaN(value))
                 return "NAN";
-            }
-
-            return value.ToString(CultureInfo.InvariantCulture);
-        }
-
-        // A number large enough to become Infinity (~FLOAT_MAX_VALUE * 10) + explanatory comment
-        private const string k_ShaderLabInfinityAlternatrive = "3402823500000000000000000000000000000000 /* Infinity */";
-
-        // ShaderLab doesn't support Scientific Notion nor Infinity. To stop from generating a broken shader we do this.
-        public static string FloatToShaderValueShaderLabSafe(float value)
-        {
-            if (Single.IsPositiveInfinity(value))
+            else
             {
-                return k_ShaderLabInfinityAlternatrive;
+                return value.ToString(CultureInfo.InvariantCulture);
             }
-            if (Single.IsNegativeInfinity(value))
-            {
-                return "-" + k_ShaderLabInfinityAlternatrive;
-            }
-            if (Single.IsNaN(value))
-            {
-                return "NAN"; // A real error has occured, in this case we should break the shader.
-            }
-
-            // For single point precision, reserve 54 spaces (e-45 min + ~9 digit precision). See floating-point-numeric-types (Microsoft docs).
-            return value.ToString("0.######################################################", CultureInfo.InvariantCulture);
         }
     }
 }

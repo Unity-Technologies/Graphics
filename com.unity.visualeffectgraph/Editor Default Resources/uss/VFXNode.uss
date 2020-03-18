@@ -37,8 +37,7 @@
 
 .VFXNodeUI.node #node-border > #title > #title-label
 {
-    flex:1 1 auto;
-    overflow:hidden;
+    flex:1 0 auto;
 }
 
 

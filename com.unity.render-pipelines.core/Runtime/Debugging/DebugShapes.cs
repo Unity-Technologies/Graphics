@@ -1,12 +1,10 @@
 namespace UnityEngine.Rendering
 {
-    /// <summary>Debug class containing several debug shapes for debugging</summary>
     public partial class DebugShapes
     {
         // Singleton
         static DebugShapes s_Instance = null;
 
-        /// <summary>Singleton instance</summary>
         static public DebugShapes instance
         {
             get
@@ -472,8 +470,8 @@ namespace UnityEngine.Rendering
             m_pyramidMesh = new Mesh();
             BuildPyramid(ref m_pyramidMesh, 1.0f, 1.0f, 1.0f);
         }
-        
-        void RebuildResources()
+
+        public void CheckResources()
         {
             if (m_sphereMesh == null || m_boxMesh == null || m_coneMesh == null || m_pyramidMesh == null)
             {
@@ -481,35 +479,27 @@ namespace UnityEngine.Rendering
             }
         }
 
-        /// <summary>Get a Sphere Mesh</summary>
-        /// <returns>A Sphere Mesh</returns>
         public Mesh RequestSphereMesh()
         {
-            RebuildResources();
+            CheckResources();
             return m_sphereMesh;
         }
 
-        /// <summary>Get a Box Mesh</summary>
-        /// <returns>A Box Mesh</returns>
         public Mesh RequestBoxMesh()
         {
-            RebuildResources();
+            CheckResources();
             return m_boxMesh;
         }
 
-        /// <summary>Get a Cone Mesh</summary>
-        /// <returns>A Cone Mesh</returns>
         public Mesh RequestConeMesh()
         {
-            RebuildResources();
+            CheckResources();
             return m_coneMesh;
         }
 
-        /// <summary>Get a Pyramid Mesh</summary>
-        /// <returns>A Pyramid Mesh</returns>
         public Mesh RequestPyramidMesh()
         {
-            RebuildResources();
+            CheckResources();
             return m_pyramidMesh;
         }
     }

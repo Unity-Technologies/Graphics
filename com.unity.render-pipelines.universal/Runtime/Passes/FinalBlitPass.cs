@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
         TextureDimension m_TargetDimension;
+        bool m_IsMobileOrSwitch;
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
@@ -29,6 +30,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_Source = colorHandle;
             m_TargetDimension = baseDescriptor.dimension;
+            m_IsMobileOrSwitch = Application.isMobilePlatform || Application.platform == RuntimePlatform.Switch;
         }
 
         /// <inheritdoc/>
@@ -40,25 +42,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
-            // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-            ref CameraData cameraData = ref renderingData.cameraData;
-            RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
-
             bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
 
-            // For stereo case, eye texture always want color data in sRGB space.
-            // If eye texture color format is linear, we do explicit sRGB convertion
-#if ENABLE_VR && ENABLE_VR_MODULE
-            if (cameraData.isStereoEnabled)
-                requiresSRGBConvertion = !XRGraphics.eyeTextureDesc.sRGB;
-#endif
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
             if (requiresSRGBConvertion)
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
             else
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+
+            ref CameraData cameraData = ref renderingData.cameraData;
 
             // Use default blit for XR as we are not sure the UniversalRP blit handles stereo.
             // The blit will be reworked for stereo along the XRSDK work.
@@ -70,7 +63,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,     // color
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                cmd.Blit(m_Source.Identifier(), cameraTarget, blitMaterial);
+                cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget, blitMaterial);
             }
             else
             {
@@ -79,7 +72,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // meanwhile we set to load so split screen case works.
                 SetRenderTarget(
                     cmd,
-                    cameraTarget,
+                    BuiltinRenderTextureType.CameraTarget,
                     RenderBufferLoadAction.Load,
                     RenderBufferStoreAction.Store,
                     ClearFlag.None,
@@ -88,7 +81,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 Camera camera = cameraData.camera;
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.SetViewport(cameraData.pixelRect);
+                cmd.SetViewport(cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, blitMaterial);
                 cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }

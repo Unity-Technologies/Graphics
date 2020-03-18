@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// FullScreen Custom Pass
     /// </summary>
     [System.Serializable]
-    class FullScreenCustomPass : CustomPass
+    public class FullScreenCustomPass : CustomPass
     {
         // Fullscreen pass settings
         public Material         fullscreenPassMaterial;
@@ -20,7 +20,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int fadeValueId;
 
-        /// <inheritdoc />
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             fadeValueId = Shader.PropertyToID("_FadeValue");
@@ -41,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (fetchColorBuffer)
                 {
                     ResolveMSAAColorBuffer(cmd, hdCamera);
-                    // reset the render target to the UI
+                    // reset the render target to the UI 
                     SetRenderTargetAuto(cmd);
                 }
 
@@ -49,8 +48,5 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.DrawFullScreen(cmd, fullscreenPassMaterial, shaderPassId: fullscreenPassMaterial.FindPass(materialPassName));
             }
         }
-
-        /// <inheritdoc />
-        public override IEnumerable<Material> RegisterMaterialForInspector() { yield return fullscreenPassMaterial; }
     }
 }

@@ -2,7 +2,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     // Deprecated, kept for migration
     [VolumeComponentDeprecated()]
-    class ExponentialFog : AtmosphericScattering
+    public class ExponentialFog : AtmosphericScattering
     {
         private readonly static int m_ExpFogParam = Shader.PropertyToID("_ExpFogParameters");
 

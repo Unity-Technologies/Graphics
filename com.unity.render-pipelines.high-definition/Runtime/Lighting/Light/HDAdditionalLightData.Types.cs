@@ -11,57 +11,39 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    /// <summary>Type of an HDRP Light.</summary>
+    /// <summary>Type of an HDRP Light</summary>
     public enum HDLightType
     {
-        /// <summary>Spot Light. Complete this type by setting the SpotLightShape too.</summary>
+        /// <summary>Complete this type by setting the SpotLightShape too.</summary>
         Spot = LightType.Spot,
-        /// <summary>Directional Light.</summary>
         Directional = LightType.Directional,
-        /// <summary>Point Light.</summary>
         Point = LightType.Point,
-        /// <summary>Area Light. Complete this type by setting the AreaLightShape too.</summary>
+        /// <summary>Complete this type by setting the AreaLightShape too.</summary>
         Area = LightType.Area,
     }
 
-    /// <summary>Shape of a spot light.</summary>
     public enum SpotLightShape
     {
-        /// <summary>Cone shape. The default shape of the spot light.</summary>
         Cone,
-        /// <summary>Pyramid shape.</summary>
         Pyramid,
-        /// <summary>Box shape. Similar to a directional light but with bounds.</summary>
         Box
     };
 
-    /// <summary>Shape of an area light</summary>
     public enum AreaLightShape
     {
-        /// <summary>Rectangle shape.</summary>
         Rectangle,
-        /// <summary>Tube shape. Runtime only</summary>
         Tube,
-        /// <summary>Disc shape. Baking only.</summary>
         Disc,
         // Sphere,
     };
 
-    /// <summary>
-    /// Unit of the lights supported in HDRP
-    /// </summary>
     public enum LightUnit
     {
-        /// <summary>Total power/flux emitted by the light.</summary>
-        Lumen,
-        /// <summary>Flux per steradian.</summary>
-        Candela,    // lm/sr
-        /// <summary>Flux per unit area.</summary>
-        Lux,        // lm/m²
-        /// <summary>Flux per unit area and per steradian.</summary>
-        Nits,       // lm/m²/sr
-        /// <summary>ISO 100 Exposure Value (https://en.wikipedia.org/wiki/Exposure_value).</summary>
-        Ev100,
+        Lumen,      // lm = total power/flux emitted by the light
+        Candela,    // lm/sr = flux per steradian
+        Lux,        // lm/m² = flux per unit area
+        Nits,       // lm/m²/sr = flux per unit area and per steradian
+        Ev100,      // ISO 100 Exposure Value (https://en.wikipedia.org/wiki/Exposure_value)
     }
 
     internal enum DirectionalLightUnit
@@ -84,39 +66,28 @@ namespace UnityEngine.Rendering.HighDefinition
         Ev100 = LightUnit.Ev100
     }
 
-    /// <summary>Shadow Update mode </summary>
+    /// <summary>
+    /// Shadow Update mode
+    /// </summary>
     public enum ShadowUpdateMode
     {
-        /// <summary>Shadow map will be rendered at every frame.</summary>
         EveryFrame = 0,
-        /// <summary>Shadow will be rendered only when the OnEnable of the light is called.</summary>
         OnEnable,
-        /// <summary>Shadow will be rendered when you call HDAdditionalLightData.RequestShadowMapRendering().</summary>
         OnDemand
     }
 
-    /// <summary>Light Layers.</summary>
+    // Light layering
     public enum LightLayerEnum
     {
-        /// <summary>The light will no affect any object.</summary>
         Nothing = 0,   // Custom name for "Nothing" option
-        /// <summary>Light Layer 0.</summary>
         LightLayerDefault = 1 << 0,
-        /// <summary>Light Layer 1.</summary>
         LightLayer1 = 1 << 1,
-        /// <summary>Light Layer 2.</summary>
         LightLayer2 = 1 << 2,
-        /// <summary>Light Layer 3.</summary>
         LightLayer3 = 1 << 3,
-        /// <summary>Light Layer 4.</summary>
         LightLayer4 = 1 << 4,
-        /// <summary>Light Layer 5.</summary>
         LightLayer5 = 1 << 5,
-        /// <summary>Light Layer 6.</summary>
         LightLayer6 = 1 << 6,
-        /// <summary>Light Layer 7.</summary>
         LightLayer7 = 1 << 7,
-        /// <summary>Everything.</summary>
         Everything = 0xFF, // Custom name for "Everything" option
     }
 
@@ -126,27 +97,18 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public enum HDLightTypeAndShape
     {
-        /// <summary>Point Light.</summary>
         Point,
-        /// <summary>Spot Light with box shape.</summary>
         BoxSpot,
-        /// <summary>Spot Light with pyramid shape.</summary>
         PyramidSpot,
-        /// <summary>Spot Light with cone shape.</summary>
         ConeSpot,
-        /// <summary>Directional Light.</summary>
         Directional,
-        /// <summary>Rectangle Light.</summary>
         RectangleArea,
-        /// <summary>Tube Light, runtime Only.</summary>
+        /// <summary> Runtime Only </summary>
         TubeArea,
-        /// <summary>Disc light, baking Only</summary>
+        /// <summary> Baking Only </summary>
         DiscArea,
     }
 
-    /// <summary>
-    /// Extension class for the HDLightTypeAndShape type.
-    /// </summary>
     public static class HDLightTypeExtension
     {
         /// <summary>
@@ -455,10 +417,6 @@ namespace UnityEngine.Rendering.HighDefinition
         //be base on a default(HDAdditionnalData) which will have a point type
         internal HDLightType ComputeLightType(Light attachedLight)
         {
-            // Shuriken lights won't have a Light component.
-            if (attachedLight == null)
-                return HDLightType.Point;
-
             switch (attachedLight.type)
             {
                 case LightType.Spot: return HDLightType.Spot;

@@ -1,18 +1,10 @@
-using UnityEngine.Rendering;
+﻿using UnityEngine.Rendering;
 using Utilities;
 
 namespace UnityEditor.Rendering.Utilities
 {
-    /// <summary>
-    /// Editor MaterialQuality utility class.
-    /// </summary>
     public static class EditorMaterialQualityUtilities
     {
-        /// <summary>
-        /// Get the material quality levels enabled in a keyword set.
-        /// </summary>
-        /// <param name="keywordSet">Input keywords.</param>
-        /// <returns>All available MaterialQuality levels in the keyword set.</returns>
         public static MaterialQuality GetMaterialQuality(this ShaderKeywordSet keywordSet)
         {
             var result = (MaterialQuality)0;

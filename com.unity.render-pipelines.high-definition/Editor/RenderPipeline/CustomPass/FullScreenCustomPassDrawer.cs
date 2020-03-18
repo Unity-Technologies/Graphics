@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
 	/// FullScreen custom pass drawer
 	/// </summary>
 	[CustomPassDrawerAttribute(typeof(FullScreenCustomPass))]
-    class FullScreenCustomPassDrawer : CustomPassDrawer
+    public class FullScreenCustomPassDrawer : CustomPassDrawer
     {
 	    private class Styles
 	    {

@@ -9,11 +9,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// DrawRenderers Custom Pass
     /// </summary>
     [System.Serializable]
-    class DrawRenderersCustomPass : CustomPass
+    public class DrawRenderersCustomPass : CustomPass
     {
-        /// <summary>
-        /// HDRP Shader passes
-        /// </summary>
         public enum ShaderPass
         {
             // Ordered by frame time in HDRP
@@ -42,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool depthWrite = true;
 
         public ShaderPass shaderPass = ShaderPass.Forward;
-
+    
         int fadeValueId;
 
         static ShaderTagId[] forwardShaderTags;
@@ -51,7 +48,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Cache the shaderTagIds so we don't allocate a new array each frame
         ShaderTagId[]   cachedShaderTagIDs;
 
-        /// <inheritdoc />
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             fadeValueId = Shader.PropertyToID("_FadeValue");
@@ -74,7 +70,6 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        /// <inheritdoc />
         protected override void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera)
         {
             cullingParameters.cullingMask |= (uint)(int)layerMask;
@@ -100,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var shaderPasses = GetShaderTagIds();
             if (overrideMaterial != null)
             {
-                shaderPasses[shaderPasses.Length - 1] = new ShaderTagId(overrideMaterialPassName);
+                shaderPasses[forwardShaderTags.Length - 1] = new ShaderTagId(overrideMaterialPassName);
                 overrideMaterial.SetFloat(fadeValueId, fadeValue);
             }
 
@@ -110,13 +105,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            var mask = overrideDepthState ? RenderStateMask.Depth : 0;
-            mask |= overrideDepthState && !depthWrite ? RenderStateMask.Stencil : 0;
-            var stateBlock = new RenderStateBlock(mask)
+            var stateBlock = new RenderStateBlock(overrideDepthState ? RenderStateMask.Depth : 0)
             {
                 depthState = new DepthState(depthWrite, depthCompareFunction),
-                // We disable the stencil when the depth is overwritten but we don't write to it, to prevent writing to the stencil.
-                stencilState = new StencilState(false),
             };
 
             PerObjectData renderConfig = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
@@ -135,8 +126,5 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(result));
         }
-
-        /// <inheritdoc />
-        public override IEnumerable<Material> RegisterMaterialForInspector() { yield return overrideMaterial; }
     }
 }

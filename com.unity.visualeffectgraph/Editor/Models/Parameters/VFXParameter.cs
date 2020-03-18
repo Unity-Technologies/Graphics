@@ -7,7 +7,6 @@ using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX
 {
-    [ExcludeFromPreset]
     class VFXParameter : VFXSlotContainerModel<VFXModel, VFXModel>
     {
         protected VFXParameter()

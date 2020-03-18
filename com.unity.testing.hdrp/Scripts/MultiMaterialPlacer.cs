@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 
 [SelectionBase]
 public class MultiMaterialPlacer : MonoBehaviour
@@ -11,9 +10,6 @@ public class MultiMaterialPlacer : MonoBehaviour
     public Material material;
 
     public MaterialParameterVariation[] commonParameters;
-    public bool overideRenderQueue = false;
-    [SerializeField]
-    internal HDRenderQueue.Priority renderQueue = HDRenderQueue.Priority.Opaque;
 
     public bool is2D = false;
 

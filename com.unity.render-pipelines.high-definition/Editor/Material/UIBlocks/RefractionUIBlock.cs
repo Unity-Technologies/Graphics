@@ -112,6 +112,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
                     case ScreenSpaceRefraction.RefractionModel.Thin:
                     {
+                        thickness[0].floatValue = 0.005f;
+                        atDistance.floatValue = 0.005f;
                         materialEditor.ShaderProperty(ior, Styles.refractionIorText);
                         materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
                     }

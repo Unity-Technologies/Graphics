@@ -106,7 +106,6 @@ namespace UnityEditor.VFX.UI
         {
             m_IgnoreNotification = true;
             m_Value = newValue;
-            tooltip = newValue.ToString();
             if (!hasFocus)
                 m_Field.value = newValue;
             m_Slider.value = ValueToFloat(value);

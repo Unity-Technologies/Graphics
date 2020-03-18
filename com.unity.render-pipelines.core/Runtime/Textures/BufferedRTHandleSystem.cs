@@ -52,17 +52,8 @@ namespace UnityEngine.Rendering
         RTHandleSystem m_RTHandleSystem = new RTHandleSystem();
         bool m_DisposedValue = false;
 
-        /// <summary>
-        /// Maximum allocated width of the Buffered RTHandle System
-        /// </summary>
         public int maxWidth { get { return m_RTHandleSystem.GetMaxWidth(); } }
-        /// <summary>
-        /// Maximum allocated height of the Buffered RTHandle System
-        /// </summary>
         public int maxHeight { get { return m_RTHandleSystem.GetMaxHeight(); } }
-        /// <summary>
-        /// Current properties of the Buffered RTHandle System
-        /// </summary>
         public RTHandleProperties rtHandleProperties { get { return m_RTHandleSystem.rtHandleProperties; } }
 
         /// <summary>
@@ -107,10 +98,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        /// <summary>
-        /// Release a buffer
-        /// </summary>
-        /// <param name="bufferId">Id of the buffer that needs to be released.</param>
         public void ReleaseBuffer(int bufferId)
         {
             if (m_RTHandles.TryGetValue(bufferId, out var buffers))
@@ -172,9 +159,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        /// <summary>
-        /// Dispose implementation
-        /// </summary>
         public void Dispose()
         {
             Dispose(true);

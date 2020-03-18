@@ -259,9 +259,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            if (!m_GizmoableAnchors.Contains(m_GizmoedAnchor))
-                m_GizmoedAnchor = null;
-
             if (m_GizmoedAnchor == null)
             {
                 m_GizmoedAnchor = m_GizmoableAnchors.FirstOrDefault();

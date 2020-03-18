@@ -9,12 +9,17 @@ namespace UnityEditor.ShaderGraph
         {
 			materialEditor.PropertiesDefaultGUI(props);
 
-            Material material = materialEditor.target as Material;
-
-            if (materialEditor.EmissionEnabledProperty())
+            foreach (MaterialProperty prop in props)
             {
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
-            } 
+                if (prop.name == "_EmissionColor")
+                {
+                    if (materialEditor.EmissionEnabledProperty())
+                    {
+                        materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
+                    }
+                    return;
+                }
+            }
         }
     }
 }

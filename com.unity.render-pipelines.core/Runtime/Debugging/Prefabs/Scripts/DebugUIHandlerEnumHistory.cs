@@ -3,9 +3,6 @@ using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
 {
-    /// <summary>
-    /// DebugUIHandler for enum with history widget.
-    /// </summary>
     public class DebugUIHandlerEnumHistory : DebugUIHandlerEnumField
     {
         Text[] historyValues;
@@ -30,9 +27,6 @@ namespace UnityEngine.Rendering.UI
             base.SetWidget(widget);
         }
 
-        /// <summary>
-        /// Update the label of the widget.
-        /// </summary>
         protected override void UpdateValueLabel()
         {
             int index = m_Field.currentIndex;

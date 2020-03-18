@@ -165,8 +165,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // SSR
         MaterialProperty receivesSSR = null;
         const string kReceivesSSR = "_ReceivesSSR";
-        MaterialProperty receivesSSRTransparent = null;
-        const string kReceivesSSRTransparent = "_ReceivesSSRTransparent";
 
         MaterialProperty displacementMode = null;
         const string kDisplacementMode = "_DisplacementMode";
@@ -206,7 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected MaterialProperty refractionModel = null;
         protected const string kRefractionModel = "_RefractionModel";
 
-        MaterialProperty transparentZWrite = null;
+        MaterialProperty zWrite = null;
         MaterialProperty stencilRef = null;
         MaterialProperty zTest = null;
         MaterialProperty transparentCullMode = null;
@@ -338,12 +336,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // SSR
             if ((m_Features & Features.ReceiveSSR) != 0)
-            {
                 receivesSSR = FindProperty(kReceivesSSR);
-                receivesSSRTransparent = FindProperty(kReceivesSSRTransparent);
-            }
 
-            transparentZWrite = FindProperty(kTransparentZWrite);
+            zWrite = FindProperty(kZWrite);
             stencilRef = FindProperty(kStencilRef);
             zTest = FindProperty(kZTestTransparent);
             transparentCullMode = FindProperty(kTransparentCullMode);
@@ -383,21 +378,17 @@ namespace UnityEditor.Rendering.HighDefinition
             if (alphaCutoffEnable != null && alphaCutoffEnable.floatValue == 1.0f)
             {
                 EditorGUI.indentLevel++;
-
-                if (alphaCutoff != null)
+                if ((m_Features & Features.AlphaCutoffThreshold) != 0)
                     materialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText);
 
-                if ((m_Features & Features.AlphaCutoffThreshold) != 0)
-                {
-                    if (useShadowThreshold != null)
-                        materialEditor.ShaderProperty(useShadowThreshold, Styles.useShadowThresholdText);
+                if (useShadowThreshold != null)
+                    materialEditor.ShaderProperty(useShadowThreshold, Styles.useShadowThresholdText);
 
-                    if (alphaCutoffShadow != null && useShadowThreshold != null && useShadowThreshold.floatValue == 1.0f && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
-                    {
-                        EditorGUI.indentLevel++;
-                        materialEditor.ShaderProperty(alphaCutoffShadow, Styles.alphaCutoffShadowText);
-                        EditorGUI.indentLevel--;
-                    }
+                if (alphaCutoffShadow != null && useShadowThreshold != null && useShadowThreshold.floatValue == 1.0f && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
+                {
+                    EditorGUI.indentLevel++;
+                    materialEditor.ShaderProperty(alphaCutoffShadow, Styles.alphaCutoffShadowText);
+                    EditorGUI.indentLevel--;
                 }
 
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
@@ -497,8 +488,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (transparentWritingMotionVec != null)
                     materialEditor.ShaderProperty(transparentWritingMotionVec, Styles.transparentWritingMotionVecText);
 
-                if (transparentZWrite != null)
-                    materialEditor.ShaderProperty(transparentZWrite, Styles.zWriteEnableText);
+                if (zWrite != null)
+                    materialEditor.ShaderProperty(zWrite, Styles.zWriteEnableText);
 
                 if (zTest != null)
                     materialEditor.ShaderProperty(zTest, Styles.transparentZTestText);
@@ -579,7 +570,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (newMode == SurfaceType.Transparent)
             {
-                if (stencilRef != null && ((int)stencilRef.floatValue & (int)StencilUsage.SubsurfaceScattering) != 0)
+                if (stencilRef != null && ((int)stencilRef.floatValue & (int)StencilLightingUsage.SplitLighting) != 0)
                     EditorGUILayout.HelpBox(Styles.transparentSSSErrorMessage, MessageType.Error);
             }
 
@@ -722,11 +713,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (receivesSSR != null)
             {
-                // Based on the surface type, display the right recieveSSR option
-                if (surfaceTypeValue == SurfaceType.Transparent)
-                    materialEditor.ShaderProperty(receivesSSRTransparent, Styles.receivesSSRText);
-                else
-                    materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
+                materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
             }
 
             if (enableGeometricSpecularAA != null)

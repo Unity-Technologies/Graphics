@@ -101,7 +101,6 @@ namespace UnityEditor.VFX.UI
             public string label;
             public Node[] blocks;
             public SubOutput[] subOutputs;
-            public string systemName;
         }
 
         [Serializable]

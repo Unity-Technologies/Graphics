@@ -43,34 +43,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static void DisplayDeletionDialog(string[] deletedAssets)
-        {
-            MaterialGraphEditWindow[] windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
-            foreach (var matGraphEditWindow in windows)
-            {
-                for (int i = 0; i < deletedAssets.Length; ++i)
-                {
-                    if (matGraphEditWindow.selectedGuid == AssetDatabase.AssetPathToGUID(deletedAssets[i]))
-                        matGraphEditWindow.AssetWasDeleted();
-                }
-            }
-        }
-
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             RegisterShaders(importedAssets);
 
-            // Moved assets
-            bool anyMovedShaders = movedAssets.Any(val => val.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
-            anyMovedShaders |= movedAssets.Any(val => val.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
-            if (anyMovedShaders)
+            bool anyShaders = movedAssets.Any(val => val.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
+            anyShaders |= movedAssets.Any(val => val.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
+            if (anyShaders)
                 UpdateAfterAssetChange(movedAssets);
-
-            // Deleted assets
-            bool anyRemovedShaders = deletedAssets.Any(val => val.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
-            anyRemovedShaders |= deletedAssets.Any(val => val.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
-            if (anyRemovedShaders)
-                DisplayDeletionDialog(deletedAssets);
 
             var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
 

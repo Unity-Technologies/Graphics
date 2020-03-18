@@ -4,14 +4,12 @@ using System.Diagnostics;
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Deprecated, kept for migration
-    abstract class AtmosphericScattering : VolumeComponent
+    public abstract class AtmosphericScattering : VolumeComponent
     {
         // Fog Color
         public FogColorParameter     colorMode = new FogColorParameter(FogColorMode.SkyColor);
         [Tooltip("Specifies the constant color of the fog.")]
         public ColorParameter        color = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
-        [Tooltip("Specifies the tint of the fog.")]
-        public ColorParameter        tint = new ColorParameter(Color.white, hdr: true, showAlpha: false, showEyeDropper: true);
         [Tooltip("Controls the overall density of the fog. Acts as a global multiplier.")]
         public ClampedFloatParameter density = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         [Tooltip("Sets the maximum fog distance HDRP uses when it shades the skybox or the Far Clipping Plane of the Camera.")]
@@ -27,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     // Deprecated, kept for migration
-    internal enum FogType
+    public enum FogType
     {
         None = 0,
         Exponential = 2,

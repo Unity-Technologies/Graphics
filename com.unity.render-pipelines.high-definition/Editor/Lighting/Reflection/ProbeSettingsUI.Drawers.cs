@@ -24,8 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 | ProbeSettingsFields.lightingRangeCompression;
             const ProbeSettingsFields frustum = ProbeSettingsFields.frustumFieldOfViewMode
                 | ProbeSettingsFields.frustumAutomaticScale
-                | ProbeSettingsFields.frustumFixedValue
-                | ProbeSettingsFields.resolution;
+                | ProbeSettingsFields.frustumFixedValue;
 
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hd))
                 return;
@@ -96,8 +95,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             CameraSettingsUI.Draw(serialized.cameraSettings, owner, displayedFields.camera);
-
-            PropertyFieldWithoutToggle(ProbeSettingsFields.resolution, serialized.resolution, EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution for the planar probe camera."), displayedFields.probe);
 
             if ((displayedFields.probe & proxy) != 0)
             {

@@ -91,8 +91,7 @@ class VFXSlotContainerEditor : Editor
                         var controller = view.controller.GetParameterController(slotContainer as VFXParameter);
 
                         m_CurrentController = controller;
-                        if( controller != null)
-                            controller.DrawGizmos(view.attachedComponent);
+                        controller.DrawGizmos(view.attachedComponent);
                     }
                     else
                     {
@@ -162,9 +161,7 @@ class VFXSlotContainerEditor : Editor
                         VFXView view = VFXViewWindow.currentWindow.graphView;
                         if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
                         {
-                            Bounds b = m_CurrentController.GetGizmoBounds(view.attachedComponent);
-                            if( b.size.sqrMagnitude > Mathf.Epsilon)
-                                sceneView.Frame(b, false);
+                            sceneView.Frame(m_CurrentController.GetGizmoBounds(view.attachedComponent), false);
                         }
                     }
                 }
@@ -180,10 +177,10 @@ class VFXSlotContainerEditor : Editor
 
         if (serializedObject.ApplyModifiedProperties())
         {
-            foreach (VFXModel slotContainer in targets.OfType<VFXModel>())
+            foreach (VFXModel context in targets.OfType<VFXModel>())
             {
                 // notify that something changed.
-                slotContainer.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+                context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
             }
         }
     }

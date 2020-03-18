@@ -120,11 +120,6 @@ void DoAlphaTest(float alpha, float alphaCutoff)
 #endif
 }
 
-// This function is the alternative version used for ray tracing
-void DoAlphaTest(float alpha, float alphaCutoff, out bool alphaTestResult)
-{
-    alphaTestResult = alpha >= alphaCutoff;
-}
 //-----------------------------------------------------------------------------
 // LoD Fade
 //-----------------------------------------------------------------------------

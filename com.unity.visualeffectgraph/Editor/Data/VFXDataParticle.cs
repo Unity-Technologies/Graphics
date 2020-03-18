@@ -528,8 +528,7 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
-            Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
-			VFXSystemNames systemNames = null)
+            Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
             bool hasKill = IsAttributeStored(VFXAttribute.Alive);
 
@@ -766,18 +765,11 @@ namespace UnityEditor.VFX
                 taskDescs.Add(taskDesc);
             }
 
-            string nativeName = string.Empty;
-            if (systemNames != null)
-                nativeName = systemNames.GetUniqueSystemName(this);
-            else
-                throw new InvalidOperationException("system names manager cannot be null");
-            
             outSystemDescs.Add(new VFXEditorSystemDesc()
             {
                 flags = systemFlag,
                 tasks = taskDescs.ToArray(),
                 capacity = capacity,
-                name = nativeName,
                 buffers = systemBufferMappings.ToArray(),
                 values = systemValueMappings.ToArray(),
                 type = VFXSystemType.Particle,

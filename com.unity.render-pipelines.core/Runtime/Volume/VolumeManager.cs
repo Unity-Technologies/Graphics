@@ -81,15 +81,6 @@ namespace UnityEngine.Rendering
             return stack;
         }
 
-        /// <summary>
-        /// Destroy a Volume Stack
-        /// </summary>
-        /// <param name="stack">Volume Stack that needs to be destroyed.</param>
-        public void DestroyStack(VolumeStack stack)
-        {
-            stack.Dispose();
-        }
-
         // This will be called only once at runtime and everytime script reload kicks-in in the
         // editor as we need to keep track of any compatible component in the project
         void ReloadBaseTypes()
@@ -229,10 +220,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        /// <summary>
-        /// Checks the state of the base type library. This is only used in the editor to handle
-        /// entering and exiting of play mode and domain reload.
-        /// </summary>
         [Conditional("UNITY_EDITOR")]
         public void CheckBaseTypes()
         {
@@ -241,11 +228,6 @@ namespace UnityEngine.Rendering
                 ReloadBaseTypes();
         }
 
-        /// <summary>
-        /// Checks the state of a given stack. This is only used in the editor to handle entering
-        /// and exiting of play mode and domain reload.
-        /// </summary>
-        /// <param name="stack">The stack to check.</param>
         [Conditional("UNITY_EDITOR")]
         public void CheckStack(VolumeStack stack)
         {
@@ -460,9 +442,6 @@ namespace UnityEngine.Rendering
         public VolumeIsolationScope(bool unused)
             => VolumeManager.needIsolationFilteredByRenderer = true;
 
-        /// <summary>
-        /// Stops the Camera from filtering a Volume.
-        /// </summary>
         void IDisposable.Dispose()
             => VolumeManager.needIsolationFilteredByRenderer = false;
     }

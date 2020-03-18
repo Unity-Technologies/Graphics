@@ -108,8 +108,6 @@ namespace UnityEditor.VFX.UI
 
                 m_Slider.range = range;
             }
-            if( m_TooltipHolder != null && m_Value != null)
-                m_TooltipHolder.tooltip = m_Value.ToString();
             base.UpdateGUI(force);
         }
 
@@ -147,7 +145,7 @@ namespace UnityEditor.VFX.UI
                 if (m_IndeterminateLabel.parent == null)
                 {
                     field.RemoveFromHierarchy();
-                    m_FieldParent.Add(m_IndeterminateLabel);
+                    Add(m_IndeterminateLabel);
                 }
             }
             else
@@ -155,7 +153,7 @@ namespace UnityEditor.VFX.UI
                 if (field.parent == null)
                 {
                     m_IndeterminateLabel.RemoveFromHierarchy();
-                    m_FieldParent.Add(field);
+                    Add(field);
                 }
             }
         }

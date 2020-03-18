@@ -19,8 +19,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="probePosition">Position to apply. (Read only)</param>
         /// <param name="cameraSettings">Settings to update.</param>
         /// <param name="cameraPosition">Position to update.</param>
-        /// <param name="referenceFieldOfView">Reference field of view</param>
-        /// <param name="referenceAspect">Reference aspect ratio</param>
         public static void ApplySettings(
             ref ProbeSettings settings,                             // In Parameter
             ref ProbeCapturePositionSettings probePosition,         // In parameter

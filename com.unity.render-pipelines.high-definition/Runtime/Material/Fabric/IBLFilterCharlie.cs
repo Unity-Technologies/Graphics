@@ -37,32 +37,35 @@ namespace UnityEngine.Rendering.HighDefinition
             Texture source, RenderTexture target,
             Matrix4x4[] worldToViewMatrices)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FilterCubemapCharlie)))
+            int mipCount = 1 + (int)Mathf.Log(source.width, 2.0f);
+            if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
             {
-                int mipCount = 1 + (int)Mathf.Log(source.width, 2.0f);
-                if (mipCount < (int)EnvConstants.ConvolutionMipCount)
-                {
-                    Debug.LogWarning("RenderCubemapCharlieConvolution: Cubemap size is too small for Charlie convolution, needs at least " + (int)EnvConstants.ConvolutionMipCount + " mip levels");
-                    return;
-                }
+                Debug.LogWarning("RenderCubemapCharlieConvolution: Cubemap size is too small for Charlie convolution, needs at least " + ((int)EnvConstants.SpecCubeLodStep + 1) + " mip levels");
+                return;
+            }
 
-                // Solid angle associated with a texel of the cubemap.
-                float invOmegaP = (6.0f * source.width * source.width) / (4.0f * Mathf.PI);
+            // Solid angle associated with a texel of the cubemap.
+            float invOmegaP = (6.0f * source.width * source.width) / (4.0f * Mathf.PI);
 
-                // Copy the first mip
+            // Copy the first mip
+            using (new ProfilingSample(cmd, "Copy Original Mip"))
+            {
                 for (int f = 0; f < 6; f++)
                 {
                     cmd.CopyTexture(source, f, 0, target, f, 0);
                 }
+            }
 
-                var props = new MaterialPropertyBlock();
-                props.SetTexture("_MainTex", source);
-                props.SetFloat("_InvOmegaP", invOmegaP);
+            var props = new MaterialPropertyBlock();
+            props.SetTexture("_MainTex", source);
+            props.SetFloat("_InvOmegaP", invOmegaP);
 
-                for (int mip = 0; mip < (int)EnvConstants.ConvolutionMipCount; ++mip)
+            for (int mip = 0; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
+            {
+                props.SetFloat("_Level", mip);
+
+                using (new ProfilingSample(cmd, "Filter Cubemap Mip {0}", mip))
                 {
-                    props.SetFloat("_Level", mip);
-
                     for (int face = 0; face < 6; ++face)
                     {
                         var faceSize = new Vector4(source.width >> mip, source.height >> mip, 1.0f / (source.width >> mip), 1.0f / (source.height >> mip));

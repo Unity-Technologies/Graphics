@@ -95,7 +95,6 @@ public class MultiMaterialPlacerEditor : Editor
         for (int i = 0; i < _target.commonParameters.Length; i++)
         {
             ApplyParameterToMaterial(refObject.sharedMaterial, _target.commonParameters[i]);
-            if (_target.overideRenderQueue) refObject.sharedMaterial.renderQueue = (int)_target.renderQueue;
         }
 
         float x = 0f;

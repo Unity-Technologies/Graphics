@@ -1,29 +1,21 @@
 Shader "Hidden/HDRP/TemporalAntialiasing"
 {
-    Properties
-    {
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 2
-        [HideInInspector] _StencilMask("_StencilMask", Int) = 2
-    }
-
     HLSLINCLUDE
 
         #pragma target 4.5
         #pragma multi_compile_local _ ORTHOGRAPHIC
         #pragma multi_compile_local _ REDUCED_HISTORY_CONTRIB
-        #pragma multi_compile_local _ ENABLE_ALPHA
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
-        RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture);
+        RW_TEXTURE2D_X(float3, _OutputHistoryTexture);
 
         struct Attributes
         {
@@ -48,7 +40,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             return output;
         }
 
-        void FragTAA(Varyings input, out CTYPE outColor : SV_Target0)
+        void FragTAA(Varyings input, out float3 outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -68,38 +60,38 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
 
             float2 uv = input.texcoord - jitter;
 
-            CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
-            CTYPE history = Fetch4(_InputHistoryTexture, input.texcoord - motionVector, 0.0, _RTHandleScaleHistory.zw).CTYPE_SWIZZLE;
+            float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
+            float3 history = Fetch(_InputHistoryTexture, input.texcoord - motionVector, 0.0, _RTHandleScaleHistory.zw);
 
-            CTYPE topLeft = Fetch4(_InputTexture, uv, -RADIUS, _RTHandleScale.xy).CTYPE_SWIZZLE;
-            CTYPE bottomRight = Fetch4(_InputTexture, uv, RADIUS, _RTHandleScale.xy).CTYPE_SWIZZLE;
+            float3 topLeft = Fetch(_InputTexture, uv, -RADIUS, _RTHandleScale.xy);
+            float3 bottomRight = Fetch(_InputTexture, uv, RADIUS, _RTHandleScale.xy);
 
-            CTYPE corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
+            float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
 
             // Sharpen output
     #if SHARPEN
-            CTYPE topRight = Fetch4(_InputTexture, uv, float2(RADIUS, -RADIUS), _RTHandleScale.xy).CTYPE_SWIZZLE;
-            CTYPE bottomLeft = Fetch4(_InputTexture, uv, float2(-RADIUS, RADIUS), _RTHandleScale.xy).CTYPE_SWIZZLE;
-            CTYPE blur = (topLeft + topRight + bottomLeft + bottomRight) * 0.25;
+            float3 topRight = Fetch(_InputTexture, uv, float2(RADIUS, -RADIUS), _RTHandleScale.xy);
+            float3 bottomLeft = Fetch(_InputTexture, uv, float2(-RADIUS, RADIUS), _RTHandleScale.xy);
+            float3 blur = (topLeft + topRight + bottomLeft + bottomRight) * 0.25;
             color += (color - blur) * sharpenStrength;
     #endif
 
-            color.xyz = clamp(color.xyz, 0.0, CLAMP_MAX);
+            color = clamp(color, 0.0, CLAMP_MAX);
 
-            float3 average = Map((corners.xyz + color.xyz) / 7.0);
+            float3 average = Map((corners + color) / 7.0);
 
-            topLeft.xyz = Map(topLeft.xyz);
-            bottomRight.xyz = Map(bottomRight.xyz);
-            color.xyz = Map(color.xyz);
+            topLeft = Map(topLeft);
+            bottomRight = Map(bottomRight);
+            color = Map(color);
 
-            float colorLuma = Luminance(color.xyz);
+            float colorLuma = Luminance(color);
             float averageLuma = Luminance(average);
             float nudge = lerp(4.0, 0.25, saturate(motionVecLength * 100.0)) * abs(averageLuma - colorLuma);
 
-            CTYPE minimum = min(bottomRight, topLeft) - nudge;
-            CTYPE maximum = max(topLeft, bottomRight) + nudge;
+            float3 minimum = min(bottomRight, topLeft) - nudge;
+            float3 maximum = max(topLeft, bottomRight) + nudge;
 
-            history.xyz = Map(history.xyz);
+            history = Map(history);
 
             // Clip history samples
     #if CLIP_AABB
@@ -110,34 +102,28 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
 
             // Blend color & history
             // Feedback weight from unbiased luminance diff (Timothy Lottes)
-            float historyLuma = Luminance(history.xyz);
+            float historyLuma = Luminance(history);
             float diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
             float weight = 1.0 - diff;
             float feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
 
-    #if defined(ENABLE_ALPHA)
-            // Compute the antialiased alpha value
-            color.w = lerp(color.w, history.w, feedback);
-            // TAA should not overwrite pixels with zero alpha. This allows camera stacking with mixed TAA settings (bottom camera with TAA OFF and top camera with TAA ON).
-            CTYPE unjitteredColor = Fetch4(_InputTexture, input.texcoord - color.w * jitter, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
-            color.xyz = lerp(Map(unjitteredColor.xyz), color.xyz, color.w);
-            feedback *= color.w;
-    #endif
-            color.xyz = Unmap(lerp(color.xyz, history.xyz, feedback));
-            color.xyz = clamp(color.xyz, 0.0, CLAMP_MAX);
+            color = Unmap(lerp(color, history, feedback));
+            color = clamp(color, 0.0, CLAMP_MAX);
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
             outColor = color; 
         }
 
-        void FragExcludedTAA(Varyings input, out CTYPE outColor : SV_Target0)
+        void FragExcludedTAA(Varyings input, out float3 outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 jitter = _TaaJitterStrength.zw;
             float2 uv = input.texcoord - jitter;
 
-            outColor = Fetch4(_InputTexture, uv, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
+            float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
+
+            outColor = color;
         }
     ENDHLSL
 
@@ -150,8 +136,8 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
         {
             Stencil
             {
-                ReadMask [_StencilMask]       // ExcludeFromTAA
-                Ref [_StencilRef]          // ExcludeFromTAA
+                ReadMask 16     // ExcludeFromTAA
+                Ref 16          // ExcludeFromTAA
                 Comp NotEqual
                 Pass Keep
             }
@@ -170,8 +156,8 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
         {
             Stencil
             {
-                ReadMask [_StencilMask]    
-                Ref     [_StencilRef]
+                ReadMask 16     // ExcludeFromTAA
+                Ref 16          // ExcludeFromTAA
                 Comp Equal
                 Pass Keep
             }

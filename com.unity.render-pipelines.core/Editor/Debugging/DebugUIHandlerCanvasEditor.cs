@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Rendering.UI
 {
     [CustomEditor(typeof(DebugUIHandlerCanvas))]
-    sealed class DebugUIHandlerCanvasEditor : Editor
+    public sealed class DebugUIHandlerCanvasEditor : Editor
     {
         SerializedProperty m_PanelPrefab;
         SerializedProperty m_Prefabs;

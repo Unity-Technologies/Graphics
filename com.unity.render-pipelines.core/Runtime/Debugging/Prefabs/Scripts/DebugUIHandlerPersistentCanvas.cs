@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.UI
 {
-    class DebugUIHandlerPersistentCanvas : MonoBehaviour
+    public class DebugUIHandlerPersistentCanvas : MonoBehaviour
     {
         public RectTransform panel;
         public RectTransform valuePrefab;
