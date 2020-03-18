@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now use the right-click context menu to set the precision on multiple selected nodes.
 - When you start the Editor, Shader Graph now displays Properties in the Blackboard as collapsed.
 - Updated the zoom level to let you zoom in further.
+- Blackboard properties now have a __Duplicate__ menu option. When you duplicate properties, Shader Graph maintains the order, and inserts duplicates below the current selection.
 - When you convert a node to a Sub Graph, the dialog now opens up in the directory of the original graph that contained the node. If the new Sub Graph is outside this directory, it also remembers that path for the next dialog to ease folder navigation.
 - If Unity Editor Analytics are enabled, Shader Graph collects anonymous data about which nodes you use in your graphs. This helps the Shader Graph team focus our efforts on the most common graph scenarios, and better understand the needs of our customers. We don't track edge data and cannot recreate your graphs in any form.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
@@ -41,6 +42,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added StencilOverride support.
 - Sticky Notes can now be grouped properly.
 - Fixed an issue where nodes couldn't be copied from a group.
+- Fixed a bug that occurred when you duplicated multiple Blackboard properties or keywords simultaneously, where Shader Graph stopped working, potentially causing data loss.
+- Fixed a bug where you couldn't reorder Blackboard properties.
+- Shader Graph now properly duplicates the __Exposed__ status for Shader properties and keywords.
 - Fixed a bug where the __Save Graph As__ dialog for a Shader or Sub Graph sometimes appeared in the wrong Project when you had multiple Unity Projects open simultaneously.
 - Fixed an issue where adding the first output to a Sub Graph without any outputs prior caused Shader Graphs containing the Sub Graph to break.
 - Fixed an issue where Shader Graph shaders using the `CameraNode` failed to build on PS4 with "incompatible argument list for call to 'mul'".
@@ -76,6 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where adding a HDRP Master Node to a Shader Graph would softlock the Shader Graph.
 - Fixed a bug where shaders fail to compile due to `#pragma target` generation when your system locale uses commas instead of periods.
 - Fixed a compilation error when using Hybrid Renderer due to incorrect positioning of macros.
+- Fixed a bug with the `Transform` node where converting from `Absolute World` space in a sub graph causes invalid subscript errors. [1190813](https://issuetracker.unity3d.com/issues/shadergraph-invalid-subscript-errors-are-thrown-when-connecting-a-subgraph-with-transform-node-with-unlit-master-node)
 
 ## [7.1.1] - 2019-09-05
 ### Added
