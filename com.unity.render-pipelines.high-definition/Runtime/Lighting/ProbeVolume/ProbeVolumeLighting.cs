@@ -594,6 +594,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
 #endif
 
+                    float probeVolumeDepthFromCameraWS = Vector3.Dot(hdCamera.camera.transform.forward, volume.transform.position - camPosition);
+                    if (probeVolumeDepthFromCameraWS >= volume.parameters.distanceFadeEnd)
+                    {
+                        // Probe volume is completely faded out from distance fade optimization.
+                        // Do not bother adding it to the list, it would evaluate to zero weight.
+                        continue;
+                    }
+
                     // TODO: cache these?
                     var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
 
@@ -624,7 +632,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
 
                     // Handle camera-relative rendering.
-                    // TODO: (Nick): Should conditionally apply this offset based on if camera relative rendering is enabled or disabled.
                     obb.center -= camOffset;
 
                     // TODO: cache these?

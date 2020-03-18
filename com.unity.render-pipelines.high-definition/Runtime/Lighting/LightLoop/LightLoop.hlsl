@@ -1,5 +1,10 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+#endif
+#endif
 
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
@@ -415,11 +420,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
     if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
     {
-        EvaluateProbeVolumes(posInput, bsdfData, builtinData);
+        EvaluateProbeVolumesLightLoop(posInput, bsdfData, builtinData);
     }
+#endif
 #endif
 
     // Also Apply indiret diffuse (GI)

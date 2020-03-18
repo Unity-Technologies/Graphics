@@ -622,6 +622,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     // RT3 - 11f:11f:10f
     // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
     // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
     if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
     {
         if (all(builtinData.emissiveColor == 0.0))
@@ -630,7 +632,9 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
             outGBuffer3 = float4(builtinData.emissiveColor, 0.0);
     }
     else
-    { 
+#endif
+#endif
+    {
         outGBuffer3 = float4(builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor, 0.0);
 
         // Pre-expose lighting buffer
@@ -671,9 +675,15 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // BuiltinData
     builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
 
-    // Inverse pre-exposure
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
     if (!IsUninitializedGI(builtinData.bakeDiffuseLighting))
+#endif
+#endif
+    {
+        // Inverse pre-exposure
         builtinData.bakeDiffuseLighting *= GetInverseCurrentExposureMultiplier(); // zero-div guard
+    }
 
     // In deferred ambient occlusion isn't available and is already apply on bakeDiffuseLighting for the GI part.
     // Caution: even if we store it in the GBuffer we need to apply it on GI and not on emissive color, so AO must be 1.0 in deferred
@@ -1720,7 +1730,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
 
     // Apply the weight on the ssr contribution (if required)
     ApplyScreenSpaceReflectionWeight(ssrLighting);
-    
+
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
     lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
     reflectionHierarchyWeight  = ssrLighting.a;

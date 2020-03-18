@@ -102,8 +102,12 @@ void ApplyDebugToBuiltinData(inout BuiltinData builtinData)
 void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfaceData,
                             inout BuiltinData builtinData)
 {
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
     if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
         return;
+#endif
+#endif
 
     // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive
     // color in case of lit deferred for example and avoid material to have to deal with it

@@ -187,5 +187,6 @@ namespace UnityEngine.Rendering.HighDefinition
 		PrepareProbeVolumeList,
         ProbeVolumeDebug,
         BuildGPULightListProbeVolumes,
+        PushProbeVolumeLightListGlobalParameters,
     }
 }

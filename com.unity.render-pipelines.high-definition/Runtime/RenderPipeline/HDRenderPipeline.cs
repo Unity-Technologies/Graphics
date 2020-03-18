@@ -967,7 +967,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Fog.PushFogShaderParameters(hdCamera, cmd);
 
                 PushVolumetricLightingGlobalParams(hdCamera, cmd, m_FrameCount);
-                PushProbeVolumesGlobalParams(hdCamera, cmd, m_FrameCount); // TODO(Nicholas): make symmetrical with the other volumes
+                PushProbeVolumesGlobalParams(hdCamera, cmd, m_FrameCount);
 
                 SetMicroShadowingSettings(hdCamera, cmd);
 
@@ -1908,6 +1908,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Frustum cull probe volumes on the CPU. Can be performed as soon as the camera is set up.
             ProbeVolumeList probeVolumes = PrepareVisibleProbeVolumeList(renderContext, hdCamera, cmd);
+            // Cache probe volume list as a member variable so it can be accessed inside of async compute tasks.
+            SetProbeVolumeList(probeVolumes);
 
             // Note: Legacy Unity behave like this for ShadowMask
             // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
@@ -1970,6 +1972,40 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering);
 
+            // When evaluating probe volumes in material pass, we build a custom probe volume light list.
+            // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
+            // Build probe volumes light list async during depth prepass.
+            // TODO: (Nick): Take a look carefully at data dependancies - could this be moved even earlier? Directly after PrepareVisibleProbeVolumeList?
+            // The probe volume light lists do not depend on any of the framebuffer RTs being cleared - do they depend on anything in PushGlobalParams()?
+            // Do they depend on hdCamera.xr.StartSinglePass()?
+            var buildProbeVolumeLightListTask = new HDGPUAsyncTask("Build probe volume light list", ComputeQueueType.Background);
+
+            // Avoid garbage by explicitely passing parameters to the lambdas
+            var asyncParams = new HDGPUAsyncTaskParams
+            {
+                renderContext = renderContext,
+                hdCamera = hdCamera,
+                frameCount = m_FrameCount,
+            };
+
+            // Currently we only have a single task that could potentially happen asny with depthPrepass.
+            // Keeping this variable here in case additional passes are added.
+            var haveAsyncTaskWithDepthPrepass = false;
+
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer)
+            {
+                // TODO: (Nick): Should we only build probe volume light lists async of we build standard light lists async? Or should we always build probe volume light lists async?
+                if (hdCamera.frameSettings.BuildLightListRunsAsync())
+                {
+                    buildProbeVolumeLightListTask.Start(cmd, asyncParams, Callback, !haveAsyncTaskWithDepthPrepass);
+
+                    haveAsyncTaskWithDepthPrepass = true;
+
+                    void Callback(CommandBuffer c, HDGPUAsyncTaskParams a)
+                        => BuildGPULightListProbeVolumesCommon(a.hdCamera, c);
+                }
+            }
+
             // This is always false in forward and if it is true, is equivalent of saying we have a partial depth prepass.
             bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
             if (!shouldRenderMotionVectorAfterGBuffer)
@@ -1992,6 +2028,31 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SharedRTManager.ResolveSharedRT(cmd, hdCamera);
 
             RenderDBuffer(hdCamera, cmd, renderContext, cullingResults);
+
+
+            // When evaluating probe volumes in material pass, we build a custom probe volume light list.
+            // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer)
+            {
+                if (hdCamera.frameSettings.BuildLightListRunsAsync())
+                {
+                    buildProbeVolumeLightListTask.EndWithPostWork(cmd, hdCamera, Callback);
+
+                    void Callback(CommandBuffer c, HDCamera cam)
+                    {
+                        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                        var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam);
+                        PushProbeVolumeLightListGlobalParams(globalParams, c);
+                    }
+                }
+                else
+                {
+                    BuildGPULightListProbeVolumesCommon(hdCamera, cmd);
+                    var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                    var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera);
+                    PushProbeVolumeLightListGlobalParams(globalParams, cmd);
+                }
+            }
 
             RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
 
@@ -2068,14 +2129,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 var volumeVoxelizationTask = new HDGPUAsyncTask("Volumetric voxelization", ComputeQueueType.Background);
                 var SSRTask = new HDGPUAsyncTask("Screen Space Reflection", ComputeQueueType.Background);
                 var SSAOTask = new HDGPUAsyncTask("SSAO", ComputeQueueType.Background);
-
-                // Avoid garbage by explicitely passing parameters to the lambdas
-                var asyncParams = new HDGPUAsyncTaskParams
-                {
-                    renderContext = renderContext,
-                    hdCamera = hdCamera,
-                    frameCount = m_FrameCount,
-                };
 
                 var haveAsyncTaskWithShadows = false;
                 if (hdCamera.frameSettings.BuildLightListRunsAsync())
@@ -2165,6 +2218,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     BuildGPULightLists(hdCamera, cmd);
+                    // TODO: (Nick): Verify - is this a bug in HDRP? seems like we need to call PushLightLoopGlobalParams() here to support non-async path.
                 }
 
                 if (!hdCamera.frameSettings.SSAORunsAsync())
@@ -3964,7 +4018,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", debugDisplayEnabledOrSceneLightingDisabled);
 
             // Setting this all the time due to a strange bug that either reports a (globally) bound texture as not bound or where SetGlobalTexture doesn't behave as expected.
-            // As a workaround we bind it regardless of debug display. Eventually with 
+            // As a workaround we bind it regardless of debug display. Eventually with
             cmd.SetGlobalTexture(HDShaderIDs._DebugMatCapTexture, defaultResources.textures.matcapTex);
 
             if (debugDisplayEnabledOrSceneLightingDisabled ||

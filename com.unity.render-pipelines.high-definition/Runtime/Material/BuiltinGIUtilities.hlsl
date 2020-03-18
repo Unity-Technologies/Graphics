@@ -1,6 +1,33 @@
 #ifndef __BUILTINGIUTILITIES_HLSL__
 #define __BUILTINGIUTILITIES_HLSL__
 
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+
+#if SHADERPASS == SHADERPASS_GBUFFER
+// G-Buffer pass does not constain the standard light loop.
+// Need to add all the required includes to use our custom probe volume clustered light list.
+
+// Need PositionInputs definition for use as argument in LightLoopDef accessor functions.
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+
+#define HAS_LIGHTLOOP
+#define USE_CLUSTERED_LIGHTLIST
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+
+#elif SHADERPASS == SHADERPASS_FORWARD
+
+// Forward rendered passes are already tooled up with all the lightloop includes.
+// Only need ProbeVolume.hlsl
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+#endif // endof SHADER_PASS == SHADERPASS_GBUFFER
+
+#elif SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
 #define UNINITIALIZED_GI float3((1 << 11), 1, (1 << 10))
 
 bool IsUninitializedGI(float3 bakedGI)
@@ -8,6 +35,8 @@ bool IsUninitializedGI(float3 bakedGI)
     const float3 unitializedGI = UNINITIALIZED_GI;
     return all(bakedGI == unitializedGI);
 }
+#endif
+#endif
 
 // Return camera relative probe volume world to object transformation
 float4x4 GetProbeVolumeWorldToObject()
@@ -27,17 +56,39 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
 // SHADEROPTIONS_PROBE_VOLUMES can be defined in ShaderConfig.cs.hlsl but set to 0 for disabled.
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
     // ProbeVolumes are incompatible with legacy Light probes
-    if (_EnableProbeVolumes)
-        return UNINITIALIZED_GI;
+    return _EnableProbeVolumes ? UNINITIALIZED_GI : float3(0, 0, 0);
 
 #elif SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
-    if (_EnableProbeVolumes)
+    if (!_EnableProbeVolumes)
     {
-        // TODO: Evaluate Probe Volumes here.
-        return float3((1 << 11), 0, 0);
+        return float3(0, 0, 0);
     }
-#endif
-#endif
+
+#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
+
+    // Need PositionInputs for indexing tiles / clusters, but they are not availbile from the current SampleBakedGI() function signature.
+    // Avoiding updating the function signature for now, because there is a shadergraph node that this would effect.
+    // For now, pay the cost of reconstructing PositionInputs here.
+    float4 positionCS = mul(UNITY_MATRIX_VP, float4(positionRWS, 1.0));
+    positionCS.xyz /= positionCS.w;
+    float2 positionNDC = positionCS.xy * float2(0.5, -0.5) + 0.5;
+    float2 positionSS = positionNDC.xy * _ScreenSize.xy;
+    uint2 tileCoord = uint2(positionSS) / GetTileSize();
+
+    PositionInputs posInputs;
+    posInputs.positionWS = positionRWS;
+    posInputs.tileCoord = tileCoord; // Needed for cluster Indexing.
+    posInputs.linearDepth = LinearEyeDepth(positionRWS, UNITY_MATRIX_V); // Needed for cluster Indexing.
+    posInputs.positionNDC = float2(0, 0); // Not needed for cluster indexing.
+    posInputs.deviceDepth = 0.0f; // Not needed for cluster indexing.
+
+
+    return EvaluateProbeVolumesMaterialPass(posInputs, normalWS);
+#else
+    return float3(0, 0, 0);
+#endif // endof SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
+#endif // endof SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+#endif // endof defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 
     if (unity_ProbeVolumeParams.x == 0.0)
     {

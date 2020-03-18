@@ -122,21 +122,33 @@ void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
     }
 }
 
-void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout BuiltinData builtinData)
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+float3 EvaluateProbeVolumesMaterialPass(PositionInputs posInput, float3 normalWS)
+#else // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
+void EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, inout BuiltinData builtinData)
+#endif
 {
     const float3 noLight = float3(0.0, 0.0, 0.0);
 
     float3 probeVolumeDiffuseLighting = noLight;
     float probeVolumeHierarchyWeight = 0.0; // Max: 1.0
 
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
     // Determine if GI (from Lightmaps) is already present.
     // If so only process non-normal layer volumes.
+    // For probe volumes evaluated in the material pass (GBuffer / Forward),
+    // we simply do not call this function if light maps are present so no need to detect this state.
     bool uninitialized = IsUninitializedGI(builtinData.bakeDiffuseLighting);
     if (!uninitialized)
     {
         probeVolumeDiffuseLighting = builtinData.bakeDiffuseLighting;
         probeVolumeHierarchyWeight = 1.0;
     }
+
+    float3 normalWS = bsdfData.normalWS;
+#endif
+    float3 positionRWS = posInput.positionWS;
+    float positionLinearDepth = posInput.linearDepth;
 
     uint probeVolumeStart, probeVolumeCount;
 
@@ -218,7 +230,7 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
                     float3 obbExtents = float3(s_probeVolumeBounds.extentX, s_probeVolumeBounds.extentY, s_probeVolumeBounds.extentZ);
 
                     // Note: When normal bias is > 0, bounds using in tile / cluster assignment are conservatively dilated CPU side to handle worst case normal bias.
-                    float3 samplePositionWS = bsdfData.normalWS * _ProbeVolumeNormalBiasWS + posInput.positionWS;
+                    float3 samplePositionWS = normalWS * _ProbeVolumeNormalBiasWS + positionRWS;
                     float3 samplePositionBS = mul(obbFrame, samplePositionWS - s_probeVolumeBounds.center);
                     float3 samplePositionBCS = samplePositionBS * rcp(obbExtents);
 
@@ -230,7 +242,7 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
 
                     float fadeFactor = ProbeVolumeComputeFadeFactor(
                         samplePositionBNDC,
-                        posInput.linearDepth,
+                        positionLinearDepth,
                         s_probeVolumeData.rcpPosFaceFade,
                         s_probeVolumeData.rcpNegFaceFade,
                         s_probeVolumeData.rcpDistFadeLen,
@@ -269,15 +281,15 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
                             {
                                 // Compute Geometric Weights based on surface position + normal, and direction to probe (similar to projected area calculation for point lights).
                                 // source: https://advances.realtimerendering.com/s2015/SIGGRAPH_2015_Remedy_Notes.pdf
-                                probeWeightBSW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 0.0, probeVolumeTexel3DMin.z + 0.0) - probeVolumeTexel3D))));
-                                probeWeightBSE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 0.0, probeVolumeTexel3DMin.z + 0.0) - probeVolumeTexel3D))));
-                                probeWeightBNW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 0.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
-                                probeWeightBNE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 0.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
+                                probeWeightBSW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 0.0, probeVolumeTexel3DMin.z + 0.0) - probeVolumeTexel3D))));
+                                probeWeightBSE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 0.0, probeVolumeTexel3DMin.z + 0.0) - probeVolumeTexel3D))));
+                                probeWeightBNW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 0.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
+                                probeWeightBNE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 0.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
 
-                                probeWeightTSW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 0.0) - probeVolumeTexel3D))));
-                                probeWeightTSE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 0.0) - probeVolumeTexel3D))));
-                                probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
-                                probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
+                                probeWeightTSW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 0.0) - probeVolumeTexel3D))));
+                                probeWeightTSE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 0.0) - probeVolumeTexel3D))));
+                                probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
+                                probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
                             }
                             else if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_PROBE_VALIDITY_FILTER)
                             {
@@ -317,9 +329,9 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
                                     probeVolumeWorldFromTexel3DTranslation,
                                     s_probeVolumeData.octahedralDepthScaleBias,
                                     _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse,
-                                    posInput.positionWS, // unbiased
+                                    positionRWS, // unbiased
                                     samplePositionWS, // biased
-                                    bsdfData.normalWS
+                                    normalWS
                                 );
                                 probeWeightBSW = probeWeights[0]; // (i == 0) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(0, 0 >> 1, 0 >> 2) & int3(1, 1, 1)) => int3(0, 0, 0)
                                 probeWeightBSE = probeWeights[1]; // (i == 1) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(1, 1 >> 1, 1 >> 2) & int3(1, 1, 1)) => int3(1, 0, 0)
@@ -423,7 +435,13 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
                     }
                 }
 
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+                // When probe volumes are evaluated in the material pass, BSDF modulation is applied as a post operation, outside of this function.
+                float3 sampleOutgoingRadiance = SHEvalLinearL0L1(normalWS, sampleShAr, sampleShAg, sampleShAb);
+#else // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
+                // When probe volumes are evaluated in the light loop, BSDF modulation is applied directly here.
                 float3 sampleOutgoingRadiance = EvaluateBSDF_LightProbeL1(builtinData, bsdfData, sampleShAr, sampleShAg, sampleShAb);
+#endif
 
 #ifdef DEBUG_DISPLAY
                 if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
@@ -441,7 +459,10 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
                     probeVolumeDiffuseLighting += sampleOutgoingRadiance * weight;
                 }
 
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
+                // When probe volumes are evaluated in the material pass, IndirectLightingMultiplier is applied outside of this function in PostInitBuiltinData().
                 probeVolumeDiffuseLighting *= _IndirectLightingMultiplier.x;
+#endif
 
                 if (!ignoreWeight)
                     probeVolumeHierarchyWeight += weight;
@@ -450,6 +471,12 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
         }
     }
 
+
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+    return probeVolumeDiffuseLighting;
+
+#else // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
     builtinData.bakeDiffuseLighting = probeVolumeDiffuseLighting;
     builtinData.backBakeDiffuseLighting = noLight;
+#endif
 }
