@@ -36,14 +36,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 new StencilDescriptor {
                     WriteMask = "96", // 0b01100000
                     Ref = "32",       // 0b00100000
-                    CompFront = "Always",
-                    ZFailFront = "Keep",
-                    FailFront = "Keep",
-                    PassFront = "Replace",
-                    CompBack = "Always",
-                    ZFailBack = "Keep",
-                    FailBack = "Keep",
-                    PassBack = "Replace",
+                    Comp = "Always",
+                    ZFail = "Keep",
+                    Fail = "Keep",
+                    Pass = "Replace"
                 }),
                 new FieldCondition(Fields.SurfaceOpaque, true)
             },

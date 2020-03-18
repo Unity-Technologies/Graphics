@@ -5,10 +5,10 @@ namespace UnityEditor.ShaderGraph
     {
         public string WriteMask;
         public string Ref;
-        public string CompFront;
-        public string ZFailFront;
-        public string FailFront;
-        public string PassFront;
+        public string Comp;
+        public string ZFail;
+        public string Fail;
+        public string Pass;
         public string CompBack;
         public string ZFailBack;
         public string FailBack;
