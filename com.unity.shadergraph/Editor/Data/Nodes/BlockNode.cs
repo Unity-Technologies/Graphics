@@ -163,8 +163,14 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnBeforeSerialize()
         {
-            m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}";
             base.OnBeforeSerialize();
+
+            // TODO: Currently m_Descriptor is null on assembly reload. Why?
+            // TODO: We should fix this and then clear m_SerializedDescriptor at OnAfterDeserialize
+            if(m_Descriptor == null)
+                return;
+
+            m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}";
         }
     }
 }
