@@ -332,7 +332,7 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
       rerun: {{ editor.rerun_strategy }}
-    - path: .yamato/upm-ci-universal.yml#Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}
+    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}
       rerun: {{ editor.rerun_strategy }}
   artifacts:
       logs:
