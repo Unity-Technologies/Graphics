@@ -28,6 +28,8 @@ namespace Drawing.Inspector
     interface IPropertyDrawer
     {
         VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute);
+
+
     }
 
     [SGPropertyDrawer(typeof(Enum))]
@@ -78,6 +80,7 @@ namespace Drawing.Inspector
             out VisualElement propertyToggle)
         {
             var row = new PropertyRow(new Label(labelName));
+            row.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyRow"));
             // Create and assign toggle as out variable here so that callers can also do additional work with enabling/disabling if needed
             propertyToggle = new Toggle();
             row.Add((Toggle)propertyToggle, (toggle) =>
@@ -85,7 +88,6 @@ namespace Drawing.Inspector
                 toggle.value = fieldToDraw.isOn;
                 toggle.OnToggleChanged(evt => valueChangedCallback(new ToggleData(evt.newValue)));
             });
-
             return row;
         }
 
@@ -208,6 +210,47 @@ namespace Drawing.Inspector
         }
     }
 
+    [SGPropertyDrawer(typeof(Vector2))]
+    class Vector2PropertyDrawer : IPropertyDrawer
+    {
+        internal delegate void ChangeValueCallback(Vector2 newValue);
+
+        internal VisualElement CreateGUIForField(
+            ChangeValueCallback changeValueCallback,
+            Vector2 fieldToDraw,
+            string labelName,
+            out VisualElement propertyFloatField)
+        {
+            var vector2Field = new Vector2Field {value = fieldToDraw};
+
+            vector2Field.Q("unity-x-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(m_KeyDownCallback);
+            vector2Field.Q("unity-x-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(m_FocusOutCallback);
+            vector2Field.Q("unity-y-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(m_KeyDownCallback);
+            vector2Field.Q("unity-y-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(m_FocusOutCallback);
+
+            vector2Field.RegisterValueChangedCallback(evt =>
+            {
+                changeValueCallback((Vector2) evt.newValue);
+            });
+
+            propertyFloatField = vector2Field;
+
+            var defaultRow = new PropertyRow(new Label(labelName));
+            defaultRow.Add(propertyFloatField);
+            return defaultRow;
+        }
+
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        {
+            return this.CreateGUIForField(
+                // Use the setter from the provided property as the callback
+                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
+                (float) propertyInfo.GetValue(actualObject),
+                attribute.labelName,
+                out var propertyVisualElement);
+        }
+    }
+
     [SGPropertyDrawer(typeof(ShaderInput))]
     class ShaderInputPropertyDrawer : IPropertyDrawer
     {
@@ -216,7 +259,7 @@ namespace Drawing.Inspector
         internal delegate void ChangeReferenceNameCallback(string newValue);
         internal delegate void ChangeValueCallback(object newValue);
         internal delegate void PreChangeValueCallback(string actionName);
-        internal delegate void PostChangeValueCallback();
+        internal delegate void PostChangeValueCallback(ModificationScope modificationScope = ModificationScope.Node);
 
         public void GetPropertyData(bool isSubGraph,
             ChangeExposedFieldCallback exposedFieldCallback,
@@ -301,6 +344,36 @@ namespace Drawing.Inspector
                 break;
                 // Do default handling with types that aren't bad
             }
+
+            BuildPrecisionField(propertySheet, property);
+            BuildGpuInstancingField(propertySheet, property);
+        }
+
+        // #TODO: Current Blackboard calls ValidateGraph() after changing this property, is this actually needed?
+        private void BuildPrecisionField(PropertySheet propertySheet, AbstractShaderProperty property)
+        {
+            var enumPropertyDrawer = new EnumPropertyDrawer();
+            propertySheet.Add(enumPropertyDrawer.CreateGUIForField(newValue =>
+                {
+                    this._preChangeValueCallback("Change Precision");
+                    if (property.precision == (Precision) newValue)
+                        return;
+                    property.precision = (Precision)newValue;
+                    this._postChangeValueCallback();
+                }, property.precision, "Precision", Precision.Inherit, out var precisionField));
+        }
+
+        private void BuildGpuInstancingField(PropertySheet propertySheet, AbstractShaderProperty property)
+        {
+            var boolPropertyDrawer = new BoolPropertyDrawer();
+            propertySheet.Add(boolPropertyDrawer.CreateGUIForField( newValue =>
+            {
+                this._preChangeValueCallback("Change Hybrid Instanced Toggle");
+                property.gpuInstanced = newValue.isOn;
+                this._postChangeValueCallback(ModificationScope.Graph);
+            }, new ToggleData(property.gpuInstanced), "Hybrid Instanced (experimental)", out var gpuInstancedToggle));
+
+            gpuInstancedToggle.SetEnabled(property.isGpuInstanceable);
         }
 
         private void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
@@ -361,6 +434,7 @@ namespace Drawing.Inspector
                         this._postChangeValueCallback();
                     });
                     break;
+
                 case FloatType.Integer:
                     var integerPropertyDrawer = new IntegerPropertyDrawer();
                     // Default field
@@ -370,6 +444,7 @@ namespace Drawing.Inspector
                         "Default",
                         out var integerPropertyField));
                     break;
+
                 default:
                     var defaultFloatPropertyDrawer = new FloatPropertyDrawer();
                     // Default field

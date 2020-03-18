@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             throw new NotImplementedException();
         }
 
-        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer)
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
             throw new NotImplementedException();
         }

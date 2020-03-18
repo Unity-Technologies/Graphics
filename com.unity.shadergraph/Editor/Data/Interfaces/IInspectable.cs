@@ -32,6 +32,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         PropertyInfo[] GetPropertyInfo();
 
-        void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer);
+        // Used to provide any data needed by the property drawer from the inspectable
+        // The inspectorUpdateDelegate is used to trigger an inspector update
+        void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate);
     }
 }

@@ -370,9 +370,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             return this.node.GetType().GetProperties();
         }
 
-        // Implement if the Inspector ever needs to get some custom data from a material node
-        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer)
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
+            throw new NotImplementedException();
         }
 
         private void SetSelfSelected()

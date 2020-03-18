@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Drawing.Inspector;
@@ -432,9 +433,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             throw new System.NotImplementedException();
         }
 
-        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer)
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public StickyNote(string uiFile, Rect position, GraphData graph)

@@ -12,12 +12,12 @@ PropertyRow DoubleField {
 PropertyRow > #container{
     flex-grow: 1;
     padding-left: 8px;
-    padding-right: 8px;
+    padding-right: 16px;
     flex-direction: row;
 }
 
 PropertyRow > #container > #label {
-    width: 120px;
+    width: 200px;
     height: 24px;
     justify-content: center;
 }

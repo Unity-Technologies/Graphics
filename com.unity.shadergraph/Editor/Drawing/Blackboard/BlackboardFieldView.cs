@@ -84,6 +84,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         private IMGUIContainer m_Container;
         private int m_SelectedIndex;
 
+        // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
+        private Action m_propertyUpdateTrigger;
+
         public string displayName
         {
             get
@@ -362,7 +365,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         #region PropertyDrawers
-        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer)
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
             if(propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
             {
@@ -370,9 +373,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     this.ChangeExposedField,
                     this.ChangeReferenceNameField,
                     this.ChangePropertyValue,
-                    this.RegistryPropertyChangeUndo,
+                    this.RegisterPropertyChangeUndo,
                     this.MarkNodesAsDirty);
             }
+
+            this.m_propertyUpdateTrigger = inspectorUpdateDelegate;
         }
 
         public PropertyInfo[] GetPropertyInfo()
@@ -406,14 +411,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateReferenceNameResetMenu();
         }
 
-        void RegistryPropertyChangeUndo(string actionName)
+        void RegisterPropertyChangeUndo(string actionName)
         {
             _graphData.owner.RegisterCompleteObjectUndo(actionName);
         }
 
-        void MarkNodesAsDirty()
+        void MarkNodesAsDirty(ModificationScope modificationScope = ModificationScope.Node)
         {
-            DirtyNodes();
+            DirtyNodes(modificationScope);
+            this.m_propertyUpdateTrigger();
         }
 
         void ChangePropertyValue(object newValue)
@@ -461,45 +467,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             this.MarkDirtyRepaint();
         }
-        void CommitFloatProperty()
-        {
-            var property = shaderInput as Vector1ShaderProperty;
-            _graphData.owner.RegisterCompleteObjectUndo("Change Property Value");
-            float minValue = Mathf.Min(property.value, property.rangeValues.x);
-            float maxValue = Mathf.Max(property.value, property.rangeValues.y);
-            property.rangeValues = new Vector2(minValue, maxValue);
-            DirtyNodes();
-        }
 
-        void ChangeFloatRangeMinimum(object newValue)
-        {
-            var property = shaderInput as Vector1ShaderProperty;
-            _graphData.owner.RegisterCompleteObjectUndo("Change Range Property Minimum");
-            property.rangeValues = new Vector2((float)newValue, property.rangeValues.y);
-            DirtyNodes();
-        }
-
-        void CommitFloatRangeMinimum()
-        {
-            var property = shaderInput as Vector1ShaderProperty;
-            property.value = Mathf.Max(Mathf.Min(property.value, property.rangeValues.y), property.rangeValues.x);
-            DirtyNodes();
-        }
-
-        void ChangeFloatRangeMaximum(object newValue)
-        {
-            var property = shaderInput as Vector1ShaderProperty;
-            _graphData.owner.RegisterCompleteObjectUndo("Change Range Property Maximum");
-            property.rangeValues = new Vector2(property.rangeValues.x, (float) newValue);
-            DirtyNodes();
-        }
-
-        void CommitFloatRangeMaximum()
-        {
-            var property = shaderInput as Vector1ShaderProperty;
-            property.value = Mathf.Max(Mathf.Min(property.value, property.rangeValues.y), property.rangeValues.x);
-            DirtyNodes();
-        }
 #endregion
 
         void BuildVector1PropertyField(PropertySheet propertySheet, Vector1ShaderProperty property)
