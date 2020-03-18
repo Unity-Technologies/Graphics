@@ -48,7 +48,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
 
     public void Setup()
     {
-        new UnityEditor.TestTools.Graphics.SetupGraphicsTestCases().Setup();
+        UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup();
 
         var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset AssetBundle");
 

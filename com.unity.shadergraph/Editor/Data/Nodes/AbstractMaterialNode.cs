@@ -41,8 +41,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableSlots = new List<SerializationHelper.JSONSerializedElement>();
 
-        public Identifier tempId { get; set; }
-
         public GraphData owner { get; set; }
 
         OnNodeModified m_OnModified;
@@ -514,7 +512,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (isInError)
                 {
-                    ((GraphData) owner).AddValidationError(tempId, errorMessage);
+                    ((GraphData) owner).AddValidationError(guid, errorMessage);
                 }
                 else
                 {
