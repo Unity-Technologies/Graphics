@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed z-fighting in scene view when scene lighting is off (case 1203927)
 - Fixed issue that prevented cubemap thumbnails from rendering.
 - Fix an exception in ray tracing that happens if two LOD levels are using the same mesh renderer.
+- Fix some typos in the debug menu.
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
