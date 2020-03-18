@@ -36,6 +36,9 @@ namespace UnityEditor.ShaderGraph
         bool m_HasError;
 
         [NonSerialized]
+        bool m_IsActive = true;
+
+        [NonSerialized]
         private List<ISlot> m_Slots = new List<ISlot>();
 
         [SerializeField]
@@ -165,6 +168,28 @@ namespace UnityEditor.ShaderGraph
         {
             get { return m_HasError; }
             protected set { m_HasError = value; }
+        }
+
+        public virtual bool isActive
+        {
+            get { return m_IsActive; }
+            set 
+            {
+                if(m_IsActive == value)
+                    return;
+
+                // Update this node
+                m_IsActive = value;
+                Dirty(ModificationScope.Node);
+
+                // Get all downsteam nodes and update their active state
+                var nodes = ListPool<AbstractMaterialNode>.Get();
+                NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude);
+                foreach(var upstreamNode in nodes)
+                {
+                    NodeUtils.UpdateNodeActiveOnEdgeChange(upstreamNode);
+                }
+            }
         }
 
         //needed for HDRP material update system
