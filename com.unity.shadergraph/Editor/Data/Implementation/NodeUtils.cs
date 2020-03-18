@@ -167,14 +167,14 @@ namespace UnityEditor.Graphing
             // This is the end of the chain and should always be active
             if(nodes.Count == 1 && nodes[0] == node)
             {
-                node.isActive = false;
+                node.isActive = true;
             }
             else
             {
                 // If any downstream nodes are active
                 // then this node is also active
                 if(nodes.Any(x => x.isActive))
-                    node.isActive = false;
+                    node.isActive = true;
                 else
                     node.isActive = false;
             }
