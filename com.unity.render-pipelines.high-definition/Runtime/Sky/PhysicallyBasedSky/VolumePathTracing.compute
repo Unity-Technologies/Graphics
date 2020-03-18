@@ -403,7 +403,7 @@ float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, flo
     } while ((absDiff > EPS_ABS) && (relDiff > EPS_REL) && (numIter < MAX_ITER));
 
     // return t;
-    return numIter == MAX_ITER ? 1 : 0;
+    return numIter >= MAX_ITER ? 1 : 0;
 }
 
 #define GROUP_SIZE_1D 8 // 8^2 == 64
