@@ -466,6 +466,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that prevented cubemap thumbnails from rendering.
 - Fixed ray tracing with VR single-pass
 - Fix an exception in ray tracing that happens if two LOD levels are using the same mesh renderer.
+- Fixed error in the console when switching shader to decal in the material UI.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -560,7 +561,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed legacy VR code
 - Add range-based clipping to box lights (case 1178780)
 - Improve area light culling (case 1085873)
-- Fixed error in the console when switching shader to decal in the material UI.
+- Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
 
 ## [7.1.1] - 2019-09-05
 
