@@ -39,6 +39,8 @@ testplatforms:
     args: --suite=playmode
   - name: playmode XR
     args: --suite=playmode --extra-editor-arg="-xr-tests"
+  - name: Standalone
+    args: --suite=playmode --platform=Standalone
 #  - name: editmode
 #    args: --suite=editor --platform=editmode
 projects:
@@ -68,6 +70,66 @@ linux_apis:
 
 {% for testplatform in testplatforms %}
 {% for win_api in win_apis %}
+
+{% if testplatform.name == "Standalone" %}
+{{ project.name }}_Win_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
+  name : Test {{ project.name }} on Win_{{ win_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
+  agent:
+    flavor: b1.large
+    type: Unity::VM::GPU
+    image: sdet/gamecode_win10:stable
+  skip_checkout: true
+{% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+{% endif %}
+  commands:
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple 
+
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
+
+    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+  artifacts:
+    logs:
+      paths:
+        - "**/test-results/**"
+  dependencies:
+    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
+      rerun: {{ editor.rerun_strategy }}
+    - path: .yamato/upm-ci-hdrp_hybrid.yml#Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}
+      rerun: {{ editor.rerun_strategy }}
+  
+Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
+  name : Build {{ project.name }} on Win_{{ win_api.name }}_Player on version {{ editor.version }}
+  agent:
+    flavor: b1.xlarge
+    type: Unity::VM
+    image: sdet/gamecode_win10:stable
+{% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+{% endif %}
+  commands:
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple 
+
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
+
+    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+  dependencies:
+    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
+      rerun: {{ editor.rerun_strategy }}
+  artifacts:
+    logs:
+      paths:
+        - "**/test-results/**"
+    players:
+      paths:
+        - "players/**"
+
+{% else %}
+
 {{ project.name }}_Win_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
   name : {{ project.name }} on Win_{{ win_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
@@ -101,14 +163,16 @@ linux_apis:
     logs:
       paths:
         - "**/test-results/**"
+{% endif %}
 {% endfor %}    
 {% endfor %}
 
 {% elsif platform.name == "OSX_Metal" %}
 
 {% for testplatform in testplatforms %}
-{% if testplatform.name == "editmode" %}
+{% if testplatform.name == "editmode" or testplatform.name == "Standalone" %}
 #skip because we don't need a GPU to run editmode tests
+#OSX standalone is disabled due to limitation of workaround for Subscene cache (we are running Win standalone test instead)
 {% else %}
 {{ project.name }}_OSX_Metal_{{ testplatform.name }}_{{ editor.version }}:
   name : {{ project.name }} on OSX_Metal_{{ testplatform.name }} on version {{ editor.version }}
@@ -152,6 +216,10 @@ linux_apis:
 {% elsif platform.name == "Linux" %}
 
 {% for testplatform in testplatforms %}
+{% if testplatform.name == "Standalone" %}
+#skip because we don't need a GPU to run editmode tests
+#Linux standalone is disabled due to limitation of workaround for Subscene cache (we are running Win standalone test instead)
+{% else %}
 {% for linux_api in linux_apis %}
 # Separate block for linux, because the linux agents currently need extra configuration
 {{ project.name }}_Linux_{{ linux_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
@@ -188,7 +256,8 @@ linux_apis:
     logs:
       paths:
         - "**/upm-ci~/test-results/**/*"  
-{% endfor %}   
+{% endfor %}
+{% endif %}
 {% endfor %}
 
 
