@@ -296,7 +296,7 @@ namespace UnityEditor.ShaderGraph
 
             // Get active fields from upstream Node requirements
             ShaderGraphRequirementsPerKeyword graphRequirements;
-            GenerationUtils.GetActiveFieldsAndPermutationsForNodes(m_OutputNode, pass, keywordCollector, vertexNodes, pixelNodes,
+            GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes,
                 vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
 
             // GET CUSTOM ACTIVE FIELDS HERE!

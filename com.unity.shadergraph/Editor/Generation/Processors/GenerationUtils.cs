@@ -261,7 +261,7 @@ namespace UnityEditor.ShaderGraph
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, outputNode, NodeUtils.IncludeSelf.Include);
         }
 
-        internal static void GetActiveFieldsAndPermutationsForNodes(AbstractMaterialNode outputNode, PassDescriptor pass, 
+        internal static void GetActiveFieldsAndPermutationsForNodes(PassDescriptor pass, 
             KeywordCollector keywordCollector,  List<AbstractMaterialNode> vertexNodes, List<AbstractMaterialNode> pixelNodes,
             List<int>[] vertexNodePermutations, List<int>[] pixelNodePermutations,
             ActiveFields activeFields, out ShaderGraphRequirementsPerKeyword graphRequirements)
@@ -279,8 +279,16 @@ namespace UnityEditor.ShaderGraph
                     // Get active nodes for this permutation
                     var localVertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
                     var localPixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-                    NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, outputNode, NodeUtils.IncludeSelf.Include, keywordCollector.permutations[i]);
-                    NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, outputNode, NodeUtils.IncludeSelf.Include, keywordCollector.permutations[i]);
+
+                    foreach(var vertexNode in vertexNodes)
+                    {
+                        NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, vertexNode, NodeUtils.IncludeSelf.Include, keywordCollector.permutations[i]);
+                    }
+
+                    foreach(var pixelNode in pixelNodes)
+                    {
+                        NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, pixelNode, NodeUtils.IncludeSelf.Include, keywordCollector.permutations[i]);
+                    }
 
                     // Track each vertex node in this permutation
                     foreach(AbstractMaterialNode vertexNode in localVertexNodes)
