@@ -191,5 +191,22 @@ namespace UnityEditor.Rendering.HighDefinition
             s_ExposureLow = EditorGUIUtility.IconContent("SceneViewLighting");
             s_PreLabel = "preLabel";
         }
+        public override Texture2D RenderStaticPreview(string assetPath, Object[] subAssets, int width, int height)
+        {
+            m_CameraDistance = 1.25f;
+            m_CameraPhi = Mathf.PI * 0.33f;
+            m_CameraTheta = Mathf.PI;
+
+            InitPreview();
+
+            UpdateCamera();
+
+            m_PreviewUtility.ambientColor = Color.black;
+            m_PreviewUtility.BeginStaticPreview(new Rect(0, 0, width, height));
+            m_PreviewUtility.DrawMesh(sphereMesh, Matrix4x4.identity, m_ReflectiveMaterial, 0);
+            m_PreviewUtility.camera.Render();
+
+            return m_PreviewUtility.EndStaticPreview();
+        }
     }
 }

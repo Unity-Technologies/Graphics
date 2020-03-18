@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev used Cubemap when asset is deleted
 - Fixed the definition of `rcp()` for GLES2.
 - Fixed copy/pasting of Volume Components when loading a new scene
+- Fix LookDev issue when adding a GameObject containing a Volume into the LookDev's view.
+- Fixed duplicated entry for com.unity.modules.xr in the runtime asmdef file
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.

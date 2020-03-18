@@ -958,11 +958,5 @@ namespace UnityEngine.Rendering.HighDefinition
             string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
             DisplayUnsupportedMessage(msg);
         }
-
-        internal static void DisplayUnsupportedXRMessage()
-        {
-            string msg = "AR/VR devices are not supported, no rendering will occur";
-            DisplayUnsupportedMessage(msg);
-        }
     }
 }
