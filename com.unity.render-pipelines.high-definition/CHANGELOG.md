@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed legacy VR code
 - Add range-based clipping to box lights (case 1178780)
 - Improve area light culling (case 1085873)
+- Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 
 ## [8.0.0] - 2020-05-25
 
