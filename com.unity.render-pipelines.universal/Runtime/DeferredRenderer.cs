@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.Universal
             var m_CameraColorDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
             m_CameraColorDescriptor.ConfigureTarget(m_CameraColorTexture.Identifier(), true, true);
             var m_CameraDepthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
-            m_CameraDepthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), true, true);
+            m_CameraDepthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), true, false);
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
@@ -304,8 +304,8 @@ namespace UnityEngine.Rendering.Universal
                 cameraTargetDescriptor.msaaSamples);
                 EnqueuePass(m_DrawSkyboxPass);
             }
-        // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
-        if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture)
+            // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
+            if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture)
             {
                 m_CopyDepthPass1.Setup(m_CameraDepthAttachment, m_CameraDepthTexture, false);
                 EnqueuePass(m_CopyDepthPass1);
@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
 
                 var opaqueDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
-                opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, true);
+                opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, true); //Seems like store is required, though used inside the renderPass
                 opaqueDescriptor.ConfigureClear(Color.black, 1, 0);
 
                 m_CopyColorPass.ConfigureInputAttachment(m_CameraColorDescriptor);
@@ -558,7 +558,7 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_DeferredPass);
 
             // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
-            m_RenderTransparentForwardPass.ConfigureRenderPassDescriptor(desc.width, desc.height, desc.msaaSamples);
+            m_RenderOpaqueForwardOnlyPass.ConfigureRenderPassDescriptor(desc.width, desc.height, desc.msaaSamples);
             m_RenderOpaqueForwardOnlyPass.ConfigureTarget(gbufferDescriptors[k_GBufferSlicesCount], depthDescriptor);
             EnqueuePass(m_RenderOpaqueForwardOnlyPass);
         }
