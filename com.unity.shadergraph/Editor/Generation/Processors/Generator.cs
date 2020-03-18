@@ -141,7 +141,11 @@ namespace UnityEditor.ShaderGraph
                     TargetSetupContext context = new TargetSetupContext();
                     m_TargetImplementations[i].SetupTarget(ref context); 
                     GetAssetDependencyPaths(context);
-                    GenerateSubShader(i, context.descriptor);
+
+                    foreach(var subShader in context.subShaders)
+                    {
+                        GenerateSubShader(i, subShader);
+                    }
                 }
 
                 m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");

@@ -23,27 +23,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Metallic,
     }
     
-    class DOTSUniversalMeshTarget : UniversalMeshTarget
-    {
-        public override string displayName => "Universal (DOTS)";
-
-        public override void SetupTarget(ref TargetSetupContext context)
-        {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("ac9e1a400a9ce404c8f26b9c1238417e")); // UniversalMeshTarget
-
-            switch(materialType)
-            {
-                case MaterialType.Lit:
-                    context.SetupSubShader(UniversalSubShaders.DOTSPBR);
-                    break;
-                case MaterialType.Unlit:
-                    context.SetupSubShader(UniversalSubShaders.DOTSUnlit);
-                    break;
-            }
-        }
-    }
-    
     class UniversalMeshTarget : ITargetImplementation
     {
         [SerializeField]
@@ -69,6 +48,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         NormalDropOffSpace m_NormalDropOffSpace = NormalDropOffSpace.Tangent;
+
+        [SerializeField]
+        bool m_HybridRendererSupport = false;
 
         public Type targetType => typeof(MeshTarget);
         public virtual string displayName => "Universal";
@@ -107,19 +89,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("ac9e1a400a9ce404c8f26b9c1238417e")); // UniversalMeshTarget
 
+            // If Hybrid Renderer support is enabled we add the DOTS subshader first
+            // It is SM4.5 and will fall through to the regular subshader if unsupported
+            if(m_HybridRendererSupport)
+            {
+                switch(materialType)
+                {
+                    case MaterialType.Lit:
+                        context.AddSubShader(UniversalSubShaders.DOTSPBR);
+                        break;
+                    case MaterialType.Unlit:
+                        context.AddSubShader(UniversalSubShaders.DOTSUnlit);
+                        break;
+                }
+            }
+
             switch(m_MaterialType)
             {
                 case MaterialType.Lit:
-                    context.SetupSubShader(UniversalSubShaders.PBR);
+                    context.AddSubShader(UniversalSubShaders.PBR);
                     break;
                 case MaterialType.Unlit:
-                    context.SetupSubShader(UniversalSubShaders.Unlit);
+                    context.AddSubShader(UniversalSubShaders.Unlit);
                     break;
                 case MaterialType.SpriteLit:
-                    context.SetupSubShader(UniversalSubShaders.SpriteLit);
+                    context.AddSubShader(UniversalSubShaders.SpriteLit);
                     break;
                 case MaterialType.SpriteUnlit:
-                    context.SetupSubShader(UniversalSubShaders.SpriteUnlit);
+                    context.AddSubShader(UniversalSubShaders.SpriteUnlit);
                     break;
             }
         }
@@ -320,6 +317,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         });
                     });
             }
+
+            element.Add(new PropertyRow(new Label("Hybrid Renderer Support")), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_HybridRendererSupport;
+                        toggle.OnToggleChanged(evt => {
+                            if (Equals(m_HybridRendererSupport, evt.newValue))
+                                return;
+                            
+                            m_HybridRendererSupport = evt.newValue;
+                            onChange();
+                        });
+                    });
+                });
 
             return element;
         }
