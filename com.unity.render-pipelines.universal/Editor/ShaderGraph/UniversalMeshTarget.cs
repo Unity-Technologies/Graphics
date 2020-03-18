@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Metallic,
     }
     
-    class DOTSUniversalMeshTarget : UniversalMeshTarget//
+    class DOTSUniversalMeshTarget : UniversalMeshTarget
     {
         public override string displayName => "Universal (DOTS)";
 

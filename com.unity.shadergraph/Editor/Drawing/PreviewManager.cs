@@ -560,7 +560,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     continue;
                 }
                 
-                if (node == null && m_Graph.activeGenerationTarget.target.GetType() != typeof(VFXTarget))
+                if (node == null)
                 {
                     UpdateMasterNodeShader();
                     continue;
@@ -646,8 +646,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             RenderTexture.active = temp;
             Graphics.Blit(Texture2D.whiteTexture, temp, m_SceneResources.checkerboardMaterial);
 
-            m_SceneResources.camera.targetTexture = temp;
-            Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, null, ShadowCastingMode.Off, false, null, false);
+            // Mesh is invalid for VFXTarget
+            // We should handle this more gracefully
+            if(m_Graph.activeGenerationTarget.target.GetType() != typeof(VFXTarget))
+            {
+                m_SceneResources.camera.targetTexture = temp;
+                Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, null, ShadowCastingMode.Off, false, null, false);
+            }
 
             var previousUseSRP = Unsupported.useScriptableRenderPipeline;
             Unsupported.useScriptableRenderPipeline = renderData.shaderData.node == null;
@@ -678,8 +683,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var shaderData = masterRenderData?.shaderData;
             
-            var generator = new Generator(m_Graph, shaderData?.node, GenerationMode.Preview, "Master");
-            shaderData.shaderString = generator.generatedShader;
+            // Skip generation for VFXTarget
+            if(m_Graph.activeGenerationTarget.target.GetType() != typeof(VFXTarget))
+            {
+                var generator = new Generator(m_Graph, shaderData?.node, GenerationMode.Preview, "Master");
+                shaderData.shaderString = generator.generatedShader;
+
+                // Blocks from the generation include those temporarily created for missing stack blocks
+                // We need to hold on to these to set preview property values during CollectShaderProperties
+                m_Blocks.Clear();
+                foreach(var block in generator.blocks)
+                {
+                    m_Blocks.Add(block);
+                }
+            }
 
             if (string.IsNullOrEmpty(shaderData.shaderString))
             {
@@ -700,14 +717,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 ShaderUtil.ClearCachedData(shaderData.shader);
-            }
-
-            // Blocks from the generation include those temporarily created for missing stack blocks
-            // We need to hold on to these to set preview property values during CollectShaderProperties
-            m_Blocks.Clear();
-            foreach(var block in generator.blocks)
-            {
-                m_Blocks.Add(block);
             }
 
             BeginCompile(masterRenderData, shaderData.shaderString);
