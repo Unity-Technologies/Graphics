@@ -23,11 +23,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
 
-        // XRTODO: expose and document public API for custom layout
-        internal delegate bool CustomLayout(XRLayout layout);
-        private static CustomLayout customLayout = null;
-        static internal void SetCustomLayout(CustomLayout cb) => customLayout = cb;
-
 #if ENABLE_VR && ENABLE_XR_MODULE
         // XR SDK display interface
         static List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
@@ -102,17 +97,13 @@ namespace UnityEngine.Rendering.HighDefinition
         internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras, bool singlePassAllowed, bool singlePassTestModeActive)
         {
             bool xrActive = RefreshXrSdk();
+            bool useTestMode = (singlePassTestModeActive || automatedTestRunning) && testModeEnabled;
 
             if (framePasses.Count > 0)
             {
                 Debug.LogWarning("XRSystem.ReleaseFrame() was not called!");
                 ReleaseFrame();
             }
-
-            if ((singlePassTestModeActive || automatedTestRunning) && testModeEnabled)
-                SetCustomLayout(LayoutSinglePassTestMode);
-            else
-                SetCustomLayout(null);
 
             foreach (var camera in cameras)
             {
@@ -122,9 +113,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Enable XR layout only for gameview camera
                 bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
 
-                if (customLayout != null && customLayout(new XRLayout() { camera = camera, xrSystem = this }))
+                if (useTestMode && LayoutSinglePassTestMode(new XRLayout() { camera = camera, xrSystem = this }))
                 {
-                    // custom layout in used
+                    // test layout in used
                 }
                 else if (xrActive && xrSupported)
                 {
@@ -240,8 +231,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Cleanup()
         {
-            customLayout = null;
-
 #if ENABLE_VR && ENABLE_XR_MODULE
             CoreUtils.Destroy(occlusionMeshMaterial);
             CoreUtils.Destroy(mirrorViewMaterial);
