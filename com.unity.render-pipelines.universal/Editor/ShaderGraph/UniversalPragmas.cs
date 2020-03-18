@@ -25,7 +25,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
             { Pragma.Vertex("vert") },
@@ -35,7 +34,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },

@@ -40,6 +40,8 @@ namespace UnityEditor.ShaderGraph
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
             m_AssetDependencyPaths = new List<string>();
 
+            GetTargetImplementations();
+            GetBlocksFromStack();
             BuildShader();
         }
 
@@ -95,9 +97,6 @@ namespace UnityEditor.ShaderGraph
 
         void BuildShader()
         {
-            GetTargetImplementations();
-            GetBlocksFromStack();
-
             var activeNodeList = ListPool<AbstractMaterialNode>.Get();
             if(m_OutputNode == null)
             {
