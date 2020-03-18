@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the error `Output value 'vert' is not initialized` displayed on all PBR graphs in Universal. [1210710](https://issuetracker.unity3d.com/issues/output-value-vert-is-not-completely-initialized-error-is-thrown-when-pbr-graph-is-created-using-urp)
 - Fixed a bug where PBR and Unlit master nodes in Universal had Alpha Clipping enabled by default.
 - Fixed an issue in where analytics wasn't always working.
+- Fixed a bug where if a user had a Blackboard Property Reference start with a digit the generated shader would be broken.
 - Avoid unintended behavior by removing the ability to create presets from Shader Graph (and Sub Graph) assets. [1220914](https://issuetracker.unity3d.com/issues/shadergraph-preset-unable-to-open-editor-when-clicking-on-open-shader-editor-in-the-shadersubgraphimporter)
 - Fixed a bug where undo would make the Master Preview visible regardless of its toggle status.
 - Fixed a bug where any change to the PBR master node settings would lose connection to the normal slot. 
