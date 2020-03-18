@@ -85,6 +85,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for subsurface scattering in path tracing.
 - Added a new mode that improves the filtering of ray traced shadows (directional, point and spot) based on the distance to the occluder.
 - Added support of cookie baking and add support on Disc light.
+- Added support for fog attenuation in path tracing.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -434,7 +435,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader graph and ray tracing after the shader target PR.
 - Fixed a bug in semi-transparent shadows (object further than the light casting shadows)
 - Fix state enabled of default volume profile when in package.
-- Fixed removal of MeshRenderer and MeshFilter on adding Light component. 
+- Fixed removal of MeshRenderer and MeshFilter on adding Light component.
 - Fixed Ray Traced SubSurface Scattering not working with ray traced area lights
 - Fixed Ray Traced SubSurface Scattering not working in forward mode.
 - Fixed a bug in debug light volumes.
