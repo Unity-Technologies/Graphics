@@ -607,12 +607,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
 
-            // TODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
+            // XRTODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
             if (true)
             {
                 cmd.SetGlobalInt(HDShaderIDs._XRViewCount, viewCount);
 
                 // Convert AoS to SoA for GPU constant buffer until we can use StructuredBuffer via command buffer
+                // XRTODO: use the new API and remove this code
                 for (int i = 0; i < viewCount; i++)
                 {
                     m_XRViewMatrix[i] = m_XRViewConstants[i].viewMatrix;
@@ -1126,6 +1127,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
             // Do not add extra jitter in VR (micro-variations from head tracking are enough)
+            // XRTODO: make this a setting in GlobalXRSettings instead of assuming
             if (xr.enabled)
             {
                 taaJitter = Vector4.zero;
