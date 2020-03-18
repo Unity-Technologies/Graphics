@@ -75,11 +75,24 @@ bool IsBelow(MaterialData mtlData)
     return !IsAbove(mtlData);
 }
 
+float3 ReprojectAbove(float3 normalWS, float3 dirWS, float dotThreshold = 0.0)
+{
+    float dotProd = dot(normalWS, dirWS);
+    return dotProd < dotThreshold ? normalize(dirWS - (dotProd - dotThreshold) * normalWS) : dirWS;
+}
+
+float3 ReprojectAbove(MaterialData mtlData, float3 dirWS, float dotThreshold = 0.0)
+{
+    return ReprojectAbove(mtlData.bsdfData.geomNormalWS, dirWS, dotThreshold);
+}
+
 float3x3 GetTangentFrame(MaterialData mtlData)
 {
-    return mtlData.bsdfData.anisotropy != 0.0 ?
-        float3x3(mtlData.bsdfData.tangentWS, mtlData.bsdfData.bitangentWS, mtlData.bsdfData.normalWS) :
-        GetLocalFrame(mtlData.bsdfData.normalWS);
+#ifdef _MATERIAL_FEATURE_ANISOTROPY
+    return float3x3(mtlData.bsdfData.tangentWS, mtlData.bsdfData.bitangentWS, mtlData.bsdfData.normalWS);
+#else
+    return GetLocalFrame(mtlData.bsdfData.normalWS);;
+#endif
 }
 
 #endif // UNITY_PATH_TRACING_MATERIAL_INCLUDED

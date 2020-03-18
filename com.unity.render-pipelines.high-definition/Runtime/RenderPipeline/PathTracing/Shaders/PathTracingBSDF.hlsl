@@ -82,7 +82,7 @@ bool SampleGGX(MaterialData mtlData,
     float3x3 localToWorld = GetLocalFrame(mtlData.bsdfData.normalWS);
     SampleGGXDir(inputSample.xy, mtlData.V, localToWorld, roughness, outgoingDir, NdotL, NdotH, VdotH);
 
-    if (NdotL < 0.001 || !IsAbove(mtlData, outgoingDir))
+    if (NdotL < 0.001)
         return false;
 
     float D = D_GGX(NdotH, roughness);
@@ -96,6 +96,8 @@ bool SampleGGX(MaterialData mtlData,
     fresnel = F_Schlick(fresnel0, VdotH);
 
     value = fresnel * D * Vg * NdotL;
+
+    outgoingDir = ReprojectAbove(mtlData, outgoingDir);
 
     return true;
 }
@@ -149,9 +151,8 @@ bool SampleAnisoGGX(MaterialData mtlData,
 
     // Compute the reflection direction
     float3 localL = 2.0 * VdotH * localH - localV;
-    outgoingDir = mul(localL, localToWorld);
 
-    if (localL.z < 0.001 || !IsAbove(mtlData, outgoingDir))
+    if (localL.z < 0.001)
         return false;
 
     float pdfNoGV = D_AnisoGGX(roughnessX, roughnessY, localH) / (4.0 * localV.z);
@@ -164,6 +165,8 @@ bool SampleAnisoGGX(MaterialData mtlData,
     float lambdaL = Lambda_AnisoGGX(roughnessX, roughnessY, localL);
     fresnel = F_Schlick(fresnel0, VdotH);
     value = fresnel * pdfNoGV / (lambdaVPlusOne + lambdaL);
+
+    outgoingDir = ReprojectAbove(mtlData, mul(localL, localToWorld));
 
     return true;
 }

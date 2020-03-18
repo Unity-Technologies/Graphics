@@ -2,6 +2,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
 
+#define FIX_SHADING_NORMAL
+
 // Lit Material Data:
 //
 // bsdfWeight0  Diffuse BRDF
@@ -9,13 +11,25 @@
 // bsdfWeight2  Spec GGX BRDF
 // bsdfWeight3  Spec GGX BTDF
 
-void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, inout BSDFData bsdfData)
+void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, float3 V, inout BSDFData bsdfData)
 {
     // Adjust roughness to reduce fireflies
     bsdfData.roughnessT = max(pathIntersection.maxRoughness, bsdfData.roughnessT);
     bsdfData.roughnessB = max(pathIntersection.maxRoughness, bsdfData.roughnessB);
 
-    float NdotV = abs(dot(bsdfData.normalWS, WorldRayDirection()));
+#ifdef FIX_SHADING_NORMAL
+    if (IsAbove(bsdfData.geomNormalWS, V))
+    {
+        bsdfData.normalWS = ReprojectAbove(V, bsdfData.normalWS, 0.001001);
+    // FIXME: Readjusting the tangent and bitangent does not seem to make any difference
+    // #ifdef _MATERIAL_FEATURE_ANISOTROPY
+    //     bsdfData.bitangentWS = normalize(cross(bsdfData.normalWS, bsdfData.tangentWS));
+    //     bsdfData.tangentWS = normalize(cross(bsdfData.bitangentWS, bsdfData.normalWS));
+    // #endif
+    }
+#endif
+
+    float NdotV = abs(dot(bsdfData.normalWS, V));
 
     // Modify fresnel0 value to take iridescence into account (code adapted from Lit.hlsl to produce identical results)
     if (bsdfData.iridescenceMask > 0.0)
@@ -46,10 +60,9 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float sample, out MaterialData mtlData)
 {
     // Alter values in the material's bsdfData struct, to better suit path tracing
-    mtlData.bsdfData = bsdfData;
-    ProcessBSDFData(pathIntersection, builtinData, mtlData.bsdfData);
-
     mtlData.V = -WorldRayDirection();
+    mtlData.bsdfData = bsdfData;
+    ProcessBSDFData(pathIntersection, builtinData, mtlData.V, mtlData.bsdfData);
 
     // Assume no coating by default
     float coatingTransmission = 1.0;
