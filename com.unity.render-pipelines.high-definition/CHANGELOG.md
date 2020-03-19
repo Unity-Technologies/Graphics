@@ -87,6 +87,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support of cookie baking and add support on Disc light.
 - Added support for fog attenuation in path tracing.
 - Added a new debug panel for volumes
+- Added XR setting to control camera jitter for temporal effects
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
