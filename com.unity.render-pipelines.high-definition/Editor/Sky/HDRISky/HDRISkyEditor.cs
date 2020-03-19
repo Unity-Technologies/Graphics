@@ -91,22 +91,19 @@ namespace UnityEditor.Rendering.HighDefinition
             RTHandle latLongMap = RTHandles.Alloc(  4*hdri.width, hdri.width,
                                                     colorFormat: GraphicsFormat.R32G32B32A32_SFloat,
                                                     enableRandomWrite: true);
-            RTHandleDeleter.ScheduleRelease(latLongMap);
-            m_CubeToHemiLatLong.SetTexture  ("_srcCubeTexture",             hdri);
-            m_CubeToHemiLatLong.SetInt      ("_cubeMipLvl",                 0);
-            m_CubeToHemiLatLong.SetInt      ("_cubeArrayIndex",             0);
-            m_CubeToHemiLatLong.SetInt      ("_buildPDF",                   0);
-            m_CubeToHemiLatLong.SetInt      ("_preMultiplyByJacobian",      1);
-            m_CubeToHemiLatLong.SetInt      ("_preMultiplyByCosTheta",      1);
-            m_CubeToHemiLatLong.SetInt      ("_preMultiplyBySolidAngle",    0);
+            m_CubeToHemiLatLong.SetTexture  (HDShaderIDs._SrcCubeTexture,           hdri);
+            m_CubeToHemiLatLong.SetInt      (HDShaderIDs._CubeMipLvl,               0);
+            m_CubeToHemiLatLong.SetInt      (HDShaderIDs._CubeArrayIndex,           0);
+            m_CubeToHemiLatLong.SetInt      (HDShaderIDs._BuildPDF,                 0);
+            m_CubeToHemiLatLong.SetInt      (HDShaderIDs._PreMultiplyByJacobian,    1);
+            m_CubeToHemiLatLong.SetInt      (HDShaderIDs._PreMultiplyByCosTheta,    1);
+            m_CubeToHemiLatLong.SetInt      (HDShaderIDs._PreMultiplyBySolidAngle,  0);
             m_CubeToHemiLatLong.SetVector   (HDShaderIDs._Sizes, new Vector4(      (float)latLongMap.rt.width,        (float)latLongMap.rt.height,
                                                                              1.0f/((float)latLongMap.rt.width), 1.0f/((float)latLongMap.rt.height)));
             Graphics.Blit(Texture2D.whiteTexture, latLongMap.rt, m_CubeToHemiLatLong, 0);
 
             RTHandle totalRows = GPUScan.ComputeOperation(latLongMap, null, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, latLongMap.rt.graphicsFormat);
             RTHandle totalCols = GPUScan.ComputeOperation(totalRows,  null, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   latLongMap.rt.graphicsFormat);
-            RTHandleDeleter.ScheduleRelease(totalRows);
-            RTHandleDeleter.ScheduleRelease(totalCols);
 
             RenderTexture.active = totalCols.rt;
             m_ReadBackTexture.ReadPixels(new Rect(0.0f, 0.0f, 1.0f, 1.0f), 0, 0);
@@ -122,6 +119,10 @@ namespace UnityEditor.Rendering.HighDefinition
             float maxRef = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
 
             m_UpperHemisphereLuxValue.value.floatValue = coef*ref3;
+
+            totalCols.Release();
+            totalRows.Release();
+            latLongMap.Release();
 
             if (maxRef == 0.0f)
                 maxRef = 1.0f;

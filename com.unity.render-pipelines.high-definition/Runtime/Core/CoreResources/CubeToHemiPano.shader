@@ -11,15 +11,15 @@ HLSLINCLUDE
 
 #include "UnityCG.cginc"
 
-UNITY_DECLARE_TEXCUBE(_srcCubeTexture);
-UNITY_DECLARE_TEXCUBEARRAY(_srcCubeTextureArray);
+UNITY_DECLARE_TEXCUBE(_SrcCubeTexture);
+UNITY_DECLARE_TEXCUBEARRAY(_SrcCubeTextureArray);
 
-uniform int _cubeMipLvl;
-uniform int _cubeArrayIndex;
-uniform int _buildPDF;
-uniform int _preMultiplyByCosTheta;
-uniform int _preMultiplyBySolidAngle;
-uniform int _preMultiplyByJacobian; // Premultiply by the Det of Jacobian, to be "Integration Ready"
+uniform int _CubeMipLvl;
+uniform int _CubeArrayIndex;
+uniform int _BuildPDF;
+uniform int _PreMultiplyByCosTheta;
+uniform int _PreMultiplyBySolidAngle;
+uniform int _PreMultiplyByJacobian; // Premultiply by the Det of Jacobian, to be "Integration Ready"
 float4      _Sizes; // float4( outSize.xy, 1/outSize.xy )
 
 struct v2f
@@ -93,15 +93,15 @@ float GetScale(float angle)
     float scale = 1.0f;
     float pi    = 3.1415926535897932384626433832795f;
 
-    if (_preMultiplyByJacobian == 1)
+    if (_PreMultiplyByJacobian == 1)
     {
         scale *= sin(angle); // Spherical Jacobian
     }
-    if (_preMultiplyByCosTheta == 1)
+    if (_PreMultiplyByCosTheta == 1)
     {
         scale *= cos(angle);
     }
-    if (_preMultiplyBySolidAngle == 1)
+    if (_PreMultiplyBySolidAngle == 1)
     {
         scale *= _Sizes.z*_Sizes.w;
         scale *= pi*pi*0.25f;
@@ -115,10 +115,10 @@ float4 frag(v2f i) : SV_Target
     float3 dir      = GetDir(i.texcoord.xy);
 
     float3 output;
-    if (_buildPDF == 1)
-        output = (float3)SampleToPDFMeasure(UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float)_cubeMipLvl).rgb).xxx;
+    if (_BuildPDF == 1)
+        output = (float3)SampleToPDFMeasure(UNITY_SAMPLE_TEXCUBE_LOD(_SrcCubeTexture, dir, (float)_CubeMipLvl).rgb).xxx;
     else
-        output = (float3)UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float) _cubeMipLvl).rgb;
+        output = (float3)UNITY_SAMPLE_TEXCUBE_LOD(_SrcCubeTexture, dir, (float) _CubeMipLvl).rgb;
 
     float pi    = 3.1415926535897932384626433832795f;
     float angle = i.texcoord.y*pi*0.5f;
@@ -133,10 +133,10 @@ float4 fragArray(v2f i) : SV_Target
     float3 dir = GetDir(i.texcoord.xy);
 
     float3 output;
-    if (_buildPDF == 1)
-        output = SampleToPDFMeasure(UNITY_SAMPLE_TEXCUBEARRAY_LOD(_srcCubeTextureArray, float4(dir, _cubeArrayIndex), (float)_cubeMipLvl).rgb).xxx;
+    if (_BuildPDF == 1)
+        output = SampleToPDFMeasure(UNITY_SAMPLE_TEXCUBEARRAY_LOD(_SrcCubeTextureArray, float4(dir, _CubeArrayIndex), (float)_CubeMipLvl).rgb).xxx;
     else
-        output = UNITY_SAMPLE_TEXCUBEARRAY_LOD(_srcCubeTextureArray, float4(dir, _cubeArrayIndex), (float)_cubeMipLvl).rgb;
+        output = UNITY_SAMPLE_TEXCUBEARRAY_LOD(_SrcCubeTextureArray, float4(dir, _CubeArrayIndex), (float)_CubeMipLvl).rgb;
 
     float pi    = 3.1415926535897932384626433832795f;
     float angle = i.texcoord.y*pi*0.5f;

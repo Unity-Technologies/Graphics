@@ -1,11 +1,6 @@
-#define DUMP_IMAGE
-
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEngine;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Rendering.HighDefinition
 {
     static class ImportanceSampler2D
     {

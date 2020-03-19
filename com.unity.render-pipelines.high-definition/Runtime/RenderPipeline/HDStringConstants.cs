@@ -742,6 +742,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Iteration                      = Shader.PropertyToID("_Iteration");
         public static readonly int _Integral                       = Shader.PropertyToID("_Integral");
         public static readonly int _MinMax                         = Shader.PropertyToID("_MinMax");
+        public static readonly int _SrcCubeTexture                 = Shader.PropertyToID("_SrcCubeTexture");
+        public static readonly int _SrcCubeTextureArray            = Shader.PropertyToID("_SrcCubeTextureArray");
+        public static readonly int _CubeMipLvl                     = Shader.PropertyToID("_CubeMipLvl");
+        public static readonly int _CubeArrayIndex                 = Shader.PropertyToID("_CubeArrayIndex");
+        public static readonly int _BuildPDF                       = Shader.PropertyToID("_BuildPDF");
+        public static readonly int _PreMultiplyByJacobian          = Shader.PropertyToID("_PreMultiplyByJacobian");
+        public static readonly int _PreMultiplyByCosTheta          = Shader.PropertyToID("_PreMultiplyByCosTheta");
+        public static readonly int _PreMultiplyBySolidAngle        = Shader.PropertyToID("_PreMultiplyBySolidAngle");
 
         public static readonly int _PDF                                 = Shader.PropertyToID("_PDF");
         public static readonly int _CDF                                 = Shader.PropertyToID("_CDF");

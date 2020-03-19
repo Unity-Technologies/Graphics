@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
     /// RTHandleDeleter to schedule a release of a RTHandle in N ('lifetime') frame
     /// </summary>
-    public static class RTHandleDeleter
+    internal static class RTHandleDeleter
     {
         internal class RTHandleDesc
         {
@@ -21,7 +20,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="rtHandle">Considered rtHandle.</param>
         /// <param name="lifetime">lifetime remaining of this rtHandle (unit: frame), default: 3 frames.</param>
-        public static void ScheduleRelease(RTHandle rtHandle, int lifetime = 3)
+        internal static void ScheduleRelease(RTHandle rtHandle, int lifetime = 3)
         {
             if (rtHandle != null && lifetime > 0)
             {
@@ -39,7 +38,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Schedule a release of a RTHandle in 'lifetime' frames
         /// </summary>
-        public static void Update()
+        internal static void Update()
         {
             foreach (RTHandleDesc desc in m_RTHandleDescs)
             {

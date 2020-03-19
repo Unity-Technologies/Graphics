@@ -1,7 +1,6 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Rendering.HighDefinition
 {
     // For Add (CommulativeAdd)
     // Texture2D NxM -> Texture2D NxM

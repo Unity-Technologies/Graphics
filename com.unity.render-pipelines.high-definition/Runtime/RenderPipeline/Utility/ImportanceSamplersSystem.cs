@@ -425,18 +425,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         usedMat = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
                     if (value.input.dimension == TextureDimension.Cube)
                     {
-                        usedMat.SetTexture("_srcCubeTexture",       rtInput);
+                        usedMat.SetTexture(HDShaderIDs._SrcCubeTexture,         rtInput);
                     }
                     else
                     {
-                        usedMat.SetTexture("_srcCubeTextureArray",  rtInput);
+                        usedMat.SetTexture(HDShaderIDs._SrcCubeTextureArray,    rtInput);
                     }
-                    usedMat.SetInt      ("_cubeMipLvl",                 current.Value.currentMip);
-                    usedMat.SetInt      ("_cubeArrayIndex",             current.Value.currentSlice);
-                    usedMat.SetInt      ("_buildPDF",                   0);
-                    usedMat.SetInt      ("_preMultiplyBySolidAngle",    0);
-                    usedMat.SetInt      ("_preMultiplyByCosTheta",      0);
-                    usedMat.SetInt      ("_preMultiplyByJacobian",      1);
+                    usedMat.SetInt      (HDShaderIDs._CubeMipLvl,               current.Value.currentMip);
+                    usedMat.SetInt      (HDShaderIDs._CubeArrayIndex,           current.Value.currentSlice);
+                    usedMat.SetInt      (HDShaderIDs._BuildPDF,                 0);
+                    usedMat.SetInt      (HDShaderIDs._PreMultiplyBySolidAngle,  0);
+                    usedMat.SetInt      (HDShaderIDs._PreMultiplyByCosTheta,    0);
+                    usedMat.SetInt      (HDShaderIDs._PreMultiplyByJacobian,    1);
                     usedMat.SetVector   (HDShaderIDs._Sizes, new Vector4(      (float)latLongMap.rt.width,        (float)latLongMap.rt.height,
                                                                          1.0f/((float)latLongMap.rt.width), 1.0f/((float)latLongMap.rt.height)));
 
