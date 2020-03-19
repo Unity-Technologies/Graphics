@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a warning and workaround instructions that appear when you enable XR single-pass after the first frame with the XR SDK.
 - Added an "enable" toggle to the SSR volume component.
 - Added support of cookie baking and add support on Disc light.
+- Added XR setting to control camera jitter for temporal effects
 
 ### Fixed
 - Fix Changelog
