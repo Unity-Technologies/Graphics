@@ -149,12 +149,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             includes = UniversalIncludes.PBR2D,
         };
 
-        public static PassDescriptor _2DUnlit = new PassDescriptor
+        public static PassDescriptor unlit = new PassDescriptor
         {
             // Definition
             displayName = "Pass",
             referenceName = "SHADERPASS_UNLIT",
-            lightMode = "Universal2DUnlit",
             useInPreview = true,
 
             // Port Mask
@@ -171,30 +170,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             keywords = UniversalKeywords.Unlit,
             includes = UniversalIncludes.Unlit,
         };
-
-        public static PassDescriptor UniversalUnlit = new PassDescriptor
-        {
-            // Definition
-            displayName = "Universal Pass",
-            referenceName = "SHADERPASS_UNLIT",
-            lightMode = "UniversalForwardOnly",
-            useInPreview = true,
-
-            // Port Mask
-            vertexPorts = UniversalPortMasks.Vertex.Unlit,
-            pixelPorts = UniversalPortMasks.Pixel.Unlit,
-
-            // Fields
-            structs = UniversalStructCollections.Default,
-            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
-
-            // Conditional State
-            renderStates = UniversalRenderStates.Default,
-            pragmas = UniversalPragmas.Forward,
-            keywords = UniversalKeywords.Unlit,
-            includes = UniversalIncludes.Unlit,
-        };
-
 
         public static PassDescriptor SpriteLit = new PassDescriptor
         {
