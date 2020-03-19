@@ -555,7 +555,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Shader deferredTilePixelShader { get { return defaultResources.shaders.deferredTilePS; } }
 
-        ConstantBuffer<ShaderVariablesLightList> m_ShaderVariablesLightListCB;
+        ShaderVariablesLightList m_ShaderVariablesLightListCB = new ShaderVariablesLightList();
 
         static int s_GenAABBKernel;
         static int s_GenAABBKernel_Oblique;
@@ -886,8 +886,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Screen space shadow
             int numMaxShadows = Math.Max(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, 1);
             m_CurrentScreenSpaceShadowData = new ScreenSpaceShadowData[numMaxShadows];
-
-            m_ShaderVariablesLightListCB = new ConstantBuffer<ShaderVariablesLightList>();
         }
 
         void CleanupLightLoop()
@@ -924,8 +922,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
             CoreUtils.Destroy(m_DebugBlitMaterial);
-
-            m_ShaderVariablesLightListCB.Release();
         }
 
         void LightLoopNewRender()
@@ -2719,7 +2715,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader buildDispatchIndirectShader;
             public bool useComputeAsPixel;
 
-            public ConstantBuffer<ShaderVariablesLightList> lightListCB;
+            public ShaderVariablesLightList lightListCB;
         }
 
         struct BuildGPULightListResources
@@ -2756,7 +2752,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         CommandBuffer cmd)
         {
             // ClearLightLists is the first pass, we push the global parameters for light list building here.
-            parameters.lightListCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesLightList, true);
+            ConstantBuffer<ShaderVariablesLightList>.PushGlobal(cmd, parameters.lightListCB, HDShaderIDs._ShaderVariablesLightList);
 
             if (parameters.clearLightLists && !parameters.runLightList)
             {
@@ -2837,8 +2833,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
                     }
-                    parameters.lightListCB.data.g_BaseFeatureFlags = baseFeatureFlags;
-                    parameters.lightListCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesLightList, true);
+
+                    var localLightListCB = parameters.lightListCB;
+                    localLightListCB.g_BaseFeatureFlags = baseFeatureFlags;
+                    ConstantBuffer<ShaderVariablesLightList>.PushGlobal(cmd, localLightListCB, HDShaderIDs._ShaderVariablesLightList);
 
                     cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
                     tileFlagsWritten = true;
@@ -2911,8 +2909,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
                         }
                     }
-                    parameters.lightListCB.data.g_BaseFeatureFlags = baseFeatureFlags;
-                    parameters.lightListCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesLightList, true);
+
+                    var localLightListCB = parameters.lightListCB;
+                    localLightListCB.g_BaseFeatureFlags = baseFeatureFlags;
+                    ConstantBuffer<ShaderVariablesLightList>.PushGlobal(cmd, localLightListCB, HDShaderIDs._ShaderVariablesLightList);
 
                     cmd.SetComputeBufferParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
 
@@ -2980,7 +2980,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var h = (int)hdCamera.screenSize.y;
 
             // Fill the shared constant buffer.
-            var cb = m_ShaderVariablesLightListCB;
+            ref var cb = ref m_ShaderVariablesLightListCB;
             var temp = new Matrix4x4();
             temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
             temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
@@ -2997,8 +2997,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
                     var invTempMatrix = tempMatrix.inverse;
-                    cb.data.g_mScrProjectionArr[viewIndex * 16 + i] = tempMatrix[i];
-                    cb.data.g_mInvScrProjectionArr[viewIndex * 16 + i] = invTempMatrix[i];
+                    cb.g_mScrProjectionArr[viewIndex * 16 + i] = tempMatrix[i];
+                    cb.g_mInvScrProjectionArr[viewIndex * 16 + i] = invTempMatrix[i];
                 }
             }
 
@@ -3014,22 +3014,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
                     var invTempMatrix = tempMatrix.inverse;
-                    cb.data.g_mProjectionArr[viewIndex * 16 + i] = tempMatrix[i];
-                    cb.data.g_mInvProjectionArr[viewIndex * 16 + i] = invTempMatrix[i];
+                    cb.g_mProjectionArr[viewIndex * 16 + i] = tempMatrix[i];
+                    cb.g_mInvProjectionArr[viewIndex * 16 + i] = invTempMatrix[i];
                 }
             }
 
             var decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
 
-            cb.data.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
-            cb.data.g_viDimensions = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
-            cb.data.g_iNrVisibLights = m_TotalLightCount;
-            cb.data.g_isOrthographic = camera.orthographic ? 1u : 0u;
-            cb.data.g_BaseFeatureFlags = 0; // Filled for each individual pass.
-            cb.data.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
-            cb.data._EnvLightIndexShift = m_lightList.lights.Count;
-            cb.data._DecalIndexShift = m_lightList.lights.Count + m_lightList.envLights.Count;
-            cb.data._DensityVolumeIndexShift = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount;
+            cb.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
+            cb.g_viDimensions = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
+            cb.g_iNrVisibLights = m_TotalLightCount;
+            cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
+            cb.g_BaseFeatureFlags = 0; // Filled for each individual pass.
+            cb.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
+            cb._EnvLightIndexShift = m_lightList.lights.Count;
+            cb._DecalIndexShift = m_lightList.lights.Count + m_lightList.envLights.Count;
+            cb._DensityVolumeIndexShift = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount;
 
             parameters.lightListCB = m_ShaderVariablesLightListCB;
             parameters.runLightList = m_TotalLightCount > 0;
@@ -3205,56 +3205,56 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        unsafe void UpdateShaderVariablesGlobalLightLoop(ConstantBuffer<ShaderVariablesGlobal> cb, HDCamera hdCamera)
+        unsafe void UpdateShaderVariablesGlobalLightLoop(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             // Atlases
-            cb.data._CookieAtlasSize = m_TextureCaches.lightCookieManager.GetCookieAtlasSize();
-            cb.data._CookieAtlasData = m_TextureCaches.lightCookieManager.GetCookieAtlasDatas();
-            cb.data._PlanarAtlasData = m_TextureCaches.reflectionPlanarProbeCache.GetAtlasDatas();
-            cb.data._EnvSliceSize = m_TextureCaches.reflectionProbeCache.GetEnvSliceSize();
+            cb._CookieAtlasSize = m_TextureCaches.lightCookieManager.GetCookieAtlasSize();
+            cb._CookieAtlasData = m_TextureCaches.lightCookieManager.GetCookieAtlasDatas();
+            cb._PlanarAtlasData = m_TextureCaches.reflectionPlanarProbeCache.GetAtlasDatas();
+            cb._EnvSliceSize = m_TextureCaches.reflectionProbeCache.GetEnvSliceSize();
 
             // Planar reflections
             for (int i = 0; i < asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen; ++i)
             {
                 for (int j = 0; j < 16; ++j)
-                    cb.data._Env2DCaptureVP[i * 16 + j] = m_TextureCaches.env2DCaptureVP[i][j];
+                    cb._Env2DCaptureVP[i * 16 + j] = m_TextureCaches.env2DCaptureVP[i][j];
 
                 for (int j = 0; j < 4; ++j)
-                    cb.data._Env2DCaptureForward[i * 4 + j] = m_TextureCaches.env2DCaptureForward[i][j];
+                    cb._Env2DCaptureForward[i * 4 + j] = m_TextureCaches.env2DCaptureForward[i][j];
 
                 for (int j = 0; j < 4; ++j)
-                    cb.data._Env2DAtlasScaleOffset[i * 4 + j] = m_TextureCaches.env2DAtlasScaleOffset[i][j];
+                    cb._Env2DAtlasScaleOffset[i * 4 + j] = m_TextureCaches.env2DAtlasScaleOffset[i][j];
             }
 
             // Light info
-            cb.data._PunctualLightCount = (uint)m_lightList.punctualLightCount;
-            cb.data._AreaLightCount = (uint)m_lightList.areaLightCount;
-            cb.data._EnvLightCount = (uint)m_lightList.envLights.Count;
-            cb.data._DirectionalLightCount = (uint)m_lightList.directionalLights.Count;
-            cb.data._DecalCount = (uint)DecalSystem.m_DecalDatasCount;
+            cb._PunctualLightCount = (uint)m_lightList.punctualLightCount;
+            cb._AreaLightCount = (uint)m_lightList.areaLightCount;
+            cb._EnvLightCount = (uint)m_lightList.envLights.Count;
+            cb._DirectionalLightCount = (uint)m_lightList.directionalLights.Count;
+            cb._DecalCount = (uint)DecalSystem.m_DecalDatasCount;
             HDAdditionalLightData sunLightData = GetHDAdditionalLightData(m_CurrentSunLight);
             bool sunLightShadow = sunLightData != null && m_CurrentShadowSortedSunLightIndex >= 0;
-            cb.data._DirectionalShadowIndex = sunLightShadow ? m_CurrentShadowSortedSunLightIndex : -1;
-            cb.data._EnableLightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? 1u : 0u;
-            cb.data._EnvLightSkyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera) ? 1 : 0;
+            cb._DirectionalShadowIndex = sunLightShadow ? m_CurrentShadowSortedSunLightIndex : -1;
+            cb._EnableLightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? 1u : 0u;
+            cb._EnvLightSkyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera) ? 1 : 0;
 
             const float C = (float)(1 << k_Log2NumClusters);
             var geomSeries = (1.0 - Mathf.Pow(k_ClustLogBase, C)) / (1 - k_ClustLogBase); // geometric series: sum_k=0^{C-1} base^k
 
             // Tile/Cluster
-            cb.data._NumTileFtplX = (uint)GetNumTileFtplX(hdCamera);
-            cb.data._NumTileFtplY = (uint)GetNumTileFtplY(hdCamera);
-            cb.data.g_fClustScale = (float)(geomSeries / (hdCamera.camera.farClipPlane - hdCamera.camera.nearClipPlane)); ;
-            cb.data.g_fClustBase = k_ClustLogBase;
-            cb.data.g_fNearPlane = hdCamera.camera.nearClipPlane;
-            cb.data.g_fFarPlane = hdCamera.camera.farClipPlane;
-            cb.data.g_iLog2NumClusters = k_Log2NumClusters;
-            cb.data.g_isLogBaseBufferEnabled = k_UseDepthBuffer ? 1 : 0;
-            cb.data._NumTileClusteredX = (uint)GetNumTileClusteredX(hdCamera);
-            cb.data._NumTileClusteredY = (uint)GetNumTileClusteredY(hdCamera);
+            cb._NumTileFtplX = (uint)GetNumTileFtplX(hdCamera);
+            cb._NumTileFtplY = (uint)GetNumTileFtplY(hdCamera);
+            cb.g_fClustScale = (float)(geomSeries / (hdCamera.camera.farClipPlane - hdCamera.camera.nearClipPlane)); ;
+            cb.g_fClustBase = k_ClustLogBase;
+            cb.g_fNearPlane = hdCamera.camera.nearClipPlane;
+            cb.g_fFarPlane = hdCamera.camera.farClipPlane;
+            cb.g_iLog2NumClusters = k_Log2NumClusters;
+            cb.g_isLogBaseBufferEnabled = k_UseDepthBuffer ? 1 : 0;
+            cb._NumTileClusteredX = (uint)GetNumTileClusteredX(hdCamera);
+            cb._NumTileClusteredY = (uint)GetNumTileClusteredY(hdCamera);
 
             // Misc
-            cb.data._EnableSSRefraction = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1u : 0u;
+            cb._EnableSSRefraction = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1u : 0u;
         }
 
         static void PushLightDataGlobalParams(in LightDataGlobalParameters param, CommandBuffer cmd)
@@ -3314,7 +3314,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        void RenderShadowMaps(ScriptableRenderContext renderContext, CommandBuffer cmd, ConstantBuffer<ShaderVariablesGlobal> globalCB, CullingResults cullResults, HDCamera hdCamera)
+        void RenderShadowMaps(ScriptableRenderContext renderContext, CommandBuffer cmd, in ShaderVariablesGlobal globalCB, CullingResults cullResults, HDCamera hdCamera)
         {
             // kick off the shadow jobs here
             m_ShadowManager.RenderShadows(renderContext, cmd, globalCB, cullResults, hdCamera);

@@ -192,27 +192,27 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSDiffusionProfileUpdate[index] = settings.updateCount;
         }
 
-        unsafe void UpdateShaderVariablesGlobalSubsurface(ConstantBuffer<ShaderVariablesGlobal> cb, HDCamera hdCamera)
+        unsafe void UpdateShaderVariablesGlobalSubsurface(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             UpdateCurrentDiffusionProfileSettings(hdCamera);
 
-            cb.data._DiffusionProfileCount = (uint)m_SSSActiveDiffusionProfileCount;
-            cb.data._EnableSubsurfaceScattering = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering) ? 1u : 0u;
-            cb.data._TexturingModeFlags = m_SSSTexturingModeFlags;
-            cb.data._TransmissionFlags = m_SSSTransmissionFlags;
+            cb._DiffusionProfileCount = (uint)m_SSSActiveDiffusionProfileCount;
+            cb._EnableSubsurfaceScattering = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering) ? 1u : 0u;
+            cb._TexturingModeFlags = m_SSSTexturingModeFlags;
+            cb._TransmissionFlags = m_SSSTransmissionFlags;
 
             for (int i = 0; i < m_SSSActiveDiffusionProfileCount; ++i)
             {
                 for (int c = 0; c < 4; ++c) // Vector4 component
                 {
-                    cb.data._ThicknessRemaps[i * 4 + c] = m_SSSThicknessRemaps[i][c];
-                    cb.data._ShapeParams[i * 4 + c] = m_SSSShapeParams[i][c];
+                    cb._ThicknessRemaps[i * 4 + c] = m_SSSThicknessRemaps[i][c];
+                    cb._ShapeParams[i * 4 + c] = m_SSSShapeParams[i][c];
                     // To disable transmission, we simply nullify the transmissionTint
-                    cb.data._TransmissionTintsAndFresnel0[i * 4 + c] = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Transmission) ? m_SSSTransmissionTintsAndFresnel0[i][c] : m_SSSDisabledTransmissionTintsAndFresnel0[i][c];
-                    cb.data._WorldScales[i * 4 + c] = m_SSSWorldScales[i][c];
+                    cb._TransmissionTintsAndFresnel0[i * 4 + c] = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Transmission) ? m_SSSTransmissionTintsAndFresnel0[i][c] : m_SSSDisabledTransmissionTintsAndFresnel0[i][c];
+                    cb._WorldScales[i * 4 + c] = m_SSSWorldScales[i][c];
                 }
 
-                cb.data._DiffusionProfileHashTable[i * 4] = m_SSSDiffusionProfileHashes[i];
+                cb._DiffusionProfileHashTable[i * 4] = m_SSSDiffusionProfileHashes[i];
             }
         }
 

@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        internal ShadowResult RenderShadows(RenderGraph renderGraph, ConstantBuffer<ShaderVariablesGlobal> globalCB, HDCamera hdCamera, CullingResults cullResults)
+        internal ShadowResult RenderShadows(RenderGraph renderGraph, in ShaderVariablesGlobal globalCB, HDCamera hdCamera, CullingResults cullResults)
         {
             var result = new ShadowResult();
             // Avoid to do any commands if there is no shadow to draw
@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     { colorFormat = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true }, shaderID);
         }
 
-        internal TextureHandle RenderShadows(RenderGraph renderGraph, CullingResults cullResults, ConstantBuffer<ShaderVariablesGlobal> globalCB, FrameSettings frameSettings, string shadowPassName)
+        internal TextureHandle RenderShadows(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
         {
             TextureHandle result = new TextureHandle();
 

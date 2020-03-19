@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Lazy<RTHandle> m_CustomPassDepthBuffer;
 
         // Constant Buffers
-        ConstantBuffer<ShaderVariablesGlobal> m_ShaderVariablesGlobalCB;
+        ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
 
         // The current MSAA count
         MSAASamples m_MSAASamples;
@@ -484,8 +484,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializePrepass(m_Asset);
             m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.colorResolvePS);
-
-            InitializeConstantBuffers();
         }
 
 #if UNITY_EDITOR
@@ -800,16 +798,6 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        void InitializeConstantBuffers()
-        {
-            m_ShaderVariablesGlobalCB = new ConstantBuffer<ShaderVariablesGlobal>();
-        }
-
-        void DestroyConstantBuffers()
-        {
-            m_ShaderVariablesGlobalCB.Release();
-        }
-
         /// <summary>
         /// Disposable pattern implementation.
         /// </summary>
@@ -900,8 +888,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CleanupPrepass();
             CoreUtils.Destroy(m_ColorResolveMaterial);
 
-            DestroyConstantBuffers();
-
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
 
@@ -967,51 +953,51 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateShaderVariablesGlobalCB(HDCamera hdCamera, CommandBuffer cmd)
         {
-            hdCamera.UpdateShaderVariableGlobalCB(m_ShaderVariablesGlobalCB, m_FrameCount);
-            Fog.UpdateShaderVariablesGlobalCB(m_ShaderVariablesGlobalCB, hdCamera);
-            UpdateShaderVariablesGlobalSubsurface(m_ShaderVariablesGlobalCB, hdCamera);
-            UpdateShaderVariablesGlobalDecal(m_ShaderVariablesGlobalCB, hdCamera);
-            UpdateShaderVariablesGlobalVolumetrics(m_ShaderVariablesGlobalCB, RTHandles.rtHandleProperties, hdCamera);
-            m_ShadowManager.UpdateShaderVariablesGlobalCB(m_ShaderVariablesGlobalCB);
-            UpdateShaderVariablesGlobalLightLoop(m_ShaderVariablesGlobalCB, hdCamera);
-            m_AmbientOcclusionSystem.UpdateShaderVariableGlobalCB(m_ShaderVariablesGlobalCB, hdCamera);
+            hdCamera.UpdateShaderVariableGlobalCB(ref m_ShaderVariablesGlobalCB, m_FrameCount);
+            Fog.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesGlobalSubsurface(ref m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesGlobalDecal(ref m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesGlobalVolumetrics(ref m_ShaderVariablesGlobalCB, RTHandles.rtHandleProperties, hdCamera);
+            m_ShadowManager.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
+            UpdateShaderVariablesGlobalLightLoop(ref m_ShaderVariablesGlobalCB, hdCamera);
+            m_AmbientOcclusionSystem.UpdateShaderVariableGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
 
             // Misc
             MicroShadowing microShadowingSettings = hdCamera.volumeStack.GetComponent<MicroShadowing>();
-            m_ShaderVariablesGlobalCB.data._MicroShadowOpacity = microShadowingSettings.enable.value ? microShadowingSettings.opacity.value : 0.0f;
+            m_ShaderVariablesGlobalCB._MicroShadowOpacity = microShadowingSettings.enable.value ? microShadowingSettings.opacity.value : 0.0f;
 
             HDShadowSettings shadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
-            m_ShaderVariablesGlobalCB.data._DirectionalTransmissionMultiplier = shadowSettings.directionalTransmissionMultiplier.value;
+            m_ShaderVariablesGlobalCB._DirectionalTransmissionMultiplier = shadowSettings.directionalTransmissionMultiplier.value;
 
             ScreenSpaceRefraction ssRefraction = hdCamera.volumeStack.GetComponent<ScreenSpaceRefraction>();
-            m_ShaderVariablesGlobalCB.data._SSRefractionInvScreenWeightDistance = 1.0f / ssRefraction.screenFadeDistance.value;
+            m_ShaderVariablesGlobalCB._SSRefractionInvScreenWeightDistance = 1.0f / ssRefraction.screenFadeDistance.value;
 
-            m_ShaderVariablesGlobalCB.data._IndirectLightingMultiplier = new Vector4(hdCamera.volumeStack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity.value, 0, 0, 0);
-            m_ShaderVariablesGlobalCB.data._OffScreenRendering = 0;
-            m_ShaderVariablesGlobalCB.data._OffScreenDownsampleFactor = 1;
-            m_ShaderVariablesGlobalCB.data._ReplaceDiffuseForIndirect = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReplaceDiffuseForIndirect) ? 1.0f : 0.0f;
-            m_ShaderVariablesGlobalCB.data._EnableSkyReflection = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SkyReflection) ? 1u : 0u;
-            m_ShaderVariablesGlobalCB.data._ContactShadowOpacity = m_ContactShadows.opacity.value;
+            m_ShaderVariablesGlobalCB._IndirectLightingMultiplier = new Vector4(hdCamera.volumeStack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity.value, 0, 0, 0);
+            m_ShaderVariablesGlobalCB._OffScreenRendering = 0;
+            m_ShaderVariablesGlobalCB._OffScreenDownsampleFactor = 1;
+            m_ShaderVariablesGlobalCB._ReplaceDiffuseForIndirect = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReplaceDiffuseForIndirect) ? 1.0f : 0.0f;
+            m_ShaderVariablesGlobalCB._EnableSkyReflection = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SkyReflection) ? 1u : 0u;
+            m_ShaderVariablesGlobalCB._ContactShadowOpacity = m_ContactShadows.opacity.value;
 
             int coarseStencilWidth = HDUtils.DivRoundUp(hdCamera.actualWidth, 8);
             int coarseStencilHeight = HDUtils.DivRoundUp(hdCamera.actualHeight, 8);
-            m_ShaderVariablesGlobalCB.data._CoarseStencilBufferSize = new Vector4(coarseStencilWidth, coarseStencilHeight, 1.0f / coarseStencilWidth, 1.0f / coarseStencilHeight);
+            m_ShaderVariablesGlobalCB._CoarseStencilBufferSize = new Vector4(coarseStencilWidth, coarseStencilHeight, 1.0f / coarseStencilWidth, 1.0f / coarseStencilHeight);
 
-            m_ShaderVariablesGlobalCB.data._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
+            m_ShaderVariablesGlobalCB._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
                 var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
                 bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
-                m_ShaderVariablesGlobalCB.data._UseRayTracedReflections = usesRaytracedReflections ? 1 : 0;
-                m_ShaderVariablesGlobalCB.data._RaytracedIndirectDiffuse = ValidIndirectDiffuseState(hdCamera) ? 1 : 0;
+                m_ShaderVariablesGlobalCB._UseRayTracedReflections = usesRaytracedReflections ? 1 : 0;
+                m_ShaderVariablesGlobalCB._RaytracedIndirectDiffuse = ValidIndirectDiffuseState(hdCamera) ? 1 : 0;
             }
             else
             {
-                m_ShaderVariablesGlobalCB.data._UseRayTracedReflections = 0;
-                m_ShaderVariablesGlobalCB.data._RaytracedIndirectDiffuse = 0;
+                m_ShaderVariablesGlobalCB._UseRayTracedReflections = 0;
+                m_ShaderVariablesGlobalCB._RaytracedIndirectDiffuse = 0;
             }
 
-            m_ShaderVariablesGlobalCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesGlobal, true);
+            ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
 
         void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
@@ -2151,9 +2137,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // This call overwrites camera properties passed to the shader system.
                     RenderShadowMaps(renderContext, cmd, m_ShaderVariablesGlobalCB, cullingResults, hdCamera);
 
-                    hdCamera.UpdateShaderVariableGlobalCB(m_ShaderVariablesGlobalCB, m_FrameCount);
-                    m_ShaderVariablesGlobalCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesGlobal, true);
-                    }
+                    hdCamera.UpdateShaderVariableGlobalCB(ref m_ShaderVariablesGlobalCB, m_FrameCount);
+                    ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+                }
 
                 hdCamera.xr.StartSinglePass(cmd);
 
@@ -3167,16 +3153,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return desc;
         }
 
-        void UpdateShaderVariablesGlobalDecal(ConstantBuffer<ShaderVariablesGlobal> cb, HDCamera hdCamera)
+        void UpdateShaderVariablesGlobalDecal(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
-                cb.data._EnableDecals  = 1;
-                cb.data._DecalAtlasResolution = new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight);
+                cb._EnableDecals  = 1;
+                cb._DecalAtlasResolution = new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight);
             }
             else
             {
-                cb.data._EnableDecals = 0;
+                cb._EnableDecals = 0;
             }
         }
 
@@ -3671,8 +3657,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.LowResTransparent)))
             {
-                UpdateOffscreenRenderingConstants(m_ShaderVariablesGlobalCB, true, 2u);
-                m_ShaderVariablesGlobalCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesGlobal, true);
+                UpdateOffscreenRenderingConstants(ref m_ShaderVariablesGlobalCB, true, 2u);
+                ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                 CoreUtils.SetRenderTarget(cmd, m_LowResTransparentBuffer, m_SharedRTManager.GetLowResDepthBuffer(), clearFlag: ClearFlag.Color, Color.black);
                 RenderQueueRange transparentRange = HDRenderQueue.k_RenderQueue_LowTransparent;
@@ -3680,8 +3666,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 var rendererList = RendererList.Create(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_LowTransparent));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
 
-                UpdateOffscreenRenderingConstants(m_ShaderVariablesGlobalCB, false, 1u);
-                m_ShaderVariablesGlobalCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesGlobal, true);
+                UpdateOffscreenRenderingConstants(ref m_ShaderVariablesGlobalCB, false, 1u);
+                ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
             }
         }
 
@@ -4421,9 +4407,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct PostProcessParameters
         {
-            public ConstantBuffer<ShaderVariablesGlobal> globalCB;
+            public ShaderVariablesGlobal globalCB;
 
-            public HDCamera hdCamera;
+            public HDCamera         hdCamera;
             public bool             postProcessIsFinalPass;
             public bool             flipYInPostProcess;
             public BlueNoise        blueNoise;
@@ -4508,10 +4494,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_GbufferManager.GetBuffer(0);
         }
 
-        static void UpdateOffscreenRenderingConstants(ConstantBuffer<ShaderVariablesGlobal> cb, bool enabled, uint factor)
+        static void UpdateOffscreenRenderingConstants(ref ShaderVariablesGlobal cb, bool enabled, uint factor)
         {
-            cb.data._OffScreenRendering = enabled ? 1u : 0u;
-            cb.data._OffScreenDownsampleFactor = factor;
+            cb._OffScreenRendering = enabled ? 1u : 0u;
+            cb._OffScreenDownsampleFactor = factor;
         }
 
         static void RenderAfterPostProcess( PostProcessParameters   parameters,
@@ -4528,17 +4514,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 // The issue is that the only available depth buffer is jittered so pixels would wobble around depth tested edges.
                 // In order to avoid that we decide that objects rendered after Post processes while TAA is active will not benefit from the depth buffer so we disable it.
                 parameters.hdCamera.UpdateAllViewConstants(false);
-                parameters.hdCamera.UpdateShaderVariableGlobalCB(parameters.globalCB, parameters.frameCount);
+                parameters.hdCamera.UpdateShaderVariableGlobalCB(ref parameters.globalCB, parameters.frameCount);
 
-                UpdateOffscreenRenderingConstants(parameters.globalCB, true, 1);
-                parameters.globalCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesGlobal, true);
+                UpdateOffscreenRenderingConstants(ref parameters.globalCB, true, 1);
+                ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, parameters.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                 DrawOpaqueRendererList(renderContext, cmd, parameters.hdCamera.frameSettings, opaqueAfterPostProcessRendererList);
                 // Setup off-screen transparency here
                 DrawTransparentRendererList(renderContext, cmd, parameters.hdCamera.frameSettings, transparentAfterPostProcessRendererList);
 
-                UpdateOffscreenRenderingConstants(parameters.globalCB, false, 1);
-                parameters.globalCB.PushGlobal(cmd, HDShaderIDs._ShaderVariablesGlobal, true);
+                UpdateOffscreenRenderingConstants(ref parameters.globalCB, false, 1);
+                ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, parameters.globalCB, HDShaderIDs._ShaderVariablesGlobal);
             }
         }
 

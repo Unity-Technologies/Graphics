@@ -592,7 +592,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void UpdateShaderVariableGlobalCB(ConstantBuffer<ShaderVariablesGlobal> cb, HDCamera hdCamera)
+        internal void UpdateShaderVariableGlobalCB(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             bool aoEnabled = false;
@@ -607,9 +607,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             if (aoEnabled)
-                cb.data._AmbientOcclusionParam = new Vector4(0f, 0f, 0f, settings.directLightingStrength.value);
+                cb._AmbientOcclusionParam = new Vector4(0f, 0f, 0f, settings.directLightingStrength.value);
             else
-                cb.data._AmbientOcclusionParam = Vector4.zero;
+                cb._AmbientOcclusionParam = Vector4.zero;
         }
 
         internal void PostDispatchWork(CommandBuffer cmd, HDCamera camera)

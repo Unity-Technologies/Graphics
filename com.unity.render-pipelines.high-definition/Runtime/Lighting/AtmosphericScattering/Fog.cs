@@ -97,51 +97,51 @@ namespace UnityEngine.Rendering.HighDefinition
             return d * 0.144765f;
         }
 
-        static void UpdateShaderVariablesGlobalCBNeutralParameters(ConstantBuffer<ShaderVariablesGlobal> cb)
+        static void UpdateShaderVariablesGlobalCBNeutralParameters(ref ShaderVariablesGlobal cb)
         {
-            cb.data._FogEnabled = 0;
-            cb.data._EnableVolumetricFog = 0;
-            cb.data._HeightFogBaseScattering = Vector3.zero;
-            cb.data._HeightFogBaseExtinction = 0.0f;
-            cb.data._HeightFogExponents = Vector2.one;
-            cb.data._HeightFogBaseHeight = 0.0f;
-            cb.data._GlobalFogAnisotropy = 0.0f;
+            cb._FogEnabled = 0;
+            cb._EnableVolumetricFog = 0;
+            cb._HeightFogBaseScattering = Vector3.zero;
+            cb._HeightFogBaseExtinction = 0.0f;
+            cb._HeightFogExponents = Vector2.one;
+            cb._HeightFogBaseHeight = 0.0f;
+            cb._GlobalFogAnisotropy = 0.0f;
         }
 
-        internal static void UpdateShaderVariablesGlobalCB(ConstantBuffer<ShaderVariablesGlobal> cb, HDCamera hdCamera)
+        internal static void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             // TODO Handle user override
             var fogSettings = hdCamera.volumeStack.GetComponent<Fog>();
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) || !fogSettings.enabled.value)
             {
-                UpdateShaderVariablesGlobalCBNeutralParameters(cb);
+                UpdateShaderVariablesGlobalCBNeutralParameters(ref cb);
             }
             else
             {
-                fogSettings.UpdateShaderVariablesGlobalCBFogParameters(cb, hdCamera);
+                fogSettings.UpdateShaderVariablesGlobalCBFogParameters(ref cb, hdCamera);
             }
         }
 
-        void UpdateShaderVariablesGlobalCBFogParameters(ConstantBuffer<ShaderVariablesGlobal> cb, HDCamera hdCamera)
+        void UpdateShaderVariablesGlobalCBFogParameters(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             bool enableVolumetrics = enableVolumetricFog.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
 
-            cb.data._FogEnabled = 1;
-            cb.data._PBRFogEnabled = IsPBRFogEnabled(hdCamera) ? 1 : 0;
-            cb.data._EnableVolumetricFog = enableVolumetrics ? 1 : 0;
-            cb.data._MaxFogDistance = maxFogDistance.value;
+            cb._FogEnabled = 1;
+            cb._PBRFogEnabled = IsPBRFogEnabled(hdCamera) ? 1 : 0;
+            cb._EnableVolumetricFog = enableVolumetrics ? 1 : 0;
+            cb._MaxFogDistance = maxFogDistance.value;
 
             Color fogColor = (colorMode.value == FogColorMode.ConstantColor) ? color.value : tint.value;
-            cb.data._FogColorMode = (float)colorMode.value;
-            cb.data._FogColor = new Color(fogColor.r, fogColor.g, fogColor.b, 0.0f);
-            cb.data._MipFogParameters  = new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f);
+            cb._FogColorMode = (float)colorMode.value;
+            cb._FogColor = new Color(fogColor.r, fogColor.g, fogColor.b, 0.0f);
+            cb._MipFogParameters  = new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f);
 
             DensityVolumeArtistParameters param = new DensityVolumeArtistParameters(albedo.value, meanFreePath.value, anisotropy.value);
             DensityVolumeEngineData data = param.ConvertToEngineData();
 
-            cb.data._HeightFogBaseScattering = data.scattering;
-            cb.data._HeightFogBaseExtinction = data.extinction;
+            cb._HeightFogBaseScattering = data.scattering;
+            cb._HeightFogBaseExtinction = data.extinction;
 
             float crBaseHeight = baseHeight.value;
 
@@ -152,9 +152,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float layerDepth = Mathf.Max(0.01f, maximumHeight.value - baseHeight.value);
             float H = ScaleHeightFromLayerDepth(layerDepth);
-            cb.data._HeightFogExponents = new Vector2(1.0f / H, H);
-            cb.data._HeightFogBaseHeight = crBaseHeight;
-            cb.data._GlobalFogAnisotropy = anisotropy.value;
+            cb._HeightFogExponents = new Vector2(1.0f / H, H);
+            cb._HeightFogBaseHeight = crBaseHeight;
+            cb._GlobalFogAnisotropy = anisotropy.value;
         }
     }
 

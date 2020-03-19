@@ -93,9 +93,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class PushGlobalCameraParamPassData
         {
-            public HDCamera                                 hdCamera;
-            public int                                      frameCount;
-            public ConstantBuffer<ShaderVariablesGlobal>    globalCB;
+            public HDCamera                 hdCamera;
+            public int                      frameCount;
+            public ShaderVariablesGlobal    globalCB;
 
         }
 
@@ -110,9 +110,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (PushGlobalCameraParamPassData data, RenderGraphContext context) =>
                 {
-                    data.hdCamera.UpdateShaderVariableGlobalCB(data.globalCB, data.frameCount);
+                    data.hdCamera.UpdateShaderVariableGlobalCB(ref data.globalCB, data.frameCount);
                     data.hdCamera.SetupGlobalParams(context.cmd, data.frameCount);
-                    data.globalCB.PushGlobal(context.cmd, HDShaderIDs._ShaderVariablesGlobal, true);
+                    ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
                 });
             }
         }

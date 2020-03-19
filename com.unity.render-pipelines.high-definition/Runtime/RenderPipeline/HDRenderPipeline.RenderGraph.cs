@@ -582,11 +582,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderLowResTransparentPassData
         {
-            public ConstantBuffer<ShaderVariablesGlobal> globalCB;
-            public FrameSettings        frameSettings;
-            public RendererListHandle   rendererList;
-            public TextureHandle        lowResBuffer;
-            public TextureHandle        downsampledDepthBuffer;
+            public ShaderVariablesGlobal    globalCB;
+            public FrameSettings            frameSettings;
+            public RendererListHandle       rendererList;
+            public TextureHandle            lowResBuffer;
+            public TextureHandle            downsampledDepthBuffer;
         }
 
         TextureHandle RenderLowResTransparent(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle downsampledDepth, CullingResults cullingResults)
@@ -607,13 +607,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (RenderLowResTransparentPassData data, RenderGraphContext context) =>
                 {
-                    UpdateOffscreenRenderingConstants(data.globalCB, true, 2u);
-                    data.globalCB.PushGlobal(context.cmd, HDShaderIDs._ShaderVariablesGlobal, true);
+                    UpdateOffscreenRenderingConstants(ref data.globalCB, true, 2u);
+                    ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                     DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings,  context.resources.GetRendererList(data.rendererList));
 
-                    UpdateOffscreenRenderingConstants(data.globalCB, false, 1u);
-                    data.globalCB.PushGlobal(context.cmd, HDShaderIDs._ShaderVariablesGlobal, true);
+                    UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1u);
+                    ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
                 });
 
                 return passData.lowResBuffer;

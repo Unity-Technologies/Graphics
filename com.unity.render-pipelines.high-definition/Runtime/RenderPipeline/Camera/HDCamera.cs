@@ -561,57 +561,57 @@ namespace UnityEngine.Rendering.HighDefinition
             s_Cleanup.Clear();
         }
 
-        unsafe internal void UpdateShaderVariableGlobalCB(ConstantBuffer<ShaderVariablesGlobal> cb, int frameCount)
+        unsafe internal void UpdateShaderVariableGlobalCB(ref ShaderVariablesGlobal cb, int frameCount)
         {
             bool taaEnabled = frameSettings.IsEnabled(FrameSettingsField.Postprocess)
                 && antialiasing == AntialiasingMode.TemporalAntialiasing
                 && camera.cameraType == CameraType.Game;
 
-            cb.data._ViewMatrix = mainViewConstants.viewMatrix;
-            cb.data._InvViewMatrix = mainViewConstants.invViewMatrix;
-            cb.data._ProjMatrix = mainViewConstants.projMatrix;
-            cb.data._InvProjMatrix = mainViewConstants.invProjMatrix;
-            cb.data._ViewProjMatrix = mainViewConstants.viewProjMatrix;
-            cb.data._CameraViewProjMatrix = mainViewConstants.viewProjMatrix;
-            cb.data._InvViewProjMatrix = mainViewConstants.invViewProjMatrix;
-            cb.data._NonJitteredViewProjMatrix = mainViewConstants.nonJitteredViewProjMatrix;
-            cb.data._PrevViewProjMatrix = mainViewConstants.prevViewProjMatrix;
-            cb.data._PrevInvViewProjMatrix = mainViewConstants.prevInvViewProjMatrix;
-            cb.data._WorldSpaceCameraPos_Internal = mainViewConstants.worldSpaceCameraPos;
-            cb.data._PrevCamPosRWS_Internal = mainViewConstants.prevWorldSpaceCameraPos;
-            cb.data._ScreenSize = screenSize;
-            cb.data._RTHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
-            cb.data._RTHandleScaleHistory = m_HistoryRTSystem.rtHandleProperties.rtHandleScale;
-            cb.data._ZBufferParams = zBufferParams;
-            cb.data._ProjectionParams = projectionParams;
-            cb.data.unity_OrthoParams = unity_OrthoParams;
-            cb.data._ScreenParams = screenParams;
+            cb._ViewMatrix = mainViewConstants.viewMatrix;
+            cb._InvViewMatrix = mainViewConstants.invViewMatrix;
+            cb._ProjMatrix = mainViewConstants.projMatrix;
+            cb._InvProjMatrix = mainViewConstants.invProjMatrix;
+            cb._ViewProjMatrix = mainViewConstants.viewProjMatrix;
+            cb._CameraViewProjMatrix = mainViewConstants.viewProjMatrix;
+            cb._InvViewProjMatrix = mainViewConstants.invViewProjMatrix;
+            cb._NonJitteredViewProjMatrix = mainViewConstants.nonJitteredViewProjMatrix;
+            cb._PrevViewProjMatrix = mainViewConstants.prevViewProjMatrix;
+            cb._PrevInvViewProjMatrix = mainViewConstants.prevInvViewProjMatrix;
+            cb._WorldSpaceCameraPos_Internal = mainViewConstants.worldSpaceCameraPos;
+            cb._PrevCamPosRWS_Internal = mainViewConstants.prevWorldSpaceCameraPos;
+            cb._ScreenSize = screenSize;
+            cb._RTHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
+            cb._RTHandleScaleHistory = m_HistoryRTSystem.rtHandleProperties.rtHandleScale;
+            cb._ZBufferParams = zBufferParams;
+            cb._ProjectionParams = projectionParams;
+            cb.unity_OrthoParams = unity_OrthoParams;
+            cb._ScreenParams = screenParams;
             for (int i = 0; i < 6; ++i)
                 for (int j = 0; j < 4; ++j)
-                    cb.data._FrustumPlanes[i * 4 + j] = frustumPlaneEquations[i][j];
-            cb.data._TaaFrameInfo = new Vector4(taaSharpenStrength, 0, taaFrameIndex, taaEnabled ? 1 : 0);
-            cb.data._TaaJitterStrength = taaJitter;
-            cb.data._ColorPyramidLodCount = colorPyramidHistoryMipCount;
+                    cb._FrustumPlanes[i * 4 + j] = frustumPlaneEquations[i][j];
+            cb._TaaFrameInfo = new Vector4(taaSharpenStrength, 0, taaFrameIndex, taaEnabled ? 1 : 0);
+            cb._TaaJitterStrength = taaJitter;
+            cb._ColorPyramidLodCount = colorPyramidHistoryMipCount;
 
             float ct = time;
             float pt = lastTime;
             float dt = Time.deltaTime;
             float sdt = Time.smoothDeltaTime;
 
-            cb.data._Time = new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f);
-            cb.data._SinTime = new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct));
-            cb.data._CosTime = new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct));
-            cb.data.unity_DeltaTime = new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt);
-            cb.data._TimeParameters = new Vector4(ct, Mathf.Sin(ct), Mathf.Cos(ct), 0.0f);
-            cb.data._LastTimeParameters = new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f);
-            cb.data._FrameCount = frameCount;
-            cb.data._XRViewCount = (uint)viewCount;
+            cb._Time = new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f);
+            cb._SinTime = new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct));
+            cb._CosTime = new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct));
+            cb.unity_DeltaTime = new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt);
+            cb._TimeParameters = new Vector4(ct, Mathf.Sin(ct), Mathf.Cos(ct), 0.0f);
+            cb._LastTimeParameters = new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f);
+            cb._FrameCount = frameCount;
+            cb._XRViewCount = (uint)viewCount;
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
-            cb.data._ProbeExposureScale  = exposureMultiplierForProbes;
+            cb._ProbeExposureScale  = exposureMultiplierForProbes;
         }
 
-          
+
         // Set up UnityPerView CBuffer.
         internal void SetupGlobalParams(CommandBuffer cmd, int frameCount)
         {

@@ -316,13 +316,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return DirectionalShadowAlgorithm.PCF5x5;
         }
 
-        public void UpdateShaderVariablesGlobalCB(ConstantBuffer<ShaderVariablesGlobal> cb)
+        public void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)
         {
-            cb.data._CascadeShadowCount = (uint)(m_CascadeCount + 1);
-            cb.data._ShadowAtlasSize = new Vector4(m_Atlas.width, m_Atlas.height, 1.0f / m_Atlas.width, 1.0f / m_Atlas.height);
-            cb.data._CascadeShadowAtlasSize = new Vector4(m_CascadeAtlas.width, m_CascadeAtlas.height, 1.0f / m_CascadeAtlas.width, 1.0f / m_CascadeAtlas.height);
+            cb._CascadeShadowCount = (uint)(m_CascadeCount + 1);
+            cb._ShadowAtlasSize = new Vector4(m_Atlas.width, m_Atlas.height, 1.0f / m_Atlas.width, 1.0f / m_Atlas.height);
+            cb._CascadeShadowAtlasSize = new Vector4(m_CascadeAtlas.width, m_CascadeAtlas.height, 1.0f / m_CascadeAtlas.width, 1.0f / m_CascadeAtlas.height);
             if (ShaderConfig.s_AreaLights == 1)
-                cb.data._AreaShadowAtlasSize = new Vector4(m_AreaLightShadowAtlas.width, m_AreaLightShadowAtlas.height, 1.0f / m_AreaLightShadowAtlas.width, 1.0f / m_AreaLightShadowAtlas.height);
+                cb._AreaShadowAtlasSize = new Vector4(m_AreaLightShadowAtlas.width, m_AreaLightShadowAtlas.height, 1.0f / m_AreaLightShadowAtlas.width, 1.0f / m_AreaLightShadowAtlas.height);
         }
 
         public void UpdateDirectionalShadowResolution(int resolution, int cascadeCount)
@@ -685,7 +685,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DirectionalShadowData.cascadeDirection.w = camera.volumeStack.GetComponent<HDShadowSettings>().cascadeShadowSplitCount.value;
         }
 
-        public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, ConstantBuffer<ShaderVariablesGlobal> globalCB, CullingResults cullResults, HDCamera hdCamera)
+        public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, in ShaderVariablesGlobal globalCB, CullingResults cullResults, HDCamera hdCamera)
         {
             // Avoid to do any commands if there is no shadow to draw
             if (m_ShadowRequestCount == 0)
