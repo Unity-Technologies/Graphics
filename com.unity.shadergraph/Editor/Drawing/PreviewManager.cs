@@ -27,7 +27,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         HashSet<AbstractMaterialNode> m_TimedNodes = new HashSet<AbstractMaterialNode>();
         HashSet<BlockNode> m_Blocks = new HashSet<BlockNode>();
         bool m_RefreshTimedNodes;
-        bool m_FirstTime = true;
 
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
@@ -55,6 +54,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 AddMasterPreview();
             }
+
+            // TODO: This is required to draw preview on assembly reload
+            // TODO: But only if there is no blocks. Why?
+            m_NodesToDraw.Add(null);
         }
 
         public OnPrimaryMasterChanged onPrimaryMasterChanged;
@@ -128,6 +131,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddPreview(AbstractMaterialNode node)
         {
+            if(node is BlockNode)
+            {
+                node.RegisterCallback(OnNodeModified);
+                return;
+            }
+
             var isMaster = false;
 
             if (node is SubGraphOutputNode)
@@ -368,12 +377,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void RenderPreviews()
         {
-            if(m_FirstTime)
-            {
-                m_FirstTime = false;
-                UpdateMasterPreview(ModificationScope.Topological);
-            }
-
             UpdateShaders();
             UpdateTimedNodeList();
 
@@ -386,7 +389,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_NodesToDraw)
             {
                 PreviewRenderData renderData;
-                if(node == null || node is BlockNode)
+                if(node == null)
                 {
                     renderData = m_MasterRenderData;
                 }
@@ -414,10 +417,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     continue;
                 }
 
-                if (renderData.previewMode == PreviewMode.Preview2D)
-                    m_RenderList2D.Add(renderData);
-                else
-                    m_RenderList3D.Add(renderData);
+                if(node != null)
+                {
+                    if (renderData.previewMode == PreviewMode.Preview2D)
+                        m_RenderList2D.Add(renderData);
+                    else
+                        m_RenderList3D.Add(renderData);
+                }
             }
 
             EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
@@ -447,12 +453,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity);
 
             var renderMasterPreview = masterRenderData != null && m_NodesToDraw.Contains(null);
-
-            // TODO: Temporary. Remove
-            // TODO: Hook to dirty master preview if required to draw any Block nodes
-            if(m_NodesToDraw.Where(x => x is BlockNode).ToList().Count > 0)
-                renderMasterPreview = true; 
-            
             if (renderMasterPreview)
             {
                 CollectShaderProperties(masterRenderData.shaderData.node, masterRenderData);
@@ -496,6 +496,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_NodesToUpdate.Add(data.shaderData.node);
             }
+
+            m_NodesToUpdate.Add(null);
         }
 
         void UpdateShaders()
@@ -538,6 +540,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 CompilingProcess(renderData);
             }
 
+            // MasterRenderData is not added to m_RenderDatas
             CompilingProcess(masterRenderData);
 
             if (m_NodesToUpdate.Count == 0)
@@ -551,15 +554,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_NodesToUpdate)
             {
-                // TODO: Temporary. Remove.
-                // TODO: Hook to update master preview if any Blocks are dirty
-                // TODO: This causes multiple compilations on multiple dirty blocks?
-                if(node is BlockNode blockNode)
-                {
-                    UpdateMasterNodeShader();
-                    continue;
-                }
-                
                 if (node == null)
                 {
                     UpdateMasterNodeShader();
