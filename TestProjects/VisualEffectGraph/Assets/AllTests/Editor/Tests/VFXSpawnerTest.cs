@@ -174,6 +174,8 @@ namespace UnityEditor.VFX.Test
             CreateAssetAndComponent(spawnCountValue, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
 
             var outputEvent = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            var eventName = "wxcvbn";
+            outputEvent.SetSettingValue("eventName", eventName);
             var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
             graph.AddChild(outputEvent);
             outputEvent.LinkFrom(basicSpawner);
@@ -182,7 +184,7 @@ namespace UnityEditor.VFX.Test
             s_receivedEvent = new List<int>();
             vfxComponent.outputEventReceived += OnEventReceived;
 
-            int maxFrame = 512;
+            int maxFrame = 64;
             while (vfxComponent.culled && --maxFrame > 0)
             {
                 yield return null;
@@ -193,17 +195,21 @@ namespace UnityEditor.VFX.Test
             vfxComponent.GetOutputEventNames(outputEventNames);
             Assert.AreEqual(1u, outputEventNames.Count);
             var outputEventName = outputEventNames[0];
+            Assert.AreEqual(outputEventName, eventName);
+
             //Checking invalid event (waiting for the first event)
             Assert.AreEqual(0u, s_receivedEvent.Count);
 
             //Checking on valid event while there is an event
-            maxFrame = 512; s_receivedEvent.Clear();
+            maxFrame = 64; s_receivedEvent.Clear();
             while (s_receivedEvent.Count == 0u && --maxFrame > 0)
             {
                 yield return null;
             }
             Assert.IsTrue(maxFrame > 0);
             Assert.IsTrue(s_receivedEvent.Count > 0);
+            Assert.AreEqual(Shader.PropertyToID(eventName), s_receivedEvent.FirstOrDefault());
+
             s_receivedEvent.Clear();
 
             yield return new ExitPlayMode();
