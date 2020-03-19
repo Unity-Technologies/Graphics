@@ -546,9 +546,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static int s_GenListPerVoxelKernelOblique;
         static int s_ClearVoxelAtomicKernel;
         static int s_ClearDispatchIndirectKernel;
-        static int s_BuildDispatchIndirectKernel;
+        static int s_BuildIndirectKernel;
         static int s_ClearDrawProceduralIndirectKernel;
-        static int s_BuildDrawProceduralIndirectKernel;
         static int s_BuildMaterialFlagsWriteKernel;
         static int s_BuildMaterialFlagsOrKernel;
 
@@ -762,10 +761,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
 
-            s_BuildDispatchIndirectKernel = buildDispatchIndirectShader.FindKernel("BuildDispatchIndirect");
+            s_BuildIndirectKernel = buildDispatchIndirectShader.FindKernel("BuildIndirect");
             s_ClearDispatchIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDispatchIndirect");
 
-            s_BuildDrawProceduralIndirectKernel = buildDispatchIndirectShader.FindKernel("BuildDrawProceduralIndirect");
             s_ClearDrawProceduralIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDrawProceduralIndirect");
 
             s_BuildMaterialFlagsWriteKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen");
@@ -2975,29 +2973,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
                     cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, 1, 1, 1);
 
-                    // add tiles to indirect buffer
-                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawProceduralIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, tileAndCluster.dispatchIndirectBuffer);
-                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawProceduralIndirectKernel, HDShaderIDs.g_TileList, tileAndCluster.tileList);
-                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawProceduralIndirectKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
-                    cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
-                    cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
-                    // Round on k_ThreadGroupOptimalSize so we have optimal thread for buildDispatchIndirectShader kernel
-                    cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildDrawProceduralIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
                 }
                 else
                 {
                     cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, tileAndCluster.dispatchIndirectBuffer);
                     cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
-
-                    // add tiles to indirect buffer
-                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, tileAndCluster.dispatchIndirectBuffer);
-                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileList, tileAndCluster.tileList);
-                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
-                    cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
-                    cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
-                    // Round on k_ThreadGroupOptimalSize so we have optimal thread for buildDispatchIndirectShader kernel
-                    cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
                 }
+
+                // add tiles to indirect buffer
+                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, tileAndCluster.dispatchIndirectBuffer);
+                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_TileList, tileAndCluster.tileList);
+                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
+                cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
+                cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
+                // Round on k_ThreadGroupOptimalSize so we have optimal thread for buildDispatchIndirectShader kernel
+                cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
+
             }
         }
 
@@ -3120,6 +3111,11 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.buildMaterialFlagsShader = buildMaterialFlagsShader;
             parameters.clearDispatchIndirectShader = clearDispatchIndirectShader;
             parameters.buildDispatchIndirectShader = buildDispatchIndirectShader;
+            parameters.buildDispatchIndirectShader.shaderKeywords = null;
+            if (parameters.useComputeAsPixel)
+            {
+                parameters.buildDispatchIndirectShader.EnableKeyword("IS_DRAWPROCEDURALINDIRECT");
+            }
 
             return parameters;
         }
