@@ -130,7 +130,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half3 normalWS = input.normal;
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
-                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS, input.vertex);
                 color = MixFog(color, input.uv0AndFogCoord.z);
                 alpha = OutputAlpha(alpha);
 
@@ -348,7 +348,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma prefer_hlslcc gles
             #pragma only_renderers gles gles3
             #pragma target 2.0
-            
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing

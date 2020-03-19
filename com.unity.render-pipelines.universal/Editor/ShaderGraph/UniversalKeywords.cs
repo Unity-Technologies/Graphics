@@ -146,6 +146,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 definition = KeywordDefinition.MultiCompile,
                 scope = KeywordScope.Global,
             };
+
+            public static KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
+            {
+                displayName = "Screen Space Ambient Occlusion",
+                referenceName = "_SCREEN_SPACE_AMBIENT_OCCLUSION",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
+            };
         }
 
         public static KeywordCollection PBRForward = new KeywordCollection
@@ -158,6 +167,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Descriptors.AdditionalLightShadows },
             { Descriptors.ShadowsSoft },
             { Descriptors.MixedLightingSubtractive },
+            { Descriptors.ScreenSpaceAmbientOcclusion },
         };
 
         public static KeywordCollection PBRMeta = new KeywordCollection

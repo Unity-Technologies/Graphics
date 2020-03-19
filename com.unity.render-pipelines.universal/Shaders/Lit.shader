@@ -104,6 +104,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_AMBIENT_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords
@@ -277,7 +278,7 @@ Shader "Universal Render Pipeline/Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-            
+
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature _NORMALMAP
@@ -307,7 +308,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
-            
+
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
@@ -329,8 +330,8 @@ Shader "Universal Render Pipeline/Lit"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma only_renderers gles gles3
-            #pragma target 2.0            
-            
+            #pragma target 2.0
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
@@ -363,7 +364,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma prefer_hlslcc gles
             #pragma only_renderers gles gles3
             #pragma target 2.0
-            
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
