@@ -1074,6 +1074,8 @@ namespace UnityEditor.ShaderGraph
             foreach (var edge in other.edges)
                 ConnectNoValidate(edge.outputSlot, edge.inputSlot);
 
+            outputNode = other.outputNode;
+
             ValidateGraph();
         }
 
