@@ -947,6 +947,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     foreach (var edgeView in anchorView.connections)
                     {
+                        //update edges based on the active state of any modified nodes
+                        if(edgeView.input.node is MaterialNodeView inputNode && edgeView.output.node is MaterialNodeView outputNode)
+                        {
+                            //if any node connected is not active, edge should be dimmed
+                            if(!inputNode.node.isActive || !outputNode.node.isActive)
+                                edgeView.isGhostEdge = true;
+                            else
+                                edgeView.isGhostEdge = false;
+                            //force redraw on update to prevent visual lag in the graph
+                            edgeView.UpdateEdgeControl();
+                        }
+                        //update edges based on dynamic vector length of any modified nodes
                         var targetSlot = edgeView.input.GetSlot();
                         if (targetSlot.valueType == SlotValueType.DynamicVector || targetSlot.valueType == SlotValueType.DynamicMatrix || targetSlot.valueType == SlotValueType.Dynamic)
                         {
@@ -966,6 +978,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
                     foreach (var edgeView in anchorView.connections)
                     {
+                        //update edges based on the active state of any modified nodes
+                        if(edgeView.input.node is MaterialNodeView inputNode && edgeView.output.node is MaterialNodeView outputNode)
+                        {
+                            //if any node connected is not active, edge should be dimmed
+                            if(!inputNode.node.isActive || !outputNode.node.isActive)
+                                edgeView.isGhostEdge = true;
+                            else
+                                edgeView.isGhostEdge = false;
+                            //force redraw on update to prevent visual lag in the graph
+                            edgeView.UpdateEdgeControl();
+                        }
+                        //update edge color for upstream dynamic vector types
                         var connectedNodeView = edgeView.output.node;
                         if (connectedNodeView != null && !nodeViews.Contains((IShaderNodeView)connectedNodeView))
                         {
