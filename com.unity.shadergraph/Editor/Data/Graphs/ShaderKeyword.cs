@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -19,7 +20,7 @@ namespace UnityEditor.ShaderGraph
         {
             this.displayName = keywordType.ToString();
             this.keywordType = keywordType;
-            
+
             // Add sensible default entries for Enum type
             if(keywordType == KeywordType.Enum)
             {
@@ -30,7 +31,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static ShaderKeyword Create(KeywordDescriptor descriptor)
+        public static ShaderKeyword CreateBuiltInKeyword(KeywordDescriptor descriptor)
         {
             if(descriptor.entries != null)
             {
@@ -43,8 +44,7 @@ namespace UnityEditor.ShaderGraph
 
             return new ShaderKeyword()
             {
-                m_IsExposable = false,
-                m_IsEditable = false,
+                isBuiltIn = true,
                 displayName = descriptor.displayName,
                 overrideReferenceName = descriptor.referenceName,
                 keywordType = descriptor.type,
@@ -101,21 +101,18 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private bool m_IsEditable = true;
+        private bool m_IsEditable = true; // Only Built-In Keywords are uneditable
 
-        public bool isEditable
+        public bool isBuiltIn
         {
-            get => m_IsEditable;
-            set => m_IsEditable = value;
+            get => !m_IsEditable;
+            set => m_IsEditable = !value;
         }
 
-        [SerializeField]
-        private bool m_IsExposable = true;
-
-        internal override bool isExposable => m_IsExposable 
+        internal override bool isExposable => !isBuiltIn
             && (keywordType == KeywordType.Enum || referenceName.EndsWith("_ON"));
 
-        internal override bool isRenamable => isEditable;
+        internal override bool isRenamable => !isBuiltIn;
 
         internal override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
 
@@ -142,7 +139,7 @@ namespace UnityEditor.ShaderGraph
                     // Reference name must be appended with _ON but must be removed when generating block
                     if(referenceName.EndsWith("_ON"))
                         return $"[Toggle]{referenceName.Remove(referenceName.Length - 3, 3)}(\"{displayName}\", Float) = {value}";
-                    else 
+                    else
                         return string.Empty;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -195,8 +192,7 @@ namespace UnityEditor.ShaderGraph
                 displayName = displayName,
                 overrideReferenceName = overrideReferenceName,
                 generatePropertyBlock = generatePropertyBlock,
-                m_IsExposable = isExposable,
-                isEditable = isEditable,
+                isBuiltIn = isBuiltIn,
                 keywordType = keywordType,
                 keywordDefinition = keywordDefinition,
                 keywordScope = keywordScope,

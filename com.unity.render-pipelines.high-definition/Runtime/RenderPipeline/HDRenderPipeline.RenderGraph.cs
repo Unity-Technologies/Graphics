@@ -108,9 +108,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO RENDERGRAPH
                 //using (new ProfilingSample(cmd, "Render screen space shadows", CustomSamplerId.ScreenSpaceShadows.GetSampler()))
                 //{
-                //    hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
+                //    hdCamera.xr.StartSinglePass(cmd);
                 //    RenderScreenSpaceShadows(hdCamera, cmd);
-                //    hdCamera.xr.StopSinglePass(cmd, camera, renderContext);
+                //    hdCamera.xr.StopSinglePass(cmd);
                 //}
 
                 var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_TileAndClusterData.bigTileLightList, shadowResult, m_FrameCount);

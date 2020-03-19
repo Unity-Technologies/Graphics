@@ -72,6 +72,12 @@ EditorBuildSettings:
     path: Assets/Scenes/702_DirectionalShadow.unity
     guid: fef4168c8e3f3bd47b3edad8d968de9f
   - enabled: 1
+    path: Assets/Scenes/702_DirectionalShadowFiltering.unity
+    guid: 8b86ef43f75119a4dbf4af23c2b4e52e
+  - enabled: 1
+    path: Assets/Scenes/702_PunctualShadowFiltering.unity
+    guid: 0a4486ce519fe6c459180d0438847319
+  - enabled: 1
     path: Assets/Scenes/703_PointShadow.unity
     guid: 85d29280c924e314aa9bbe4130570252
   - enabled: 1
@@ -116,4 +122,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/5004_PathTracing_arealight.unity
     guid: 0bd00ddb543475c41bdd787c636d904f
+  - enabled: 1
+    path: Assets/Scenes/5005_PathTracing_Fog.unity
+    guid: 9f38d7cbc64ad534485db5107427e269
   m_configObjects: {}
