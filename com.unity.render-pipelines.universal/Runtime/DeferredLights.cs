@@ -1181,7 +1181,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     vl.spotAngle, vl.light?.innerSpotAngle,
                     out lightAttenuation, out lightSpotDir4);
 
-                int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex) : -1;
+                int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
                 if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
                     cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
                 else
@@ -1228,7 +1228,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     vl.spotAngle, vl.light?.innerSpotAngle,
                     out lightAttenuation, out lightSpotDir4);
 
-                int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex) : -1;
+                int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
                 if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
                     cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
                 else

@@ -369,7 +369,13 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             Enum value = w.GetValue();
             var rect = PrepareControlRect();
-            value = EditorGUI.EnumFlagsField(rect, EditorGUIUtility.TrTextContent(w.displayName), value);
+
+            // Skip first element (with value 0) because EditorGUI.MaskField adds a 'Nothing' field anyway
+            var enumNames = new string[w.enumNames.Length - 1];
+            for (int i = 0; i < enumNames.Length; i++)
+                enumNames[i] = w.enumNames[i + 1].text;
+            var index = EditorGUI.MaskField(rect, EditorGUIUtility.TrTextContent(w.displayName), (int)Convert.ToInt32(value), enumNames);
+            value = Enum.Parse(value.GetType(), index.ToString()) as Enum;
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);

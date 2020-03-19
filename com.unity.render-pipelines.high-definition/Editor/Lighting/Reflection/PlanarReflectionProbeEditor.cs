@@ -21,6 +21,23 @@ namespace UnityEditor.Rendering.HighDefinition
         static Material k_PreviewMaterial;
         static Material k_PreviewOutlineMaterial;
 
+        static GUIContent s_MipMapLow, s_MipMapHigh, s_ExposureLow;
+        static GUIStyle s_PreLabel;
+
+        public float previewExposure = 0f;
+        public float mipLevelPreview = 0f;
+
+        static Material _previewMaterial;
+        static Material previewMaterial
+        {
+            get
+            {
+                if (_previewMaterial == null)
+                    _previewMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.materials.GUITextureBlit2SRGB);
+                return _previewMaterial;
+            }
+        }
+
         bool firstDraw = true;
 
         List<Texture> m_PreviewedTextures = new List<Texture>();
@@ -47,6 +64,11 @@ namespace UnityEditor.Rendering.HighDefinition
             var rowSize = Mathf.CeilToInt(Mathf.Sqrt(m_PreviewedTextures.Count));
             var size = r.size / rowSize - space * (rowSize - 1);
 
+            previewMaterial.SetFloat("_ExposureBias", previewExposure);
+            previewMaterial.SetFloat("_MipLevel", mipLevelPreview);
+            // We don't have the Exposure texture in the inspector so we bind white instead.
+            previewMaterial.SetTexture("_Exposure", Texture2D.whiteTexture);
+
             for (var i = 0; i < m_PreviewedTextures.Count; i++)
             {
                 var row = i / rowSize;
@@ -58,10 +80,30 @@ namespace UnityEditor.Rendering.HighDefinition
                         size.y);
 
                 if (m_PreviewedTextures[i] != null)
-                    EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], UnityEditor.Rendering.CameraEditorUtils.GUITextureBlit2SRGBMaterial, ScaleMode.ScaleToFit, 0, 1);
+                    EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], previewMaterial, ScaleMode.ScaleToFit, 0, 1);
                 else
                     EditorGUI.LabelField(itemRect, EditorGUIUtility.TrTextContent("Not Available"));
             }
+        }
+
+        public override void OnPreviewSettings()
+        {
+            if (s_MipMapLow == null)
+                InitIcons();
+
+            int mipmapCount = m_PreviewedTextures.Count > 0 ? m_PreviewedTextures[0].mipmapCount : 1;
+
+            GUILayout.Box(s_ExposureLow, s_PreLabel, GUILayout.MaxWidth(20));
+            previewExposure = GUILayout.HorizontalSlider(previewExposure, -20f, 20f, GUILayout.MaxWidth(80));
+            GUILayout.Space(5);
+
+// For now we don't display the mip level slider because they are black. The convolution of the probe
+// texture is made in the atlas and so is not available in the texture we have here.
+#if false
+            GUILayout.Box(s_MipMapHigh, s_PreLabel, GUILayout.MaxWidth(20));
+            mipLevelPreview = GUILayout.HorizontalSlider(mipLevelPreview, 0, mipmapCount, GUILayout.MaxWidth(80));
+            GUILayout.Box(s_MipMapLow, s_PreLabel, GUILayout.MaxWidth(20));
+#endif
         }
 
         protected override SerializedPlanarReflectionProbe NewSerializedObject(SerializedObject so)
@@ -261,6 +303,14 @@ namespace UnityEditor.Rendering.HighDefinition
             k_PreviewMaterial.SetVector("_CapturePositionWS", new Vector4(capturePositionWS.x, capturePositionWS.y, -capturePositionWS.z, 0));
             k_PreviewMaterial.SetPass(0);
             Graphics.DrawMeshNow(k_QuadMesh, Matrix4x4.TRS(mirrorPosition, mirrorRotation, Vector3.one * capturePointPreviewSize * 2));
+        }
+        
+        static void InitIcons()
+        {
+            s_MipMapLow = EditorGUIUtility.IconContent("PreTextureMipMapLow");
+            s_MipMapHigh = EditorGUIUtility.IconContent("PreTextureMipMapHigh");
+            s_ExposureLow = EditorGUIUtility.IconContent("SceneViewLighting");
+            s_PreLabel = "preLabel";
         }
     }
 

@@ -307,7 +307,8 @@ namespace UnityEngine.Rendering.Universal
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
             if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture)
             {
-                m_CopyDepthPass1.Setup(m_CameraDepthAttachment, m_CameraDepthTexture, false);
+                m_CopyDepthPass1.AllocateRT = false;
+                m_CopyDepthPass1.Setup(m_CameraDepthAttachment, m_CameraDepthTexture);
                 EnqueuePass(m_CopyDepthPass1);
             }
 
@@ -478,14 +479,12 @@ namespace UnityEngine.Rendering.Universal
             var depthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
             depthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), false, true);
             depthDescriptor.ConfigureClear(Color.black, 1, 0);
-
             if (hasDepthPrepass)
             {
                 m_CopyDepthPass0.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques - 1;
                 m_CopyDepthPass0.Setup(m_CameraDepthTexture, m_CameraDepthAttachment);
                 EnqueuePass(m_CopyDepthPass0);
             }
-
 
             RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[k_GBufferSlicesCount +
 #if UNITY_IOS && !UNITY_EDITOR //TODO: investigate needsDepthBBIdx as it does pretty much the same thing as here, but in engine code, this applies to all these #ifs
@@ -494,6 +493,7 @@ namespace UnityEngine.Rendering.Universal
                                                                                   1];
 #endif
             AttachmentDescriptor[] gbufferDescriptors = new AttachmentDescriptor[gbufferColorAttachments.Length];
+
             for (int gbufferIndex = 0; gbufferIndex < k_GBufferSlicesCount; ++gbufferIndex)
             {
                 gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];

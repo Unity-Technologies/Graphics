@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void InitSharedBuffers(GBufferManager gbufferManager, RenderPipelineSettings settings, RenderPipelineResources resources)
         {
             // Set the flags
-            m_MSAASupported = settings.supportMSAA;
+            m_MSAASupported = settings.supportMSAA && settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
             m_MSAASamples = m_MSAASupported ? settings.msaaSampleCount : MSAASamples.None;
             m_MotionVectorsSupport = settings.supportMotionVectors;
             m_ReuseGBufferMemory = settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;

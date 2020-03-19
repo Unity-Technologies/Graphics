@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
-        private bool AllocateRT { get; set; }
+        internal bool AllocateRT  { get; set; }
         Material m_CopyDepthMaterial;
         const string m_ProfilerTag = "Copy Depth";
 
@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
+            AllocateRT = true;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
         }
@@ -33,11 +34,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Targt</param>
         /// <param name="allocateRT">The destination must be temporarily allocated</param>
-        public void Setup(RenderTargetHandle source, RenderTargetHandle destination, bool allocateRT = true)
+        public void Setup(RenderTargetHandle source, RenderTargetHandle destination)
         {
             this.source = source;
             this.destination = destination;
-            this.AllocateRT = allocateRT;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
