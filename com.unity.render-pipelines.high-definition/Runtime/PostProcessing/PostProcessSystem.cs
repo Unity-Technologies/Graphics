@@ -126,9 +126,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Max guard band size is assumed to be 8 pixels
         const int k_RTGuardBandSize = 4;
 
-        // Uber feature map to workaround the lack of multi_compile in compute shaders
-        readonly Dictionary<int, string> m_UberPostFeatureMap = new Dictionary<int, string>();
-
         readonly System.Random m_Random;
 
         HDRenderPipeline m_HDInstance;
@@ -151,29 +148,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var settings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
             m_LutSize = settings.lutSize;
             var lutFormat = (GraphicsFormat)settings.lutFormat;
-
-            // Feature maps
-            // Must be kept in sync with variants defined in UberPost.compute
-            PushUberFeature(UberPostFeatureFlags.None);
-            PushUberFeature(UberPostFeatureFlags.ChromaticAberration);
-            PushUberFeature(UberPostFeatureFlags.Vignette);
-            PushUberFeature(UberPostFeatureFlags.LensDistortion);
-            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette);
-            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion);
-            PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
-            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
-
-            //Alpha mask variants:
-            {
-                PushUberFeature(UberPostFeatureFlags.EnableAlpha);
-                PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.EnableAlpha);
-                PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.EnableAlpha);
-                PushUberFeature(UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.EnableAlpha);
-                PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.EnableAlpha);
-                PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.EnableAlpha);
-                PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.EnableAlpha);
-                PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.EnableAlpha);
-            }
 
             // Grading specific
             m_HableCurve = new HableCurve();
@@ -543,8 +517,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Feature flags are passed to all effects and it's their responsibility to check
                         // if they are used or not so they can set default values if needed
                         var cs = m_Resources.shaders.uberPostCS;
+                        cs.shaderKeywords = null;
                         var featureFlags = GetUberFeatureFlags(isSceneView);
-                        int kernel = GetUberKernel(cs, featureFlags);
+                        int kernel = cs.FindKernel("Uber");
 
                         // Generate the bloom texture
                         bool bloomActive = m_Bloom.IsActive() && m_BloomFS;
@@ -660,21 +635,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             camera.resetPostProcessingHistory = false;
-        }
-
-        void PushUberFeature(UberPostFeatureFlags flags)
-        {
-            // Use an int for the key instead of the enum itself to avoid GC pressure due to the
-            // lack of a default comparer
-            int iflags = (int)flags;
-            m_UberPostFeatureMap.Add(iflags, "KMain_Variant" + iflags);
-        }
-
-        int GetUberKernel(ComputeShader cs, UberPostFeatureFlags flags)
-        {
-            bool success = m_UberPostFeatureMap.TryGetValue((int)flags, out var kernelName);
-            Assert.IsTrue(success);
-            return cs.FindKernel(kernelName);
         }
 
         // Grabs all active feature flags
@@ -2074,6 +2034,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if ((flags & UberPostFeatureFlags.LensDistortion) != UberPostFeatureFlags.LensDistortion)
                 return;
 
+            cs.EnableKeyword("LENS_DISTORTION");
+
             float amount = 1.6f * Mathf.Max(Mathf.Abs(m_LensDistortion.intensity.value * 100f), 1f);
             float theta = Mathf.Deg2Rad * Mathf.Min(160f, amount);
             float sigma = 2f * Mathf.Tan(theta * 0.5f);
@@ -2103,6 +2065,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if ((flags & UberPostFeatureFlags.ChromaticAberration) != UberPostFeatureFlags.ChromaticAberration)
                 return;
+
+            cs.EnableKeyword("CHROMATIC_ABERRATION");
 
             var spectralLut = m_ChromaticAberration.spectralLut.value;
 
@@ -2146,6 +2110,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if ((flags & UberPostFeatureFlags.Vignette) != UberPostFeatureFlags.Vignette)
                 return;
+
+            cs.EnableKeyword("VIGNETTE");
 
             if (m_Vignette.mode.value == VignetteMode.Procedural)
             {

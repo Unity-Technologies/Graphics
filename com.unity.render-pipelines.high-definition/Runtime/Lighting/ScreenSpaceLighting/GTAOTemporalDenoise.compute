@@ -1,8 +1,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/GTAOCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
-#pragma multi_compile HALF_RES FULL_RES
 #pragma kernel TemporalDenoise
+
+#pragma multi_compile HALF_RES FULL_RES
 
 uint PackHistoryData(float AO, float depth, float mvLen)
 {
