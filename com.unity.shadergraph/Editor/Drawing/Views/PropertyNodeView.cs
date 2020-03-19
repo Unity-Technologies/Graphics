@@ -31,6 +31,12 @@ namespace UnityEditor.ShaderGraph
             // Removing the title label since it is not used and taking up space
             this.Q("title-label").RemoveFromHierarchy();
 
+            // Add disabled overlay
+            Add(new VisualElement() { name = "disabledOverlay", pickingMode = PickingMode.Ignore });
+
+            // Update active state
+            SetActive(node.isActive);
+
             // Registering the hovering callbacks for highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
@@ -57,6 +63,12 @@ namespace UnityEditor.ShaderGraph
 
         public void OnModified(ModificationScope scope)
         {
+            //disconnected property nodes are always active
+            if (!node.IsSlotConnected(PropertyNode.OutputSlotId))
+                node.isActive = true;
+            
+            SetActive(node.isActive);
+
             if (scope == ModificationScope.Graph)
             {
                 // changing the icon to be exposed or not
@@ -73,6 +85,23 @@ namespace UnityEditor.ShaderGraph
                 // Updating the text label of the output slot
                 var slot = node.GetSlots<MaterialSlot>().ToList().First();
                 this.Q<Label>("type").text = slot.displayName;
+            }
+        }
+
+        public void SetActive(bool state)
+        {
+            // Setup
+            var disabledString = "disabled";
+
+            if (!state)
+            {
+                // Add elements to disabled class list
+                AddToClassList(disabledString);
+            }
+            else
+            {
+                // Remove elements from disabled class list
+                RemoveFromClassList(disabledString);
             }
         }
 
