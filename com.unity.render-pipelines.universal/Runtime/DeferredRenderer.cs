@@ -323,7 +323,7 @@ namespace UnityEngine.Rendering.Universal
 
                 var opaqueDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
                 opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, true); //Seems like store is required, though used inside the renderPass
-                opaqueDescriptor.ConfigureClear(Color.black, 1, 0);
+                opaqueDescriptor.ConfigureClear(m_CopyColorPass.clearColor, 1, 0);
 
                 m_CopyColorPass.ConfigureInputAttachment(m_CameraColorDescriptor);
                 m_CopyColorPass.ConfigureTarget(opaqueDescriptor);
@@ -499,12 +499,12 @@ namespace UnityEngine.Rendering.Universal
                 gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
                 gbufferDescriptors[gbufferIndex] = new AttachmentDescriptor(renderingData.cameraData.cameraTargetDescriptor.graphicsFormat);
                 gbufferDescriptors[gbufferIndex].ConfigureTarget(gbufferColorAttachments[gbufferIndex].Identifier(), false, false);
-                gbufferDescriptors[gbufferIndex].ConfigureClear(Color.black, 1, 0);
+                gbufferDescriptors[gbufferIndex].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
             }
 
             gbufferColorAttachments[k_GBufferSlicesCount] = m_CameraColorTexture; // the last slice is the lighting buffer created in DeferredRenderer.cs
             gbufferDescriptors[k_GBufferSlicesCount].ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), false, true);
-            gbufferDescriptors[k_GBufferSlicesCount].ConfigureClear(Color.black, 1, 0);//#endif
+            gbufferDescriptors[k_GBufferSlicesCount].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);//#endif
 
 #if UNITY_IOS && !UNITY_EDITOR
             gbufferDescriptors[k_GBufferSlicesCount + 1] = new AttachmentDescriptor(GraphicsFormat.R32_SFloat);
