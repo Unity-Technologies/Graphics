@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UI;
 
 [ExecuteInEditMode, RequireComponent(typeof(RawImage))]
@@ -39,7 +40,8 @@ public class ReflectionProbeToTexture : MonoBehaviour
 
             while (!targetProbe.IsFinishedRendering(renderID)) { };
 
-            probeTexture = targetProbe.texture;
+            var probeData = targetProbe.GetComponent<HDAdditionalReflectionData>();
+            probeTexture = probeData.texture;
 
             Graphics.Blit(probeTexture, dest, blitMat);
 
