@@ -59,6 +59,15 @@ namespace UnityEditor.ShaderGraph
                         GraphUtil.OpenFile(path);
                 }
             }
+            if (GUILayout.Button("Copy Shader"))
+            {
+                AssetImporter importer = target as AssetImporter;
+                string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
+
+                var graphData = GetGraphData(importer);
+                var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName);
+                GUIUtility.systemCopyBuffer = generator.generatedShader;
+            }
 
             ApplyRevertGUI();
         }
