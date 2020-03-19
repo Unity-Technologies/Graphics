@@ -132,14 +132,38 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
-        protected override void RenderWithMode(ScriptableRenderContext context, Camera[] cameras, int renderMode)
+        protected override void SubmitRenderRequests(ScriptableRenderContext context, Camera camera, List<Camera.RenderRequest> renderRequests)
         {
-            if (renderMode != 0)
+            var cameraTarget = camera.targetTexture;
+            foreach (var renderRequest in renderRequests)
+            {
+                if (!renderRequest.isValid())
+                    continue;
+
+                switch (renderRequest.mode)
+                {
+                    case Camera.RenderRequestModes.ObjectId:
+                        break;
+                    case Camera.RenderRequestModes.Depth:
+                        break;
+                    case Camera.RenderRequestModes.Normals:
+                        break;
+                    case Camera.RenderRequestModes.DepthNormals:
+                        break;
+                    case Camera.RenderRequestModes.WorldPosition:
+                        break;
+                    default:
+                        Debug.LogWarning(string.Format("Requested camera render mode {0} is not supported by UniversalRenderPipeline", renderRequest.mode));
+                        break;
+                }
+
                 Shader.EnableKeyword("RENDER_WITH_MODE_TEST");
+                camera.targetTexture = renderRequest.result;
+                Render(context, new[] {camera});
+                Shader.DisableKeyword("RENDER_WITH_MODE_TEST");
+            }
 
-            Render(context, cameras);
-
-            Shader.DisableKeyword("RENDER_WITH_MODE_TEST");
+            camera.targetTexture = cameraTarget;
         }
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
