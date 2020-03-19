@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph;
 
@@ -10,6 +10,8 @@ namespace UnityEditor.ShaderGraph
         public string displayName => "Default";
         public string passTemplatePath => null;
         public string sharedTemplateDirectory => null;
+
+        public NodeTypeCollection allowedNodes => NodeTypes.AllBuiltin;
 
         public bool IsValid(IMasterNode masterNode)
         {

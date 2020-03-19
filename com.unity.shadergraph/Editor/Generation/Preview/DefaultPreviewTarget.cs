@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 
@@ -10,6 +10,8 @@ namespace UnityEditor.ShaderGraph
         public string displayName => null;
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
+
+        public NodeTypeCollection allowedNodes => NodeTypes.AllBuiltin; 
 
         public bool IsValid(IMasterNode masterNode)
         {

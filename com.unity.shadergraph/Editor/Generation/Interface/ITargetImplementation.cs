@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph
@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph
         string displayName { get; }
         string passTemplatePath { get; }
         string sharedTemplateDirectory { get; }
+        NodeTypeCollection allowedNodes { get; }
 
         bool IsValid(IMasterNode masterNode);
         bool IsPipelineCompatible(RenderPipelineAsset currentPipeline);

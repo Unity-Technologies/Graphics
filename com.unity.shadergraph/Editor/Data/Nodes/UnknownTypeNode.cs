@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         {
             base.ValidateNode();
 
-            owner.AddValidationError(tempId, "This node type could not be found. No function will be generated in the shader.", ShaderCompilerMessageSeverity.Warning);
+            owner.AddValidationError(guid, "This node type could not be found. No function will be generated in the shader.", ShaderCompilerMessageSeverity.Warning);
         }
     }
 }
