@@ -12,33 +12,23 @@ TEXTURE2D(_TempTarget2); SAMPLER(sampler_TempTarget2);
 TEXTURE2D(_ScreenSpaceAOTexture); SAMPLER(sampler_ScreenSpaceAOTexture);
 TEXTURE2D(_CameraGBufferTexture2); SAMPLER(sampler_CameraGBufferTexture2);
 
-float4x4 ProjectionMatrix;
-float4 _BaseMap_TexelSize;
-float4 _CameraDepthTexture_TexelSize;
-float4 _ScreenSpaceAOTexture_TexelSize;
-
 // SSAO Settings
+int _SSAO_Samples;
 half _SSAO_Intensity;
 half _SSAO_Radius;
-int _SSAO_Samples;
 float _SSAO_DownScale;
 
 #define SAMPLE_BASEMAP(uv)  SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
+#define INTENSITY _SSAO_Intensity
+#define RADIUS _SSAO_Radius
+#define DOWNSAMPLE _SSAO_DownScale
 
-// Sample count
 #if !defined(SHADER_API_GLES)
     #define SAMPLE_COUNT _SSAO_Samples
 #else
     // GLES2: In many cases, dynamic looping is not supported.
     #define SAMPLE_COUNT 3
 #endif
-
-// Other parameters
-#define INTENSITY _SSAO_Intensity
-#define RADIUS _SSAO_Radius
-#define DOWNSAMPLE _SSAO_DownScale
-
-
 
 // --------
 // Options for further customization
@@ -325,9 +315,9 @@ float4 FragBlur(Varyings input) : SV_Target
     float2 uv = input.uv;
 
     #if defined(BLUR_HORIZONTAL)
-        float2 delta = float2(_BaseMap_TexelSize.x, 0.0);
+        float2 delta = float2(GetScreenParams().z - 1.0, 0.0);
     #else
-        float2 delta = float2(0.0, _BaseMap_TexelSize.y / DOWNSAMPLE);
+        float2 delta = float2(0.0, (GetScreenParams().w - 1.0) / DOWNSAMPLE);
     #endif
 
     #if defined(BLUR_HIGH_QUALITY)

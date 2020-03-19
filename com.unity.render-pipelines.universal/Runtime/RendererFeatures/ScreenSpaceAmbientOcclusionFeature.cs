@@ -17,7 +17,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
     public enum DepthSource
     {
         Depth,
-        DepthNormals
+        //DepthNormals
     }
 
     // Classes
@@ -159,8 +159,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             m_Descriptor.colorFormat = RenderTextureFormat.R8;
             cmd.GetTemporaryRT(m_Texture.id, m_Descriptor, FilterMode.Point);
 
-            var desc = GetStereoCompatibleDescriptor(m_Descriptor.width * downScaleDivider, m_Descriptor.height * downScaleDivider, GraphicsFormat.R8G8B8A8_UNorm);
-
+            var desc = GetStereoCompatibleDescriptor(cameraTextureDescriptor.width, cameraTextureDescriptor.height, GraphicsFormat.R8G8B8A8_UNorm);
             cmd.GetTemporaryRT(_TempRenderTexture1, desc, filterMode);
             cmd.GetTemporaryRT(_TempRenderTexture2, desc, filterMode);
 
@@ -262,7 +261,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         RenderTextureDescriptor GetStereoCompatibleDescriptor(int width, int height, GraphicsFormat format, int depthBufferBits = 0)
         {
             // Inherit the VR setup from the camera descriptor
-            var desc = m_Descriptor;
+            RenderTextureDescriptor desc = m_Descriptor;
             desc.depthBufferBits = depthBufferBits;
             desc.msaaSamples = 1;
             desc.width = width;
