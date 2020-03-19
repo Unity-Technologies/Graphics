@@ -71,6 +71,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader volumeVoxelizationCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLighting.compute")]
             public ComputeShader volumetricLightingCS;
+            [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLightingFiltering.compute")]
+            public ComputeShader volumetricLightingFilteringCS;
             [Reload("Runtime/Lighting/LightLoop/DeferredTile.shader")]
             public Shader deferredTilePS;
             [Reload("Runtime/Lighting/Shadow/ScreenSpaceShadows.shader")]
