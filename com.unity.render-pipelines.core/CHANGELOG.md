@@ -30,6 +30,7 @@ The version number for this package has increased due to a version update of a r
 - Fix LookDev issue when adding a GameObject containing a Volume into the LookDev's view.
 - Fixed duplicated entry for com.unity.modules.xr in the runtime asmdef file
 - Fixed the texture curve being destroyed from another thread than main (case 1211754)
+- Fixed unreachable code in TextureXR.useTexArray
 
 ### Changed
 - Updated macros to be compatible with the new shader preprocessor.
