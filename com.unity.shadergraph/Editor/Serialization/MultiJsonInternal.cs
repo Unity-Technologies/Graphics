@@ -101,8 +101,8 @@ namespace UnityEditor.ShaderGraph.Serialization
                 throw new InvalidOperationException("Can only Enqueue during JsonObject.OnAfterDeserialize.");
             }
 
-            valueMap.Add(jsonObject.id, jsonObject);
-            s_Entries.Add(new MultiJsonEntry(jsonObject.GetType().FullName, jsonObject.id, json));
+            valueMap.Add(jsonObject.objectId, jsonObject);
+            s_Entries.Add(new MultiJsonEntry(jsonObject.GetType().FullName, jsonObject.objectId, json));
         }
 
         public static JsonObject CreateInstance(string typeString)
@@ -133,7 +133,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                         var value = CreateInstance(entry.type);
                         if (entry.id == null)
                         {
-                            entries[index] = entry = new MultiJsonEntry(entry.type, value.id, entry.json);
+                            entries[index] = entry = new MultiJsonEntry(entry.type, value.objectId, entry.json);
                         }
 
                         valueMap[entry.id] = value;
@@ -200,7 +200,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 isSerializing = true;
 
-                serializedSet.Add(mainObject.id);
+                serializedSet.Add(mainObject.objectId);
                 serializationQueue.Add(mainObject);
 
                 var idJsonList = new List<(string, string)>();
@@ -210,18 +210,18 @@ namespace UnityEditor.ShaderGraph.Serialization
                 {
                     var value = serializationQueue[i];
                     var json = EditorJsonUtility.ToJson(value, true);
-                    idJsonList.Add((value.id, json));
+                    idJsonList.Add((value.objectId, json));
                 }
 
                 idJsonList.Sort((x, y) =>
                     // Main object needs to be placed first
-                    x.Item1 == mainObject.id ? -1 :
-                    y.Item1 == mainObject.id ? 1 :
+                    x.Item1 == mainObject.objectId ? -1 :
+                    y.Item1 == mainObject.objectId ? 1 :
                     // We sort everything else by ID to consistently maintain positions in the output
                     x.Item1.CompareTo(y.Item1));
 
                 var sb = new StringBuilder();
-                foreach (var (_, json) in idJsonList)
+                foreach (var (id, json) in idJsonList)
                 {
                     sb.AppendLine(json);
                     sb.AppendLine();

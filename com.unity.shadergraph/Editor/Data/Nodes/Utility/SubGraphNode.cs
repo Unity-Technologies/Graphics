@@ -430,11 +430,11 @@ namespace UnityEditor.ShaderGraph
                 var assetPath = string.IsNullOrEmpty(subGraphGuid) ? null : AssetDatabase.GUIDToAssetPath(assetGuid);
                 if (string.IsNullOrEmpty(assetPath))
                 {
-                    owner.AddValidationError(id, $"Could not find Sub Graph asset with GUID {assetGuid}.");
+                    owner.AddValidationError(objectId, $"Could not find Sub Graph asset with GUID {assetGuid}.");
                 }
                 else
                 {
-                    owner.AddValidationError(id, $"Could not load Sub Graph asset at \"{assetPath}\" with GUID {assetGuid}.");
+                    owner.AddValidationError(objectId, $"Could not load Sub Graph asset at \"{assetPath}\" with GUID {assetGuid}.");
                 }
 
                 return;
@@ -443,12 +443,12 @@ namespace UnityEditor.ShaderGraph
             if (asset.isRecursive || owner.isSubGraph && (asset.descendents.Contains(owner.assetGuid) || asset.assetGuid == owner.assetGuid))
             {
                 hasError = true;
-                owner.AddValidationError(id, $"Detected a recursion in Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
+                owner.AddValidationError(objectId, $"Detected a recursion in Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
             else if (!asset.isValid)
             {
                 hasError = true;
-                owner.AddValidationError(id, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
+                owner.AddValidationError(objectId, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
 
             ValidateShaderStage();

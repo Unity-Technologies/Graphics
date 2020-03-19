@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
         
         List<int> m_Ids;
-        List<ISlot> m_Slots = new List<ISlot>();
+        List<MaterialSlot> m_Slots = new List<MaterialSlot>();
 
         public void GenerateNodeEntries()
         {

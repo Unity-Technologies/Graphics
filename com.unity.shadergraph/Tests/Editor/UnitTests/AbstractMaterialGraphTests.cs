@@ -46,8 +46,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
 
-            Assert.AreEqual(node, graph.GetNodeFromId(node.id));
-            Assert.AreEqual(node, graph.GetNodeFromId<TestableMNode>(node.id));
+            Assert.AreEqual(node, graph.GetNodeFromId(node.objectId));
+            Assert.AreEqual(node, graph.GetNodeFromId<TestableMNode>(node.objectId));
         }
 
         /*     [Test]

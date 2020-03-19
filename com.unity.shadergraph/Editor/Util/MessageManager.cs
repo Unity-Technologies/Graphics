@@ -109,7 +109,7 @@ namespace UnityEditor.Graphing.Util
             {
                 foreach (var node in nodes)
                 {
-                    if (m_FoundMessages.TryGetValue(node.id, out var messages))
+                    if (m_FoundMessages.TryGetValue(node.objectId, out var messages))
                     {
                         nodeMessagesChanged |= messages.Count > 0;
                         messages.Clear();

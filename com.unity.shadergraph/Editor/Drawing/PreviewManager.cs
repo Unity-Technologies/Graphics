@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public PreviewRenderData GetPreview(AbstractMaterialNode node)
         {
-            return m_RenderDatas[node.id];
+            return m_RenderDatas[node.objectId];
         }
 
         void AddPreview(AbstractMaterialNode node)
@@ -113,7 +113,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             shaderData.mat = new Material(shaderData.shader) {hideFlags = HideFlags.HideAndDontSave};
             renderData.shaderData = shaderData;
 
-            m_RenderDatas.Add(node.id, renderData);
+            m_RenderDatas.Add(node.objectId, renderData);
             node.RegisterCallback(OnNodeModified);
 
             if (node.RequiresTime())
@@ -209,12 +209,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_Graph.didActiveOutputNodeChange)
             {
-                DestroyPreview(masterRenderData.shaderData.node.id);
+                DestroyPreview(masterRenderData.shaderData.node.objectId);
             }
 
             foreach (var node in m_Graph.removedNodes)
             {
-                DestroyPreview(node.id);
+                DestroyPreview(node.objectId);
                 m_NodesToUpdate.Remove(node);
                 m_NodesToDraw.Remove(node);
                 m_RefreshTimedNodes = true;
@@ -292,7 +292,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if(node == null || !node.hasPreview || !node.previewExpanded)
                     continue;
 
-                var renderData = m_RenderDatas[node.id];
+                var renderData = m_RenderDatas[node.objectId];
 
                 CollectShaderProperties(node, renderData);
                 renderData.shaderData.mat.SetVector("_TimeParameters", timeParameters);
@@ -442,7 +442,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (!node.hasPreview && !(node is SubGraphOutputNode || node is VfxMasterNode))
                     continue;
 
-                if (!m_RenderDatas.TryGetValue(node.id, out var renderData))
+                if (!m_RenderDatas.TryGetValue(node.objectId, out var renderData))
                 {
                     continue;
                 }
@@ -541,7 +541,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var messages = ShaderUtil.GetShaderMessages(shaderData.shader);
                 if (messages.Length > 0)
                 {
-                    m_Messenger.AddOrAppendError(this, shaderData.node.id, messages[0]);
+                    m_Messenger.AddOrAppendError(this, shaderData.node.objectId, messages[0]);
                 }
             }
         }

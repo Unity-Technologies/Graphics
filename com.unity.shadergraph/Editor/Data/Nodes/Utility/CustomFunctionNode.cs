@@ -275,7 +275,7 @@ namespace UnityEditor.ShaderGraph
                 var error = NodeUtils.ValidateSlotName(slot.RawDisplayName(), out string errorMessage);
                 if (error)
                 {
-                    owner.AddValidationError(id, errorMessage);
+                    owner.AddValidationError(objectId, errorMessage);
                     break;
                 }
             }
@@ -285,7 +285,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (!this.GetOutputSlots<MaterialSlot>().Any())
             {
-                owner.AddValidationError(id, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
+                owner.AddValidationError(objectId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
             if(sourceType == HlslSourceType.File)
             {
@@ -297,7 +297,7 @@ namespace UnityEditor.ShaderGraph
                         string extension = path.Substring(path.LastIndexOf('.'));
                         if(!s_ValidExtensions.Contains(extension))
                         {
-                            owner.AddValidationError(id, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
+                            owner.AddValidationError(objectId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
                         }
                     }
                 }

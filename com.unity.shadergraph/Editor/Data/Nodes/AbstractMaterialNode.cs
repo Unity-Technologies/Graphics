@@ -30,11 +30,8 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         bool m_HasError;
 
-        [NonSerialized]
-        private List<ISlot> m_Slots = new List<ISlot>();
-
         [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializableSlots = new List<SerializationHelper.JSONSerializedElement>();
+        List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
 
         public GraphData owner { get; set; }
 
@@ -164,7 +161,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (m_NameForDefaultVariableName != name)
                 {
-                    m_DefaultVariableName = string.Format("{0}_{1}", NodeUtils.GetHLSLSafeName(name ?? "node"), id);
+                    m_DefaultVariableName = string.Format("{0}_{1}", NodeUtils.GetHLSLSafeName(name ?? "node"), objectId);
                     m_NameForDefaultVariableName = name;
                 }
                 return m_DefaultVariableName;
@@ -198,30 +195,34 @@ namespace UnityEditor.ShaderGraph
             version = 0;
         }
 
-        public void GetInputSlots<T>(List<T> foundSlots) where T : ISlot
+        public void GetInputSlots<T>(List<T> foundSlots) where T : MaterialSlot
         {
-            foreach (var slot in m_Slots)
+            foreach (var slot in m_Slots.SelectValue())
             {
                 if (slot.isInputSlot && slot is T)
                     foundSlots.Add((T)slot);
             }
         }
 
-        public void GetOutputSlots<T>(List<T> foundSlots) where T : ISlot
+        public void GetOutputSlots<T>(List<T> foundSlots) where T : MaterialSlot
         {
-            foreach (var slot in m_Slots)
+            foreach (var slot in m_Slots.SelectValue())
             {
-                if (slot.isOutputSlot && slot is T)
-                    foundSlots.Add((T)slot);
+                if (slot.isOutputSlot && slot is T materialSlot)
+                {
+                    foundSlots.Add(materialSlot);
+                }
             }
         }
 
-        public void GetSlots<T>(List<T> foundSlots) where T : ISlot
+        public void GetSlots<T>(List<T> foundSlots) where T : MaterialSlot
         {
-            foreach (var slot in m_Slots)
+            foreach (var slot in m_Slots.SelectValue())
             {
-                if (slot is T)
-                    foundSlots.Add((T)slot);
+                if (slot is T materialSlot)
+                {
+                    foundSlots.Add(materialSlot);
+                }
             }
         }
 
@@ -481,7 +482,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (isInError)
                 {
-                    ((GraphData) owner).AddValidationError(id, errorMessage);
+                    ((GraphData) owner).AddValidationError(objectId, errorMessage);
                 }
                 else
                 {
@@ -559,17 +560,20 @@ namespace UnityEditor.ShaderGraph
             return defaultVariableName;
         }
 
-        public void AddSlot(ISlot slot)
+        public void AddSlot(MaterialSlot slot)
         {
-            if (!(slot is MaterialSlot))
-                throw new ArgumentException(string.Format("Trying to add slot {0} to Material node {1}, but it is not a {2}", slot, this, typeof(MaterialSlot)));
-
-            var addingSlot = (MaterialSlot)slot;
             var foundSlot = FindSlot<MaterialSlot>(slot.id);
+
+            // Try to keep the existing instance to avoid unnecessary changes to file
+            if (foundSlot != null && slot.GetType() == foundSlot.GetType())
+            {
+                return;
+            }
 
             // this will remove the old slot and add a new one
             // if an old one was found. This allows updating values
-            m_Slots.RemoveAll(x => x.id == slot.id);
+            m_Slots.RemoveAll(x => x.value.id == slot.id);
+
             m_Slots.Add(slot);
             slot.owner = this;
 
@@ -578,7 +582,8 @@ namespace UnityEditor.ShaderGraph
             if (foundSlot == null)
                 return;
 
-            addingSlot.CopyValuesFrom(foundSlot);
+            slot.CopyValuesFrom(foundSlot);
+            foundSlot.owner = null;
         }
 
         public void RemoveSlot(int slotId)
@@ -595,7 +600,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             //remove slots
-            m_Slots.RemoveAll(x => x.id == slotId);
+            m_Slots.RemoveAll(x => x.value.id == slotId);
 
             OnSlotsChanged();
         }
@@ -608,7 +613,7 @@ namespace UnityEditor.ShaderGraph
 
         public void RemoveSlotsNameNotMatching(IEnumerable<int> slotIds, bool supressWarnings = false)
         {
-            var invalidSlots = m_Slots.Select(x => x.id).Except(slotIds);
+            var invalidSlots = m_Slots.Select(x => x.value.id).Except(slotIds);
 
             foreach (var invalidSlot in invalidSlots.ToArray())
             {
@@ -620,15 +625,15 @@ namespace UnityEditor.ShaderGraph
 
         public SlotReference GetSlotReference(int slotId)
         {
-            var slot = FindSlot<ISlot>(slotId);
+            var slot = FindSlot<MaterialSlot>(slotId);
             if (slot == null)
                 throw new ArgumentException("Slot could not be found", "slotId");
             return new SlotReference(this, slotId);
         }
 
-        public T FindSlot<T>(int slotId) where T : ISlot
+        public T FindSlot<T>(int slotId) where T : MaterialSlot
         {
-            foreach (var slot in m_Slots)
+            foreach (var slot in m_Slots.SelectValue())
             {
                 if (slot.id == slotId && slot is T)
                     return (T)slot;
@@ -636,9 +641,9 @@ namespace UnityEditor.ShaderGraph
             return default(T);
         }
 
-        public T FindInputSlot<T>(int slotId) where T : ISlot
+        public T FindInputSlot<T>(int slotId) where T : MaterialSlot
         {
-            foreach (var slot in m_Slots)
+            foreach (var slot in m_Slots.SelectValue())
             {
                 if (slot.isInputSlot && slot.id == slotId && slot is T)
                     return (T)slot;
@@ -646,9 +651,9 @@ namespace UnityEditor.ShaderGraph
             return default(T);
         }
 
-        public T FindOutputSlot<T>(int slotId) where T : ISlot
+        public T FindOutputSlot<T>(int slotId) where T : MaterialSlot
         {
-            foreach (var slot in m_Slots)
+            foreach (var slot in m_Slots.SelectValue())
             {
                 if (slot.isOutputSlot && slot.id == slotId && slot is T)
                     return (T)slot;
@@ -656,18 +661,17 @@ namespace UnityEditor.ShaderGraph
             return default(T);
         }
 
-        public virtual IEnumerable<ISlot> GetInputsWithNoConnection()
+        public virtual IEnumerable<MaterialSlot> GetInputsWithNoConnection()
         {
-            return this.GetInputSlots<ISlot>().Where(x => !owner.GetEdges(GetSlotReference(x.id)).Any());
+            return this.GetInputSlots<MaterialSlot>().Where(x => !owner.GetEdges(GetSlotReference(x.id)).Any());
         }
 
         public override void OnBeforeSerialize()
         {
             m_GroupGuidSerialized = m_GroupGuid.ToString();
-            m_SerializableSlots = SerializationHelper.Serialize<ISlot>(m_Slots);
         }
 
-        public override void OnAfterDeserialize()
+        public override void OnAfterMultiDeserialize(string json)
         {
             if (m_NodeVersion != GetCompiledNodeVersion())
             {
@@ -680,12 +684,10 @@ namespace UnityEditor.ShaderGraph
             else
                 m_GroupGuid = Guid.Empty;
 
-            m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots, GraphUtil.GetLegacyTypeRemapping());
-            m_SerializableSlots = null;
-            foreach (var s in m_Slots)
+            foreach (var s in m_Slots.SelectValue())
                 s.owner = this;
 
-            UpdateNodeAfterDeserialization();
+            // UpdateNodeAfterDeserialization();
         }
 
         public virtual void UpdateNodeAfterDeserialization()

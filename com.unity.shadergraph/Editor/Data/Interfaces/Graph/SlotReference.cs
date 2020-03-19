@@ -46,7 +46,7 @@ namespace UnityEditor.Graphing
 
         public int CompareTo(SlotReference other)
         {
-            var nodeIdComparison = m_Node.value.id.CompareTo(other.m_Node.value.id);
+            var nodeIdComparison = m_Node.value.objectId.CompareTo(other.m_Node.value.objectId);
             if (nodeIdComparison != 0)
             {
                 return nodeIdComparison;

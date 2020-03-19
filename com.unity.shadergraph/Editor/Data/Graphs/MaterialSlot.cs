@@ -5,12 +5,13 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class MaterialSlot : ISlot
+    abstract class MaterialSlot : JsonObject
     {
         const string k_NotInit =  "Not Initilaized";
 
@@ -289,14 +290,9 @@ namespace UnityEditor.ShaderGraph
 
         public abstract void CopyValuesFrom(MaterialSlot foundSlot);
 
-        bool Equals(MaterialSlot other)
+        public bool Equals(MaterialSlot other)
         {
             return m_Id == other.m_Id && owner == other.owner;
-        }
-
-        public bool Equals(ISlot other)
-        {
-            return Equals(other as object);
         }
 
         public override bool Equals(object obj)

@@ -26,10 +26,10 @@ namespace UnityEditor.Graphing
             var missingSlots = new List<int>();
 
             var inputSlots = expectedInputSlots as IList<int> ?? expectedInputSlots.ToList();
-            missingSlots.AddRange(inputSlots.Except(node.GetInputSlots<ISlot>().Select(x => x.id)));
+            missingSlots.AddRange(inputSlots.Except(node.GetInputSlots<MaterialSlot>().Select(x => x.id)));
 
             var outputSlots = expectedOutputSlots as IList<int> ?? expectedOutputSlots.ToList();
-            missingSlots.AddRange(outputSlots.Except(node.GetOutputSlots<ISlot>().Select(x => x.id)));
+            missingSlots.AddRange(outputSlots.Except(node.GetOutputSlots<MaterialSlot>().Select(x => x.id)));
 
             if (missingSlots.Count == 0)
                 return;
@@ -42,9 +42,9 @@ namespace UnityEditor.Graphing
         public static IEnumerable<IEdge> GetAllEdges(AbstractMaterialNode node)
         {
             var result = new List<IEdge>();
-            var validSlots = ListPool<ISlot>.Get();
+            var validSlots = ListPool<MaterialSlot>.Get();
 
-            validSlots.AddRange(node.GetInputSlots<ISlot>());
+            validSlots.AddRange(node.GetInputSlots<MaterialSlot>());
             for (int index = 0; index < validSlots.Count; index++)
             {
                 var inputSlot = validSlots[index];
@@ -52,14 +52,14 @@ namespace UnityEditor.Graphing
             }
 
             validSlots.Clear();
-            validSlots.AddRange(node.GetOutputSlots<ISlot>());
+            validSlots.AddRange(node.GetOutputSlots<MaterialSlot>());
             for (int index = 0; index < validSlots.Count; index++)
             {
                 var outputSlot = validSlots[index];
                 result.AddRange(node.owner.GetEdges(outputSlot.slotReference));
             }
 
-            ListPool<ISlot>.Release(validSlots);
+            ListPool<MaterialSlot>.Release(validSlots);
             return result;
         }
 
@@ -104,11 +104,11 @@ namespace UnityEditor.Graphing
             }
             else if (slotIds == null)
             {
-                ids = node.GetInputSlots<ISlot>().Select(x => x.id);
+                ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);
             }
             else
             {
-                ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
+                ids = node.GetInputSlots<MaterialSlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
             }
 
             foreach (var slot in ids)
@@ -165,7 +165,7 @@ namespace UnityEditor.Graphing
             if (nodeList.Contains(node))
                 return;
 
-            foreach (var slot in node.GetOutputSlots<ISlot>())
+            foreach (var slot in node.GetOutputSlots<MaterialSlot>())
             {
                 foreach (var edge in node.owner.GetEdges(slot.slotReference))
                 {

@@ -613,7 +613,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 GraphElement graphElement = null;
                 if (groupChange.groupItem is AbstractMaterialNode node)
                 {
-                    graphElement = m_GraphView.GetNodeByGuid(node.id);
+                    graphElement = m_GraphView.GetNodeByGuid(node.objectId);
                 }
                 else if (groupChange.groupItem is StickyNoteData stickyNote)
                 {
@@ -735,7 +735,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var node = m_Graph.GetNodeFromId(messageData.Key);
 
-                if (!(m_GraphView.GetNodeByGuid(node.id) is MaterialNodeView nodeView))
+                if (!(m_GraphView.GetNodeByGuid(node.objectId) is MaterialNodeView nodeView))
                     continue;
 
                 if (messageData.Value.Count == 0)

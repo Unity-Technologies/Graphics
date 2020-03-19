@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -455,7 +456,7 @@ namespace UnityEditor.ShaderGraph
             }
             node.owner = this;
             m_Nodes.Add(node);
-            m_NodeDictionary.Add(node.id, node);
+            m_NodeDictionary.Add(node.objectId, node);
             m_AddedNodes.Add(node);
             m_GroupItems[node.groupGuid].Add(node);
         }
@@ -464,7 +465,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (!node.canDeleteNode)
             {
-                throw new InvalidOperationException($"Node {node.name} ({node.id}) cannot be deleted.");
+                throw new InvalidOperationException($"Node {node.name} ({node.objectId}) cannot be deleted.");
             }
             RemoveNodeNoValidate(node);
             ValidateGraph();
@@ -472,14 +473,14 @@ namespace UnityEditor.ShaderGraph
 
         void RemoveNodeNoValidate(AbstractMaterialNode node)
         {
-            if (!m_NodeDictionary.ContainsKey(node.id))
+            if (!m_NodeDictionary.ContainsKey(node.objectId))
             {
                 throw new InvalidOperationException("Cannot remove a node that doesn't exist.");
             }
 
             m_Nodes.Remove(node);
-            m_NodeDictionary.Remove(node.id);
-            messageManager?.RemoveNode(node.id);
+            m_NodeDictionary.Remove(node.objectId);
+            messageManager?.RemoveNode(node.objectId);
             m_RemovedNodes.Add(node);
 
             if (m_GroupItems.TryGetValue(node.groupGuid, out var groupItems))
@@ -491,13 +492,13 @@ namespace UnityEditor.ShaderGraph
         void AddEdgeToNodeEdges(IEdge edge)
         {
             List<IEdge> inputEdges;
-            if (!m_NodeEdges.TryGetValue(edge.inputSlot.node.id, out inputEdges))
-                m_NodeEdges[edge.inputSlot.node.id] = inputEdges = new List<IEdge>();
+            if (!m_NodeEdges.TryGetValue(edge.inputSlot.node.objectId, out inputEdges))
+                m_NodeEdges[edge.inputSlot.node.objectId] = inputEdges = new List<IEdge>();
             inputEdges.Add(edge);
 
             List<IEdge> outputEdges;
-            if (!m_NodeEdges.TryGetValue(edge.outputSlot.node.id, out outputEdges))
-                m_NodeEdges[edge.outputSlot.node.id] = outputEdges = new List<IEdge>();
+            if (!m_NodeEdges.TryGetValue(edge.outputSlot.node.objectId, out outputEdges))
+                m_NodeEdges[edge.outputSlot.node.objectId] = outputEdges = new List<IEdge>();
             outputEdges.Add(edge);
         }
 
@@ -518,8 +519,8 @@ namespace UnityEditor.ShaderGraph
             if (dependentNodes.Contains(fromNode))
                 return null;
 
-            var fromSlot = fromNode.FindSlot<ISlot>(fromSlotRef.slotId);
-            var toSlot = toNode.FindSlot<ISlot>(toSlotRef.slotId);
+            var fromSlot = fromNode.FindSlot<MaterialSlot>(fromSlotRef.slotId);
+            var toSlot = toNode.FindSlot<MaterialSlot>(toSlotRef.slotId);
 
             if (fromSlot == null || toSlot == null)
                 return null;
@@ -567,7 +568,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (!node.canDeleteNode)
                 {
-                    throw new InvalidOperationException($"Node {node.name} ({node.id}) cannot be deleted.");
+                    throw new InvalidOperationException($"Node {node.name} ({node.objectId}) cannot be deleted.");
                 }
             }
 
@@ -602,11 +603,11 @@ namespace UnityEditor.ShaderGraph
             m_Edges.Remove(e as Edge);
 
             List<IEdge> inputNodeEdges;
-            if (m_NodeEdges.TryGetValue(e.inputSlot.node.id, out inputNodeEdges))
+            if (m_NodeEdges.TryGetValue(e.inputSlot.node.objectId, out inputNodeEdges))
                 inputNodeEdges.Remove(e);
 
             List<IEdge> outputNodeEdges;
-            if (m_NodeEdges.TryGetValue(e.outputSlot.node.id, out outputNodeEdges))
+            if (m_NodeEdges.TryGetValue(e.outputSlot.node.objectId, out outputNodeEdges))
                 outputNodeEdges.Remove(e);
 
             m_RemovedEdges.Add(e);
@@ -628,15 +629,15 @@ namespace UnityEditor.ShaderGraph
 
         public bool ContainsNode(AbstractMaterialNode node)
         {
-            return m_NodeDictionary.ContainsKey(node.id);
+            return m_NodeDictionary.ContainsKey(node.objectId);
         }
 
         public void GetEdges(SlotReference s, List<IEdge> foundEdges)
         {
-            ISlot slot = s.slot;
+            MaterialSlot slot = s.slot;
 
             List<IEdge> candidateEdges;
-            if (!m_NodeEdges.TryGetValue(s.node.id, out candidateEdges))
+            if (!m_NodeEdges.TryGetValue(s.node.objectId, out candidateEdges))
                 return;
 
             foreach (var edge in candidateEdges)
@@ -920,19 +921,19 @@ namespace UnityEditor.ShaderGraph
             while (stack.Count > 0)
             {
                 var node = stack.Pop();
-                if (permanentMarks.Contains(node.id))
+                if (permanentMarks.Contains(node.objectId))
                 {
                     continue;
                 }
 
-                if (temporaryMarks.Contains(node.id))
+                if (temporaryMarks.Contains(node.objectId))
                 {
                     node.ValidateNode();
-                    permanentMarks.Add(node.id);
+                    permanentMarks.Add(node.objectId);
                 }
                 else
                 {
-                    temporaryMarks.Add(node.id);
+                    temporaryMarks.Add(node.objectId);
                     stack.Push(node);
                     node.GetInputSlots(slots);
                     foreach (var inputSlot in slots)
@@ -961,7 +962,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (!ContainsNode(edge.outputSlot.node) || !ContainsNode(edge.inputSlot.node))
                 {
-                    Debug.LogWarningFormat("Added edge is invalid: {0} -> {1}\n{2}", edge.outputSlot.node.id, edge.inputSlot.node.id, Environment.StackTrace);
+                    Debug.LogWarningFormat("Added edge is invalid: {0} -> {1}\n{2}", edge.outputSlot.node.objectId, edge.inputSlot.node.objectId, Environment.StackTrace);
                     m_AddedEdges.Remove(edge);
                 }
             }
@@ -1053,7 +1054,7 @@ namespace UnityEditor.ShaderGraph
 
             using (var removedNodeIds = PooledList<string>.Get())
             {
-                removedNodeIds.AddRange(m_Nodes.Select(n => n.value.id));
+                removedNodeIds.AddRange(m_Nodes.Select(n => n.value.objectId));
                 foreach (var nodeGuid in removedNodeIds)
                     RemoveNodeNoValidate(m_NodeDictionary[nodeGuid]);
             }
@@ -1241,17 +1242,33 @@ namespace UnityEditor.ShaderGraph
                 var graphData0 = JsonUtility.FromJson<GraphData0>(json);
 
                 var nodeGuidMap = new Dictionary<string, AbstractMaterialNode>();
+                var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
 
-                foreach (var serializedElement in graphData0.m_SerializableNodes)
+                foreach (var serializedNode in graphData0.m_SerializableNodes)
                 {
-                    var node0 = JsonUtility.FromJson<AbstractMaterialNode0>(serializedElement.JSONnodeData);
-                    var node = (AbstractMaterialNode)DeserializeLegacy(serializedElement.typeInfo.fullName, serializedElement.JSONnodeData);
+                    var node0 = JsonUtility.FromJson<AbstractMaterialNode0>(serializedNode.JSONnodeData);
+
+                    var node = (AbstractMaterialNode)DeserializeLegacy(serializedNode.typeInfo.fullName, serializedNode.JSONnodeData);
                     if (node == null)
                     {
                         continue;
                     }
                     nodeGuidMap.Add(node0.m_GuidSerialized, node);
                     m_Nodes.Add(node);
+
+                    var slots = (List<JsonData<MaterialSlot>>)slotsField.GetValue(node);
+                    slots.Clear();
+
+                    foreach (var serializedSlot in node0.m_SerializableSlots)
+                    {
+                        var slot = (MaterialSlot)DeserializeLegacy(serializedSlot.typeInfo.fullName, serializedSlot.JSONnodeData);
+                        if (slot == null)
+                        {
+                            continue;
+                        }
+
+                        slots.Add(slot);
+                    }
                 }
 
                 if (isSubGraph)
@@ -1300,7 +1317,7 @@ namespace UnityEditor.ShaderGraph
             {
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
-                m_NodeDictionary.Add(node.id, node);
+                m_NodeDictionary.Add(node.objectId, node);
                 m_GroupItems[node.groupGuid].Add(node);
             }
 

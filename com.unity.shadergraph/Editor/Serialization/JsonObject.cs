@@ -10,9 +10,9 @@ namespace UnityEditor.ShaderGraph.Serialization
         string m_Type;
 
         [SerializeField]
-        string m_Id = Guid.NewGuid().ToString("N");
+        string m_ObjectId = Guid.NewGuid().ToString("N");
 
-        public string id => m_Id;
+        public string objectId => m_ObjectId;
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {

@@ -10,12 +10,12 @@ namespace UnityEditor.ShaderGraph.Serialization
         string m_Type;
 
         [SerializeField]
-        string m_Id;
+        string m_ObjectId;
 
         public string id
         {
-            get => m_Id;
-            set => m_Id = value;
+            get => m_ObjectId;
+            set => m_ObjectId = value;
         }
 
         public string type
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         public void Reset()
         {
-            m_Id = null;
+            m_ObjectId = null;
             m_Type = null;
         }
     }

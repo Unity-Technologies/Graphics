@@ -322,7 +322,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var message = new StringBuilder($"Precision mismatch for function {name}:");
                     foreach (var node in source.nodes)
                     {
-                        message.AppendLine($"{node.name} ({node.id}): {node.concretePrecision}");
+                        message.AppendLine($"{node.name} ({node.objectId}): {node.concretePrecision}");
                     }
                     throw new InvalidOperationException(message.ToString());
                 }

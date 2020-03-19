@@ -30,7 +30,14 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 try
                 {
-                    m_Value = (T)MultiJsonInternal.valueMap[m_Id];
+                    if (MultiJsonInternal.valueMap.TryGetValue(m_Id, out var value))
+                    {
+                        m_Value = (T)value;
+                    }
+                    else
+                    {
+                        Debug.LogError($"Missing {typeof(T).FullName} {m_Id}");
+                    }
                 }
                 catch (Exception e)
                 {
@@ -47,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         public static implicit operator JsonData<T>(T value)
         {
-            return new JsonData<T> { m_Value = value, m_Id = value.id };
+            return new JsonData<T> { m_Value = value, m_Id = value.objectId };
         }
 
         public bool Equals(JsonData<T> other)
