@@ -161,7 +161,7 @@ void Frag(PackedVaryingsToPS packedInput,
 
                 GetPropertiesDataDebug(indexMaterialProperty, result, needLinearToSRGB);
                 GetVaryingsDataDebug(indexMaterialProperty, input, result, needLinearToSRGB);
-                GetBuiltinDataDebug(indexMaterialProperty, builtinData, result, needLinearToSRGB);
+                GetBuiltinDataDebug(indexMaterialProperty, builtinData, posInput, result, needLinearToSRGB);
                 GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
                 GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
             }

@@ -32,15 +32,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 4096);
 
         /// <summary>
-        /// Defines the minimum number of bounces for each path.
+        /// Defines the minimum number of bounces for each path, in [1, 10].
         /// </summary>
-        [Tooltip("Defines the minimum number of bounces for each path.")]
+        [Tooltip("Defines the minimum number of bounces for each path, in [1, 10].")]
         public ClampedIntParameter minimumDepth = new ClampedIntParameter(1, 1, 10);
 
         /// <summary>
-        /// Defines the maximum number of bounces for each path.
+        /// Defines the maximum number of bounces for each path, in [minimumDepth, 10].
         /// </summary>
-        [Tooltip("Defines the maximum number of bounces for each path.")]
+        [Tooltip("Defines the maximum number of bounces for each path, in [minimumDepth, 10].")]
         public ClampedIntParameter maximumDepth = new ClampedIntParameter(4, 1, 10);
 
         /// <summary>
@@ -51,58 +51,122 @@ namespace UnityEngine.Rendering.HighDefinition
     }
     public partial class HDRenderPipeline
     {
-        const string m_PathTracingRayGenShaderName = "RayGen";
-        uint currentIteration = 0;
+        PathTracing m_PathTracingSettings = null;
+
+        uint  m_CurrentIteration = 0;
 #if UNITY_EDITOR
-        uint maxIteration = 0;
+        uint  m_CacheMaxIteration = 0;
 #endif // UNITY_EDITOR
+        ulong m_CacheAccelSize = 0;
+        uint  m_CacheLightCount = 0;
+        uint  m_CacheCameraWidth = 0;
+        uint  m_CacheCameraHeight = 0;
+
+        bool m_CameraSkyEnabled;
 
         void InitPathTracing()
         {
 #if UNITY_EDITOR
-            Undo.postprocessModifications += UndoRecordedCallback;
-            Undo.undoRedoPerformed += UndoPerformedCallback;
+            Undo.postprocessModifications += OnUndoRecorded;
+            Undo.undoRedoPerformed += OnSceneEdit;
+            SceneView.duringSceneGui += OnSceneGui;
 #endif // UNITY_EDITOR
         }
 
         void ReleasePathTracing()
         {
 #if UNITY_EDITOR
-            Undo.postprocessModifications -= UndoRecordedCallback;
-            Undo.undoRedoPerformed -= UndoPerformedCallback;
+            Undo.postprocessModifications -= OnUndoRecorded;
+            Undo.undoRedoPerformed -= OnSceneEdit;
+            SceneView.duringSceneGui -= OnSceneGui;
 #endif // UNITY_EDITOR
+        }
+
+        internal void ResetPathTracing()
+        {
+            m_CurrentIteration = 0;
         }
 
 #if UNITY_EDITOR
 
-        private void ResetIteration()
+        private void OnSceneEdit()
         {
-            // If we just changed the sample count, we don't want to reset the iteration
-            PathTracing pathTracingSettings = VolumeManager.instance.stack.GetComponent<PathTracing>();
-            if (maxIteration != pathTracingSettings.maximumSamples.value)
-                maxIteration = (uint) pathTracingSettings.maximumSamples.value;
+            // If we just change the sample count, we don't want to reset iteration
+            if (m_PathTracingSettings && m_CacheMaxIteration != m_PathTracingSettings.maximumSamples.value)
+            {
+                m_CacheMaxIteration = (uint) m_PathTracingSettings.maximumSamples.value;
+                if (m_CurrentIteration >= m_CacheMaxIteration)
+                    m_CurrentIteration = 0;
+            }
             else
-                currentIteration = 0;
+                m_CurrentIteration = 0;
         }
 
-        private UndoPropertyModification[] UndoRecordedCallback(UndoPropertyModification[] modifications)
+        private UndoPropertyModification[] OnUndoRecorded(UndoPropertyModification[] modifications)
         {
-            ResetIteration();
+            OnSceneEdit();
 
             return modifications;
         }
 
-        private void UndoPerformedCallback()
+        private void OnSceneGui(SceneView sv)
         {
-            ResetIteration();
+            if (Event.current.type == EventType.MouseDrag)
+                m_CurrentIteration = 0;
         }
 
 #endif // UNITY_EDITOR
 
-        private void CheckCameraChange(HDCamera hdCamera)
+        private void CheckDirtiness(HDCamera hdCamera)
         {
+            // Check camera clear mode dirtiness
+            bool cameraSkyEnabled = (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky);
+            if (cameraSkyEnabled != m_CameraSkyEnabled)
+            {
+                m_CameraSkyEnabled = cameraSkyEnabled;
+                m_CurrentIteration = 0;
+                return;
+            }
+
+            // Check camera resolution dirtiness
+            if (hdCamera.actualWidth != m_CacheCameraWidth || hdCamera.actualHeight != m_CacheCameraHeight)
+            {
+                m_CacheCameraWidth = (uint) hdCamera.actualWidth;
+                m_CacheCameraHeight = (uint) hdCamera.actualHeight;
+                m_CurrentIteration = 0;
+                return;
+            }
+
+            // Check camera matrix dirtiness
             if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
-                currentIteration = 0;
+            {
+                m_CurrentIteration = 0;
+                return;
+            }
+
+            // Check materials dirtiness
+            if (m_MaterialsDirty)
+            {
+                m_CurrentIteration = 0;
+                m_MaterialsDirty = false;
+                return;
+            }
+
+            // Check lights dirtiness
+            if (m_CacheLightCount != m_RayTracingLights.lightCount)
+            {
+                m_CacheLightCount = (uint) m_RayTracingLights.lightCount;
+                m_CurrentIteration = 0;
+                return;
+            }
+
+            // Check geometry dirtiness
+            ulong accelSize = m_CurrentRAS.GetSize();
+            if (accelSize != m_CacheAccelSize)
+            {
+                m_CacheAccelSize = accelSize;
+                m_CurrentIteration = 0;
+            }
         }
 
         static RTHandle PathTracingHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
@@ -115,13 +179,13 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
-            PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
+            m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             // Check the validity of the state before moving on with the computation
-            if (!pathTracingShader || !pathTracingSettings.enable.value)
+            if (!pathTracingShader || !m_PathTracingSettings.enable.value)
                 return;
 
-            CheckCameraChange(hdCamera);
+            CheckDirtiness(hdCamera);
 
             // Inject the ray-tracing sampling data
             BlueNoise blueNoiseManager = GetBlueNoiseManager();
@@ -148,16 +212,20 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
 
             // Inject the ray generation data
+#if UNITY_HDRP_DXR_TESTS_DEFINE
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingNumSamples, 1);
+#else
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingNumSamples, m_PathTracingSettings.maximumSamples.value);
+#endif
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMinRecursion, m_PathTracingSettings.minimumDepth.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, m_PathTracingSettings.maximumDepth.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, m_PathTracingSettings.maximumIntensity.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingNumSamples, pathTracingSettings.maximumSamples.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMinRecursion, pathTracingSettings.minimumDepth.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, pathTracingSettings.maximumDepth.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, pathTracingSettings.maximumIntensity.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingCameraNearPlane, hdCamera.camera.nearClipPlane);
 
             // Set the data for the ray generation
             cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._CameraColorTextureRW, outputTexture);
-            cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, (int)currentIteration++);
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, (int)m_CurrentIteration);
 
             // Compute an approximate pixel spread angle value (in radians)
             cmd.SetRayTracingFloatParam(pathTracingShader, HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
@@ -172,6 +240,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, lightCluster.GetAreaLightCount());
 
             // Set the data for the ray miss
+            cmd.SetRayTracingIntParam(pathTracingShader, HDShaderIDs._RaytracingCameraSkyEnabled, m_CameraSkyEnabled ? 1 : 0);
+            cmd.SetRayTracingVectorParam(pathTracingShader, HDShaderIDs._RaytracingCameraClearColor, hdCamera.backgroundColorHDR);
             cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));
 
             // Additional data for path tracing
@@ -179,7 +249,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingMatrixParam(pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, hdCamera.mainViewConstants.pixelCoordToViewDirWS);
 
             // Run the computation
-            cmd.DispatchRays(pathTracingShader, m_PathTracingRayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
+            cmd.DispatchRays(pathTracingShader, "RayGen", (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
+
+            // Increment the iteration counter, if we haven't converged yet
+            if (m_CurrentIteration < m_PathTracingSettings.maximumSamples.value)
+                m_CurrentIteration++;
         }
     }
 }

@@ -1,20 +1,26 @@
+#ifndef UNITY_SUB_SURFACE_INCLUDED
+#define UNITY_SUB_SURFACE_INCLUDED
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface/RayTracingIntersectionSubSurface.hlsl"
+
 // Data for the sub-surface walk
 struct ScatteringResult
 {
     bool hit;
     float3 outputPosition;
     float3 outputNormal;
+    float3 outputDirection;
     float3 outputDiffuse;
     float3 outputThroughput;
 };
 
-// This function  does the remaiing from scattering color and distance to sigmaT and sigmaS
-void RemapSubSurfaceScatteringParameters(float3 albedo, float3 radius, out float3 sigmaT, out float3 sigmaS)
+// This function does the remapping from scattering color and distance to sigmaS and sigmaT
+void RemapSubSurfaceScatteringParameters(float3 albedo, float3 radius, out float3 sigmaS, out float3 sigmaT)
 {
-    float3 a = 1.0f - exp(albedo * (-5.09406f + albedo * (2.61188f - albedo * 4.31805f)));
-    float3 s = 1.9f - albedo + 3.5f * (albedo - 0.8f) * (albedo - 0.8f);
+    float3 a = 1.0 - exp(albedo * (-5.09406 + albedo * (2.61188 - albedo * 4.31805)));
+    float3 s = 1.9 - albedo + 3.5 * (albedo - 0.8) * (albedo - 0.8);
 
-    sigmaT = 1.0f / max(radius * s, 1e-16f);
+    sigmaT = 1.0 / max(radius * s, 1e-16);
     sigmaS = sigmaT * a;
 }
 
@@ -23,10 +29,9 @@ int GetChannel(float u1, float3 channelWeight)
 {
     if (channelWeight.x > u1)
         return 0;
-    else if ((channelWeight.x + channelWeight.y) > u1)
+    if ((channelWeight.x + channelWeight.y) > u1)
         return 1;
-    else
-        return 2;
+    return 2;
 }
 
 // Safe division to avoid nans
@@ -45,10 +50,9 @@ void ScatteringWalk(float3 normalWS, float3 diffuseColor, float3 subSurfaceColor
     scatteringResult.outputThroughput = float3(1.0, 1.0, 1.0);
     scatteringResult.hit = false;
 
-    // Do our the mapping between the user-friendly parameters and sigmaT and sigmaS
-    float3 sigmaS;
-    float3 sigmaT;
-    RemapSubSurfaceScatteringParameters(diffuseColor, subSurfaceColor, sigmaT, sigmaS);
+    // Remap from our user-friendly parameters to and sigmaS and sigmaT
+    float3 sigmaS, sigmaT;
+    RemapSubSurfaceScatteringParameters(diffuseColor, subSurfaceColor, sigmaS, sigmaT);
 
     // Initialize the intersection structure
     RayIntersectionSubSurface internalRayIntersection;
@@ -57,11 +61,12 @@ void ScatteringWalk(float3 normalWS, float3 diffuseColor, float3 subSurfaceColor
 
     // Initialize the walk parameters
     RayDesc internalRayDesc;
+    internalRayDesc.TMin = 0.0;
+
     int maxWalkSteps = 16;
     int walkIdx = 0;
     float3 currentPathPosition = positionWS;
     float3 transmittance;
-    float3 sampleDir;
 
     while (!scatteringResult.hit && walkIdx < maxWalkSteps)
     {
@@ -74,14 +79,13 @@ void ScatteringWalk(float3 normalWS, float3 diffuseColor, float3 subSurfaceColor
 
         // Random number used to do channel selection
         float channelSelection = GetBNDSequenceSample(pixelCoord, rayCount, 4 * walkIdx + 3);
-        
+
         // Compute the per-channel weight
         float3 weights = scatteringResult.outputThroughput * SafeDivide(sigmaS, sigmaT);
 
         // Normalize our weights
         float channelSum = weights.x + weights.y + weights.z;
-        float3 channelWeight;
-        channelWeight = SafeDivide(weights, channelSum);
+        float3 channelWeight = SafeDivide(weights, channelSum);
 
         // Evaluate what channel we should be using for this sample
         int channelIdx = GetChannel(channelSelection, channelWeight);
@@ -90,45 +94,36 @@ void ScatteringWalk(float3 normalWS, float3 diffuseColor, float3 subSurfaceColor
         float currentSigmaT = sigmaT[channelIdx];
 
         // Evaluate the length of our steps
-        float currentDist = -log(1.0f - dstRndSample)/currentSigmaT;
+        internalRayDesc.TMax = -log(1.0f - dstRndSample) / currentSigmaT;
 
-        float samplePDF;
-        float3 rayOrigin;
         if (walkIdx != 0)
         {
-            sampleDir = normalize(SampleSphereUniform(dir0Rnd, dir1Rnd));
-            samplePDF = 1.0 /(2.0 * PI);
-            rayOrigin = currentPathPosition;
+            internalRayDesc.Direction = normalize(SampleSphereUniform(dir0Rnd, dir1Rnd));
+            internalRayDesc.Origin = currentPathPosition;
         }
         else
         {
-            // If it's the first sample, the surface is considered lambertian
-            sampleDir = normalize(SampleHemisphereCosine(dir0Rnd, dir1Rnd, -normalWS));
-            samplePDF = dot(sampleDir, -normalWS);
-            rayOrigin = positionWS - normalWS * _RaytracingRayBias;
+            // If we just started the walk, the surface is considered back-Lambertian
+            internalRayDesc.Direction = normalize(SampleHemisphereCosine(dir0Rnd, dir1Rnd, -normalWS));
+            internalRayDesc.Origin = positionWS - normalWS * _RaytracingRayBias;
         }
-
-        // Now that we have all the info for throwing our ray
-        internalRayDesc.Origin = rayOrigin;
-        internalRayDesc.Direction = sampleDir;
-        internalRayDesc.TMin = 0.0;
-        internalRayDesc.TMax = currentDist;
 
         // Initialize the intersection data
         internalRayIntersection.t = -1.0;
         internalRayIntersection.outNormal = 0.0;
-        
+
         // Do the next step
         // TODO: Maybe include only the subsurface meshes.
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_OPAQUE, RAYTRACINGRENDERERFLAG_OPAQUE, 0, 1, 0, internalRayDesc, internalRayIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
+                 RAYTRACINGRENDERERFLAG_OPAQUE, 0, 1, 0, internalRayDesc, internalRayIntersection);
 
         // Define if we did a hit
         scatteringResult.hit = internalRayIntersection.t > 0.0;
 
         // How much did the ray travel?
-        float t = scatteringResult.hit ? internalRayIntersection.t : currentDist;
+        float t = scatteringResult.hit ? internalRayIntersection.t : internalRayDesc.TMax;
 
-        // Evalaute the transmittance for the current segment
+        // Evaluate the transmittance for the current segment
         transmittance = exp(-t * sigmaT);
 
         // Evaluate the pdf for the current segment
@@ -137,15 +132,18 @@ void ScatteringWalk(float3 normalWS, float3 diffuseColor, float3 subSurfaceColor
         // Contribute to the throughput
         scatteringResult.outputThroughput *= SafeDivide(scatteringResult.hit ? transmittance : sigmaS * transmittance, pdf);
 
-        // If we exit right away, the diffuse color is thr throughput value
+        // FIXME: The following multiplication by diffuseColor looks rather fishy...
+        // This should probably not be done at all, and definitely not on select path lengths.
+
+        // If we exit right away, the diffuse color is the throughput value
         if (scatteringResult.hit && walkIdx == 0)
             scatteringResult.outputThroughput *= diffuseColor;
 
         // Compute the next path position
-        currentPathPosition = currentPathPosition + sampleDir * t;
+        currentPathPosition = currentPathPosition + internalRayDesc.Direction * t;
         scatteringResult.outputNormal = internalRayIntersection.outNormal;
 
-        // increment the path
+        // increment the path depth
         walkIdx++;
     }
 
@@ -153,6 +151,11 @@ void ScatteringWalk(float3 normalWS, float3 diffuseColor, float3 subSurfaceColor
     if (!scatteringResult.hit)
         scatteringResult.outputThroughput = float3(0.0, 0.0, 0.0);
     else
+    {
         scatteringResult.outputPosition = currentPathPosition;
+        scatteringResult.outputDirection = internalRayDesc.Direction;
         scatteringResult.outputDiffuse = internalRayIntersection.outIndirectDiffuse;
+    }
 }
+
+#endif // UNITY_SUB_SURFACE_INCLUDED

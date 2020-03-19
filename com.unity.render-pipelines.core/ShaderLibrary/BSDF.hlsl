@@ -194,12 +194,6 @@ real G_MaskingSmithGGX(real NdotV, real roughness)
     return 1.0 / (0.5 + 0.5 * sqrt(1.0 + Sq(roughness) * (1.0 / Sq(NdotV) - 1.0)));
 }
 
-// Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, p. 12.
-real D_GGX_Visible(real NdotH, real NdotV, real VdotH, real roughness)
-{
-    return D_GGX(NdotH, roughness) * G_MaskingSmithGGX(NdotV, roughness) * VdotH / NdotV;
-}
-
 // Precompute part of lambdaV
 real GetSmithJointGGXPartLambdaV(real NdotV, real roughness)
 {

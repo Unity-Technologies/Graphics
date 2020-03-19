@@ -341,6 +341,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             [Reload("Runtime/RenderPipelineResources/defaultDiffusionProfile.asset")]
             public DiffusionProfileSettings defaultDiffusionProfile;
+            
+            //Area Light Emissive Meshes
+            [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
+            public Mesh emissiveCylinderMesh;
+            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.FBX")]
+            public Mesh emissiveQuadMesh;
         }
 
         public ShaderResources shaders;
