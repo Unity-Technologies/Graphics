@@ -54,10 +54,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 AddMasterPreview();
             }
-
-            // TODO: This is required to draw preview on assembly reload
-            // TODO: But only if there is no blocks. Why?
-            m_NodesToDraw.Add(null);
         }
 
         public OnPrimaryMasterChanged onPrimaryMasterChanged;
