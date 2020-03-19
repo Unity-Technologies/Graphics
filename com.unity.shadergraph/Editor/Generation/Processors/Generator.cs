@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -30,7 +30,8 @@ namespace UnityEditor.ShaderGraph
         public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name)
         {
             m_GraphData = graphData;
-            m_OutputNode = outputNode;
+            m_OutputNode = VirtualTexturingFeedback.AutoInject(outputNode);
+            m_GraphData = m_OutputNode.owner;
             m_Mode = mode;
             m_Name = name;
 
@@ -222,6 +223,7 @@ namespace UnityEditor.ShaderGraph
             // Function Registry
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
+            var graphIncludes = new IncludeCollection();
 
             // Hash table of named $splice(name) commands
             // Key: splice token
@@ -303,36 +305,6 @@ namespace UnityEditor.ShaderGraph
 
                 string command = GenerationUtils.GetSpliceCommand(passPragmaBuilder.ToCodeBlock(), "PassPragmas");
                 spliceCommands.Add("PassPragmas", command);
-            }
-
-            // Includes
-            using (var preGraphIncludeBuilder = new ShaderStringBuilder())
-            {
-                if(pass.includes != null)
-                {
-                    foreach(IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
-                    {
-                        if(include.TestActive(activeFields))
-                            preGraphIncludeBuilder.AppendLine(include.value);
-                    }
-                }
-
-                string command = GenerationUtils.GetSpliceCommand(preGraphIncludeBuilder.ToCodeBlock(), "PreGraphIncludes");
-                spliceCommands.Add("PreGraphIncludes", command);
-            }
-            using (var postGraphIncludeBuilder = new ShaderStringBuilder())
-            {
-                if(pass.includes != null)
-                {
-                    foreach(IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Postgraph))
-                    {
-                        if(include.TestActive(activeFields))
-                            postGraphIncludeBuilder.AppendLine(include.value);
-                    }
-                }
-
-                string command = GenerationUtils.GetSpliceCommand(postGraphIncludeBuilder.ToCodeBlock(), "PostGraphIncludes");
-                spliceCommands.Add("PostGraphIncludes", command);
             }
 
             // Keywords
@@ -454,6 +426,7 @@ namespace UnityEditor.ShaderGraph
                 GenerationUtils.GenerateVertexDescriptionFunction(
                     m_GraphData,
                     vertexGraphFunctionBuilder,
+                    graphIncludes,
                     functionRegistry,
                     propertyCollector,
                     keywordCollector,
@@ -501,6 +474,7 @@ namespace UnityEditor.ShaderGraph
                 m_OutputNode,
                 m_GraphData,
                 pixelGraphFunctionBuilder,
+                graphIncludes,
                 functionRegistry,
                 propertyCollector,
                 keywordCollector,
@@ -525,9 +499,52 @@ namespace UnityEditor.ShaderGraph
             }
 
             // --------------------------------------------------
+            // Includes (including Graph Includes)
+            using (var preGraphIncludeBuilder = new ShaderStringBuilder())
+            {
+                if (pass.includes != null)
+                {
+                    foreach (IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
+                    {
+                        if (include.TestActive(activeFields))
+                            preGraphIncludeBuilder.AppendLine(include.value);
+                    }
+                }
+
+                foreach (IncludeCollection.Item include in graphIncludes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
+                {
+                    if (include.TestActive(activeFields))
+                        preGraphIncludeBuilder.AppendLine(include.value);
+                }
+
+                string command = GenerationUtils.GetSpliceCommand(preGraphIncludeBuilder.ToCodeBlock(), "PreGraphIncludes");
+                spliceCommands.Add("PreGraphIncludes", command);
+            }
+            using (var postGraphIncludeBuilder = new ShaderStringBuilder())
+            {
+                if (pass.includes != null)
+                {
+                    foreach (IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Postgraph))
+                    {
+                        if (include.TestActive(activeFields))
+                            postGraphIncludeBuilder.AppendLine(include.value);
+                    }
+                }
+
+                foreach (IncludeCollection.Item include in graphIncludes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
+                {
+                    if (include.TestActive(activeFields))
+                        postGraphIncludeBuilder.AppendLine(include.value);
+                }
+
+                string command = GenerationUtils.GetSpliceCommand(postGraphIncludeBuilder.ToCodeBlock(), "PostGraphIncludes");
+                spliceCommands.Add("PostGraphIncludes", command);
+            }
+
+            // --------------------------------------------------
             // Graph Functions
 
-            if(functionBuilder.length == 0)
+            if (functionBuilder.length == 0)
                 functionBuilder.AppendLine("// GraphFunctions: <None>");
             spliceCommands.Add("GraphFunctions", functionBuilder.ToCodeBlock());
 

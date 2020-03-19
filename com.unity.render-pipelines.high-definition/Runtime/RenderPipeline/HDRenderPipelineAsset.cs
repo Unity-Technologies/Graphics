@@ -24,11 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
             
         }
 
-        public void OnEnable()
-        {
-
-        }
-
         void Reset() => OnValidate();
 
         /// <summary>

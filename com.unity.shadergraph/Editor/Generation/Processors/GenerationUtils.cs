@@ -729,6 +729,7 @@ namespace UnityEditor.ShaderGraph
             AbstractMaterialNode rootNode,
             GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
+            IncludeCollection includes,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
@@ -750,7 +751,7 @@ namespace UnityEditor.ShaderGraph
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
                 for(int i = 0; i < nodes.Count; i++)
                 {
-                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], includes, functionRegistry, surfaceDescriptionFunction,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }
@@ -768,6 +769,7 @@ namespace UnityEditor.ShaderGraph
         static void GenerateDescriptionForNode(
             AbstractMaterialNode activeNode,
             List<int> keywordPermutations,
+            IncludeCollection includes,
             FunctionRegistry functionRegistry,
             ShaderStringBuilder descriptionFunction,
             PropertyCollector shaderProperties,
@@ -775,6 +777,11 @@ namespace UnityEditor.ShaderGraph
             GraphData graph,
             GenerationMode mode)
         {
+            if (activeNode is IGeneratesInclude includeNode)
+            {
+                includeNode.GenerateNodeInclude(includes, mode);
+            }
+
             if (activeNode is IGeneratesFunction functionNode)
             {
                 functionRegistry.builder.currentNode = activeNode;
@@ -874,6 +881,7 @@ namespace UnityEditor.ShaderGraph
         internal static void GenerateVertexDescriptionFunction(
             GraphData graph,
             ShaderStringBuilder builder,
+            IncludeCollection includes,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
@@ -897,7 +905,7 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
                 for(int i = 0; i < nodes.Count; i++)
                 {
-                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], includes, functionRegistry, builder,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }

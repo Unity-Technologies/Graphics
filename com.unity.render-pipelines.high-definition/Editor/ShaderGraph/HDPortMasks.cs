@@ -97,6 +97,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 PBRMasterNode.AlphaThresholdSlotId,
             };
 
+            public static int[] PBRDefaultWithVt = new int[]
+            {
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.NormalSlotId,
+                PBRMasterNode.MetallicSlotId,
+                PBRMasterNode.SpecularSlotId,
+                PBRMasterNode.EmissionSlotId,
+                PBRMasterNode.SmoothnessSlotId,
+                PBRMasterNode.OcclusionSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId,
+                VirtualTexturingFeedback.OutputSlotID,
+            };
+
             public static int[] PBROnlyAlpha = new int[]
             {
                 PBRMasterNode.AlphaSlotId,
@@ -171,6 +185,38 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDLitMasterNode.LightingSlotId,
                 HDLitMasterNode.BackLightingSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
+            };
+
+            public static int[] HDLitDefaultWithVt = new int[]
+            {
+                HDLitMasterNode.AlbedoSlotId,
+                HDLitMasterNode.NormalSlotId,
+                HDLitMasterNode.BentNormalSlotId,
+                HDLitMasterNode.TangentSlotId,
+                HDLitMasterNode.SubsurfaceMaskSlotId,
+                HDLitMasterNode.ThicknessSlotId,
+                HDLitMasterNode.DiffusionProfileHashSlotId,
+                HDLitMasterNode.IridescenceMaskSlotId,
+                HDLitMasterNode.IridescenceThicknessSlotId,
+                HDLitMasterNode.SpecularColorSlotId,
+                HDLitMasterNode.CoatMaskSlotId,
+                HDLitMasterNode.MetallicSlotId,
+                HDLitMasterNode.EmissionSlotId,
+                HDLitMasterNode.SmoothnessSlotId,
+                HDLitMasterNode.AmbientOcclusionSlotId,
+                HDLitMasterNode.SpecularOcclusionSlotId,
+                HDLitMasterNode.AlphaSlotId,
+                HDLitMasterNode.AlphaThresholdSlotId,
+                HDLitMasterNode.AnisotropySlotId,
+                HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
+                HDLitMasterNode.SpecularAAThresholdSlotId,
+                HDLitMasterNode.RefractionIndexSlotId,
+                HDLitMasterNode.RefractionColorSlotId,
+                HDLitMasterNode.RefractionDistanceSlotId,
+                HDLitMasterNode.LightingSlotId,
+                HDLitMasterNode.BackLightingSlotId,
+                HDLitMasterNode.DepthOffsetSlotId,
+                VirtualTexturingFeedback.OutputSlotID,
             };
 
             public static int[] HDLitMeta = new int[]

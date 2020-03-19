@@ -544,14 +544,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public virtual void GenerateNodeInclude(IncludeRegistry registry, GenerationMode generationMode)
+        public virtual void GenerateNodeInclude(IncludeCollection registry, GenerationMode generationMode)
         {
             if (asset == null || hasError)
                 return;
 
-            foreach (var function in asset.includes)
+            foreach (var include in asset.includes)
             {
-                registry.ProvideIncludeBlock(function.key, function.value);
+                IncludeLocation location;
+                if ( Enum.TryParse<IncludeLocation>(include.location, out location) )
+                {
+                    registry.Add(include.value, location);
+                }
+                else
+                {
+                    Debug.LogError($"Error in Graph at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\": Sub Graph contains an include with an unknown include location {include.location}.", asset);
+                }
             }
         }
 

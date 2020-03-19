@@ -1321,9 +1321,12 @@ namespace UnityEditor.Rendering.HighDefinition
             base.ValidateNode();
         }
 
-        public override bool SupportsVirtualTexturing()
+        public bool virtualTexturingEnabled
         {
-            return true;
+            get
+            {
+                return true;
+            }
         }
     }
 }

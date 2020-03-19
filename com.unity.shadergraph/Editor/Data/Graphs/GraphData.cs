@@ -340,6 +340,7 @@ namespace UnityEditor.ShaderGraph
             string serialized = EditorJsonUtility.ToJson(this, false);
             GraphData dataCopy = new GraphData();
             EditorJsonUtility.FromJsonOverwrite(serialized, dataCopy);
+            dataCopy.UpdateTargets();
             return dataCopy;
         }
 

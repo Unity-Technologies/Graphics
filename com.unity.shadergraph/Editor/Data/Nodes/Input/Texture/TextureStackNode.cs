@@ -257,7 +257,7 @@ namespace UnityEditor.ShaderGraph
             get
             {
                 var masterNode = owner?.GetNodes<IMasterNode>().FirstOrDefault();
-                return masterNode?.SupportsVirtualTexturing() ?? false;
+                return masterNode?.virtualTexturingEnabled ?? false;
             }
         }
 
@@ -548,7 +548,7 @@ namespace UnityEditor.ShaderGraph
                 if (nodeNames.Contains(node.GetStackName()) && !node.isProcedural)
                 {
                     // Add a validation error, values need to be unique
-                    node.owner.AddValidationError(node.tempId, $"Some stack nodes have the same name '{node.GetStackName()}', please ensure all stack nodes have unique names.", ShaderCompilerMessageSeverity.Error);
+                    node.owner.AddValidationError(node.guid, $"Some stack nodes have the same name '{node.GetStackName()}', please ensure all stack nodes have unique names.", ShaderCompilerMessageSeverity.Error);
                 }
                 else
                 {
@@ -568,7 +568,7 @@ namespace UnityEditor.ShaderGraph
                         if (valueNameLookup.TryGetValue(value, out displayName))
                         {
                             // Add a validation error, values need to be unique
-                            node.owner.AddValidationError(node.tempId, $"Input slot '{name}' shares it's value '{value}' with another stack '{displayName}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
+                            node.owner.AddValidationError(node.guid, $"Input slot '{name}' shares it's value '{value}' with another stack '{displayName}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
                         }
                         else
                         {
@@ -587,7 +587,7 @@ namespace UnityEditor.ShaderGraph
                     // Todo how to exclude procedurals in subgraphs?
                     if (nodeNames.Contains(subStack))
                     {
-                        node.owner.AddValidationError(node.tempId, $"A stack node in a subgraph which is exposed through a texture argument has the same name '{subStack}', please ensure all stack nodes have unique names across the whole shader using them.", ShaderCompilerMessageSeverity.Error);
+                        node.owner.AddValidationError(node.guid, $"A stack node in a subgraph which is exposed through a texture argument has the same name '{subStack}', please ensure all stack nodes have unique names across the whole shader using them.", ShaderCompilerMessageSeverity.Error);
                     }
                     else
                     {
@@ -603,7 +603,7 @@ namespace UnityEditor.ShaderGraph
                     if (valueNameLookup.TryGetValue(kvp.Key, out stackName))
                     {
                         // Add a validation error, values need to be unique
-                        node.owner.AddValidationError(node.tempId, $"Stack '{kvp.Value}' shares it's value '{kvp.Key}' with another stack '{stackName}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
+                        node.owner.AddValidationError(node.guid, $"Stack '{kvp.Value}' shares it's value '{kvp.Key}' with another stack '{stackName}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
                     }
                     else
                     {
@@ -792,13 +792,13 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeInclude(IncludeRegistry registry, GenerationMode generationMode)
+        public void GenerateNodeInclude(IncludeCollection registry, GenerationMode generationMode)
         {
             // This is not in templates or headers so this error only gets checked in shaders actually using the VT node
             // as vt headers get included even if there are no vt nodes yet.
             IVirtualTexturingEnabledRenderPipeline vtRp = GraphicsSettings.currentRenderPipeline as IVirtualTexturingEnabledRenderPipeline;
 
-            if (!supportedByMasterNode)
+            /*if (!supportedByMasterNode)
             {
                 // The master node is not white listed for VT just use regular textures even if vt is on for this project.
                 registry.ProvideIncludeBlock("disable-vt-if-unsupported-node", "#define FORCE_VIRTUAL_TEXTURING_OFF 1");
@@ -815,10 +815,10 @@ namespace UnityEditor.ShaderGraph
 #define FORCE_VIRTUAL_TEXTURING_OFF 1
 #error VT cannot be used on transparent surfaces.
 #endif");
-            }
+            }*/
 
             // Always include the header even if vt is off this ensures the macros providing fallbacks are existing.
-            registry.ProvideInclude("Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl");
+            registry.Add("Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl", IncludeLocation.Pregraph);
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
@@ -922,6 +922,7 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            Debug.Log("Aggregate generate code");
             var slots = this.GetInputSlots<ISlot>();
             int numSlots = slots.Count();
             if (numSlots == 0)
@@ -968,10 +969,10 @@ namespace UnityEditor.ShaderGraph
         public const string subgraphOutputFrefix = "VTFeedbackIn_";
 
         // Automatically add a  streaming feedback node and correctly connect it to stack samples are connected to it and it is connected to the master node output
-        public static IMasterNode AutoInject(IMasterNode iMasterNode)
+        public static AbstractMaterialNode AutoInject(AbstractMaterialNode masterNode)
         {
             Debug.Log("Inject vt feedback");
-            var masterNode = iMasterNode as AbstractMaterialNode;
+            //var masterNode = iMasterNode as AbstractMaterialNode;
             var stackNodes = GraphUtil.FindDownStreamNodesOfType<SampleTextureStackNode>(masterNode);
             var subgraphNodes = GraphUtil.FindDownStreamNodesOfType<SubGraphNode>(masterNode);
             Debug.Log("SubgraphNodes: " + subgraphNodes.Count);
@@ -981,7 +982,7 @@ namespace UnityEditor.ShaderGraph
             // this avoids unnecessary work of copying the graph and patching it.
             if (stackNodes.Count <= 0 && subgraphNodes.Count <= 0)
             {
-                return iMasterNode;
+                return masterNode;
             }
 
             bool hasFeedback = false;
@@ -1009,7 +1010,7 @@ namespace UnityEditor.ShaderGraph
             if (!hasFeedback)
             {
                 Debug.Log("No vt feedback early out");
-                return iMasterNode;
+                return masterNode;
             }
 
             // Duplicate the Graph so we can modify it
@@ -1068,20 +1069,20 @@ namespace UnityEditor.ShaderGraph
             if (feedbackInputSlot == null)
             {
                 Debug.LogWarning("Could not find the VT feedback input slot on the master node.");
-                return iMasterNode;
+                return masterNode;
             }
 
             var feedbackOutputSlot = feedbackNode.FindOutputSlot<ISlot>(TextureStackAggregateFeedbackNode.AggregateOutputId);
             if (feedbackOutputSlot == null)
             {
                 Debug.LogWarning("Could not find the VT feedback output slot on the aggregate node.");
-                return iMasterNode;
+                return masterNode;
             }
 
             workingMasterNode.owner.Connect(feedbackOutputSlot.slotReference, feedbackInputSlot.slotReference);
             workingMasterNode.owner.ClearChanges();
 
-            return workingMasterNode as IMasterNode;
+            return workingMasterNode;
         }
 
         // Automatically add a  streaming feedback node and correctly connect it to stack samples are connected to it and it is connected to the master node output

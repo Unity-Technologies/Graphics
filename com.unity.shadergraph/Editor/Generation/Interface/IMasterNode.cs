@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph
     {
         string renderQueueTag { get; }
         string renderTypeTag { get; }
+        bool virtualTexturingEnabled { get; }
         ConditionalField[] GetConditionalFields(PassDescriptor pass);
         void ProcessPreviewMaterial(Material material);
     }

@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph
 
         static void ProcessSubGraph(SubGraphAsset asset, GraphData graph)
         {
-            var includes = new IncludeRegistry(new ShaderStringBuilder());
+            var includes = new IncludeCollection();
             var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
             registry.names.Clear();
             asset.includes.Clear();
@@ -166,7 +166,6 @@ namespace UnityEditor.ShaderGraph
                 }
                 if (node is IGeneratesInclude generatesInclude)
                 {
-                    includes.builder.currentNode = node;
                     generatesInclude.GenerateNodeInclude(includes, GenerationMode.ForReals);
                 }
             }
@@ -217,7 +216,7 @@ namespace UnityEditor.ShaderGraph
                 }
             });
 
-            asset.includes.AddRange(includes.names.Select(x => new FunctionPair(x, includes.includes[x].code)));
+            asset.includes.AddRange(includes.Select(x => new SubGraphInclude(x.descriptor.value, "" + x.descriptor.location)));
             asset.functions.AddRange(registry.names.Select(x => new FunctionPair(x, registry.sources[x].code)));
 
             var collector = new PropertyCollector();

@@ -249,11 +249,13 @@ namespace UnityEditor.ShaderGraph
             return validSlots.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
         }
 
-        public override bool SupportsVirtualTexturing()
+        public bool virtualTexturingEnabled
         {
-            // This means if a render pipeline clams to support vt it at least needs to support the PBRMasterNode with VT
-            var vtRp = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline as UnityEngine.Rendering.IVirtualTexturingEnabledRenderPipeline;
-            return (vtRp != null) && vtRp.virtualTexturingEnabled;
+            get {
+                // This means if a render pipeline clams to support vt it at least needs to support the PBRMasterNode with VT
+                var vtRp = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline as UnityEngine.Rendering.IVirtualTexturingEnabledRenderPipeline;
+                return (vtRp != null) && vtRp.virtualTexturingEnabled;
+            }
         }
     }
 }
