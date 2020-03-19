@@ -191,6 +191,7 @@ namespace UnityEditor.Rendering.HighDefinition
             s_ExposureLow = EditorGUIUtility.IconContent("SceneViewLighting");
             s_PreLabel = "preLabel";
         }
+		/*
         public override Texture2D RenderStaticPreview(string assetPath, Object[] subAssets, int width, int height)
         {
             m_CameraDistance = 1.25f;
@@ -208,5 +209,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             return m_PreviewUtility.EndStaticPreview();
         }
+		*/
     }
 }

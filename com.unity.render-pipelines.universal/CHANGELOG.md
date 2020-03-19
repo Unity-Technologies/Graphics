@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [7.3.0] - 2020-03-11
 
 ### Added
@@ -42,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where terrain DepthOnly pass does not work for XR.
 - Fixed an issue where Shaders that used Texture Arrays and FrontFace didn't compile at build time, which caused the build to fail.
 - Fixed an issue where Shader Graph subshaders referenced incorrect asset GUIDs. 
+- Fixed an issue where Post-Processing caused nothing to render on GLES2.
 
 ### Added
 - If Unity Editor Analytics are enabled, Universal collects anonymous data about usage of Universal. This helps the Universal team focus our efforts on the most common scenarios, and better understand the needs of our customers.

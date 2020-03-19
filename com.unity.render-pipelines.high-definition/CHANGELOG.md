@@ -7,19 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Fixed
-- Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
-- Fix an exception in case two LOD levels are using the same mesh renderer.
-- Fixed error in the console when switching shader to decal in the material UI.
-- Fixed z-fighting in scene view when scene lighting is off (case 1203927)
-- Fixed issue that prevented cubemap thumbnails from rendering.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 
 ## [7.3.0] - 2020-03-11
-
-### Changed
-- Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
 
 ### Added
 - Added the exposure sliders to the planar reflection probe preview
@@ -60,6 +52,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed draw renderers custom pass out of bound exception
 - Fixed an issue with emissive light meshes not being in the RAS.
 - Fixed a warning due to StaticLightingSky when reloading domain in some cases.
+- Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
+- Fix an exception in case two LOD levels are using the same mesh renderer.
+- Fixed error in the console when switching shader to decal in the material UI.
+- Fixed z-fighting in scene view when scene lighting is off (case 1203927)
 - Fixed some typos in debug menu (case 1224594)
 
 ### Changed
@@ -68,6 +64,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed info box requesting volume component for Visual Environment and updated the documentation with the relevant information.
 - Add range-based clipping to box lights (case 1178780)
 - Improve area light culling (case 1085873)
+- Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
 
 ## [7.2.0] - 2020-02-10
 

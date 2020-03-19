@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [7.3.0] - 2020-03-11
 
 ### Added
@@ -19,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Sub Graphs sometimes had duplicate names when you converted nodes into Sub Graphs. 
 - Fixed an issue where the number of ports on Keyword nodes didn't update when you added or removed Enum Keyword entries.
 - Fixed an issue where colors in graphs didn't update when you changed a Blackboard Property's precision while the Color Mode is set to Precision.
+- Fixed a bug where if a user had a Blackboard Property Reference start with a digit the generated shader would be broken.
 - Fixed a bug where undo would make the Master Preview visible regardless of its toggle status.
 - Fixed a bug where any change to the PBR master node settings would lose connection to the normal slot.
 - Fixed a bug where the user couldn't open up HDRP Master Node Shader Graphs without the Render Pipeline set to HDRP.
