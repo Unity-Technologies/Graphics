@@ -171,9 +171,9 @@ namespace UnityEditor.Graphing
             }
             else
             {
-                // If any downstream nodes are active
+                // If any downstream nodes are active and this node is valid
                 // then this node is also active
-                if(nodes.Any(x => x.isActive))
+                if(nodes.Any(x => x.isActive) && node.isValid == true)
                     node.isActive = true;
                 else
                     node.isActive = false;

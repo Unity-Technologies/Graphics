@@ -40,6 +40,9 @@ namespace UnityEditor.ShaderGraph
         bool m_IsActive = true;
 
         [NonSerialized]
+        bool m_IsValid = true;
+
+        [NonSerialized]
         private List<ISlot> m_Slots = new List<ISlot>();
 
         [SerializeField]
@@ -188,6 +191,21 @@ namespace UnityEditor.ShaderGraph
                 {
                     NodeUtils.UpdateNodeActiveOnEdgeChange(upstreamNode);
                 }
+            }
+        }
+
+        public virtual bool isValid
+        {
+            get { return m_IsValid; }
+            set 
+            {
+                if(m_IsValid == value)
+                    return;
+                
+                if(value == false)
+                    isActive = false;
+                
+                m_IsValid = value;
             }
         }
 

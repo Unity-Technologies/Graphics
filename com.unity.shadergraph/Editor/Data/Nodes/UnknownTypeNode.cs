@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
         public UnknownTypeNode(JSONSerializedElement serializedNodeData) : base()
         {
             serializedData = serializedNodeData;
-            isActive = false;
+            isValid = false;
         }
 
         public override void ValidateNode()

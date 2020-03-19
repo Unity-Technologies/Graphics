@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     if(!targetImpl.allowedNodes.Contains(t))
                     {
-                        node.isActive = false;
+                        node.isValid = false;
                         node.owner.AddValidationError(node.guid, $"{node.name} Node is not allowed by {targetImpl.displayName + targetImpl.targetType.Name} implementation", Rendering.ShaderCompilerMessageSeverity.Warning);
                     }
                 }
