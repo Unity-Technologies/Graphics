@@ -50,7 +50,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that prevented cubemap thumbnails from rendering.
 - Fix an exception in ray tracing that happens if two LOD levels are using the same mesh renderer.
 - Fix some typos in the debug menu.
-- Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
 - Fixed cubemap thumbnail generation at project load time. 
@@ -64,6 +63,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improve area light culling (case 1085873)
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
+- Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
+- Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
 
 ## [8.0.0] - 2020-05-25
 
