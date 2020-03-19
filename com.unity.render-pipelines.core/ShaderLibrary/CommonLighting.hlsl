@@ -289,6 +289,16 @@ real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS,
     return SphericalCapIntersectionSolidArea(cosAv, cosAs, cosB) / (TWO_PI * (1.0 - cosAs));
 }
 
+// Ref: Stephen McAuley - Advances in Rendering: Graphics Research and Video Game Production
+real3 ComputeWrappedNormal(real3 N, real3 L, real w)
+{
+    real NdotL = dot(N, L);
+    real wrappedNdotL = saturate((NdotL + w) / (1 + w));
+    real sinPhi = lerp(w, 0.f, wrappedNdotL);
+    real cosPhi = sqrt(1.0f - sinPhi * sinPhi);
+    return normalize(cosPhi * N + sinPhi * cross(cross(N, L), N));
+}
+
 // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
 real ComputeWrappedDiffuseLighting(real NdotL, real w)
 {
