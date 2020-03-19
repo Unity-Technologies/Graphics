@@ -678,6 +678,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (nodeView?.node != null)
                     {
                         nodesToUpdate.Add(nodeView);
+
+                        // Update active state for connected Nodes
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(nodeView?.node);
                     }
 
                     edgeView.output.Disconnect(edgeView);
@@ -694,7 +697,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var edgeView = AddEdge(edge);
                 if (edgeView != null)
-                    nodesToUpdate.Add((IShaderNodeView)edgeView.input.node);
+                {
+                    var outputNodeView = (IShaderNodeView)edgeView.output.node;
+                    nodesToUpdate.Add(outputNodeView);
+
+                    // Update active state for connected Nodes
+                    NodeUtils.UpdateNodeActiveOnEdgeChange(outputNodeView?.node);
+                }
             }
 
             foreach (var node in nodesToUpdate)
@@ -894,11 +903,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
                 var targetAnchor = targetNodeView.gvNode.inputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(targetSlot));
 
+                bool isEdgeActive = true;
+                if (!sourceNodeView.node.isActive || !targetNodeView.node.isActive)
+                    isEdgeActive = false;
+
                 var edgeView = new Edge
                 {
                     userData = edge,
                     output = sourceAnchor,
-                    input = targetAnchor
+                    input = targetAnchor,
+                    isGhostEdge = !isEdgeActive
                 };
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
