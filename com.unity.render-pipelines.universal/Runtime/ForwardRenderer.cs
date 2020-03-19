@@ -120,7 +120,11 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
-            RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+            RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor; ;
+#if ENABLE_VR && ENABLE_VR_MODULE
+            if(cameraData.xrPass.enabled)
+                cameraTargetDescriptor = cameraData.xrPass.renderTargetDesc;
+#endif
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
             bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
@@ -180,15 +184,23 @@ namespace UnityEngine.Rendering.Universal
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
-                m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
-                m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
+                RenderTargetHandle cameraTarget = RenderTargetHandle.CameraTarget;
+#if ENABLE_VR && ENABLE_VR_MODULE
+                if(cameraData.xrPass.enabled)
+                    cameraTarget = cameraData.xrPass.renderTargetAsRTHandle;
+#endif
+                m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : cameraTarget;
+                m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : cameraTarget;
 
                 bool intermediateRenderTexture = createColorTexture || createDepthTexture;
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 bool createTextures = intermediateRenderTexture;
+
+                // XRTODO: intermediate texture dimension could be differrent from camera target texture dimension.
+                // Upgrade the logic here to handle multipass render to texture array case and spi render to N texture 2d case
                 if (createTextures)
-                    CreateCameraRenderTarget(context, ref renderingData.cameraData);
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor);
 
                 // if rendering to intermediate render texture we don't have to create msaa backbuffer
                 int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
@@ -202,7 +214,8 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
 
-            ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
+            // XRTODO: ConfigureCameraTarget Should also support depthslice. In XR, camera target could be texture2DArray type and multipass rendering need to be able to render to depthslide 0/1 separately
+            ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier(), cameraTargetDescriptor.dimension);
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
@@ -388,10 +401,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void CreateCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData)
+        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_CreateCameraTextures);
-            var descriptor = cameraData.cameraTargetDescriptor;
             int msaaSamples = descriptor.msaaSamples;
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
             {

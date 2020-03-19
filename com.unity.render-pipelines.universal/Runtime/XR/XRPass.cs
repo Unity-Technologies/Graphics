@@ -93,8 +93,9 @@ namespace UnityEngine.Rendering.Universal
 
         // Ability to specify where to render the pass
         internal RenderTargetIdentifier  renderTarget     { get; private set; }
+        internal RenderTargetHandle      renderTargetAsRTHandle { get; private set; }
         internal RenderTextureDescriptor renderTargetDesc { get; private set; }
-        static RenderTargetIdentifier    invalidRT = -1;
+        static   RenderTargetIdentifier  invalidRT = -1;
         internal bool                    renderTargetValid { get => renderTarget != invalidRT; }
         internal bool                    renderTargetIsRenderTexture { get; private set; }
 
@@ -178,6 +179,8 @@ namespace UnityEngine.Rendering.Universal
             passInfo.cullingParams = cullingParameters;
             passInfo.views.Clear();
             passInfo.renderTarget = xrRenderPass.renderTarget;
+            passInfo.renderTargetAsRTHandle.Init(xrRenderPass.renderTarget);
+
             RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(
                     xrRenderPass.renderTargetDesc.width, xrRenderPass.renderTargetDesc.height, xrRenderPass.renderTargetDesc.colorFormat,
                     xrRenderPass.renderTargetDesc.depthBufferBits, xrRenderPass.renderTargetDesc.mipCount);
@@ -290,7 +293,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void RenderOcclusionMeshes(CommandBuffer cmd, RTHandle depthBuffer)
+        // XRTODO: URP Does not use RTHandle
+        internal void RenderOcclusionMeshes(CommandBuffer cmd, RenderTargetHandle depthBuffer)
         {
             if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
             {
@@ -302,11 +306,37 @@ namespace UnityEngine.Rendering.Universal
                     {
                         if (views[viewId].occlusionMesh != null)
                         {
-                            CoreUtils.SetRenderTarget(cmd, depthBuffer, ClearFlag.None, 0, CubemapFace.Unknown, viewId);
+                            CoreUtils.SetRenderTarget(cmd, depthBuffer.Identifier(), ClearFlag.None, 0, CubemapFace.Unknown, viewId);
                             cmd.DrawMesh(views[viewId].occlusionMesh, m, occlusionMeshMaterial);
                         }
                     }
                 }
+            }
+        }
+
+        internal void UpdateGPUViewAndProjectionMatricies(CommandBuffer cmd, ref CameraData cameraData, bool isRenderToTexture)
+        {
+            // if contains only 1 view, setup view proj
+            if (!cameraData.xrPass.hasMultiXrView)
+            {
+                Matrix4x4 projectionMatrix = GL.GetGPUProjectionMatrix(cameraData.xrPass.GetProjMatrix(0), isRenderToTexture);
+                RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.xrPass.GetViewMatrix(0), projectionMatrix, true);
+            }
+            // else, set up multi view proj to stereo buffer as well as non stereo buffer
+            else
+            {
+                Matrix4x4 projectionMatrix = GL.GetGPUProjectionMatrix(cameraData.xrPass.GetProjMatrix(0), isRenderToTexture);
+                RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.xrPass.GetViewMatrix(0), projectionMatrix, true);
+
+                //XRTODO: compute stereo data while constructing XRPass
+                Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
+                Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];
+                for (int i = 0; i < 2; i++)
+                {
+                    stereoViewMatrix[i] = cameraData.xrPass.GetViewMatrix(i);
+                    stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(cameraData.xrPass.GetProjMatrix(i), isRenderToTexture);
+                }
+                RenderingUtils.SetStereoViewAndProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, true);
             }
         }
     }

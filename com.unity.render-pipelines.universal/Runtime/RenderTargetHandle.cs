@@ -5,12 +5,19 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct RenderTargetHandle
     {
         public int id { set; get; }
+        private RenderTargetIdentifier rtid { set; get; }
 
-        public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle {id = -1};
+        public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle {id = -1 };
 
         public void Init(string shaderProperty)
         {
             id = Shader.PropertyToID(shaderProperty);
+        }
+
+        public void Init(RenderTargetIdentifier renderTargetIdentifier)
+        {
+            id = -2;
+            rtid = renderTargetIdentifier;
         }
 
         public RenderTargetIdentifier Identifier()
@@ -19,11 +26,17 @@ namespace UnityEngine.Rendering.Universal
             {
                 return BuiltinRenderTextureType.CameraTarget;
             }
+            if(id == -2)
+            {
+                return rtid;
+            }
             return new RenderTargetIdentifier(id);
         }
 
         public bool Equals(RenderTargetHandle other)
         {
+            if (id == -2 || other.id == -2)
+                return Identifier() == other.Identifier();
             return id == other.id;
         }
 

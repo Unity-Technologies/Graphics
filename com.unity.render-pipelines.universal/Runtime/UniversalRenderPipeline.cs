@@ -258,6 +258,15 @@ namespace UnityEngine.Rendering.Universal
                 CommandBufferPool.Release(cmd);
             }
 
+            // Render XR mirror view once all xr passes have been completed
+            if (cameraData.camera.cameraType == CameraType.Game && cameraData.resolveFinalTarget)
+            {
+                CommandBuffer cmd = CommandBufferPool.Get();
+                m_XRSystem.RenderMirrorView(cmd);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+
             context.Submit();
 
             m_XRSystem.ReleaseFrame();

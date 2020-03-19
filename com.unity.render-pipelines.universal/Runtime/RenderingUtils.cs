@@ -124,6 +124,58 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+
+        //#if ENABLE_VR && ENABLE_VR_MODULE
+        internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");
+        internal static readonly int UNITY_STEREO_MATRIX_IV = Shader.PropertyToID("unity_StereoMatrixInvV");
+        internal static readonly int UNITY_STEREO_MATRIX_P = Shader.PropertyToID("unity_StereoMatrixP");
+        internal static readonly int UNITY_STEREO_MATRIX_IP = Shader.PropertyToID("unity_StereoMatrixIP");
+        internal static readonly int UNITY_STEREO_MATRIX_VP = Shader.PropertyToID("unity_StereoMatrixVP");
+        internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixIVP");
+        internal static readonly int UNITY_STEREO_VECTOR_CAMPOS = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
+
+        /// <summary>
+        /// Helper function to set all view and projection related matricies
+        /// Should be called before draw call and after cmd.SetRenderTarget 
+        /// Interal usage only, function name and signature may be subject to change
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
+        /// <param name="viewMatrix">View matrix to be set. Array size is 2.</param>
+        /// <param name="projectionMatrix">Projection matrix to be set.Array size is 2.</param>
+        /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
+        /// <returns>Void</c></returns>
+        internal static void SetStereoViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4[] viewMatrix, Matrix4x4[] projMatrix, bool setInverseMatrices)
+        {
+
+            Matrix4x4[] viewProjMatrix = new Matrix4x4[2];
+            Matrix4x4[] invViewMatrix = new Matrix4x4[2];
+            Matrix4x4[] invProjMatrix = new Matrix4x4[2];
+            Matrix4x4[] invViewProjMatrix = new Matrix4x4[2];
+            Vector4[] stereoWorldSpaceCameraPos = new Vector4[2];
+
+            for (int i = 0; i < 2; i++)
+            {
+
+                viewProjMatrix[i] = projMatrix[i] * viewMatrix[i];
+                invViewMatrix[i] = Matrix4x4.Inverse(viewMatrix[i]);
+                invProjMatrix[i] = Matrix4x4.Inverse(projMatrix[i]);
+                invViewProjMatrix[i] = Matrix4x4.Inverse(viewProjMatrix[i]);
+                stereoWorldSpaceCameraPos[i] = invViewMatrix[i].GetColumn(3);
+            }
+
+            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_V, viewMatrix);
+            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_P, projMatrix);
+            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_VP, viewProjMatrix);
+            if (setInverseMatrices)
+            {
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IV, invViewMatrix);
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IP, invProjMatrix);
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IVP, invViewProjMatrix);
+            }
+            cmd.SetGlobalVectorArray(UNITY_STEREO_VECTOR_CAMPOS, stereoWorldSpaceCameraPos);
+        }
+        //#endif
+
         // This is used to render materials that contain built-in shader passes not compatible with URP. 
         // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]

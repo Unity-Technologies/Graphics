@@ -59,8 +59,12 @@ namespace UnityEngine.Rendering.Universal
         /// Returns the camera view matrix.
         /// </summary>
         /// <returns></returns>
-        public Matrix4x4 GetViewMatrix()
+        public Matrix4x4 GetViewMatrix(int viewIndex = 0)
         {
+#if ENABLE_VR && ENABLE_VR_MODULE
+            if (xrPass.enabled)
+                return xrPass.GetViewMatrix(viewIndex);
+#endif
             return m_ViewMatrix;
         }
 
@@ -68,8 +72,12 @@ namespace UnityEngine.Rendering.Universal
         /// Returns the camera projection matrix.
         /// </summary>
         /// <returns></returns>
-        public Matrix4x4 GetProjectionMatrix()
+        public Matrix4x4 GetProjectionMatrix(int viewIndex = 0)
         {
+#if ENABLE_VR && ENABLE_VR_MODULE
+            if (xrPass.enabled)
+                return xrPass.GetProjMatrix(viewIndex);
+#endif      
             return m_ProjectionMatrix;
         }
 
@@ -80,8 +88,12 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
         /// <returns></returns>
-        public Matrix4x4 GetGPUProjectionMatrix()
+        public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0)
         {
+#if ENABLE_VR && ENABLE_VR_MODULE
+            if (xrPass.enabled)
+                return GL.GetGPUProjectionMatrix(xrPass.GetProjMatrix(viewIndex), IsCameraProjectionMatrixFlipped());
+#endif
             return GL.GetGPUProjectionMatrix(m_ProjectionMatrix, IsCameraProjectionMatrixFlipped());
         }
 
@@ -186,6 +198,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int inverseCameraProjectionMatrix = Shader.PropertyToID("unity_CameraInvProjection");
         public static readonly int worldToCameraMatrix = Shader.PropertyToID("unity_WorldToCamera");
         public static readonly int cameraToWorldMatrix = Shader.PropertyToID("unity_CameraToWorld");
+
+        public static readonly int blitScaleBias = Shader.PropertyToID("_BlitScaleBias");
+        public static readonly int blitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
     }
 
     public struct PostProcessingData

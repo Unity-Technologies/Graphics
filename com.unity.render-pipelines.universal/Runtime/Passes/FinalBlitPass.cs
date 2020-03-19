@@ -60,17 +60,49 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-            // Use default blit for XR as we are not sure the UniversalRP blit handles stereo.
-            // The blit will be reworked for stereo along the XRSDK work.
-            Material blitMaterial = (cameraData.isStereoEnabled) ? null : m_BlitMaterial;
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
-            if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
+            if (cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
             {
                 // This set render target is necessary so we change the LOAD state to DontCare.
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,     // color
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                cmd.Blit(m_Source.Identifier(), cameraTarget, blitMaterial);
+                cmd.Blit(m_Source.Identifier(), cameraTarget, m_BlitMaterial);
+            }
+            else if (cameraData.isStereoEnabled && cameraData.xrPass.enabled)
+            {
+                RenderTargetIdentifier blitTarget;
+                if (!cameraData.xrPass.hasMultiXrView)
+                {
+                    blitTarget = new RenderTargetIdentifier(cameraData.xrPass.renderTarget, 0, CubemapFace.Unknown, cameraData.xrPass.GetTextureArraySlice());
+                }
+                else
+                {
+                    blitTarget = new RenderTargetIdentifier(cameraData.xrPass.renderTarget, 0, CubemapFace.Unknown, -1);
+                }
+
+                SetRenderTarget(
+                    cmd,
+                    cameraTarget,
+                    RenderBufferLoadAction.Load,
+                    RenderBufferStoreAction.Store,
+                    ClearFlag.None,
+                    Color.black,
+                    m_TargetDimension);
+
+                cmd.SetViewport(cameraData.xrPass.GetViewport());
+
+                // We f-flip if
+                // 1) we are bliting from render texture to back buffer(UV starts at bottom) and
+                // 2) renderTexture starts UV at top
+                bool yflip = !cameraData.xrPass.renderTargetIsRenderTexture && SystemInfo.graphicsUVStartsAtTop;
+                Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0); ;
+                Vector4 scaleBiasRT = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(ShaderPropertyId.blitScaleBias, scaleBias);
+                cmd.SetGlobalVector(ShaderPropertyId.blitScaleBiasRt, scaleBiasRT);
+                cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
+
+                cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
             }
             else
             {
@@ -89,7 +121,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Camera camera = cameraData.camera;
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(cameraData.pixelRect);
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, blitMaterial);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                 cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }
 

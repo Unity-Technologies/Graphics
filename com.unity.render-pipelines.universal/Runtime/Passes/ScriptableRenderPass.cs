@@ -50,6 +50,11 @@ namespace UnityEngine.Rendering.Universal
             get => m_DepthAttachment;
         }
 
+        public TextureDimension dimension
+        {
+            get => m_AttachmentDimension;
+        }
+
         public ClearFlag clearFlag
         {
             get => m_ClearFlag;
@@ -67,6 +72,7 @@ namespace UnityEngine.Rendering.Universal
 
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+        TextureDimension m_AttachmentDimension = TextureDimension.Tex2D;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
@@ -75,6 +81,7 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_AttachmentDimension = TextureDimension.Tex2D;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -127,6 +134,24 @@ namespace UnityEngine.Rendering.Universal
             m_ColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
                 m_ColorAttachments[i] = 0;
+        }
+
+        /// <summary>
+        /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
+        /// This method should be called inside Configure.
+        /// </summary>
+        /// <param name="colorAttachment">Color attachment identifier.</param>
+        /// <param name="dimension">Color attachment dimension.</param>
+        /// <seealso cref="Configure"/>
+        public void ConfigureTarget(RenderTargetIdentifier colorAttachment, TextureDimension dimension)
+        {
+            overrideCameraTarget = true;
+
+            m_ColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ColorAttachments.Length; ++i)
+                m_ColorAttachments[i] = 0;
+
+            m_AttachmentDimension = dimension;
         }
 
         /// <summary>
