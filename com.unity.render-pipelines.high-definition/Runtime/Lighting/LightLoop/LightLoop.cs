@@ -539,7 +539,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         static int s_GenAABBKernel;
-        static int s_GenAABBKernel_Oblique;
         static int s_GenListPerTileKernel;
         static int s_GenListPerTileKernel_Oblique;
         static int s_GenListPerVoxelKernel;
@@ -752,7 +751,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxPlanarReflectionOnScreen = lightLoopSettings.maxPlanarReflectionOnScreen;
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
-            s_GenAABBKernel_Oblique = buildScreenAABBShader.FindKernel("ScreenBoundsAABB_Oblique");
 
             // Cluster
             {
@@ -3065,7 +3063,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Screen space AABB
             parameters.screenSpaceAABBShader = buildScreenAABBShader;
-            parameters.screenSpaceAABBKernel = isProjectionOblique ? s_GenAABBKernel_Oblique : s_GenAABBKernel;
+            parameters.screenSpaceAABBShader.shaderKeywords = null;
+            if (isProjectionOblique)
+            {
+                parameters.screenSpaceAABBShader.EnableKeyword("USE_OBLIQUE_MODE");
+            }
+            parameters.screenSpaceAABBKernel = s_GenAABBKernel;
+
             // camera to screen matrix (and it's inverse)
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
