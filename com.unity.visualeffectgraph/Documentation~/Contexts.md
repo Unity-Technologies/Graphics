@@ -8,7 +8,7 @@ Contexts are the main element of the Visual Effect Graph's **processing** (verti
 
 Contexts connect to one another sequentially to define the lifecycle of particles. After a graph creates new particles, the **Initialize** Context can connect to an **Update Particle** Context to simulate each particle. Also, the **Initialize** Context can instead connect directly to an **Output Particle** Context to render the particles without simulating any behavior.
 
-## Creating and Connecting Contexts
+## Creating and connecting Contexts
 
 A Context is a type of [graph element](GraphLogicAndPhilosophy.md#graph-elements) so to create one, see [Adding graph elements](VisualEffectGraphWindow.md#adding-graph-elements).
 
@@ -20,7 +20,7 @@ To change the behavior of the Context, adjust its [settings](GraphLogicAndPhilos
 
 Some settings also change how the Context looks. For example in a **Quad Output** Context, if you set the UV Mode to **FlipbookMotionBlend**, Unity adds the following extra properties to the Context header: **Flipbook Size**, **Motion Vector Map**, and **Motion Vector Scale**.
 
-## Flow Compatibility
+## Flow compatibility
 
 Not all Contexts can connect to one another. To keep a consistent workflow, the following rules apply:
 
@@ -42,7 +42,7 @@ For a breakdown of context compatibility, see the table below.
 | **Particle Output**    | **Particle** (1)                              | **None**            | Can either have input from an **Initialize** or **Update** Context.<br/>No output. |
 | **Static Mesh Output** | **None**                                      | **None**            | Standalone Context.                                          |
 
-# Context Type Overview
+# Context type overview
 
 This section covers all the common settings for every kind of Context.
 
