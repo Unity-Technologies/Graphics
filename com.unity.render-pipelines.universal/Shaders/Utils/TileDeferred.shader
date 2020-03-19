@@ -5,6 +5,9 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
 
+    // XR not supported in 2020.1 preview
+    #define XR_MODE 0
+
     struct TileData
     {
         uint tileID;                 // 2 ushorts
@@ -193,10 +196,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
         half4 gbuffer1 = LOAD_TEXTURE2D_X(_GBuffer1, input.positionCS.xy);
         half4 gbuffer2 = LOAD_TEXTURE2D_X(_GBuffer2, input.positionCS.xy);
 
-        #if !defined(USING_STEREO_MATRICES) // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
-            float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-            posWS.xyz *= rcp(posWS.w);
-        #else
+        #if XR_MODE
             #if UNITY_REVERSED_Z
             d = 1.0 - d;
             #endif
@@ -206,6 +206,9 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             posCS.y = -posCS.y;
             #endif
             float3 posWS = ComputeWorldSpacePosition(posCS, UNITY_MATRIX_I_VP);
+        #else
+            float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+            posWS.xyz *= rcp(posWS.w);
         #endif
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
