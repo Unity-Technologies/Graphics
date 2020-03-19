@@ -10,7 +10,9 @@ By default, Shader Graph expects the values you supply to the input **Normal** t
 
 | Name        | Direction           | Type  | Stage | Binding | Description |
 |:------------ |:-------------|:----|:-----|:---|:---|
-| Position      | Input | Vector 3 | Vertex | None | Defines the absolute object space vertex position per vertex. |
+| Vertex Position | Input | Vector 3 | Vertex | Object Space Position | Defines the absolute object space vertex position per vertex. |
+| Vertex Normal | Input | Vector 3 | Vertex | Object Space Normal | Defines the absolute object space vertex normal per vertex. |
+| Vertex Tangent | Input | Vector 3 | Vertex | Object Space Tangent | Defines the absolute object space vertex tangent per vertex. |
 | Albedo      | Input | Vector 3 | Fragment | None | Defines material's albedo value. Expected range 0 - 1. |
 | Normal      | Input | Vector 3 | Fragment | Tangent Space Normal | Defines material's normal value. Expects normals in tangent space.  |
 | Emission      | Input | Vector 3 | Fragment | None | Defines material's emission color value. Expects positive values.  |
