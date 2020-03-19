@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix some typos in the debug menu.
 - Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
+- Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
