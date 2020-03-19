@@ -270,9 +270,9 @@ namespace UnityEngine.Rendering.HighDefinition
             //bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
             //if (usesRaytracedReflections)
             //{
-            //    hdCamera.xr.StartSinglePass(cmd, hdCamera.camera, renderContext);
+            //    hdCamera.xr.StartSinglePass(cmd);
             //    RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
-            //    hdCamera.xr.StopSinglePass(cmd, hdCamera.camera, renderContext);
+            //    hdCamera.xr.StopSinglePass(cmd);
             //}
             //else
             {

@@ -109,7 +109,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 foreach (var pair in graph.messageManager.GetNodeMessages())
                 {
-                    var node = graph.GetNodeFromTempId(pair.Key);
+                    var node = graph.GetNodeFromGuid(pair.Key);
                     MessageManager.Log(node, path, pair.Value.First(), shader);
                 }
             }

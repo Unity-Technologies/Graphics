@@ -387,7 +387,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shader != null)
                     {
                         GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as AbstractMaterialNode).saveContext);
-                    }  
+                    }
                 }
             }
 

@@ -91,9 +91,13 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
 
         // Denoiser variant when history is stored in an array and the validation buffer is seperate
         public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera,
-            RTHandle noisySignal, RTHandle historySignal, RTHandle validationHistory, RTHandle velocityBuffer,
+            RTHandle noisySignal, RTHandle historySignal,
+            RTHandle validationHistory,
+            RTHandle velocityBuffer,
             RTHandle outputSignal,
-            int sliceIndex, Vector4 channelMask, bool singleChannel = true, float historyValidity = 1.0f)
+            int sliceIndex, Vector4 channelMask,
+            RTHandle distanceSignal, RTHandle distanceHistorySignal, RTHandle outputDistanceSignal, Vector4 distanceChannelMask,
+            bool singleChannel = true, float historyValidity = 1.0f)
         {
             // If we do not have a depth and normal history buffers, we can skip right away
             var historyDepthBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
@@ -102,6 +106,11 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             {
                 HDUtils.BlitCameraTexture(cmd, noisySignal, historySignal);
                 HDUtils.BlitCameraTexture(cmd, noisySignal, outputSignal);
+                if (distanceSignal != null && distanceHistorySignal != null && outputDistanceSignal != null)
+                {
+                    HDUtils.BlitCameraTexture(cmd, distanceSignal, distanceHistorySignal);
+                    HDUtils.BlitCameraTexture(cmd, distanceSignal, outputDistanceSignal);
+                }
                 return;
             }
 
@@ -152,6 +161,38 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlice, sliceIndex);
             cmd.SetComputeVectorParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistoryMask, channelMask);
             cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+
+            if (distanceSignal != null && distanceHistorySignal != null && outputDistanceSignal != null)
+            {
+                // Now that we have validated our history, let's accumulate
+                m_KernelFilter = m_TemporalFilterCS.FindKernel("TemporalAccumulationSingleArray");
+
+                // Bind the intput buffers
+                cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, distanceSignal);
+                cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._HistoryBuffer, distanceHistorySignal);
+                cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._HistoryValidityBuffer, validationHistory);
+                cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+                cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._ValidationBuffer, validationBuffer);
+                cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._VelocityBuffer, velocityBuffer);
+
+                // Bind the constant inputs
+                cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlice, sliceIndex);
+                cmd.SetComputeVectorParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistoryMask, distanceChannelMask);
+
+                // Bind the output buffers
+                cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, outputDistanceSignal);
+
+                // Dispatch the temporal accumulation
+                cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+
+                // Make sure to copy the new-accumulated signal in our history buffer
+                m_KernelFilter = m_TemporalFilterCS.FindKernel("CopyHistorySingleArrayNoValidity");
+                cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, outputDistanceSignal);
+                cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, distanceHistorySignal);
+                cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlice, sliceIndex);
+                cmd.SetComputeVectorParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistoryMask, distanceChannelMask);
+                cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+            }
         }
     }
 }
