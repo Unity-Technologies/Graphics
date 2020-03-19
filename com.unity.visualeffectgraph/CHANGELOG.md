@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Noise evaluation now performed on CPU when possible
 - Range and Min attributes support on int and uint parameters
 - New Construct Matrix from Vector4 operator
-- Access to several game times through an operator
+- New built-in operator providing new times access
 - More efficient update modes inspector
 
 ### Fixed
