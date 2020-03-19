@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Add XR setting to control camera jitter for temporal effects #6259
+
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
 
