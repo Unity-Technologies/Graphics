@@ -1796,9 +1796,17 @@ namespace UnityEngine.Rendering.HighDefinition
             float paniniS = Mathf.Lerp(1.0f, Mathf.Clamp01(scaleF), m_PaniniProjection.cropToFit.value);
 
             var cs = m_Resources.shaders.paniniProjectionCS;
-            int kernel = 1f - Mathf.Abs(paniniD) > float.Epsilon
-                ? cs.FindKernel("KMainGeneric")
-                : cs.FindKernel("KMainUnitDistance");
+            cs.shaderKeywords = null;
+            if(1f - Mathf.Abs(paniniD) > float.Epsilon)
+            {
+                cs.EnableKeyword("GENERIC");
+            }
+            else
+            {
+                cs.EnableKeyword("UNITDISTANCE");
+            }
+
+            int kernel =  cs.FindKernel("KMain");
 
             cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS));
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
