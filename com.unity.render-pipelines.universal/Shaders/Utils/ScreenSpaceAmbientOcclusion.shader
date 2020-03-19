@@ -13,15 +13,14 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         struct Attributes
         {
             float4 positionOS   : POSITION;
-            float2 uv     : TEXCOORD0;
-
+            float2 uv           : TEXCOORD0;
             UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         struct Varyings
         {
-            float4  positionCS   : SV_POSITION;
-            float4  uv           : TEXCOORD0;
+            float4  positionCS  : SV_POSITION;
+            float2  uv          : TEXCOORD0;
             UNITY_VERTEX_OUTPUT_STEREO
         };
 
@@ -32,12 +31,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
             output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-
-            float4 projPos = output.positionCS * 0.5;
-            projPos.xy = projPos.xy + projPos.w;
-
-            output.uv.xy = UnityStereoTransformScreenSpaceTex(input.uv);
-            output.uv.zw = projPos.xy;
+            output.uv = input.uv;
 
             return output;
         }
@@ -55,7 +49,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 0 - Occlusion estimation with CameraDepthTexture
         Pass
         {
-            Name "SSAO_OcclusionWithCameraDepthTexture"
+            Name "SSAO_DepthOnly_Occlusion"
             ZTest Always
             ZWrite Off
             Cull Off
@@ -71,7 +65,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 1 - Separable blur (horizontal pass) with CameraDepthTexture
         Pass
         {
-            Name "SSAO_HorizontalBlurWithCameraDepthTexture"
+            Name "SSAO_DepthOnly_HorizontalBlur"
 
             HLSLPROGRAM
                 #define SOURCE_DEPTH
@@ -82,11 +76,11 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
-        
+
         // 2 - Separable blur (vertical pass) with CameraDepthTexture
         Pass
         {
-            Name "SSAO_VerticalBlurWithCameraDepthTexture"
+            Name "SSAO_DepthOnly_VerticalBlur"
 
             HLSLPROGRAM
                 #define SOURCE_DEPTH
@@ -105,7 +99,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 3 - Occlusion estimation with CameraDepthNormalTexture
         Pass
         {
-            Name "SSAO_OcclusionWithCameraDepthNormalTexture"
+            Name "SSAO_DepthNormals_Occlusion"
 
             HLSLPROGRAM
                 #define SOURCE_DEPTH_NORMALS
@@ -118,7 +112,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 4 - Separable blur (horizontal pass) with CameraDepthNormalsTexture
         Pass
         {
-            Name "SSAO_HorizontalBlurWithCameraDepthNormalsTexture"
+            Name "SSAO_DepthNormals_HorizontalBlur"
 
             HLSLPROGRAM
                 #define SOURCE_DEPTHNORMALS
@@ -133,7 +127,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 5 - Separable blur (vertical pass) with CameraDepthNormalsTexture
         Pass
         {
-            Name "SSAO_VerticalBlurWithCameraDepthNormalsTexture"
+            Name "SSAO_DepthNormals_VerticalBlur"
 
             HLSLPROGRAM
                 #define SOURCE_DEPTHNORMALS
@@ -151,7 +145,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 6 - Occlusion estimation with G-Buffer
         Pass
         {
-            Name "SSAO_OcclusionWithGBuffer"
+            Name "SSAO_GBuffer_Occlusion"
 
             HLSLPROGRAM
                 #define SOURCE_GBUFFER
@@ -164,7 +158,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 7 - Separable blur (horizontal pass) with G-Buffer
         Pass
         {
-            Name "SSAO_GBuffer"
+            Name "SSAO_GBuffer_HorizontalBlur"
 
             HLSLPROGRAM
                 #define SOURCE_GBUFFER
@@ -179,7 +173,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 8 - Separable blur (vertical pass) with G-Buffer
         Pass
         {
-            Name "SSAO_VerticalBlurWithCameraDepthNormalsTexture"
+            Name "SSAO_GBuffer_VerticalBlur"
 
             HLSLPROGRAM
                 #define SOURCE_GBUFFER
@@ -198,7 +192,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         Pass
         {
             Name "SSAO_FinalComposition"
-            //Blend Zero OneMinusSrcColor, Zero OneMinusSrcAlpha
 
             HLSLPROGRAM
                 #pragma vertex VertDefault
@@ -210,8 +203,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 10 - Final composition with G-Buffer
         Pass
         {
-            Name "SSAO_FinalComposition"
-            //Blend Zero OneMinusSrcColor, Zero OneMinusSrcAlpha
+            Name "SSAO_GBuffer_FinalComposition"
 
             HLSLPROGRAM
                 #define SOURCE_GBUFFER

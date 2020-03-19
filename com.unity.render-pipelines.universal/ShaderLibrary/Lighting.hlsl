@@ -373,7 +373,14 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 half SampleAO(half3 positionCS)
 {
 #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
-    return SAMPLE_TEXTURE2D(_ScreenSpaceAOTexture, sampler_ScreenSpaceAOTexture, positionCS.xy * (GetScreenParams().zw - 1)).x;
+
+    #if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+    float2 uvMultiplier = float2(0.5, 1.0);
+    #else
+    float2 uvMultiplier = float2(1.0, 1.0);
+    #endif
+
+    return SAMPLE_TEXTURE2D(_ScreenSpaceAOTexture, sampler_ScreenSpaceAOTexture, (positionCS.xy * (GetScreenParams().zw - 1.0) * uvMultiplier)).x;
 #endif
 
     return 1.0;

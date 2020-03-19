@@ -223,19 +223,11 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
 
         private void ExecuteSSAO(ScriptableRenderContext context, ref RenderingData renderingData, int occlusionPass, int horizonalBlurPass, int verticalPass, int finalPass)
         {
-            Camera camera = renderingData.cameraData.camera;
-            //m_Material.SetMatrix("ProjectionMatrix", camera.projectionMatrix);
-            bool isStereo = renderingData.cameraData.isStereoEnabled;
-
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-
-            //CoreUtils.SetKeyword(cmd, "UNITY_SINGLE_PASS_STEREO", isStereo);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceAmbientOcclusion, true);
 
-            //context.StartMultiEye(camera, eyeIndex);
             // Occlusion pass
-            //cmd.Blit(_TempRenderTexture1, _TempRenderTexture1, m_Material, occlusionPass);
-            Blit(cmd, _TempRenderTexture1, _TempRenderTexture1, m_Material, occlusionPass);
+            cmd.Blit(_TempRenderTexture1, _TempRenderTexture1, m_Material, occlusionPass);
 
             // Horizontal Blur
             cmd.SetGlobalTexture(_BaseMap, _TempRenderTexture1);
