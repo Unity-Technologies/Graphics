@@ -46,6 +46,7 @@ struct Varyings
 void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
 {
     inputData.positionWS = input.posWS;
+    inputData.positionCS = input.positionCS;
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normal.w, input.tangent.w, input.bitangent.w);
@@ -134,7 +135,7 @@ FragmentOutput LitPassFragmentSimple(Varyings input)
 
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
 
-    return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit, input.positionCS);
+    return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
 };
 
 #endif

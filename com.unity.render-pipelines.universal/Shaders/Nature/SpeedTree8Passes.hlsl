@@ -269,6 +269,7 @@ SpeedTreeVertexDepthOutput SpeedTree8VertDepth(SpeedTreeVertexInput input)
 void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out InputData inputData)
 {
     inputData.positionWS = input.interpolated.positionWS.xyz;
+    inputData.positionCS = input.interpolated.clipPos;
 
 #ifdef EFFECT_BUMP
     inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz));
@@ -391,7 +392,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
 
-    return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color, input.interpolated.clipPos);
+    return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color);
 
 #else
     half4 color = UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);

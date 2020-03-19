@@ -57,6 +57,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output = (InputData)0;
 
     output.positionWS = input.positionWS.xyz;
+    output.positionCS = input.clipPos;
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
@@ -177,7 +178,7 @@ FragmentOutput ParticlesGBufferFragment(VaryingsParticle input)
 
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
 
-    return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, input.clipPos);
+    return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color);
 }
 
 #endif // UNIVERSAL_PARTICLES_GBUFFER_LIT_PASS_INCLUDED

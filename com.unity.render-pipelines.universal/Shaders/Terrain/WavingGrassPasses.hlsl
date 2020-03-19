@@ -40,6 +40,7 @@ struct GrassVertexOutput
 void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 {
     inputData.positionWS = input.posWSShininess.xyz;
+    inputData.positionCS = input.clipPos;
 
     half3 viewDirWS = input.viewDir;
 #if SHADER_HINT_NICE_QUALITY
@@ -176,7 +177,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
 
 #ifdef TERRAIN_GBUFFER
-    return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit, input.clipPos);
+    return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
 #else
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;

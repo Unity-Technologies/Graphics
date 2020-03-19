@@ -62,6 +62,7 @@ struct SpeedTreeVertexDepthOutput
 void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputData inputData)
 {
     inputData.positionWS = input.positionWS.xyz;
+    inputData.positionCS = input.clipPos;
 
     #ifdef EFFECT_BUMP
         inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
@@ -155,7 +156,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         surfaceData.smoothness = 0;
         surfaceData.albedo = diffuseColor.rgb;
         surfaceData.specular = half3(0, 0, 0);
-        return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit, input.clipPos);
+        return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
     #else
         color.rgb = MixFog(color.rgb, inputData.fogCoord);
         color.a = OutputAlpha(color.a);

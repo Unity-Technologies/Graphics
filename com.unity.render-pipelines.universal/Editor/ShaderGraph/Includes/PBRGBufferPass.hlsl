@@ -1,6 +1,7 @@
 void BuildInputData(Varyings input, float3 normal, out InputData inputData)
 {
     inputData.positionWS = input.positionWS;
+    inputData.positionCS = input.positionCS;
 #ifdef _NORMALMAP
 
 #if _NORMAL_DROPOFF_TS
@@ -76,5 +77,5 @@ FragmentOutput frag(PackedVaryings packedInput)
 
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
 
-    return BRDFDataToGbuffer(brdfData, inputData, surfaceDescription.Smoothness, surfaceDescription.Emission + color, unpacked.positionCS);
+    return BRDFDataToGbuffer(brdfData, inputData, surfaceDescription.Smoothness, surfaceDescription.Emission + color);
 }
