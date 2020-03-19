@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error in the console when switching shader to decal in the material UI.
 - Fixed z-fighting in scene view when scene lighting is off (case 1203927)
 - Fixed some typos in debug menu (case 1224594)
+- Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
