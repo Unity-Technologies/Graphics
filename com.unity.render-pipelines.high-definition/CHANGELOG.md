@@ -6,8 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Add XR setting to control camera jitter for temporal effects #6259
+
+### Fixed
+- Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
+
+### Changed
+- Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
+- Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
+- Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
 
 ## [7.3.0] - 2020-03-11
 
@@ -54,6 +62,9 @@ The version number for this package has increased due to a version update of a r
 - Fix an exception in case two LOD levels are using the same mesh renderer.
 - Fixed error in the console when switching shader to decal in the material UI.
 - Fixed z-fighting in scene view when scene lighting is off (case 1203927)
+- Fixed some typos in debug menu (case 1224594)
+- Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
+- Fixed cubemap thumbnail generation at project load time. 
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
@@ -61,6 +72,7 @@ The version number for this package has increased due to a version update of a r
 - Removed info box requesting volume component for Visual Environment and updated the documentation with the relevant information.
 - Add range-based clipping to box lights (case 1178780)
 - Improve area light culling (case 1085873)
+- Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
 
 ## [7.2.0] - 2020-02-10
 
