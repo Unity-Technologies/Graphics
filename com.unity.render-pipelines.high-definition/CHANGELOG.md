@@ -472,7 +472,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error in the console when switching shader to decal in the material UI.
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
-- Obsolete Utilities namespace was removed, instead use UnityEngine.Rendering (case 1204677)
+- Fixed cubemap thumbnail generation at project load time. 
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -571,6 +571,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
+- Obsolete Utilities namespace was removed, instead use UnityEngine.Rendering (case 1204677)
 
 ## [7.1.1] - 2019-09-05
 
