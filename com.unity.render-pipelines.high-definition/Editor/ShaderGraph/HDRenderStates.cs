@@ -393,7 +393,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection PBRGBuffer = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.ZTest(ZTest.Equal) },
+            { RenderState.ZTest(Uniforms.zTestGBuffer) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = $"{ 0 | (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering | (int)StencilUsage.TraceReflectionRay}",

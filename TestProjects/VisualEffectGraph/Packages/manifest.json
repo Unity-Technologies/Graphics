@@ -10,7 +10,7 @@
     "com.unity.test-framework": "1.1.9",
     "com.unity.test-framework.build": "0.0.1-preview.7",
     "com.unity.test-framework.utp-reporter": "0.1.3-preview.18",
-    "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
+    "com.unity.testframework.graphics": "7.1.7-preview",
     "com.unity.testing.visualeffectgraph": "file:../../../com.unity.testing.visualeffectgraph",
     "com.unity.timeline": "1.2.9",
     "com.unity.ugui": "1.0.0",

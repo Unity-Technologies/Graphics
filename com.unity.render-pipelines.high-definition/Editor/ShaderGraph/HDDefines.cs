@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RayTracingNode.GetRayTracingKeyword(), 0 },
             { HDKeywords.Descriptors.TransparentDepthPrepass, 1 },
-            { HDKeywords.Descriptors.WriteNormalBuffer, 1, new FieldCondition(HDFields.DisableSSRTransparent, true) },
+            { HDKeywords.Descriptors.WriteNormalBufferDefine, 1, new FieldCondition(HDFields.DisableSSRTransparent, false) },
         };
 
         public static DefineCollection TransparentDepthPostpass = new DefineCollection

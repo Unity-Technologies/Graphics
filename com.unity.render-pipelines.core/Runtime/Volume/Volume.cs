@@ -114,12 +114,7 @@ namespace UnityEngine.Rendering
             // real-time as the user could change it at any time in the editor or at runtime.
             // Because no event is raised when the layer changes, we have to track it on every
             // frame :/
-            int layer = gameObject.layer;
-            if (layer != m_PreviousLayer)
-            {
-                VolumeManager.instance.UpdateVolumeLayer(this, m_PreviousLayer, layer);
-                m_PreviousLayer = layer;
-            }
+            UpdateLayer();
 
             // Same for priority. We could use a property instead, but it doesn't play nice with the
             // serialization system. Using a custom Attribute/PropertyDrawer for a property is
@@ -127,8 +122,18 @@ namespace UnityEngine.Rendering
             // our case.
             if (priority != m_PreviousPriority)
             {
-                VolumeManager.instance.SetLayerDirty(layer);
+                VolumeManager.instance.SetLayerDirty(gameObject.layer);
                 m_PreviousPriority = priority;
+            }
+        }
+
+        internal void UpdateLayer()
+        {
+            int layer = gameObject.layer;
+            if (layer != m_PreviousLayer)
+            {
+                VolumeManager.instance.UpdateVolumeLayer(this, m_PreviousLayer, layer);
+                m_PreviousLayer = layer;
             }
         }
 

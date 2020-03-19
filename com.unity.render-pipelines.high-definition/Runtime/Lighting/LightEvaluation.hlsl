@@ -362,7 +362,12 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         // Perform orthographic or perspective projection.
         float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1.0;
         float2 positionCS   = positionLS.xy / perspectiveZ;
-        bool   isInBounds   = Max3(abs(positionCS.x), abs(positionCS.y), 1.0 - positionLS.z) <= light.boxLightSafeExtent;
+
+        float z = positionLS.z;
+        float r = light.range;
+
+        // Box lights have no range attenuation, so we must clip manually.
+        bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5 * r) - 0.5 * r + 1) <= light.boxLightSafeExtent;
 
         // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
         float2 positionNDC = positionCS * 0.5 + 0.5;
@@ -390,7 +395,12 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         // Perform orthographic or perspective projection.
         float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1.0;
         float2 positionCS   = positionLS.xy / perspectiveZ;
-        bool   isInBounds   = Max3(abs(positionCS.x), abs(positionCS.y), 1.0 - positionLS.z) <= light.boxLightSafeExtent;
+
+        float z = positionLS.z;
+        float r = light.range;
+
+        // Box lights have no range attenuation, so we must clip manually.
+        bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5 * r) - 0.5 * r + 1) <= light.boxLightSafeExtent;
 
         // Manually clamp to border (black).
         cookie.a = isInBounds ? 1.0 : 0.0;
