@@ -263,15 +263,18 @@ namespace UnityEngine.Rendering.Universal
         {
             if (enabled)
             {
-                if (Application.platform == RuntimePlatform.Android)
+                if (singlePassEnabled)
                 {
-                    // Switching to multiview OFF
-                    cmd.DisableShaderKeyword("STEREO_MULTIVIEW_ON");
-                }
-                else
-                {
-                    cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
-                    cmd.SetInstanceMultiplier(1);
+                    if (Application.platform == RuntimePlatform.Android)
+                    {
+                        // Switching to multiview OFF
+                        cmd.DisableShaderKeyword("STEREO_MULTIVIEW_ON");
+                    }
+                    else
+                    {
+                        cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
+                        cmd.SetInstanceMultiplier(1);
+                    }
                 }
             }
         }

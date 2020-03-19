@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // If eye texture color format is linear, we do explicit sRGB convertion
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.isStereoEnabled)
-                requiresSRGBConvertion = !XRGraphics.eyeTextureDesc.sRGB;
+                requiresSRGBConvertion = !cameraData.xrPass.renderTargetDesc.sRGB;
 #endif
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
@@ -61,15 +61,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
-            if (cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
-            {
-                // This set render target is necessary so we change the LOAD state to DontCare.
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
-                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,     // color
-                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                cmd.Blit(m_Source.Identifier(), cameraTarget, m_BlitMaterial);
-            }
-            else if (cameraData.isStereoEnabled && cameraData.xrPass.enabled)
+
+            if (cameraData.isStereoEnabled && cameraData.xrPass.enabled)
             {
                 RenderTargetIdentifier blitTarget;
                 if (!cameraData.xrPass.hasMultiXrView)
@@ -83,7 +76,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 SetRenderTarget(
                     cmd,
-                    cameraTarget,
+                    blitTarget,
                     RenderBufferLoadAction.Load,
                     RenderBufferStoreAction.Store,
                     ClearFlag.None,
@@ -103,6 +96,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
 
                 cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
+            }
+            else if (cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
+            {
+                // This set render target is necessary so we change the LOAD state to DontCare.
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,     // color
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
+                cmd.Blit(m_Source.Identifier(), cameraTarget, m_BlitMaterial);
             }
             else
             {

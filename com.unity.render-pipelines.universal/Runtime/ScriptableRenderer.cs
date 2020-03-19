@@ -712,7 +712,6 @@ namespace UnityEngine.Rendering.Universal
                         // XRTODO: Consolidate y-flip and winding order device state in URP
                         bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xrPass.renderTarget) && !cameraData.xrPass.renderTargetIsRenderTexture;
                         cameraData.xrPass.UpdateGPUViewAndProjectionMatricies(cmd, ref cameraData, !isRenderToBackBufferTarget);
-                        return;
                     }
                 }
             }
@@ -733,9 +732,11 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xrPass.hasMultiXrView)
             {
                 cameraData.xrPass.StartSinglePass(cmd, context);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
             }
+
+            cmd.EnableShaderKeyword(ShaderKeywordStrings.DrawProceduleQuadBlit);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         void EndXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
@@ -746,9 +747,10 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xrPass.hasMultiXrView)
             {
                 cameraData.xrPass.StopSinglePass(cmd, context);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
             }
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.DrawProceduleQuadBlit);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor, TextureDimension dimension = TextureDimension.Tex2D)
