@@ -83,6 +83,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a warning and workaround instructions that appear when you enable XR single-pass after the first frame with the XR SDK.
 - Added the exposure sliders to the planar reflection probe preview
 - Added support for subsurface scattering in path tracing.
+- Added a new mode that improves the filtering of ray traced shadows (directional, point and spot) based on the distance to the occluder.
+- Added support of cookie baking and add support on Disc light.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -455,6 +457,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the HDRP asset migration code not being called after an upgrade of the package
 - Fixed draw renderers custom pass out of bound exception
 - Fixed the PBR shader rendering in deferred
+- Fixed some typos in debug menu (case 1224594)
+- Fixed ray traced point and spot lights shadows not rejecting istory when semi-transparent or colored.
+- Fixed a warning due to StaticLightingSky when reloading domain in some cases.
+- Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
+- Fixed issue with unclear naming of debug menu for decals.
+- Fixed z-fighting in scene view when scene lighting is off (case 1203927)
+- Fixed issue that prevented cubemap thumbnails from rendering.
+- Fixed ray tracing with VR single-pass
+- Fix an exception in ray tracing that happens if two LOD levels are using the same mesh renderer.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -546,6 +557,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved light selection oracle for light sampling in path tracing.
 - Stripped ray tracing subsurface passes with ray tracing is not enabled.
 - Remove LOD cross fade code for ray tracing shaders
+- Removed legacy VR code
+- Add range-based clipping to box lights (case 1178780)
+- Improve area light culling (case 1085873)
+- Fixed error in the console when switching shader to decal in the material UI.
 
 ## [7.1.1] - 2019-09-05
 

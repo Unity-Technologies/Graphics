@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph
                 var error = NodeUtils.ValidateSlotName(slot.RawDisplayName(), out string errorMessage);
                 if (error)
                 {
-                    owner.AddValidationError(tempId, errorMessage);
+                    owner.AddValidationError(guid, errorMessage);
                     break;
                 }
             }
@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph
 
             if (!this.GetInputSlots<MaterialSlot>().Any())
             {
-                owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
+                owner.AddValidationError(guid, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
 
             base.ValidateNode();
