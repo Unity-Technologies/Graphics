@@ -83,8 +83,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // We keep around the renderer and the rendering context to avoid useless allocation if they get reused.
             hash = 0;
             refCount = 0;
-            if (renderingContext != null)
-                renderingContext.ClearAmbientProbe();
         }
 
         public void Cleanup()
@@ -552,8 +550,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (context.renderingContext == null)
                 context.renderingContext = new SkyRenderingContext(m_Resolution, m_IBLFilterArray.Length, supportConvolution, previousAmbientProbe, name);
-            else
-                context.renderingContext.UpdateAmbientProbe(previousAmbientProbe);
+
             skyContext.cachedSkyRenderingContextId = slot;
         }
 
@@ -633,7 +630,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cachedContext.refCount--;
             if (cachedContext.refCount == 0)
-                cachedContext.Cleanup();
+                cachedContext.Reset();
         }
 
         bool IsCachedContextValid(SkyUpdateContext skyContext)
