@@ -149,11 +149,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             includes = UniversalIncludes.PBR2D,
         };
 
-        public static PassDescriptor Unlit = new PassDescriptor
+        public static PassDescriptor _2DUnlit = new PassDescriptor
         {
             // Definition
             displayName = "Pass",
             referenceName = "SHADERPASS_UNLIT",
+            lightMode = "Universal2DUnlit",
             useInPreview = true,
 
             // Port Mask

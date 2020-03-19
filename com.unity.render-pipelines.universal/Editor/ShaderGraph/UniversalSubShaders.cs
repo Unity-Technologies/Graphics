@@ -64,8 +64,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             generatesPreview = true,
             passes = new PassCollection
             {
-                { UniversalPasses.Unlit }, // This pass use legacy lightMode tag and is picked up by 2D renderer.
-                { UniversalPasses.UniversalUnlit }, // // This pass is picked up by the forward and deferred renderers.
+                { UniversalPasses._2DUnlit }, // This pass use legacy lightMode tag and is picked up by 2D renderer.
+                { UniversalPasses.UniversalUnlit }, // This pass is picked up by the forward and deferred renderers.
                 { UniversalPasses.ShadowCaster },
                 { UniversalPasses.DepthOnly },
             },
@@ -75,12 +75,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get
             {
-                var unlit = UniversalPasses.Unlit;
+                var _2DUnlit = UniversalPasses._2DUnlit;
                 var universalUnlit = UniversalPasses.UniversalUnlit;
                 var shadowCaster = UniversalPasses.ShadowCaster;
                 var depthOnly = UniversalPasses.DepthOnly;
 
-                unlit.pragmas = UniversalPragmas.DOTSForward;
+                _2DUnlit.pragmas = UniversalPragmas.DOTSForward;
                 universalUnlit.pragmas = UniversalPragmas.DOTSForward;
                 shadowCaster.pragmas = UniversalPragmas.DOTSInstanced;
                 depthOnly.pragmas = UniversalPragmas.DOTSInstanced;
@@ -91,8 +91,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     generatesPreview = true,
                     passes = new PassCollection
                     {
-                        { unlit },
-                        { universalUnlit },
+                        { _2DUnlit }, // This pass use legacy lightMode tag and is picked up by 2D renderer.
+                        { universalUnlit }, // This pass is picked up by the forward and deferred renderers.
                         { shadowCaster },
                         { depthOnly },
                     },
