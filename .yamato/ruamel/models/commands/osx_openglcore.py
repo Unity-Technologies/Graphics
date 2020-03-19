@@ -7,24 +7,31 @@ def _cmd_base(project, components):
     ]
 
 
-def cmd_test(project, platform, test_platform, api):
+def cmd_editmode(project, platform, api):
     base = _cmd_base(project, platform["components"])
     base.extend([ 
-        f'cd TestProjects/{project["folder"]} && utr/utr {test_platform["args"]} --testproject=. --editor-location=.Editor --artifacts_path=test-results'
+        f'cd TestProjects/{project["folder"]} && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results'
     ])
     return base
 
-def cmd_test_standalone(project, platform, test_platform, api):
+def cmd_playmode(project, platform, api):
     base = _cmd_base(project, platform["components"])
-    base.extend([
-        f'cd TestProjects/{project["folder"]} && utr/utr {test_platform["args"]}OSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto'
+    base.extend([ 
+        f'cd TestProjects/{project["folder"]} && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results'
     ])
     return base
 
-def cmd_build(project, platform, test_platform, api):
+def cmd_standalone(project, platform, api):
     base = _cmd_base(project, platform["components"])
     base.extend([
-        f'cd TestProjects/{project["folder"]} && utr/utr {test_platform["args"]}OSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only'
+        f'cd TestProjects/{project["folder"]} && utr/utr --suite=playmode --platform=StandaloneOSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto'
+    ])
+    return base
+
+def cmd_standalone_build(project, platform, api):
+    base = _cmd_base(project, platform["components"])
+    base.extend([
+        f'cd TestProjects/{project["folder"]} && utr/utr --suite=playmode --platform=StandaloneOSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only'
     ])
     return base
 

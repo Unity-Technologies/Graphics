@@ -1,6 +1,6 @@
-projects:
-  - name: Universal
-    folder: UniversalGraphicsTest
+project:
+  name: ShaderGraph
+  folder: ShaderGraph
 editors:
   - version: 2020.1
     rerun_strategy: on-new-revision
@@ -12,13 +12,6 @@ editors:
   #   rerun_strategy: on-new-revision
   # - version: CUSTOM-REVISION
   #   rerun_strategy: always
-testplatforms: # specifiy agent with agent_standalone/agent_build/agent_editmode/agent_playmode. Anything unspecified uses agent_default
-  - name: Standalone
-    args: --suite=playmode --platform=Standalone
-  - name: playmode
-    args: --suite=playmode
-  - name: editmode
-    args: --suite=editor --platform=editmode
 platforms:
   - name: Win
     os: windows
@@ -32,7 +25,7 @@ platforms:
       type: Unity::VM::GPU
       image: sdet/gamecode_win10:stable
       flavor: b1.large
-    agent_build:
+    agent_standalone_build:
       type: Unity::VM
       image: sdet/gamecode_win10:stable
       flavor: b1.xlarge
@@ -88,21 +81,4 @@ platforms:
     components:
       - editor
       - il2cpp
-  # - name: Android
-  #   os: android
-  #   apis:
-  #     - name: 
-  #       cmd: 
-  #   agent_default:
-  #     type: Unity::mobile::android
-  #     image: mobile/android-execution-r19:stable
-  #     flavor: b1.large
-  #   agent_build:
-  #     type: Unity::VM
-  #     image: mobile/android-execution-r19:stable
-  #     flavor: b1.large
-  #   components:
-  #     - editor
-  #     - il2cpp
-  #     - android
 

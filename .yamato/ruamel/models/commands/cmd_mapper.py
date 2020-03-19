@@ -2,30 +2,34 @@ from . import win, osx_openglcore, osx_metal, linux
 
 cmd_map = {
     'win' : {
-        'test' : win.cmd_test,
-        'test_standalone' : win.cmd_test_standalone,
-        'build' : win.cmd_build
+        'editmode' : win.cmd_editmode,
+        'playmode' : win.cmd_playmode,
+        'standalone' : win.cmd_standalone,
+        'standalone_build' : win.cmd_standalone_build
     },
     'osx_openglcore' :  {
-        'test' : osx_openglcore.cmd_test,
-        'test_standalone' : osx_openglcore.cmd_test_standalone,
-        'build' : osx_openglcore.cmd_build
+        'editmode' : osx_openglcore.cmd_editmode,
+        'playmode' : osx_openglcore.cmd_playmode,
+        'standalone' : osx_openglcore.cmd_standalone,
+        'standalone_build' : osx_openglcore.cmd_standalone_build
     },
     'osx_metal' :  {
-        'test' : osx_metal.cmd_test,
-        'test_standalone' : osx_metal.cmd_test_standalone,
-        'build' : osx_metal.cmd_build
+        'editmode' : osx_metal.cmd_editmode,
+        'playmode' : osx_metal.cmd_playmode,
+        'standalone' : osx_metal.cmd_standalone,
+        'standalone_build' : osx_metal.cmd_standalone_build
     },
     'linux' : {
-        'test' : linux.cmd_test,
-        'test_standalone' : linux.cmd_test_standalone,
-        'build' : linux.cmd_build
+        'editmode' : linux.cmd_editmode,
+        'playmode' : linux.cmd_playmode,
+        'standalone' : linux.cmd_standalone,
+        'standalone_build' : linux.cmd_standalone_build
     }
     
 }
 
 
-def get_cmd(platform_name, api_name, job_type):
-    '''Returns the set of commands according to the platform, api, and job (test: normal test; test_split: test with split build for standalone; build: build player for standalone)'''
+def get_cmd(platform_name, api_name, test_platform_name):
+    '''Returns the set of commands according to the platform, api, and job (editmode: normal editmode; editmode_split: editmode with split standalone_build for standalone; standalone_build: standalone_build player for standalone)'''
     cmd_map_ref = f'{platform_name}_{api_name}'.lower() if platform_name.lower() == 'osx' else platform_name.lower()
-    return cmd_map[cmd_map_ref][job_type]
+    return cmd_map[cmd_map_ref][test_platform_name]

@@ -2,11 +2,16 @@ from ruamel import yaml
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ruamel.yaml.scalarstring import PlainScalarString as pss
 from .commands import cmd_mapper as cm
-from .helpers import name_builder as nb
 
-def _base(job_name, editor, platform, agent):
-    '''Adds name, agent, artifact:logs:paths:/test-results/, dependencies:z_editor#editor-priming, variables:CUSTOM_REVISION'''
+def _job(project_name, test_platform_name, editor, platform, api, cmd):
 
+    if test_platform_name.lower() == 'standalone_build':
+        job_name = f'Build {project_name} on {platform["name"]}_{api["name"]}_Player on version {editor["version"]}'
+    else:
+        job_name = f'{project_name} on {platform["name"]}_{api["name"]}_{test_platform_name} on version {editor["version"]}'
+
+    agent = platform.get(f'agent_{test_platform_name}', platform['agent_default'])
+    
     job = {
         'name' : job_name,
         'agent' : {
@@ -14,19 +19,20 @@ def _base(job_name, editor, platform, agent):
             'type' : agent["type"],
             'image' : agent["image"]
         },
-        'artifacts' : {
-            'logs':{
-                'paths':[
-                    dss('**/test-results/**')
-                ]
-            }
-        },
         'dependencies' : [
             {
                 'path' : f'.yamato/z_editor.yml#editor:priming:{editor["version"]}:{platform["os"]}',
                 'rerun' : f'{editor["rerun_strategy"]}'
             }
-        ]
+        ],
+        'commands' : cmd,
+        'artifacts' : {
+            'logs':{
+                'paths':[
+                    dss('**/test-results/**') # TODO linux paths
+                ]
+            }
+        },
     }
 
     if editor['version'] == 'CUSTOM-REVISION':
@@ -34,50 +40,53 @@ def _base(job_name, editor, platform, agent):
 
     return job
 
-def project_build(project, editor, platform, test_platform, api):
+def project_editmode(project, editor, platform, api):
+    '''Creates editmode test job'''
+    
+    cmd = cm.get_cmd(platform["name"], api["name"], 'editmode')
+    job = _job(project["name"], 'editmode', editor, platform, api, cmd(project, platform, api))
+    return job
+
+
+def project_playmode(project, editor, platform, api):
+    '''Creates playmode test job'''
+    
+    cmd = cm.get_cmd(platform["name"], api["name"], 'playmode')
+    job = _job(project["name"], 'playmode', editor, platform, api, cmd(project, platform, api))
+    return job
+
+def project_standalone(project, editor, platform, api):
+    '''Creates Standalone test job'''
+
+    cmd = cm.get_cmd(platform["name"], api["name"], 'standalone') 
+    job = _job(project["name"], 'standalone', editor, platform, api, cmd(project, platform, api))
+
+    if platform["standalone_split"]:
+
+        yml_file = f'upm-ci-{project["name"]}-{platform["name"]}-{api["name"]}.yml'.lower()
+        job_id_build = f'Build_{project["name"]}_{platform["name"]}_{api["name"]}_Player_{editor["version"]}'
+        
+        job['skip_checkout'] = True
+        job['dependencies'].append(
+            {
+                'path' : f'.yamato/{yml_file}#{job_id_build}',
+                'rerun' : f'{editor["rerun_strategy"]}'
+            }
+        )
+        
+    return job
+
+
+def project_standalone_build(project, editor, platform, api):
     '''Creates build player job (to be used when Standalone uses split build).'''
 
-    agent = platform.get(f'agent_build', platform['agent_default'])
-    job_name = nb.get_job_name_build(project, editor, platform, test_platform, api)
-    job = _base(job_name, editor, platform, agent)
-    
-
-    cmd = cm.get_cmd(platform["name"], api["name"], 'build')
-    job['commands'] = cmd(project, platform, test_platform, api)
+    cmd = cm.get_cmd(platform["name"], api["name"], 'standalone_build')
+    job = _job(project["name"], 'standalone_build', editor, platform, api, cmd(project, platform, api))
     
     job['artifacts']['players'] = {
         'paths':[
             dss('players/**')
         ]
     }
-    
-    return job
-
-
-def project_test(project, editor, platform, test_platform, api):
-    '''Creates testing job for the specified test platform. If test_platform is Standalone and standalone_split is true, then adds dependency for build player job and adjusts commands accordingly.'''
-
-    agent = platform.get(f'agent_{test_platform["name"]}'.lower(), platform['agent_default'])
-    job_name = nb.get_job_name_test(project, editor, platform, test_platform, api)
-    job = _base(job_name, editor, platform, agent)
-    
-
-    if test_platform["name"].lower() == "standalone" : # TODO check for better way to do it 
-        
-        if platform["standalone_split"]:
-            job['skip_checkout'] = True
-            job['dependencies'].append(
-                {
-                    'path' : f'.yamato/{nb.get_yml_name(project, platform, api)}#{nb.get_job_id_build(project, editor, platform, test_platform, api)}',
-                    'rerun' : f'{editor["rerun_strategy"]}'
-                }
-            )
-        
-        cmd = cm.get_cmd(platform["name"], api["name"], 'test_standalone')       
-
-    else:
-        cmd = cm.get_cmd(platform["name"], api["name"], 'test')
-    
-    job['commands'] = cmd(project, platform, test_platform, api)
     
     return job
