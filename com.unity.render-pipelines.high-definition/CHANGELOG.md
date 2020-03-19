@@ -469,6 +469,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ray tracing with VR single-pass
 - Fix an exception in ray tracing that happens if two LOD levels are using the same mesh renderer.
 - Fixed error in the console when switching shader to decal in the material UI.
+- Fixed the planar reflection blur depending on the resolution of the planar. 
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
