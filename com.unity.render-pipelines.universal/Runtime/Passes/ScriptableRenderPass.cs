@@ -90,12 +90,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get => inputAttachmentDescriptors.Length > 0;
         }
+
+        public bool useNativeRenderPass
+        {
+            get => this.m_RenderPassDescriptor != default(RenderPassDescriptor);
+        }
         internal int eyeIndex { get; set; }
 
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
-
-        internal bool useNativeRenderPass;
 
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget };
         internal AttachmentDescriptor[] m_ColorAttachmentDescriptors = new AttachmentDescriptor[8];
@@ -118,18 +121,38 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
-            useNativeRenderPass = false;
             EmptyAttachment.ConfigureTarget(BuiltinRenderTextureType.None, false, false);
             eyeIndex = 0;
         }
 
-        internal struct RenderPassDescriptor
+        public struct RenderPassDescriptor
         {
             internal int width;
             internal int height;
             internal int sampleCount;
             internal bool readOnlyDepth;
+
+            public static bool operator ==(RenderPassDescriptor op1,  RenderPassDescriptor op2)
+            {
+                return op1.Equals(op2);
+            }
+
+            public static bool operator !=(RenderPassDescriptor op1,  RenderPassDescriptor op2)
+            {
+                return !op1.Equals(op2);
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                return base.Equals(obj);
+            }
         }
+
 
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
@@ -250,13 +273,8 @@ namespace UnityEngine.Rendering.Universal
             m_RenderPassDescriptor.height = height;
             m_RenderPassDescriptor.sampleCount = sampleCount;
             m_RenderPassDescriptor.readOnlyDepth = readOnlyDepth;
-            UseNativeRenderPass(true);
         }
 
-        internal void UseNativeRenderPass(bool enable)
-        {
-            useNativeRenderPass = enable;
-        }
         /// <summary>
         /// This method is called by the renderer before executing the render pass.
         /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
