@@ -553,16 +553,18 @@ namespace UnityEditor.VFX
             }
         }
 
-        void RecurseSubgraphRecreateCopy(VFXGraph graph)
+        void RecurseSubgraphRecreateCopy(IEnumerable<VFXModel> children)
         {
-            foreach (var child in graph.children)
+            foreach (var child in children)
             {
                 if (child is VFXSubgraphContext)
                 {
                     var subgraphContext = child as VFXSubgraphContext;
-                    if( subgraphContext.subgraph != null)
-                        RecurseSubgraphRecreateCopy(subgraphContext.subgraph.GetResource().GetOrCreateGraph());
                     subgraphContext.RecreateCopy();
+                    if (subgraphContext.subgraph != null)
+                    {
+                        RecurseSubgraphRecreateCopy(subgraphContext.subChildren);
+                    }
                 }
                 else if(child is VFXContext)
                 {
@@ -571,9 +573,9 @@ namespace UnityEditor.VFX
                         if( block is VFXSubgraphBlock)
                         {
                             var subgraphBlock = block as VFXSubgraphBlock;
-                            if (subgraphBlock.subgraph != null)
-                                RecurseSubgraphRecreateCopy(subgraphBlock.subgraph.GetResource().GetOrCreateGraph());
                             subgraphBlock.RecreateCopy();
+                            if (subgraphBlock.subgraph != null)
+                                RecurseSubgraphRecreateCopy(subgraphBlock.subChildren);
                         }
                     }
                 }
@@ -646,8 +648,8 @@ namespace UnityEditor.VFX
         private void PrepareSubgraphs()
         {
             Profiler.BeginSample("PrepareSubgraphs");
-            RecurseSubgraphRecreateCopy(this);
-            RecurseSubgraphPatchInputExpression(this.children);
+            RecurseSubgraphRecreateCopy(children);
+            RecurseSubgraphPatchInputExpression(children);
             Profiler.EndSample();
         }
 
@@ -684,22 +686,28 @@ namespace UnityEditor.VFX
             }
         }
 
+        //Explicit compile must be used if we want to force compilation even if a dependency is needed, which me must not do on a deleted library import.
+        public static bool explicitCompile { get; set; } = false;
+
         public void CompileForImport()
         {
             if (! GetResource().isSubgraph)
             {
 
-                // Don't pursue the compile if one of the depenendecy is not yet loaded
+                // Don't pursue the compile if one of the dependency is not yet loaded
                 // which happen at first import with .pcache
-                HashSet<int> dependentAsset = new HashSet<int>();
-                GetImportDependentAssets(dependentAsset);
-
-                foreach(var instanceID in dependentAsset)
+                if (!explicitCompile)
                 {
-                    if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                    HashSet<int> dependentAsset = new HashSet<int>();
+                    GetImportDependentAssets(dependentAsset);
+
+                    foreach (var instanceID in dependentAsset)
                     {
-                        //Debug.LogWarning("Refusing to compile " + AssetDatabase.GetAssetPath(this) + "because dependency is not yet loaded");
-                        return;
+                        if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                        {
+                            //Debug.LogWarning("Refusing to compile " + AssetDatabase.GetAssetPath(this) + "because dependency is not yet loaded");
+                            return;
+                        }
                     }
                 }
 

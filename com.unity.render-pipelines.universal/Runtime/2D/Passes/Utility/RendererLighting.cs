@@ -462,10 +462,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmdBuffer.SetGlobalTexture("_PointLightCookieTex", light.lightCookieSprite.texture);
         }
 
-        static public void ClearDirtyLighting(CommandBuffer cmdBuffer)
+        static public void ClearDirtyLighting(CommandBuffer cmdBuffer, uint blendStylesUsed)
         {
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
+                if ((blendStylesUsed & (uint)(1 << i)) == 0)
+                    continue;
+
                 if (s_LightRenderTargetsDirty[i])
                 {
                     cmdBuffer.SetRenderTarget(s_LightRenderTargets[i].Identifier());

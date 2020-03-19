@@ -4,10 +4,50 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.1] - 2020-05-25
+## [Unreleased]
+
+### Added
+- Added the exposure sliders to the planar reflection probe preview
+- Added a warning and workaround instructions that appear when you enable XR single-pass after the first frame with the XR SDK.
+- Added an "enable" toggle to the SSR volume component.
 
 ### Fixed
 - Fix Changelog
+- Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
+- Fix issue with AO being misaligned when multiple view are visible.
+- Fix issue that caused the clamp of camera rotation motion for motion blur to be ineffective.
+- Fixed culling of lights with XR SDK
+- Fixed memory stomp in shadow caching code, leading to overflow of Shadow request array and runtime errors.
+- Fixed an issue related to transparent objects reading the ray traced indirect diffuse buffer
+- Fixed an issue with filtering ray traced area lights when the intensity is high or there is an exposure.
+- Fixed ill-formed include path in Depth Of Field shader.
+- Fixed a bug in semi-transparent shadows (object further than the light casting shadows)
+- Fix state enabled of default volume profile when in package.
+- Fixed removal of MeshRenderer and MeshFilter on adding Light component. 
+- Fixed a bug in debug light volumes.
+- Fixed the culling was not disposed error in build log.
+- Fixed an issue where fog sky color mode could sample NaNs in the sky cubemap.
+- Fixed a leak in the PBR sky renderer.
+- Added a tooltip to the Ambient Mode parameter in the Visual Envionment volume component.
+- Static lighting sky now takes the default volume into account (this fixes discrepancies between baked and realtime lighting).
+- Fixed a leak in the sky system.
+- Hide reflection probes in the renderer components.
+- Removed MSAA Buffers allocation when lit shader mode is set to "deferred only".
+- Fixed invalid cast for realtime reflection probes (case 1220504)
+- Fixed invalid game view rendering when disabling all cameras in the scene (case 1105163)
+- Fixed infinite reload loop while displaying Light's Shadow's Link Light Layer in Inspector of Prefab Asset.
+- Fixed the cookie atlas size and planar atlas size being too big after an upgrade of the HDRP asset.
+- Fix player build DX12
+- Fixed compilation issue with linux vulkan and raytrace shader
+- Fixed the HDRP asset migration code not being called after an upgrade of the package
+- Fixed draw renderers custom pass out of bound exception
+- Fixed an issue with emissive light meshes not being in the RAS.
+- Fixed a warning due to StaticLightingSky when reloading domain in some cases.
+
+### Changed
+- Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
+- Light dimmer can now get values higher than one and was renamed to multiplier in the UI. 
+- Removed info box requesting volume component for Visual Environment and updated the documentation with the relevant information.
 
 ## [8.0.0] - 2020-05-25
 
@@ -412,6 +452,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with MipRatio debug mode showing _DebugMatCapTexture not being set.
 - Fixed missing initialization of input params in Blit for VR.
 - Fix Inf source in LTC for area lights.
+- Fixed alpha clipping test (comparison was '>', now '>=')
+- Fixed preview camera (eg. shader graph preview) when path tracing is on
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -496,6 +538,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Transform result from CIE XYZ to sRGB color space in EvalSensitivity for iridescence.
 - Hide the Probes section in the Renderer editos because it was unused.
 - Moved BeginCameraRendering callback right before culling.
+- Changed the visibility of the Indirect Lighting Controller component to public.
 
 ## [7.1.1] - 2019-09-05
 

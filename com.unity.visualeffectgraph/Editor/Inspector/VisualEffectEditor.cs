@@ -768,7 +768,12 @@ namespace UnityEditor.VFX
 
 
             GUI.enabled = true;
-            if (graph != null)
+            if (graph == null)
+            {
+                ShowHeader(Contents.headerProperties, true, showPropertyCategory);
+                EditorGUILayout.HelpBox(Contents.graphInBundle.text.ToString(), MessageType.Info, true);
+            }
+            else
             {
                 if (graph.m_ParameterInfo == null)
                 {
@@ -1197,6 +1202,8 @@ namespace UnityEditor.VFX
             public static readonly GUIContent resetInitialEvent =   EditorGUIUtility.TrTextContent("Default");
             public static readonly GUIContent setPlayRate =         EditorGUIUtility.TrTextContent("Set");
             public static readonly GUIContent playRate =            EditorGUIUtility.TrTextContent("Rate");
+
+            public static readonly GUIContent graphInBundle =       EditorGUIUtility.TrTextContent("Exposed properties are hidden in the Inspector when Visual Effect Assets are stored in Asset Bundles.");
 
             static readonly GUIContent[] m_Icons;
 

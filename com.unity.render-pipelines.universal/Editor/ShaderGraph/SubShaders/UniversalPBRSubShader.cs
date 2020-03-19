@@ -475,7 +475,7 @@ namespace UnityEditor.Rendering.Universal
             if (sourceAssetDependencyPaths != null)
             {
                 // UniversalPBRSubShader.cs
-                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("ca91dbeb78daa054c9bbe15fef76361c"));
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("f2df349d00ec920488971bb77440b7bc"));
             }
 
             // Master Node data

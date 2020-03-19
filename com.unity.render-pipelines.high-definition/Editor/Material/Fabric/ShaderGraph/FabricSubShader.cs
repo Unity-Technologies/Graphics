@@ -18,6 +18,10 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
             CullOverride = "Cull Off",
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
+            ExtraDefines = new List<string>()
+            {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch"
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
@@ -68,6 +72,10 @@ namespace UnityEditor.Rendering.HighDefinition
             ZClipOverride = HDSubShaderUtilities.zClipShadowCaster,
             CullOverride = HDSubShaderUtilities.defaultCullMode,
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
+            ExtraDefines = new List<string>()
+            {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch"
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -98,6 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
             },
@@ -330,6 +339,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -378,6 +388,10 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_RAYTRACING_VISIBILITY",
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
+            ExtraDefines = new List<string>()
+            {
+                "#pragma only_renderers d3d11",
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl\"",
@@ -422,6 +436,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -471,6 +486,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -520,6 +536,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
+                "#pragma only_renderers d3d11",
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -702,7 +719,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return activeFields;
         }
 
-        private static bool GenerateShaderPassLit(FabricMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        private static bool GenerateShaderPassFabric(FabricMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool instancingFlag = true)
         {
             if (mode == GenerationMode.ForReals || pass.UseInPreview)
             {
@@ -719,7 +736,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     vertexActive = true;
                 }
-                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
+                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive, instancingFlag: instancingFlag);
             }
             else
             {
@@ -753,16 +770,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 int queue = HDRenderQueue.ChangeType(renderingPass, masterNode.sortPriority, masterNode.alphaTest.isOn);
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, queue);
 
-                GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassFabric(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassFabric(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassFabric(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerateShaderPassLit(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassFabric(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassFabric(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
 
                 // Assign define here based on opaque or transparent to save some variant
                 m_PassForwardOnly.ExtraDefines = opaque ? HDSubShaderUtilities.s_ExtraDefinesForwardOpaque : HDSubShaderUtilities.s_ExtraDefinesForwardTransparent;
-                GenerateShaderPassLit(masterNode, m_PassForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassFabric(masterNode, m_PassForwardOnly, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
@@ -774,11 +791,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 subShader.Indent();
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName);
                 {
-                    GenerateShaderPassLit(masterNode, m_PassRaytracingIndirect, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, m_PassRaytracingForward, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, m_PassRaytracingGBuffer, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, m_PassRaytracingSubSurface, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassFabric(masterNode, m_PassRaytracingIndirect, mode, subShader, sourceAssetDependencyPaths, false);
+                    GenerateShaderPassFabric(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths, false);
+                    GenerateShaderPassFabric(masterNode, m_PassRaytracingForward, mode, subShader, sourceAssetDependencyPaths, false);
+                    GenerateShaderPassFabric(masterNode, m_PassRaytracingGBuffer, mode, subShader, sourceAssetDependencyPaths, false);
+                    GenerateShaderPassFabric(masterNode, m_PassRaytracingSubSurface, mode, subShader, sourceAssetDependencyPaths, false);
                 }
                 subShader.Deindent();
                 subShader.AddShaderChunk("}", false);

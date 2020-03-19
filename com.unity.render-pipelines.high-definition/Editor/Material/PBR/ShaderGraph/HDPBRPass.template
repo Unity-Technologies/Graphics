@@ -24,9 +24,9 @@ Pass
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
     //#pragma enable_d3d11_debug_symbols
 
-    #pragma instancing_options renderinglayer
-    #pragma multi_compile _ LOD_FADE_CROSSFADE
     $splice(InstancingOptions)
+
+    #pragma multi_compile _ LOD_FADE_CROSSFADE
 
     //-------------------------------------------------------------------------------------
     // Graph Defines

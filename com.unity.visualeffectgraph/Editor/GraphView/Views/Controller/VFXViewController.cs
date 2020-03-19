@@ -1138,10 +1138,11 @@ namespace UnityEditor.VFX.UI
             return model;
         }
 
-        public VFXParameter AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
+        public VFXParameter AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc,bool parent = true)
         {
             var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
+            if( parent)
+                AddVFXModel(pos, model);
 
             VFXParameter parameter = model as VFXParameter;
 
