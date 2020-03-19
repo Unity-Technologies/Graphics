@@ -230,6 +230,11 @@ namespace UnityEngine.Rendering
             return s_DefaultInstance.Alloc(tex);
         }
 
+        /// <summary>
+        /// Allocate a RTHandle from a regular render target identifier for the default RTHandle system.
+        /// </summary>
+        /// <param name="tex">Input render target identifier.</param>
+        /// <returns>A new RTHandle referencing the input render target identifier.</returns>
         public static RTHandle Alloc(RenderTargetIdentifier tex)
         {
             return s_DefaultInstance.Alloc(tex);

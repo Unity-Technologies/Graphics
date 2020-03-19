@@ -8,10 +8,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Render( RenderGraph                 renderGraph,
                             HDCamera                    hdCamera,
                             BlueNoise                   blueNoise,
-                            RenderGraphResource         colorBuffer,
-                            RenderGraphResource         afterPostProcessTexture,
-                            RenderGraphMutableResource  depthBuffer,
-                            RenderGraphMutableResource  finalRT,
+                            TextureHandle   colorBuffer,
+                            TextureHandle   afterPostProcessTexture,
+                            TextureHandle   depthBuffer,
+                            TextureHandle   finalRT,
                             bool                        flipY)
         {
             var dynResHandler = DynamicResolutionHandler.instance;
@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
 
             // TODO: Implement
-            RenderGraphResource alphaTexture = new RenderGraphResource();
+            TextureHandle alphaTexture = new TextureHandle();
             //// Save the alpha and apply it back into the final pass if working in fp16
             //if (m_KeepAlpha)
             //{
@@ -255,11 +255,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class FinalPassData
         {
-            public FinalPassParameters          parameters;
-            public RenderGraphResource          source;
-            public RenderGraphResource          afterPostProcessTexture;
-            public RenderGraphResource          alphaTexture;
-            public RenderGraphMutableResource   destination;
+            public FinalPassParameters  parameters;
+            public TextureHandle        source;
+            public TextureHandle        afterPostProcessTexture;
+            public TextureHandle        alphaTexture;
+            public TextureHandle        destination;
         }
     }
 }

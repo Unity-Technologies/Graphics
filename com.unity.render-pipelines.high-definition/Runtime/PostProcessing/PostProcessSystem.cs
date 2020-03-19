@@ -834,7 +834,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ExposureCurveTexture.Apply();
         }
 
-        // TODO: Handle light buffer as a source for average luminance
         void DoDynamicExposure(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer)
         {
             var cs = m_Resources.shaders.exposureCS;

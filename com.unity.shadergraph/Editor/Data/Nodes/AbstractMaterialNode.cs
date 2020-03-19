@@ -41,8 +41,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableSlots = new List<SerializationHelper.JSONSerializedElement>();
 
-        public Identifier tempId { get; set; }
-
         public GraphData owner { get; set; }
 
         OnNodeModified m_OnModified;
@@ -148,7 +146,7 @@ namespace UnityEditor.ShaderGraph
 
         public virtual bool allowedInSubGraph
         {
-            get { return true; }
+            get { return !(this is IMasterNode); }
         }
 
         public virtual bool allowedInMainGraph
@@ -166,6 +164,9 @@ namespace UnityEditor.ShaderGraph
             get { return m_HasError; }
             protected set { m_HasError = value; }
         }
+
+        //needed for HDRP material update system
+        public virtual object saveContext => null;
 
         string m_DefaultVariableName;
         string m_NameForDefaultVariableName;
@@ -283,7 +284,7 @@ namespace UnityEditor.ShaderGraph
                 if (slot == null)
                     return string.Empty;
 
-                return ShaderGenerator.AdaptNodeOutput(fromNode, slot.id, inputSlot.concreteValueType);
+                return GenerationUtils.AdaptNodeOutput(fromNode, slot.id, inputSlot.concreteValueType);
             }
 
             return inputSlot.GetDefaultValue(generationMode);
@@ -511,7 +512,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (isInError)
                 {
-                    ((GraphData) owner).AddValidationError(tempId, errorMessage);
+                    ((GraphData) owner).AddValidationError(guid, errorMessage);
                 }
                 else
                 {

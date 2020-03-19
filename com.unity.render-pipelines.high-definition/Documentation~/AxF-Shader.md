@@ -10,7 +10,7 @@ To translate AxF file data into Material properties and data that HDRP's AxF Sha
 
 Although it is possible to create an AxF Material from scratch in Unity, you should instead use an external authoring tool, such as X-Rite’s Total Appearance Capture (TAC™) Ecosystem, to create an AxF file and then import the result into Unity. If you install the AxF Importer package, Unity automatically imports AxF files as AxF Materials.
 
-The AxF importer is available in Unity Enterprise for Product Lifecycle. For more information, contact your Unity sales representative. When you download the AxF Importer package, use the Package Manager to install it locally. For information on how to install local packages, see [Installing a local package](https://docs.unity3d.com/Manual/upm-ui-local.html).
+The AxF importer is available in [Unity Enterprise for Product Lifecycle](https://unity.com/products/unity-enterprise-product-lifecycle). When you download the AxF Importer package, use the Package Manager to install it locally. For information on how to install local packages, see [Installing a local package](https://docs.unity3d.com/Manual/upm-ui-local.html).
 
 ### Using the AxF Importer package
 

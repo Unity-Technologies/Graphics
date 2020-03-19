@@ -1,6 +1,6 @@
 # Ray-Traced Reflections
 
-Ray-Traced Reflections is a ray tracing feature in the High Definition Render Pipeline (HDRP). It is an alternative, more accurate, ray-traced solution to [Screen Space Reflection](Override-Screen-Space-Reflection) that can make use of off screen data.
+Ray-Traced Reflections is a ray tracing feature in the High Definition Render Pipeline (HDRP). It is an alternative, more accurate, ray-traced solution to [Screen Space Reflection](Override-Screen-Space-Reflection.html) that can make use of off screen data.
 
 ![](Images/RayTracedReflections1.png)
 
@@ -61,7 +61,7 @@ Alongside the standard properties, Unity exposes extra properties depending on t
 | ------------------------- | ------------------------------------------------------------ |
 | **Ray Tracing**           | Makes HDRP use ray tracing to process screen-space reflections. Enabling this exposes properties that you can use to adjust the quality of ray-traced reflections. |
 | **Minimum Smoothness**    | Controls the minimum smoothness value for a pixel at which HDRP processes ray-traced reflections. If the smoothness value of the pixel is lower than this value, HDRP falls back to the next available reflection method in the [reflection hierarchy](Reflection-in-HDRP.html#ReflectionHierarchy). |
-| **Smoothness Fade Start** | This feature has not been implemented yet and currently does nothing. Ray tracing in HDRP is experimental so some features have not been implemented yet. |
+| **Smoothness Fade Start** | Controls the smoothness value at which the smoothness controlled fade out starts. The fade is in the range [Min Smoothness, Smoothness Fade Start]. |
 | **Reflect Sky**           | Enable this feature to specify to HDRP that it should use the sky as a fall-back for ray-traced reflections when a ray doesn't find an intersection. |
 | **LayerMask**             | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Ray Length**            | Controls the length of the rays that HDRP uses for ray tracing. If a ray doesn't find an intersection, then the ray returns the color of the sky if Reflect Sky is enabled, or black if not. |

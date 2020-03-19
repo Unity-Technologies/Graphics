@@ -7,24 +7,24 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         class AfterPostProcessPassData
         {
-            public PostProcessParameters parameters;
-            public RenderGraphMutableResource afterPostProcessBuffer;
-            public RenderGraphMutableResource depthStencilBuffer;
-            public RenderGraphResource opaqueAfterPostprocessRL;
-            public RenderGraphResource transparentAfterPostprocessRL;
+            public PostProcessParameters    parameters;
+            public TextureHandle            afterPostProcessBuffer;
+            public TextureHandle            depthStencilBuffer;
+            public RendererListHandle       opaqueAfterPostprocessRL;
+            public RendererListHandle       transparentAfterPostprocessRL;
         }
 
-        RenderGraphMutableResource RenderPostProcess(   RenderGraph                 renderGraph,
-                                                        RenderGraphResource         inputColor,
-                                                        RenderGraphMutableResource  depthBuffer,
-                                                        RenderGraphMutableResource  backBuffer,
-                                                        CullingResults              cullResults,
-                                                        HDCamera                    hdCamera)
+        TextureHandle RenderPostProcess(    RenderGraph     renderGraph,
+                                            TextureHandle   inputColor,
+                                            TextureHandle   depthBuffer,
+                                            TextureHandle   backBuffer,
+                                            CullingResults  cullResults,
+                                            HDCamera        hdCamera)
         {
             PostProcessParameters parameters = PreparePostProcess(cullResults, hdCamera);
 
-            RenderGraphResource afterPostProcessBuffer = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
-            RenderGraphMutableResource dest = HDUtils.PostProcessIsFinalPass(parameters.hdCamera) ? backBuffer : renderGraph.CreateTexture(
+            TextureHandle afterPostProcessBuffer = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
+            TextureHandle dest = HDUtils.PostProcessIsFinalPass(parameters.hdCamera) ? backBuffer : renderGraph.CreateTexture(
                         new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat(), name = "Intermediate Postprocess buffer" });
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))

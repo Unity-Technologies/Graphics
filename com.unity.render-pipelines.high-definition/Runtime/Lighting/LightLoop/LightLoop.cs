@@ -105,33 +105,33 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     struct SFiniteLightBound
     {
-        public Vector3 boxAxisX;
-        public Vector3 boxAxisY;
-        public Vector3 boxAxisZ;
-        public Vector3 center;        // a center in camera space inside the bounding volume of the light source.
-        public Vector2 scaleXY;
-        public float radius;
+        public Vector3 boxAxisX; // Scaled by the extents (half-size)
+        public Vector3 boxAxisY; // Scaled by the extents (half-size)
+        public Vector3 boxAxisZ; // Scaled by the extents (half-size)
+        public Vector3 center;   // Center of the bounds (box) in camera space
+        public Vector2 scaleXY;  // Scale applied to the top of the box to turn it into a truncated pyramid
+        public float radius;     // Circumscribed sphere for the bounds (box)
     };
 
     [GenerateHLSL]
     struct LightVolumeData
     {
-        public Vector3 lightPos;
-        public uint lightVolume;
+        public Vector3 lightPos;     // Of light's "origin"
+        public uint lightVolume;     // Type index
 
-        public Vector3 lightAxisX;
-        public uint lightCategory;
+        public Vector3 lightAxisX;   // Normalized
+        public uint lightCategory;   // Category index
 
-        public Vector3 lightAxisY;
-        public float radiusSq;
+        public Vector3 lightAxisY;   // Normalized
+        public float radiusSq;       // Cone and sphere: light range squared
 
-        public Vector3 lightAxisZ;      // spot +Z axis
-        public float cotan;
+        public Vector3 lightAxisZ;   // Normalized
+        public float cotan;          // Cone: cotan of the aperture (half-angle)
 
-        public Vector3 boxInnerDist;
+        public Vector3 boxInnerDist; // Box: extents (half-size) of the inner box
         public uint featureFlags;
 
-        public Vector3 boxInvRange;
+        public Vector3 boxInvRange;  // Box: 1 / (OuterBoxExtents - InnerBoxExtents)
         public float unused2;
     };
 
@@ -1630,63 +1630,61 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (gpuLightType == GPULightType.Tube)
             {
                 Vector3 dimensions = new Vector3(lightDimensions.x + 2 * range, 2 * range, 2 * range); // Omni-directional
-                Vector3 extents = 0.5f * dimensions;
+                Vector3 extents    = 0.5f * dimensions;
+                Vector3 centerVS   = positionVS;
 
-                bound.center = positionVS;
+                bound.center   = centerVS;
                 bound.boxAxisX = extents.x * xAxisVS;
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
+                bound.radius   = extents.magnitude;
                 bound.scaleXY.Set(1.0f, 1.0f);
-                bound.radius = extents.magnitude;
 
-                lightVolumeData.lightPos = positionVS;
+                lightVolumeData.lightPos   = centerVS;
                 lightVolumeData.lightAxisX = xAxisVS;
                 lightVolumeData.lightAxisY = yAxisVS;
                 lightVolumeData.lightAxisZ = zAxisVS;
-                lightVolumeData.boxInnerDist = new Vector3(lightDimensions.x, 0, 0);
-                lightVolumeData.boxInvRange.Set(1.0f / range, 1.0f / range, 1.0f / range);
+                lightVolumeData.boxInvRange.Set(1.0f / extents.x, 1.0f / extents.y, 1.0f / extents.z);
                 lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
             }
             else if (gpuLightType == GPULightType.Rectangle)
             {
                 Vector3 dimensions = new Vector3(lightDimensions.x + 2 * range, lightDimensions.y + 2 * range, range); // One-sided
-                Vector3 extents = 0.5f * dimensions;
-                Vector3 centerVS = positionVS + extents.z * zAxisVS;
+                Vector3 extents    = 0.5f * dimensions;
+                Vector3 centerVS   = positionVS + extents.z * zAxisVS;
 
-                bound.center = centerVS;
+                bound.center   = centerVS;
                 bound.boxAxisX = extents.x * xAxisVS;
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
+                bound.radius   = extents.magnitude;
                 bound.scaleXY.Set(1.0f, 1.0f);
-                bound.radius = extents.magnitude;
 
-                lightVolumeData.lightPos = centerVS;
+                lightVolumeData.lightPos   = centerVS;
                 lightVolumeData.lightAxisX = xAxisVS;
                 lightVolumeData.lightAxisY = yAxisVS;
                 lightVolumeData.lightAxisZ = zAxisVS;
-                lightVolumeData.boxInnerDist = extents;
-                lightVolumeData.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+                lightVolumeData.boxInvRange.Set(1.0f / extents.x, 1.0f / extents.y, 1.0f / extents.z);
                 lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
             }
             else if (gpuLightType == GPULightType.ProjectorBox)
             {
                 Vector3 dimensions = new Vector3(lightDimensions.x, lightDimensions.y, range);  // One-sided
-                Vector3 extents = 0.5f * dimensions;
-                Vector3 centerVS = positionVS + extents.z * zAxisVS;
+                Vector3 extents    = 0.5f * dimensions;
+                Vector3 centerVS   = positionVS + extents.z * zAxisVS;
 
-                bound.center = centerVS;
+                bound.center   = centerVS;
                 bound.boxAxisX = extents.x * xAxisVS;
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
-                bound.radius = extents.magnitude;
+                bound.radius   = extents.magnitude;
                 bound.scaleXY.Set(1.0f, 1.0f);
 
-                lightVolumeData.lightPos = centerVS;
+                lightVolumeData.lightPos   = centerVS;
                 lightVolumeData.lightAxisX = xAxisVS;
                 lightVolumeData.lightAxisY = yAxisVS;
                 lightVolumeData.lightAxisZ = zAxisVS;
-                lightVolumeData.boxInnerDist = extents;
-                lightVolumeData.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+                lightVolumeData.boxInvRange.Set(1.0f / extents.x, 1.0f / extents.y, 1.0f / extents.z);
                 lightVolumeData.featureFlags = (uint)LightFeatureFlags.Punctual;
             }
             else if (gpuLightType == GPULightType.Disc)
@@ -2678,6 +2676,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 screenSize;
             public int msaaSamples;
 
+            // Clear Light lists
+            public ComputeShader clearLightListCS;
+            public int clearLightListKernel;
+
             // Screen Space AABBs
             public ComputeShader screenSpaceAABBShader;
             public int screenSpaceAABBKernel;
@@ -2730,6 +2732,37 @@ namespace UnityEngine.Rendering.HighDefinition
             resources.gBuffer = m_GbufferManager.GetBuffers();
 
             return resources;
+        }
+
+        static void ClearLightList(in BuildGPULightListParameters parameters, CommandBuffer cmd, ComputeBuffer bufferToClear)
+        {
+            cmd.SetComputeBufferParam(parameters.clearLightListCS, parameters.clearLightListKernel, HDShaderIDs._LightListToClear, bufferToClear);
+            cmd.SetComputeIntParam(parameters.clearLightListCS, HDShaderIDs._LightListEntries, bufferToClear.count);
+
+            int groupSize = 64;
+            cmd.DispatchCompute(parameters.clearLightListCS, parameters.clearLightListKernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
+        }
+
+        static void ClearLightLists(    in BuildGPULightListParameters parameters,
+                                        in BuildGPULightListResources resources,
+                                        CommandBuffer cmd)
+        {
+            if (parameters.clearLightLists && !parameters.runLightList)
+            {
+                // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
+                // to changes to the inner workings of the lists.
+                // Also, we clear all the lists and to be resilient to changes in pipeline.
+                ClearLightList(parameters, cmd, resources.tileAndClusterData.bigTileLightList);
+                ClearLightList(parameters, cmd, resources.tileAndClusterData.lightList);
+                ClearLightList(parameters, cmd, resources.tileAndClusterData.perVoxelOffset);
+
+                // No need to clear it anymore until we start and stop running light list building.
+                resources.tileAndClusterData.listsAreClear = true;
+            }
+            else if (parameters.runLightList)
+            {
+                resources.tileAndClusterData.listsAreClear = false;
+            }
         }
 
         // generate screen-space AABBs (used for both fptl and clustered).
@@ -3031,6 +3064,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
+            // Clear light lsts
+            parameters.clearLightListCS = defaultResources.shaders.clearLightListsCS;
+            parameters.clearLightListKernel = parameters.clearLightListCS.FindKernel("ClearList");
+
             // Screen space AABB
             parameters.screenSpaceAABBShader = buildScreenAABBShader;
             parameters.screenSpaceAABBKernel = isProjectionOblique ? s_GenAABBKernel_Oblique : s_GenAABBKernel;
@@ -3083,19 +3120,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        void ClearLightList(HDCamera camera, CommandBuffer cmd, ComputeBuffer bufferToClear)
-        {
-            // We clear them all to be on the safe side when switching pipes.
-            var cs = defaultResources.shaders.clearLightListsCS;
-            var kernel = cs.FindKernel("ClearList");
-
-            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._LightListToClear, bufferToClear);
-            cmd.SetComputeIntParam(cs, HDShaderIDs._LightListEntries, bufferToClear.count);
-
-            int groupSize = 64;
-            cmd.DispatchCompute(cs, kernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
-        }
-
         void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildLightList)))
@@ -3109,23 +3133,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool tileFlagsWritten = false;
 
-                if(parameters.clearLightLists && !parameters.runLightList)
-                {
-                    // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
-                    // to changes to the inner workings of the lists.
-                    // Also, we clear all the lists and to be resilient to changes in pipeline.
-                    ClearLightList(hdCamera, cmd, resources.tileAndClusterData.bigTileLightList);
-                    ClearLightList(hdCamera, cmd, resources.tileAndClusterData.lightList);
-                    ClearLightList(hdCamera, cmd, resources.tileAndClusterData.perVoxelOffset);
-
-                    // No need to clear it anymore until we start and stop running light list building.
-                    m_TileAndClusterData.listsAreClear = true;
-                }
-                else if(parameters.runLightList)
-                {
-                    m_TileAndClusterData.listsAreClear = false;
-                }
-
+                ClearLightLists(parameters, resources, cmd);
                 GenerateLightsScreenSpaceAABBs(parameters, resources, cmd);
                 BigTilePrepass(parameters, resources, cmd);
                 BuildPerTileLightList(parameters, resources, ref tileFlagsWritten, cmd);
