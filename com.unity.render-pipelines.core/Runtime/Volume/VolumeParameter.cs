@@ -103,6 +103,11 @@ namespace UnityEngine.Rendering
             return type.BaseType != null
                 && IsObjectParameter(type.BaseType);
         }
+
+        /// <summary>
+        /// Override this method to free all allocated resources
+        /// </summary>
+        public virtual void Release() {}
     }
 
     /// <summary>
