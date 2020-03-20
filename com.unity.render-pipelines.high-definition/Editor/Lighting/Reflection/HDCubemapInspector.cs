@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Experimental.Rendering;
 
@@ -24,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             get { return s_SphereMesh ?? (s_SphereMesh = Resources.GetBuiltinResource(typeof(Mesh), "New-Sphere.fbx") as Mesh); }
         }
 
-        Material m_ReflectiveMaterial = null;
+        Material m_ReflectiveMaterial;
         PreviewRenderUtility m_PreviewUtility;
         float m_CameraPhi = 0.75f;
         float m_CameraTheta = 0.5f;
@@ -36,25 +35,20 @@ namespace UnityEditor.Rendering.HighDefinition
         public float previewExposure = 0f;
         public float mipLevelPreview = 0f;
 
-        void InitMaterialIfNeeded()
+        void Awake()
         {
-            if(m_ReflectiveMaterial == null)
+            m_ReflectiveMaterial = new Material(Shader.Find("Debug/ReflectionProbePreview"))
             {
-                var shader = Shader.Find("Debug/ReflectionProbePreview");
-                if(shader != null)
-                {
-                    m_ReflectiveMaterial = new Material(Shader.Find("Debug/ReflectionProbePreview"))
-                    {
-                        hideFlags = HideFlags.HideAndDontSave
-                    };
-                }
-            }
+                hideFlags = HideFlags.HideAndDontSave
+            };
         }
 
         void OnEnable()
         {
             if (m_PreviewUtility == null)
                 InitPreview();
+
+            m_ReflectiveMaterial.SetTexture("_Cubemap", target as Texture);
         }
 
         void OnDisable()
@@ -79,12 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_PreviewUtility == null)
                 InitPreview();
 
-            // We init material just before using it as the inspector might have been enabled/awaked before during import.
-            InitMaterialIfNeeded();
-
             UpdateCamera();
-
-            m_ReflectiveMaterial.SetTexture("_Cubemap", target as Texture);
 
             m_PreviewUtility.BeginPreview(r, GUIStyle.none);
             m_PreviewUtility.DrawMesh(sphereMesh, Matrix4x4.identity, m_ReflectiveMaterial, 0);
@@ -201,49 +190,6 @@ namespace UnityEditor.Rendering.HighDefinition
             s_MipMapHigh = EditorGUIUtility.IconContent("PreTextureMipMapHigh");
             s_ExposureLow = EditorGUIUtility.IconContent("SceneViewLighting");
             s_PreLabel = "preLabel";
-        }
-        public override Texture2D RenderStaticPreview(string assetPath, Object[] subAssets, int width, int height)
-        {
-            m_CameraDistance = 1.25f;
-            m_CameraPhi = Mathf.PI * 0.33f;
-            m_CameraTheta = Mathf.PI;
-
-            InitPreview();
-
-            UpdateCamera();
-
-            // Force loading the needed preview shader
-            var previewShader = EditorGUIUtility.LoadRequired("Previews/PreviewCubemap.shader") as Shader;
-            var previewMaterial = new Material(previewShader)
-                {
-                    hideFlags = HideFlags.HideAndDontSave
-                };
-
-            // We need to force it to go through legacy
-            bool assetUsedFromQuality = false;
-            var currentPipelineAsset = HDUtils.SwitchToBuiltinRenderPipeline(out assetUsedFromQuality);
-
-            previewMaterial.SetVector("_CameraWorldPosition", m_PreviewUtility.camera.transform.position);
-            previewMaterial.SetFloat("_Mip", 0.0f);
-            previewMaterial.SetFloat("_Alpha", 0.0f);
-            previewMaterial.SetFloat("_Intensity", 1.0f);
-            previewMaterial.mainTexture = (target as Texture);
-
-            m_PreviewUtility.ambientColor = Color.black;
-            m_PreviewUtility.BeginStaticPreview(new Rect(0, 0, width, height));
-            m_PreviewUtility.DrawMesh(sphereMesh, Matrix4x4.identity, previewMaterial, 0);
-            m_PreviewUtility.camera.Render();
-
-            var outTexture = m_PreviewUtility.EndStaticPreview();
-
-            // Reset back to whatever asset was used before the rendering
-            HDUtils.RestoreRenderPipelineAsset(assetUsedFromQuality, currentPipelineAsset);
-
-            // Dummy empty render call to reset the pipeline in RenderPipelineManager
-            m_PreviewUtility.camera.Render();
-
-            return outTexture;
-
         }
     }
 }

@@ -13,7 +13,6 @@ using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ExcludeFromPreset]
     [ScriptedImporter(32, Extension, 3)]
     class ShaderGraphImporter : ScriptedImporter
     {
@@ -109,7 +108,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 foreach (var pair in graph.messageManager.GetNodeMessages())
                 {
-                    var node = graph.GetNodeFromGuid(pair.Key);
+                    var node = graph.GetNodeFromTempId(pair.Key);
                     MessageManager.Log(node, path, pair.Value.First(), shader);
                 }
             }

@@ -1726,7 +1726,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingBasic,
+                pragmas = HDPragmas.RaytracingInstanced,
                 defines = HDDefines.HDLitRaytracingForwardIndirect,
                 keywords = HDKeywords.RaytracingIndirect,
                 includes = HDIncludes.Raytracing,
@@ -1751,7 +1751,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingBasic,
+                pragmas = HDPragmas.RaytracingInstanced,
                 defines = HDDefines.HDLitRaytracingVisibility,
                 includes = HDIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Lit, HDFields.ShaderPass.RaytracingVisibility },
@@ -1775,7 +1775,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingBasic,
+                pragmas = HDPragmas.RaytracingInstanced,
                 defines = HDDefines.HDLitRaytracingForwardIndirect,
                 keywords = HDKeywords.RaytracingGBufferForward,
                 includes = HDIncludes.Raytracing,
@@ -1800,7 +1800,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingBasic,
+                pragmas = HDPragmas.RaytracingInstanced,
                 defines = HDDefines.HDLitRaytracingGBuffer,
                 keywords = HDKeywords.RaytracingGBufferForward,
                 includes = HDIncludes.Raytracing,
@@ -1824,7 +1824,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingBasic,
+                pragmas = HDPragmas.RaytracingInstanced,
                 defines = HDDefines.HDLitRaytracingPathTracing,
                 includes = HDIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Lit, HDFields.ShaderPass.RaytracingPathTracing },
@@ -1847,7 +1847,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingBasic,
+                pragmas = HDPragmas.RaytracingInstanced,
                 defines = HDDefines.HDLitRaytracingGBuffer,
                 keywords = HDKeywords.RaytracingGBufferForward,
                 includes = HDIncludes.Raytracing,
@@ -1957,30 +1957,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Unlit"),
             };
-
-            public static PassDescriptor PathTracing = new PassDescriptor()
-            {
-                //Definition
-                displayName = "PathTracingDXR",
-                referenceName = "SHADERPASS_PATH_TRACING",
-                lightMode = "PathTracingDXR",
-                useInPreview = false,
-
-                // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
-
-                // Collections
-                structs = HDStructCollections.Default,
-                fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingBasic,
-                keywords = HDKeywords.HDBase,
-                includes = HDIncludes.Raytracing,
-                requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingPathTracing },
-
-                //Custom Template
-                passTemplatePath = GetPassTemplatePath("Unlit"),
-            };
         }
 #endregion
 
@@ -2002,7 +1978,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingBasic,
+                pragmas = HDPragmas.RaytracingInstanced,
                 defines = HDDefines.FabricRaytracingForwardIndirect,
                 keywords = HDKeywords.RaytracingIndirect,
                 includes = HDIncludes.Raytracing,
@@ -2027,7 +2003,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingBasic,
+                pragmas = HDPragmas.RaytracingInstanced,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Fabric, HDFields.ShaderPass.RaytracingVisibility },
@@ -2051,7 +2027,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingBasic,
+                pragmas = HDPragmas.RaytracingInstanced,
                 defines = HDDefines.FabricRaytracingForwardIndirect,
                 keywords = HDKeywords.RaytracingGBufferForward,
                 includes = HDIncludes.Raytracing,
@@ -2076,7 +2052,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingBasic,
+                pragmas = HDPragmas.RaytracingInstanced,
                 defines = HDDefines.FabricRaytracingGBuffer,
                 keywords = HDKeywords.RaytracingGBufferForward,
                 includes = HDIncludes.Raytracing,
@@ -2100,7 +2076,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingBasic,
+                pragmas = HDPragmas.RaytracingInstanced,
                 defines = HDDefines.FabricRaytracingGBuffer,
                 keywords = HDKeywords.RaytracingGBufferForward,
                 includes = HDIncludes.Raytracing,

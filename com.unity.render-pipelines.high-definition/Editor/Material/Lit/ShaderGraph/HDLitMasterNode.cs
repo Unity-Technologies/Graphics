@@ -1301,9 +1301,8 @@ namespace UnityEditor.Rendering.HighDefinition
             base.CollectShaderProperties(collector, generationMode);
         }
 
-        public override void Setup()
+        public override void ValidateNode()
         {
-            base.Setup();
             var hdPipelineAsset = HDRenderPipeline.currentAsset;
 
             if (hdPipelineAsset == null)
@@ -1316,9 +1315,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((diffusionProfileSlot.diffusionProfile) != null && !hdPipelineAsset.diffusionProfileSettingsList.Any(d => d == diffusionProfileSlot.diffusionProfile))
             {
-                //owner.AddSetupError(tempId, $"Diffusion profile '{diffusionProfileSlot.diffusionProfile.name}' is not referenced in the current HDRP asset", ShaderCompilerMessageSeverity.Warning);
+                // Debug.LogWarning($"Diffusion profile '{diffusionProfileSlot.diffusionProfile.name}' is not referenced in the current HDRP asset");
             }
 
+            base.ValidateNode();
         }
     }
 }

@@ -27,8 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracedShadowHistory,
         /// <summary>Ray traced shadow history validity buffer.</summary>
         RaytracedShadowHistoryValidity,
-        /// <summary>Ray traced shadow history distance buffer.</summary>
-        RaytracedShadowDistanceValidity,
         /// <summary>Ray traced reflections buffer.</summary>
         RaytracedReflection,
         /// <summary>Ray traced indirect diffuse HF buffer.</summary>

@@ -6,7 +6,6 @@
         * [Blackboard](Blackboard)  
         * [Master Preview](Master-Preview) 
     * [Create Node Menu](Create-Node-Menu)
-    * [Sticky Notes](Sticky-Notes)
     * [Sub Graph](Sub-graph)     
     * [Color Modes](Color-Modes)
     * [Precision Modes](Precision-Modes)

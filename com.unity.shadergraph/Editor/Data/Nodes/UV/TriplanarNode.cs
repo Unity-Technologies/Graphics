@@ -68,11 +68,12 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, TextureInputId, SamplerInputId, PositionInputId, NormalInputId, TileInputId, BlendInputId });
         }
 
-        public override void Setup()
+        public override void ValidateNode()
         {
-            base.Setup();
             var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputId);
             textureSlot.defaultType = (textureType == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
+
+            base.ValidateNode();
         }
 
         // Node generations

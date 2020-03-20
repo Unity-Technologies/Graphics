@@ -16,10 +16,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         readonly Dictionary<Guid, BlackboardRow> m_InputRows;
         readonly BlackboardSection m_PropertySection;
         readonly BlackboardSection m_KeywordSection;
-
-        public const int k_PropertySectionIndex = 0;
-        public const int k_KeywordSectionIndex = 1;
-
         public Blackboard blackboard { get; private set; }
         Label m_PathLabel;
         TextField m_PathLabelTextField;
@@ -229,7 +225,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             gm.AddSeparator($"Keyword/");
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
             {
-                var keyword = ShaderKeyword.CreateBuiltInKeyword(builtinKeywordDescriptor);
+                var keyword = ShaderKeyword.Create(builtinKeywordDescriptor);
                 AddBuiltinKeyword(gm, keyword);
             }
         }
@@ -273,9 +269,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             foreach (var input in m_Graph.addedInputs)
-            {
                 AddInputRow(input, index: m_Graph.GetGraphInputIndex(input));
-            }
 
             foreach (var expandedInput in expandedInputs)
             {
@@ -318,36 +312,27 @@ namespace UnityEditor.ShaderGraph.Drawing
                     field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
                     var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
                     row = new BlackboardRow(field, propertyView) { userData = input };
-
-                    if (index < 0 || index > m_InputRows.Count)
+                    if (index < 0)
                         index = m_InputRows.Count;
-
                     if (index == m_InputRows.Count)
                         m_PropertySection.Add(row);
                     else
                         m_PropertySection.Insert(index, row);
-
                     break;
                 }
                 case ShaderKeyword keyword:
                 {
                     var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.generatePropertyBlock)) ? exposedIcon : null;
-
-                    string typeText = keyword.keywordType.ToString()  + " Keyword";
-                    typeText = keyword.isBuiltIn ? "Built-in " + typeText : typeText;
-
+                    var typeText = keyword.isEditable ? keyword.keywordType.ToString() : "Built-in Keyword";
                     field = new BlackboardField(icon, keyword.displayName, typeText) { userData = keyword };
                     var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
                     row = new BlackboardRow(field, keywordView);
-
-                    if (index < 0 || index > m_InputRows.Count)
+                    if (index < 0)
                         index = m_InputRows.Count;
-
                     if (index == m_InputRows.Count)
                         m_KeywordSection.Add(row);
                     else
                         m_KeywordSection.Insert(index, row);
-
                     break;
                 }
                 default:

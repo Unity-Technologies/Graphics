@@ -1,19 +1,11 @@
-#ifndef UNITY_PATH_TRACING_MATERIAL_INCLUDED
-#define UNITY_PATH_TRACING_MATERIAL_INCLUDED
-
+#define MAX_BSDF_COUNT 4
 #define BSDF_WEIGHT_EPSILON 0.001
 
 struct MaterialData
 {
-    // BSDFs (4 max)
     BSDFData bsdfData;
-    float4   bsdfWeight;
-
-    // Subsurface scattering
-    bool     isSubsurface;
-    float    subsurfaceWeightFactor;
-
-    // View vector
+    float    bsdfWeight[MAX_BSDF_COUNT];
+    uint     bsdfCount;
     float3   V;
 };
 
@@ -43,6 +35,14 @@ void InitSpecular(inout MaterialResult result)
 {
     result.specValue = 0.0;
     result.specPdf = 0.0;
+}
+
+bool IsBlack(MaterialData mtlData)
+{
+    float wSum = 0.0;
+    for (uint i = 0; i < mtlData.bsdfCount; i++)
+        wSum += mtlData.bsdfWeight[i];
+    return wSum < BSDF_WEIGHT_EPSILON;
 }
 
 bool IsAbove(float3 normalWS, float3 dirWS)
@@ -81,5 +81,3 @@ float3x3 GetTangentFrame(MaterialData mtlData)
         float3x3(mtlData.bsdfData.tangentWS, mtlData.bsdfData.bitangentWS, mtlData.bsdfData.normalWS) :
         GetLocalFrame(mtlData.bsdfData.normalWS);
 }
-
-#endif // UNITY_PATH_TRACING_MATERIAL_INCLUDED

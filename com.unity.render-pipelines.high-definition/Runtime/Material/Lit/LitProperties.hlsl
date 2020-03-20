@@ -288,8 +288,7 @@ int _PassValue;
 
 CBUFFER_END
 
-// DOTS instancing not enabled for LayeredLit for now
-#if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(LAYERED_LIT_SHADER)
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
 UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
     UNITY_DOTS_INSTANCED_PROP(float , _Metallic)

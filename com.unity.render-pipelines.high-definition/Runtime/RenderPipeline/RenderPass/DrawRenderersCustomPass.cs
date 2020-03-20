@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var shaderPasses = GetShaderTagIds();
             if (overrideMaterial != null)
             {
-                shaderPasses[shaderPasses.Length - 1] = new ShaderTagId(overrideMaterialPassName);
+                shaderPasses[forwardShaderTags.Length - 1] = new ShaderTagId(overrideMaterialPassName);
                 overrideMaterial.SetFloat(fadeValueId, fadeValue);
             }
 

@@ -274,10 +274,6 @@ Shader "Universal Render Pipeline/Lit"
             #pragma only_renderers gles gles3
             #pragma target 2.0
 
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
-            
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature _NORMALMAP
@@ -307,7 +303,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
-            
+
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
@@ -329,11 +325,7 @@ Shader "Universal Render Pipeline/Lit"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma only_renderers gles gles3
-            #pragma target 2.0            
-            
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
+            #pragma target 2.0
 
             // -------------------------------------
             // Material Keywords
@@ -363,10 +355,6 @@ Shader "Universal Render Pipeline/Lit"
             #pragma prefer_hlslcc gles
             #pragma only_renderers gles gles3
             #pragma target 2.0
-            
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
 
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment

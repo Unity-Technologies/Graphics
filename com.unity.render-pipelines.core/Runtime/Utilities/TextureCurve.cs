@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering
     /// A wrapper around <c>AnimationCurve</c> to automatically bake it into a texture.
     /// </summary>
     [Serializable]
-    public class TextureCurve
+    public class TextureCurve : IDisposable
     {
         const int k_Precision = 128; // Edit LutBuilder3D if you change this value
         const float k_Step = 1f / k_Precision;
@@ -78,9 +78,23 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Releases the internal texture resource.
+        /// Finalizer.
         /// </summary>
-        public void Release()
+        ~TextureCurve()
+        {
+            ReleaseUnityResources();
+        }
+
+        /// <summary>
+        /// Cleans up the internal texture resource.
+        /// </summary>
+        public void Dispose()
+        {
+            ReleaseUnityResources();
+            GC.SuppressFinalize(this);
+        }
+
+        void ReleaseUnityResources()
         {
             CoreUtils.Destroy(m_Texture);
             m_Texture = null;
@@ -113,18 +127,17 @@ namespace UnityEngine.Rendering
         /// <returns>A 128x1 texture.</returns>
         public Texture2D GetTexture()
         {
-            if (m_Texture == null)
-            {
-                m_Texture = new Texture2D(k_Precision, 1, GetTextureFormat(), false, true);
-                m_Texture.name = "CurveTexture";
-                m_Texture.hideFlags = HideFlags.HideAndDontSave;
-                m_Texture.filterMode = FilterMode.Bilinear;
-                m_Texture.wrapMode = TextureWrapMode.Clamp;
-                m_IsTextureDirty = true;
-            }
-
             if (m_IsTextureDirty)
             {
+                if (m_Texture == null)
+                {
+                    m_Texture = new Texture2D(k_Precision, 1, GetTextureFormat(), false, true);
+                    m_Texture.name = "CurveTexture";
+                    m_Texture.hideFlags = HideFlags.HideAndDontSave;
+                    m_Texture.filterMode = FilterMode.Bilinear;
+                    m_Texture.wrapMode = TextureWrapMode.Clamp;
+                }
+
                 var pixels = new Color[k_Precision];
 
                 for (int i = 0; i < pixels.Length; i++)
@@ -240,8 +253,6 @@ namespace UnityEngine.Rendering
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public TextureCurveParameter(TextureCurve value, bool overrideState = false)
             : base(value, overrideState) { }
-
-        public override void Release() => m_Value.Release();
 
         // TODO: TextureCurve interpolation
     }

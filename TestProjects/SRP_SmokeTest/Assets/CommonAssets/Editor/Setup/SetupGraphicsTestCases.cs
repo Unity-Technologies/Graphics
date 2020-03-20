@@ -7,6 +7,6 @@ public class SetupGraphicsTestCases : IPrebuildSetup
 {
     public void Setup()
     {
-        UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup();
+        new UnityEditor.TestTools.Graphics.SetupGraphicsTestCases().Setup();
     }
 }

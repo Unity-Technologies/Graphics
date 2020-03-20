@@ -11,15 +11,12 @@ namespace UnityEngine.Rendering
         internal static GlobalXRSettings NewDefault() => new GlobalXRSettings()
         {
             singlePass = true,
-            occlusionMesh = true,
-            cameraJitter = false
+            occlusionMesh = true
         };
 
         /// <summary>Use single pass.</summary>
         public bool singlePass;
         /// <summary>Use occlusion mesh.</summary>
         public bool occlusionMesh;
-        /// <summary>Add jitter to camera for temporal effects.</summary>
-        public bool cameraJitter;
     }
 }

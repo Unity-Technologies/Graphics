@@ -66,6 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // XR Specific
         class XRRenderingPassData
         {
+            public Camera camera;
             public XRPass xr;
         }
 
@@ -75,12 +76,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<XRRenderingPassData>("Start XR single-pass", out var passData))
                 {
+                    passData.camera = hdCamera.camera;
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
                     (XRRenderingPassData data, RenderGraphContext context) =>
                     {
-                        data.xr.StartSinglePass(context.cmd);
+                        data.xr.StartSinglePass(context.cmd, data.camera, context.renderContext);
                     });
                 }
             }
@@ -92,12 +94,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<XRRenderingPassData>("Stop XR single-pass", out var passData))
                 {
+                    passData.camera = hdCamera.camera;
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
                     (XRRenderingPassData data, RenderGraphContext context) =>
                     {
-                        data.xr.StopSinglePass(context.cmd);
+                        data.xr.StopSinglePass(context.cmd, data.camera, context.renderContext);
                     });
                 }
             }
@@ -119,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (EndCameraXRPassData data, RenderGraphContext ctx) =>
                     {
-                        data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera);
+                        data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera, ctx.renderContext);
                     });
                 }
             }

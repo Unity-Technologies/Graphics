@@ -14,11 +14,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 add = HDUtils.s_DefaultHDAdditionalLightData;
             }
 
-            Cookie cookie;
-            LightmapperUtils.Extract(light, out cookie);
-            lightDataGI.cookieID    = cookie.instanceID;
-            lightDataGI.cookieScale = cookie.scale;
-
             // TODO: Currently color temperature is not handled at runtime, need to expose useColorTemperature publicly
             Color cct = new Color(1.0f, 1.0f, 1.0f);
 #if UNITY_EDITOR
@@ -55,9 +50,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             lightDataGI.mode = LightmapperUtils.Extract(light.bakingOutput.lightmapBakeType);
 #endif
-
+            
             lightDataGI.shadow = (byte)(light.shadows != LightShadows.None ? 1 : 0);
-
+            
             HDLightType lightType = add.ComputeLightType(light);
             if (lightType != HDLightType.Area)
             {
@@ -72,11 +67,11 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (lightType)
             {
                 case HDLightType.Directional:
-                    lightDataGI.orientation = light.transform.rotation;
-                    lightDataGI.position = light.transform.position;
+                    lightDataGI.orientation.SetLookRotation(light.transform.forward, Vector3.up);
+                    lightDataGI.position = Vector3.zero;
                     lightDataGI.range = 0.0f;
-                    lightDataGI.coneAngle = add.shapeWidth;
-                    lightDataGI.innerConeAngle = add.shapeHeight;
+                    lightDataGI.coneAngle = 0.0f;
+                    lightDataGI.innerConeAngle = 0.0f;
 #if UNITY_EDITOR
                     lightDataGI.shape0 = light.shadows != LightShadows.None ? (Mathf.Deg2Rad * light.shadowAngle) : 0.0f;
 #else
@@ -85,8 +80,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightDataGI.shape1 = 0.0f;
                     lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Directional;
                     lightDataGI.falloff = FalloffType.Undefined;
-                    lightDataGI.coneAngle = add.shapeWidth;
-                    lightDataGI.innerConeAngle = add.shapeHeight;
                     break;
 
                 case HDLightType.Spot:
@@ -112,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 spot.innerConeAngle = light.spotAngle * Mathf.Deg2Rad * add.innerSpotPercent01;
                                 spot.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
                                 spot.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
-                                lightDataGI.Init(ref spot, ref cookie);
+                                lightDataGI.Init(ref spot);
                                 lightDataGI.shape1 = (float)AngularFalloffType.AnalyticAndInnerAngle;
                             }
                             break;
@@ -131,7 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 pyramid.angle = light.spotAngle * Mathf.Deg2Rad;
                                 pyramid.aspectRatio = add.aspectRatio;
                                 pyramid.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
-                                lightDataGI.Init(ref pyramid, ref cookie);
+                                lightDataGI.Init(ref pyramid);
                             }
                             break;
 
@@ -148,7 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 box.range = light.range;
                                 box.width = add.shapeWidth;
                                 box.height = add.shapeHeight;
-                                lightDataGI.Init(ref box, ref cookie);
+                                lightDataGI.Init(ref box);
                             }
                             break;
 
@@ -159,7 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
 
                 case HDLightType.Point:
-                    lightDataGI.orientation = light.transform.rotation;
+                    lightDataGI.orientation = Quaternion.identity;
                     lightDataGI.position = light.transform.position;
                     lightDataGI.range = light.range;
                     lightDataGI.coneAngle = 0.0f;
@@ -174,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Point;
                     lightDataGI.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
                     break;
-
+                    
                 case HDLightType.Area:
                     switch (add.areaLightShape)
                     {
@@ -194,13 +187,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             // TEMP: for now, if we bake a rectangle type this will disable the light for runtime, need to speak with GI team about it!
                             lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Rectangle;
                             lightDataGI.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
-                            lightDataGI.cookieID = add.areaLightCookie ? add.areaLightCookie.GetInstanceID() : 0;
                             break;
 
                         case AreaLightShape.Tube:
                             lightDataGI.InitNoBake(lightDataGI.instanceID);
                             break;
-
+                            
                         case AreaLightShape.Disc:
                             lightDataGI.orientation = light.transform.rotation;
                             lightDataGI.position = light.transform.position;
@@ -217,7 +209,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             // TEMP: for now, if we bake a rectangle type this will disable the light for runtime, need to speak with GI team about it!
                             lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Disc;
                             lightDataGI.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
-                            lightDataGI.cookieID = add.areaLightCookie ? add.areaLightCookie.GetInstanceID() : 0;
                             break;
 
                         default:

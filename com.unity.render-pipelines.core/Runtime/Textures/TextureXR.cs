@@ -38,13 +38,16 @@ namespace UnityEngine.Rendering
                 {
                     case GraphicsDeviceType.Direct3D11:
                     case GraphicsDeviceType.Direct3D12:
+                        return SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne;
+
                     case GraphicsDeviceType.PlayStation4:
-                    case GraphicsDeviceType.Vulkan:
                         return true;
 
-                    default:
-                        return false;
+                    case GraphicsDeviceType.Vulkan:
+                        return true;
                 }
+
+                return false;
             }
         }
 

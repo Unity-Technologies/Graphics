@@ -225,10 +225,7 @@ namespace UnityEngine.Rendering
                 int count = component.parameters.Count;
 
                 for (int i = 0; i < count; i++)
-                {
-                    target.parameters[i].overrideState = false;
                     target.parameters[i].SetValue(component.parameters[i]);
-                }
             }
         }
 
@@ -384,17 +381,6 @@ namespace UnityEngine.Rendering
                 // No need to clamp01 the interpolation factor as it'll always be in [0;1[ range
                 OverrideData(stack, volume.profileRef.components, interpFactor * Mathf.Clamp01(volume.weight));
             }
-        }
-
-        /// <summary>
-        /// Get all volumes on a given layer mask sorted by influence.
-        /// </summary>
-        /// <param name="layerMask">The LayerMask that Unity uses to filter Volumes that it should consider.</param>
-        /// <returns>An array of volume.</returns>
-        public Volume[] GetVolumes(LayerMask layerMask)
-        {
-            var volumes = GrabVolumes(layerMask);
-            return volumes.ToArray();
         }
 
         List<Volume> GrabVolumes(LayerMask mask)

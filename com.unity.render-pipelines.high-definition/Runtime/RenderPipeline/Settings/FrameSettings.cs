@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
+using Utilities;
 
 namespace UnityEngine.Rendering.HighDefinition
 {

@@ -97,6 +97,9 @@ Shader "Hidden/HDRP/Blit"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = input.texcoord.xy;
+#if UNITY_SINGLE_PASS_STEREO
+            uv.x = (uv.x + unity_StereoEyeIndex) * 0.5;
+#endif
             return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel);
         }
 
@@ -104,6 +107,9 @@ Shader "Hidden/HDRP/Blit"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = input.texcoord.xy;
+#if UNITY_SINGLE_PASS_STEREO
+            uv.x = (uv.x + unity_StereoEyeIndex) * 0.5;
+#endif
             return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_PointRepeat, uv, _BlitMipLevel);
         }
 

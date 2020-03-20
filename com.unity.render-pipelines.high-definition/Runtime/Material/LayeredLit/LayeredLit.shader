@@ -460,6 +460,10 @@ Shader "HDRP/LayeredLit"
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
+    //enable GPU instancing support
+    #pragma multi_compile_instancing
+    #pragma instancing_options renderinglayer
+
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
@@ -527,9 +531,6 @@ Shader "HDRP/LayeredLit"
             ColorMask 0
 
             HLSLPROGRAM
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer
 
             // Note: Require _ObjectId and _PassValue variables
 
@@ -567,9 +568,6 @@ Shader "HDRP/LayeredLit"
             }
 
             HLSLPROGRAM
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -612,9 +610,6 @@ Shader "HDRP/LayeredLit"
             Cull Off
 
             HLSLPROGRAM
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer
 
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
@@ -652,10 +647,6 @@ Shader "HDRP/LayeredLit"
             ZWrite On
 
             HLSLPROGRAM
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer
-
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
@@ -690,9 +681,6 @@ Shader "HDRP/LayeredLit"
             ColorMask 0
 
             HLSLPROGRAM
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -726,9 +714,6 @@ Shader "HDRP/LayeredLit"
             ZWrite On
 
             HLSLPROGRAM
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer
 
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
@@ -774,10 +759,7 @@ Shader "HDRP/LayeredLit"
             Cull [_CullMode]
 
             HLSLPROGRAM
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer
-            
+
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED

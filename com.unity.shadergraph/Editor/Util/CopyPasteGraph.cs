@@ -23,7 +23,7 @@ namespace UnityEditor.Graphing.Util
         List<StickyNoteData> m_StickyNotes = new List<StickyNoteData>();
 
         [NonSerialized]
-        List<ShaderInput> m_Inputs = new List<ShaderInput>();
+        HashSet<ShaderInput> m_Inputs = new HashSet<ShaderInput>();
 
         // The meta properties are properties that are not copied into the target graph
         // but sent along to allow property nodes to still hvae the data from the original
@@ -56,61 +56,42 @@ namespace UnityEditor.Graphing.Util
 
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges,
-            IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes)
+        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes)
         {
             m_SourceGraphGuid = sourceGraphGuid;
 
-            if (groups != null)
+            foreach (var groupData in groups)
             {
-                foreach (var groupData in groups)
-                    AddGroup(groupData);
+                AddGroup(groupData);
             }
 
-            if (notes != null)
+            foreach (var stickyNote in notes)
             {
-                foreach (var stickyNote in notes)
-                    AddNote(stickyNote);
+                AddNote(stickyNote);
             }
 
-            if (nodes != null)
+            foreach (var node in nodes)
             {
-                foreach (var node in nodes)
+                if (!node.canCopyNode)
                 {
-                    if (!node.canCopyNode)
-                    {
-                        throw new InvalidOperationException($"Cannot copy node {node.name} ({node.guid}).");
-                    }
-
-                    AddNode(node);
-                    foreach (var edge in NodeUtils.GetAllEdges(node))
-                        AddEdge(edge);
+                    throw new InvalidOperationException($"Cannot copy node {node.name} ({node.guid}).");
                 }
-            }
-
-            if (edges != null)
-            {
-                foreach (var edge in edges)
+                AddNode(node);
+                foreach (var edge in NodeUtils.GetAllEdges(node))
                     AddEdge(edge);
             }
 
-            if (inputs != null)
-            {
-                foreach (var input in inputs)
-                    AddInput(input);
-            }
+            foreach (var edge in edges)
+                AddEdge(edge);
 
-            if (metaProperties != null)
-            {
-                foreach (var metaProperty in metaProperties)
-                    AddMetaProperty(metaProperty);
-            }
+            foreach (var input in inputs)
+                AddInput(input);
 
-            if (metaKeywords != null)
-            {
-                foreach (var metaKeyword in metaKeywords)
-                    AddMetaKeyword(metaKeyword);
-            }
+            foreach (var metaProperty in metaProperties)
+                AddMetaProperty(metaProperty);
+
+            foreach (var metaKeyword in metaKeywords)
+                AddMetaKeyword(metaKeyword);
         }
 
         public void AddGroup(GroupData group)
