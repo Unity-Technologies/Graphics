@@ -7,7 +7,30 @@ using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
 
 namespace UnityEditor.VFX.UI
 {
-    class EnumPropertyRM : SimplePropertyRM<int>
+    class ListPropertyRM<T, U> : PropertyRM<List<T>> where U : PropertyRM<T>, new()
+    {
+        public ListPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        {
+            m_List = new VFXReorderableList();
+        }
+
+        VFXReorderableList m_List;
+
+        public override float GetPreferredControlWidth()
+        {
+            return 150;
+        }
+        public override void UpdateGUI(bool force)
+        {
+        }
+
+        public override bool showsEverything { get { return true; } }
+    }
+
+
+
+
+        class EnumPropertyRM : SimplePropertyRM<int>
     {
         public EnumPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
