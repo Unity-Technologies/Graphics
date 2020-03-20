@@ -78,7 +78,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetIdentifier[] colorAttachmentIdentifiers = new RenderTargetIdentifier[m_ColorAttachments.Length];
             for (int gbufferIndex = 0; gbufferIndex < m_ColorAttachments.Length; ++gbufferIndex)
                 colorAttachmentIdentifiers[gbufferIndex] = m_ColorAttachments[gbufferIndex].Identifier();
-            ConfigureRenderPassDescriptor(cameraTextureDescriptor.width, cameraTextureDescriptor.height, cameraTextureDescriptor.msaaSamples);
 
             ConfigureTarget(colorAttachmentIdentifiers, m_DepthBufferAttachment.Identifier());
 

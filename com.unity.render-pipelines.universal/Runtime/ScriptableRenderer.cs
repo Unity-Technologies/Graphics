@@ -591,11 +591,16 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // Run through all ScriptableRenderPasses once to get all the attachments at the beginning of the block
                         // TODO: add some validation here (compare with previous/next rp descriptors)
+                        CommandBuffer cmd = CommandBufferPool.Get(k_RenderPass);
                         for (int rpIdx = blockRanges[blockIndex]; rpIdx < endIndex; ++rpIdx)
                         {
                             var rp = m_ActiveRenderPassQueue[rpIdx];
                             if (!rp.useNativeRenderPass)
                                 continue;
+
+                            rp.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
+                            context.ExecuteCommandBuffer(cmd);
+                            cmd.Clear();
 
                             for (int i = 0; i < rp.colorAttachmentDescriptors.Length; i++)
                             {
@@ -618,6 +623,7 @@ namespace UnityEngine.Rendering.Universal
                                 depthAttachmentIdx = attachmentSet.Count - 1; //This might be bad, but leaving for the time being
                             }
                         }
+                        CommandBufferPool.Release(cmd);
                     }
 
                     //Map color and input attachments for the subpass

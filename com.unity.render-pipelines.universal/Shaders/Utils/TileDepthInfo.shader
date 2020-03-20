@@ -150,7 +150,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
                         int2 tx = sourceCorner + int2(i, j);
                         tx.y = _DepthTexSize.y - tx.y; // TODO fixme: Depth buffer is y-inverted
 
-                        float d = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;// _DepthTex.Load(int3(tx, 0)).x;
+                        float d = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
                         #if UNITY_REVERSED_Z // TODO: can fold reversed_z into g_unproject parameters.
                         d = 1.0 - d;
                         #endif

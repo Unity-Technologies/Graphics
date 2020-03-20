@@ -3,6 +3,8 @@
     inputData.positionWS = input.positionWS;
 #ifdef _NORMALMAP
 
+    inputData.positionCS = input.positionCS;
+
 #if _NORMAL_DROPOFF_TS
 	// IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
     float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
