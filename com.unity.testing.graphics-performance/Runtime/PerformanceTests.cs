@@ -36,7 +36,7 @@ public class PerformanceTests : IPrebuildSetup
 #endif
     }
 
-    protected IEnumerable MeasureProfilingSamplers(IEnumerable<ProfilingSampler> samplers, int warmupFramesCount = 20, int measureFrameCount = 30)
+    protected IEnumerator MeasureProfilingSamplers(IEnumerable<ProfilingSampler> samplers, int warmupFramesCount = 20, int measureFrameCount = 30)
     {
         // Enable all the markers
         foreach (var sampler in samplers)
