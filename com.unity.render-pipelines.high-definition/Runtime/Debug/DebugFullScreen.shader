@@ -241,6 +241,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
                         d = 1.0 - saturate(d);
                     }
 
+                    // Explicitly handling the case where mv == float2(0, 0) as atan2(mv.x, mv.y) above would be atan2(0,0) which
+                    // is undefined and in practice can be incosistent between compilers (e.g. NaN on FXC and ~pi/2 on DXC)
+                    if(!any(mv))
+                        color = float3(0, 0, 0);
+
                     return float4(color + d.xxx, 1.0);
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_COLOR_LOG)
