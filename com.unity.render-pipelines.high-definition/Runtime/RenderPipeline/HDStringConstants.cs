@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         public static readonly int _ShaderVariablesGlobal = Shader.PropertyToID("ShaderVariablesGlobal");
-        public static readonly int _ShaderVariablesXR = Shader.PropertyToID("_ShaderVariablesXR");
+        public static readonly int _ShaderVariablesXR = Shader.PropertyToID("ShaderVariablesXR");
         public static readonly int _ShaderVariablesVolumetric = Shader.PropertyToID("ShaderVariablesVolumetric");
         public static readonly int _ShaderVariablesLightList = Shader.PropertyToID("ShaderVariablesLightList");
 
