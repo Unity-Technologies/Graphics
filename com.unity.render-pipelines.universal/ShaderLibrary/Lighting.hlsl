@@ -8,6 +8,54 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
+//#define CC_DEBUG
+
+#if defined(CC_DEBUG)
+half3 debugColor;
+half3 DebugColorValue(float value, float start, float end)
+{
+    float edge0 = 0.1;
+    float edge1 = 0.5;
+
+    float t = (value - start) / (end - start);
+    if( isnan(t) || isinf(t))
+    {
+        return half3(0.3, 0.075, 0); // Brown
+    }
+    else if( t == 0)
+    {
+        return half3(0.5,0.5,0.5);
+    }
+    else if(t < 0)
+    {
+        if( t >= -edge0)
+            return half3(1,0,1);
+        else if( t >= -edge1)
+            return half3(1,1,0);
+        else if( t >= -1.0)
+            return half3(0,1,1);
+        else
+            return half3(0,0,0);
+    }
+    else
+    {
+        if( t <= edge0 )
+            return half3(1,0,0);
+        else if( t <= edge1)
+            return half3(0,1,0);
+        else if( t <= 1.0)
+            return half3(0,0,1);
+        else
+            return half3(1,1,1);
+    }
+}
+
+float3 DebugColorValue(float value)
+{
+    return DebugColorValue( value, 0.0, 1.0 );
+}
+#endif
+
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
@@ -205,7 +253,7 @@ int GetPerObjectLightIndex(uint index)
 #elif !defined(SHADER_API_GLES)
     // since index is uint shader compiler will implement
     // div & mod as bitfield ops (shift and mask).
-    
+
     // TODO: Can we index a float4? Currently compiler is
     // replacing unity_LightIndicesX[i] with a dp4 with identity matrix.
     // u_xlat16_40 = dot(unity_LightIndices[int(u_xlatu13)], ImmCB_0_0_0[u_xlati1]);
@@ -326,14 +374,14 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     half oneMinusReflectivity = 1.0 - reflectivity;
 
     outBRDFData.diffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
-    half3 specRf0 = specular;
+    outBRDFData.specular = specular;
 #else
 
     half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
     half reflectivity = 1.0 - oneMinusReflectivity;
 
     outBRDFData.diffuse = albedo * oneMinusReflectivity;
-    half3 specRf0 = kDieletricSpec.rgb;
+    outBRDFData.specular = lerp(kDieletricSpec.rgb, albedo, metallic);
 #endif
 
     outBRDFData.grazingTerm = saturate(smoothness + reflectivity);
@@ -353,24 +401,27 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     // Calculate Roughness of Clear Coat layer
     outBRDFData.clearCoatStrength            = clearCoatStrength;
     outBRDFData.clearCoatPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(clearCoatSmoothness);
-    outBRDFData.clearCoatRoughness           = PerceptualRoughnessToRoughness(outBRDFData.clearCoatPerceptualRoughness);
+    outBRDFData.clearCoatRoughness           = max(PerceptualRoughnessToRoughness(outBRDFData.clearCoatPerceptualRoughness), HALF_MIN);
     outBRDFData.clearCoatRoughness2          = outBRDFData.clearCoatRoughness * outBRDFData.clearCoatRoughness;
     outBRDFData.clearCoatRoughness2MinusOne  = outBRDFData.clearCoatRoughness2 - 1.0h;
 
-    // Modify Roughness of base layer
+#if !defined(SHADER_API_MOBILE)
+    // Modify Roughness of base layer using coat IOR
     half ieta = lerp(1.0h, CLEAR_COAT_IETA, outBRDFData.clearCoatStrength);
     half coatRoughnessScale = Sq(ieta);
     half sigma = RoughnessToVariance(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness));
     outBRDFData.perceptualRoughness = RoughnessToPerceptualRoughness(VarianceToRoughness(sigma * coatRoughnessScale));
 
-    specRf0 = lerp(specRf0, f0ClearCoatToSurface(specRf0), outBRDFData.clearCoatStrength);
-#endif // _CLEARCOAT
-
-#ifdef _SPECULAR_SETUP
-    outBRDFData.specular = specRf0;
-#else
-    outBRDFData.specular = lerp(specRf0, albedo, metallic);
+    // Recompute based on new roughness, previous computation should be eliminated by the compiler
+    outBRDFData.roughness = max(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness), HALF_MIN);
+    outBRDFData.roughness2 = outBRDFData.roughness * outBRDFData.roughness;
+    outBRDFData.normalizationTerm = outBRDFData.roughness * 4.0h + 2.0h;
+    outBRDFData.roughness2MinusOne = outBRDFData.roughness2 - 1.0h;
 #endif
+
+    // Darken/saturate base layer using coat to surface reflectance (vs. air to surface)
+    outBRDFData.specular = lerp(outBRDFData.specular, f0ClearCoatToSurface(outBRDFData.specular), outBRDFData.clearCoatStrength);
+#endif // _CLEARCOAT
 }
 
 half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half fresnelTerm)
@@ -599,7 +650,7 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
     half3 indirectDiffuse = bakedGI * occlusion;
     half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, occlusion);
 
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) && 1
     indirectDiffuse *= brdfData.diffuse;
     float surfaceReduction = 1.0 / (brdfData.roughness2 + 1.0);
     indirectSpecular = surfaceReduction * indirectSpecular * lerp(brdfData.specular, brdfData.grazingTerm, fresnelTerm);
@@ -683,7 +734,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
         clearCoatStrength, clearCoatSmoothness,
 #endif
         brdfData);
-    
+
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
@@ -704,6 +755,10 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 #endif
 
     color += emission;
+
+#if defined(CC_DEBUG)
+    color = debugColor;
+#endif
     return half4(color, alpha);
 }
 
