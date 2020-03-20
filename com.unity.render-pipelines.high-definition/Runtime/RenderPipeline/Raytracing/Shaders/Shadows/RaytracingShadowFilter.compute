@@ -497,8 +497,10 @@ void AREA_SHADOW_DENOISE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 RW_TEXTURE2D_X(float4, _ScreenSpaceShadowsTextureRW);
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
-void AreaShadowNoDenoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void AreaShadowNoDenoise(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Compute the pixel position to process
     uint2 currentCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
 
@@ -509,7 +511,7 @@ void AreaShadowNoDenoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     float shadowValue = _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].y > 0.0 ? _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].x / _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].y : 0.0;
     
     // Only override when the mask is 1.0
-    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, _DenoisingHistorySlice)] = (1.0 - _DenoisingHistoryMask) * previousValue + _DenoisingHistoryMask * shadowValue;
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))] = (1.0 - _DenoisingHistoryMask) * previousValue + _DenoisingHistoryMask * shadowValue;
 }
 
 uint _DenoisingHistorySlot;

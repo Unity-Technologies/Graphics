@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public CubemapArray skyboxBSDFCubemapArray { get; private set; }
         public bool supportsConvolution { get; private set; } = false;
 
-        public SkyRenderingContext(int resolution, int bsdfCount, bool supportsConvolution, SphericalHarmonicsL2 ambientProbe)
+        public SkyRenderingContext(int resolution, int bsdfCount, bool supportsConvolution, SphericalHarmonicsL2 ambientProbe, string name)
         {
             m_AmbientProbe = ambientProbe;
             this.supportsConvolution = supportsConvolution;
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Compute buffer storing the resulting SH from diffuse convolution. L2 SH => 9 float per component.
             ambientProbeResult = new ComputeBuffer(27, 4);
 
-            skyboxCubemapRT = RTHandles.Alloc(resolution, resolution, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: "SkyboxCubemap");
+            skyboxCubemapRT = RTHandles.Alloc(resolution, resolution, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: name);
 
             if (supportsConvolution)
             {
