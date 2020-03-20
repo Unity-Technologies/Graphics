@@ -88,12 +88,13 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, UVInput, SamplerInput, LODInput });
         }
 
-        public override void ValidateNode()
+        public override void Setup()
         {
+            base.Setup();
             var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputId);
             textureSlot.defaultType = (textureType == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
 
-            base.ValidateNode();
+            
         }
 
         // Node generations
