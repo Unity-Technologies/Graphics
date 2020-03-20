@@ -15,6 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += DisposeStaticInstance;
             UnityEditor.EditorApplication.quitting += DisposeStaticInstance;
+#else
+            Application.quitting += DisposeStaticInstance;
 #endif
         }
 

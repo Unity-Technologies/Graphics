@@ -142,7 +142,7 @@ Now that your HDRP Project supports ray tracing, there are a few steps you must 
 
 #### Frame Settings
 
-To make HDRP calculates ray tracing effects for [Cameras](HDRP-Camera.html) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
+To make HDRP calculates ray tracing effects for [Cameras](HDRP-Camera.html) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings.html) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
 
 To enable ray tracing by default:
 
@@ -163,9 +163,9 @@ To enable ray tracing for a specific Camera:
 HDRP uses ray tracing to replace some of its screen space effects, shadowing techniques, and Mesh rendering techniques.
 
 - [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.html) replaces [screen space ambient occlusion](Override-Ambient-Occlusion.html) with a more accurate, ray-traced, ambient occlusion technique that can use off screen data.
-- [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.html) replaces [contact shadows](Override-Contact-Shadows) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
+- [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.html) replaces [contact shadows](Override-Contact-Shadows.html) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
 - [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.html) is an alternative to Light Probes and lightmaps in HDRP.
-- [Ray-Traced Reflections](Ray-Traced-Reflections.html) is a replacement for [screen space reflection](Override-Screen-Space-Reflection) that uses a ray-traced reflection technique that can use off-screen data.
+- [Ray-Traced Reflections](Ray-Traced-Reflections.html) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.html) that uses a ray-traced reflection technique that can use off-screen data.
 - [Ray-Traced Shadows](Ray-Traced-Shadows.html) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.html).
 - [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.html) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
 
@@ -184,7 +184,10 @@ d3d12: generating mipmaps for array textures is not yet supported.
 There is no support for ray tracing on other platform than DX12 for now.
 
 HDRP ray tracing in Unity 2019.3 has the following limitations:
-- Does not support deformers (skin, vertex animation).
+- Does not support deformers (skinning, blend shape, alembic, vertex animation).
+- Does not support tessellation
+- Does not support per pixel displacement (parallax occlusion mapping, height map, depth offset)
 - Does not support VFX and Terrain.
 - Does not support several of HDRP's Materials. This includes Hair, StackLit, Eye, and AxF Materials.
 - Does not have correct culling for shadows. It uses frustum culling instead.
+HDRP ray tracing in Unity 2020.1 and above add support for skinning, blend shapes and alembic.

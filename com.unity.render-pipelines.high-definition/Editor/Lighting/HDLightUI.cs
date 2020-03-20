@@ -725,7 +725,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 ShowCookieTextureWarnings(serialized.settings.cookie);
             }
-            else if (serialized.areaLightShape == AreaLightShape.Rectangle)
+            else if (serialized.areaLightShape == AreaLightShape.Rectangle || serialized.areaLightShape == AreaLightShape.Disc)
             {
                 EditorGUILayout.ObjectField( serialized.areaLightCookie, s_Styles.areaLightCookie );
                 ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture);
@@ -960,7 +960,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
                             EditorGUILayout.PropertyField(serialized.numRayTracingSamples, s_Styles.numRayTracingSamples);
                             EditorGUILayout.PropertyField(serialized.filterTracedShadow, s_Styles.denoiseTracedShadow);
+                            EditorGUI.indentLevel++;
                             EditorGUILayout.PropertyField(serialized.filterSizeTraced, s_Styles.denoiserRadius);
+                            EditorGUILayout.PropertyField(serialized.distanceBasedFiltering, s_Styles.distanceBasedFiltering);
+                            EditorGUI.indentLevel--;
                             EditorGUI.indentLevel--;
                         }
                     }
@@ -1065,7 +1068,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // If we're not in decoupled mode for light layers, we sync light with shadow layers:
             foreach (Light target in owner.targets)
-                target.renderingLayerMask = serialized.lightlayersMask.intValue;
+                if (target.renderingLayerMask != serialized.lightlayersMask.intValue)
+                    target.renderingLayerMask = serialized.lightlayersMask.intValue;
         }
 
         static void DrawContactShadowsContent(SerializedHDLight serialized, Editor owner)

@@ -167,7 +167,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Conditional State
             renderStates = UniversalRenderStates.Default,
-            pragmas = UniversalPragmas.Default,
+            pragmas = UniversalPragmas._2DDefault,
             keywords = UniversalKeywords.SpriteLit,
             includes = UniversalIncludes.SpriteLit,
         };
@@ -191,7 +191,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Conditional State
             renderStates = UniversalRenderStates.Default,
-            pragmas = UniversalPragmas.Default,
+            pragmas = UniversalPragmas._2DDefault,
             includes = UniversalIncludes.SpriteNormal,
         };
 
@@ -214,7 +214,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Conditional State
             renderStates = UniversalRenderStates.Default,
-            pragmas = UniversalPragmas.Default,
+            pragmas = UniversalPragmas._2DDefault,
             keywords = UniversalKeywords.ETCExternalAlpha,
             includes = UniversalIncludes.SpriteForward,
         };
@@ -236,7 +236,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Conditional State
             renderStates = UniversalRenderStates.Default,
-            pragmas = UniversalPragmas.Default,
+            pragmas = UniversalPragmas._2DDefault,
             keywords = UniversalKeywords.ETCExternalAlpha,
             includes = UniversalIncludes.SpriteUnlit,
         };

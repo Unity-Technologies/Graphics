@@ -6,17 +6,17 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        RenderGraphMutableResource m_DebugFullScreenTexture;
+        TextureHandle m_DebugFullScreenTexture;
 
         class ResolveFullScreenDebugPassData
         {
             public DebugParameters debugParameters;
-            public RenderGraphMutableResource output;
-            public RenderGraphResource input;
-            public RenderGraphResource depthPyramid;
+            public TextureHandle output;
+            public TextureHandle input;
+            public TextureHandle depthPyramid;
         }
 
-        RenderGraphMutableResource ResolveFullScreenDebug(RenderGraph renderGraph, in DebugParameters debugParameters, RenderGraphResource inputFullScreenDebug, RenderGraphResource depthPyramid)
+        TextureHandle ResolveFullScreenDebug(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle inputFullScreenDebug, TextureHandle depthPyramid)
         {
             using (var builder = renderGraph.AddRenderPass<ResolveFullScreenDebugPassData>("ResolveFullScreenDebug", out var passData))
             {
@@ -43,11 +43,11 @@ namespace UnityEngine.Rendering.HighDefinition
         class ResolveColorPickerDebugPassData
         {
             public DebugParameters debugParameters;
-            public RenderGraphMutableResource output;
-            public RenderGraphResource input;
+            public TextureHandle output;
+            public TextureHandle input;
         }
 
-        RenderGraphMutableResource ResolveColorPickerDebug(RenderGraph renderGraph, in DebugParameters debugParameters, RenderGraphResource inputColorPickerDebug)
+        TextureHandle ResolveColorPickerDebug(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle inputColorPickerDebug)
         {
             using (var builder = renderGraph.AddRenderPass<ResolveColorPickerDebugPassData>("ResolveColorPickerDebug", out var passData))
             {
@@ -72,17 +72,17 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderDebugOverlayPassData
         {
             public DebugParameters debugParameters;
-            public RenderGraphMutableResource colorBuffer;
-            public RenderGraphMutableResource depthBuffer;
-            public RenderGraphResource depthPyramidTexture;
+            public TextureHandle colorBuffer;
+            public TextureHandle depthBuffer;
+            public TextureHandle depthPyramidTexture;
             public ShadowResult shadowTextures;
         }
 
         void RenderDebugOverlays(   RenderGraph renderGraph,
                                     in DebugParameters debugParameters,
-                                    RenderGraphMutableResource colorBuffer,
-                                    RenderGraphMutableResource depthBuffer,
-                                    RenderGraphResource depthPyramidTexture,
+                                    TextureHandle colorBuffer,
+                                    TextureHandle depthBuffer,
+                                    TextureHandle depthPyramidTexture,
                                     in ShadowResult shadowResult)
         {
             using (var builder = renderGraph.AddRenderPass<RenderDebugOverlayPassData>("DebugOverlay", out var passData))
@@ -122,17 +122,17 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public DebugLightVolumes.RenderLightVolumesParameters   parameters;
             // Render target that holds the light count in floating points
-            public RenderGraphMutableResource                       lightCountBuffer;
+            public TextureHandle                                    lightCountBuffer;
             // Render target that holds the color accumulated value
-            public RenderGraphMutableResource                       colorAccumulationBuffer;
+            public TextureHandle                                    colorAccumulationBuffer;
             // The output texture of the debug
-            public RenderGraphMutableResource                       debugLightVolumesTexture;
+            public TextureHandle                                    debugLightVolumesTexture;
             // Required depth texture given that we render multiple render targets
-            public RenderGraphMutableResource                       depthBuffer;
-            public RenderGraphMutableResource                       destination;
+            public TextureHandle                                    depthBuffer;
+            public TextureHandle                                    destination;
         }
 
-        static void RenderLightVolumes(RenderGraph renderGraph, in DebugParameters debugParameters, RenderGraphMutableResource destination, RenderGraphMutableResource depthBuffer, CullingResults cullResults)
+        static void RenderLightVolumes(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults)
         {
             using (var builder = renderGraph.AddRenderPass<RenderLightVolumesPassData>("LightVolumes", out var passData))
             {
@@ -167,21 +167,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        RenderGraphMutableResource RenderDebug( RenderGraph                 renderGraph,
-                                                HDCamera                    hdCamera,
-                                                RenderGraphMutableResource  colorBuffer,
-                                                RenderGraphMutableResource  depthBuffer,
-                                                RenderGraphResource         depthPyramidTexture,
-                                                RenderGraphResource         fullScreenDebugTexture,
-                                                RenderGraphResource         colorPickerDebugTexture,
-                                                in ShadowResult             shadowResult,
-                                                CullingResults              cullResults)
+        TextureHandle RenderDebug(  RenderGraph     renderGraph,
+                                    HDCamera        hdCamera,
+                                    TextureHandle   colorBuffer,
+                                    TextureHandle   depthBuffer,
+                                    TextureHandle   depthPyramidTexture,
+                                    TextureHandle   fullScreenDebugTexture,
+                                    TextureHandle   colorPickerDebugTexture,
+                                    in ShadowResult shadowResult,
+                                    CullingResults  cullResults)
         {
             // We don't want any overlay for these kind of rendering
             if (hdCamera.camera.cameraType == CameraType.Reflection || hdCamera.camera.cameraType == CameraType.Preview)
                 return colorBuffer;
 
-            RenderGraphMutableResource output = colorBuffer;
+            TextureHandle output = colorBuffer;
             var debugParameters = PrepareDebugParameters(hdCamera, GetDepthBufferMipChainInfo());
 
             if (debugParameters.resolveFullScreenDebug)
@@ -209,15 +209,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class DebugViewMaterialData
         {
-            public RenderGraphMutableResource outputColor;
-            public RenderGraphMutableResource outputDepth;
-            public RenderGraphResource opaqueRendererList;
-            public RenderGraphResource transparentRendererList;
+            public TextureHandle outputColor;
+            public TextureHandle outputDepth;
+            public RendererListHandle opaqueRendererList;
+            public RendererListHandle transparentRendererList;
             public Material debugGBufferMaterial;
             public FrameSettings frameSettings;
         }
 
-        void RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, RenderGraphMutableResource output)
+        void RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle output)
         {
             if (m_CurrentDebugDisplaySettings.data.materialDebugSettings.IsDebugGBufferEnabled() && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
             {
@@ -266,13 +266,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class PushFullScreenDebugPassData
         {
-            public RenderGraphResource input;
-            public RenderGraphMutableResource output;
+            public TextureHandle input;
+            public TextureHandle output;
             public Vector4 scaleBias;
             public int mipIndex;
         }
 
-        void PushFullScreenLightingDebugTexture(RenderGraph renderGraph, RenderGraphResource input)
+        void PushFullScreenLightingDebugTexture(RenderGraph renderGraph, TextureHandle input)
         {
             // In practice, this is only useful for the SingleShadow debug view.
             // TODO: See how we can make this nicer than a specific functions just for one case.
@@ -282,7 +282,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void PushFullScreenDebugTexture(RenderGraph renderGraph, RenderGraphResource input, FullScreenDebugMode debugMode)
+        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
@@ -290,7 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void PushFullScreenDebugTextureMip(RenderGraph renderGraph, RenderGraphResource input, int lodCount, Vector4 scaleBias, FullScreenDebugMode debugMode)
+        void PushFullScreenDebugTextureMip(RenderGraph renderGraph, TextureHandle input, int lodCount, Vector4 scaleBias, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void PushFullScreenDebugTexture(RenderGraph renderGraph, RenderGraphResource input, Vector4 scaleBias, int mipIndex = -1)
+        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, Vector4 scaleBias, int mipIndex = -1)
         {
             using (var builder = renderGraph.AddRenderPass<PushFullScreenDebugPassData>("Push Full Screen Debug", out var passData))
             {
@@ -326,7 +326,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FullScreenDebugPushed = true;
         }
 
-        RenderGraphResource PushColorPickerDebugTexture(RenderGraph renderGraph, RenderGraphResource input)
+        TextureHandle PushColorPickerDebugTexture(RenderGraph renderGraph, TextureHandle input)
         {
             using (var builder = renderGraph.AddRenderPass<PushFullScreenDebugPassData>("Push To Color Picker", out var passData))
             {
