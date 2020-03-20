@@ -638,7 +638,7 @@ float ComputeTextureLODBias(float2 uv, float2 texelSize, float bias)
 {
     uv *= texelSize;
 
-    return ComputeTextureLOD(uv, bias);
+    return ComputeTextureLODBias(uv, bias);
 }
 
 float ComputeTextureLOD(float2 uv, float2 texelSize)
@@ -650,6 +650,7 @@ float ComputeTextureLOD(float2 uv, float2 texelSize)
 float ComputeTextureLODBias(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale, float bias)
 {
     float d = Max3(dot(duvw_dx, duvw_dx), dot(duvw_dy, duvw_dy), dot(duvw_dz, duvw_dz));
+
     return max(0.5f*log2(d*(scale*scale)) - bias, 0.0f);
 }
 
