@@ -173,19 +173,19 @@ float Exp2Erfc(float x)
 {
     float t, u, y;
 
-    t = 3.9788608 * rcp(x + 3.9788608); // Reduce the range
-    u = t - 0.5;                        // Center around 0
+    t = 3.9788608f * rcp(x + 3.9788608f); // Reduce the range
+    u = t - 0.5f;                        // Center around 0
 
-    y =           -0.010297533124685;
-    y = fmaf(y, u, 0.288184314966202);
-    y = fmaf(y, u, 0.805188119411469);
-    y = fmaf(y, u, 1.203098773956299);
-    y = fmaf(y, u, 1.371236562728882);
-    y = fmaf(y, u, 1.312000870704651);
-    y = fmaf(y, u, 1.079175233840942);
-    y = fmaf(y, u, 0.774399876594543);
-    y = fmaf(y, u, 0.490166693925858);
-    y = fmaf(y, u, 0.275374621152878);
+    y =           -0.010297533124685f;
+    y = fmaf(y, u, 0.288184314966202f);
+    y = fmaf(y, u, 0.805188119411469f);
+    y = fmaf(y, u, 1.203098773956299f);
+    y = fmaf(y, u, 1.371236562728882f);
+    y = fmaf(y, u, 1.312000870704651f);
+    y = fmaf(y, u, 1.079175233840942f);
+    y = fmaf(y, u, 0.774399876594543f);
+    y = fmaf(y, u, 0.490166693925858f);
+    y = fmaf(y, u, 0.275374621152878f);
 
     return y * t; // Expand the range
 }
