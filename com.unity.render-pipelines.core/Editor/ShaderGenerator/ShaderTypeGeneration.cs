@@ -410,8 +410,7 @@ namespace UnityEditor.Rendering
 
             if (attr.generateCBuffer)
             {
-                shaderText += "cbuffer " + type.Name + "\n";
-                shaderText += "{\n";
+                shaderText += "CBUFFER_START(" + type.Name + ")\n";
             }
             else if (!attr.omitStructDeclaration)
             {
@@ -424,7 +423,11 @@ namespace UnityEditor.Rendering
                 shaderText += "    " + shaderFieldInfo.ToString() + "\n";
             }
 
-            if (attr.generateCBuffer || !attr.omitStructDeclaration)
+            if (attr.generateCBuffer)
+            {
+                shaderText += "CBUFFER_END\n";
+            }
+            else if (!attr.omitStructDeclaration)
             {
                 shaderText += "};\n";
             }

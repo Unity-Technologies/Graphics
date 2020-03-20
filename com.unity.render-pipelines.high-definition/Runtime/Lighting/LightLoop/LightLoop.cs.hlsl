@@ -90,8 +90,7 @@ struct LightVolumeData
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesLightList
 // PackingRules = Exact
-cbuffer ShaderVariablesLightList
-{
+CBUFFER_START(ShaderVariablesLightList)
     float4x4 g_mInvScrProjectionArr[2];
     float4x4 g_mScrProjectionArr[2];
     float4x4 g_mInvProjectionArr[2];
@@ -105,7 +104,7 @@ cbuffer ShaderVariablesLightList
     int _EnvLightIndexShift;
     int _DecalIndexShift;
     int _DensityVolumeIndexShift;
-};
+CBUFFER_END
 
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.SFiniteLightBound

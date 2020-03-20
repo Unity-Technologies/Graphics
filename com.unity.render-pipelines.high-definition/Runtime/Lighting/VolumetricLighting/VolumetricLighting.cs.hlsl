@@ -22,8 +22,7 @@ struct DensityVolumeEngineData
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesVolumetric
 // PackingRules = Exact
-cbuffer ShaderVariablesVolumetric
-{
+CBUFFER_START(ShaderVariablesVolumetric)
     float4x4 _VBufferCoordToViewDirWS[2];
     float _VBufferUnitDepthTexelSpacing;
     uint _NumVisibleDensityVolumes;
@@ -38,7 +37,7 @@ cbuffer ShaderVariablesVolumetric
     float4 _VBufferPrevDepthDecodingParams;
     uint _NumTileBigTileX;
     uint _NumTileBigTileY;
-};
+CBUFFER_END
 
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.DensityVolumeEngineData

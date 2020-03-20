@@ -12,8 +12,7 @@
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal
 // PackingRules = Exact
-cbuffer ShaderVariablesGlobal
-{
+CBUFFER_START(ShaderVariablesGlobal)
     float4x4 _ViewMatrix;
     float4x4 _InvViewMatrix;
     float4x4 _ProjMatrix;
@@ -130,7 +129,7 @@ cbuffer ShaderVariablesGlobal
     int _UseRayTracedReflections;
     int _RaytracingFrameIndex;
     float _Pad7;
-};
+CBUFFER_END
 
 
 #endif
