@@ -20,7 +20,7 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 #ifdef FIX_SHADING_NORMAL
     if (IsAbove(bsdfData.geomNormalWS, V))
     {
-        bsdfData.normalWS = ReprojectAbove(V, bsdfData.normalWS, 0.001001);
+        bsdfData.normalWS = ReprojectAbove(V, bsdfData.normalWS, 2.0);
     // FIXME: Readjusting the tangent and bitangent does not seem to make any difference
     // #ifdef _MATERIAL_FEATURE_ANISOTROPY
     //     bsdfData.bitangentWS = normalize(cross(bsdfData.normalWS, bsdfData.tangentWS));

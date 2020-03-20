@@ -75,15 +75,15 @@ bool IsBelow(MaterialData mtlData)
     return !IsAbove(mtlData);
 }
 
-float3 ReprojectAbove(float3 normalWS, float3 dirWS, float dotThreshold = 0.0)
+float3 ReprojectAbove(float3 normalWS, float3 dirWS, float dotFactor = 1.0, float dotThreshold = 0.0)
 {
     float dotProd = dot(normalWS, dirWS);
-    return dotProd < dotThreshold ? normalize(dirWS - (dotProd - dotThreshold) * normalWS) : dirWS;
+    return dotProd < dotThreshold ? normalize(dirWS - dotFactor * (dotProd - dotThreshold) * normalWS) : dirWS;
 }
 
-float3 ReprojectAbove(MaterialData mtlData, float3 dirWS, float dotThreshold = 0.0)
+float3 ReprojectAbove(MaterialData mtlData, float3 dirWS, float dotFactor = 1.0, float dotThreshold = 0.0)
 {
-    return ReprojectAbove(mtlData.bsdfData.geomNormalWS, dirWS, dotThreshold);
+    return ReprojectAbove(mtlData.bsdfData.geomNormalWS, dirWS, dotFactor, dotThreshold);
 }
 
 float3x3 GetTangentFrame(MaterialData mtlData)
