@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine("// RenderPipeline: <None>");
 
                 // Render Type
-                string renderType = !string.IsNullOrEmpty(descriptor.renderTypeOverride) ? 
+                string renderType = !string.IsNullOrEmpty(descriptor.renderTypeOverride) ?
                     descriptor.renderTypeOverride : masterNode?.renderTypeTag;
                 if(!string.IsNullOrEmpty(renderType))
                     builder.AppendLine($"\"RenderType\"=\"{renderType}\"");
@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine("// RenderType: <None>");
 
                 // Render Queue
-                string renderQueue = !string.IsNullOrEmpty(descriptor.renderQueueOverride) ? 
+                string renderQueue = !string.IsNullOrEmpty(descriptor.renderQueueOverride) ?
                     descriptor.renderQueueOverride : masterNode?.renderQueueTag;
                 if(!string.IsNullOrEmpty(renderQueue))
                     builder.AppendLine($"\"Queue\"=\"{renderQueue}\"");
@@ -96,18 +96,18 @@ namespace UnityEditor.ShaderGraph
                         //if in permutation, add permutation ifdef
                         if(!string.IsNullOrEmpty(keywordIfDefs))
                             structBuilder.AppendLine(keywordIfDefs);
-                        
+
                         //check for a semantic, build string if valid
                         string semantic = subscript.HasSemantic() ? $" : {subscript.semantic}" : string.Empty;
                         structBuilder.AppendLine($"{subscript.type} {subscript.name}{semantic};");
 
                         //if in permutation, add permutation endif
                         if (!string.IsNullOrEmpty(keywordIfDefs))
-                            structBuilder.AppendLine("#endif"); //TODO: add debug collector 
+                            structBuilder.AppendLine("#endif"); //TODO: add debug collector
 
                         if(subscript.HasPreprocessor())
-                            structBuilder.AppendLine("#endif");                        
-                    }            
+                            structBuilder.AppendLine("#endif");
+                    }
                 }
             }
         }
@@ -140,7 +140,7 @@ namespace UnityEditor.ShaderGraph
                 if (fieldIsActive)
                 {
                     //if field is active:
-                    if(subscript.HasSemantic() || subscript.vectorCount == 0)  
+                    if(subscript.HasSemantic() || subscript.vectorCount == 0)
                         packedSubscripts.Add(subscript);
                     else
                     {
@@ -164,22 +164,22 @@ namespace UnityEditor.ShaderGraph
                         }
                         var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + interpIndex, "", subscript.type,
                             "TEXCOORD" + interpIndex, subscript.preprocessor, StructFieldOptions.Static);
-                        packedSubscripts.Add(packedSubscript);                        
+                        packedSubscripts.Add(packedSubscript);
                     }
-                }            
+                }
             }
             packStruct.fields = packedSubscripts.ToArray();
         }
 
         internal static void GenerateInterpolatorFunctions(StructDescriptor shaderStruct, IActiveFields activeFields, out ShaderStringBuilder interpolatorBuilder)
         {
-            //set up function string builders and struct builder 
+            //set up function string builders and struct builder
             List<int> packedCounts = new List<int>();
             var packBuilder = new ShaderStringBuilder();
             var unpackBuilder = new ShaderStringBuilder();
             interpolatorBuilder = new ShaderStringBuilder();
             string packedStruct = "Packed" + shaderStruct.name;
-            
+
             //declare function headers
             packBuilder.AppendLine($"{packedStruct} Pack{shaderStruct.name} ({shaderStruct.name} input)");
             packBuilder.AppendLine("{");
@@ -230,7 +230,7 @@ namespace UnityEditor.ShaderGraph
                         packBuilder.AppendLine($"output.interp{interpIndex}.{packedChannels} =  input.{subscript.name};");
                         unpackBuilder.AppendLine($"output.{subscript.name} = input.interp{interpIndex}.{packedChannels};");
                     }
-                    
+
                     if(subscript.HasPreprocessor())
                     {
                         packBuilder.AppendLine("#endif");
@@ -246,7 +246,7 @@ namespace UnityEditor.ShaderGraph
             unpackBuilder.AppendLine("return output;");
             unpackBuilder.DecreaseIndent();
             unpackBuilder.AppendLine("}");
-            
+
             interpolatorBuilder.Concat(packBuilder);
             interpolatorBuilder.Concat(unpackBuilder);
         }
@@ -261,7 +261,7 @@ namespace UnityEditor.ShaderGraph
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts);
         }
 
-        internal static void GetActiveFieldsAndPermutationsForNodes(AbstractMaterialNode outputNode, PassDescriptor pass, 
+        internal static void GetActiveFieldsAndPermutationsForNodes(AbstractMaterialNode outputNode, PassDescriptor pass,
             KeywordCollector keywordCollector,  List<AbstractMaterialNode> vertexNodes, List<AbstractMaterialNode> pixelNodes,
             List<int>[] vertexNodePermutations, List<int>[] pixelNodePermutations,
             ActiveFields activeFields, out ShaderGraphRequirementsPerKeyword graphRequirements)
@@ -312,7 +312,7 @@ namespace UnityEditor.ShaderGraph
                     foreach(var field in conditionalFields)
                     {
                         activeFields[i].Add(field);
-                    }                    
+                    }
                 }
             }
             // No Keywords
@@ -328,7 +328,7 @@ namespace UnityEditor.ShaderGraph
                 foreach(var field in conditionalFields)
                 {
                     activeFields.baseInstance.Add(field);
-                } 
+                }
             }
 
             // Build graph requirements
@@ -360,7 +360,7 @@ namespace UnityEditor.ShaderGraph
                                                                                                                 activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceNormal,       (requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0 &&
                                                                                                                 activeFields.Contains(Fields.GraphVertex)),
-                
+
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,(requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceViewDirection,  (requirements.requiresViewDir & NeededCoordinateSpace.View) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection, (requirements.requiresViewDir & NeededCoordinateSpace.World) > 0),
@@ -386,7 +386,7 @@ namespace UnityEditor.ShaderGraph
                                                                                                                 activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceTangent,      (requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0 &&
                                                                                                                 activeFields.Contains(Fields.GraphVertex)),
-                
+
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceBiTangent,    (requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceBiTangent,      (requirements.requiresBitangent & NeededCoordinateSpace.View) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent,     (requirements.requiresBitangent & NeededCoordinateSpace.World) > 0),
@@ -415,7 +415,7 @@ namespace UnityEditor.ShaderGraph
                                                                                                                 activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePosition,(requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0 &&
                                                                                                                 activeFields.Contains(Fields.GraphVertex)),
-                
+
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.uv0,                     requirements.requiresMeshUVs.Contains(UVChannel.UV0)),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.uv1,                     requirements.requiresMeshUVs.Contains(UVChannel.UV1)),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.uv2,                     requirements.requiresMeshUVs.Contains(UVChannel.UV2)),
@@ -466,7 +466,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     if(dependencies == null)
                         return;
-                        
+
                     // find all dependencies of field that are not already active
                     foreach (DependencyCollection.Item d in dependencies.Where(d => (d.dependency.field == field) && !activeFields.Contains(d.dependency.dependsOn)))
                     {
@@ -605,7 +605,7 @@ namespace UnityEditor.ShaderGraph
 
             if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0)
                 builder.AppendLine(format, CoordinateSpace.Tangent.ToVariableName(interpolatorType));
-            
+
             if ((neededSpaces & NeededCoordinateSpace.AbsoluteWorld) > 0)
                 builder.AppendLine(format, CoordinateSpace.AbsoluteWorld.ToVariableName(interpolatorType));
         }
@@ -718,7 +718,7 @@ namespace UnityEditor.ShaderGraph
                                 activeFields.AddAll(structField);
                             }
                         }
-                    }                    
+                    }
                 }
             }
         }
@@ -941,5 +941,25 @@ namespace UnityEditor.ShaderGraph
         {
             return "Packages/com.unity.shadergraph/Editor/Generation/Templates";
         }
+
+        // Returns null if no 'CustomEditor "___"' line should be added, otherwise the name of the ShaderGUI class.
+        // Note that it's okay to add an "invalid" ShaderGUI (no class found) as Unity will simply take no action if that's the case, unless if its BaseShaderGUI.
+        public static string FinalCustomEditorString(ICanChangeShaderGUI canChangeShaderGUI)
+        {
+            if (!canChangeShaderGUI.OverrideEnabled)
+                return GraphUtil.CurrentPipelinePreferredShaderGUI(canChangeShaderGUI as IMasterNode);
+
+            string finalOverrideName = canChangeShaderGUI.ShaderGUIOverride;
+
+            if (string.IsNullOrEmpty(finalOverrideName))
+                return null;
+
+            // Do not add to the final shader if the base ShaderGUI is wanted, as errors will occur.
+            if (finalOverrideName.Equals("BaseShaderGUI") || finalOverrideName.Equals("UnityEditor.BaseShaderGUI"))
+                return null;
+
+            return finalOverrideName;
+        }
+
     }
 }

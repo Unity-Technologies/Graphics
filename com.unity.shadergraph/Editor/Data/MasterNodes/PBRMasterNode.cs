@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "PBR")]
-    class PBRMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class PBRMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string AlbedoSlotName = "Albedo";
         public const string NormalSlotName = "Normal";
@@ -145,6 +145,20 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField] private string m_ShaderGUIOverride;
+        public string ShaderGUIOverride
+        {
+            get => m_ShaderGUIOverride;
+            set => m_ShaderGUIOverride = value;
+        }
+
+        [SerializeField] private bool m_OverrideEnabled;
+        public bool OverrideEnabled
+        {
+            get => m_OverrideEnabled;
+            set => m_OverrideEnabled = value;
+        }
+
         public PBRMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -242,15 +256,15 @@ namespace UnityEditor.ShaderGraph
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(Fields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
-                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+                new ConditionalField(Fields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) ||
+                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) ||
                                                                         IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
                 new ConditionalField(Fields.GraphPixel,          true),
-                
+
                 // Surface Type
                 new ConditionalField(Fields.SurfaceOpaque,       surfaceType == ShaderGraph.SurfaceType.Opaque),
                 new ConditionalField(Fields.SurfaceTransparent,  surfaceType != ShaderGraph.SurfaceType.Opaque),
-                
+
                 // Blend Mode
                 new ConditionalField(Fields.BlendAdd,            surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
                 new ConditionalField(Fields.BlendAlpha,          surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
