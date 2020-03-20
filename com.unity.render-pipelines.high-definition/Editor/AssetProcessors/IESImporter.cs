@@ -5,7 +5,9 @@ using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+//#if HDRP_7_1_6_OR_NEWER
 using UnityEngine.Rendering.HighDefinition;
+//#endif
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -19,44 +21,44 @@ namespace UnityEditor.Rendering.HighDefinition
         public string LampCatalogNumber;      // IES keyword LAMPCAT
         public string LampDescription;        // IES keyword LAMP
 
-        public Texture CookieTexture      = null;
+        public Texture CookieTexture = null;
         public Texture CylindricalTexture = null;
-        public float   ProfileRotationInY;
+        public float ProfileRotationInY;
 
-        //readonly bool k_UsingHdrp = RenderPipelineManager.currentPipeline?.ToString() == "UnityEngine.Rendering.HighDefinition.HDRenderPipeline";
+        readonly bool k_UsingHdrp = RenderPipelineManager.currentPipeline?.ToString() == "UnityEngine.Rendering.HighDefinition.HDRenderPipeline";
 
         const int k_CylindricalTextureHeight = 256;                            // for 180 latitudinal degrees
-        const int k_CylindricalTextureWidth  = 2 * k_CylindricalTextureHeight; // for 360 longitudinal degrees
+        const int k_CylindricalTextureWidth = 2 * k_CylindricalTextureHeight; // for 360 longitudinal degrees
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
             //string iesFilePath = Application.dataPath;
             //foreach (var selectionObject in Selection.GetFiltered(typeof(Object), SelectionMode.Assets))
             //{
-            //    //iesFilePath = Path.Combine(Path.GetDirectoryName(iesFilePath), AssetDatabase.GetAssetPath(selectionObject));
-            //    iesFilePath = Path.GetFullPath(AssetDatabase.GetAssetPath(selectionObject));
-            //    //if (File.Exists(iesFilePath))
-            //    //{
-            //    //    iesFilePath = Path.GetDirectoryName(iesFilePath);
-            //    //}
+            //    iesFilePath = Path.Combine(Path.GetDirectoryName(iesFilePath), AssetDatabase.GetAssetPath(selectionObject));
+            //    if (File.Exists(iesFilePath))
+            //    {
+            //        iesFilePath = Path.GetDirectoryName(iesFilePath);
+            //    }
             //    break;
             //}
-            ////iesFilePath = Path.Combine(iesFilePath, Path.GetFileName(ctx.assetPath));
+            //iesFilePath = Path.Combine(iesFilePath, Path.GetFileName(ctx.assetPath));
+
             string iesFilePath = ctx.assetPath;
 
-            var engine = new IESEngine();
+            var engine = new IesEngine();
 
             string errorMessage = engine.ReadFile(iesFilePath);
 
             if (string.IsNullOrEmpty(errorMessage))
             {
-                Manufacturer           = engine.GetKeywordValue("MANUFAC");
+                Manufacturer = engine.GetKeywordValue("MANUFAC");
                 LuminaireCatalogNumber = engine.GetKeywordValue("LUMCAT");
-                LuminaireDescription   = engine.GetKeywordValue("LUMINAIRE");
-                LampCatalogNumber      = engine.GetKeywordValue("LAMPCAT");
-                LampDescription        = engine.GetKeywordValue("LAMP");
+                LuminaireDescription = engine.GetKeywordValue("LUMINAIRE");
+                LampCatalogNumber = engine.GetKeywordValue("LAMPCAT");
+                LampDescription = engine.GetKeywordValue("LAMP");
 
-                CookieTexture      = GenerateTexture(ctx, engine, true, engine.GetTextureSize());
+                CookieTexture = GenerateTexture(ctx, engine, true, engine.GetTextureSize());
                 CylindricalTexture = GenerateTexture(ctx, engine, false, (k_CylindricalTextureHeight, k_CylindricalTextureWidth));
             }
             else
@@ -89,10 +91,10 @@ namespace UnityEditor.Rendering.HighDefinition
             //else
             //{
             //    Light light = lightObject.AddComponent<Light>();
-            //    light.type      = LightType.Point;
+            //    light.type = LightType.Point;
             //    light.intensity = 1f;   // would need a better intensity value formula
-            //    light.range     = 100f; // would need a better range value formula
-            //    light.cookie    = CookieTexture;
+            //    light.range = 100f; // would need a  better range value formula
+            //    light.cookie = CookieTexture;
             //}
 
             // The light object will be automatically converted into a prefab.
@@ -116,34 +118,33 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        Texture GenerateTexture(AssetImportContext ctx, IESEngine engine, bool generateCookie, (int height, int width) size)
+        Texture GenerateTexture(AssetImportContext ctx, IesEngine engine, bool generateCookie, (int height, int width) size)
         {
             // Default values set by the TextureGenerationSettings constructor can be found in this file on GitHub:
             // https://github.com/Unity-Technologies/UnityCsReference/blob/master/Editor/Mono/AssetPipeline/TextureGenerator.bindings.cs
 
-            var settings = new TextureGenerationSettings(generateCookie ? TextureImporterType.Cookie : TextureImporterType.Default);
+            var settings = new TextureGenerationSettings((generateCookie && !k_UsingHdrp) ? TextureImporterType.Cookie : TextureImporterType.Default);
 
             SourceTextureInformation textureInfo = settings.sourceTextureInformation;
             textureInfo.containsAlpha = true;
-            textureInfo.height        = size.height;
-            textureInfo.width         = size.width;
+            textureInfo.height = size.height;
+            textureInfo.width = size.width;
 
             TextureImporterSettings textureImporterSettings = settings.textureImporterSettings;
-            //textureImporterSettings.alphaSource     = k_UsingHdrp ? TextureImporterAlphaSource.None : TextureImporterAlphaSource.FromInput;
-            textureImporterSettings.alphaSource     = TextureImporterAlphaSource.None;
-            textureImporterSettings.aniso           = 0;
-            textureImporterSettings.borderMipmap    = textureImporterSettings.textureType == TextureImporterType.Cookie;
-            textureImporterSettings.filterMode      = FilterMode.Bilinear;
+            textureImporterSettings.alphaSource = k_UsingHdrp ? TextureImporterAlphaSource.None : TextureImporterAlphaSource.FromInput;
+            textureImporterSettings.aniso = 0;
+            textureImporterSettings.borderMipmap = textureImporterSettings.textureType == TextureImporterType.Cookie;
+            textureImporterSettings.filterMode = FilterMode.Bilinear;
             textureImporterSettings.generateCubemap = TextureImporterGenerateCubemap.Cylindrical;
-            textureImporterSettings.mipmapEnabled   = false;
-            textureImporterSettings.readable        = true;
-            textureImporterSettings.sRGBTexture     = false;
-            textureImporterSettings.textureShape    = generateCookie ? TextureImporterShape.TextureCube : TextureImporterShape.Texture2D;
+            textureImporterSettings.mipmapEnabled = false;
+            textureImporterSettings.readable = true;
+            textureImporterSettings.sRGBTexture = false;
+            textureImporterSettings.textureShape = generateCookie ? TextureImporterShape.TextureCube : TextureImporterShape.Texture2D;
             textureImporterSettings.wrapMode = textureImporterSettings.wrapModeU = textureImporterSettings.wrapModeV = textureImporterSettings.wrapModeW = TextureWrapMode.Clamp;
 
             TextureImporterPlatformSettings platformSettings = settings.platformSettings;
-            platformSettings.maxTextureSize     = 2048;
-            platformSettings.resizeAlgorithm    = TextureResizeAlgorithm.Bilinear;
+            platformSettings.maxTextureSize = 2048;
+            platformSettings.resizeAlgorithm = TextureResizeAlgorithm.Bilinear;
             platformSettings.textureCompression = generateCookie ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;
 
             NativeArray<Color32> colorBuffer = engine.BuildTextureBuffer(size);

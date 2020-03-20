@@ -1432,10 +1432,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         break;
                     case HDLightType.Point:
                         // SKCode
-                        lightData.cookieMode = CookieMode.Clamp;
+                        //lightData.cookieMode = CookieMode.Clamp;
                         lightData.cookieIndex = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie);
-                        //lightData.cookieMode = (lightComponent.cookie.wrapMode == TextureWrapMode.Repeat) ? CookieMode.Repeat : CookieMode.Clamp;
-                        //lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookieFlatten(cmd, lightComponent.cookie);
+                        lightData.cookieMode = (lightComponent.cookie.wrapMode == TextureWrapMode.Repeat) ? CookieMode.Repeat : CookieMode.Clamp;
+                        lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookieFlatten(cmd, lightComponent.cookie);
                         break;
                 }
             }

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
-    internal class IESReader
+    public class IesReader
     {
         Dictionary<string, string> m_KeywordDictionary = new Dictionary<string, string>();
         public Dictionary<string, string> KeywordDictionary
@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering
                 }
 
                 var keywordRegex = new Regex(@"\s*\[(?<keyword>\w+)\]\s*(?<data>.*)", RegexOptions.Compiled);
-                var tiltRegex    = new Regex(@"TILT=(?<data>.*)", RegexOptions.Compiled);
+                var tiltRegex = new Regex(@"TILT=(?<data>.*)", RegexOptions.Compiled);
 
                 string currentKeyword = string.Empty;
 
@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering
                     if (keywordMatch.Success)
                     {
                         string keyword = keywordMatch.Groups["keyword"].Value;
-                        string data    = keywordMatch.Groups["data"].Value.Trim();
+                        string data = keywordMatch.Groups["data"].Value.Trim();
 
                         if (keyword == currentKeyword || keyword == "MORE")
                         {
@@ -137,15 +137,15 @@ namespace UnityEditor.Rendering
                     return $"Invalid photometric type: {m_PhotometricType}";
                 }
 
-                int   luminousDimensionUnitType = GetInt(iesDataLines, out iesDataLines);
-                float luminousDimensionWidth    = GetFloat(iesDataLines, out iesDataLines);
-                float luminousDimensionLength   = GetFloat(iesDataLines, out iesDataLines);
-                float luminousDimensionHeight   = GetFloat(iesDataLines, out iesDataLines);
+                int luminousDimensionUnitType = GetInt(iesDataLines, out iesDataLines);
+                float luminousDimensionWidth = GetFloat(iesDataLines, out iesDataLines);
+                float luminousDimensionLength = GetFloat(iesDataLines, out iesDataLines);
+                float luminousDimensionHeight = GetFloat(iesDataLines, out iesDataLines);
 
                 float ballastFactor = GetFloat(iesDataLines, out iesDataLines);
                 if (ballastFactor < 0f) ballastFactor = 0f;
 
-                float futureUse  = GetFloat(iesDataLines, out iesDataLines);
+                float futureUse = GetFloat(iesDataLines, out iesDataLines);
                 float inputWatts = GetFloat(iesDataLines, out iesDataLines);
 
                 m_VerticalAngles = new float[m_VerticalAngleCount];
@@ -222,7 +222,7 @@ namespace UnityEditor.Rendering
         void SkipOnWhitespaceAndLineEnd(string line, out string remainder, bool stopOnComma)
         {
             int begin = 0;
-            int end   = line.Length;
+            int end = line.Length;
 
             while (begin < end)
             {
@@ -363,7 +363,7 @@ namespace UnityEditor.Rendering
         float ComputeAnglePosition(float value, float[] angles)
         {
             int start = 0;
-            int end   = angles.Length - 1;
+            int end = angles.Length - 1;
 
             if (value < angles[start])
             {
@@ -392,7 +392,7 @@ namespace UnityEditor.Rendering
             }
 
             float leftValue = angles[start];
-            float fraction  = 0f;
+            float fraction = 0f;
 
             if (start + 1 < angles.Length)
             {

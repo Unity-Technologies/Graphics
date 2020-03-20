@@ -1047,9 +1047,9 @@ real SinFromCos(real cosX)
 real FastATan2(real x, real y)
 {
     if (x > real(0.0))
-        return FastATanPos(SafeDiv(y, sqrt(x * x + y * y) + x));
+        return FastATanPos(SafeDiv(y, sqrt(x*x + y*y) + x));
     else if (x <= real(0.0) && abs(y) <= 1e-5f)
-        return FastATanPos(SafeDiv(sqrt(x * x + y * y) - x, y));
+        return FastATanPos(SafeDiv(sqrt(x*x + y*y) - x, y));
     else
         return PI;
     // Theory: if x == 0 && y == 0 then NaN/UNDEFINED

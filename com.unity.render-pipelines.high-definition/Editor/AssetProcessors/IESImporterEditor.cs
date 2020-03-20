@@ -20,11 +20,11 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_ProfileRotationInYProp;
 
         bool m_ShowLuminaireProductInformation = true;
-        bool m_PreviewCylindricalTexture       = false;
+        bool m_PreviewCylindricalTexture = false;
 
         PreviewRenderUtility m_PreviewRenderUtility = null;
 
-        readonly bool k_UsingHdrp = RenderPipelineManager.currentPipeline?.ToString() == "UnityEngine.Rendering.HighDefinition.HDRenderPipeline";
+        //readonly bool k_UsingHdrp = RenderPipelineManager.currentPipeline?.ToString() == "UnityEngine.Rendering.HighDefinition.HDRenderPipeline";
 
         public override void OnEnable()
         {
@@ -32,12 +32,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_WordWrapStyle.wordWrap = true;
 
-            m_ManufacturerProp           = serializedObject.FindProperty("Manufacturer");
+            m_ManufacturerProp = serializedObject.FindProperty("Manufacturer");
             m_LuminaireCatalogNumberProp = serializedObject.FindProperty("LuminaireCatalogNumber");
-            m_LuminaireDescriptionProp   = serializedObject.FindProperty("LuminaireDescription");
-            m_LampCatalogNumberProp      = serializedObject.FindProperty("LampCatalogNumber");
-            m_LampDescriptionProp        = serializedObject.FindProperty("LampDescription");
-            m_ProfileRotationInYProp     = serializedObject.FindProperty("ProfileRotationInY");
+            m_LuminaireDescriptionProp = serializedObject.FindProperty("LuminaireDescription");
+            m_LampCatalogNumberProp = serializedObject.FindProperty("LampCatalogNumber");
+            m_LampDescriptionProp = serializedObject.FindProperty("LampDescription");
+            m_ProfileRotationInYProp = serializedObject.FindProperty("ProfileRotationInY");
         }
 
         public override void OnInspectorGUI()
@@ -66,17 +66,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 m_PreviewRenderUtility.ambientColor = Color.black;
 
-                m_PreviewRenderUtility.camera.fieldOfView   = 60f;
+                m_PreviewRenderUtility.camera.fieldOfView = 60f;
                 m_PreviewRenderUtility.camera.nearClipPlane = 1f;
-                m_PreviewRenderUtility.camera.farClipPlane  = 20f;
-                m_PreviewRenderUtility.camera.transform.localPosition    = new Vector3(12f, 5f, 0f);
+                m_PreviewRenderUtility.camera.farClipPlane = 20f;
+                m_PreviewRenderUtility.camera.transform.localPosition = new Vector3(12f, 5f, 0f);
                 m_PreviewRenderUtility.camera.transform.localEulerAngles = new Vector3(15f, -90f, 0f);
 
-                m_PreviewRenderUtility.lights[0].type      = LightType.Point;
-                m_PreviewRenderUtility.lights[0].color     = Color.white;
+                m_PreviewRenderUtility.lights[0].type = LightType.Point;
+                m_PreviewRenderUtility.lights[0].color = Color.white;
                 m_PreviewRenderUtility.lights[0].intensity = 1.3f;
-                m_PreviewRenderUtility.lights[0].range     = 60f;
-                m_PreviewRenderUtility.lights[0].transform.localPosition    = new Vector3(0f, 7f, 0f);
+                m_PreviewRenderUtility.lights[0].range = 60f;
+                m_PreviewRenderUtility.lights[0].transform.localPosition = new Vector3(0f, 7f, 0f);
                 m_PreviewRenderUtility.lights[0].transform.localEulerAngles = new Vector3(0f, 0f, 0f);
 
                 m_PreviewRenderUtility.lights[1].intensity = 0f;
@@ -84,28 +84,30 @@ namespace UnityEditor.Rendering.HighDefinition
                 GameObject previewWall = GameObject.CreatePrimitive(PrimitiveType.Plane);
                 previewWall.name = "IESPreviewWall";
                 previewWall.hideFlags = HideFlags.HideAndDontSave;
-                previewWall.transform.localPosition    = new Vector3(-1f, 4f, 0f);
+                previewWall.transform.localPosition = new Vector3(-1f, 4f, 0f);
                 previewWall.transform.localEulerAngles = new Vector3(0f, 0f, -90f);
-                previewWall.transform.localScale       = new Vector3(1f, 1f, 10f);
+                previewWall.transform.localScale = new Vector3(1f, 1f, 10f);
                 MeshRenderer previewWallRenderer = previewWall.GetComponent<MeshRenderer>();
-                previewWallRenderer.lightProbeUsage      = LightProbeUsage.Off;
+                previewWallRenderer.lightProbeUsage = LightProbeUsage.Off;
                 previewWallRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
-                previewWallRenderer.material             = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Material.mat");
+                previewWallRenderer.material = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Material.mat");
 
                 m_PreviewRenderUtility.AddSingleGO(previewWall);
 
                 GameObject previewFloor = GameObject.CreatePrimitive(PrimitiveType.Plane);
                 previewFloor.name = "IESPreviewFloor";
                 previewFloor.hideFlags = HideFlags.HideAndDontSave;
-                previewFloor.transform.localPosition    = new Vector3(3f, 0f, 0f);
+                previewFloor.transform.localPosition = new Vector3(3f, 0f, 0f);
                 previewFloor.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
-                previewFloor.transform.localScale       = new Vector3(1f, 1f, 10f);
+                previewFloor.transform.localScale = new Vector3(1f, 1f, 10f);
                 MeshRenderer previewFloorRenderer = previewFloor.GetComponent<MeshRenderer>();
-                previewFloorRenderer.lightProbeUsage      = LightProbeUsage.Off;
+                previewFloorRenderer.lightProbeUsage = LightProbeUsage.Off;
                 previewFloorRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
-                previewFloorRenderer.material             = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
+                previewFloorRenderer.material = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
 
                 m_PreviewRenderUtility.AddSingleGO(previewFloor);
+
+#if HDRP_7_1_6_OR_NEWER
 
                 HDAdditionalCameraData hdCamera = m_PreviewRenderUtility.camera.gameObject.AddComponent<HDAdditionalCameraData>();
                 HDAdditionalCameraData.InitDefaultHDAdditionalCameraData(hdCamera);
@@ -120,6 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 previewWallRenderer.material  = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDMaterial.mat");
                 previewFloorRenderer.material = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDMaterial.mat");
+#endif
             }
 
             return true;
@@ -134,7 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             serializedObject.Update();
 
-            if (GUILayout.Button(m_PreviewCylindricalTexture ? "Display Profile View": "Display Texture View", EditorStyles.toolbarButton, GUILayout.Width(130)))
+            if (GUILayout.Button(m_PreviewCylindricalTexture ? "Display Profile View" : "Display Texture View", EditorStyles.toolbarButton, GUILayout.Width(130)))
             {
                 m_PreviewCylindricalTexture = !m_PreviewCylindricalTexture;
             }
@@ -143,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
             int profileRotationIn = (int)m_ProfileRotationInYProp.floatValue;
             if (GUILayout.Button($"Profile Rotation {profileRotationIn}", EditorStyles.toolbarButton, GUILayout.Width(130)))
             {
-                m_ProfileRotationInYProp.floatValue = (profileRotationIn + 90)%360;
+                m_ProfileRotationInYProp.floatValue = (profileRotationIn + 90) % 360;
             }
             GUI.enabled = true;
 
@@ -168,14 +171,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     m_PreviewRenderUtility.lights[0].transform.localEulerAngles = new Vector3(0f, m_ProfileRotationInYProp.floatValue, 0f);
 
-                    if (k_UsingHdrp)
+                    //if (k_UsingHdrp)
                     {
-                        m_PreviewRenderUtility.lights[0].GetComponent<HDAdditionalLightData>().SetCookie((target as IesImporter).CookieTexture);
+//#if HDRP_7_1_6_OR_NEWER
+//                        m_PreviewRenderUtility.lights[0].GetComponent<HDAdditionalLightData>().SetCookie((target as IesImporter).CookieTexture);
+//#else
+                        doRender = false;
+//#endif
                     }
-                    else
-                    {
-                        m_PreviewRenderUtility.lights[0].cookie = (target as IesImporter).CookieTexture;
-                    }
+                    //else
+                    //{
+                    //    m_PreviewRenderUtility.lights[0].cookie = (target as IesImporter).CookieTexture;
+                    //}
 
                     if (doRender)
                     {
