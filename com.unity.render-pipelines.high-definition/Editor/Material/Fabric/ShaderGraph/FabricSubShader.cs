@@ -801,7 +801,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 subShader.AddShaderChunk("}", false);
             }
 
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.FabricGUI""");
+            if (!masterNode.OverrideEnabled)
+            {
+                subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.FabricGUI""");
+            }
 
             return subShader.GetShaderString(0);
         }
