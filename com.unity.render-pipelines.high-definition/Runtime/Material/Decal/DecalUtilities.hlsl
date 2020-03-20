@@ -148,15 +148,15 @@ void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positi
 
         float2 sampleDiffuseDdx = positionDSDdx.xz*decalData.diffuseScaleBias.xy; // factor in the atlas scale
         float2 sampleDiffuseDdy = positionDSDdy.xz*decalData.diffuseScaleBias.xy;
-        float  lodDiffuse       = ComputeTextureLODBias(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution, 0.5f);
+        float  lodDiffuse       = ComputeTextureLOD(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution, 0.5f);
 
         float2 sampleNormalDdx  = positionDSDdx.xz*decalData.normalScaleBias.xy;
         float2 sampleNormalDdy  = positionDSDdy.xz*decalData.normalScaleBias.xy;
-        float  lodNormal        = ComputeTextureLODBias(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution, 0.5f);
+        float  lodNormal        = ComputeTextureLOD(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution, 0.5f);
 
         float2 sampleMaskDdx    = positionDSDdx.xz*decalData.maskScaleBias.xy;
         float2 sampleMaskDdy    = positionDSDdy.xz*decalData.maskScaleBias.xy;
-        float  lodMask          = ComputeTextureLODBias(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution, 0.5f);
+        float  lodMask          = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution, 0.5f);
 
         float albedoBlend = decalData.normalToWorld[0][3];
         float4 src = decalData.baseColor;

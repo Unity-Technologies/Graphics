@@ -606,7 +606,7 @@ TEMPLATE_3_FLT(RangeRemap, min, max, t, return saturate((t - min) / (max - min))
 // Texture utilities
 // ----------------------------------------------------------------------------
 
-float ComputeTextureLODBias(float2 uvdx, float2 uvdy, float2 scale, float bias)
+float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale, float bias = 0.0f)
 {
     float2 ddx_ = scale*uvdx;
     float2 ddy_ = scale*uvdy;
@@ -615,48 +615,28 @@ float ComputeTextureLODBias(float2 uvdx, float2 uvdy, float2 scale, float bias)
     return max(0.5f*log2(d) - bias, 0.0f);
 }
 
-float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale)
-{
-    return ComputeTextureLODBias(uvdx, uvdy, scale, 0.0f);
-}
-
-float ComputeTextureLODBias(float2 uv, float bias)
+float ComputeTextureLOD(float2 uv, float bias = 0.0f)
 {
     float2 ddx_ = ddx(uv);
     float2 ddy_ = ddy(uv);
 
-    return ComputeTextureLODBias(ddx_, ddy_, 1.0f, bias);
-}
-
-float ComputeTextureLOD(float2 uv)
-{
-    return ComputeTextureLODBias(uv, 0.0f);
+    return ComputeTextureLOD(ddx_, ddy_, 1.0f, bias);
 }
 
 // x contains width, w contains height
-float ComputeTextureLODBias(float2 uv, float2 texelSize, float bias)
+float ComputeTextureLOD(float2 uv, float2 texelSize, float bias = 0.0f)
 {
     uv *= texelSize;
 
-    return ComputeTextureLODBias(uv, bias);
-}
-
-float ComputeTextureLOD(float2 uv, float2 texelSize)
-{
-    return ComputeTextureLODBias(uv, texelSize, 0.0f);
+    return ComputeTextureLOD(uv, bias);
 }
 
 // LOD clamp is optional and happens outside the function.
-float ComputeTextureLODBias(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale, float bias)
+float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale, float bias = 0.0f)
 {
     float d = Max3(dot(duvw_dx, duvw_dx), dot(duvw_dy, duvw_dy), dot(duvw_dz, duvw_dz));
 
     return max(0.5f*log2(d*(scale*scale)) - bias, 0.0f);
-}
-
-float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale)
-{
-    return ComputeTextureLODBias(duvw_dx, duvw_dy, duvw_dz, scale, 0.0f);
 }
 
 
