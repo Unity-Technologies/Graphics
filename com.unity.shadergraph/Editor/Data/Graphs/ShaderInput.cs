@@ -1,9 +1,10 @@
 ﻿using System;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    public abstract class ShaderInput
+    public abstract class ShaderInput : JsonObject
     {
         [SerializeField]
         SerializableGuid m_Guid = new SerializableGuid();

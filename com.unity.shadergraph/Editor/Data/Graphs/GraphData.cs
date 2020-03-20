@@ -30,27 +30,15 @@ namespace UnityEditor.ShaderGraph
 
         #region Input data
 
-        [NonSerialized]
-        List<AbstractShaderProperty> m_Properties = new List<AbstractShaderProperty>();
+        [SerializeField]
+        List<JsonData<AbstractShaderProperty>> m_Properties = new List<JsonData<AbstractShaderProperty>>();
 
-        public IEnumerable<AbstractShaderProperty> properties
-        {
-            get { return m_Properties; }
-        }
+        public DataValueEnumerable<AbstractShaderProperty> properties => m_Properties.SelectValue();
 
         [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
+        List<JsonData<ShaderKeyword>> m_Keywords = new List<JsonData<ShaderKeyword>>();
 
-        [NonSerialized]
-        List<ShaderKeyword> m_Keywords = new List<ShaderKeyword>();
-
-        public IEnumerable<ShaderKeyword> keywords
-        {
-            get { return m_Keywords; }
-        }
-
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedKeywords = new List<SerializationHelper.JSONSerializedElement>();
+        public DataValueEnumerable<ShaderKeyword> keywords => m_Keywords.SelectValue();
 
         [NonSerialized]
         List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
@@ -815,8 +803,8 @@ namespace UnityEditor.ShaderGraph
 
         void RemoveGraphInputNoValidate(Guid guid)
         {
-            if (m_Properties.RemoveAll(x => x.guid == guid) > 0 ||
-                m_Keywords.RemoveAll(x => x.guid == guid) > 0)
+            if (m_Properties.RemoveAll(x => x.value.guid == guid) > 0 ||
+                m_Keywords.RemoveAll(x => x.value.guid == guid) > 0)
             {
                 m_RemovedInputs.Add(guid);
                 m_AddedInputs.RemoveAll(x => x.guid == guid);
@@ -875,7 +863,7 @@ namespace UnityEditor.ShaderGraph
 
         public void ValidateGraph()
         {
-            var propertyNodes = GetNodes<PropertyNode>().Where(n => !m_Properties.Any(p => p.guid == n.propertyGuid)).ToArray();
+            var propertyNodes = GetNodes<PropertyNode>().Where(n => !m_Properties.Any(p => p.value.guid == n.propertyGuid)).ToArray();
             foreach (var pNode in propertyNodes)
                 ReplacePropertyNodeWithConcreteNodeNoValidate(pNode);
 
@@ -1000,9 +988,9 @@ namespace UnityEditor.ShaderGraph
             using (var removedInputsPooledObject = ListPool<Guid>.GetDisposable())
             {
                 var removedInputGuids = removedInputsPooledObject.value;
-                foreach (var property in m_Properties)
+                foreach (var property in m_Properties.SelectValue())
                     removedInputGuids.Add(property.guid);
-                foreach (var keyword in m_Keywords)
+                foreach (var keyword in m_Keywords.SelectValue())
                     removedInputGuids.Add(keyword.guid);
                 foreach (var inputGuid in removedInputGuids)
                     RemoveGraphInputNoValidate(inputGuid);
@@ -1219,8 +1207,6 @@ namespace UnityEditor.ShaderGraph
         public override void OnBeforeSerialize()
         {
             m_Edges.Sort();
-            m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
-            m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
         }
 
         static JsonObject DeserializeLegacy(string typeString, string json)
@@ -1273,6 +1259,28 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
+                foreach (var serializedProperty in graphData0.m_SerializedProperties)
+                {
+                    var property = (AbstractShaderProperty)DeserializeLegacy(serializedProperty.typeInfo.fullName, serializedProperty.JSONnodeData);
+                    if (property == null)
+                    {
+                        continue;
+                    }
+
+                    m_Properties.Add(property);
+                }
+
+                foreach (var serializedKeyword in graphData0.m_SerializedKeywords)
+                {
+                    var keyword = (ShaderKeyword)DeserializeLegacy(serializedKeyword.typeInfo.fullName, serializedKeyword.JSONnodeData);
+                    if (keyword == null)
+                    {
+                        continue;
+                    }
+
+                    m_Keywords.Add(keyword);
+                }
+
                 if (isSubGraph)
                 {
                     m_OutputNode = GetNodes<SubGraphOutputNode>().FirstOrDefault();
@@ -1304,10 +1312,6 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnAfterMultiDeserialize(string json)
         {
-            // have to deserialize 'globals' before nodes
-            m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
-            m_Keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, GraphUtil.GetLegacyTypeRemapping());
-
             m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>(m_Nodes.Count);
 
             foreach (var group in m_Groups)

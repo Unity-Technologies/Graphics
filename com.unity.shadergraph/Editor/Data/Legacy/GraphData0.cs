@@ -12,5 +12,9 @@ namespace UnityEditor.ShaderGraph.Legacy
         public List<SerializationHelper.JSONSerializedElement> m_SerializableEdges;
 
         public string m_ActiveOutputNodeGuidSerialized;
+
+        public List<SerializationHelper.JSONSerializedElement> m_SerializedProperties;
+
+        public List<SerializationHelper.JSONSerializedElement> m_SerializedKeywords;
     }
 }
