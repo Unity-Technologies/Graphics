@@ -162,38 +162,32 @@ float cmj6D(uint pointIndex, uint dimIndex, uint seed)
     return result / s;
 }
 
+#define fmaf(a, b, c) ((a) * (b) + (c))
+
 // Computes (Exp[x^2] * Erfc[x]) for (x >= 0).
 // Range of inputs:  [0, Inf].
 // Range of outputs: [0, 1].
+// Max Abs Error: 0.000000969658452.
+// Max Rel Error: 0.000001091639525.
 float Exp2Erfc(float x)
 {
-    float t, u, y, z;
+    float t, u, y;
 
-    t = 3.97886080735226 / (x + 3.97886080735226);
-    u = t - 0.5;
-#ifdef DOUBLE_PRECISION
-    // Original implementation kindly provided by Takuya Ooura.
-    // http://www.kurims.kyoto-u.ac.jp/~ooura/gamerf.html
-    y = (((((((((0.00127109764952614092 * u + 1.19314022838340944e-4) * u -
-        0.003963850973605135) * u - 8.70779635317295828e-4) * u +
-        0.00773672528313526668) * u + 0.00383335126264887303) * u -
-        0.0127223813782122755) * u - 0.0133823644533460069) * u +
-        0.0161315329733252248) * u + 0.0390976845588484035) * u +
-        0.00249367200053503304;
-#else
-    // TODO: refit for single precision.
-    y = (0.0019898212777384947 * u + 0.039833135938877856) * u +
-        0.0034132959838498976;
-#endif
-    z = ((((((((((((y * u - 0.0838864557023001992) * u -
-        0.119463959964325415) * u + 0.0166207924969367356) * u +
-        0.357524274449531043) * u + 0.805276408752910567) * u +
-        1.18902982909273333) * u + 1.37040217682338167) * u +
-        1.31314653831023098) * u + 1.07925515155856677) * u +
-        0.774368199119538609) * u + 0.490165080585318424) * u +
-        0.275374741597376782) * t;
+    t = 3.9788608 * rcp(x + 3.9788608); // Reduce the range
+    u = t - 0.5;                        // Center around 0
 
-    return z;
+    y =           -0.010297533124685;
+    y = fmaf(y, u, 0.288184314966202);
+    y = fmaf(y, u, 0.805188119411469);
+    y = fmaf(y, u, 1.203098773956299);
+    y = fmaf(y, u, 1.371236562728882);
+    y = fmaf(y, u, 1.312000870704651);
+    y = fmaf(y, u, 1.079175233840942);
+    y = fmaf(y, u, 0.774399876594543);
+    y = fmaf(y, u, 0.490166693925858);
+    y = fmaf(y, u, 0.275374621152878);
+
+    return y * t; // Expand the range
 }
 
 float ChapmanUpper(float z, float absCosTheta)
@@ -329,10 +323,10 @@ float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, flo
     // Make an initial guess.
     // Homogeneous assumption.
     float t = maxDist * (optDepth * rcp(maxOptDepth));
-    // Establish the range of valid values.
-    float range[2];
-    range[0] = 0;
-    range[1] = maxDist;
+    // Establish the ranges of valid distances ('tRange') and function values ('fRange').
+    float tRange[2], fRange[2];
+    tRange[0] = 0;        /* -> */  fRange[0] = 0           - optDepth;
+    tRange[1] = maxDist;  /* -> */  fRange[1] = maxOptDepth - optDepth;
 
     uint  numIter = 0;
     float absDiff = optDepth, relDiff = 1;
@@ -357,40 +351,45 @@ float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, flo
         float   f = optDepthAtDist - optDepth;
         float  df = attAtDist;
         float ddf = attAtDistDeriv;
+        float  dg = df - 0.5 * f * (ddf * rcp(df));
 
-        assert(df != 0);
+        assert(df > 0 && dg > 0);
 
     #if 0
         // https://en.wikipedia.org/wiki/Newton%27s_method
-        float dt = -f * rcp(df);
+        float slope = rcp(df);
     #else
         // https://en.wikipedia.org/wiki/Halley%27s_method
-        float dt = -f * rcp(df - 0.5 * f * (ddf * rcp(df)));
+        float slope = rcp(dg);
     #endif
 
+        float dt = -f * slope;
+
         // Find the boundary value we are stepping towards:
-        // supremum for positive 'dt', infimum for negative 'dt'.
-        uint  sgn   = asuint(dt) >> 31;
-        float bound = range[1 - sgn];
+        // supremum for (f < 0) and infimum for (f > 0).
+        uint  sgn     = asuint(f) >> 31;
+        float tBound  = tRange[sgn];
+        float fBound  = fRange[sgn];
+        float tNewton = t + dt;
 
-        float bisectStep = 0.5 * (bound - t);
-
-        // Bisect if Newton is out of range, or is not converging fast enough.
-        // See "Numerical Recipes in C++", 3rd Edition, Chapter 9.4.
-        bool isInRange = (range[0] <= (t + dt)) && ((t + dt) <= range[1]);
+        bool isInRange = tRange[0] < tNewton && tNewton < tRange[1];
 
         if (!isInRange)
         {
             // The Newton's algorithm has effectively run out of digits of precision.
             // While it's possible to continue improving precision (to a certain degree)
             // via bisection, it is costly, and the convergence rate is low.
-            // We choose to perform a single bisection step, and stop here.
-            dt      = bisectStep;
+            // It's better to recall that, for short distances, optical depth is a
+            // linear function of distance to an excellent degree of approximation.
+            slope   = (tBound - t) * rcp(fBound - f);
+            dt      = -f * slope;
             numIter = MAX_ITER;
         }
 
-        range[sgn] = t; // Adjust the range using the previous value of 't'
-        t = t + dt;     // Step
+        tRange[1 - sgn] = t; // Adjust the range using the
+        fRange[1 - sgn] = f; // previous values of 't' and 'f'
+
+        t = t + dt;
 
         absDiff = abs(optDepthAtDist - optDepth);
         relDiff = abs(optDepthAtDist * rcpOptDepth - 1);
@@ -398,12 +397,11 @@ float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, flo
         numIter++;
 
         // Stop when the accuracy goal has been reached.
-        // Note that this uses the accuracy of the old value of 't'.
-        // The new value of 't' we just computed should be even more accurate.
+        // Note that this uses the accuracy corresponding to the old value of 't'.
+        // The new value of 't' we just computed should result in higher accuracy.
     } while ((absDiff > EPS_ABS) && (relDiff > EPS_REL) && (numIter < MAX_ITER));
 
-    // return t;
-    return numIter >= MAX_ITER ? 1 : 0;
+    return t;
 }
 
 #define GROUP_SIZE_1D 8 // 8^2 == 64
