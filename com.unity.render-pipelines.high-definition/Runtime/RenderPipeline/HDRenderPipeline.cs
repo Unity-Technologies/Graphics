@@ -168,6 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Constant Buffers
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
+        ShaderVariablesXR m_ShaderVariablesXRCB = new ShaderVariablesXR();
 
         // The current MSAA count
         MSAASamples m_MSAASamples;
@@ -952,7 +953,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateShaderVariablesGlobalCB(HDCamera hdCamera, CommandBuffer cmd)
         {
-            hdCamera.UpdateShaderVariableGlobalCB(ref m_ShaderVariablesGlobalCB, m_FrameCount);
+            hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, m_FrameCount);
             Fog.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalSubsurface(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalDecal(ref m_ShaderVariablesGlobalCB, hdCamera);
@@ -997,6 +998,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+
+            hdCamera.UpdateShaderVariablesXRCB(ref m_ShaderVariablesXRCB);
+            ConstantBuffer<ShaderVariablesXR>.PushGlobal(cmd, m_ShaderVariablesXRCB, HDShaderIDs._ShaderVariablesXR);
         }
 
         void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
@@ -1004,9 +1008,6 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushGlobalParameters)))
             {
                 PushVolumetricLightingGlobalParams(hdCamera, cmd, m_FrameCount);
-
-                // Set up UnityPerView CBuffer.
-                hdCamera.SetupGlobalParams(cmd, m_FrameCount);
 
                 // It will be overridden for transparent pass.
                 cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, (int)UnityEngine.Rendering.ColorWriteMask.All);
@@ -2136,7 +2137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // This call overwrites camera properties passed to the shader system.
                     RenderShadowMaps(renderContext, cmd, m_ShaderVariablesGlobalCB, cullingResults, hdCamera);
 
-                    hdCamera.UpdateShaderVariableGlobalCB(ref m_ShaderVariablesGlobalCB, m_FrameCount);
+                    hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, m_FrameCount);
                     ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 }
 
@@ -4513,7 +4514,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // The issue is that the only available depth buffer is jittered so pixels would wobble around depth tested edges.
                 // In order to avoid that we decide that objects rendered after Post processes while TAA is active will not benefit from the depth buffer so we disable it.
                 parameters.hdCamera.UpdateAllViewConstants(false);
-                parameters.hdCamera.UpdateShaderVariableGlobalCB(ref parameters.globalCB, parameters.frameCount);
+                parameters.hdCamera.UpdateShaderVariablesGlobalCB(ref parameters.globalCB, parameters.frameCount);
 
                 UpdateOffscreenRenderingConstants(ref parameters.globalCB, true, 1);
                 ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, parameters.globalCB, HDShaderIDs._ShaderVariablesGlobal);

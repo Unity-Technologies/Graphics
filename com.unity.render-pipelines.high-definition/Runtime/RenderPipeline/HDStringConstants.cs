@@ -222,22 +222,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _WorldSpaceCameraPos1 = Shader.PropertyToID("_WorldSpaceCameraPos1");
         public static readonly int _ViewMatrix1 = Shader.PropertyToID("_ViewMatrix1");
 
-        // XR View Constants
-        public static readonly int _XRViewMatrix = Shader.PropertyToID("_XRViewMatrix");
-        public static readonly int _XRInvViewMatrix = Shader.PropertyToID("_XRInvViewMatrix");
-        public static readonly int _XRProjMatrix = Shader.PropertyToID("_XRProjMatrix");
-        public static readonly int _XRInvProjMatrix = Shader.PropertyToID("_XRInvProjMatrix");
-        public static readonly int _XRViewProjMatrix = Shader.PropertyToID("_XRViewProjMatrix");
-        public static readonly int _XRInvViewProjMatrix = Shader.PropertyToID("_XRInvViewProjMatrix");
-        public static readonly int _XRNonJitteredViewProjMatrix = Shader.PropertyToID("_XRNonJitteredViewProjMatrix");
-        public static readonly int _XRPrevViewProjMatrix = Shader.PropertyToID("_XRPrevViewProjMatrix");
-        public static readonly int _XRPrevInvViewProjMatrix = Shader.PropertyToID("_XRPrevInvViewProjMatrix");
-        public static readonly int _XRPrevViewProjMatrixNoCameraTrans = Shader.PropertyToID("_XRPrevViewProjMatrixNoCameraTrans");
-        public static readonly int _XRPixelCoordToViewDirWS = Shader.PropertyToID("_XRPixelCoordToViewDirWS");
-        public static readonly int _XRWorldSpaceCameraPos = Shader.PropertyToID("_XRWorldSpaceCameraPos");
-        public static readonly int _XRWorldSpaceCameraPosViewOffset = Shader.PropertyToID("_XRWorldSpaceCameraPosViewOffset");
-        public static readonly int _XRPrevWorldSpaceCameraPos = Shader.PropertyToID("_XRPrevWorldSpaceCameraPos");
-
         public static readonly int _ColorTexture                   = Shader.PropertyToID("_ColorTexture");
         public static readonly int _DepthTexture                   = Shader.PropertyToID("_DepthTexture");
         public static readonly int _DepthValuesTexture             = Shader.PropertyToID("_DepthValuesTexture");
@@ -287,6 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         public static readonly int _ShaderVariablesGlobal = Shader.PropertyToID("ShaderVariablesGlobal");
+        public static readonly int _ShaderVariablesXR = Shader.PropertyToID("_ShaderVariablesXR");
         public static readonly int _ShaderVariablesVolumetric = Shader.PropertyToID("ShaderVariablesVolumetric");
         public static readonly int _ShaderVariablesLightList = Shader.PropertyToID("ShaderVariablesLightList");
 
@@ -500,7 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VelocityBuffer                  = Shader.PropertyToID("_VelocityBuffer");
         public static readonly int _ShadowFilterMapping             = Shader.PropertyToID("_ShadowFilterMapping");
         public static readonly int _DistanceTexture                 = Shader.PropertyToID("_DistanceTexture");
-        
+
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
         public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");
@@ -525,7 +510,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracedAreaShadowIntegration = Shader.PropertyToID("_RaytracedAreaShadowIntegration");
         public static readonly int _RaytracingDirectionBuffer       = Shader.PropertyToID("_RaytracingDirectionBuffer");
         public static readonly int _RaytracingDistanceBuffer        = Shader.PropertyToID("_RaytracingDistanceBuffer");
-        public static readonly int _RaytracingDistanceBufferRW      = Shader.PropertyToID("_RaytracingDistanceBufferRW"); 
+        public static readonly int _RaytracingDistanceBufferRW      = Shader.PropertyToID("_RaytracingDistanceBufferRW");
         public static readonly int _AreaShadowTexture               = Shader.PropertyToID("_AreaShadowTexture");
         public static readonly int _AreaShadowTextureRW             = Shader.PropertyToID("_AreaShadowTextureRW");
         public static readonly int _ScreenSpaceShadowsTextureRW     = Shader.PropertyToID("_ScreenSpaceShadowsTextureRW");
