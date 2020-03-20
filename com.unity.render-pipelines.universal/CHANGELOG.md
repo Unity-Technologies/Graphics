@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The number of maximum visible lights is now set to 32 if the platform is mobile or if the graphics API is OpenGLCore, otherwise it is set to 256.
 - UniversalRenderPipelineAsset no longer supports presets [case 1197020](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-on-preset-of-universalrenderpipelineassets)
 - You can now subclass ForwardRenderer to create a custom renderer based on it.
+- The Metallic property value of a Material is now linear, which is the correct behavior for the PBR approach. In the previous URP package version, those values were interpreted as gamma values. This change might affect the look of Materials that use this property after upgrading from the previous package version.
 
 ### Fixed
 - Fixed an issue with shadows not appearing on terrains when no cascades were selected [case 1226530](https://issuetracker.unity3d.com/issues/urp-no-shadows-on-terrain-when-cascades-is-set-to-no-cascades-in-render-pipeline-asset-settings)
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused incorrect sampling of HDR reflection probe textures.
 - Fixed UI text of RenderObjects feature to display LightMode tag instead of Shader Pass Name. [case 1201696](https://issuetracker.unity3d.com/issues/render-feature-slash-pass-ui-has-a-field-for-shader-pass-name-when-it-actually-expects-shader-pass-lightmode)
 - Fixed an issue that caused Android GLES to render blank screen when Depth texture was enabled without Opaque texture [case 1219325](https://issuetracker.unity3d.com/issues/scene-is-not-rendered-on-android-8-and-9-when-depth-texture-is-enabled-in-urp-asset)
+- Metallic slider on the Lit shader is now linear meaning correct values are used for PBR.
 
 ## [7.3.0] - 2020-03-11
 
