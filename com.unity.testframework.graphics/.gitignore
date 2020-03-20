@@ -1,5 +1,0 @@
-artifacts/**
-build/**
-Documentation/ApiDocs/**
-.DS_Store
-.npmrc
