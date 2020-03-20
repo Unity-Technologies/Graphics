@@ -32,7 +32,7 @@
 
 #if defined(SHADER_STAGE_RAY_TRACING)
 // FXC Supports the naïve "recursive" concatenation, while DXC and C do not https://github.com/pfultz2/Cloak/wiki/C-Preprocessor-tricks,-tips,-and-idioms
-// However, FXC does not support the proper pattern (the one bellow), so we only override it in the case of ray tracing subshaders for the moment. 
+// However, FXC does not support the proper pattern (the one bellow), so we only override it in the case of ray tracing subshaders for the moment.
 // Note that this should be used for all shaders when DX12 used DXC for vert/frag shaders (which it does not for the moment)
 #undef MERGE_NAME
 #define MERGE_NAME_CONCAT(Name, ...) Name ## __VA_ARGS__
@@ -282,7 +282,12 @@ CBUFFER_START(UnityGlobal)
     int  _RaytracingFrameIndex;
 
     float4 _CoarseStencilBufferSize;
+
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED
     uint _EnableProbeVolumes;
+#endif
+#endif
 
 CBUFFER_END
 

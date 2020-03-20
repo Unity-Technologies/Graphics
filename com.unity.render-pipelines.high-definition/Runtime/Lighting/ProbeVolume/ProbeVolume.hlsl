@@ -1,4 +1,5 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
@@ -155,7 +156,13 @@ void EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, i
     bool fastPath = false;
     // Fetch first probe volume to provide the scene proxy for screen space computation
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+    // Access probe volume data from custom probe volume light list data structure.
+    ProbeVolumeGetCountAndStart(posInput, LIGHTCATEGORY_PROBE_VOLUME, probeVolumeStart, probeVolumeCount);
+#else // #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
+    // Access probe volume data from standard lightloop light list data structure.
     GetCountAndStart(posInput, LIGHTCATEGORY_PROBE_VOLUME, probeVolumeStart, probeVolumeCount);
+#endif
 
 #if SCALARIZE_LIGHT_LOOP
     // Fast path is when we all pixels in a wave is accessing same tile or cluster.
@@ -168,9 +175,6 @@ void EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, i
     probeVolumeStart = 0;
 #endif
 
-    // Reflection probes are sorted by volume (in the increasing order).
-
-    // context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
 #if SCALARIZE_LIGHT_LOOP
     if (fastPath)
     {
@@ -183,7 +187,14 @@ void EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, i
     uint v_probeVolumeIdx = probeVolumeStart;
     while (v_probeVolumeListOffset < probeVolumeCount)
     {
+    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+        // Access probe volume data from custom probe volume light list data structure.
+        v_probeVolumeIdx = ProbeVolumeFetchIndex(probeVolumeStart, v_probeVolumeListOffset);
+    #else // #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
+        // Access probe volume data from standard lightloop light list data structure.
         v_probeVolumeIdx = FetchIndex(probeVolumeStart, v_probeVolumeListOffset);
+    #endif
+
         uint s_probeVolumeIdx = v_probeVolumeIdx;
 
 #if SCALARIZE_LIGHT_LOOP

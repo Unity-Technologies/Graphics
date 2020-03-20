@@ -164,6 +164,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");
         public static readonly int _ProbeVolumeCount = Shader.PropertyToID("_ProbeVolumeCount");
+        public static readonly int g_vProbeVolumesLayeredOffsetsBuffer = Shader.PropertyToID("g_vProbeVolumesLayeredOffsetsBuffer");
+        public static readonly int g_vProbeVolumesLightListGlobal = Shader.PropertyToID("g_vProbeVolumesLightListGlobal");
+
         public static readonly int _NumTileBigTileX = Shader.PropertyToID("_NumTileBigTileX");
         public static readonly int _NumTileBigTileY = Shader.PropertyToID("_NumTileBigTileY");
         public static readonly int _NumTileFtplX = Shader.PropertyToID("_NumTileFtplX");
@@ -721,7 +724,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _NormalTextureRW                 = Shader.PropertyToID("_NormalTextureRW");
         public static readonly int _PositionTextureRW               = Shader.PropertyToID("_PositionTextureRW");
         public static readonly int _DiffuseLightingTextureRW        = Shader.PropertyToID("_DiffuseLightingTextureRW");
-        
+
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
         public static readonly int _PreIntegratedFGD_CharlieAndFabric = Shader.PropertyToID("_PreIntegratedFGD_CharlieAndFabric");

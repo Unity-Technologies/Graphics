@@ -5,25 +5,13 @@
 
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
 
-#if SHADERPASS == SHADERPASS_GBUFFER
+#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
 // G-Buffer pass does not constain the standard light loop.
 // Need to add all the required includes to use our custom probe volume clustered light list.
-
 // Need PositionInputs definition for use as argument in LightLoopDef accessor functions.
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-
-#define HAS_LIGHTLOOP
-#define USE_CLUSTERED_LIGHTLIST
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
-
-#elif SHADERPASS == SHADERPASS_FORWARD
-
-// Forward rendered passes are already tooled up with all the lightloop includes.
-// Only need ProbeVolume.hlsl
+// #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+// #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 #endif // endof SHADER_PASS == SHADERPASS_GBUFFER
 
@@ -73,7 +61,7 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     positionCS.xyz /= positionCS.w;
     float2 positionNDC = positionCS.xy * float2(0.5, -0.5) + 0.5;
     float2 positionSS = positionNDC.xy * _ScreenSize.xy;
-    uint2 tileCoord = uint2(positionSS) / GetTileSize();
+    uint2 tileCoord = uint2(positionSS) / ProbeVolumeGetTileSize();
 
     PositionInputs posInputs;
     posInputs.positionWS = positionRWS;

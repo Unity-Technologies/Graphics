@@ -2012,15 +2012,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (isProbeVolume && (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer))
             {
-                // Only probe volume evaluation in the GBuffer uses these custom probe volume specific lists.
-                // Probe volumes in the light loop, as well as other volume data such as Decals get folded into the standard list data.
-                // Note: Even in this case, probe volumes are included in custom probe volume list list for GBuffer AND standard light list for forward rendering.
+                // Only probe volume evaluation in the material pass use these custom probe volume specific lists.
+                // Probe volumes evaluated in the light loop, as well as other volume data such as Decals get folded into the standard list data.
                 m_lightList.lightsPerView[viewIndex].probeVolumesBounds.Add(bound);
                 m_lightList.lightsPerView[viewIndex].probeVolumesLightVolumes.Add(volumeData);
             }
+            else
+            {
+                m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+                m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
+            }
 
-            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
-            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
+
         }
 
         internal int GetCurrentShadowCount()
@@ -2678,7 +2681,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount + m_probeVolumeCount;
+                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
+                if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)
+                {
+                    m_TotalLightCount += m_probeVolumeCount;
+                }
+
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
 
@@ -2710,7 +2718,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetGlobalInt(HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
                 cmd.SetGlobalInt(HDShaderIDs._DensityVolumeIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
-                cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount);
+
+                int probeVolumeIndexShift = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)
+                    ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount)
+                    : 0;
+                cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeIndexShift, probeVolumeIndexShift);
             }
 
             m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
@@ -3268,11 +3280,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 Camera camera = param.hdCamera.camera;
 
+                // Set up custom probe volume clustered lighting for evaluating probe volumes during GBuffer / Forward material pass.
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(param.hdCamera));
-
-                // cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(param.hdCamera));
-                // cmd.SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(param.hdCamera));
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredX, GetNumTileClusteredX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredY, GetNumTileClusteredY(param.hdCamera));
@@ -3280,27 +3290,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, param.tileAndClusterData.probeVolumesBigTileLightList);
 
-                // Cluster
-                {
-                    cmd.SetGlobalFloat(HDShaderIDs.g_fClustScale, param.clusterScale);
-                    cmd.SetGlobalFloat(HDShaderIDs.g_fClustBase, k_ClustLogBase);
-                    cmd.SetGlobalFloat(HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
-                    cmd.SetGlobalFloat(HDShaderIDs.g_fFarPlane, camera.farClipPlane);
-                    cmd.SetGlobalInt(HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
+                cmd.SetGlobalFloat(HDShaderIDs.g_fClustScale, param.clusterScale);
+                cmd.SetGlobalFloat(HDShaderIDs.g_fClustBase, k_ClustLogBase);
+                cmd.SetGlobalFloat(HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
+                cmd.SetGlobalFloat(HDShaderIDs.g_fFarPlane, camera.farClipPlane);
+                cmd.SetGlobalInt(HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
 
-                    // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, k_UseDepthBuffer ? 1 : 0);
-                    int useDepthBuffer = 0;
-                    cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
 
-                    cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, param.tileAndClusterData.probeVolumesPerVoxelOffset);
-                    // if (k_UseDepthBuffer)
-                    // {
-                    //     cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, param.tileAndClusterData.perTileLogBaseTweak);
-                    // }
-
-                    // Set up clustered lighting for evaluating probe volumes during GBuffer / Forward material pass.
-                    cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, param.tileAndClusterData.probeVolumesPerVoxelLightLists);
-                }
+                // int useDepthBuffer = 0;
+                // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vProbeVolumesLayeredOffsetsBuffer, param.tileAndClusterData.probeVolumesPerVoxelOffset);
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vProbeVolumesLightListGlobal, param.tileAndClusterData.probeVolumesPerVoxelLightLists);
             }
         }
 
@@ -3455,6 +3455,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.probeVolumesAABBBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs._LightVolumeData, tileAndCluster.probeVolumesLightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs.g_data, tileAndCluster.probeVolumesConvexBoundsBuffer);
+
+                // // The standard light loop is
+                // cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs._ProbeVolumeIndexShift, 0); // HACK: Fixme?
 
                 cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, parameters.numTilesClusterX, parameters.numTilesClusterY, parameters.viewCount);
             }
