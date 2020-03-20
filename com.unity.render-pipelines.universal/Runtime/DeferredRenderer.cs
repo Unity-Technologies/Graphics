@@ -87,7 +87,8 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights = new ForwardLights();
             m_DeferredLights = new DeferredLights(m_TileDepthInfoMaterial, m_TileDeferredMaterial, m_StencilDeferredMaterial);
             m_DeferredLights.accurateGbufferNormals = data.accurateGbufferNormals;
-            m_DeferredLights.tiledDeferredShading = data.tiledDeferredShading;
+            //m_DeferredLights.tiledDeferredShading = data.tiledDeferredShading;
+            m_DeferredLights.tiledDeferredShading = false;
 
             m_PreferDepthPrepass = data.preferDepthPrepass;
 
