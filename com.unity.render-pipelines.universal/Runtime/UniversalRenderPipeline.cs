@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                return (Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore) 
+                return (Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
                         ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
             }
         }
@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.Universal
                     VFX.VFXManager.PrepareCamera(camera);
 #endif
                     UpdateVolumeFramework(camera, null);
-                    
+
                     RenderSingleCamera(renderContext, camera);
                     EndCameraRendering(renderContext, camera);
                 }
@@ -265,6 +265,7 @@ namespace UnityEngine.Rendering.Universal
             List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
+            anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             // We need to know the last active camera in the stack to be able to resolve
             // rendering to screen when rendering it. The last camera in the stack is not
@@ -372,7 +373,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
                     layerMask = mainAdditionalCameraData.volumeLayerMask;
-                
+
                 trigger = mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null ? mainAdditionalCameraData.volumeTrigger : trigger;
             }
 
