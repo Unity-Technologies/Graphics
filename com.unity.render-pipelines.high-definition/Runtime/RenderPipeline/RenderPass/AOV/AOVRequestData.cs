@@ -93,14 +93,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="lightFilter">If null, all light will be rendered, if not, only those light will be rendered.</param>
         /// <param name="requestedAOVBuffers">The requested buffers for the callback.</param>
         /// <param name="customPassAOVBuffers">The custom pass buffers that will be captured.</param>
+        /// <param name="customPassBufferAllocator">Buffer allocators to use for custom passes.</param>
         /// <param name="callback">The callback to execute.</param>
         public AOVRequestData(
             AOVRequest settings,
             AOVRequestBufferAllocator bufferAllocator,
-            AOVRequestCustomPassBufferAllocator customPassBufferAllocator,
             List<GameObject> lightFilter,
             AOVBuffers[] requestedAOVBuffers,
             CustomPassAOVBuffers[] customPassAOVBuffers,
+            AOVRequestCustomPassBufferAllocator customPassBufferAllocator,
             FramePassCallbackEx callback
         )
         {
@@ -113,7 +114,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Callback = null;
             m_CallbackEx = callback;
         }
-
 
         /// <summary>Allocate texture if required.</summary>
         /// <param name="textures">A buffer of texture ready to use.</param>
