@@ -292,7 +292,7 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
   artifacts:
     logs:
       paths:
-        - "**/test-results/**"
+        - "**/build-results/**"
     players:
       paths:
         - "build/players/**"
