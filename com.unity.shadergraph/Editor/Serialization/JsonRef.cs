@@ -51,14 +51,49 @@ namespace UnityEditor.ShaderGraph.Serialization
             return EqualityComparer<T>.Default.Equals(m_Value, other.m_Value);
         }
 
+        public bool Equals(T other)
+        {
+            return EqualityComparer<T>.Default.Equals(m_Value, other);
+        }
+
         public override bool Equals(object obj)
         {
-            return obj is JsonRef<T> other && Equals(other);
+            return obj is JsonRef<T> other && Equals(other) || obj is T otherValue && Equals(otherValue);
         }
 
         public override int GetHashCode()
         {
             return EqualityComparer<T>.Default.GetHashCode(m_Value);
+        }
+
+        public static bool operator ==(JsonRef<T> left, JsonRef<T> right)
+        {
+            return left.value == right.value;
+        }
+
+        public static bool operator !=(JsonRef<T> left, JsonRef<T> right)
+        {
+            return left.value != right.value;
+        }
+
+        public static bool operator ==(JsonRef<T> left, T right)
+        {
+            return left.value == right;
+        }
+
+        public static bool operator !=(JsonRef<T> left, T right)
+        {
+            return left.value != right;
+        }
+
+        public static bool operator ==(T left, JsonRef<T> right)
+        {
+            return left == right.value;
+        }
+
+        public static bool operator !=(T left, JsonRef<T> right)
+        {
+            return left != right.value;
         }
     }
 }
