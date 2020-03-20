@@ -1130,12 +1130,12 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.lightLayers = additionalLightData.GetLightLayers();
 
             // Light direction for directional is opposite to the forward direction
-            lightData.forward = light.GetForward();
+            lightData.forward       = light.GetForward();
             // Rescale for cookies and windowing.
-            lightData.right      = light.GetRight() * 2 / Mathf.Max(additionalLightData.shapeWidth, 0.001f);
-            lightData.up         = light.GetUp() * 2 / Mathf.Max(additionalLightData.shapeHeight, 0.001f);
-            lightData.positionRWS = light.GetPosition();
-            lightData.color = GetLightColor(light);
+            lightData.right         = light.GetRight() * 2 / Mathf.Max(additionalLightData.shapeWidth, 0.001f);
+            lightData.up            = light.GetUp() * 2 / Mathf.Max(additionalLightData.shapeHeight, 0.001f);
+            lightData.positionRWS   = light.GetPosition();
+            lightData.color         = GetLightColor(light);
 
             // Caution: This is bad but if additionalData == HDUtils.s_DefaultHDAdditionalLightData it mean we are trying to promote legacy lights, which is the case for the preview for example, so we need to multiply by PI as legacy Unity do implicit divide by PI for direct intensity.
             // So we expect that all light with additionalData == HDUtils.s_DefaultHDAdditionalLightData are currently the one from the preview, light in scene MUST have additionalData
@@ -1152,7 +1152,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (lightComponent != null && lightComponent.cookie != null)
             {
-                lightData.cookieMode = lightComponent.cookie.wrapMode == TextureWrapMode.Repeat ? CookieMode.Repeat : CookieMode.Clamp;
+                lightData.cookieMode        = lightComponent.cookie.wrapMode == TextureWrapMode.Repeat ? CookieMode.Repeat : CookieMode.Clamp;
                 lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
             }
             else
@@ -1204,8 +1204,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentSunLightAdditionalLightData = additionalLightData;
                 m_CurrentSunLightDirectionalLightData = lightData;
                 m_CurrentShadowSortedSunLightIndex = sortedIndex;
-
             }
+
             //Value of max smoothness is derived from AngularDiameter. Formula results from eyeballing. Angular diameter of 0 results in 1 and angular diameter of 80 results in 0.
             float maxSmoothness = Mathf.Clamp01(1.35f / (1.0f + Mathf.Pow(1.15f * (0.0315f * additionalLightData.angularDiameter + 0.4f),2f)) - 0.11f);
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
@@ -1282,9 +1282,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var lightData = new LightData();
 
             lightData.lightLayers = additionalLightData.GetLightLayers();
-
-            lightData.lightType = gpuLightType;
-
+            lightData.lightType   = gpuLightType;
             lightData.positionRWS = light.GetPosition();
 
             bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
@@ -1293,7 +1291,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (applyRangeAttenuation)
             {
-                lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
+                lightData.rangeAttenuationScale = 1.0f/(light.range*light.range);
                 lightData.rangeAttenuationBias  = 1.0f;
 
                 if (lightData.lightType == GPULightType.Rectangle)
@@ -1310,7 +1308,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // f(1) = 0    -> huge - a^2 = 0 -> a = sqrt(huge).
                 const float hugeValue = 16777216.0f;
                 const float sqrtHuge  = 4096.0f;
-                lightData.rangeAttenuationScale = sqrtHuge / (light.range * light.range);
+                lightData.rangeAttenuationScale = sqrtHuge/(light.range*light.range);
                 lightData.rangeAttenuationBias  = hugeValue;
 
                 if (lightData.lightType == GPULightType.Rectangle)
@@ -1324,8 +1322,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.color = GetLightColor(light);
 
             lightData.forward = light.GetForward();
-            lightData.up = light.GetUp();
-            lightData.right = light.GetRight();
+            lightData.up      = light.GetUp();
+            lightData.right   = light.GetRight();
 
             lightDimensions.x = additionalLightData.shapeWidth;
             lightDimensions.y = additionalLightData.shapeHeight;
@@ -1335,8 +1333,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightData.lightType == GPULightType.ProjectorBox)
             {
                 // Rescale for cookies and windowing.
-                lightData.right *= 2.0f / Mathf.Max(additionalLightData.shapeWidth, 0.001f);
-                lightData.up    *= 2.0f / Mathf.Max(additionalLightData.shapeHeight, 0.001f);
+                lightData.right *= 2.0f/Mathf.Max(additionalLightData.shapeWidth,  0.001f);
+                lightData.up    *= 2.0f/Mathf.Max(additionalLightData.shapeHeight, 0.001f);
 
                 // If we have shadows, we need to shrink the valid range so that we don't leak light due to filtering going out of bounds.
                 if (shadowIndex >= 0)
@@ -1373,7 +1371,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Rescale for cookies and windowing.
                 lightData.right *= 2.0f / frustumWidth;
-                lightData.up *= 2.0f / frustumHeight;
+                lightData.up    *= 2.0f / frustumHeight;
             }
 
             if (lightData.lightType == GPULightType.Spot)
@@ -1397,7 +1395,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 // These are the neutral values allowing GetAngleAnttenuation in shader code to return 1.0
-                lightData.angleScale = 0.0f;
+                lightData.angleScale  = 0.0f;
                 lightData.angleOffset = 1.0f;
             }
 
@@ -1418,6 +1416,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.volumetricLightDimmer = processedData.lightDistanceFade * (additionalLightData.volumetricDimmer);
 
             lightData.cookieMode = CookieMode.None;
+            // SKCode
             lightData.cookieIndex = -1;
             lightData.shadowIndex = -1;
             lightData.screenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow;
@@ -1432,8 +1431,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
                         break;
                     case HDLightType.Point:
+                        // SKCode
                         lightData.cookieMode = CookieMode.Clamp;
                         lightData.cookieIndex = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie);
+                        //lightData.cookieMode = (lightComponent.cookie.wrapMode == TextureWrapMode.Repeat) ? CookieMode.Repeat : CookieMode.Clamp;
+                        //lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookieFlatten(cmd, lightComponent.cookie);
                         break;
                 }
             }
@@ -2618,6 +2620,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Only rectnagles can have cookies
                     if (hdLightData.areaLightShape == AreaLightShape.Rectangle)
                         m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie);
+                    break;
+                case HDLightType.Point:
+                    // Projectors lights must always have a cookie texture.
+                    m_TextureCaches.lightCookieManager.ReserveSpaceCubemap(light?.cookie);
                     break;
             }
         }

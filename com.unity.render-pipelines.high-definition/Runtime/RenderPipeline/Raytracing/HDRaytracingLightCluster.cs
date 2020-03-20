@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ResizeLightDataBuffer(int numLights)
         {
-            // Release the previous buffer 
+            // Release the previous buffer
             if (m_LightDataGPUArray != null)
             {
                 // If it is not null and it has already the right size, we are pretty much done
@@ -598,7 +598,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightData.cookieMode = CookieMode.None;
                 lightData.contactShadowMask = 0;
-                lightData.cookieIndex = -1;
+                // SKCode
+                //lightData.cookieIndex = -1;
                 lightData.shadowIndex = -1;
                 lightData.screenSpaceShadowIndex = -1;
 
@@ -613,8 +614,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             lightData.cookieScaleOffset = m_RenderPipeline.m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, light.cookie);
                             break;
                         case HDLightType.Point:
+                            // SKCode
                             lightData.cookieMode = CookieMode.Clamp;
                             lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, light.cookie);
+                            //lightData.cookieMode = (additionalLightData.legacyLight.cookie.wrapMode == TextureWrapMode.Repeat) ? CookieMode.Repeat : CookieMode.Clamp;
+                            //lightData.cookieScaleOffset = m_RenderPipeline.m_TextureCaches.lightCookieManager.FetchCubeCookieFlatten(cmd, additionalLightData.legacyLight.cookie);
                             break;
                     }
                 }

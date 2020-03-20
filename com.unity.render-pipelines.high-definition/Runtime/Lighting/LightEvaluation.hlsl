@@ -354,7 +354,8 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
     UNITY_BRANCH if (lightType == GPULIGHTTYPE_POINT)
     {
-        cookie.rgb = SampleCookieCube(positionLS, light.cookieIndex);
+        cookie.rgb = SamplePointCookie(lightToSample, light.cookieScaleOffset);
+            //SampleCookieCube(positionLS, light.cookieIndex);
         cookie.a   = 1;
     }
     else

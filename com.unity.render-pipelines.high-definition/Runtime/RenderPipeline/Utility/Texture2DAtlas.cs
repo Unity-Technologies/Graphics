@@ -29,10 +29,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     return node;
                 }
-                
+
                 int wPadd = 0;
                 int hPadd = 0;
-                
+
                 if (powerOfTwoPadding)
                 {
                     wPadd = (int)m_Rect.x % width;
@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // perform the split
                     m_RightChild = new AtlasNode();
                     m_BottomChild = new AtlasNode();
-                    
+
                     m_Rect.z += wPadd;
                     m_Rect.w += hPadd;
                     m_Rect.x -= wPadd;
@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_AtlasAllocator.Allocate(ref scaleOffset, width, height))
             {
-                scaleOffset.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
+                scaleOffset.Scale(new Vector4(1.0f/m_Width, 1.0f/m_Height, 1.0f/m_Width, 1.0f/m_Height));
                 m_AllocationCache.Add(instanceId, scaleOffset);
                 MarkGPUTextureInvalid(instanceId); // the texture data haven't been uploaded
                 return true;
@@ -287,7 +287,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public bool IsCached(out Vector4 scaleOffset, Texture texture)
-            => m_AllocationCache.TryGetValue(texture.GetInstanceID(), out scaleOffset);
+            => IsCached(out scaleOffset, texture.GetInstanceID());
+
+        public bool IsCached(out Vector4 scaleOffset, int id)
+            => m_AllocationCache.TryGetValue(id, out scaleOffset);
 
         public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
         {

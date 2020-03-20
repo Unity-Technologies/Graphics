@@ -142,6 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   rangeAttenuationBias;
 
         public CookieMode cookieMode;
+        // SKCode
         public int     cookieIndex;             // Texture array index of the point and rectangle light cookies
         public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
 

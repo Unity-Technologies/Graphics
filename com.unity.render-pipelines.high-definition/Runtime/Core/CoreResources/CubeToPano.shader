@@ -9,10 +9,18 @@ HLSLINCLUDE
 #pragma target 4.5
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#include "UnityCG.cginc"
+//#include "UnityCG.cginc"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+//"C:\Code\pkgs\ScriptableRenderPipeline\com.unity.render - pipelines.universal\Shaders\PostProcessing\Common.hlsl"
+//UNITY_DECLARE_TEXCUBE(_srcCubeTexture);
+//UNITY_DECLARE_TEXCUBEARRAY(_srcCubeTextureArray);
 
-UNITY_DECLARE_TEXCUBE(_srcCubeTexture);
-UNITY_DECLARE_TEXCUBEARRAY(_srcCubeTextureArray);
+TEXTURECUBE(_srcCubeTexture);
+SAMPLER(sampler_srcCubeTexture);
+TEXTURECUBE_ARRAY(_srcCubeTextureArray);
+SAMPLER(sampler_srcCubeTextureArray);
 
 uniform int     _cubeMipLvl;
 uniform int     _cubeArrayIndex;
@@ -22,18 +30,39 @@ uniform int     _preMultiplyBySolidAngle;
 uniform int     _preMultiplyByJacobian; // Premultiply by the Det of Jacobian, to be "Integration Ready"
 float4          _Sizes; // float4( outSize.xy, 1/outSize.xy )
 
-struct v2f
+//struct v2f
+//{
+//    float4 vertex : SV_POSITION;
+//    float2 texcoord : TEXCOORD0;
+//};
+
+struct Attributes
 {
-    float4 vertex : SV_POSITION;
-    float2 texcoord : TEXCOORD0;
+    uint vertexID : SV_VertexID;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
-v2f vert (float4 vertex : POSITION, float2 texcoord : TEXCOORD0)
+struct Varyings
 {
-    v2f o;
-    o.vertex = UnityObjectToClipPos(vertex);
-    o.texcoord = texcoord.xy;
-    return o;
+    float4 positionCS : SV_POSITION;
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
+//v2f vert(float4 vertex : POSITION, float2 texcoord : TEXCOORD0)
+Varyings Vert(Attributes input)
+{
+    //v2f o;
+    //o.vertex = mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, float4(vertex.xyz, 1.0f)));
+    //    //UnityObjectToClipPos(vertex);
+    //o.texcoord = texcoord.xy;
+    //return o;
+
+    Varyings output;
+    UNITY_SETUP_INSTANCE_ID(input);
+
+    output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
+
+    return output;
 }
 
 float2 DirectionToSphericalTexCoordinate(float3 dir_in) // use this for the lookup
@@ -63,15 +92,15 @@ float3 GetDir(float2 texCoord)
     return SphericalTexCoordinateToDirection(texCoord.xy);
 }
 
-float SampleToPDFMeasure(float3 value)
-{
-    return (value.r + value.g + value.b)*(1.0f/3.0f);
-}
-
-float SampleToPDFMeasure(float4 value)
-{
-    return SampleToPDFMeasure(value.rgb);
-}
+//float SampleToPDFMeasure(float3 value)
+//{
+//    return (value.r + value.g + value.b)*(1.0f/3.0f);
+//}
+//
+//float SampleToPDFMeasure(float4 value)
+//{
+//    return SampleToPDFMeasure(value.rgb);
+//}
 
 float GetScale(float angle)
 {
@@ -95,40 +124,43 @@ float GetScale(float angle)
     return scale;
 }
 
-float4 frag(v2f i) : SV_Target
+float4 Frag(Varyings input) : SV_Target
 {
-    uint2  pixCoord = (uint2)i.vertex.xy;
-    float3 dir     = GetDir(i.texcoord.xy);
+    float2 texCoord = input.positionCS.xy*_Sizes.zw + 0.5f*_Sizes.zw;
+    float3 dir      = GetDir(texCoord);
 
-    float3 output;
+    float3 output = SAMPLE_TEXTURECUBE_LOD(_srcCubeTexture, sampler_srcCubeTexture, dir, 0).rgb;
+
     if (_buildPDF == 1)
-        output = SampleToPDFMeasure(UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float)_cubeMipLvl).rgb).xxx;
-    else
-        output = UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float) _cubeMipLvl).rgb;
+        output = SampleToPDFMeasure(output).xxx;
 
     float scale = 1.0f;
     float pi    = 3.1415926535897932384626433832795f;
-    float angle = i.texcoord.y*pi;
+    float angle = texCoord.y*pi;
 
     output *= GetScale(angle);
 
+    //output.x = 0;
+    //output.xy = texCoord;
+
+    //return float4(output.rgb, 1);
+    //return float4(abs(dir), 1);
     return float4(output.rgb, max(output.r, max(output.g, output.b)));
 }
 
-float4 fragArray(v2f i) : SV_Target
+//float4 fragArray(v2f i) : SV_Target
+float4 FragArray(Varyings input) : SV_Target
 {
-    uint2  pixCoord = (uint2)i.vertex.xy;
-    float3 dir      = GetDir(i.texcoord.xy);
+    float2 texCoord = input.positionCS.xy*_Sizes.zw + 0.5f*_Sizes.zw;
+    float3 dir      = GetDir(texCoord.xy);
 
-    float3 output;
+    float3 output = SAMPLE_TEXTURECUBE_ARRAY_LOD(_srcCubeTextureArray, sampler_srcCubeTextureArray, dir, _cubeArrayIndex, (float)_cubeMipLvl).rgb;
     if (_buildPDF == 1)
-        output = SampleToPDFMeasure(UNITY_SAMPLE_TEXCUBEARRAY_LOD(_srcCubeTextureArray, float4(dir, _cubeArrayIndex), (float)_cubeMipLvl).rgb).xxx;
-    else
-        output = UNITY_SAMPLE_TEXCUBEARRAY_LOD(_srcCubeTextureArray, float4(dir, _cubeArrayIndex), (float)_cubeMipLvl).rgb;
+        output = SampleToPDFMeasure(output).xxx;
 
     float scale = 1.0f;
     float pi    = 3.1415926535897932384626433832795f;
-    float angle = (1.0f - i.texcoord.y)*pi;
+    float angle = (1.0f - texCoord.y)*pi;
 
     output *= GetScale(angle);
 
@@ -146,8 +178,8 @@ SubShader {
         Blend Off
 
         HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+            #pragma vertex Vert
+            #pragma fragment Frag
         ENDHLSL
     }
 
@@ -159,8 +191,8 @@ SubShader {
         Blend Off
 
         HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment fragArray
+            #pragma vertex Vert
+            #pragma fragment FragArray
         ENDHLSL
     }
 }

@@ -1043,6 +1043,19 @@ real SinFromCos(real cosX)
     return sqrt(saturate(1 - cosX * cosX));
 }
 
+// C++ Standard: (y, x), Mathematica: (x, y)
+real FastATan2(real x, real y)
+{
+    if (x > real(0.0))
+        return FastATanPos(SafeDiv(y, sqrt(x * x + y * y) + x));
+    else if (x <= real(0.0) && abs(y) <= 1e-5f)
+        return FastATanPos(SafeDiv(sqrt(x * x + y * y) - x, y));
+    else
+        return PI;
+    // Theory: if x == 0 && y == 0 then NaN/UNDEFINED
+}
+
+
 // Dot product in spherical coordinates.
 real SphericalDot(real cosTheta1, real phi1, real cosTheta2, real phi2)
 {
@@ -1122,11 +1135,11 @@ void LODDitheringTransition(uint2 fadeMaskSeed, float ditherFactor)
 // while on other APIs is in the red channel. Note that on some platform, always using the green channel might work, but is not guaranteed.
 uint GetStencilValue(uint2 stencilBufferVal)
 {
-#if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE)  
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE)
     return stencilBufferVal.y;
 #else
     return stencilBufferVal.x;
 #endif
-} 
+}
 
 #endif // UNITY_COMMON_INCLUDED
