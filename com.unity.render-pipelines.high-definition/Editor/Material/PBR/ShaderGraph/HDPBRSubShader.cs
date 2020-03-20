@@ -457,7 +457,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (doubleSided)
                 pass.CullOverride = "Cull Off";
         }
-        
+
         public static void GetZWrite(ShaderGraph.SurfaceType surfaceType, ref Pass pass)
         {
             if (surfaceType == ShaderGraph.SurfaceType.Opaque)
@@ -511,7 +511,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 baseActiveFields.Add("AlphaTest");
             }
-            
+
             switch(masterNode.normalDropOffSpace)
             {
                 case NormalDropOffSpace.Tangent:
@@ -579,7 +579,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void AddTags(ShaderGenerator generator, string pipeline, HDRenderTypeTags renderType, PBRMasterNode masterNode)
         {
-            var type = masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent; 
+            var type = masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             string queue = HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(type, 0, true));
             ShaderStringBuilder builder = new ShaderStringBuilder();
             builder.AppendLine("Tags");
@@ -633,7 +633,10 @@ namespace UnityEditor.Rendering.HighDefinition
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
 
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDPBRLitGUI""");
+            if (!masterNode.OverrideEnabled)
+            {
+                subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDPBRLitGUI""");
+            }
 
             return subShader.GetShaderString(0);
         }
