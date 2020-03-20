@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
 - Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
 - Updated macros to be compatible with the new shader preprocessor.
+- Updated shaders to be compatible with Microsoft's DXC.
 
 ## [7.1.1] - 2019-09-05
 
