@@ -5,7 +5,7 @@ using UnityEditor;
 
 public class EditorStaticAnalysisTestPS4
 {
-    const int StaticAnalysisTimeout = 10 * 60 * 1000;    // 10 min for shader compilation
+    const int StaticAnalysisTimeout = 20 * 60 * 1000;    // 20 min for shader compilation
 
     static IEnumerable<EditorStaticAnalysisTests.StaticAnalysisEntry> GetStaticAnalysisEntriesPS4() => EditorStaticAnalysisTests.GetStaticAnalysisEntries(BuildTarget.PS4);
 

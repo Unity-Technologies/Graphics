@@ -44,4 +44,4 @@ MonoBehaviour:
         keywordFilter: 
         passNameFilter: 
     includeInTargets: 1f000000
-  m_StaticAnalysisTimeout: 600
+  m_StaticAnalysisTimeout: 1200
