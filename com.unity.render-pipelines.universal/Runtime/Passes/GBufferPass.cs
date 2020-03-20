@@ -46,13 +46,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture, RenderTargetHandle[] colorAttachments, bool hasDepthPrepass)
+        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture, RenderTargetHandle[] colorAttachments, AttachmentDescriptor[] descriptors, bool hasDepthPrepass)
         {
             for(int gbufferIndex = 0; gbufferIndex < m_GBufferDescriptors.Length ; ++gbufferIndex)
             {
                 var graphicsFormat = m_GBufferDescriptors[gbufferIndex].graphicsFormat;
                 m_GBufferDescriptors[gbufferIndex] = renderingData.cameraData.cameraTargetDescriptor;
                 m_GBufferDescriptors[gbufferIndex].graphicsFormat = graphicsFormat;
+                descriptors[gbufferIndex].graphicsFormat = graphicsFormat;
             }
 
             m_DepthBufferDescriptor = renderingData.cameraData.cameraTargetDescriptor;

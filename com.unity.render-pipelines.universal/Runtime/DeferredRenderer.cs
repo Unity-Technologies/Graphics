@@ -315,8 +315,6 @@ namespace UnityEngine.Rendering.Universal
                 // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
                 Downsampling downsamplingMethod = Downsampling.None; // Ignoring this setting as otherwise it will break RenderPass
-                CommandBuffer cmd = CommandBufferPool.Get("Create CopyColor render target");
-
                 m_CopyColorPass.Setup(m_CameraColorTexture.Identifier(), m_OpaqueColor, downsamplingMethod);
                 m_CopyColorPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
 
@@ -326,9 +324,6 @@ namespace UnityEngine.Rendering.Universal
 
                 m_CopyColorPass.ConfigureInputAttachment(m_CameraColorDescriptor);
                 m_CopyColorPass.ConfigureTarget(opaqueDescriptor);
-
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
 
                 EnqueuePass(m_CopyColorPass);
             }
@@ -502,8 +497,7 @@ namespace UnityEngine.Rendering.Universal
 
             gbufferColorAttachments[k_GBufferSlicesCount] = m_CameraColorTexture; // the last slice is the lighting buffer created in DeferredRenderer.cs
             gbufferDescriptors[k_GBufferSlicesCount].ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), false, true);
-            gbufferDescriptors[k_GBufferSlicesCount].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);//#endif
-            CommandBuffer cmd = CommandBufferPool.Get("Create GBuffer render targets");
+            gbufferDescriptors[k_GBufferSlicesCount].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
 
 #if UNITY_IOS && !UNITY_EDITOR
             gbufferDescriptors[k_GBufferSlicesCount + 1] = new AttachmentDescriptor(GraphicsFormat.R32_SFloat);
@@ -511,11 +505,8 @@ namespace UnityEngine.Rendering.Universal
             gbufferDescriptors[k_GBufferSlicesCount + 1].ConfigureClear(Color.black, 1, 0);
 #endif
             m_GBufferPass.ConfigureTarget(gbufferDescriptors, depthDescriptor);
-            m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, hasDepthPrepass);
+            m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, gbufferDescriptors, hasDepthPrepass);
             m_GBufferPass.ConfigureRenderPassDescriptor(desc.width, desc.height, desc.msaaSamples);
-
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
 
             EnqueuePass(m_GBufferPass);
 
