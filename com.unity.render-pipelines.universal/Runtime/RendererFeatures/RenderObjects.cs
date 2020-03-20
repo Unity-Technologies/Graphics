@@ -81,15 +81,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            var desc = renderingData.cameraData.cameraTargetDescriptor;
             if (renderer is DeferredRenderer)
             {
+                var desc = renderingData.cameraData.cameraTargetDescriptor;
                 renderObjectsPass.ConfigureRenderPassDescriptor(desc.width, desc.height,desc.msaaSamples);
-                AttachmentDescriptor color = new AttachmentDescriptor(desc.graphicsFormat);
-                AttachmentDescriptor depth = new AttachmentDescriptor(RenderTextureFormat.Depth);
-                color.ConfigureTarget(renderer.cameraColorTarget, true, true);
-                depth.ConfigureTarget(renderer.cameraDepth, true, true);
-                renderObjectsPass.ConfigureTarget(color, depth);
+                renderObjectsPass.ConfigureTarget(renderer.cameraColorTargetDescriptor, renderer.cameraDepthAttachment);
             }
             renderer.EnqueuePass(renderObjectsPass);
         }

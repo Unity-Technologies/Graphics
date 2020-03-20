@@ -241,13 +241,13 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
 
-            ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
-                m_ActiveCameraDepthAttachment.Identifier());
-
             var m_CameraColorDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
             m_CameraColorDescriptor.ConfigureTarget(m_CameraColorTexture.Identifier(), true, true);
             var m_CameraDepthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
             m_CameraDepthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), true, false);
+
+            ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
+                m_ActiveCameraDepthAttachment.Identifier(), m_CameraColorDescriptor, m_CameraDepthDescriptor);
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
@@ -319,8 +319,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
 
                 var opaqueDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
-                opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, true); //Seems like store is required, though used inside the renderPass
-                opaqueDescriptor.ConfigureClear(m_CopyColorPass.clearColor, 1, 0);
+                opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, false); //Seems like store is required, though used inside the renderPass
 
                 m_CopyColorPass.ConfigureInputAttachment(m_CameraColorDescriptor);
                 m_CopyColorPass.ConfigureTarget(opaqueDescriptor);
@@ -471,7 +470,7 @@ namespace UnityEngine.Rendering.Universal
             var desc = renderingData.cameraData.cameraTargetDescriptor;
             var depthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
             depthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), false, true);
-            depthDescriptor.ConfigureClear(Color.black, 1, 0);
+
             if (hasDepthPrepass)
             {
                 m_CopyDepthPass0.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques - 1;
@@ -492,17 +491,15 @@ namespace UnityEngine.Rendering.Universal
                 gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
                 gbufferDescriptors[gbufferIndex] = new AttachmentDescriptor(renderingData.cameraData.cameraTargetDescriptor.graphicsFormat);
                 gbufferDescriptors[gbufferIndex].ConfigureTarget(gbufferColorAttachments[gbufferIndex].Identifier(), false, false);
-                gbufferDescriptors[gbufferIndex].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
             }
 
             gbufferColorAttachments[k_GBufferSlicesCount] = m_CameraColorTexture; // the last slice is the lighting buffer created in DeferredRenderer.cs
             gbufferDescriptors[k_GBufferSlicesCount].ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), false, true);
-            gbufferDescriptors[k_GBufferSlicesCount].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
 
 #if UNITY_IOS && !UNITY_EDITOR
             gbufferDescriptors[k_GBufferSlicesCount + 1] = new AttachmentDescriptor(GraphicsFormat.R32_SFloat);
             gbufferDescriptors[k_GBufferSlicesCount + 1].ConfigureTarget(gbufferColorAttachments[k_GBufferSlicesCount + 1].Identifier(), false, false);
-            gbufferDescriptors[k_GBufferSlicesCount + 1].ConfigureClear(Color.black, 1, 0);
+           // gbufferDescriptors[k_GBufferSlicesCount + 1].ConfigureClear(Color.black, 1, 0);
 #endif
             m_GBufferPass.ConfigureTarget(gbufferDescriptors, depthDescriptor);
             m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, gbufferDescriptors, hasDepthPrepass);

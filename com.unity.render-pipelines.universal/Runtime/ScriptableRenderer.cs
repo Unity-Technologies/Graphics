@@ -180,11 +180,20 @@ namespace UnityEngine.Rendering.Universal
             get => m_CameraColorTarget;
         }
 
+        public AttachmentDescriptor cameraColorTargetDescriptor
+        {
+            get => m_CameraColorTargetAttachment;
+        }
+
         public RenderTargetIdentifier cameraDepth
         {
             get => m_CameraDepthTarget;
         }
 
+        public AttachmentDescriptor cameraDepthAttachment
+        {
+            get => m_CameraDepthTargetAttachment;
+        }
         protected List<ScriptableRendererFeature> rendererFeatures
         {
             get => m_RendererFeatures;
@@ -223,6 +232,9 @@ namespace UnityEngine.Rendering.Universal
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RenderTargetIdentifier m_CameraColorTarget;
         RenderTargetIdentifier m_CameraDepthTarget;
+        AttachmentDescriptor m_CameraColorTargetAttachment;
+        AttachmentDescriptor m_CameraDepthTargetAttachment;
+
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
         bool m_XRRenderTargetNeedsClear = false;
@@ -296,6 +308,13 @@ namespace UnityEngine.Rendering.Universal
         {
             m_CameraColorTarget = colorTarget;
             m_CameraDepthTarget = depthTarget;
+        }
+
+        public void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, AttachmentDescriptor colorAttachment, AttachmentDescriptor depthAttachment)
+        {
+            ConfigureCameraTarget(colorTarget, depthTarget);
+            m_CameraColorTargetAttachment = colorAttachment;
+            m_CameraDepthTargetAttachment = depthAttachment;
         }
 
         /// <summary>
