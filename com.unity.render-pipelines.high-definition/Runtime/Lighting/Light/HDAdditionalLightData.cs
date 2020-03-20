@@ -2576,7 +2576,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Synchronize all the HD Additional Light values with the Light component.
         /// </summary>
-        public void UpdateAllLightValues(bool fromTimeLine = false)
+        public void UpdateAllLightValues()
+        {
+            UpdateAllLightValues(false);
+        }
+
+        internal void UpdateAllLightValues(bool fromTimeLine)
         {
             UpdateShapeSize();
 
