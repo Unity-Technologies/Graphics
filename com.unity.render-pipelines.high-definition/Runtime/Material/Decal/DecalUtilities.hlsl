@@ -111,7 +111,7 @@ void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout uint mat
 }
 
 // In order that the lod for with transpartent decal better match the lod for opaque decal
-// we provide our own lod calculation function instead of reusing the common one
+// We use ComputeTextureLOD with bias == 0.5f
 void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positionRWSDdy, DecalData decalData,
     inout float4 DBuffer0, inout float4 DBuffer1, inout float4 DBuffer2, inout float2 DBuffer3, inout uint mask, inout float alpha)
 {
