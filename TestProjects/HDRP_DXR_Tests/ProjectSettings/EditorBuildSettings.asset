@@ -122,4 +122,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/5004_PathTracing_arealight.unity
     guid: 0bd00ddb543475c41bdd787c636d904f
+  - enabled: 1
+    path: Assets/Scenes/5005_PathTracing_Fog.unity
+    guid: 9f38d7cbc64ad534485db5107427e269
   m_configObjects: {}
