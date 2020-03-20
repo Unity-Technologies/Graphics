@@ -376,7 +376,6 @@ namespace UnityEditor.VFX
                     foreach (var param in shaderGraph.properties)
                         if (!IsTexture(param.propertyType)) // Remove exposed textures from list of interpolants
                             yield return param.referenceName;
-
             }
         }
 
