@@ -606,36 +606,56 @@ TEMPLATE_3_FLT(RangeRemap, min, max, t, return saturate((t - min) / (max - min))
 // Texture utilities
 // ----------------------------------------------------------------------------
 
-float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale)
+float ComputeTextureLODBias(float2 uvdx, float2 uvdy, float2 scale, float bias)
 {
-    float2 ddx_ = scale * uvdx;
-    float2 ddy_ = scale * uvdy;
-    float d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
+    float2 ddx_ = scale*uvdx;
+    float2 ddy_ = scale*uvdy;
+    float  d    = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
 
-    return max(0.5 * log2(d), 0.0);
+    return max(0.5f*log2(d) - bias, 0.0f);
 }
 
-float ComputeTextureLOD(float2 uv)
+float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale)
+{
+    return ComputeTextureLODBias(uvdx, uvdy, scale, 0.0f);
+}
+
+float ComputeTextureLODBias(float2 uv, float bias)
 {
     float2 ddx_ = ddx(uv);
     float2 ddy_ = ddy(uv);
 
-    return ComputeTextureLOD(ddx_, ddy_, 1.0);
+    return ComputeTextureLODBias(ddx_, ddy_, 1.0f, bias);
+}
+
+float ComputeTextureLOD(float2 uv)
+{
+    return ComputeTextureLODBias(uv, 0.0f);
 }
 
 // x contains width, w contains height
-float ComputeTextureLOD(float2 uv, float2 texelSize)
+float ComputeTextureLODBias(float2 uv, float2 texelSize, float bias)
 {
     uv *= texelSize;
 
-    return ComputeTextureLOD(uv);
+    return ComputeTextureLOD(uv, bias);
+}
+
+float ComputeTextureLOD(float2 uv, float2 texelSize)
+{
+    return ComputeTextureLODBias(uv, texelSize, 0.0f);
 }
 
 // LOD clamp is optional and happens outside the function.
-float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale)
+float ComputeTextureLODBias(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale, float bias)
 {
     float d = Max3(dot(duvw_dx, duvw_dx), dot(duvw_dy, duvw_dy), dot(duvw_dz, duvw_dz));
-    return 0.5 * log2(d * (scale * scale));
+    return max(0.5f*log2(d*(scale*scale)) - bias, 0.0f);
+}
+
+float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale)
+{
+    return ComputeTextureLODBias(duvw_dx, duvw_dy, duvw_dz, scale, 0.0f);
 }
 
 
@@ -1122,11 +1142,11 @@ void LODDitheringTransition(uint2 fadeMaskSeed, float ditherFactor)
 // while on other APIs is in the red channel. Note that on some platform, always using the green channel might work, but is not guaranteed.
 uint GetStencilValue(uint2 stencilBufferVal)
 {
-#if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE)  
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE)
     return stencilBufferVal.y;
 #else
     return stencilBufferVal.x;
 #endif
-} 
+}
 
 #endif // UNITY_COMMON_INCLUDED

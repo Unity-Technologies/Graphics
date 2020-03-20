@@ -110,15 +110,6 @@ void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout uint mat
     matMask |= mapMask;
 }
 
-float ComputeTextureLODDecals(float2 uvdx, float2 uvdy, float2 scale)
-{
-    float2 ddx_ = scale*uvdx;
-    float2 ddy_ = scale*uvdy;
-    float  d    = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
-
-    return max(0.5f*log2(d) - 0.5f, 0.0f);
-}
-
 // In order that the lod for with transpartent decal better match the lod for opaque decal
 // we provide our own lod calculation function instead of reusing the common one
 void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positionRWSDdy, DecalData decalData,
@@ -157,15 +148,15 @@ void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positi
 
         float2 sampleDiffuseDdx = positionDSDdx.xz*decalData.diffuseScaleBias.xy; // factor in the atlas scale
         float2 sampleDiffuseDdy = positionDSDdy.xz*decalData.diffuseScaleBias.xy;
-        float  lodDiffuse       = ComputeTextureLODDecals(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution);
+        float  lodDiffuse       = ComputeTextureLODBias(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution, 0.5f);
 
         float2 sampleNormalDdx  = positionDSDdx.xz*decalData.normalScaleBias.xy;
         float2 sampleNormalDdy  = positionDSDdy.xz*decalData.normalScaleBias.xy;
-        float  lodNormal        = ComputeTextureLODDecals(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution);
+        float  lodNormal        = ComputeTextureLODBias(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution, 0.5f);
 
         float2 sampleMaskDdx    = positionDSDdx.xz*decalData.maskScaleBias.xy;
         float2 sampleMaskDdy    = positionDSDdy.xz*decalData.maskScaleBias.xy;
-        float  lodMask          = ComputeTextureLODDecals(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution);
+        float  lodMask          = ComputeTextureLODBias(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution, 0.5f);
 
         float albedoBlend = decalData.normalToWorld[0][3];
         float4 src = decalData.baseColor;
