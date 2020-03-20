@@ -629,7 +629,7 @@ namespace UnityEditor.ShaderGraph
 
         public bool ContainsNode(AbstractMaterialNode node)
         {
-            return m_NodeDictionary.ContainsKey(node.objectId);
+            return m_NodeDictionary.TryGetValue(node.objectId, out var foundNode) && node == foundNode;
         }
 
         public void GetEdges(SlotReference s, List<IEdge> foundEdges)
@@ -1052,11 +1052,11 @@ namespace UnityEditor.ShaderGraph
                     RemoveEdgeNoValidate(edge);
             }
 
-            using (var removedNodeIds = PooledList<string>.Get())
+            using (var nodesToRemove = PooledList<AbstractMaterialNode>.Get())
             {
-                removedNodeIds.AddRange(m_Nodes.Select(n => n.value.objectId));
-                foreach (var nodeGuid in removedNodeIds)
-                    RemoveNodeNoValidate(m_NodeDictionary[nodeGuid]);
+                nodesToRemove.AddRange(m_Nodes.SelectValue());
+                foreach (var node in nodesToRemove)
+                    RemoveNodeNoValidate(node);
             }
 
             ValidateGraph();
@@ -1073,7 +1073,9 @@ namespace UnityEditor.ShaderGraph
                 AddNodeNoValidate(node);
 
             foreach (var edge in other.edges)
+            {
                 ConnectNoValidate(edge.outputSlot, edge.inputSlot);
+            }
 
             outputNode = other.outputNode;
 

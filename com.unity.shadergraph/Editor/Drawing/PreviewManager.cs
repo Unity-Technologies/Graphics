@@ -126,7 +126,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 onPrimaryMasterChanged();
             }
 
-            m_NodesToUpdate.Add(node);
+            MarkNodeUpdate(node);
         }
 
         void OnNodeModified(AbstractMaterialNode node, ModificationScope scope)
@@ -134,14 +134,50 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (scope == ModificationScope.Topological ||
                 scope == ModificationScope.Graph)
             {
-                m_NodesToUpdate.Add(node);
+                MarkNodeUpdate(node);
 
                 m_RefreshTimedNodes = true;
             }
             else if (scope == ModificationScope.Node)
             {
-                m_NodesToDraw.Add(node);
+                MarkNodeDraw(node);
             }
+        }
+
+        void MarkNodeUpdate(AbstractMaterialNode node)
+        {
+            if (!m_Graph.ContainsNode(node))
+            {
+                return;
+            }
+            m_NodesToUpdate.Add(node);
+        }
+
+        void UnmarkNodeUpdate(AbstractMaterialNode node)
+        {
+            if (!m_Graph.ContainsNode(node))
+            {
+                return;
+            }
+            m_NodesToUpdate.Remove(node);
+        }
+
+        void MarkNodeDraw(AbstractMaterialNode node)
+        {
+            if (!m_Graph.ContainsNode(node))
+            {
+                return;
+            }
+            m_NodesToDraw.Add(node);
+        }
+
+        void UnmarkNodeDraw(AbstractMaterialNode node)
+        {
+            if (!m_Graph.ContainsNode(node))
+            {
+                return;
+            }
+            m_NodesToDraw.Remove(node);
         }
 
         Stack<AbstractMaterialNode> m_NodeWave = new Stack<AbstractMaterialNode>();
@@ -215,8 +251,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.removedNodes)
             {
                 DestroyPreview(node.objectId);
-                m_NodesToUpdate.Remove(node);
-                m_NodesToDraw.Remove(node);
+                UnmarkNodeUpdate(node);
+                UnmarkNodeDraw(node);
                 m_RefreshTimedNodes = true;
             }
 
@@ -233,7 +269,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var node = edge.inputSlot.node;
                 if (node != null)
                 {
-                    m_NodesToUpdate.Add(node);
+                    MarkNodeUpdate(node);
                     m_RefreshTimedNodes = true;
                 }
             }
@@ -242,7 +278,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var node = edge.inputSlot.node;
                 if(node != null)
                 {
-                    m_NodesToUpdate.Add(node);
+                    MarkNodeUpdate(node);
                     m_RefreshTimedNodes = true;
                 }
             }
@@ -384,7 +420,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var data in m_RenderDatas.Values)
             {
-                m_NodesToUpdate.Add(data.shaderData.node);
+                MarkNodeUpdate(data.shaderData.node);
             }
         }
 
@@ -415,7 +451,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     renderData.shaderData.isCompiling = false;
                     CheckForErrors(renderData.shaderData);
-                    m_NodesToDraw.Add(renderData.shaderData.node);
+                    MarkNodeDraw(renderData.shaderData.node);
 
                     var masterNode = renderData.shaderData.node as IMasterNode;
                     masterNode?.ProcessPreviewMaterial(renderData.shaderData.mat);
