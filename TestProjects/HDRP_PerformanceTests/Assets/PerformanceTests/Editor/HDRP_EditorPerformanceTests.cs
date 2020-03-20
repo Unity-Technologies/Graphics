@@ -8,6 +8,7 @@ using NUnit.Framework;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering.HighDefinition;
 using System.Text.RegularExpressions;
+using System.Globalization;
 using static PerformanceTestUtils;
 using static PerformanceMetricNames;
 
@@ -63,7 +64,7 @@ public class HDRP_EditorPerformanceTests : EditorPerformanceTests
             case var _ when MatchRegex(@"^\s*Compiled shader '(.*)' in (\d{1,}.\d{1,})s$", line, out var match):
                 lastCompiledShader = match.Groups[1].Value; // store the value of the shader for internal program count report
                 SampleGroup shaderCompilationTime = new SampleGroup(FormatSampleGroupName(kCompilationTime, match.Groups[1].Value), SampleUnit.Second);
-                Measure.Custom(shaderCompilationTime, double.Parse(match.Groups[2].Value));
+                Measure.Custom(shaderCompilationTime, double.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture));
                 break;
 
             // Match this line in the editor log: d3d11 (total internal programs: 204, unique: 192)

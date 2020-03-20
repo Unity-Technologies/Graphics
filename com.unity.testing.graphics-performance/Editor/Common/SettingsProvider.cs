@@ -5,35 +5,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-// Create a new type of Settings Asset.
-class PerformanceTestsSettings : ScriptableObject
-{
-    public const string k_PerformanceTestsPath = "Assets/PerformanceTestsSettings.asset";
-
-    [SerializeField]
-    public TestSceneAsset                   testDescriptionAsset = null;
-
-    [SerializeField]
-    public EditorShaderStaticAnalysisAsset  staticAnalysisAsset = null;
-
-    internal static PerformanceTestsSettings GetOrCreateSettings()
-    {
-        var settings = AssetDatabase.LoadAssetAtPath<PerformanceTestsSettings>(k_PerformanceTestsPath);
-        if (settings == null)
-        {
-            settings = ScriptableObject.CreateInstance<PerformanceTestsSettings>();
-            AssetDatabase.CreateAsset(settings, k_PerformanceTestsPath);
-            AssetDatabase.SaveAssets();
-        }
-        return settings;
-    }
-
-    internal static SerializedObject GetSerializedSettings()
-    {
-        return new SerializedObject(GetOrCreateSettings());
-    }
-}
-
 // Register a SettingsProvider using IMGUI for the drawing framework:
 static class PerformanceTestsIMGUIRegister
 {
@@ -42,16 +13,17 @@ static class PerformanceTestsIMGUIRegister
     {
         // First parameter is the path in the Settings window.
         // Second parameter is the scope of this setting: it only appears in the Project Settings window.
-        var provider = new SettingsProvider("Project/Performance Testing", SettingsScope.Project)
+        var provider = new SettingsProvider("Project/Performance Tests", SettingsScope.Project)
         {
             // By default the last token of the path is used as display name if no label is provided.
-            label = "Settings",
+            label = "Performance Tests",
             // Create the SettingsProvider and initialize its drawing (IMGUI) function in place:
             guiHandler = (searchContext) =>
             {
                 var settings = PerformanceTestsSettings.GetSerializedSettings();
-                EditorGUILayout.PropertyField(settings.FindProperty("testDescriptionAsset"), new GUIContent("testDescriptionAsset"));
-                EditorGUILayout.PropertyField(settings.FindProperty("staticAnalysisAsset"), new GUIContent("staticAnalysisAsset"));
+                EditorGUILayout.PropertyField(settings.FindProperty("testDescriptionAsset"), new GUIContent("Current Test Description Asset"));
+                // TODO: static analysis
+                // EditorGUILayout.PropertyField(settings.FindProperty("staticAnalysisAsset"), new GUIContent("Current Static Analysis Asset"));
             },
 
             // Populate the search keywords to enable smart search filtering and label highlighting:

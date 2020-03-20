@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine.Rendering;
 using static PerformanceMetricNames;
 
-[CreateAssetMenu]
+[CreateAssetMenu(menuName = "Testing/Performance Test Description")]
 public class TestSceneAsset : ScriptableObject
 {
     [Serializable]

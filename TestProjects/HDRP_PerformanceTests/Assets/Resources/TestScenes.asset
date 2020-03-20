@@ -53,7 +53,4 @@ MonoBehaviour:
     - asset: {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}
       assetLabels: Default
       alias: 
-    - asset: {fileID: 11400000, guid: 67455f860e03ac64fad87471cf78b339, type: 2}
-      assetLabels: Default
-      alias: 
   srpAssetAliases: []
