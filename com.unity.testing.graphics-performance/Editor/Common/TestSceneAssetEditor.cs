@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 using UnityEditor.Compilation;
 using System;
 using System.Linq;
@@ -12,13 +12,13 @@ using Object = UnityEngine.Object;
 class TestSceneAssetEditor : Editor
 {
     ReorderableList counterSceneList;
-    ReorderableList counterHDAssets;
+    ReorderableList counterSRPAssets;
     ReorderableList memorySceneList;
-    ReorderableList memoryHDAssets;
+    ReorderableList memorySRPAssets;
     ReorderableList buildSceneList;
-    ReorderableList buildHDAssets;
+    ReorderableList buildSRPAssets;
 
-    ReorderableList hdAssetAliasesList;
+    ReorderableList srpAssetAliasesList;
 
     static float fieldHeight => EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
@@ -28,20 +28,20 @@ class TestSceneAssetEditor : Editor
         SerializedProperty memoryProperty = serializedObject.FindProperty(nameof(TestSceneAsset.memoryTestSuite));
         SerializedProperty buildProperty = serializedObject.FindProperty(nameof(TestSceneAsset.buildTestSuite));
 
-        InitReorderableListFromProperty(counterProperty, out counterSceneList, out counterHDAssets);
-        InitReorderableListFromProperty(memoryProperty, out memorySceneList, out memoryHDAssets);
-        InitReorderableListFromProperty(buildProperty, out buildSceneList, out buildHDAssets);
+        InitReorderableListFromProperty(counterProperty, out counterSceneList, out counterSRPAssets);
+        InitReorderableListFromProperty(memoryProperty, out memorySceneList, out memorySRPAssets);
+        InitReorderableListFromProperty(buildProperty, out buildSceneList, out buildSRPAssets);
 
-        void InitReorderableListFromProperty(SerializedProperty testSuite, out ReorderableList sceneList, out ReorderableList hdAssetList)
+        void InitReorderableListFromProperty(SerializedProperty testSuite, out ReorderableList sceneList, out ReorderableList srpAssetList)
         {
             sceneList = new ReorderableList(serializedObject, testSuite.FindPropertyRelative(nameof(TestSceneAsset.TestSuiteData.scenes)));
-            hdAssetList = new ReorderableList(serializedObject, testSuite.FindPropertyRelative(nameof(TestSceneAsset.TestSuiteData.hdAssets)));
+            srpAssetList = new ReorderableList(serializedObject, testSuite.FindPropertyRelative(nameof(TestSceneAsset.TestSuiteData.srpAssets)));
             InitSceneDataReorderableList(sceneList, "Scenes");
-            InitHDAssetReorderableList(hdAssetList, "HDRP Assets, keep to none for default HDRP asset");
+            InitSRPAssetReorderableList(srpAssetList, "SRP Assets");
         }
 
-        hdAssetAliasesList = new ReorderableList(serializedObject, serializedObject.FindProperty(nameof(TestSceneAsset.hdAssetAliases)));
-        InitHDAssetAliasesReorderableList(hdAssetAliasesList, "HDRP Asset Aliases");
+        srpAssetAliasesList = new ReorderableList(serializedObject, serializedObject.FindProperty(nameof(TestSceneAsset.srpAssetAliases)));
+        InitSRPAssetAliasesReorderableList(srpAssetAliasesList, "SRP Asset Aliases");
     }
 
     void InitSceneDataReorderableList(ReorderableList list, string title)
@@ -82,22 +82,22 @@ class TestSceneAssetEditor : Editor
         list.onRemoveCallback = DefaultListDelete;
     }
 
-    void InitHDAssetReorderableList(ReorderableList list, string title)
+    void InitSRPAssetReorderableList(ReorderableList list, string title)
     {
         list.drawHeaderCallback = (r) => EditorGUI.LabelField(r, title, EditorStyles.boldLabel);
 
         list.drawElementCallback = (rect, index, isActive, isFocused) => {
             rect.height = EditorGUIUtility.singleLineHeight;
             var elem = list.serializedProperty.GetArrayElementAtIndex(index);
-            var hdAsset = elem.FindPropertyRelative(nameof(TestSceneAsset.HDAssetData.asset));
-            var assetLabels = elem.FindPropertyRelative(nameof(TestSceneAsset.HDAssetData.assetLabels));
-            var alias = elem.FindPropertyRelative(nameof(TestSceneAsset.HDAssetData.alias));
+            var srpAsset = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.asset));
+            var assetLabels = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.assetLabels));
+            var alias = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.alias));
 
             EditorGUI.BeginChangeCheck();
 
-            EditorGUI.PropertyField(rect, hdAsset, new GUIContent("HDRP Asset"));
-            assetLabels.stringValue = GetLabelForAsset(hdAsset.objectReferenceValue);
-            alias.stringValue = PerformanceTestUtils.testScenesAsset.GetHDAssetAlias(hdAsset.objectReferenceValue as HDRenderPipelineAsset);
+            EditorGUI.PropertyField(rect, srpAsset, new GUIContent("SRP Asset"));
+            assetLabels.stringValue = GetLabelForAsset(srpAsset.objectReferenceValue);
+            alias.stringValue = PerformanceTestUtils.testScenesAsset.GetSRPAssetAlias(srpAsset.objectReferenceValue as RenderPipelineAsset);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -109,23 +109,23 @@ class TestSceneAssetEditor : Editor
         list.onRemoveCallback = DefaultListDelete;
     }
 
-    void InitHDAssetAliasesReorderableList(ReorderableList list, string title)
+    void InitSRPAssetAliasesReorderableList(ReorderableList list, string title)
     {
         list.drawHeaderCallback = (r) => EditorGUI.LabelField(r, title, EditorStyles.boldLabel);
 
         list.drawElementCallback = (rect, index, isActive, isFocused) => {
             rect.height = EditorGUIUtility.singleLineHeight;
             var elem = list.serializedProperty.GetArrayElementAtIndex(index);
-            var hdAsset = elem.FindPropertyRelative(nameof(TestSceneAsset.HDAssetData.asset));
-            var assetLabels = elem.FindPropertyRelative(nameof(TestSceneAsset.HDAssetData.assetLabels));
-            var alias = elem.FindPropertyRelative(nameof(TestSceneAsset.HDAssetData.alias));
+            var srpAsset = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.asset));
+            var assetLabels = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.assetLabels));
+            var alias = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.alias));
 
             EditorGUI.BeginChangeCheck();
 
-            EditorGUI.PropertyField(rect, hdAsset, new GUIContent("HDRP Asset"));
+            EditorGUI.PropertyField(rect, srpAsset, new GUIContent("SRP Asset"));
             rect.y += fieldHeight;
             EditorGUI.PropertyField(rect, alias, new GUIContent("Alias"));
-            assetLabels.stringValue = GetLabelForAsset(hdAsset.objectReferenceValue);
+            assetLabels.stringValue = GetLabelForAsset(srpAsset.objectReferenceValue);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -176,9 +176,9 @@ class TestSceneAssetEditor : Editor
 
         EditorGUIUtility.labelWidth = 100;
 
-        DrawTestBlock(counterSceneList, counterHDAssets, "Performance Counters Tests");
-        DrawTestBlock(memorySceneList, memoryHDAssets, "Memory Tests");
-        DrawTestBlock(buildSceneList, buildHDAssets, "Build Time Tests");
+        DrawTestBlock(counterSceneList, counterSRPAssets, "Performance Counters Tests");
+        DrawTestBlock(memorySceneList, memorySRPAssets, "Memory Tests");
+        DrawTestBlock(buildSceneList, buildSRPAssets, "Build Time Tests");
 
         EditorGUILayout.Space();
 
@@ -187,7 +187,7 @@ class TestSceneAssetEditor : Editor
         
         EditorGUILayout.Space();
 
-        DrawHDAssetAliasList();
+        DrawSRPAssetAliasList();
     }
 
     GUIStyle windowStyle => new GUIStyle("Window"){
@@ -196,7 +196,7 @@ class TestSceneAssetEditor : Editor
         margin = new RectOffset(0, 0, 20, 10)
     };
 
-    void DrawTestBlock(ReorderableList sceneList, ReorderableList hdrpAssetList, string title)
+    void DrawTestBlock(ReorderableList sceneList, ReorderableList srpAssetList, string title)
     {
         GUILayout.BeginHorizontal(title, windowStyle);
         {
@@ -207,18 +207,18 @@ class TestSceneAssetEditor : Editor
             GUILayout.Space(10);
             GUILayout.BeginVertical();
             EditorGUILayout.Space();
-            hdrpAssetList.DoLayoutList();
+            srpAssetList.DoLayoutList();
             GUILayout.EndVertical();
         }
         GUILayout.EndHorizontal();
     }
 
-    void DrawHDAssetAliasList()
+    void DrawSRPAssetAliasList()
     {
-        GUILayout.BeginHorizontal("HDAsset Aliases (Used in the performance Database)", windowStyle);
+        GUILayout.BeginHorizontal("SRP Asset Aliases (Used in the performance Database)", windowStyle);
         {
             GUILayout.BeginVertical();
-            hdAssetAliasesList.DoLayoutList();
+            srpAssetAliasesList.DoLayoutList();
             GUILayout.EndVertical();
         }
         GUILayout.EndHorizontal();

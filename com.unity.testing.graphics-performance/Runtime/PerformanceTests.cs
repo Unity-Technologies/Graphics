@@ -5,7 +5,6 @@ using NUnit.Framework;
 using UnityEngine;
 using Unity.PerformanceTesting;
 using UnityEngine.TestTools;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using System.Linq;
@@ -19,12 +18,6 @@ using UnityEditor;
 
 public class PerformanceTests : IPrebuildSetup
 {
-    protected static readonly int WarmupCount = 10;
-    protected static readonly int MeasurementCount = 30;  // Number of frames to measure
-    protected const int GlobalTimeout = 120 * 1000;       // 2 min
-    protected const int BuildTimeout = 10 * 60 * 1000;    // 10 min for each build test
-    protected const int minMemoryReportSize = 512 * 1024; // in bytes
-
     public void Setup()
     {
 #if UNITY_EDITOR
@@ -43,61 +36,31 @@ public class PerformanceTests : IPrebuildSetup
 #endif
     }
 
-    public struct CounterTestDescription
+    protected IEnumerable MeasureProfilingSamplers(IEnumerable<ProfilingSampler> samplers, int warmupFramesCount = 20, int measureFrameCount = 30)
     {
-        public TestSceneAsset.SceneData    sceneData;
-        public TestSceneAsset.HDAssetData  assetData;
-
-        public override string ToString()
-            => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, kDefault);
-    }
-
-    public static IEnumerable<CounterTestDescription> GetCounterTests()
-    {
-        foreach (var (scene, asset) in testScenesAsset.counterTestSuite.GetTestList())
-            yield return new CounterTestDescription{ assetData = asset, sceneData = scene };
-    }
-
-    IEnumerable<ProfilingSampler> GetAllMarkers()
-    {
-        foreach (var val in Enum.GetValues(typeof(HDProfileId)))
-            yield return ProfilingSampler.Get((HDProfileId)val);
-    }
-
-    [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
-    public IEnumerator Counters([ValueSource(nameof(GetCounterTests))] CounterTestDescription testDescription)
-    {
-        yield return SetupTest(testDescription.sceneData.scene, testDescription.assetData.asset);
-
-        var camera = GameObject.FindObjectOfType<Camera>();
-        var hdCamera = HDCamera.GetOrCreate(camera, 0); // We don't support XR for now
-
         // Enable all the markers
-        hdCamera.profilingSampler.enableRecording = true;
-        foreach (var marker in GetAllMarkers())
-            marker.enableRecording = true;
-        
+        foreach (var sampler in samplers)
+            sampler.enableRecording = true;
+
         // Allocate all sample groups:
         var sampleGroups = new Dictionary<ProfilingSampler, (SampleGroup cpu, SampleGroup inlineCPU, SampleGroup gpu)>();
-        foreach (var marker in GetAllMarkers())
-            CreateSampleGroups(marker);
+        foreach (var sampler in samplers)
+            CreateSampleGroups(sampler);
 
         // Wait for the markers to be initialized
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < warmupFramesCount; i++)
             yield return null;
 
-        for (int i = 0; i < MeasurementCount; i++)
+        for (int i = 0; i < measureFrameCount; i++)
         {
-            MeasureTime(hdCamera.profilingSampler);
-            foreach (var marker in GetAllMarkers())
-                MeasureTime(marker);
+            foreach (var sampler in samplers)
+                MeasureTime(sampler);
             yield return null;
         }
 
         // disable all the markers
-        hdCamera.profilingSampler.enableRecording = false;
-        foreach (var marker in GetAllMarkers())
-            marker.enableRecording = false;
+        foreach (var sampler in samplers)
+            sampler.enableRecording = false;
 
         void CreateSampleGroups(ProfilingSampler sampler)
         {
@@ -118,7 +81,7 @@ public class PerformanceTests : IPrebuildSetup
         }
     }
 
-    static IEnumerable<Type> GetMemoryObjectTypes()
+    protected static IEnumerable<Type> GetMemoryObjectTypes()
     {
         yield return typeof(RenderTexture);
         yield return typeof(Texture2D);
@@ -130,25 +93,7 @@ public class PerformanceTests : IPrebuildSetup
         yield return typeof(ComputeShader);
     }
 
-    public static IEnumerable<MemoryTestDescription> GetMemoryTests()
-    {
-        foreach (var (scene, asset) in testScenesAsset.memoryTestSuite.GetTestList())
-            foreach (var objectType in GetMemoryObjectTypes())
-                yield return new MemoryTestDescription{ assetData = asset, sceneData = scene, assetType = objectType };
-    }
-
-    public struct MemoryTestDescription
-    {
-        public TestSceneAsset.SceneData     sceneData;
-        public TestSceneAsset.HDAssetData   assetData;
-        public Type                         assetType;
-
-        public override string ToString()
-            => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, assetType.Name);
-    }
-
-    [Timeout(BuildTimeout), Version("1"), UnityTest, Performance]
-    public IEnumerator Memory([ValueSource(nameof(GetMemoryTests))] MemoryTestDescription testDescription)
+    protected IEnumerator ReportMemoryUsage(MemoryTestDescription testDescription, int minMemoryReportSize)
     {
         yield return SetupTest(testDescription.sceneData.scene, testDescription.assetData.asset);
 
@@ -176,32 +121,5 @@ public class PerformanceTests : IPrebuildSetup
         foreach (var result in results)
             Measure.Custom(new SampleGroup(FormatSampleGroupName(kMemory, result.name), SampleUnit.Byte, false), result.size);
         Measure.Custom(new SampleGroup(FormatSampleGroupName(kTotalMemory, testDescription.assetType.Name), SampleUnit.Byte, false), totalMemory);
-    }
-
-    [Version("1"), UnityTest]
-    public bool _DumpAllSystemInfo()
-    {
-        // Display all stats that will be available in the performance database:
-        Debug.Log($"PlayerSystemInfo.OperatingSystem: {SystemInfo.operatingSystem}");
-        Debug.Log($"PlayerSystemInfo.DeviceModel: {SystemInfo.deviceModel}");
-        Debug.Log($"PlayerSystemInfo.DeviceName: {SystemInfo.deviceName}");
-        Debug.Log($"PlayerSystemInfo.ProcessorType: {SystemInfo.processorType}");
-        Debug.Log($"PlayerSystemInfo.ProcessorCount: {SystemInfo.processorCount}");
-        Debug.Log($"PlayerSystemInfo.GraphicsDeviceName: {SystemInfo.graphicsDeviceName}");
-        Debug.Log($"PlayerSystemInfo.SystemMemorySize: {SystemInfo.systemMemorySize}");
-
-        Debug.Log($"QualitySettings.Vsync: {QualitySettings.vSyncCount}");
-        Debug.Log($"QualitySettings.AntiAliasing: {QualitySettings.antiAliasing}");
-        // Debug.Log($"QualitySettings.ColorSpace: {QualitySettings.activeColorSpace.ToString()}");
-        Debug.Log($"QualitySettings.AnisotropicFiltering: {QualitySettings.anisotropicFiltering.ToString()}");
-        Debug.Log($"QualitySettings.BlendWeights: {QualitySettings.skinWeights.ToString()}");
-        Debug.Log($"ScreenSettings.ScreenRefreshRate: {Screen.currentResolution.refreshRate}");
-        Debug.Log($"ScreenSettings.ScreenWidth: {Screen.currentResolution.width}");
-        Debug.Log($"ScreenSettings.ScreenHeight: {Screen.currentResolution.height}");
-        Debug.Log($"ScreenSettings.Fullscreen: {Screen.fullScreen}");
-        // Debug.Log($"{(Application.isEditor ? true : Debug.isDebugBuild)}");
-        Debug.Log($"BuildSettings. Platform: {Application.platform.ToString()}");
-
-        return true;
     }
 }

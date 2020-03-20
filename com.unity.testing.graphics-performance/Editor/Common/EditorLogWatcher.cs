@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using UnityEngine;
 
-class EditorLogWatcher : IDisposable
+public class EditorLogWatcher : IDisposable
 {
     const string editorLogFileName = "Editor.log";
 

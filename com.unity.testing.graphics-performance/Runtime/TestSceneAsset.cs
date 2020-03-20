@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Linq;
+using UnityEngine.Rendering;
+using static PerformanceMetricNames;
 
 [CreateAssetMenu]
 public class TestSceneAsset : ScriptableObject
@@ -17,25 +18,26 @@ public class TestSceneAsset : ScriptableObject
     }
 
     [Serializable]
-    public class HDAssetData
+    public class SRPAssetData
     {
-        public HDRenderPipelineAsset    asset;
-        public string                   assetLabels;
-        public string                   alias; // reference named used in the test
+        public RenderPipelineAsset  asset;
+        public string               assetLabels;
+        public string               alias; // reference named used in the test
     }
 
     [Serializable]
     public class TestSuiteData
     {
         public List<SceneData>      scenes;
-        public List<HDAssetData>    hdAssets;
+        public List<SRPAssetData>   srpAssets;
 
-        public IEnumerable<(SceneData sceneData, HDAssetData assetData)> GetTestList()
+        public IEnumerable<(SceneData sceneData, SRPAssetData assetData)> GetTestList()
         {
-            foreach (var hdAsset in hdAssets)
-                foreach (var scene in scenes)
-                    if (scene.enabled)
-                        yield return (scene, hdAsset);
+            foreach (var srpAsset in srpAssets)
+                if (srpAsset != null)
+                    foreach (var scene in scenes)
+                        if (scene.enabled)
+                            yield return (scene, srpAsset);
         }
     }
 
@@ -44,9 +46,9 @@ public class TestSceneAsset : ScriptableObject
     public TestSuiteData    memoryTestSuite = new TestSuiteData();
     public TestSuiteData    buildTestSuite = new TestSuiteData();
 
-    public List<HDAssetData> hdAssetAliases = new List<HDAssetData>();
+    public List<SRPAssetData> srpAssetAliases = new List<SRPAssetData>();
 
-    public IEnumerable<(SceneData sceneData, HDAssetData assetData)> GetAllTests()
+    public IEnumerable<(SceneData sceneData, SRPAssetData assetData)> GetAllTests()
     {
         foreach (var test in counterTestSuite.GetTestList())
             yield return test;
@@ -58,5 +60,34 @@ public class TestSceneAsset : ScriptableObject
 
     public string GetScenePath(string sceneName) => GetAllTests().FirstOrDefault(s => s.sceneData.scene == sceneName).sceneData?.scenePath;
 
-    public string GetHDAssetAlias(HDRenderPipelineAsset hdAsset) => hdAssetAliases.Where(a => a.asset == hdAsset).FirstOrDefault()?.alias;
+    public string GetSRPAssetAlias(RenderPipelineAsset srpAsset) => srpAssetAliases.Where(a => a.asset == srpAsset).FirstOrDefault()?.alias;
+}
+
+public struct CounterTestDescription
+{
+    public TestSceneAsset.SceneData    sceneData;
+    public TestSceneAsset.SRPAssetData  assetData;
+
+    public override string ToString()
+        => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, kDefault);
+}
+
+public struct MemoryTestDescription
+{
+    public TestSceneAsset.SceneData     sceneData;
+    public TestSceneAsset.SRPAssetData  assetData;
+    public Type                         assetType;
+
+    public override string ToString()
+        => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, assetType.Name);
+}
+
+public struct BuildTestDescription
+{
+    public TestSceneAsset.SceneData     sceneData;
+    public TestSceneAsset.SRPAssetData   assetData;
+    public string                       testName;
+
+    public override string ToString()
+        => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, testName);
 }

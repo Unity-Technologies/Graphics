@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using Unity.PerformanceTesting;
@@ -9,11 +8,9 @@ public static class PerformanceTestUtils
 {
     public const string testSceneResourcePath = "TestScenes";
     public static TestSceneAsset testScenesAsset = Resources.Load<TestSceneAsset>(testSceneResourcePath);
-    static HDRenderPipelineAsset defaultHDAsset = Resources.Load<HDRenderPipelineAsset>("defaultHDAsset");
 
-    public static IEnumerator SetupTest(string sceneName, HDRenderPipelineAsset hdAsset)
+    public static IEnumerator SetupTest(string sceneName, RenderPipelineAsset hdAsset)
     {
-        hdAsset = hdAsset ?? defaultHDAsset;
         if (GraphicsSettings.renderPipelineAsset != hdAsset)
             GraphicsSettings.renderPipelineAsset = hdAsset;
 

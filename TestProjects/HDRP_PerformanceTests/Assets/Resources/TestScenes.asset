@@ -16,30 +16,30 @@ MonoBehaviour:
     scenes:
     - scene: 0000_LitCube
       sceneLabels: Simple
-      scenePath: Assets/PerformanceTests/Scenes/0000_LitCube.unity
+      scenePath: Assets/Resources/Scenes/0000_LitCube.unity
       enabled: 1
     - scene: 0001_1000_LitCube
       sceneLabels: Default
-      scenePath: Assets/PerformanceTests/Scenes/0001_1000_LitCube.unity
+      scenePath: Assets/Resources/Scenes/0001_1000_LitCube.unity
       enabled: 1
     - scene: 0002_TransparentOverdraw
       sceneLabels: Default
-      scenePath: Assets/PerformanceTests/Scenes/0002_TransparentOverdraw.unity
+      scenePath: Assets/Resources/Scenes/0002_TransparentOverdraw.unity
       enabled: 1
-    hdAssets:
-    - asset: {fileID: 11400000, guid: 67455f860e03ac64fad87471cf78b339, type: 2}
-      assetLabels: Default
-      alias: Forward
+    srpAssets:
     - asset: {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}
       assetLabels: Default
-      alias: Deferred
+      alias: 
+    - asset: {fileID: 11400000, guid: 67455f860e03ac64fad87471cf78b339, type: 2}
+      assetLabels: Default
+      alias: 
   memoryTestSuite:
     scenes:
     - scene: 0000_LitCube
       sceneLabels: Simple
-      scenePath: Assets/PerformanceTests/Scenes/0000_LitCube.unity
+      scenePath: Assets/Resources/Scenes/0000_LitCube.unity
       enabled: 1
-    hdAssets:
+    srpAssets:
     - asset: {fileID: 11400000, guid: ab65795a0e3c7814fb033506abd6198f, type: 2}
       assetLabels: Default
       alias: 
@@ -47,19 +47,13 @@ MonoBehaviour:
     scenes:
     - scene: 0002_TransparentOverdraw
       sceneLabels: Default
-      scenePath: Assets/PerformanceTests/Scenes/0002_TransparentOverdraw.unity
+      scenePath: Assets/Resources/Scenes/0002_TransparentOverdraw.unity
       enabled: 1
-    hdAssets:
-    - asset: {fileID: 11400000, guid: 67455f860e03ac64fad87471cf78b339, type: 2}
-      assetLabels: Default
-      alias: Forward
+    srpAssets:
     - asset: {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}
       assetLabels: Default
-      alias: Deferred
-  hdAssetAliases:
-  - asset: {fileID: 11400000, guid: 67455f860e03ac64fad87471cf78b339, type: 2}
-    assetLabels: Default
-    alias: Forward
-  - asset: {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}
-    assetLabels: Default
-    alias: Deferred
+      alias: 
+    - asset: {fileID: 11400000, guid: 67455f860e03ac64fad87471cf78b339, type: 2}
+      assetLabels: Default
+      alias: 
+  srpAssetAliases: []
