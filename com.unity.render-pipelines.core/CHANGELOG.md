@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed copy/pasting of Volume Components when loading a new scene
 - Fix LookDev issue when adding a GameObject containing a Volume into the LookDev's view.
 - Fixed duplicated entry for com.unity.modules.xr in the runtime asmdef file
+- Fixed the texture curve being destroyed from another thread than main (case 1211754)
+- Fixed unreachable code in TextureXR.useTexArray
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
