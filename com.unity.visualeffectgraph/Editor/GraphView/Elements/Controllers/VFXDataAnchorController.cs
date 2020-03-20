@@ -119,7 +119,7 @@ namespace UnityEditor.VFX.UI
             UpdateInfos();
             Profiler.EndSample();
 
-            sourceNode.DataEdgesMightHaveChanged();            
+            sourceNode.DataEdgesMightHaveChanged();
 
             Profiler.BeginSample("VFXDataAnchorController.NotifyChange");
             NotifyChange(AnyThing);
@@ -755,8 +755,8 @@ namespace UnityEditor.VFX.UI
 
                 if (subSlot != null)
                 {
-                    object result = null ;
-                    if (subSlot.HasLink(true) && m_Controller.viewController.CanGetEvaluatedContent(subSlot) && ( result = m_Controller.viewController.GetEvaluatedContent(subSlot)) != null)
+                    object result = null;
+                    if (subSlot.HasLink(true) && m_Controller.viewController.CanGetEvaluatedContent(subSlot) && (result = m_Controller.viewController.GetEvaluatedContent(subSlot)) != null)
                     {
                         m_ValueBuilder.Add(o => o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
                     }

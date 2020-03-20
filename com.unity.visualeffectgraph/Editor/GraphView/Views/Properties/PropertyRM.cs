@@ -236,7 +236,7 @@ namespace UnityEditor.VFX.UI
 
         void UpdateExpandable()
         {
-            if (m_Provider.expandable && (m_Provider.expandableIfShowsEverything || ! showsEverything))
+            if (m_Provider.expandable && (m_Provider.expandableIfShowsEverything || !showsEverything))
             {
                 if (!m_IconClickableAdded)
                 {
@@ -251,7 +251,7 @@ namespace UnityEditor.VFX.UI
                 {
                     RemoveFromClassList("icon-expanded");
                 }
-                    AddToClassList("icon-expandable");
+                AddToClassList("icon-expandable");
             }
             else
             {

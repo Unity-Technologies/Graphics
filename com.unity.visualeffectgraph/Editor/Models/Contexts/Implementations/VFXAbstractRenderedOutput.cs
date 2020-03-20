@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
         [VFXSetting, Header("Render States"), Tooltip("Specifies the transparency and blending method for rendering the particles to the screen.")]
         public BlendMode blendMode = BlendMode.Alpha;
 
-        [VFXSetting,Tooltip("When enabled, transparent pixels under the specified alpha threshold will be discarded."), SerializeField]
+        [VFXSetting, Tooltip("When enabled, transparent pixels under the specified alpha threshold will be discarded."), SerializeField]
         protected bool useAlphaClipping = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles write to the velocity buffer, allowing them to be blurred with the Motion Blur post processing effect.")]
@@ -42,7 +42,7 @@ namespace UnityEditor.VFX
 
         public virtual bool implementsMotionVector { get { return false; } }
 
-        protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) { }
+        protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) {}
 
         public VFXSRPSubOutput subOutput
         {
@@ -175,15 +175,15 @@ namespace UnityEditor.VFX
         {
             if (version < 3) // Fix Blend Modes and useAlphaClipping
             {
-                int blendModeValue = (int)blendMode; 
-                switch(blendModeValue)
+                int blendModeValue = (int)blendMode;
+                switch (blendModeValue)
                 {
                     case 0: // No change required for 0 and 1 (Additive and AlphaBlend)
                     case 1:
                         break;
                     case 2: // Masked
                         SetSettingValue("useAlphaClipping", true);
-                        SetSettingValue("blendMode",(int)BlendMode.Opaque);
+                        SetSettingValue("blendMode", (int)BlendMode.Opaque);
                         break;
                     case 3: // Alpha Premultiplied
                         SetSettingValue("blendMode", (int)BlendMode.AlphaPremultiplied);
@@ -192,7 +192,7 @@ namespace UnityEditor.VFX
                     case 4: // Opaque
                         SetSettingValue("blendMode", (int)BlendMode.Opaque);
                         break;
-                    default: 
+                    default:
                         break;
                 }
             }

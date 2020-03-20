@@ -14,8 +14,6 @@ namespace UnityEditor.VFX.UI
     {}
 
 
-
-
     class VFXSystemBorder : GraphElement, IControlledElement<VFXSystemController>, IDisposable
     {
         class Content : ImmediateModeElement
@@ -85,7 +83,7 @@ namespace UnityEditor.VFX.UI
 
             m_Title.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
 
-            m_TitleField.Q("unity-text-input").RegisterCallback < FocusOutEvent >(OnTitleBlur);
+            m_TitleField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(OnTitleBlur);
             m_TitleField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
             m_Title.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
 
@@ -99,6 +97,7 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
+
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
         }
@@ -113,7 +112,6 @@ namespace UnityEditor.VFX.UI
             m_TitleField.Q(TextField.textInputUssName).Focus();
             m_TitleField.SelectAll();
         }
-
 
         Label m_Title;
         TextField m_TitleField;
@@ -166,20 +164,21 @@ namespace UnityEditor.VFX.UI
         void OnTitleChange(ChangeEvent<string> e)
         {
             title = m_TitleField.value;
-            if ( string.IsNullOrEmpty(e.previousValue) != string.IsNullOrEmpty(e.newValue) )
+            if (string.IsNullOrEmpty(e.previousValue) != string.IsNullOrEmpty(e.newValue))
             {
                 RecomputeBounds();
             }
         }
 
-        public override string title {
+        public override string title
+        {
             get
             {
                 return m_Title.text;
             }
             set
             {
-                if(m_Title.text != value)
+                if (m_Title.text != value)
                 {
                     m_Title.text = value;
                 }
@@ -196,7 +195,7 @@ namespace UnityEditor.VFX.UI
             float titleWidth = m_Title.layout.width;
             bool invalidTitleWidth = float.IsNaN(titleWidth) || titleWidth < 50;
             bool titleEmpty = string.IsNullOrEmpty(m_Title.text) || invalidTitleWidth;
-            if (titleEmpty )
+            if (titleEmpty)
             {
                 m_Title.AddToClassList("empty");
             }
@@ -207,11 +206,11 @@ namespace UnityEditor.VFX.UI
 
             Rect rect = Rect.zero;
 
-            if(m_Contexts != null)
+            if (m_Contexts != null)
             {
                 foreach (var context in m_Contexts)
                 {
-                    if( context != null)
+                    if (context != null)
                     {
                         if (rect == Rect.zero)
                         {
@@ -230,13 +229,13 @@ namespace UnityEditor.VFX.UI
 
             rect = RectUtils.Inflate(rect, 20, titleEmpty ? 20 : m_Title.layout.height, 20, 20);
 
-            if(invalidTitleWidth)
+            if (invalidTitleWidth)
             {
                 SetPosition(rect);
-                if( !m_WaitingRecompute)
+                if (!m_WaitingRecompute)
                 {
                     m_WaitingRecompute = true;
-                    schedule.Execute(()=> { m_WaitingRecompute = false; RecomputeBounds();  }).ExecuteLater(0); // title height might have changed if width have changed
+                    schedule.Execute(() => { m_WaitingRecompute = false; RecomputeBounds();  }).ExecuteLater(0); // title height might have changed if width have changed
                 }
             }
             else
@@ -254,9 +253,9 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                if( m_Contexts != null)
+                if (m_Contexts != null)
                 {
-                    foreach (var context in m_Contexts )
+                    foreach (var context in m_Contexts)
                     {
                         context.UnregisterCallback<GeometryChangedEvent>(OnContextChanged);
                     }
@@ -286,7 +285,7 @@ namespace UnityEditor.VFX.UI
 
                 for (int ix = 0; ix < 4; ++ix)
                 {
-                    for (int iy = 0; iy < 4 ; ++iy)
+                    for (int iy = 0; iy < 4; ++iy)
                     {
                         vertices[ix + iy * 4] = new Vector3(ix < 2 ? -1 : 1, iy < 2 ? -1 : 1, 0);
                         uvsBorder[ix + iy * 4] = new Vector2(ix == 0 || ix == 3 ? 1 : 0, iy == 0 || iy == 3 ? 1 : 0);
@@ -294,7 +293,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                for(int i = 16; i < 20; ++i)
+                for (int i = 16; i < 20; ++i)
                 {
                     vertices[i] = vertices[i - 16];
                     uvsBorder[i] = uvsBorder[i - 16];
@@ -328,8 +327,7 @@ namespace UnityEditor.VFX.UI
                         else if (quadIndex > 4)
                             --quadIndex;
                         int vertIndex = quadIndex * 4;
-                        
-                        
+
 
                         indices[vertIndex] = ix + iy * 4;
                         indices[vertIndex + 1] = ix + (iy + 1) * 4;
@@ -348,7 +346,7 @@ namespace UnityEditor.VFX.UI
                 s_Mesh.uv2 = uvsDistance;
                 s_Mesh.SetIndices(indices, MeshTopology.Quads, 0);
             }
-            if( m_Mat == null)
+            if (m_Mat == null)
                 m_Mat = new Material(Shader.Find("Hidden/VFX/GradientDashedBorder"));
         }
 
@@ -436,6 +434,7 @@ namespace UnityEditor.VFX.UI
 
             title = controller.title;
         }
+
         public void OnControllerChanged(ref ControllerChangedEvent e)
         {
             Update();

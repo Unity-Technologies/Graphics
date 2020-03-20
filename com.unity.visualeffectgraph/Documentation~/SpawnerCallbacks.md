@@ -17,4 +17,3 @@ Spawner Callbacks is a C# API that enables defining custom runtime behavior and 
 ## Writing Spawner Callbacks
 
 The full reference of the API is available [here](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VFXSpawnerCallbacks.html).
-
