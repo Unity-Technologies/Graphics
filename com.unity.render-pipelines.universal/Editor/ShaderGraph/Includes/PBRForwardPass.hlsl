@@ -13,7 +13,7 @@
 #elif _NORMAL_DROPOFF_WS
 	inputData.normalWS = normal;
 #endif
-    
+
 #else
     inputData.normalWS = input.normalWS;
 #endif
@@ -28,7 +28,7 @@
 
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS, input.positionCS);
 }
 
 PackedVaryings vert(Attributes input)
@@ -40,8 +40,8 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
-half4 frag(PackedVaryings packedInput) : SV_TARGET 
-{    
+half4 frag(PackedVaryings packedInput) : SV_TARGET
+{
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
@@ -59,7 +59,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #ifdef _SPECULAR_SETUP
         float3 specular = surfaceDescription.Specular;
         float metallic = 1;
-    #else   
+    #else
         float3 specular = 0;
         float metallic = surfaceDescription.Metallic;
     #endif
@@ -72,8 +72,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 			surfaceDescription.Smoothness,
 			surfaceDescription.Occlusion,
 			surfaceDescription.Emission,
-			surfaceDescription.Alpha); 
+			surfaceDescription.Alpha);
 
-    color.rgb = MixFog(color.rgb, inputData.fogCoord); 
+    color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 }
