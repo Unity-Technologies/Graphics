@@ -527,7 +527,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader buildPerTileLightListShader { get { return defaultResources.shaders.buildPerTileLightListCS; } }
         ComputeShader buildPerBigTileLightListShader { get { return defaultResources.shaders.buildPerBigTileLightListCS; } }
         ComputeShader buildPerVoxelLightListShader { get { return defaultResources.shaders.buildPerVoxelLightListCS; } }
-
+        ComputeShader clearClusterAtomicIndexShader { get { return defaultResources.shaders.lightListClusterClearAtomicIndexCS; } }
         ComputeShader buildMaterialFlagsShader { get { return defaultResources.shaders.buildMaterialFlagsCS; } }
         ComputeShader buildDispatchIndirectShader { get { return defaultResources.shaders.buildDispatchIndirectCS; } }
         ComputeShader clearDispatchIndirectShader { get { return defaultResources.shaders.clearDispatchIndirectCS; } }
@@ -540,7 +540,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static int s_GenAABBKernel;
         static int s_GenListPerTileKernel;
-        static int s_GenListPerTileKernel_Oblique;
         static int s_GenListPerVoxelKernel;
         static int s_GenListPerVoxelKernelOblique;
         static int s_ClearVoxelAtomicKernel;
@@ -754,7 +753,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Cluster
             {
-                s_ClearVoxelAtomicKernel = buildPerVoxelLightListShader.FindKernel("ClearAtomic");
+                s_ClearVoxelAtomicKernel = clearClusterAtomicIndexShader.FindKernel("ClearAtomic");
             }
 
             s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
@@ -933,17 +932,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_GenListPerVoxelKernelOblique = buildPerVoxelLightListShader.FindKernel(kernelObliqueName);
             }
 
-            if (GetFeatureVariantsEnabled(frameSettings))
-            {
-                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
-                s_GenListPerTileKernel_Oblique = buildPerTileLightListShader.FindKernel(frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile_FeatureFlags_Oblique" : "TileLightListGen_FeatureFlags_Oblique");
-
-            }
-            else
-            {
-                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
-                s_GenListPerTileKernel_Oblique = buildPerTileLightListShader.FindKernel(frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile_Oblique" : "TileLightListGen_Oblique");
-            }
+            s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel("TileLightListGen");
 
             m_TextureCaches.NewFrame();
         }
@@ -2697,6 +2686,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Cluster
             public ComputeShader buildPerVoxelLightListShader;
+            public ComputeShader clearClusterAtomicIndexShader;
             public int buildPerVoxelLightListKernel;
             public int numTilesClusterX;
             public int numTilesClusterY;
@@ -2865,9 +2855,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 var tileAndCluster = resources.tileAndClusterData;
 
                 // clear atomic offset index
-                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, tileAndCluster.globalLightListAtomic);
-                cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
+                cmd.SetComputeBufferParam(parameters.clearClusterAtomicIndexShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, tileAndCluster.globalLightListAtomic);
+                cmd.DispatchCompute(parameters.clearClusterAtomicIndexShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
 
+                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, tileAndCluster.globalLightListAtomic);
                 cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
                 cmd.SetComputeMatrixArrayParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
@@ -3065,11 +3056,10 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.screenSpaceAABBShader = buildScreenAABBShader;
             parameters.screenSpaceAABBShader.shaderKeywords = null;
             if (isProjectionOblique)
-            {
+            { 
                 parameters.screenSpaceAABBShader.EnableKeyword("USE_OBLIQUE_MODE");
             }
             parameters.screenSpaceAABBKernel = s_GenAABBKernel;
-
             // camera to screen matrix (and it's inverse)
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
@@ -3092,13 +3082,28 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fptl
             parameters.runFPTL = hdCamera.frameSettings.fptl;
             parameters.buildPerTileLightListShader = buildPerTileLightListShader;
-            parameters.buildPerTileLightListKernel = isProjectionOblique ? s_GenListPerTileKernel_Oblique : s_GenListPerTileKernel;
+            parameters.buildPerTileLightListShader.shaderKeywords = null;
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+            {
+                parameters.buildPerTileLightListShader.EnableKeyword("USE_TWO_PASS_TILED_LIGHTING");
+            }
+            if (isProjectionOblique)
+            {
+                parameters.buildPerTileLightListShader.EnableKeyword("USE_OBLIQUE_MODE");
+            }
+            if (GetFeatureVariantsEnabled(hdCamera.frameSettings))
+            {
+                parameters.buildPerTileLightListShader.EnableKeyword("USE_FEATURE_FLAGS");
+            }
+            parameters.buildPerTileLightListKernel = s_GenListPerTileKernel;
+
             parameters.numTilesFPTLX = GetNumTileFtplX(hdCamera);
             parameters.numTilesFPTLY = GetNumTileFtplY(hdCamera);
             parameters.numTilesFPTL = parameters.numTilesFPTLX * parameters.numTilesFPTLY;
 
             // Cluster
             parameters.buildPerVoxelLightListShader = buildPerVoxelLightListShader;
+            parameters.clearClusterAtomicIndexShader = clearClusterAtomicIndexShader;
             parameters.buildPerVoxelLightListKernel = isProjectionOblique ? s_GenListPerVoxelKernelOblique : s_GenListPerVoxelKernel;
             parameters.numTilesClusterX = GetNumTileClusteredX(hdCamera);
             parameters.numTilesClusterY = GetNumTileClusteredY(hdCamera);

@@ -61,6 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader buildPerBigTileLightListCS;
             [Reload("Runtime/Lighting/LightLoop/lightlistbuild-clustered.compute")]
             public ComputeShader buildPerVoxelLightListCS;              // clustered
+            [Reload("Runtime/Lighting/LightLoop/lightlistbuild-clearatomic.compute")]
+            public ComputeShader lightListClusterClearAtomicIndexCS;
             [Reload("Runtime/Lighting/LightLoop/materialflags.compute")]
             public ComputeShader buildMaterialFlagsCS;
             [Reload("Runtime/Lighting/LightLoop/Deferred.compute")]
