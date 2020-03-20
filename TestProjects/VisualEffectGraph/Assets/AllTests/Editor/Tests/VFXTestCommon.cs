@@ -13,15 +13,14 @@ namespace UnityEditor.VFX.Test
 {
     class VFXTestCommon
     {
-        static List<string> s_TemporaryFiles = new List<string>();
-        static readonly string tempFileFormat = "Assets/TmpTests/vfx_{0}.vfx";
+        static readonly string tempBasePath = "Assets/TmpTests/";
+        static readonly string tempFileFormat = tempBasePath + "vfx_{0}.vfx";
 
         public static VFXGraph MakeTemporaryGraph()
         {
             var guid = System.Guid.NewGuid().ToString();
             string tempFilePath = string.Format(tempFileFormat, guid);
-            s_TemporaryFiles.Add(tempFilePath);
-            System.IO.Directory.CreateDirectory("Assets/TmpTests/");
+            System.IO.Directory.CreateDirectory(tempBasePath);
 
             var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
             VisualEffectResource resource = asset.GetResource(); // force resource creation
@@ -32,8 +31,7 @@ namespace UnityEditor.VFX.Test
 
         public static void DeleteAllTemporaryGraph()
         {
-            var nextTemporaryFileList = new List<string>();
-            foreach (var file in s_TemporaryFiles)
+            foreach (string file in System.IO.Directory.GetFiles(tempBasePath))
             {
                 try
                 {
@@ -41,10 +39,8 @@ namespace UnityEditor.VFX.Test
                 }
                 catch (System.Exception) // Don't stop if we fail to delete one asset
                 {
-                    nextTemporaryFileList.Add(file);
                 }
             }
-            s_TemporaryFiles = nextTemporaryFileList;
         }
 
         public static U GetFieldValue<T, U>(T obj, string fieldName)
