@@ -30,8 +30,7 @@ namespace UnityEditor.ShaderGraph
         public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name)
         {
             m_GraphData = graphData;
-            m_OutputNode = VirtualTexturingFeedback.AutoInject(outputNode);
-            m_GraphData = m_OutputNode.owner;
+            m_OutputNode = outputNode;
             m_Mode = mode;
             m_Name = name;
 
@@ -462,10 +461,7 @@ namespace UnityEditor.ShaderGraph
 
             // Build pixel graph outputs
             // Add struct fields to active fields
-            if (m_OutputNode is SubGraphOutputNode)
-                GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance, true);
-            else
-                GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance);
+            GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance, m_OutputNode is SubGraphOutputNode, pass.virtualTextureFeedback);
 
             // Build pixel graph functions from ShaderPass pixel port mask
             GenerationUtils.GenerateSurfaceDescriptionFunction(
@@ -483,7 +479,8 @@ namespace UnityEditor.ShaderGraph
                 pixelGraphOutputName,
                 null,
                 pixelSlots,
-                pixelGraphInputName);
+                pixelGraphInputName,
+                pass.virtualTextureFeedback);
 
             using (var pixelBuilder = new ShaderStringBuilder())
             {

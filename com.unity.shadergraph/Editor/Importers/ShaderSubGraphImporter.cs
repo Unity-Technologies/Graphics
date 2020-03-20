@@ -96,7 +96,6 @@ namespace UnityEditor.ShaderGraph
             asset.path = graph.path;
 
             var outputNode = (SubGraphOutputNode)graph.outputNode;
-            outputNode = VirtualTexturingFeedback.AutoInjectSubgraph(outputNode);
 
             asset.outputs.Clear();
             outputNode.GetInputSlots(asset.outputs);
@@ -115,7 +114,9 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
+            asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode);
+
+            asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false, asset.vtFeedbackVariables.Count > 1);
             asset.inputs = graph.properties.ToList();
             asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
@@ -190,6 +191,10 @@ namespace UnityEditor.ShaderGraph
                 foreach (var output in asset.outputs)
                     arguments.Add($"out {output.concreteValueType.ToShaderString(asset.outputPrecision)} {output.shaderOutputName}_{output.id}");
 
+                // Vt Feedback arguments
+                foreach (var output in asset.vtFeedbackVariables)
+                    arguments.Add($"out {ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float)} {output}_out");
+
                 // Create the function prototype from the arguments
                 sb.AppendLine("void {0}({1})"
                     , asset.functionName
@@ -212,6 +217,11 @@ namespace UnityEditor.ShaderGraph
                     foreach (var slot in asset.outputs)
                     {
                         sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals, asset.outputPrecision)};");
+                    }
+
+                    foreach (var slot in asset.vtFeedbackVariables)
+                    {
+                        sb.AppendLine($"{slot}_out = {slot};");
                     }
                 }
             });

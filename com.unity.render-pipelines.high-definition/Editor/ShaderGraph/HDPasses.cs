@@ -165,6 +165,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Unlit"),
+
+                virtualTextureFeedback = true,
             };
         }
 #endregion
@@ -182,7 +184,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Port Mask
                 vertexPorts = HDPortMasks.Vertex.PBRDefault,
-                pixelPorts = HDPortMasks.Pixel.PBRDefaultWithVt,
+                pixelPorts = HDPortMasks.Pixel.PBRDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -195,6 +197,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("PBR"),
+
+                virtualTextureFeedback = true,
             };
 
             public static PassDescriptor META = new PassDescriptor()
@@ -334,7 +338,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Port Mask
                 vertexPorts = HDPortMasks.Vertex.PBRDefault,
-                pixelPorts = HDPortMasks.Pixel.PBRDefaultWithVt,
+                pixelPorts = HDPortMasks.Pixel.PBRDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -348,6 +352,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("PBR"),
+
+                virtualTextureFeedback = true,
             };
         }
 #endregion
@@ -528,6 +534,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Custom Template
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
+
+                virtualTextureFeedback = true,
             };
         }
 #endregion
@@ -545,7 +553,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Port Mask
                 vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDefaultWithVt,
+                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -559,6 +567,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Lit"),
+
+                virtualTextureFeedback = true,
             };
 
             public static PassDescriptor META = new PassDescriptor()
@@ -774,7 +784,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Port Mask
                 vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDefaultWithVt,
+                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -788,6 +798,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Lit"),
+
+                virtualTextureFeedback = true,
             };
 
             public static PassDescriptor TransparentDepthPostpass = new PassDescriptor()

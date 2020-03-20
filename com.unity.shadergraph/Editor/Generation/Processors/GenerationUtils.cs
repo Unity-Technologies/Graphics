@@ -282,6 +282,8 @@ namespace UnityEditor.ShaderGraph
                     NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts, keywordCollector.permutations[i]);
                     NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts, keywordCollector.permutations[i]);
 
+                    bool vtFeedbackRequiresScreenPos = VirtualTexturingFeedbackUtils.CountFeedbackVariables(localPixelNodes) > 0;
+
                     // Track each vertex node in this permutation
                     foreach(AbstractMaterialNode vertexNode in localVertexNodes)
                     {
@@ -304,7 +306,7 @@ namespace UnityEditor.ShaderGraph
 
                     // Get requirements for this permutation
                     vertexRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localVertexNodes, ShaderStageCapability.Vertex, false));
-                    pixelRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false));
+                    pixelRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false, vtFeedbackRequiresScreenPos));
 
                     // Add active fields
                     var conditionalFields = GetActiveFieldsFromConditionals(GetConditionalFieldsFromGraphRequirements(vertexRequirements[i].requirements, activeFields[i]));
@@ -318,9 +320,11 @@ namespace UnityEditor.ShaderGraph
             // No Keywords
             else
             {
+                bool vtFeedbackRequiresScreenPos = VirtualTexturingFeedbackUtils.CountFeedbackVariables(pixelNodes) > 0;
+
                 // Get requirements
                 vertexRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false));
-                pixelRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false));
+                pixelRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false, vtFeedbackRequiresScreenPos));
 
                 // Add active fields
                 var conditionalFields = GetActiveFieldsFromConditionals(GetConditionalFieldsFromGraphRequirements(vertexRequirements.baseInstance.requirements, activeFields.baseInstance));
@@ -690,7 +694,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        internal static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", IActiveFieldsSet activeFields = null, bool isSubgraphOutput = false)
+        internal static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", IActiveFieldsSet activeFields = null, bool isSubgraphOutput = false, bool virtualTextureFeedback = false)
         {
             surfaceDescriptionStruct.AppendLine("struct {0}", structName);
             using (surfaceDescriptionStruct.BlockSemicolonScope())
@@ -720,6 +724,17 @@ namespace UnityEditor.ShaderGraph
                         }
                     }                    
                 }
+
+                if (virtualTextureFeedback)
+                {
+                    surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), VirtualTexturingFeedbackUtils.FeedbackSurfaceDescriptionVariableName);
+
+                    if (!isSubgraphOutput && activeFields != null)
+                    {
+                        var structField = new FieldDescriptor(structName, VirtualTexturingFeedbackUtils.FeedbackSurfaceDescriptionVariableName, "");
+                        activeFields.AddAll(structField);
+                    }
+                }
             }
         }
 
@@ -738,7 +753,8 @@ namespace UnityEditor.ShaderGraph
             string surfaceDescriptionName = "SurfaceDescription",
             Vector1ShaderProperty outputIdProperty = null,
             IEnumerable<MaterialSlot> slots = null,
-            string graphInputStructName = "SurfaceDescriptionInputs")
+            string graphInputStructName = "SurfaceDescriptionInputs",
+            bool virtualTextureFeedback = false)
         {
             if (graph == null)
                 return;
@@ -761,6 +777,13 @@ namespace UnityEditor.ShaderGraph
 
                 GenerateSurfaceDescriptionRemap(graph, rootNode, slots,
                     surfaceDescriptionFunction, mode);
+
+                if (virtualTextureFeedback)
+                {
+                    VirtualTexturingFeedbackUtils.GenerateVirtualTextureFeedback(nodes,
+                        keywordPermutationsPerNode,
+                        surfaceDescriptionFunction);
+                }
 
                 surfaceDescriptionFunction.AppendLine("return surface;");
             }

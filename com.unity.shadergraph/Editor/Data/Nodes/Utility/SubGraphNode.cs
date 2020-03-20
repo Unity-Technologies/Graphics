@@ -225,6 +225,13 @@ namespace UnityEditor.ShaderGraph
             foreach (var outSlot in asset.outputs)
                 arguments.Add(GetVariableNameForSlot(outSlot.id));
 
+            foreach (var feedbackSlot in asset.vtFeedbackVariables)
+            {
+                string feedbackVar = GetVariableNameForNode() + "_" + feedbackSlot;
+                sb.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), feedbackVar);
+                arguments.Add(feedbackVar);
+            }
+
             sb.AppendLine("{0}({1});", asset.functionName, arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next)));
         }
 

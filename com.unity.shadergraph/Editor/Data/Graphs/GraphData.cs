@@ -332,18 +332,6 @@ namespace UnityEditor.ShaderGraph
             m_GroupItems[Guid.Empty] = new List<IGroupItem>();
         }
 
-        // Make a deep copy of the graph through serialization. This means that the returned
-        // copy will be fully detached from the existing graph including things like registered callbacks...
-        // Any modifications will remain local to the scratch copy only
-        public GraphData ScratchCopy()
-        {
-            string serialized = EditorJsonUtility.ToJson(this, false);
-            GraphData dataCopy = new GraphData();
-            EditorJsonUtility.FromJsonOverwrite(serialized, dataCopy);
-            dataCopy.UpdateTargets();
-            return dataCopy;
-        }
-
         public void ClearChanges()
         {
             m_AddedNodes.Clear();
