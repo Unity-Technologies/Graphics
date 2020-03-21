@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
+- Updated legacy COLOR output semantic to SV_Target in pixel shader for compatibility with DXC
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
