@@ -1,0 +1,11 @@
+{
+	"name": "com.unity.template.hd",
+	"displayName":"High Definition RP",
+	"version": "7.3.1",
+	"type": "template",
+	"unity": "2019.3",
+	"description": "This template utilizes the High Definition Render Pipeline. Making it a good starting point for people focused on high-end graphics that want to develop games for platforms that support Shader Model 5.0 (DX11 and above). \n\nBeyond being tuned for High End visuals this project includes\n\u25AA Shadergraph \n\u25AA Visual Effect Graph  \n\u25AA Presets \n\u25AA Example content",
+	"dependencies": {
+		"com.unity.render-pipelines.high-definition": "7.3.1"
+	}
+}

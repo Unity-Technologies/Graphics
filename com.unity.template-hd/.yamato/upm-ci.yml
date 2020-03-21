@@ -1,0 +1,137 @@
+test_editors:
+  - version: 2019.3
+test_platforms:
+  - name: win
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  - name: mac
+    type: Unity::VM::osx
+    image: buildfarm/mac:stable
+    flavor: m1.mac
+---
+pack:
+  name: Pack
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  commands:
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - upm-ci template pack --keep-project-settings
+  artifacts:
+    packages:
+      paths:
+        - "upm-ci~/**/*"
+
+  {% for editor in test_editors %}
+  {% for platform in test_platforms %}
+test_{{ platform.name }}_{{ editor.version }}:
+  name : Test {{ editor.version }} on {{ platform.name }}
+  agent:
+    type: {{ platform.type }}
+    image: {{ platform.image }}
+    flavor: {{ platform.flavor}}
+  commands:
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - upm-ci template test -u {{ editor.version }}
+  artifacts:
+    logs:
+      paths:
+        - "upm-ci~/test-results/**/*"
+  dependencies:
+    - .yamato/upm-ci.yml#pack
+  {% endfor %}
+  {% endfor %}
+
+test_trigger:
+  name: Tests Trigger
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  commands:
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - upm-ci package izon -t
+  triggers:
+    branches:
+      only:
+        - "/.*/"
+      except:
+        - master
+  artifacts:
+    logs:
+      paths:
+        - "upm-ci~/test-results/**/*"
+    packages:
+      paths:
+        - "upm-ci~/packages/**/*"
+        - "upm-ci~/templates/**/*"
+  dependencies:
+    - .yamato/upm-ci.yml#pack
+    {% for editor in test_editors %}
+    {% for platform in test_platforms %}
+    - .yamato/upm-ci.yml#test_{{platform.name}}_{{editor.version}}
+    {% endfor %}
+    {% endfor %}
+
+nightly_trigger:
+  name: Nightly Tests Trigger
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  commands:
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - upm-ci package izon -t
+  triggers:
+    recurring:
+      - branch: master
+        frequency: 22 * * ?
+  artifacts:
+    logs:
+      paths:
+        - "upm-ci~/test-results/**/*"
+    packages:
+      paths:
+        - "upm-ci~/packages/**/*"
+        - "upm-ci~/templates/**/*"
+  dependencies:
+    - .yamato/upm-ci.yml#pack
+    {% for editor in test_editors %}
+    {% for platform in test_platforms %}
+    - path: .yamato/upm-ci.yml#test_{{platform.name}}_{{editor.version}}
+      rerun: always
+    {% endfor %}
+    {% endfor %}
+
+publish:
+  name: Publish
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+    name: Runner
+  commands:
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - upm-ci template publish
+  triggers:
+    tags:
+      only:
+        - /^(r|R)(c|C)-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
+        - /^(r|R)elease-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
+  artifacts:
+    logs:
+      paths:
+        - "upm-ci~/test-results/**/*"
+    packages:
+      paths:
+        - "upm-ci~/packages/**/*"
+        - "upm-ci~/templates/*.tgz"
+  dependencies:
+    - .yamato/upm-ci.yml#pack
+    {% for editor in test_editors %}
+    {% for platform in test_platforms %}
+    - .yamato/upm-ci.yml#test_{{ platform.name }}_{{ editor.version }}
+    {% endfor %}
+    {% endfor %}
