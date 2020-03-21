@@ -663,6 +663,9 @@ uint GetMipCount(Texture2D tex)
 // ----------------------------------------------------------------------------
 // Texture format sampling
 // ----------------------------------------------------------------------------
+
+// DXC no longer supports DX9-style HLSL syntax for sampler2D, tex2D and the like.
+// These are emulated for backwards compatibilit using our own small structs and functions which manually combine samplers and textures.
 #if defined(UNITY_COMPILER_DXC) && !defined(DXC_SAMPLER_COMPATIBILITY)
 #define DXC_SAMPLER_COMPATIBILITY 1
 struct sampler1D            { Texture1D t; SamplerState s; };
