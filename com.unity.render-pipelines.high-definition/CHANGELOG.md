@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the exposure sliders to the planar reflection probe preview
 - Added a warning and workaround instructions that appear when you enable XR single-pass after the first frame with the XR SDK.
 - Added an "enable" toggle to the SSR volume component.
+- Added support of cookie baking and add support on Disc light.
+- Added XR setting to control camera jitter for temporal effects
 
 ### Fixed
 - Fix Changelog
@@ -43,11 +45,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed draw renderers custom pass out of bound exception
 - Fixed an issue with emissive light meshes not being in the RAS.
 - Fixed a warning due to StaticLightingSky when reloading domain in some cases.
+- Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
+- Fixed error in the console when switching shader to decal in the material UI.
+- Fixed z-fighting in scene view when scene lighting is off (case 1203927)
+- Fixed issue that prevented cubemap thumbnails from rendering.
+- Fix an exception in ray tracing that happens if two LOD levels are using the same mesh renderer.
+- Fix some typos in the debug menu.
+- Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
+- Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
+- Fixed cubemap thumbnail generation at project load time. 
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
 - Light dimmer can now get values higher than one and was renamed to multiplier in the UI. 
 - Removed info box requesting volume component for Visual Environment and updated the documentation with the relevant information.
+- Removed legacy VR code
+- Add range-based clipping to box lights (case 1178780)
+- Improve area light culling (case 1085873)
+- Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
+- Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
+- Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
+- Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
 
 ## [8.0.0] - 2020-05-25
 
@@ -454,6 +472,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix Inf source in LTC for area lights.
 - Fixed alpha clipping test (comparison was '>', now '>=')
 - Fixed preview camera (eg. shader graph preview) when path tracing is on
+- Fixed issue with unclear naming of debug menu for decals.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

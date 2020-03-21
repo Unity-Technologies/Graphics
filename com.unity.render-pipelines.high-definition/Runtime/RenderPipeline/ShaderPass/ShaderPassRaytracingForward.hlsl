@@ -93,6 +93,13 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         transmitted = transmittedIntersection.color;
         refractedWeight = 1.0;
         additionalRayCount += transmittedIntersection.rayCount;
+
+        // Given that we are sharing code with rasterization, we need to override properly the refraction parameters
+        OverrideRefractionData(surfaceData,
+                                transmittedIntersection.t,
+                                pointWSPos + transmittedIntersection.t * refractedDir,
+                                bsdfData,
+                                preLightData);
     }
 #endif
 #endif
