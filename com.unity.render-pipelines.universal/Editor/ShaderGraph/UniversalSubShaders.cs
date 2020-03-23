@@ -64,8 +64,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             generatesPreview = true,
             passes = new PassCollection
             {
-                { UniversalPasses.Unlit }, // This pass use legacy lightMode tag and is picked up by 2D renderer.
-                { UniversalPasses.UniversalUnlit }, // // This pass is picked up by the forward and deferred renderers.
+                { UniversalPasses.unlit },
                 { UniversalPasses.ShadowCaster },
                 { UniversalPasses.DepthOnly },
             },
@@ -75,13 +74,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get
             {
-                var unlit = UniversalPasses.Unlit;
-                var universalUnlit = UniversalPasses.UniversalUnlit;
+                var unlit = UniversalPasses.unlit;
                 var shadowCaster = UniversalPasses.ShadowCaster;
                 var depthOnly = UniversalPasses.DepthOnly;
 
                 unlit.pragmas = UniversalPragmas.DOTSForward;
-                universalUnlit.pragmas = UniversalPragmas.DOTSForward;
                 shadowCaster.pragmas = UniversalPragmas.DOTSInstanced;
                 depthOnly.pragmas = UniversalPragmas.DOTSInstanced;
                 
@@ -92,7 +89,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passes = new PassCollection
                     {
                         { unlit },
-                        { universalUnlit },
                         { shadowCaster },
                         { depthOnly },
                     },

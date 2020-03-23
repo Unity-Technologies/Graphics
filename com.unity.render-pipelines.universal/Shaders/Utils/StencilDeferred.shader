@@ -15,6 +15,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
 
+    // XR not supported in 2020.1 preview
+    #define XR_MODE 0 // defined(USING_STEREO_MATRICES) && (defined(_POINT) || defined(_SPOT) || defined(_DIRECTIONAL))
+
     struct Attributes
     {
         float4 positionOS : POSITION;
@@ -25,7 +28,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
-        #if defined(USING_STEREO_MATRICES) && (defined(_POINT) || defined(_SPOT) || defined(_DIRECTIONAL))
+        #if XR_MODE
         float4 posCS : TEXCOORD0;
         #endif
         UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -70,7 +73,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         output.positionCS = vertexInput.positionCS;
         #endif
 
-        #if defined(USING_STEREO_MATRICES) && (defined(_POINT) || defined(_SPOT) || defined(_DIRECTIONAL))
+        #if XR_MODE
         output.posCS = output.positionCS;
         #endif
 
@@ -105,7 +108,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 gbuffer1 = UNITY_READ_FRAMEBUFFER_INPUT(1, input.positionCS.xy);
         half4 gbuffer2 = UNITY_READ_FRAMEBUFFER_INPUT(2, input.positionCS.xy);
 
-        #if defined(USING_STEREO_MATRICES) && (defined(_POINT) || defined(_SPOT) || defined(_DIRECTIONAL))
+        #if XR_MODE
             #if UNITY_REVERSED_Z
             d = 1.0 - d;
             #endif
@@ -116,8 +119,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #endif
             float3 posWS = ComputeWorldSpacePosition(posCS, UNITY_MATRIX_I_VP);
         #else
-        // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
-        float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+            // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
+            float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
             posWS.xyz *= rcp(posWS.w);
         #endif
 

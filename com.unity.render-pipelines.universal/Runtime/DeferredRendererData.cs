@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] bool m_PreferDepthPrepass = true;
         [SerializeField] bool m_AccurateGbufferNormals = true;
-        [SerializeField] bool m_TiledDeferredShading = false;
+        //[SerializeField] bool m_TiledDeferredShading = false;
 
         protected override ScriptableRenderer Create()
         {
@@ -80,19 +80,86 @@ namespace UnityEngine.Rendering.Universal
             return new DeferredRenderer(this);
         }
 
-        internal LayerMask opaqueLayerMask => m_OpaqueLayerMask;
+        /// <summary>
+        /// Use this to configure how to filter opaque objects.
+        /// </summary>
+        public LayerMask opaqueLayerMask
+        {
+            get => m_OpaqueLayerMask;
+            set
+            {
+                SetDirty();
+                m_OpaqueLayerMask = value;
+            }
+        }
 
-        public LayerMask transparentLayerMask => m_TransparentLayerMask;
+        /// <summary>
+        /// Use this to configure how to filter transparent objects.
+        /// </summary>
+        public LayerMask transparentLayerMask
+        {
+            get => m_TransparentLayerMask;
+            set
+            {
+                SetDirty();
+                m_TransparentLayerMask = value;
+            }
+        }
 
-        public StencilStateData defaultStencilState => m_DefaultStencilState;
+        public StencilStateData defaultStencilState
+        {
+            get => m_DefaultStencilState;
+            set
+            {
+                SetDirty();
+                m_DefaultStencilState = value;
+            }
+        }
 
-        public bool shadowTransparentReceive => m_ShadowTransparentReceive;
+        /// <summary>
+        /// True if transparent objects receive shadows.
+        /// </summary>
+        public bool shadowTransparentReceive
+        {
+            get => m_ShadowTransparentReceive;
+            set
+            {
+                SetDirty();
+                m_ShadowTransparentReceive = value;
+            }
+        }
 
-        public bool preferDepthPrepass => m_PreferDepthPrepass;
+        public bool preferDepthPrepass
+        {
+            get => m_PreferDepthPrepass;
+            set
+            {
+                SetDirty();
+                m_PreferDepthPrepass = value;
+            }
+        }
 
-        public bool accurateGbufferNormals => m_AccurateGbufferNormals;
+        public bool accurateGbufferNormals
+        {
+            get => m_AccurateGbufferNormals;
+            set
+            {
+                SetDirty();
+                m_AccurateGbufferNormals = value;
+            }
+        }
 
-        public bool tiledDeferredShading => m_TiledDeferredShading;
+        /*
+        public bool tiledDeferredShading
+        {
+            get => m_TiledDeferredShading;
+            set
+            {
+                SetDirty();
+                m_TiledDeferredShading = value;
+            }
+        }
+        */
 
         protected override void OnEnable()
         {

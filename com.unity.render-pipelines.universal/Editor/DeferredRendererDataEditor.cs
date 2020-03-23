@@ -11,12 +11,14 @@ namespace UnityEditor.Rendering.Universal
         private static class Styles
         {
             public static readonly GUIContent RendererTitle = new GUIContent("Deferred Renderer", "Custom Deferred Renderer for UniversalRP.");
-            public static readonly GUIContent OpaqueMask = new GUIContent("Default Layer Mask", "Controls which layers to globally include in the Custom Deferred Renderer.");
+            public static readonly GUIContent FilteringLabel = new GUIContent("Filtering", "Controls filter rendering settings for this renderer.");
+            public static readonly GUIContent OpaqueMask = new GUIContent("Opaque Layer Mask", "Controls which opaque layers this renderer draws.");
+            public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent preferDepthPrepassLabel = EditorGUIUtility.TrTextContent("Prefer Depth Prepass", "Some platform configurations may still enable depth-prepass even when this checkbox is disabled.");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "normals in G-buffer use octaedron encoding/decoding (expensive)");
-            public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading", "Allows Tiled Deferred Shading on appropriate lights");
+            public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -27,7 +29,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShadowTransparentReceiveProp;
         SerializedProperty m_PreferDepthPrepass;
         SerializedProperty m_AccurateGbufferNormals;
-        SerializedProperty m_TiledDeferredShading;
+        //SerializedProperty m_TiledDeferredShading;
 
         private void OnEnable()
         {
@@ -39,7 +41,8 @@ namespace UnityEditor.Rendering.Universal
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
             m_PreferDepthPrepass = serializedObject.FindProperty("m_PreferDepthPrepass");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
-            m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
+            // Not exposed yet.
+            //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
         }
 
         public override void OnInspectorGUI()
@@ -48,23 +51,32 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.RendererTitle, EditorStyles.boldLabel); // Title
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_OpaqueLayerMask, Styles.OpaqueMask);
-            if (EditorGUI.EndChangeCheck()) // We copy the opaque mask to the transparent mask, later we might expose both
-                m_TransparentLayerMask.intValue = m_OpaqueLayerMask.intValue;
+            EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_PostProcessData);
             EditorGUILayout.PropertyField(m_PreferDepthPrepass, Styles.preferDepthPrepassLabel, true);
             EditorGUILayout.PropertyField(m_AccurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
-            EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
+            //EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
+            EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField(Styles.FilteringLabel, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_OpaqueLayerMask, Styles.OpaqueMask);
+            EditorGUILayout.PropertyField(m_TransparentLayerMask, Styles.TransparentMask);
+            EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Shadows", EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_ShadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
+            EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
             /* // Currently not supported for deferred renderer.
             EditorGUILayout.LabelField("Overrides", EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_DefaultStencilState, Styles.defaultStencilStateLabel, true);
+            EditorGUI.indentLevel--;
             EditorGUILayout.Space();
             */
 
@@ -80,7 +92,7 @@ namespace UnityEditor.Rendering.Universal
 
                 if (GUILayout.Button("Reload All"))
                 {
-                    var resources = target as DeferredRendererData;
+                    var resources = target as ForwardRendererData;
                     resources.shaders = null;
                     ResourceReloader.ReloadAllNullIn(target, UniversalRenderPipelineAsset.packagePath);
                 }
