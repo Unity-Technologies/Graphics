@@ -720,18 +720,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _LowResDepthTexture             = Shader.PropertyToID("_LowResDepthTexture");
         public static readonly int _LowResTransparent              = Shader.PropertyToID("_LowResTransparent");
 
-        public static readonly int _AOBufferSize                   = Shader.PropertyToID("_AOBufferSize");
-        public static readonly int _AOParams0                      = Shader.PropertyToID("_AOParams0");
-        public static readonly int _AOParams1                      = Shader.PropertyToID("_AOParams1");
-        public static readonly int _AOParams2                      = Shader.PropertyToID("_AOParams2");
-        public static readonly int _AOParams3                      = Shader.PropertyToID("_AOParams3");
-        public static readonly int _AOParams4                      = Shader.PropertyToID("_AOParams4");
-        public static readonly int _FirstTwoDepthMipOffsets        = Shader.PropertyToID("_FirstTwoDepthMipOffsets");
+        public static readonly int _ShaderVariablesAmbientOcclusion = Shader.PropertyToID("ShaderVariablesAmbientOcclusion");
         public static readonly int _OcclusionTexture               = Shader.PropertyToID("_OcclusionTexture");
         public static readonly int _BentNormalsTexture             = Shader.PropertyToID("_BentNormalsTexture");
         public static readonly int _AOPackedData                   = Shader.PropertyToID("_AOPackedData");
         public static readonly int _AOPackedHistory                = Shader.PropertyToID("_AOPackedHistory");
-        public static readonly int _AODepthToViewParams            = Shader.PropertyToID("_AODepthToViewParams");
         public static readonly int _AOPackedBlurred                = Shader.PropertyToID("_AOPackedBlurred");
         public static readonly int _AOOutputHistory                = Shader.PropertyToID("_AOOutputHistory");
 
