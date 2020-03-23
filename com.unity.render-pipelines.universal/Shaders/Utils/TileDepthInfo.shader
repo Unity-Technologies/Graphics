@@ -79,7 +79,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
             SamplerState my_point_clamp_sampler;
             #endif
             TEXTURE2D_FLOAT(_DepthTex);
-            UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
+            UNITY_DECLARE_FRAMEBUFFER_INPUT(3, FLOAT);
 
             float4 _DepthTexSize;
             // Missing C# interface to upload int vectors!
