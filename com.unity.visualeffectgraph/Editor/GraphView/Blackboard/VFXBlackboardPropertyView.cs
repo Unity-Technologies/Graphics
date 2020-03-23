@@ -38,6 +38,7 @@ namespace  UnityEditor.VFX.UI
         PropertyRM m_Property;
         PropertyRM m_MinProperty;
         PropertyRM m_MaxProperty;
+        PropertyRM m_EnumProperty;
         List<PropertyRM> m_SubProperties;
         StringPropertyRM m_TooltipProperty;
 
@@ -61,6 +62,8 @@ namespace  UnityEditor.VFX.UI
                     result = result.Concat(Enumerable.Repeat(m_MinProperty, 1));
                 if (m_MaxProperty != null)
                     result = result.Concat(Enumerable.Repeat(m_MaxProperty, 1));
+                if (m_EnumProperty != null)
+                    result = result.Concat(Enumerable.Repeat(m_EnumProperty, 1));
 
                 return result;
             }
@@ -214,6 +217,12 @@ namespace  UnityEditor.VFX.UI
                             m_MaxProperty.RemoveFromHierarchy();
                         m_MaxProperty = PropertyRM.Create(controller.maxController, 55);
                     }
+                    if( m_EnumProperty == null || !m_EnumProperty.IsCompatible(controller.enumController))
+                    {
+                        if (m_EnumProperty != null)
+                            m_EnumProperty.RemoveFromHierarchy();
+                        m_EnumProperty = new VFXListParameterEnumValuePropertyRM(controller.enumController, 55);
+                    }
 
                     if (m_ValueFilterProperty == null)
                     {
@@ -233,6 +242,14 @@ namespace  UnityEditor.VFX.UI
                     {
                         m_MinProperty.RemoveFromHierarchy();
                         m_MaxProperty.RemoveFromHierarchy();
+                    }
+                    if (controller.valueFilter == ValueFilter.Enum)
+                    {
+                        Insert(insertIndex++, m_EnumProperty);
+                    }
+                    else if( m_EnumProperty.parent != null)
+                    {
+                        m_EnumProperty.RemoveFromHierarchy();
                     }
                 }
                 else

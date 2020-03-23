@@ -180,6 +180,53 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
+    class VFXEnumParameterController : IPropertyRMProvider
+    {
+        public VFXEnumParameterController(VFXParameterController owner)
+        {
+            m_Owner = owner;
+        }
+
+        VFXParameterController m_Owner;
+        bool IPropertyRMProvider.expanded => false;
+
+        bool IPropertyRMProvider.expandable => false;
+
+        bool IPropertyRMProvider.expandableIfShowsEverything => false;
+
+        object IPropertyRMProvider.value { get => m_Owner.model.m_EnumValues; set => m_Owner.model.m_EnumValues = (List<VFXParameter.EnumValue>)value; }
+
+        bool IPropertyRMProvider.spaceableAndMasterOfSpace => false;
+
+        VFXCoordinateSpace IPropertyRMProvider.space { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        string IPropertyRMProvider.name => "Enum Values";
+
+        VFXPropertyAttribute[] IPropertyRMProvider.attributes => null;
+
+        object[] IPropertyRMProvider.customAttributes => null;
+
+        Type IPropertyRMProvider.portType => m_Owner.portType;
+
+        int IPropertyRMProvider.depth => 0;
+
+        bool IPropertyRMProvider.editable => m_Owner.editable;
+
+        void IPropertyRMProvider.ExpandPath()
+        {
+            throw new NotImplementedException();
+        }
+
+        bool IPropertyRMProvider.IsSpaceInherited()
+        {
+            return false;
+        }
+
+        void IPropertyRMProvider.RetractPath()
+        {
+            throw new NotImplementedException();
+        }
+    }
 
     class VFXMinMaxParameterController : IPropertyRMProvider
     {
@@ -309,6 +356,19 @@ namespace UnityEditor.VFX.UI
                     m_MaxController = new VFXMinMaxParameterController(this, false);
                 }
                 return m_MaxController;
+            }
+        }
+
+        VFXEnumParameterController m_EnumController;
+        public VFXEnumParameterController enumController
+        {
+            get
+            {
+                if (m_EnumController == null)
+                {
+                    m_EnumController = new VFXEnumParameterController(this);
+                }
+                return m_EnumController;
             }
         }
 

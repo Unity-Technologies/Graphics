@@ -41,14 +41,14 @@ namespace UnityEditor.VFX
         private bool m_IsOutput;
 
         [Serializable]
-        struct EnumValue
+        public struct EnumValue
         {
             public string name;
             public VFXSerializableObject value;
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
-        List<EnumValue> m_EnumValues;
+        public List<EnumValue> m_EnumValues;
 
         [SerializeField]
         ValueFilter m_ValueFilter;
