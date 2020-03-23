@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed duplicated entry for com.unity.modules.xr in the runtime asmdef file
 - Fixed the texture curve being destroyed from another thread than main (case 1211754)
 - Fixed unreachable code in TextureXR.useTexArray
+- Fixed GC pressure caused by `VolumeParameter<T>.GetHashCode()`
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
@@ -131,4 +132,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Moved root files into folders for easier maintenance
-

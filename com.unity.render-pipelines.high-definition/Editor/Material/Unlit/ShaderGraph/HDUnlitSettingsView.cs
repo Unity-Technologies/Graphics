@@ -12,7 +12,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class HDUnlitSettingsView : VisualElement
+    class HDUnlitSettingsView : MasterNodeSettingsView
     {
         HDUnlitMasterNode m_Node;
 
@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
-        public HDUnlitSettingsView(HDUnlitMasterNode node)
+        public HDUnlitSettingsView(HDUnlitMasterNode node) : base(node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
@@ -227,6 +227,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             });
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeSurfaceType(ChangeEvent<Enum> evt)
