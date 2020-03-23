@@ -508,17 +508,7 @@ namespace UnityEngine.Rendering.Universal
             m_GBufferPass.ConfigureTarget(gbufferDescriptors, depthDescriptor);
             m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, gbufferDescriptors, hasDepthPrepass);
             m_GBufferPass.ConfigureRenderPassDescriptor(desc.width, desc.height, desc.msaaSamples);
-
             EnqueuePass(m_GBufferPass);
-
-            RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[k_GBufferSlicesCount + 1];
-            for (int gbufferIndex = 0; gbufferIndex < k_GBufferSlicesCount; ++gbufferIndex)
-                gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
-            gbufferColorAttachments[k_GBufferSlicesCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
-            m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, hasDepthPrepass);
-            EnqueuePass(m_GBufferPass);
-
-
 
             m_DeferredLights.Setup(ref renderingData, applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null, m_CameraDepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_CameraDepthAttachment, gbufferColorAttachments);
 
