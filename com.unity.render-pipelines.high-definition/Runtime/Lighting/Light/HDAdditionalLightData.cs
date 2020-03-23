@@ -858,6 +858,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_DistanceBasedFiltering = false;
+        /// <summary>
+        /// Uses the distance to the occluder to improve the shadow denoising.
+        /// </summary>
+        internal bool distanceBasedFiltering
+        {
+            get => m_DistanceBasedFiltering;
+            set
+            {
+                if (m_DistanceBasedFiltering == value)
+                    return;
+
+                m_DistanceBasedFiltering = value;
+            }
+        }
+
         [Range(k_MinEvsmExponent, k_MaxEvsmExponent)]
         [SerializeField, FormerlySerializedAs("evsmExponent")]
         float m_EvsmExponent = 15.0f;
@@ -1440,7 +1457,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
 
         // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
-        [System.NonSerialized] internal Matrix4x4 previousTransform = new Matrix4x4();
+        [System.NonSerialized] internal Matrix4x4 previousTransform = Matrix4x4.identity;
         // Temporary index that stores the current shadow index for the light
         [System.NonSerialized] internal int shadowIndex = -1;
 
@@ -2583,7 +2600,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Synchronize all the HD Additional Light values with the Light component.
         /// </summary>
-        public void UpdateAllLightValues(bool fromTimeLine = false)
+        public void UpdateAllLightValues()
+        {
+            UpdateAllLightValues(false);
+        }
+
+        internal void UpdateAllLightValues(bool fromTimeLine)
         {
             UpdateShapeSize();
 

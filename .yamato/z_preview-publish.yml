@@ -1,0 +1,129 @@
+# This template contains all package publishing jobs to candidates, including nightly auto-publishing
+{% metadata_file .yamato/template-config.metafile %}
+
+template_environment_variables:
+  # Do not touch
+  JOB_TEMPLATE_VERSION: 1
+
+# scripting_backends:
+  # - mono
+  # - il2cpp
+
+images:
+  windows:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  linux:
+    type: Unity::VM
+    image: package-ci/ubuntu:stable
+    flavor: b1.large
+---
+auto-version:
+  name: "Auto version"
+  agent:
+    type: {{ images.linux.type }}
+    image: {{ images.linux.image }}
+    flavor: {{ images.linux.flavor }}
+  variables:
+    PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+    DISPLAY: ":0"
+{% for v in template_environment_variables -%}
+    {{ v[0] }}: {{ v[1]}}
+{% endfor -%}
+  commands:
+  - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+  - >
+    upm-ci utils auto-version bump
+{% for test in testables -%}
+    --{{ test.type }}-path {{ test.path }}
+{% endfor -%}
+  - upm-ci utils auto-version commit --push
+  artifacts:
+    packages:
+      paths:
+        - "upm-ci~/**/*"
+{% if publishing.auto_version == "true" -%}
+  triggers:
+    branches:
+      only:
+        - "{{ repo.branches.integration }}"
+{% endif -%}
+
+
+{% for test in testables -%}
+{% if test.publish_source == "true" -%}
+publish_{{ test.name }}:
+  name: "[{{ test.name }}] Candidates Publish"
+  agent:
+    type: {{ images.windows.type }}
+    image: {{ images.windows.image }}
+    flavor: {{ images.windows.flavor }}
+  variables:
+    {% for v in template_environment_variables %}
+    {{ v[0] }}: {{ v[1]}}
+    {% endfor %}
+  commands:
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - >
+      upm-ci {{ test.type }} publish
+      --{{ test.type }}-path {{ test.path }}
+  artifacts:
+    packages:
+        paths:
+            - "upm-ci~/packages/*.tgz"
+{% if publishing.auto_publish == "true" -%}
+  triggers:
+    recurring:
+      - branch: "{{ repo.branches.integration }}"
+        frequency: daily
+{% endif -%}
+  dependencies:
+{% for testing in extra_jobs.testing -%}
+    - {{ testing }}
+{% endfor -%}
+    - .yamato/upm-ci-packages.yml#pack_{{ test.name }}
+{% for editor in editors -%}
+{% for platform in platforms -%}
+    - .yamato/upm-ci-packages.yml#test_{{ test.name }}_{{ platform.os }}_{{ editor.version }}
+# Disabled for linux since it requires GPUs
+# {% if platform.os != "linux" -%}
+# {% if test.standalone == "true" -%}
+# {% for backend in scripting_backends -%}
+    # - .yamato/package-test.yml#{{ test.name }}:{{ platform.os }}:{{ editor.version }}:standalone:{{ backend }}
+# {% endfor -%}
+# {% endif -%} # test.standalone
+# {% endif -%} # platform.os
+{% endfor -%}
+{% endfor -%}
+{% endif -%} # publish_source
+{% endfor -%}
+    
+
+{% for test in testables -%}
+{% if test.publish_source == "true" -%}
+promote_{{ test.name }}:
+  name: "[{{ test.name }}] Production Promote"
+  agent:
+    type: {{ images.windows.type }}
+    image: {{ images.windows.image }}
+    flavor: {{ images.windows.flavor }}
+  variables:
+    UPMCI_PROMOTION: 1
+  commands:
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - >
+      upm-ci {{ test.type }} promote
+      --{{ test.type }}-path {{ test.path }}
+  artifacts:
+    packages:
+        paths:
+            - "upm-ci~/packages/*.tgz"
+  dependencies:
+    - .yamato/upm-ci-packages.yml#pack_{{ test.name }}
+    # TODO: Add back in when fixed on upm side.
+    # Removed because promotion tests are checking if the packages exist in production
+    # -- which they dont because we are trying to promote them.
+    # - .yamato/package-test.yml#promotion:test:trigger:{{ test.name }}
+{% endif -%} # publish_source
+{% endfor %}

@@ -103,7 +103,7 @@ namespace  UnityEditor.VFX.UI
                     m_SubProperties.Add(prop);
                     Insert(insertIndex++, prop);
                 }
-                if (subController.expanded )
+                if (subController.expanded)
                 {
                     subFieldPath.Clear();
                     subFieldPath.AddRange(fieldPath);
@@ -127,7 +127,7 @@ namespace  UnityEditor.VFX.UI
 
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
-            if( m_Property != null && e.change == VFXSubParameterController.ExpandedChange)
+            if (m_Property != null && e.change == VFXSubParameterController.ExpandedChange)
             {
                 int insertIndex = 2;
                 RecreateSubproperties(ref insertIndex);
@@ -197,7 +197,7 @@ namespace  UnityEditor.VFX.UI
                 }
                 else
                 {
-                    insertIndex += 1 + (m_SubProperties!= null ? m_SubProperties.Count : 0)+ 1; //main property + subproperties + tooltip
+                    insertIndex += 1 + (m_SubProperties != null ? m_SubProperties.Count : 0) + 1; //main property + subproperties + tooltip
                 }
 
                 if (controller.canHaveRange)
