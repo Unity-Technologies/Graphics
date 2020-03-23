@@ -33,8 +33,6 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     public enum PlanarReflectionAtlasResolution
     {
-        /// <summary>Size 64</summary>
-        PlanarReflectionResolution64 = 64,
         /// <summary>Size 128</summary>
         PlanarReflectionResolution128 = 128,
         /// <summary>Size 256</summary>

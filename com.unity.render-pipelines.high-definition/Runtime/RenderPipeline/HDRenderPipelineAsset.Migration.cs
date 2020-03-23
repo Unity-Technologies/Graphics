@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowFilteringVeryHighQualityRemoval,
             SeparateColorGradingAndTonemappingFrameSettings,
             ReplaceTextureArraysByAtlasForCookieAndPlanar,
+            ChangeMinPlanarAtlasSizeTo128,
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -99,6 +100,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightLoopSettings.cookieAtlasSize = (CookieAtlasResolution)cookieAtlasSize;
                 lightLoopSettings.planarReflectionAtlasSize = (PlanarReflectionAtlasResolution)planarSize;
+            }),
+            MigrationStep.New(Version.ChangeMinPlanarAtlasSizeTo128, (HDRenderPipelineAsset data) =>
+            {
+                ref var lightLoopSettings = ref data.m_RenderPipelineSettings.lightLoopSettings;
+                lightLoopSettings.planarReflectionAtlasSize = (PlanarReflectionAtlasResolution)Mathf.Max(128, (int)lightLoopSettings.planarReflectionAtlasSize);
             })
         );
 

@@ -1872,8 +1872,13 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
+        int index = abs(lightData.envIndex) - 1;
+        float planarSizeInPixel = _Env2DAtlasScaleOffset[index].x * PLANAR_ATLAS_SIZE; // planar are always squares
+
         // Empirical remapping
-        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, _ColorPyramidScale.z);
+        float maxAtlasMipCount = log2(PLANAR_ATLAS_SIZE);
+        float maxPlanarMipCount = log2(planarSizeInPixel);
+        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, maxAtlasMipCount) - maxAtlasMipCount + maxPlanarMipCount;
     }
     else
     {

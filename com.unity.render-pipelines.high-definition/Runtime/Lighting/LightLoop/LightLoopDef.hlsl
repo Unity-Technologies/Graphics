@@ -64,17 +64,13 @@ bool IsEnvIndexCubemap(int index)   { return index >= 0; }
 bool IsEnvIndexTexture2D(int index) { return index < 0; }
 
 // Clamp the UVs to avoid edge beelding caused by bilinear filtering on the edge of the atlas.
-float2 RemapUVAndLodForPlanarAtlas(float2 coord, float2 size, inout float lod)
+float2 RemapUVForPlanarAtlas(float2 coord, float2 size, float lod)
 {
     float2 scale = rcp(size + PLANAR_ATLAS_RCP_MIP_PADDING) * size;
     float2 offset = 0.5 * (1.0 - scale);
 
-    // Remap the lod (which was based on the size of the color pyramid) to the planar size
-    float2 sizeInPixel = size * PLANAR_ATLAS_SIZE;
-    lod -= _ColorPyramidScale.z - log2(sizeInPixel);
-
     // Avoid edge bleeding for texture when sampling with lod by clamping uvs:
-    float2 mipClamp = exp2(lod) / (sizeInPixel * 2);
+    float2 mipClamp = exp2(lod) / (size * PLANAR_ATLAS_SIZE * 2);
     return clamp(coord * scale + offset, mipClamp, 1 - mipClamp);
 }
 
@@ -102,7 +98,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             // Apply atlas scale and offset
             float2 scale = _Env2DAtlasScaleOffset[index].xy;
             float2 offset = _Env2DAtlasScaleOffset[index].zw;
-            float2 atlasCoords = RemapUVAndLodForPlanarAtlas(ndc.xy, scale, lod);
+            float2 atlasCoords = RemapUVForPlanarAtlas(ndc.xy, scale, lod);
             atlasCoords = atlasCoords * scale + offset;
 
             color.rgb = SAMPLE_TEXTURE2D_LOD(_Env2DTextures, s_trilinear_clamp_sampler, atlasCoords, lod).rgb;
