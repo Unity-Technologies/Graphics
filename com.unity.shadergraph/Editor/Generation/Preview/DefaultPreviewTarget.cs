@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
@@ -28,6 +29,14 @@ namespace UnityEditor.ShaderGraph
         public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks)
         {
             return null;
+        }
+
+        public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
         }
 
         public VisualElement GetSettings(Action onChange)

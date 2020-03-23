@@ -105,4 +105,19 @@ namespace UnityEditor.ShaderGraph
             return ShaderGraphRequirements.none;
         }
     }
+
+    public class Vector2Control : IControl
+    {
+        public Vector2 value { get; private set; }
+
+        public Vector2Control(Vector2 value)
+        {
+            this.value = value;
+        }
+
+        public ShaderGraphRequirements GetRequirements()
+        {
+            return ShaderGraphRequirements.none;
+        }
+    }
 }

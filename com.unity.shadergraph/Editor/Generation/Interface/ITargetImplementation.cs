@@ -18,6 +18,8 @@ namespace UnityEditor.ShaderGraph
         void SetupTarget(ref TargetSetupContext context);
         void SetActiveBlocks(ref List<BlockFieldDescriptor> activeBlocks);
         ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks);
+        void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode);
+        void ProcessPreviewMaterial(Material material);
         VisualElement GetSettings(Action onChange);
     }
 

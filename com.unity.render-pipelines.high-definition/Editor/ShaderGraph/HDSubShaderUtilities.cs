@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 using ShaderPass = UnityEditor.ShaderGraph.PassDescriptor;
 
 // Include material common properties names
@@ -233,8 +234,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     return BlendMode.Alpha;
                 case AlphaMode.Premultiply:
                     return BlendMode.Premultiply;
-                case AlphaMode.Multiply: // In case of multiply we fall back to alpha
-                    return BlendMode.Alpha;
                 default:
                     throw new System.Exception("Unknown AlphaMode: " + alphaMode + ": can't convert to BlendMode.");
             }

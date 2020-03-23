@@ -131,6 +131,12 @@ namespace UnityEditor.ShaderGraph
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
                 activeNode.CollectShaderProperties(shaderProperties, m_Mode);
 
+            // Collect excess shader properties from the TargetImplementation
+            foreach(var implementation in m_TargetImplementations)
+            {
+                implementation.CollectShaderProperties(shaderProperties, m_Mode);
+            }
+
             m_Builder.AppendLine(@"Shader ""{0}""", m_Name);
             using (m_Builder.BlockScope())
             {
@@ -231,6 +237,9 @@ namespace UnityEditor.ShaderGraph
                 void ProcessStackForPass(ContextData contextData, BlockFieldDescriptor[] passBlockMask,
                     List<AbstractMaterialNode> nodeList, List<MaterialSlot> slotList)
                 {
+                    if(passBlockMask == null)
+                        return;
+
                     foreach(var blockFieldDescriptor in passBlockMask)
                     {
                         // Mask blocks on active state
@@ -273,6 +282,9 @@ namespace UnityEditor.ShaderGraph
                 // Process stack for vertex and fragment
                 ProcessStackForPass(m_GraphData.vertexContext, pass.vertexBlocks, vertexNodes, vertexSlots);
                 ProcessStackForPass(m_GraphData.fragmentContext, pass.pixelBlocks, pixelNodes, pixelSlots);
+
+                // Collect excess shader properties from the TargetImplementation
+                m_TargetImplementations[targetIndex].CollectShaderProperties(propertyCollector, m_Mode);
             }
             else if(m_OutputNode is SubGraphOutputNode)
             {

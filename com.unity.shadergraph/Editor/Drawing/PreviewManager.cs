@@ -524,9 +524,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     CheckForErrors(renderData.shaderData);
                     m_NodesToDraw.Add(renderData.shaderData.node);
 
-                    // TODO: Mpve process preview material to TargetImplementation
-                    // var masterNode = renderData.shaderData.node as IMasterNode;
-                    // masterNode?.ProcessPreviewMaterial(renderData.shaderData.mat);
+                    // Process preview materials
+                    foreach(var implementation in m_Graph.activeGenerationTarget.activeImplementations)
+                    {
+                        implementation.ProcessPreviewMaterial(renderData.shaderData.mat);
+                    }
                 }
             }
 

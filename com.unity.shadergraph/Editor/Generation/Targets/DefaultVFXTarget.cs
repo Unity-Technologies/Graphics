@@ -60,6 +60,14 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
+        public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
+        }
+
         public VisualElement GetSettings(Action onChange)
         {
             var element = new VisualElement() { name = "defaultVisualEffectSettings" };

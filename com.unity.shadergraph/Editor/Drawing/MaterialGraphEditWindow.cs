@@ -381,14 +381,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 UpdateShaderGraphOnDisk(path);
 
-                if (GraphData.onSaveGraph != null)
-                {
-                    var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
-                    if (shader != null)
-                    {
-                        GraphData.onSaveGraph(shader, graphObject.graph.subGraphOutputNode.saveContext);
-                    }
-                }
+                // TODO: Re-enable onSaveGraph
+                // if (GraphData.onSaveGraph != null)
+                // {
+                //     var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+                //     if (shader != null)
+                //     {
+                //         GraphData.onSaveGraph(shader, graphObject.graph.subGraphOutputNode.saveContext);
+                //     }
+                // }
             }
 
             UpdateTitle();

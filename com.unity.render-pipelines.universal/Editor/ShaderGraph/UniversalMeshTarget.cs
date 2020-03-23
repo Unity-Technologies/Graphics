@@ -22,6 +22,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Specular,
         Metallic,
     }
+
+    enum SurfaceType
+    {
+        Opaque,
+        Transparent
+    }
+
+    enum AlphaMode
+    {
+        Alpha,
+        Premultiply,
+        Additive,
+        Multiply
+    }
     
     class UniversalMeshTarget : ITargetImplementation
     {
@@ -199,6 +213,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 new ConditionalField(Fields.SpecularSetup,       m_MaterialType == MaterialType.Lit && m_WorkflowMode == WorkflowMode.Specular),
                 new ConditionalField(Fields.Normal,              m_MaterialType == MaterialType.Lit && blocks.Contains(BlockFields.SurfaceDescription.Normal)),
             };
+        }
+
+        public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
         }
 
         public VisualElement GetSettings(Action onChange)
