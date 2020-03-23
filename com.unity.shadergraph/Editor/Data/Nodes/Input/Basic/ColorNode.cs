@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 m_Color = value;
-                Dirty(ModificationScope.Node);
+                Dirty(ModificationScope.Graph);
             }
         }
 

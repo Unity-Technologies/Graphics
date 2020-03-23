@@ -300,7 +300,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         property.colorMode = (ColorMode)evt.newValue;
                         colorField.hdr = property.colorMode == ColorMode.HDR;
                         colorField.MarkDirtyRepaint();
-                        DirtyNodes();
+                        DirtyNodes(ModificationScope.Graph);
                     });
                 AddRow("Mode", colorModeField);
             }
