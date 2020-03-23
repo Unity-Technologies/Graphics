@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MinCookieSize = 2;
 
         readonly Material m_MaterialFilterAreaLights;
-        MaterialPropertyBlock m_MPBFilterAreaLights;
+        MaterialPropertyBlock m_MPBFilterAreaLights = new MaterialPropertyBlock();
 
         readonly Material m_CubeToPanoMaterial;
 
