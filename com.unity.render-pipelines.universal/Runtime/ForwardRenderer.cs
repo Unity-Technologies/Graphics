@@ -184,13 +184,13 @@ namespace UnityEngine.Rendering.Universal
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
-                RenderTargetHandle cameraTarget = RenderTargetHandle.CameraTarget;
+                RenderTargetHandle cameraTargetHandle = RenderTargetHandle.CameraTarget;
 #if ENABLE_VR && ENABLE_VR_MODULE
                 if(cameraData.xrPass.enabled)
-                    cameraTarget = cameraData.xrPass.renderTargetAsRTHandle;
+                    cameraTargetHandle.Init(cameraData.xrPass.renderTarget);
 #endif
-                m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : cameraTarget;
-                m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : cameraTarget;
+                m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : cameraTargetHandle;
+                m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : cameraTargetHandle;
 
                 bool intermediateRenderTexture = createColorTexture || createDepthTexture;
 
@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.Universal
                 // XRTODO: intermediate texture dimension could be differrent from camera target texture dimension.
                 // Upgrade the logic here to handle multipass render to texture array case and spi render to N texture 2d case
                 if (createTextures)
-                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor);
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture);
 
                 // if rendering to intermediate render texture we don't have to create msaa backbuffer
                 int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
@@ -401,11 +401,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor)
+        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_CreateCameraTextures);
             int msaaSamples = descriptor.msaaSamples;
-            if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+            if (createColor)
             {
                 bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
                 var colorDescriptor = descriptor;
@@ -413,7 +413,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
             }
 
-            if (m_ActiveCameraDepthAttachment != RenderTargetHandle.CameraTarget)
+            if (createDepth)
             {
                 var depthDescriptor = descriptor;
                 depthDescriptor.colorFormat = RenderTextureFormat.Depth;

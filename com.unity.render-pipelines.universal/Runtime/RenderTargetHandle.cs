@@ -9,6 +9,12 @@ namespace UnityEngine.Rendering.Universal
 
         public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle {id = -1 };
 
+        public RenderTargetHandle(RenderTargetIdentifier renderTargetIdentifier)
+        {
+            id = -2;
+            rtid = renderTargetIdentifier;
+        }
+
         public void Init(string shaderProperty)
         {
             id = Shader.PropertyToID(shaderProperty);

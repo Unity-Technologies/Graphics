@@ -45,17 +45,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
 
-            bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
+            bool requiresSRGBConversion = Display.main.requiresSrgbBlitToBackbuffer;
 
             // For stereo case, eye texture always want color data in sRGB space.
             // If eye texture color format is linear, we do explicit sRGB convertion
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.isStereoEnabled)
-                requiresSRGBConvertion = !cameraData.xrPass.renderTargetDesc.sRGB;
+                requiresSRGBConversion = !cameraData.xrPass.renderTargetDesc.sRGB;
 #endif
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
-            if (requiresSRGBConvertion)
+            if (requiresSRGBConversion)
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
             else
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
@@ -93,7 +93,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 scaleBiasRT = new Vector4(1, 1, 0, 0);
                 cmd.SetGlobalVector(ShaderPropertyId.blitScaleBias, scaleBias);
                 cmd.SetGlobalVector(ShaderPropertyId.blitScaleBiasRt, scaleBiasRT);
-                cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
 
                 cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
             }

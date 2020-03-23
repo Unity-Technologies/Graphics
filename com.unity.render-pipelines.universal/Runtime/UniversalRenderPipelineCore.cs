@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 
         // XR
-        public static readonly string DrawProceduleQuadBlit = "_DRAW_PRCEDURE_QUAD_BLIT";
+        public static readonly string DrawProceduleQuadBlit = "_DRAW_PROCEDURE_QUAD_BLIT";
     }
 
     public sealed partial class UniversalRenderPipeline

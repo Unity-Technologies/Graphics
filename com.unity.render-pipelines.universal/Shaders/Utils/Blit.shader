@@ -17,17 +17,17 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
 
-            #pragma multi_compile _ _LINEAR_TO_SRGB_CONVERSION
-            #pragma multi_compile _ _DRAW_PRCEDURE_QUAD_BLIT
             #pragma vertex Vertex
             #pragma fragment Fragment
+            #pragma multi_compile _ _LINEAR_TO_SRGB_CONVERSION
+            #pragma multi_compile _ _DRAW_PROCEDURE_QUAD_BLIT
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #ifdef _LINEAR_TO_SRGB_CONVERSION
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
             #endif
 
-#ifdef _DRAW_PRCEDURE_QUAD_BLIT
+#ifdef _DRAW_PROCEDURE_QUAD_BLIT
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
@@ -59,7 +59,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-#ifdef _DRAW_PRCEDURE_QUAD_BLIT
+#ifdef _DRAW_PROCEDURE_QUAD_BLIT
                 output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
                 output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
                 output.uv = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;

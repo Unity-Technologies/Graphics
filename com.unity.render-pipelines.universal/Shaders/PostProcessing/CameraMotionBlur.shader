@@ -6,20 +6,21 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
     }
 
     HLSLINCLUDE
+        #pragma multi_compile _ _DRAW_PROCEDURE_QUAD_BLIT
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
-        TEXTURE2D_X(_MainTex);
+        TEXTURE2D_X(_BlitTex);
         TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 
         float4x4 _ViewProjM;
         float4x4 _PrevViewProjM;
         float _Intensity;
         float _Clamp;
-        float4 _MainTex_TexelSize;
+        float4 _BlitTex_TexelSize;
 
         struct VaryingsCMB
         {
@@ -34,12 +35,16 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
+#ifdef _DRAW_PROCEDURE_QUAD_BLIT
+            output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
+            output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
+            output.uv.xy = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+#else
             output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-
+            output.uv.xy = input.uv;
+#endif
             float4 projPos = output.positionCS * 0.5;
             projPos.xy = projPos.xy + projPos.w;
-
-            output.uv.xy = input.uv;
             output.uv.zw = projPos.xy;
 
             return output;
@@ -79,7 +84,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         {
             float  offsetLength = (sampleNumber + 0.5) + (velocitySign * (randomVal - 0.5));
             float2 sampleUV = centerUV + (offsetLength * invSampleCount) * velocity * velocitySign;
-            return SAMPLE_TEXTURE2D_X(_MainTex, sampler_PointClamp, sampleUV).xyz;
+            return SAMPLE_TEXTURE2D_X(_BlitTex, sampler_PointClamp, sampleUV).xyz;
         }
 
         half4 DoMotionBlur(VaryingsCMB input, int iterations)
@@ -88,7 +93,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv.xy);
             float2 velocity = GetCameraVelocity(float4(uv, input.uv.zw)) * _Intensity;
-            float randomVal = InterleavedGradientNoise(uv * _MainTex_TexelSize.zw, 0);
+            float randomVal = InterleavedGradientNoise(uv * _BlitTex_TexelSize.zw, 0);
             float invSampleCount = rcp(iterations * 2.0);
 
             half3 color = 0.0;

@@ -2,16 +2,27 @@
 #define UNIVERSAL_POSTPROCESSING_COMMON_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
 // ----------------------------------------------------------------------------------
 // Common shader data used in most post-processing passes
 
+#ifdef _DRAW_PROCEDURE_QUAD_BLIT
+struct Attributes
+{
+    uint vertexID : SV_VertexID;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+};
+uniform float4 _BlitScaleBias;
+uniform float4 _BlitScaleBiasRt;
+#else
 struct Attributes
 {
     float4 positionOS   : POSITION;
     float2 uv           : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
+#endif
 
 struct Varyings
 {
@@ -25,8 +36,14 @@ Varyings Vert(Attributes input)
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+#ifdef _DRAW_PROCEDURE_QUAD_BLIT
+    output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
+    output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
+    output.uv = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+#else
     output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
     output.uv = input.uv;
+#endif  
     return output;
 }
 
@@ -46,8 +63,15 @@ Varyings VertFullscreenMesh(Attributes input)
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+#ifdef _DRAW_PROCEDURE_QUAD_BLIT
+    output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
+    output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
+    output.uv = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+#else
     output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = input.uv;
+#endif  
     return output;
 }
 

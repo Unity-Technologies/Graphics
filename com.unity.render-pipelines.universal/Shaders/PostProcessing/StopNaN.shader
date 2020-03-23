@@ -6,7 +6,7 @@ Shader "Hidden/Universal Render Pipeline/Stop NaN"
     }
 
     HLSLINCLUDE
-
+        #pragma multi_compile _ _DRAW_PROCEDURE_QUAD_BLIT
         #pragma exclude_renderers gles
         #pragma target 3.5
 
@@ -15,12 +15,12 @@ Shader "Hidden/Universal Render Pipeline/Stop NaN"
 
         #define NAN_COLOR half3(0.0, 0.0, 0.0)
 
-        TEXTURE2D_X(_MainTex);
+        TEXTURE2D_X(_BlitTex);
 
         half4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            half3 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(input.uv)).xyz;
+            half3 color = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(input.uv)).xyz;
 
             if (AnyIsNaN(color) || AnyIsInf(color))
                 color = NAN_COLOR;

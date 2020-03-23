@@ -93,7 +93,6 @@ namespace UnityEngine.Rendering.Universal
 
         // Ability to specify where to render the pass
         internal RenderTargetIdentifier  renderTarget     { get; private set; }
-        internal RenderTargetHandle      renderTargetAsRTHandle { get; private set; }
         internal RenderTextureDescriptor renderTargetDesc { get; private set; }
         static   RenderTargetIdentifier  invalidRT = -1;
         internal bool                    renderTargetValid { get => renderTarget != invalidRT; }
@@ -179,7 +178,6 @@ namespace UnityEngine.Rendering.Universal
             passInfo.cullingParams = cullingParameters;
             passInfo.views.Clear();
             passInfo.renderTarget = xrRenderPass.renderTarget;
-            passInfo.renderTargetAsRTHandle.Init(xrRenderPass.renderTarget);
 
             RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(
                     xrRenderPass.renderTargetDesc.width, xrRenderPass.renderTargetDesc.height, xrRenderPass.renderTargetDesc.colorFormat,
@@ -242,7 +240,6 @@ namespace UnityEngine.Rendering.Universal
                         // XRTODO: check gfxDevice multiview extension support here
                         if (Application.platform == RuntimePlatform.Android)
                         {
-                            // Switching to multiview ON
                             cmd.EnableShaderKeyword("STEREO_MULTIVIEW_ON");
                         }
                         else
@@ -267,7 +264,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (Application.platform == RuntimePlatform.Android)
                     {
-                        // Switching to multiview OFF
                         cmd.DisableShaderKeyword("STEREO_MULTIVIEW_ON");
                     }
                     else
@@ -296,7 +292,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // XRTODO: URP Does not use RTHandle
         internal void RenderOcclusionMeshes(CommandBuffer cmd, RenderTargetHandle depthBuffer)
         {
             if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
@@ -331,7 +326,6 @@ namespace UnityEngine.Rendering.Universal
                 Matrix4x4 projectionMatrix = GL.GetGPUProjectionMatrix(cameraData.xrPass.GetProjMatrix(0), isRenderToTexture);
                 RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.xrPass.GetViewMatrix(0), projectionMatrix, true);
 
-                //XRTODO: compute stereo data while constructing XRPass
                 Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
                 Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];
                 for (int i = 0; i < 2; i++)

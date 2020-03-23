@@ -133,7 +133,6 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-
         internal List<XRPass> SetupFrame(CameraData cameraData, bool singlePassAllowed, bool singlePassTestModeActive)
         {
             Camera camera = cameraData.camera;

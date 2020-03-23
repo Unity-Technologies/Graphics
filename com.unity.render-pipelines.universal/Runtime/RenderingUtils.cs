@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
-        //#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
         internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");
         internal static readonly int UNITY_STEREO_MATRIX_IV = Shader.PropertyToID("unity_StereoMatrixInvV");
         internal static readonly int UNITY_STEREO_MATRIX_P = Shader.PropertyToID("unity_StereoMatrixP");
@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.Universal
             }
             cmd.SetGlobalVectorArray(UNITY_STEREO_VECTOR_CAMPOS, stereoWorldSpaceCameraPos);
         }
-        //#endif
+#endif
 
         // This is used to render materials that contain built-in shader passes not compatible with URP. 
         // It will render those legacy passes with error/pink shader.

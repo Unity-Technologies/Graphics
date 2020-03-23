@@ -8,11 +8,12 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
     HLSLINCLUDE
 
         #pragma multi_compile_local _GENERIC _UNIT_DISTANCE
+        #pragma multi_compile _ _DRAW_PROCEDURE_QUAD_BLIT
 
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
-        TEXTURE2D_X(_MainTex);
+        TEXTURE2D_X(_BlitTex);
 
         float4 _Params;
 
@@ -112,7 +113,7 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
             float2 proj_ndc = proj_pos / _Params.xy;
             float2 coords = proj_ndc * 0.5 + 0.5;
 
-            return SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, coords);
+            return SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, coords);
         }
 
     ENDHLSL
