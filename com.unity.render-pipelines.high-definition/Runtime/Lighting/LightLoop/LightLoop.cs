@@ -3598,7 +3598,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, resources.lightListBuffer);
                 parameters.deferredComputeShader.shaderKeywords = null;
 
-                switch(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
+                switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
                 {
                     case HDShadowFilteringQuality.Low:
                         parameters.deferredComputeShader.EnableKeyword("SHADOW_LOW");
