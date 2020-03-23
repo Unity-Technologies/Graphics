@@ -3,7 +3,7 @@
 
 Events are the Processing Workflow inputs of a Visual Effect Graph. Through Events, a Visual Effect can :
 
-* Start and stop spawning particles, 
+* Start and stop spawning particles,
 * Read Attribute payloads sent from C#
 
 Events are used in the graph as inputs for Spawn Contexts and Initialize
@@ -58,4 +58,3 @@ GPU Events are Event Contexts that relies on Data sent from other Systems, for i
 These Blocks connect to a **GPUEvent** Context. This context does not handle any Blocks but instead connects to a Initialize Context of a child system.
 
 In order to gather data from the parent particle, the child system must refer to [Source Attributes](Attributes.md) in its Initialize Context, by using **Get Source Attribute Operator**, or **Inherit Attribute Block**,as shown as in the example above : The child System inherits the source position of the particle that created it, and inherits roughly 50% of its speed.
-

@@ -1,0 +1,12 @@
+{
+    "FilenameValidation":
+    {
+        "Filenames":
+        [
+            {
+                "Filename": "ShaderLibrary/API/Switch.hlsl*",
+                "Targets": "+Switch"
+            }
+        ]
+    }
+}

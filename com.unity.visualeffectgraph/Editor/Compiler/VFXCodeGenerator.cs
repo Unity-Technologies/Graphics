@@ -88,7 +88,7 @@ namespace UnityEditor.VFX
                     {
                         r.WriteLine();
                         r.WriteFormat("uint {0}_{1} = 0u;", VFXAttribute.EventCount.name, VFXCodeGeneratorHelper.GeneratePrefix(i));
-                    }                 
+                    }
                 }
                 r.WriteLine();
             }
@@ -182,10 +182,12 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static public StringBuilder Build(VFXContext context, VFXCompilationMode compilationMode, VFXContextCompiledData contextData)
+        static public StringBuilder Build(VFXContext context, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies)
         {
             var templatePath = string.Format("{0}.template", context.codeGeneratorTemplate);
-            return Build(context, templatePath, compilationMode, contextData);
+
+            dependencies.Add(AssetDatabase.AssetPathToGUID(templatePath));
+            return Build(context, templatePath, compilationMode, contextData, dependencies);
         }
 
         static private void GetFunctionName(VFXBlock block, out string functionName, out string comment)
@@ -259,7 +261,7 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static private StringBuilder GetFlattenedTemplateContent(string path, List<string> includes, IEnumerable<string> defines)
+        static private StringBuilder GetFlattenedTemplateContent(string path, List<string> includes, IEnumerable<string> defines, HashSet<string> dependencies)
         {
             var formattedPath = FormatPath(path);
 
@@ -280,6 +282,7 @@ namespace UnityEditor.VFX
                 var renderPipelineInclude = groups[1].Value == "RP";
                 var includePath = groups[2].Value;
 
+
                 if (groups.Count > 3 && !String.IsNullOrEmpty(groups[2].Value))
                 {
                     var allDefines = groups[3].Value.Split(new char[] {',', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
@@ -297,8 +300,9 @@ namespace UnityEditor.VFX
                     absolutePath = VFXLibrary.currentSRPBinder.templatePath + "/" + includePath;
                 else
                     absolutePath = VisualEffectGraphPackageInfo.assetPackagePath + "/" + includePath;
+                dependencies.Add(AssetDatabase.AssetPathToGUID(absolutePath));
 
-                var includeBuilder = GetFlattenedTemplateContent(absolutePath, includes, defines);
+                var includeBuilder = GetFlattenedTemplateContent(absolutePath, includes, defines, dependencies);
                 ReplaceMultiline(templateContent, groups[0].Value, includeBuilder);
             }
 
@@ -357,11 +361,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData)
+        static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies)
         {
             if (!context.SetupCompilation())
                 return null;
-            var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines);
+            var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines, dependencies);
 
             var allCurrentAttributes = context.GetData().GetAttributes().Where(a =>
                 (context.GetData().IsCurrentAttributeUsed(a.attrib, context)) ||
@@ -423,7 +427,7 @@ namespace UnityEditor.VFX
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
 
             if (renderPipePasses != null)
-                globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), context.additionalDefines));
+                globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), context.additionalDefines, dependencies));
 
             if (context.GetData() is ISpaceable)
             {
@@ -443,7 +447,6 @@ namespace UnityEditor.VFX
             var uniqueIncludes = new HashSet<string>(includes);
             foreach (var includePath in uniqueIncludes)
                 perPassIncludeContent.WriteLine(string.Format("#include \"{0}\"", includePath));
-
 
 
             ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent.builder);
@@ -470,15 +473,15 @@ namespace UnityEditor.VFX
             foreach (string fragmentParameter in context.fragmentParameters)
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name &&
-                !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name));     // if parameter already in the global scope, there's nothing to do
+                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)); // if parameter already in the global scope, there's nothing to do
 
                 if (filteredNamedExpression.exp != null)
                 {
                     additionalInterpolantsDeclaration.WriteDeclaration(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, $"NORMAL{normSemantic++}");
-                    additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name+"__", "0");
+                    additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", "0");
                     var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
                     additionalInterpolantsGeneration.EnterScope();
-                    { 
+                    {
                         if (!expressionToNameLocal.ContainsKey(filteredNamedExpression.exp))
                         {
                             additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);

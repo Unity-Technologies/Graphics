@@ -74,6 +74,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override void SetEnabled(bool value)
+        {
+            for (int i = 0; i < m_FloatFields.GetLength(0); ++i)
+            {
+                for (int j = 0; j < m_FloatFields.GetLength(1); ++j)
+                {
+                    m_FloatFields[i, j].SetEnabled(value);
+                }
+            }
+        }
+
         public VFXMatrix4x4Field()
         {
             CreateTextField();
@@ -102,7 +113,9 @@ namespace UnityEditor.VFX.UI
                 for (int j = 0; j < m_FloatFields.GetLength(1); ++j)
                 {
                     if (!m_FloatFields[i, j].control.HasFocus() || force)
+                    {
                         m_FloatFields[i, j].value = value[i, j];
+                    }
                 }
             }
         }

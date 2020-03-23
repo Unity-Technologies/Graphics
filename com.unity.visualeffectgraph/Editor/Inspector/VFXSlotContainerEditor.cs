@@ -91,7 +91,7 @@ class VFXSlotContainerEditor : Editor
                         var controller = view.controller.GetParameterController(slotContainer as VFXParameter);
 
                         m_CurrentController = controller;
-                        if( controller != null)
+                        if (controller != null)
                             controller.DrawGizmos(view.attachedComponent);
                     }
                     else
@@ -162,7 +162,9 @@ class VFXSlotContainerEditor : Editor
                         VFXView view = VFXViewWindow.currentWindow.graphView;
                         if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
                         {
-                            sceneView.Frame(m_CurrentController.GetGizmoBounds(view.attachedComponent), false);
+                            Bounds b = m_CurrentController.GetGizmoBounds(view.attachedComponent);
+                            if (b.size.sqrMagnitude > Mathf.Epsilon)
+                                sceneView.Frame(b, false);
                         }
                     }
                 }
@@ -283,7 +285,7 @@ class VFXSlotContainerEditor : Editor
         {
             Color backup = GUI.color;
 
-            var c = new Color32(160,160,160,255);
+            var c = new Color32(160, 160, 160, 255);
             if ((mode & VFXAttributeMode.Read) != 0)
                 c.b = 255;
             if ((mode & VFXAttributeMode.Write) != 0)

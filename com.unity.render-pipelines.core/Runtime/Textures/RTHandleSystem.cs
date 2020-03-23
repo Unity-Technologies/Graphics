@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering
         /// <param name="scaledRTMSAASamples">Number of MSAA samples for automatically scaled RTHandles.</param>
         public void Initialize(int width, int height, bool scaledRTsupportsMSAA, MSAASamples scaledRTMSAASamples)
         {
-            Debug.Assert(m_AutoSizedRTs.Count == 0, "RTHandle.Initialize should only be called once before allocating any Render Texture.");
+            Debug.Assert(m_AutoSizedRTs.Count == 0, "RTHandle.Initialize should only be called once before allocating any Render Texture. This may be caused by an unreleased RTHandle resource.");
 
             m_MaxWidths = width;
             m_MaxHeights = height;
@@ -756,6 +756,23 @@ namespace UnityEngine.Rendering
         /// <param name="texture">Input texture</param>
         /// <returns>A new RTHandle referencing the input texture.</returns>
         public RTHandle Alloc(Texture texture)
+        {
+            var rth = new RTHandle(this);
+            rth.SetTexture(texture);
+            rth.m_EnableMSAA = false;
+            rth.m_EnableRandomWrite = false;
+            rth.useScaling = false;
+            rth.m_EnableHWDynamicScale = false;
+            rth.m_Name = "";
+            return rth;
+        }
+
+        /// <summary>
+        /// Allocate a RTHandle from a regular render target identifier.
+        /// </summary>
+        /// <param name="texture">Input render target identifier.</param>
+        /// <returns>A new RTHandle referencing the input render target identifier.</returns>
+        public RTHandle Alloc(RenderTargetIdentifier texture)
         {
             var rth = new RTHandle(this);
             rth.SetTexture(texture);

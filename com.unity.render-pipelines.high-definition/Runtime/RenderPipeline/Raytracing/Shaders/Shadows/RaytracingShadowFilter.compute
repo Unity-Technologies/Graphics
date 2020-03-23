@@ -45,6 +45,8 @@ TEXTURE2D_X(_AreaShadowHistory);
 RW_TEXTURE2D_X(float4, _AreaShadowHistoryRW);
 // Output buffer for our temporal accumulation pass
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+// Value that tells us if the current history should be discarded based on scene-level data
+float _HistoryValidity;
 
 // Given that area shadows history buffer are stored as buffers, we need data to know where to read and where to write
 uint _DenoisingHistorySlice;
@@ -111,9 +113,9 @@ void AreaShadowApplyTAA(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     uint2 historyPixelCoord =  centerCoord - velocity * _ScreenSize.xy;
     // Ok so here, if we do not match cloesly the previous analytic value, it means either TAA has invalidated the sample or the pixel just appeared
     float currentAnalyticValue = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x;
-    float historyAnalyticValue = dot(_DenoisingHistoryMask, _AnalyticHistoryBuffer[uint3(historyPixelCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))]);
+    float historyAnalyticValue = dot(_DenoisingHistoryMaskSn, _AnalyticHistoryBuffer[uint3(historyPixelCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))]);
 
-    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f)
+    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f || _HistoryValidity == 0.0)
     {
         // Fetch the current value
         float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).xy;
@@ -495,8 +497,10 @@ void AREA_SHADOW_DENOISE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 RW_TEXTURE2D_X(float4, _ScreenSpaceShadowsTextureRW);
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
-void AreaShadowNoDenoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void AreaShadowNoDenoise(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Compute the pixel position to process
     uint2 currentCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
 
@@ -507,7 +511,7 @@ void AreaShadowNoDenoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     float shadowValue = _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].y > 0.0 ? _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].x / _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].y : 0.0;
     
     // Only override when the mask is 1.0
-    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, _DenoisingHistorySlice)] = (1.0 - _DenoisingHistoryMask) * previousValue + _DenoisingHistoryMask * shadowValue;
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))] = (1.0 - _DenoisingHistoryMask) * previousValue + _DenoisingHistoryMask * shadowValue;
 }
 
 uint _DenoisingHistorySlot;

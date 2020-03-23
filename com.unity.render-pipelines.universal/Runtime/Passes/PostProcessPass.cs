@@ -49,6 +49,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         const int k_MaxPyramidSize = 16;
         readonly GraphicsFormat m_DefaultHDRFormat;
         bool m_UseRGBM;
+        readonly GraphicsFormat m_SMAAEdgeFormat;
         readonly GraphicsFormat m_GaussianCoCFormat;
         Matrix4x4 m_PrevViewProjM = Matrix4x4.identity;
         bool m_ResetHistory;
@@ -69,11 +70,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         // We need to do the conversion manually on those
         bool m_EnableSRGBConversionIfNeeded;
 
-        public PostProcessPass(RenderPassEvent evt, PostProcessData data)
+        Material m_BlitMaterial;
+
+        public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
         {
             renderPassEvent = evt;
             m_Data = data;
             m_Materials = new MaterialLibrary(data);
+            m_BlitMaterial = blitMaterial;
 
             // Texture format pre-lookup
             if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
@@ -88,6 +92,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                     : GraphicsFormat.R8G8B8A8_UNorm;
                 m_UseRGBM = true;
             }
+
+            // Only two components are needed for edge render texture, but on some vendors four components may be faster.
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8G8_UNorm, FormatUsage.Render) && SystemInfo.graphicsDeviceVendor.ToLowerInvariant().Contains("arm"))
+                m_SMAAEdgeFormat = GraphicsFormat.R8G8_UNorm;
+            else
+                m_SMAAEdgeFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
             if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, FormatUsage.Linear | FormatUsage.Render))
                 m_GaussianCoCFormat = GraphicsFormat.R16_UNorm;
@@ -214,6 +224,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             return desc;
         }
 
+        bool RequireSRGBConversionBlitToBackBuffer(CameraData cameraData)
+        {
+            bool requiresSRGBConversion = Display.main.requiresSrgbBlitToBackbuffer;
+            // For stereo case, eye texture always want color data in sRGB space.
+            // If eye texture color format is linear, we do explicit sRGB convertion
+#if ENABLE_VR && ENABLE_VR_MODULE
+            if (cameraData.isStereoEnabled)
+                requiresSRGBConversion = !XRGraphics.eyeTextureDesc.sRGB;
+#endif
+            return requiresSRGBConversion;
+        }
+
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
         {
             ref var cameraData = ref renderingData.cameraData;
@@ -333,8 +355,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Only apply dithering & grain if there isn't a final pass.
                 SetupGrain(cameraData, m_Materials.uber);
                 SetupDithering(cameraData, m_Materials.uber);
-				
-                if (Display.main.requiresSrgbBlitToBackbuffer && m_EnableSRGBConversionIfNeeded)
+
+                if (RequireSRGBConversionBlitToBackBuffer(cameraData) && m_EnableSRGBConversionIfNeeded)
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
                 // Done with Uber, blit it
@@ -350,9 +372,22 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cameraTarget = (m_Destination == RenderTargetHandle.CameraTarget) ? cameraTarget : m_Destination.Identifier();
                 cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
+                // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
+                bool finishPostProcessOnScreen = cameraData.resolveFinalTarget || (m_Destination == RenderTargetHandle.CameraTarget || m_HasFinalPass == true);
+
                 if (m_IsStereo)
                 {
                     Blit(cmd, GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
+
+                    // TODO: We need a proper camera texture swap chain in URP.
+                    // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
+                    // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
+                    // in the pipeline to avoid this extra blit.
+                    if (!finishPostProcessOnScreen)
+                    {
+                        cmd.SetGlobalTexture("_BlitTex", cameraTarget);
+                        Blit(cmd, BuiltinRenderTextureType.CurrentActive, m_Source.id, m_BlitMaterial);
+                    }
                 }
                 else
                 {
@@ -362,6 +397,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetViewport(cameraData.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
+
+                    // TODO: We need a proper camera texture swap chain in URP.
+                    // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
+                    // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
+                    // in the pipeline to avoid this extra blit.
+                    if (!finishPostProcessOnScreen)
+                    {
+                        cmd.SetGlobalTexture("_BlitTex", cameraTarget);
+                        cmd.SetRenderTarget(m_Source.id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
+                    }
+
                     cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                 }
 
@@ -430,7 +477,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 stencil = m_Depth.Identifier();
                 tempDepthBits = 0;
             }
-            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm, tempDepthBits), FilterMode.Point);
+            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat, tempDepthBits), FilterMode.Point);
             cmd.GetTemporaryRT(ShaderConstants._BlendTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point);
 
             // Prepare for manual blit
@@ -604,7 +651,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalVector(ShaderConstants._CoCParams, new Vector4(P, maxCoC, maxRadius, rcpAspect));
 
             // Prepare the bokeh kernel constant buffer
-            int hash = m_DepthOfField.GetHashCode(); // TODO: GC fix
+            int hash = m_DepthOfField.GetHashCode();
             if (hash != m_BokehHash)
             {
                 m_BokehHash = hash;
@@ -1022,7 +1069,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             SetupGrain(cameraData, material);
             SetupDithering(cameraData, material);
 
-            if (Display.main.requiresSrgbBlitToBackbuffer && m_EnableSRGBConversionIfNeeded)
+            if (RequireSRGBConversionBlitToBackBuffer(cameraData) && m_EnableSRGBConversionIfNeeded)
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());

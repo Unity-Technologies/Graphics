@@ -245,7 +245,7 @@ namespace UnityEditor.ShaderGraph
         bool RequiresWorldSpaceTangentTransform()
         {
             if (conversion.from == CoordinateSpace.View && conversion.to == CoordinateSpace.Tangent
-                || conversion.from == CoordinateSpace.AbsoluteWorld && conversion.to == CoordinateSpace.Tangent
+                || conversion.from == CoordinateSpace.AbsoluteWorld 
                 || conversion.from == CoordinateSpace.Object && conversion.to == CoordinateSpace.Tangent
                 || conversion.from == CoordinateSpace.Tangent)
                 return true;

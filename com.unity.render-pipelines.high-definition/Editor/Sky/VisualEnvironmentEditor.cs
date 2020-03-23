@@ -14,8 +14,26 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_SkyType;
         SerializedDataParameter m_SkyAmbientMode;
 
-        List<GUIContent> m_SkyClassNames = null;
-        List<int> m_SkyUniqueIDs = null;
+        static List<GUIContent> m_SkyClassNames = null;
+        static List<int> m_SkyUniqueIDs = null;
+
+        public static List<GUIContent> skyClassNames
+        {
+            get
+            {
+                UpdateSkyAndFogIntPopupData();
+                return m_SkyClassNames;
+            }
+        }
+
+        public static List<int> skyUniqueIDs
+        {
+            get
+            {
+                UpdateSkyAndFogIntPopupData();
+                return m_SkyUniqueIDs;
+            }
+        }
 
         public override void OnEnable()
         {
@@ -26,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SkyAmbientMode = Unpack(o.Find(x => x.skyAmbientMode));
         }
 
-        void UpdateSkyAndFogIntPopupData()
+        static void UpdateSkyAndFogIntPopupData()
         {
             if (m_SkyClassNames == null)
             {
@@ -62,9 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.IntPopup(m_SkyType.value, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Type", "Specifies the type of sky this Volume uses."));
                 }
             }
-            if (m_SkyType.value.intValue != 0)
-                EditorGUILayout.HelpBox("You need to also add a Volume Component matching the selected type.", MessageType.Info);
-            PropertyField(m_SkyAmbientMode, EditorGUIUtility.TrTextContent("Ambient Mode"));
+            PropertyField(m_SkyAmbientMode, EditorGUIUtility.TrTextContent("Ambient Mode", "Specifies how the global ambient probe is computed. Dynamic will use the currently displayed sky and static will use the sky setup in the environment lighting panel."));
 
             var staticLightingSky = SkyManager.GetStaticLightingSky();
             if (m_SkyAmbientMode.value.GetEnumValue<SkyAmbientMode>() == SkyAmbientMode.Static)
