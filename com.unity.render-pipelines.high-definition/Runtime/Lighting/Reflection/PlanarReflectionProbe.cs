@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// The planar reflection probe component.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Planar-Reflection-Probe" + Documentation.endURL)]
+    [HelpURL(Documentation.baseURL + Documentation.releaseVersion + Documentation.subURL + "Planar-Reflection-Probe" + Documentation.endURL)]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Planar Reflection Probe")]
     public sealed partial class PlanarReflectionProbe : HDProbe

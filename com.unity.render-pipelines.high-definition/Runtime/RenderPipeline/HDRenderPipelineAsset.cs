@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// High Definition Render Pipeline asset.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
+    [HelpURL(Documentation.baseURL + Documentation.releaseVersion + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     public partial class HDRenderPipelineAsset : RenderPipelineAsset
     {
 

@@ -3,7 +3,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Additional component used to store settings for HDRP's reflection probes.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Reflection-Probe" + Documentation.endURL)]
+    [HelpURL(Documentation.baseURL + Documentation.releaseVersion + Documentation.subURL + "Reflection-Probe" + Documentation.endURL)]
     [RequireComponent(typeof(ReflectionProbe))]
     public sealed partial class HDAdditionalReflectionData : HDProbe
     {
