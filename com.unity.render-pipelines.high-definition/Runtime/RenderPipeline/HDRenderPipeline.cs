@@ -3723,7 +3723,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public int              width, height, viewCount;
 
-            public int              depthPyramidMipCount;
             public ComputeBuffer    offsetBufferData;
             public ComputeBuffer    coarseStencilBuffer;
 
