@@ -14,9 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public bool IsValid(IMasterNode masterNode)
         {
-            return (masterNode is FabricMasterNode ||
-                    masterNode is HDLitMasterNode ||
-                    masterNode is HDUnlitMasterNode);
+            return GetSubShaderDescriptorFromMasterNode(masterNode) != null;
         }
         public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
         {
@@ -28,17 +26,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("a3b60b90b9eb3e549adfd57a75e77811")); // HDRPRaytracingMeshTarget
 
-            switch(context.masterNode)
+            var subShader = GetSubShaderDescriptorFromMasterNode(context.masterNode);
+            if (subShader != null)
+                context.SetupSubShader(subShader.Value);
+        }
+
+        public SubShaderDescriptor? GetSubShaderDescriptorFromMasterNode(IMasterNode masterNode)
+        {
+            switch (masterNode)
             {
-                case FabricMasterNode fabricMasterNode:
-                    context.SetupSubShader(HDSubShaders.FabricRaytracing);
-                    break;
-                case HDLitMasterNode hDLitMasterNode:
-                    context.SetupSubShader(HDSubShaders.HDLitRaytracing);
-                    break;
-                case HDUnlitMasterNode hDUnlitMasterNode:
-                    context.SetupSubShader(HDSubShaders.HDUnlitRaytracing);
-                    break;
+                case FabricMasterNode _:
+                    return HDSubShaders.FabricRaytracing;
+                case HDLitMasterNode _:
+                    return HDSubShaders.HDLitRaytracing;
+                case HDUnlitMasterNode _:
+                    return HDSubShaders.HDUnlitRaytracing;
+                default:
+                    return null;
             }
         }
     }
