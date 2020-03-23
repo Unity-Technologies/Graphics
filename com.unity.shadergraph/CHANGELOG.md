@@ -17,6 +17,9 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
 
+### Added
+- Added a field to the Master Nodes that overrides the generated shader's ShaderGUI.
+
 ### Fixed
 - Fixed a bug where PBR and Unlit master nodes in the Universal RP had Alpha Clipping enabled by default.
 - Fixed an issue where Sub Graphs sometimes had duplicate names when you converted nodes into Sub Graphs. 

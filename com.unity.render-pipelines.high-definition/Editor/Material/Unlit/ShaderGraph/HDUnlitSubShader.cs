@@ -609,7 +609,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 subShader.AddShaderChunk("}", false);
             }
 
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDUnlitGUI""");
+            if (!masterNode.OverrideEnabled)
+            {
+                subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDUnlitGUI""");
+            }
 
             return subShader.GetShaderString(0);
         }

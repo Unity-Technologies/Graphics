@@ -35,3 +35,5 @@ By default, Shader Graph expects the values you supply to the input **Normal** t
 | Blend      | Dropdown | Alpha, Premultiply, Additive, Multiply | Defines blend mode of a transparent material. |
 | Fragment Normal Space | Dropdown | Tangent, Object, World | Defines the coordinate space of the value supplied to the **Normal** slot. |
 | Two Sided      | Toggle | True, False | If `true`, both front and back faces of the mesh are rendered. |
+| Override ShaderGUI | Toggle | True, False | Lets you override the [ShaderGUI](https://docs.unity3d.com/ScriptReference/ShaderGUI.html) that this Shader Graph uses. If `true`, the **ShaderGUI** property appears, which lets you specify the ShaderGUI to use. |
+| - ShaderGUI      | TextField | Text | The full name of the ShaderGUI class to use, including the class path. |
