@@ -293,7 +293,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
-                var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * (lodCount));
+                var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * lodCount);
 
                 PushFullScreenDebugTexture(renderGraph, input, mipIndex);
             }
@@ -312,9 +312,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
                 {
                     var texture = ctx.resources.GetTexture(passData.input);
-                    var scale = new Vector4(texture.rtHandleProperties.rtHandleScale.x, texture.rtHandleProperties.rtHandleScale.y, 0f, 0f);
                     if (data.mipIndex != -1)
-                        HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(passData.output), scale, data.mipIndex);
+                        HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(passData.output), data.mipIndex);
                     else
                         HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(passData.output));
                 });

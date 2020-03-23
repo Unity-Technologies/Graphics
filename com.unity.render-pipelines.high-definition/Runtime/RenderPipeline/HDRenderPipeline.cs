@@ -4125,10 +4125,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
-                var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * (lodCount));
+                var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * lodCount);
 
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
-                HDUtils.BlitCameraTexture(cmd, texture, m_DebugFullScreenTempBuffer, texture.rtHandleProperties.rtHandleScale, mipIndex);
+                HDUtils.BlitCameraTexture(cmd, texture, m_DebugFullScreenTempBuffer, mipIndex);
             }
         }
 

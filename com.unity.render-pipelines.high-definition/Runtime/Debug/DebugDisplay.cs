@@ -940,56 +940,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         children =
                         {
-                            new DebugUI.UIntField
-                            {
-                                displayName = "Fullscreen Debug Mip",
-                                getter = () =>
-                                    {
-                                        float lodCount = 0.0f;
-                                        switch (data.fullScreenDebugMode)
-                                        {
-                                            case FullScreenDebugMode.FinalColorPyramid:
-                                            case FullScreenDebugMode.PreRefractionColorPyramid:
-                                                //lodCount = hdCamera.colorPyramidHistoryMipCount;
-                                                break;
-                                            default:
-                                                //lodCount = depthMipChain.mipLevelCount;
-                                                break;
-                                        }
-                                        return (uint)(data.fullscreenDebugMip * lodCount);
-                                    },
-                                setter = value =>
-                                    {
-                                        float lodCount = 0.0f;
-                                        switch (data.fullScreenDebugMode)
-                                        {
-                                            case FullScreenDebugMode.FinalColorPyramid:
-                                            case FullScreenDebugMode.PreRefractionColorPyramid:
-                                                //lodCount = hdCamera.colorPyramidHistoryMipCount;
-                                                break;
-                                            default:
-                                                //lodCount = depthMipChain.mipLevelCount;
-                                                break;
-                                        }
-                                        data.fullscreenDebugMip = (float)Convert.ChangeType(value, typeof(float)) / lodCount;
-                                    },
-                                min = () => 0u,
-                                max = () =>
-                                    {
-                                        float lodCount = 0.0f;
-                                        switch (data.fullScreenDebugMode)
-                                        {
-                                            case FullScreenDebugMode.FinalColorPyramid:
-                                            case FullScreenDebugMode.PreRefractionColorPyramid:
-                                                //lodCount = hdCamera.colorPyramidHistoryMipCount;
-                                                break;
-                                            default:
-                                                //lodCount = depthMipChain.mipLevelCount;
-                                                break;
-                                        }
-                                        return (uint)lodCount;
-                                    }
-                            }
+
+                            new DebugUI.FloatField { displayName = "Fullscreen Debug Mip", getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f }
                         }
                     });
                     break;
