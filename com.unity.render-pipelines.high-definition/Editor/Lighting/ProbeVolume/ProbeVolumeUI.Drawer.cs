@@ -114,9 +114,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 case ProbeSpacingMode.Density:
                 {
                     EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(serialized.densityX, Styles.s_DensityXLabel);
-                    EditorGUILayout.PropertyField(serialized.densityY, Styles.s_DensityYLabel);
-                    EditorGUILayout.PropertyField(serialized.densityZ, Styles.s_DensityZLabel);
+                    EditorGUILayout.DelayedFloatField(serialized.densityX, Styles.s_DensityXLabel);
+                    EditorGUILayout.DelayedFloatField(serialized.densityY, Styles.s_DensityYLabel);
+                    EditorGUILayout.DelayedFloatField(serialized.densityZ, Styles.s_DensityZLabel);
                     if (EditorGUI.EndChangeCheck())
                     {
                         serialized.resolutionX.intValue = Mathf.Max(1, Mathf.RoundToInt(serialized.densityX.floatValue * serialized.size.vector3Value.x));
@@ -129,9 +129,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 case ProbeSpacingMode.Resolution:
                 {
                     EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(serialized.resolutionX, Styles.s_ResolutionXLabel);
-                    EditorGUILayout.PropertyField(serialized.resolutionY, Styles.s_ResolutionYLabel);
-                    EditorGUILayout.PropertyField(serialized.resolutionZ, Styles.s_ResolutionZLabel);
+                    EditorGUILayout.DelayedIntField(serialized.resolutionX, Styles.s_ResolutionXLabel);
+                    EditorGUILayout.DelayedIntField(serialized.resolutionY, Styles.s_ResolutionYLabel);
+                    EditorGUILayout.DelayedIntField(serialized.resolutionZ, Styles.s_ResolutionZLabel);
                     if (EditorGUI.EndChangeCheck())
                     {
                         serialized.resolutionX.intValue = Mathf.Max(1, serialized.resolutionX.intValue);
