@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         Disabled = 0,
         LightLoop = 1,
-        GBuffer = 2,
+        MaterialPass = 2,
     }
 
     [GenerateHLSL(PackingRules.Exact)]
@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
         XrMaxViews = 1,
 #endif
-        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.GBuffer,
+        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.MaterialPass,
         AreaLights = 1,
 
         DeferredShadowFiltering = HDShadowFilteringQuality.Medium,

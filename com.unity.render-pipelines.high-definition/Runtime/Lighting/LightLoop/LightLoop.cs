@@ -362,7 +362,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
 
-                if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer)
+                if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                 {
                     probeVolumesGlobalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
                 }
@@ -396,10 +396,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // TODO: (Nick) These catagory counts could be stripped for probe volumes, since there is only ever one catagory.
-                    probeVolumesPerVoxelOffset = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer)
+                    probeVolumesPerVoxelOffset = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                         ? new ComputeBuffer((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint))
                         : null;
-                    probeVolumesPerVoxelLightLists = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer)
+                    probeVolumesPerVoxelLightLists = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                         ? new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrClusterTiles, sizeof(uint))
                         : null;
                 }
@@ -412,7 +412,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     bigTileLightList = new ComputeBuffer(LightDefinitions.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint));
 
                    // TODO: (Nick) This buffer could be trimmed down / tuned more specifically to probe volumes if we added a s_MaxNrBigTileProbeVolumesPlusOne value.
-                    probeVolumesBigTileLightList = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer)
+                    probeVolumesBigTileLightList = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                         ? new ComputeBuffer(LightDefinitions.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint))
                         : null;
                 }
@@ -423,7 +423,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 convexBoundsBuffer = new ComputeBuffer(viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
                 lightVolumeDataBuffer = new ComputeBuffer(viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
 
-                if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer)
+                if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                 {
                     probeVolumesAABBBoundsBuffer = new ComputeBuffer(viewCount * 2 * k_MaxVisibleProbeVolumeCount, 4 * sizeof(float));
                     probeVolumesConvexBoundsBuffer = new ComputeBuffer(viewCount * k_MaxVisibleProbeVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
@@ -1006,7 +1006,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Cluster Probe Volumes
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
             {
                 var clustPrepassSourceIdx = frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
                 var clustDepthSourceIdx = ClusterDepthSource.NoDepth;
@@ -1036,7 +1036,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return tileAndClusterData.lightList == null || tileAndClusterData.tileList == null || tileAndClusterData.tileFeatureFlags == null ||
                 tileAndClusterData.AABBBoundsBuffer == null || tileAndClusterData.convexBoundsBuffer == null || tileAndClusterData.lightVolumeDataBuffer == null ||
-                (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer &&
+                (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass &&
                     (tileAndClusterData.probeVolumesAABBBoundsBuffer == null || tileAndClusterData.probeVolumesConvexBoundsBuffer == null || tileAndClusterData.probeVolumesLightVolumeDataBuffer == null)
                 ) ||
                 (tileAndClusterData.bigTileLightList == null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass)) ||
@@ -2010,7 +2010,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumeData.boxInnerDist = extents - k_BoxCullingExtentThreshold; // We have no blend range, but the culling code needs a small EPS value for some reason???
             volumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
 
-            if (isProbeVolume && (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer))
+            if (isProbeVolume && (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass))
             {
                 // Only probe volume evaluation in the material pass use these custom probe volume specific lists.
                 // Probe volumes evaluated in the light loop, as well as other volume data such as Decals get folded into the standard list data.
@@ -2700,7 +2700,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_lightList.lightsPerView[0].lightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].lightVolumes);
                 }
 
-                if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer)
+                if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                 {
                     // Aggregate the remaining probe volume views into the first entry of the list (view 0)
                     for (int viewIndex = 1; viewIndex < hdCamera.viewCount; ++viewIndex)
@@ -3271,7 +3271,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void PushProbeVolumeLightListGlobalParams(in LightLoopGlobalParameters param, CommandBuffer cmd)
         {
-            Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer);
+            Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass);
 
             if (!param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 return;
@@ -3308,7 +3308,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Custom probe volume only light list is only needed if we are evaluating probe volumes early, in the GBuffer phase.
             // If probe volumes are evaluated in the Light Loop, they are folded into the standard light lists.
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.GBuffer)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.MaterialPass)
                 return;
 
             // TODO: (Nick): We may need to clearLightLists even if this feature is disabled to stay robust to pipeline changes.
@@ -3353,7 +3353,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // generate screen-space AABBs for probe volumes. Only used with Clustered in GBuffer / Forward passes. Not used in LightLoop.
         static void GenerateProbeVolumesScreenSpaceAABBs(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd, ProbeVolumeList probeVolumesList)
         {
-            Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer);
+            Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass);
 
             int probeVolumesCount = probeVolumesList.bounds != null ? probeVolumesList.bounds.Count : 0;
 
@@ -3378,7 +3378,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // enable coarse 2D pass on 64x64 tiles for probe volumes only. Only used with Clustered in GBuffer / Forward passes. Not used in LightLoop.
         static void ProbeVolumesBigTilePrepass(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd, ProbeVolumeList probeVolumesList)
         {
-            Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer);
+            Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass);
 
             int probeVolumesCount = probeVolumesList.bounds != null ? probeVolumesList.bounds.Count : 0;
 
@@ -3412,7 +3412,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: (Nick) Finish up / verify this function.
         static void ProbeVolumesVoxelLightListGeneration(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd, ProbeVolumeList probeVolumesList)
         {
-            Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer);
+            Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass);
 
             int probeVolumesCount = probeVolumesList.bounds != null ? probeVolumesList.bounds.Count : 0;
 
@@ -3530,7 +3530,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].bounds);
             m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_lightList.lightsPerView[0].lightVolumes);
 
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
             {
                 m_TileAndClusterData.probeVolumesConvexBoundsBuffer.SetData(m_lightList.lightsPerView[0].probeVolumesBounds);
                 m_TileAndClusterData.probeVolumesLightVolumeDataBuffer.SetData(m_lightList.lightsPerView[0].probeVolumesLightVolumes);

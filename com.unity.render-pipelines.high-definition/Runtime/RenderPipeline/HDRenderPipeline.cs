@@ -1992,7 +1992,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Keeping this variable here in case additional passes are added.
             var haveAsyncTaskWithDepthPrepass = false;
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
             {
                 // TODO: (Nick): Should we only build probe volume light lists async of we build standard light lists async? Or should we always build probe volume light lists async?
                 if (hdCamera.frameSettings.BuildLightListRunsAsync())
@@ -2032,7 +2032,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // When evaluating probe volumes in material pass, we build a custom probe volume light list.
             // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.GBuffer)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
             {
                 if (hdCamera.frameSettings.BuildLightListRunsAsync())
                 {

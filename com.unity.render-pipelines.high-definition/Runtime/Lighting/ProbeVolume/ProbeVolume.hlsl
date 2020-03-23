@@ -123,7 +123,7 @@ void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
     }
 }
 
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
 float3 EvaluateProbeVolumesMaterialPass(PositionInputs posInput, float3 normalWS)
 #else // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
 void EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, inout BuiltinData builtinData)
@@ -156,7 +156,7 @@ void EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, i
     bool fastPath = false;
     // Fetch first probe volume to provide the scene proxy for screen space computation
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
     // Access probe volume data from custom probe volume light list data structure.
     ProbeVolumeGetCountAndStart(posInput, LIGHTCATEGORY_PROBE_VOLUME, probeVolumeStart, probeVolumeCount);
 #else // #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
@@ -187,7 +187,7 @@ void EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, i
     uint v_probeVolumeIdx = probeVolumeStart;
     while (v_probeVolumeListOffset < probeVolumeCount)
     {
-    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
         // Access probe volume data from custom probe volume light list data structure.
         v_probeVolumeIdx = ProbeVolumeFetchIndex(probeVolumeStart, v_probeVolumeListOffset);
     #else // #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
@@ -446,7 +446,7 @@ void EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, i
                     }
                 }
 
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
                 // When probe volumes are evaluated in the material pass, BSDF modulation is applied as a post operation, outside of this function.
                 float3 sampleOutgoingRadiance = SHEvalLinearL0L1(normalWS, sampleShAr, sampleShAg, sampleShAb);
 #else // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
@@ -483,7 +483,7 @@ void EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, i
     }
 
 
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_GBUFFER
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
     return probeVolumeDiffuseLighting;
 
 #else // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
