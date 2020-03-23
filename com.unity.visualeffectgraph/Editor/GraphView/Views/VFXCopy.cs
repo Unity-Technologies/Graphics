@@ -253,9 +253,9 @@ namespace UnityEditor.VFX.UI
                     value = new VFXSerializableObject(p.model.type, p.model.value),
                     exposed = p.model.exposed,
                     isOutput = p.model.isOutput,
-                    range = p.hasRange,
-                    min = p.hasRange ? p.model.m_Min : null,
-                    max = p.hasRange ? p.model.m_Max : null,
+                    valueFilter = p.valueFilter,
+                    min = p.valueFilter == ValueFilter.Range ? p.model.m_Min : null,
+                    max = p.valueFilter == ValueFilter.Range ? p.model.m_Max : null,
                     tooltip = p.model.tooltip,
                     nodes = c.Select((u, i) => CopyParameterNode(cpt - 1, i, u, parameterIndices[Array.IndexOf(parameters, u)])).ToArray()
                 };

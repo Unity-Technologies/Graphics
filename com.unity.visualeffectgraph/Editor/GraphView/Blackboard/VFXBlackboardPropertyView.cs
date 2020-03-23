@@ -55,8 +55,8 @@ namespace  UnityEditor.VFX.UI
                     result = result.Concat(m_SubProperties);
                 if (m_TooltipProperty != null)
                     result = result.Concat(Enumerable.Repeat<PropertyRM>(m_TooltipProperty, 1));
-                if (m_RangeProperty != null)
-                    result = result.Concat(Enumerable.Repeat<PropertyRM>(m_RangeProperty, 1));
+                if (m_ValueFilterProperty != null)
+                    result = result.Concat(Enumerable.Repeat<PropertyRM>(m_ValueFilterProperty, 1));
                 if (m_MinProperty != null)
                     result = result.Concat(Enumerable.Repeat(m_MinProperty, 1));
                 if (m_MaxProperty != null)
@@ -114,7 +114,7 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        BoolPropertyRM m_RangeProperty;
+        EnumPropertyRM m_ValueFilterProperty;
         BoolPropertyRM m_ExposedProperty;
 
         IPropertyRMProvider m_RangeProvider;
@@ -122,7 +122,7 @@ namespace  UnityEditor.VFX.UI
         public new void Clear()
         {
             m_ExposedProperty = null;
-            m_RangeProperty = null;
+            m_ValueFilterProperty = null;
         }
 
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
@@ -200,7 +200,7 @@ namespace  UnityEditor.VFX.UI
                     insertIndex += 1 + (m_SubProperties != null ? m_SubProperties.Count : 0) + 1; //main property + subproperties + tooltip
                 }
 
-                if (controller.canHaveRange)
+                if (controller.canHaveValueFilter)
                 {
                     if (m_MinProperty == null || !m_MinProperty.IsCompatible(controller.minController))
                     {
@@ -215,13 +215,13 @@ namespace  UnityEditor.VFX.UI
                         m_MaxProperty = PropertyRM.Create(controller.maxController, 55);
                     }
 
-                    if (m_RangeProperty == null)
+                    if (m_ValueFilterProperty == null)
                     {
-                        m_RangeProperty = new BoolPropertyRM(new SimplePropertyRMProvider<bool>("Range", () => controller.hasRange, t => controller.hasRange = t), 55);
+                        m_ValueFilterProperty = new EnumPropertyRM(new SimplePropertyRMProvider<ValueFilter>("Value Filter", () => controller.valueFilter, t => controller.valueFilter = t), 55);
                     }
-                    Insert(insertIndex++, m_RangeProperty);
+                    Insert(insertIndex++, m_ValueFilterProperty);
 
-                    if (controller.hasRange)
+                    if (controller.model.valueFilter == ValueFilter.Range)
                     {
                         if (m_MinProperty.parent == null)
                         {
@@ -247,10 +247,10 @@ namespace  UnityEditor.VFX.UI
                         m_MaxProperty.RemoveFromHierarchy();
                         m_MaxProperty = null;
                     }
-                    if (m_RangeProperty != null)
+                    if (m_ValueFilterProperty != null)
                     {
-                        m_RangeProperty.RemoveFromHierarchy();
-                        m_RangeProperty = null;
+                        m_ValueFilterProperty.RemoveFromHierarchy();
+                        m_ValueFilterProperty = null;
                     }
                 }
             }
@@ -261,7 +261,7 @@ namespace  UnityEditor.VFX.UI
                 m_SubProperties = null;
                 m_MinProperty = null;
                 m_MaxProperty = null;
-                m_RangeProperty = null;
+                m_ValueFilterProperty = null;
                 if (m_TooltipProperty == null)
                 {
                     m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t), 55);

@@ -733,8 +733,8 @@ namespace UnityEditor.VFX.UI
                         {
                             p = viewController.AddVFXParameter(Vector2.zero, desc);
                             p.value = parameter.value.Get();
-                            p.hasRange = parameter.range;
-                            if (parameter.range)
+                            p.valueFilter = parameter.valueFilter;
+                            if (parameter.valueFilter == ValueFilter.Range)
                             {
                                 p.m_Min = parameter.min;
                                 p.m_Max = parameter.max;

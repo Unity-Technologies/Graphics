@@ -579,21 +579,22 @@ namespace UnityEditor.VFX.UI
         public VFXParameter parameter { get { return model as VFXParameter; } }
 
 
-        public bool canHaveRange
+        public bool canHaveValueFilter
         {
             get
             {
-                return parameter.canHaveRange;
+                return parameter.canHaveValueFilter;
             }
         }
 
-        public bool hasRange
+        public ValueFilter valueFilter
         {
-            get { return parameter.hasRange; }
+            get { return parameter.valueFilter; }
 
             set
             {
-                parameter.hasRange = value;
+                parameter.valueFilter = value;
+                NotifyChange(AnyThing);
             }
         }
 
@@ -677,7 +678,7 @@ namespace UnityEditor.VFX.UI
 
                 VFXSlot slot = parameter.GetOutputSlot(0);
 
-                if (hasRange)
+                if (valueFilter == ValueFilter.Range)
                 {
                     if (RangeToFloat(value) < RangeToFloat(minValue))
                     {
@@ -854,7 +855,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                if (canHaveRange)
+                if (canHaveValueFilter)
                 {
                     return new VFXPropertyAttributes(new RangeAttribute(RangeToFloat(minValue), RangeToFloat(maxValue)));
                 }

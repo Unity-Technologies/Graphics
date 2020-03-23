@@ -7,6 +7,13 @@ using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX
 {
+    enum ValueFilter
+    {
+        Default,
+        Range,
+        Enum
+    }
+
     [ExcludeFromPreset]
     class VFXParameter : VFXSlotContainerModel<VFXModel, VFXModel>
     {
@@ -32,6 +39,51 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         private bool m_IsOutput;
+
+        [Serializable]
+        struct EnumValue
+        {
+            public string name;
+            public VFXSerializableObject value;
+        }
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
+        List<EnumValue> m_EnumValues;
+
+        [SerializeField]
+        ValueFilter m_ValueFilter;
+
+
+        public ValueFilter valueFilter
+        {
+            get => m_ValueFilter;
+
+            set
+            {
+                if( value != m_ValueFilter)
+                {
+                    m_ValueFilter = value;
+                    switch(m_ValueFilter)
+                    {
+                        case ValueFilter.Default:
+                            m_Max = m_Min = null;
+                            m_EnumValues = null;
+                            break;
+                        case ValueFilter.Range:
+                            m_Min = new VFXSerializableObject(type, this.value);
+                            m_Max = new VFXSerializableObject(type, this.value);
+                            m_EnumValues = null;
+                            break;
+                        case ValueFilter.Enum:
+                            m_EnumValues = new List<EnumValue>();
+                            m_EnumValues.Add(new EnumValue() { name = "Zero", value = new VFXSerializableObject(type, VFXConverter.ConvertTo(0, type)) });
+                            m_EnumValues.Add(new EnumValue() { name = "Zero", value = new VFXSerializableObject(type, VFXConverter.ConvertTo(1, type)) });
+                            m_Max = m_Min = null;
+                            break;
+                    }
+                }
+            }
+        }
 
         protected override IEnumerable<string> filteredOutSettings
         {
@@ -92,7 +144,7 @@ namespace UnityEditor.VFX
                 m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
         }
 
-        public bool canHaveRange
+        public bool canHaveValueFilter
         {
             get
             {
@@ -102,7 +154,7 @@ namespace UnityEditor.VFX
 
         public bool hasRange
         {
-            get { return canHaveRange && m_Min != null && m_Min.type != null && m_Max != null && m_Max.type != null; }
+            get { return canHaveValueFilter && m_Min != null && m_Min.type != null && m_Max != null && m_Max.type != null; }
 
             set
             {
