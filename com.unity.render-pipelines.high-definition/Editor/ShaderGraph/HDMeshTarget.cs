@@ -11,6 +11,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
+#region Enumerations
     enum MaterialType
     {
         Unlit,
@@ -57,6 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         FromAOAndBentNormal,
         Custom
     }
+#endregion
 
     class HDMeshTarget : ITargetImplementation
     {
@@ -101,7 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         bool m_ZWrite = true;
 
         [SerializeField]
-        TransparentCullMode m_transparentCullMode = TransparentCullMode.Back;
+        TransparentCullMode m_TransparentCullMode = TransparentCullMode.Back;
 
         [SerializeField]
         CompareFunction m_ZTest = CompareFunction.LessEqual;
@@ -123,6 +125,116 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates";
         public string renderTypeTag => GetRenderTypeTag();
         public string renderQueueTag => GetRenderQueueTag();
+#endregion
+
+#region Data Properties
+        public MaterialType materialType
+        {
+            get => m_MaterialType;
+            set => m_MaterialType = value;
+        }
+
+        public SurfaceType surfaceType
+        {
+            get => m_SurfaceType;
+            set => m_SurfaceType = value;
+        }
+
+        public AlphaMode alphaMode
+        {
+            get => m_AlphaMode;
+            set => m_AlphaMode = value;
+        }
+
+        public HDRenderQueue.RenderQueueType renderingPass
+        {
+            get => m_RenderingPass;
+            set => m_RenderingPass = value;
+        }
+
+        public bool transparencyFog
+        {
+            get => m_TransparencyFog;
+            set => m_TransparencyFog = value;
+        }
+
+        public bool distortion
+        {
+            get => m_Distortion;
+            set => m_Distortion = value;
+        }
+
+        public DistortionMode distortionMode
+        {
+            get => m_DistortionMode;
+            set => m_DistortionMode = value;
+        }
+
+        public bool distortionOnly
+        {
+            get => m_DistortionOnly;
+            set => m_DistortionOnly = value;
+        }
+
+        public bool distortionDepthTest
+        {
+            get => m_DistortionDepthTest;
+            set => m_DistortionDepthTest = value;
+        }
+
+        public bool alphaTest
+        {
+            get => m_AlphaTest;
+            set => m_AlphaTest = value;
+        }
+
+        public int sortPriority
+        {
+            get => m_SortPriority;
+            set => m_SortPriority = value;
+        }
+
+        public bool doubleSided
+        {
+            get => m_DoubleSided;
+            set => m_DoubleSided = value;
+        }
+
+        public bool zWrite
+        {
+            get => m_ZWrite;
+            set => m_ZWrite = value;
+        }
+
+        public TransparentCullMode transparentCullMode
+        {
+            get => m_TransparentCullMode;
+            set => m_TransparentCullMode = value;
+        }
+
+        public CompareFunction zTest
+        {
+            get => m_ZTest;
+            set => m_ZTest = value;
+        }
+
+        public bool addPrecomputedVelocity
+        {
+            get => m_AddPrecomputedVelocity;
+            set => m_AddPrecomputedVelocity = value;
+        }
+
+        public bool enableShadowMatte
+        {
+            get => m_EnableShadowMatte;
+            set => m_EnableShadowMatte = value;
+        }
+
+        public bool dotsInstancing
+        {
+            get => m_DOTSInstancing;
+            set => m_DOTSInstancing = value;
+        }
 #endregion
 
 #region Helper Properties
@@ -270,7 +382,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDSubShaderUtilities.ConvertAlphaModeToBlendMode(m_AlphaMode),
                 m_SortPriority,
                 m_ZWrite,
-                m_transparentCullMode,
+                m_TransparentCullMode,
                 m_ZTest,
                 false,
                 m_TransparencyFog
@@ -290,7 +402,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.SetFloat(kBlendMode, (int)HDSubShaderUtilities.ConvertAlphaModeToBlendMode(m_AlphaMode));
             material.SetFloat(kEnableFogOnTransparent, m_TransparencyFog ? 1.0f : 0.0f);
             material.SetFloat(kZTestTransparent, (int)m_ZTest);
-            material.SetFloat(kTransparentCullMode, (int)m_transparentCullMode);
+            material.SetFloat(kTransparentCullMode, (int)m_TransparentCullMode);
             material.SetFloat(kZWrite, m_ZWrite ? 1.0f : 0.0f);
 
             // No sorting priority for shader graph preview
@@ -303,7 +415,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region Settings View
         public VisualElement GetSettings(Action onChange)
         {
-            return null;
+            return new HDMeshTargetSettingsView(this, onChange);
         }
 #endregion
 

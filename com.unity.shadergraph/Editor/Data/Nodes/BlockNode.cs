@@ -93,6 +93,9 @@ namespace UnityEditor.ShaderGraph
                 case FloatControl floatControl:
                     AddSlot(new Vector1MaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, floatControl.value, stageCapability));
                     break;
+                case Vector2Control vector2Control:
+                    AddSlot(new Vector2MaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, vector2Control.value, stageCapability));
+                    break;
             }
             RemoveSlotsNameNotMatching(new int[] {0});
         }
