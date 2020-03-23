@@ -433,6 +433,8 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.VertexDescriptionInputs.TimeParameters,           requirements.requiresTime &&
                                                                                                                 activeFields.Contains(Fields.GraphVertex)),
 
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneWeights,             requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneIndices,             requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneWeights,              requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndices,              requirements.requiresVertexSkinning),
             };
@@ -659,6 +661,12 @@ namespace UnityEditor.ShaderGraph
                 {
                     sb.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
                 }
+
+                if (requirements.requiresVertexSkinning)
+                {
+                    sb.AppendLine("uint4 {0};", ShaderGeneratorNames.BoneIndices);
+                    sb.AppendLine("float4 {0};", ShaderGeneratorNames.BoneWeights);
+                }
             }
         }
 
@@ -687,6 +695,13 @@ namespace UnityEditor.ShaderGraph
             if (requirements.requiresTime)
             {
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.TimeParameters} = IN.{ShaderGeneratorNames.TimeParameters};");
+            }
+
+
+            if (requirements.requiresVertexSkinning)
+            {
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.BoneIndices} = IN.{ShaderGeneratorNames.BoneIndices};");
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.BoneWeights} = IN.{ShaderGeneratorNames.BoneWeights};");
             }
         }
 

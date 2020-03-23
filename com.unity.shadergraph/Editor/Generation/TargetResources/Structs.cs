@@ -105,6 +105,8 @@
                 StructFields.SurfaceDescriptionInputs.VertexColor,
                 StructFields.SurfaceDescriptionInputs.TimeParameters,
                 StructFields.SurfaceDescriptionInputs.FaceSign,
+                StructFields.SurfaceDescriptionInputs.BoneIndices,
+                StructFields.SurfaceDescriptionInputs.BoneWeights,
             }
         };
     }

@@ -25,6 +25,8 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireFaceSign
         , IMayRequireCameraOpaqueTexture
         , IMayRequireDepthTexture
+        , IMayRequireVertexSkinning
+
     {
         [Serializable]
         public class MinimalSubGraphNode : IHasDependencies
@@ -599,6 +601,14 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresDepthTexture;
+        }
+
+        public bool RequiresVertexSkinning(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresVertexSkinning;
         }
     }
 }

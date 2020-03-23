@@ -197,6 +197,12 @@
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor FaceSign = new FieldDescriptor(SurfaceDescriptionInputs.name, "FaceSign", "", ShaderValueType.Float,
                 subscriptOptions : StructFieldOptions.Optional);
+
+            public static FieldDescriptor BoneWeights = new FieldDescriptor(SurfaceDescriptionInputs.name, "BoneWeights", "", ShaderValueType.Float4,
+    subscriptOptions: StructFieldOptions.Optional);
+
+            public static FieldDescriptor BoneIndices = new FieldDescriptor(SurfaceDescriptionInputs.name, "BoneIndices", "", ShaderValueType.Uint4,
+                subscriptOptions: StructFieldOptions.Optional);
         }
     }
 }
