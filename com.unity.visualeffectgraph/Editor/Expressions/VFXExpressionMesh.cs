@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshWithFormatFloat; } }
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshVertexFloat; } }
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshWithFormatFloat2; } }
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshVertexFloat2; } }
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshWithFormatFloat3; } }
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshVertexFloat3; } }
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -118,7 +118,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshWithFormatFloat4; } }
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshVertexFloat4; } }
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -149,7 +149,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshWithFormatColor; } }
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleMeshVertexColor; } }
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
