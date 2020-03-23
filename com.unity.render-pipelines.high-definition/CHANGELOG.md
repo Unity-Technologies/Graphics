@@ -572,6 +572,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
 - Obsolete Utilities namespace was removed, instead use UnityEngine.Rendering (case 1204677)
+- Use multi_compile API for deferred compute shader with shadow mask.
 
 ## [7.1.1] - 2019-09-05
 
