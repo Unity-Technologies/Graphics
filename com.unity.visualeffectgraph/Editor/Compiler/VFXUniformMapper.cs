@@ -53,7 +53,7 @@ namespace UnityEditor.VFX
                     expressions[exp] = previousNames;
                 }
 
-                if (names == null) 
+                if (names == null)
                 {
                     if (previousNames.Count == 0) // No need to generate a name if one was already generated
                         previousNames.Add(prefix + VFXCodeGeneratorHelper.GeneratePrefix(m_CurrentUniformIndex++));

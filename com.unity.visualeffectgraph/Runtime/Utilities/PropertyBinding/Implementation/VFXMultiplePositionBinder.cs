@@ -49,7 +49,7 @@ namespace UnityEngine.VFX.Utility
 
             foreach (var obj in Targets)
             {
-                if(obj != null)
+                if (obj != null)
                     candidates.Add(obj.transform.position);
             }
 
@@ -78,4 +78,3 @@ namespace UnityEngine.VFX.Utility
         }
     }
 }
-

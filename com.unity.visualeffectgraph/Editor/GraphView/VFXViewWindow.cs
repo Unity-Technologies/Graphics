@@ -43,7 +43,7 @@ namespace  UnityEditor.VFX.UI
 
         public static VFXViewWindow currentWindow;
 
-        [MenuItem("Window/Visual Effects/Visual Effect Graph",false,3011)]
+        [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3011)]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();
@@ -108,7 +108,7 @@ namespace  UnityEditor.VFX.UI
         {
             InternalLoadResource(m_ResourceHistory.Last());
 
-            m_ResourceHistory.RemoveAt(m_ResourceHistory.Count-1);
+            m_ResourceHistory.RemoveAt(m_ResourceHistory.Count - 1);
         }
 
         protected VisualEffectResource GetCurrentResource()
@@ -225,7 +225,7 @@ namespace  UnityEditor.VFX.UI
 
         void OnFocus()
         {
-            if(graphView != null) // OnFocus can be somehow called before OnEnable
+            if (graphView != null) // OnFocus can be somehow called before OnEnable
                 graphView.OnFocus();
         }
 
@@ -236,7 +236,7 @@ namespace  UnityEditor.VFX.UI
             if (graphView == null)
                 return;
 
-            if(m_OnUpdateAction != null)
+            if (m_OnUpdateAction != null)
             {
                 m_OnUpdateAction();
                 m_OnUpdateAction = null;
@@ -271,7 +271,7 @@ namespace  UnityEditor.VFX.UI
                 }
             }
 
-            if( VFXViewModicationProcessor.assetMoved)
+            if (VFXViewModicationProcessor.assetMoved)
             {
                 graphView.AssetMoved();
                 VFXViewModicationProcessor.assetMoved = false;
