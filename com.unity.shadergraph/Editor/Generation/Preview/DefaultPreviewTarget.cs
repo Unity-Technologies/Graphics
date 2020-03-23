@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph
         {
             return false;
         }
+
         public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
         {
             return (currentPipeline != null);
@@ -26,6 +27,11 @@ namespace UnityEditor.ShaderGraph
             context.AddAssetDependencyPath("17beeb3de0d148c4091315e2775a46e3"); // DefaultPreviewTarget
 
             context.SetupSubShader(PreviewTargetResources.PreviewSubShader);
+        }
+
+        public SubShaderDescriptor? GetSubShaderDescriptorFromMasterNode(IMasterNode masterNode)
+        {
+            return null;
         }
     }
 }

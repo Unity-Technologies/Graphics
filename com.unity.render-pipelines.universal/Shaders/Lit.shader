@@ -14,7 +14,7 @@ Shader "Universal Render Pipeline/Lit"
         _GlossMapScale("Smoothness Scale", Range(0.0, 1.0)) = 1.0
         _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
-        [Gamma] _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
+        _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
         _MetallicGlossMap("Metallic", 2D) = "white" {}
 
         _SpecColor("Specular", Color) = (0.2, 0.2, 0.2)
@@ -260,6 +260,10 @@ Shader "Universal Render Pipeline/Lit"
             #pragma only_renderers gles gles3
             #pragma target 2.0
 
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature _NORMALMAP
@@ -311,6 +315,10 @@ Shader "Universal Render Pipeline/Lit"
             #pragma only_renderers gles gles3
             #pragma target 2.0
 
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
@@ -336,6 +344,10 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             #pragma only_renderers gles gles3
             #pragma target 2.0
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
 
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment

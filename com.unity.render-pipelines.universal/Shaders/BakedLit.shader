@@ -238,6 +238,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile_instancing
 
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -335,6 +336,10 @@ Shader "Universal Render Pipeline/Baked Lit"
             HLSLPROGRAM
             #pragma only_renderers gles gles3
             #pragma target 2.0
+            
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
 
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
