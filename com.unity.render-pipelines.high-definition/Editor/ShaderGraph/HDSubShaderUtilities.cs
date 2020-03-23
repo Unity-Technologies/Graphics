@@ -841,6 +841,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             ShaderGenerator defines = new ShaderGenerator();
             {
+                defines.AddShaderChunk("// Shared Graph Keywords");
+                defines.AddShaderChunk(shaderKeywordDeclarations.ToString());
+                defines.AddShaderChunk(shaderKeywordPermutations.ToString());
+
                 defines.AddShaderChunk(string.Format("#define SHADERPASS {0}", pass.ShaderPassName), true);
                 if (pass.ExtraDefines != null)
                 {
@@ -893,10 +897,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 foreach (var include in pass.Includes)
                     shaderPassIncludes.AddShaderChunk(include);
             }
-
-            defines.AddShaderChunk("// Shared Graph Keywords");
-            defines.AddShaderChunk(shaderKeywordDeclarations.ToString());
-            defines.AddShaderChunk(shaderKeywordPermutations.ToString());
 
             // build graph code
             var graph = new ShaderGenerator();
