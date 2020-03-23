@@ -319,7 +319,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
 
                 var opaqueDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
-                opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, false); //Seems like store is required, though used inside the renderPass
+                opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, true); //Seems like store is required, though used inside the renderPass
 
                 m_CopyColorPass.ConfigureInputAttachment(m_CameraColorDescriptor);
                 m_CopyColorPass.ConfigureTarget(opaqueDescriptor);
@@ -392,6 +392,8 @@ namespace UnityEngine.Rendering.Universal
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)
                 {
+                    m_FinalBlitPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
+                    m_FinalBlitPass.ConfigureTarget(m_CameraColorDescriptor);
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
                     EnqueuePass(m_FinalBlitPass);
                 }
