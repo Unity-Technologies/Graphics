@@ -311,6 +311,7 @@ struct BRDFData
     half clearCoatPerceptualRoughness;
     half clearCoatRoughness;
     half clearCoatRoughness2;
+    half clearCoatNormalizationTerm;
     half clearCoatRoughness2MinusOne;
 #endif
 };
@@ -336,6 +337,8 @@ half OneMinusReflectivityMetallic(half metallic)
 }
 
 #ifdef _CLEARCOAT
+
+// See ConvertF0ForAirInterfaceToF0ForClearCoat15
 half3 f0ClearCoatToSurface(half3 f0)
 {
     // Approximation of iorTof0(f0ToIor(f0), 1.5)
@@ -347,19 +350,6 @@ half3 f0ClearCoatToSurface(half3 f0)
 #endif
 }
 
-half ClearCoatBRDF(BRDFData brdfData, half3 halfDir, half NoH, half LoH, half LoH2)
-{
-    half D = NoH * NoH * brdfData.clearCoatRoughness2MinusOne + 1.00001h;
-    half specularTerm = brdfData.clearCoatRoughness2 / ((D * D) * max(0.1h, LoH2) * (brdfData.clearCoatRoughness * 4.0 + 2.0)) * brdfData.clearCoatStrength;
-    half attenuation = 1 - LoH * brdfData.clearCoatStrength;
-
-#if defined (SHADER_API_MOBILE)
-    specularTerm = specularTerm - HALF_MIN;
-    specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
-#endif
-
-    return specularTerm * attenuation;
-}
 #endif //_CLEARCOAT
 
 inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha,
@@ -403,6 +393,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     outBRDFData.clearCoatPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(clearCoatSmoothness);
     outBRDFData.clearCoatRoughness           = max(PerceptualRoughnessToRoughness(outBRDFData.clearCoatPerceptualRoughness), HALF_MIN);
     outBRDFData.clearCoatRoughness2          = outBRDFData.clearCoatRoughness * outBRDFData.clearCoatRoughness;
+    outBRDFData.clearCoatNormalizationTerm   = outBRDFData.clearCoatRoughness * 4.0h * 2.0h;
     outBRDFData.clearCoatRoughness2MinusOne  = outBRDFData.clearCoatRoughness2 - 1.0h;
 
 #if !defined(SHADER_API_MOBILE)
@@ -423,6 +414,23 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     outBRDFData.specular = lerp(outBRDFData.specular, f0ClearCoatToSurface(outBRDFData.specular), outBRDFData.clearCoatStrength);
 #endif // _CLEARCOAT
 }
+
+
+#ifdef _CLEARCOAT
+half ClearCoatBRDF(BRDFData brdfData, half3 halfDir, half NoH, half LoH, half LoH2)
+{
+    half d = NoH * NoH * brdfData.clearCoatRoughness2MinusOne + 1.0001h;
+    half specularTerm = brdfData.clearCoatRoughness2 / ((d * d) * max(0.1h, LoH2) * brdfData.clearCoatNormalizationTerm) * brdfData.clearCoatStrength;
+
+#if defined (SHADER_API_MOBILE)
+    specularTerm = result - HALF_MIN;
+    specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
+#endif
+
+    // Multiply with dielectric reflectance to complete brdf. DielectricSpec is white so scalar multiply is ok.
+    return specularTerm * kDieletricSpec.x;
+}
+#endif
 
 half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half fresnelTerm)
 {
@@ -469,14 +477,25 @@ half3 DirectBRDF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
     specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
 #endif
 
-    half3 color = specularTerm * brdfData.specular + brdfData.diffuse;
-
 #ifdef _CLEARCOAT
-    half cc = ClearCoatBRDF(brdfData, halfDir, NoH, LoH, LoH2);
-    color += cc;
+    half CC = ClearCoatBRDF(brdfData, halfDir, NoH, LoH, LoH2);
+
+    // Mix clear coat and base layer using khronos glTF recommended formula
+    // https://github.com/KhronosGroup/glTF/blob/master/extensions/2.0/Khronos/KHR_materials_clearcoat/README.md
+    // NOTE: CC has clearCoatStrength baked in.
+    half NoV = saturate(dot(normalWS, viewDirectionWS));
+#if defined(SHADER_API_MOBILE) // Could maybe be SHADER_API_GLES
+    // Very rough approximation of dielectric Fresnel, (i.e. clear coat)
+    // but it's only used as a mix weight, so it should be fine for low-end.
+    half CCF = min(kDieletricSpec.x / max(NoV, 0.0001h), 1);
+#else
+    half CCF = F_Schlick( kDieletricSpec.x, NoV );
 #endif
 
-    return color;
+    return (specularTerm * brdfData.specular + brdfData.diffuse) * (1.0 - brdfData.clearCoatStrength * CCF) + CC;
+#else
+    return specularTerm * brdfData.specular + brdfData.diffuse;
+#endif
 #else
     return brdfData.diffuse;
 #endif
