@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderGraph
             public static void ValidateGraph(GraphData graph)
             {
                 GraphDataUtils.ApplyActionLeafFirst(graph, ValidateNode);
+                SampleTextureStackNode.ValidateTextureStacks(graph);
             }
         }
     }

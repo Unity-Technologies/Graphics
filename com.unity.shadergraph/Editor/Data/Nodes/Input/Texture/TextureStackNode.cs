@@ -1,15 +1,14 @@
-using System.Linq;
-using UnityEngine;
-using UnityEditor.Graphing;
-using System.Collections.Generic;
 using System;
-using System.Globalization;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
+using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.Rendering;
-using UnityEngine.UIElements;
-using UnityEditor.Graphing.Util;
+using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -533,13 +532,11 @@ namespace UnityEditor.ShaderGraph
             return result;
         }
 
-        public static void ValidatNodes(GraphData d)
+        // Texture stacks have some additional 'global' validation to do on the whole graph. This validates this.
+        public static void ValidateTextureStacks(GraphData d)
         {
-            ValidatNodes(d.GetNodes<SampleTextureStackNode>(), d.GetNodes<SubGraphNode>());
-        }
-
-        public static void ValidatNodes(IEnumerable<SampleTextureStackNode> nodes, IEnumerable<SubGraphNode> subNodes)
-        {
+            var nodes = d.GetNodes<SampleTextureStackNode>();
+            var subNodes = d.GetNodes<SubGraphNode>();
             var valueNameLookup = new Dictionary<string, string>();
             var nodeNames = new HashSet<string>();
 
