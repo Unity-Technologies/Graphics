@@ -12,18 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cef5cd0c710b9824db38d22da94bdc21, type: 3}
   m_Name: Editor Shader Static Analysis Tests
   m_EditorClassIdentifier: 
-  m_Filters:
-  - name: GBuffer
-    category: Default
-    keywordFilter: 
-    passNameFilter: +GBuffer
+  m_Filters: []
   m_AssetDefinitions:
   - assetAlias: DeferredShader
     assetCategory: Default
     testName: Default
     asset: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259, type: 3}
     filter:
-      filterType: 0
+      filterType: 2
       referenceName: 
       definition:
         name: 

@@ -19,6 +19,9 @@ public class HDRP_EditorPerformanceTests : EditorPerformanceTests
     
     public static IEnumerable<BuildTestDescription> GetBuildTests()
     {
+        if (testScenesAsset == null)
+            yield break;
+
         // testName is hardcoded for now
         foreach (var (scene, asset) in testScenesAsset.buildTestSuite.GetTestList())
             yield return new BuildTestDescription{ assetData = asset, sceneData = scene, testName = "MainTest" };

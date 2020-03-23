@@ -70,7 +70,10 @@ public class EditorStaticAnalysisTests
 
     public static IEnumerable<StaticAnalysisEntry> GetStaticAnalysisEntries(BuildTarget buildTarget)
     {
-        var resource = Resources.Load<EditorShaderStaticAnalysisAsset>("Editor Shader Static Analysis Tests");
+        var resource = PerformanceTestSettings.GetStaticAnalysisAsset() as EditorShaderStaticAnalysisAsset;
+        if (resource == null)
+            yield break;
+
         foreach (var definition in resource.processAssetDefinitions)
         {
             // Skip when not included in this build target

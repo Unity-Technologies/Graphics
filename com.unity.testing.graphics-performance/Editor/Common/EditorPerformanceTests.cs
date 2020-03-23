@@ -24,7 +24,7 @@ public class EditorPerformanceTests
 
     // TODO
     public const string testSceneResourcePath = "TestScenes";
-    static TestSceneAsset testScenesAsset = Resources.Load<TestSceneAsset>(testSceneResourcePath);
+    static TestSceneAsset testScenesAsset = PerformanceTestSettings.GetTestSceneDescriptionAsset();
 
     protected BuildReport BuildPlayer(string scenePath)
     {

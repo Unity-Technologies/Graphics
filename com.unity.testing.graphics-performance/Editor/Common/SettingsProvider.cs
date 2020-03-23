@@ -4,15 +4,15 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using System;
+using System.Text.RegularExpressions;
+using Object = UnityEngine.Object;
 
-// Register a SettingsProvider using IMGUI for the drawing framework:
-static class PerformanceTestsIMGUIRegister
+static class PerformanceSettingsProviderGUI
 {
     [SettingsProvider]
     public static SettingsProvider CreatePerformanceTestsProvider()
     {
-        // First parameter is the path in the Settings window.
-        // Second parameter is the scope of this setting: it only appears in the Project Settings window.
         var provider = new SettingsProvider("Project/Performance Tests", SettingsScope.Project)
         {
             // By default the last token of the path is used as display name if no label is provided.
@@ -20,10 +20,13 @@ static class PerformanceTestsIMGUIRegister
             // Create the SettingsProvider and initialize its drawing (IMGUI) function in place:
             guiHandler = (searchContext) =>
             {
-                var settings = PerformanceTestsSettings.GetSerializedSettings();
-                EditorGUILayout.PropertyField(settings.FindProperty("testDescriptionAsset"), new GUIContent("Current Test Description Asset"));
-                // TODO: static analysis
-                // EditorGUILayout.PropertyField(settings.FindProperty("staticAnalysisAsset"), new GUIContent("Current Static Analysis Asset"));
+                var settings = PerformanceTestSettings.GetSerializedSettings();
+
+                EditorGUI.BeginChangeCheck();
+                ShowObjectField(settings.FindProperty("testDescriptionAsset"), typeof(TestSceneAsset), new GUIContent("Test Description Asset"));
+                ShowObjectField(settings.FindProperty("staticAnalysisAsset"), typeof(EditorShaderStaticAnalysisAsset), new GUIContent("Static Analysis Asset"));
+                if (EditorGUI.EndChangeCheck())
+                    settings.ApplyModifiedProperties();
             },
 
             // Populate the search keywords to enable smart search filtering and label highlighting:
@@ -31,6 +34,29 @@ static class PerformanceTestsIMGUIRegister
         };
 
         return provider;
+    }
+
+    static void ShowObjectField(SerializedProperty resourcePathProperty, Type objectType, GUIContent content)
+    {
+        Object res = Resources.Load(resourcePathProperty.stringValue, objectType);
+        res = EditorGUILayout.ObjectField(content, res, objectType, false);
+
+        // Find the resource path of the object:
+        resourcePathProperty.stringValue = null;
+        if (res != null)
+        {
+            var path = AssetDatabase.GetAssetPath(res);
+            if (path.Contains("Resources"))
+            {
+                var resourcePath = path.Substring(path.LastIndexOf("Resources/") + "Resources/".Length);
+                resourcePath = Path.ChangeExtension(resourcePath, null);
+                resourcePathProperty.stringValue = resourcePath;
+            }
+            else
+            {
+                Debug.LogError("You must choose an asset within a Resources folder");
+            }
+        }
     }
 }
 
@@ -57,7 +83,7 @@ class PerformanceTestsProvider : SettingsProvider
     public override void OnActivate(string searchContext, VisualElement rootElement)
     {
         // This function is called when the user clicks on the MyCustom element in the Settings window.
-        m_CustomSettings = PerformanceTestsSettings.GetSerializedSettings();
+        m_CustomSettings = PerformanceTestSettings.GetSerializedSettings();
     }
 
     public override void OnGUI(string searchContext)

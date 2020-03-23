@@ -7,7 +7,7 @@ using Unity.PerformanceTesting;
 public static class PerformanceTestUtils
 {
     public const string testSceneResourcePath = "TestScenes";
-    public static TestSceneAsset testScenesAsset = Resources.Load<TestSceneAsset>(testSceneResourcePath);
+    public static TestSceneAsset testScenesAsset = PerformanceTestSettings.GetTestSceneDescriptionAsset();
 
     public static IEnumerator SetupTest(string sceneName, RenderPipelineAsset hdAsset)
     {

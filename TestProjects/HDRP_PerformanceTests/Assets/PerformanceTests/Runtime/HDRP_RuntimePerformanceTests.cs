@@ -19,6 +19,8 @@ public class HDRP_RuntimePerformanceTests : PerformanceTests
 
     public static IEnumerable<CounterTestDescription> GetCounterTests()
     {
+        if (testScenesAsset == null)
+            yield break;
         foreach (var (scene, asset) in testScenesAsset.counterTestSuite.GetTestList())
             yield return new CounterTestDescription{ assetData = asset, sceneData = scene };
     }
@@ -43,6 +45,8 @@ public class HDRP_RuntimePerformanceTests : PerformanceTests
 
     public static IEnumerable<MemoryTestDescription> GetMemoryTests()
     {
+        if (testScenesAsset == null)
+            yield break;
         foreach (var (scene, asset) in testScenesAsset.memoryTestSuite.GetTestList())
             foreach (var objectType in GetMemoryObjectTypes())
                 yield return new MemoryTestDescription{ assetData = asset, sceneData = scene, assetType = objectType };
