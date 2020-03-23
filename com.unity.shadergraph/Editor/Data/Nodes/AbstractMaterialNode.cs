@@ -183,14 +183,6 @@ namespace UnityEditor.ShaderGraph
                 // Update this node
                 m_IsActive = value;
                 Dirty(ModificationScope.Node);
-
-                // Get all downsteam nodes and update their active state
-                var nodes = ListPool<AbstractMaterialNode>.Get();
-                NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude);
-                foreach(var upstreamNode in nodes)
-                {
-                    NodeUtils.UpdateNodeActiveOnEdgeChange(upstreamNode);
-                }
             }
         }
 
