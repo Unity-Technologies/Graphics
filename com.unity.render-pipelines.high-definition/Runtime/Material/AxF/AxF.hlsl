@@ -414,31 +414,9 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     {
         normalData.normalWS = surfaceData.normalWS;
 
-#if defined(_AXF_BRDF_TYPE_SVBRDF)
-        float roughness = (HasAnisotropy()) ? GetScalarRoughnessFromAnisoRoughness(surfaceData.specularLobe.x, surfaceData.specularLobe.y) : surfaceData.specularLobe.x;
-        normalData.perceptualRoughness = RoughnessToPerceptualRoughness(roughness);
-
-#elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
         // Hack: try to get a "single equivalent" roughness
-        normalData.perceptualRoughness = 0.0;
-
-        float sumCoeffXRoughness = 0.0;
-        float sumCoeff = 0.0;
-
-        UNITY_UNROLL
-        for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
-        {
-            float coeff = _CarPaint2_CTCoeffs[lobeIndex];
-            float spread = surfaceData.specularLobe[lobeIndex]; //_CarPaint2_CTSpreads[lobeIndex];
-
-            sumCoeff += coeff;
-            sumCoeffXRoughness += spread * coeff;
-        }
-        normalData.perceptualRoughness = RoughnessToPerceptualRoughness(min(1.0, SafeDiv(sumCoeffXRoughness,sumCoeff)));
-#else
-        // This is only possible if the AxF is a BTF type. However, there is a bunch of ifdefs do not support this third case
-        normalData.perceptualRoughness = 0.0;
-#endif
+        float roughness = GetScalarRoughness(surfaceData.specularLobe);
+        normalData.perceptualRoughness = RoughnessToPerceptualRoughness(roughness);
     }
 
     return normalData;
