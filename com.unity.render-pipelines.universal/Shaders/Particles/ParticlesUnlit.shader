@@ -70,9 +70,6 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             ColorMask RGB
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
@@ -86,10 +83,10 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
-            #pragma shader_feature_local_fragment _FLIPBOOKBLENDING_ON
-            #pragma shader_feature_local_fragment _SOFTPARTICLES_ON
-            #pragma shader_feature_local_fragment _FADING_ON
-            #pragma shader_feature_local_fragment _DISTORTION_ON
+            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local _SOFTPARTICLES_ON
+            #pragma shader_feature_local _FADING_ON
+            #pragma shader_feature_local _DISTORTION_ON
 
             // -------------------------------------
             // Unity defined keywords
