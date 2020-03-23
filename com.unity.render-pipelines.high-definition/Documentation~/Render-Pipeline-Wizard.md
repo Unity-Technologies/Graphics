@@ -102,5 +102,5 @@ When upgrading a project from the built-in render pipeline to HDRP, you need to 
 
 - **Upgrade Project Materials to High Definition Materials**: Upgrades every Material in your Unity Project to HDRP Materials.
 - **Upgrade Selected Materials to High Definition Materials**: Upgrades every Material currently selected to HDRP Materials.
-- **Upgrade Unity Builtin Scene Light Intensity for High Definition**: Upgrades each Light in the current Scene to HDRP compatible intensity values.
+- **Multiply Unity Builtin Directional Light Intensity to match High Definition**: Multiply intensity of each Directional Light in the current Scene to match HDRP compatible intensity values. Caution: This script should be executed only once.
 

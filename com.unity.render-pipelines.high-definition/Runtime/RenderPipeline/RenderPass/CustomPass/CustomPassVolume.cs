@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // By default we don't want the culling to return any objects
             cullingParameters.cullingMask = 0;
-            cullingParameters.cullingOptions &= CullingOptions.Stereo; // We just keep stereo if enabled and clear the other flags
+            cullingParameters.cullingOptions = CullingOptions.None;
 
             foreach (var injectionPoint in injectionPoints)
                 GetActivePassVolume(injectionPoint)?.AggregateCullingParameters(ref cullingParameters, hdCamera);

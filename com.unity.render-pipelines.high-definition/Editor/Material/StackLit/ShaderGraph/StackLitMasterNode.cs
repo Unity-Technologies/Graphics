@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "StackLit (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.StackLitMasterNode")]
-    class StackLitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class StackLitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -1007,6 +1007,20 @@ namespace UnityEditor.Rendering.HighDefinition
             return hash;
         }
 
+        [SerializeField] private string m_ShaderGUIOverride;
+        public string ShaderGUIOverride
+        {
+            get => m_ShaderGUIOverride;
+            set => m_ShaderGUIOverride = value;
+        }
+
+        [SerializeField] private bool m_OverrideEnabled;
+        public bool OverrideEnabled
+        {
+            get => m_OverrideEnabled;
+            set => m_OverrideEnabled = value;
+        }
+
         public StackLitMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -1062,7 +1076,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AddSlot(new TangentMaterialSlot(VertexTangentSlotId, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             validSlots.Add(VertexTangentSlotId);
 
-            RemoveSlot(NormalSlotId);                
+            RemoveSlot(NormalSlotId);
             var coordSpace = CoordinateSpace.Tangent;
             switch (m_NormalDropOffSpace)
             {
@@ -1399,8 +1413,8 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(Fields.GraphVertex,                    IsSlotConnected(PositionSlotId) || 
-                                                                                IsSlotConnected(VertexNormalSlotId) || 
+                new ConditionalField(Fields.GraphVertex,                    IsSlotConnected(PositionSlotId) ||
+                                                                                IsSlotConnected(VertexNormalSlotId) ||
                                                                                 IsSlotConnected(VertexTangentSlotId)),
                 new ConditionalField(Fields.GraphPixel,                     true),
 
@@ -1416,7 +1430,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.Anisotropy,                   anisotropy.isOn),
                 new ConditionalField(HDFields.Coat,                         coat.isOn),
                 new ConditionalField(HDFields.CoatMask,                     coat.isOn && pass.pixelPorts.Contains(CoatMaskSlotId) &&
-                                                                                (IsSlotConnected(CoatMaskSlotId) || 
+                                                                                (IsSlotConnected(CoatMaskSlotId) ||
                                                                                 (FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value != 0.0f &&
                                                                                 FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value != 1.0f))),
                 new ConditionalField(HDFields.CoatMaskZero,                 coat.isOn && pass.pixelPorts.Contains(CoatMaskSlotId) &&
@@ -1448,7 +1462,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.BaseParamSpecularColor,       baseParametrization == StackLit.BaseParametrization.SpecularColor),
 
                 // Dual Specular Lobe Parametrization
-                new ConditionalField(HDFields.HazyGloss,                    dualSpecularLobe.isOn && 
+                new ConditionalField(HDFields.HazyGloss,                    dualSpecularLobe.isOn &&
                                                                                 dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss),
 
                 // Misc
@@ -1459,22 +1473,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.DisableDecals,                !receiveDecals.isOn),
                 new ConditionalField(HDFields.DisableSSR,                   !receiveSSR.isOn),
                 new ConditionalField(Fields.VelocityPrecomputed,            addPrecomputedVelocity.isOn),
-                new ConditionalField(HDFields.BentNormal,                   IsSlotConnected(BentNormalSlotId) && 
+                new ConditionalField(HDFields.BentNormal,                   IsSlotConnected(BentNormalSlotId) &&
                                                                                 pass.pixelPorts.Contains(BentNormalSlotId)),
                 new ConditionalField(HDFields.AmbientOcclusion,             pass.pixelPorts.Contains(AmbientOcclusionSlotId) &&
                                                                                 (IsSlotConnected(AmbientOcclusionSlotId) ||
                                                                                 ambientOcclusionSlot.value != ambientOcclusionSlot.defaultValue)),
-                new ConditionalField(HDFields.Tangent,                      IsSlotConnected(TangentSlotId) && 
+                new ConditionalField(HDFields.Tangent,                      IsSlotConnected(TangentSlotId) &&
                                                                                 pass.pixelPorts.Contains(TangentSlotId)),
-                new ConditionalField(HDFields.LightingGI,                   IsSlotConnected(LightingSlotId) && 
+                new ConditionalField(HDFields.LightingGI,                   IsSlotConnected(LightingSlotId) &&
                                                                                 pass.pixelPorts.Contains(LightingSlotId)),
-                new ConditionalField(HDFields.BackLightingGI,               IsSlotConnected(BackLightingSlotId) && 
+                new ConditionalField(HDFields.BackLightingGI,               IsSlotConnected(BackLightingSlotId) &&
                                                                                 pass.pixelPorts.Contains(BackLightingSlotId)),
                 new ConditionalField(HDFields.DepthOffset,                  depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
                 // Option for baseParametrization == Metallic && DualSpecularLobeParametrization == HazyGloss:
                 // Again we assume masternode has HazyGlossMaxDielectricF0 which should always be the case
                 // if capHazinessWrtMetallic.isOn.
-                new ConditionalField(HDFields.CapHazinessIfNotMetallic,     dualSpecularLobe.isOn && 
+                new ConditionalField(HDFields.CapHazinessIfNotMetallic,     dualSpecularLobe.isOn &&
                                                                                 dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss &&
                                                                                 capHazinessWrtMetallic.isOn && baseParametrization == StackLit.BaseParametrization.BaseMetallic
                                                                                 && pass.pixelPorts.Contains(HazyGlossMaxDielectricF0SlotId)),

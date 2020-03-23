@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Serializable]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDUnlitMasterNode")]
     [Title("Master", "Unlit (HDRP)")]
-    class HDUnlitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class HDUnlitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
@@ -329,6 +329,20 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        [SerializeField] private string m_ShaderGUIOverride;
+        public string ShaderGUIOverride
+        {
+            get => m_ShaderGUIOverride;
+            set => m_ShaderGUIOverride = value;
+        }
+
+        [SerializeField] private bool m_OverrideEnabled;
+        public bool OverrideEnabled
+        {
+            get => m_OverrideEnabled;
+            set => m_OverrideEnabled = value;
+        }
+
         public HDUnlitMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -401,8 +415,8 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(Fields.GraphVertex,                    IsSlotConnected(PositionSlotId) || 
-                                                                                IsSlotConnected(VertexNormalSlotId) || 
+                new ConditionalField(Fields.GraphVertex,                    IsSlotConnected(PositionSlotId) ||
+                                                                                IsSlotConnected(VertexNormalSlotId) ||
                                                                                 IsSlotConnected(VertexTangentSlotId)),
                 new ConditionalField(Fields.GraphPixel,                     true),
 
@@ -412,7 +426,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.DistortionMultiply,           distortionMode == DistortionMode.Multiply),
                 new ConditionalField(HDFields.DistortionReplace,            distortionMode == DistortionMode.Replace),
                 new ConditionalField(HDFields.TransparentDistortion,        surfaceType != SurfaceType.Opaque && distortion.isOn),
-                
+
                 // Misc
                 new ConditionalField(Fields.AlphaTest,                      alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
                 new ConditionalField(HDFields.AlphaFog,                     surfaceType != SurfaceType.Opaque && transparencyFog.isOn),

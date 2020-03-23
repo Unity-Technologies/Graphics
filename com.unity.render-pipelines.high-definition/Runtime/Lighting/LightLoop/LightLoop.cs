@@ -105,33 +105,33 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     struct SFiniteLightBound
     {
-        public Vector3 boxAxisX;
-        public Vector3 boxAxisY;
-        public Vector3 boxAxisZ;
-        public Vector3 center;        // a center in camera space inside the bounding volume of the light source.
-        public Vector2 scaleXY;
-        public float radius;
+        public Vector3 boxAxisX; // Scaled by the extents (half-size)
+        public Vector3 boxAxisY; // Scaled by the extents (half-size)
+        public Vector3 boxAxisZ; // Scaled by the extents (half-size)
+        public Vector3 center;   // Center of the bounds (box) in camera space
+        public Vector2 scaleXY;  // Scale applied to the top of the box to turn it into a truncated pyramid
+        public float radius;     // Circumscribed sphere for the bounds (box)
     };
 
     [GenerateHLSL]
     struct LightVolumeData
     {
-        public Vector3 lightPos;
-        public uint lightVolume;
+        public Vector3 lightPos;     // Of light's "origin"
+        public uint lightVolume;     // Type index
 
-        public Vector3 lightAxisX;
-        public uint lightCategory;
+        public Vector3 lightAxisX;   // Normalized
+        public uint lightCategory;   // Category index
 
-        public Vector3 lightAxisY;
-        public float radiusSq;
+        public Vector3 lightAxisY;   // Normalized
+        public float radiusSq;       // Cone and sphere: light range squared
 
-        public Vector3 lightAxisZ;      // spot +Z axis
-        public float cotan;
+        public Vector3 lightAxisZ;   // Normalized
+        public float cotan;          // Cone: cotan of the aperture (half-angle)
 
-        public Vector3 boxInnerDist;
+        public Vector3 boxInnerDist; // Box: extents (half-size) of the inner box
         public uint featureFlags;
 
-        public Vector3 boxInvRange;
+        public Vector3 boxInvRange;  // Box: 1 / (OuterBoxExtents - InnerBoxExtents)
         public float unused2;
     };
 
@@ -1630,63 +1630,61 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (gpuLightType == GPULightType.Tube)
             {
                 Vector3 dimensions = new Vector3(lightDimensions.x + 2 * range, 2 * range, 2 * range); // Omni-directional
-                Vector3 extents = 0.5f * dimensions;
+                Vector3 extents    = 0.5f * dimensions;
+                Vector3 centerVS   = positionVS;
 
-                bound.center = positionVS;
+                bound.center   = centerVS;
                 bound.boxAxisX = extents.x * xAxisVS;
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
+                bound.radius   = extents.magnitude;
                 bound.scaleXY.Set(1.0f, 1.0f);
-                bound.radius = extents.magnitude;
 
-                lightVolumeData.lightPos = positionVS;
+                lightVolumeData.lightPos   = centerVS;
                 lightVolumeData.lightAxisX = xAxisVS;
                 lightVolumeData.lightAxisY = yAxisVS;
                 lightVolumeData.lightAxisZ = zAxisVS;
-                lightVolumeData.boxInnerDist = new Vector3(lightDimensions.x, 0, 0);
-                lightVolumeData.boxInvRange.Set(1.0f / range, 1.0f / range, 1.0f / range);
+                lightVolumeData.boxInvRange.Set(1.0f / extents.x, 1.0f / extents.y, 1.0f / extents.z);
                 lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
             }
             else if (gpuLightType == GPULightType.Rectangle)
             {
                 Vector3 dimensions = new Vector3(lightDimensions.x + 2 * range, lightDimensions.y + 2 * range, range); // One-sided
-                Vector3 extents = 0.5f * dimensions;
-                Vector3 centerVS = positionVS + extents.z * zAxisVS;
+                Vector3 extents    = 0.5f * dimensions;
+                Vector3 centerVS   = positionVS + extents.z * zAxisVS;
 
-                bound.center = centerVS;
+                bound.center   = centerVS;
                 bound.boxAxisX = extents.x * xAxisVS;
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
+                bound.radius   = extents.magnitude;
                 bound.scaleXY.Set(1.0f, 1.0f);
-                bound.radius = extents.magnitude;
 
-                lightVolumeData.lightPos = centerVS;
+                lightVolumeData.lightPos   = centerVS;
                 lightVolumeData.lightAxisX = xAxisVS;
                 lightVolumeData.lightAxisY = yAxisVS;
                 lightVolumeData.lightAxisZ = zAxisVS;
-                lightVolumeData.boxInnerDist = extents;
-                lightVolumeData.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+                lightVolumeData.boxInvRange.Set(1.0f / extents.x, 1.0f / extents.y, 1.0f / extents.z);
                 lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
             }
             else if (gpuLightType == GPULightType.ProjectorBox)
             {
                 Vector3 dimensions = new Vector3(lightDimensions.x, lightDimensions.y, range);  // One-sided
-                Vector3 extents = 0.5f * dimensions;
-                Vector3 centerVS = positionVS + extents.z * zAxisVS;
+                Vector3 extents    = 0.5f * dimensions;
+                Vector3 centerVS   = positionVS + extents.z * zAxisVS;
 
-                bound.center = centerVS;
+                bound.center   = centerVS;
                 bound.boxAxisX = extents.x * xAxisVS;
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
-                bound.radius = extents.magnitude;
+                bound.radius   = extents.magnitude;
                 bound.scaleXY.Set(1.0f, 1.0f);
 
-                lightVolumeData.lightPos = centerVS;
+                lightVolumeData.lightPos   = centerVS;
                 lightVolumeData.lightAxisX = xAxisVS;
                 lightVolumeData.lightAxisY = yAxisVS;
                 lightVolumeData.lightAxisZ = zAxisVS;
-                lightVolumeData.boxInnerDist = extents;
-                lightVolumeData.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+                lightVolumeData.boxInvRange.Set(1.0f / extents.x, 1.0f / extents.y, 1.0f / extents.z);
                 lightVolumeData.featureFlags = (uint)LightFeatureFlags.Punctual;
             }
             else if (gpuLightType == GPULightType.Disc)

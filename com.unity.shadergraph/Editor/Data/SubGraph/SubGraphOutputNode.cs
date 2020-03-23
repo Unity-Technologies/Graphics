@@ -64,14 +64,13 @@ namespace UnityEditor.ShaderGraph
 
         public override void ValidateNode()
         {
+            base.ValidateNode();
             ValidateShaderStage();
 
             if (!this.GetInputSlots<MaterialSlot>().Any())
             {
                 owner.AddValidationError(guid, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
-
-            base.ValidateNode();
         }
 
         protected override void OnSlotsChanged()

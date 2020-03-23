@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Serializable]
     [Title("Master", "Hair (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HairMasterNode")]
-    class HairMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class HairMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -636,6 +636,20 @@ namespace UnityEditor.Rendering.HighDefinition
             return hash;
         }
 
+        [SerializeField] private string m_ShaderGUIOverride;
+        public string ShaderGUIOverride
+        {
+            get => m_ShaderGUIOverride;
+            set => m_ShaderGUIOverride = value;
+        }
+
+        [SerializeField] private bool m_OverrideEnabled;
+        public bool OverrideEnabled
+        {
+            get => m_OverrideEnabled;
+            set => m_OverrideEnabled = value;
+        }
+
         public HairMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -813,16 +827,16 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(Fields.GraphVertex,                            IsSlotConnected(PositionSlotId) || 
-                                                                                        IsSlotConnected(VertexNormalSlotId) || 
+                new ConditionalField(Fields.GraphVertex,                            IsSlotConnected(PositionSlotId) ||
+                                                                                        IsSlotConnected(VertexNormalSlotId) ||
                                                                                         IsSlotConnected(VertexTangentSlotId)),
                 new ConditionalField(Fields.GraphPixel,                             true),
                 new ConditionalField(Fields.LodCrossFade,                           supportLodCrossFade.isOn),
-                
+
                 // Surface Type
                 new ConditionalField(Fields.SurfaceOpaque,                          surfaceType == SurfaceType.Opaque),
                 new ConditionalField(Fields.SurfaceTransparent,                     surfaceType != SurfaceType.Opaque),
-                
+
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                         !pass.Equals(HDPasses.Hair.MotionVectors)),
@@ -836,7 +850,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Misc
                 new ConditionalField(Fields.AlphaTest,                              alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
-                new ConditionalField(HDFields.AlphaTestShadow,                      alphaTest.isOn && alphaTestShadow.isOn && 
+                new ConditionalField(HDFields.AlphaTestShadow,                      alphaTest.isOn && alphaTestShadow.isOn &&
                                                                                         pass.pixelPorts.Contains(AlphaClipThresholdShadowSlotId)),
                 new ConditionalField(HDFields.AlphaTestPrepass,                     alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdDepthPrepassSlotId)),
                 new ConditionalField(HDFields.AlphaTestPostpass,                    alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdDepthPostpassSlotId)),
@@ -846,27 +860,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.DisableDecals,                        !receiveDecals.isOn),
                 new ConditionalField(HDFields.DisableSSR,                           !receiveSSR.isOn),
                 new ConditionalField(Fields.VelocityPrecomputed,                    addPrecomputedVelocity.isOn),
-                new ConditionalField(HDFields.BentNormal,                           IsSlotConnected(BentNormalSlotId) && 
+                new ConditionalField(HDFields.BentNormal,                           IsSlotConnected(BentNormalSlotId) &&
                                                                                         pass.pixelPorts.Contains(BentNormalSlotId)),
                 new ConditionalField(HDFields.AmbientOcclusion,                     pass.pixelPorts.Contains(AmbientOcclusionSlotId) &&
                                                                                         (IsSlotConnected(AmbientOcclusionSlotId) ||
                                                                                         ambientOcclusionSlot.value != ambientOcclusionSlot.defaultValue)),
-                new ConditionalField(HDFields.LightingGI,                           IsSlotConnected(LightingSlotId) && 
+                new ConditionalField(HDFields.LightingGI,                           IsSlotConnected(LightingSlotId) &&
                                                                                         pass.pixelPorts.Contains(LightingSlotId)),
-                new ConditionalField(HDFields.BackLightingGI,                       IsSlotConnected(BackLightingSlotId) && 
+                new ConditionalField(HDFields.BackLightingGI,                       IsSlotConnected(BackLightingSlotId) &&
                                                                                         pass.pixelPorts.Contains(BackLightingSlotId)),
                 new ConditionalField(HDFields.DepthOffset,                          depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
-                new ConditionalField(HDFields.SpecularAA,                           specularAA.isOn && 
+                new ConditionalField(HDFields.SpecularAA,                           specularAA.isOn &&
                                                                                         pass.pixelPorts.Contains(SpecularAAThresholdSlotId) &&
                                                                                         pass.pixelPorts.Contains(SpecularAAScreenSpaceVarianceSlotId)),
-                
-                new ConditionalField(HDFields.HairStrandDirection,                  IsSlotConnected(HairStrandDirectionSlotId) && 
+
+                new ConditionalField(HDFields.HairStrandDirection,                  IsSlotConnected(HairStrandDirectionSlotId) &&
                                                                                         pass.pixelPorts.Contains(HairStrandDirectionSlotId)),
-                new ConditionalField(HDFields.Transmittance,                        IsSlotConnected(TransmittanceSlotId) && 
+                new ConditionalField(HDFields.Transmittance,                        IsSlotConnected(TransmittanceSlotId) &&
                                                                                         pass.pixelPorts.Contains(TransmittanceSlotId)),
-                new ConditionalField(HDFields.RimTransmissionIntensity,             IsSlotConnected(RimTransmissionIntensitySlotId) && 
+                new ConditionalField(HDFields.RimTransmissionIntensity,             IsSlotConnected(RimTransmissionIntensitySlotId) &&
                                                                                         pass.pixelPorts.Contains(RimTransmissionIntensitySlotId)),
-                new ConditionalField(HDFields.UseLightFacingNormal,                 useLightFacingNormal.isOn),                                                                                                                                             
+                new ConditionalField(HDFields.UseLightFacingNormal,                 useLightFacingNormal.isOn),
                 new ConditionalField(HDFields.TransparentBackFace,                  surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
                 new ConditionalField(HDFields.TransparentDepthPrePass,              surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
                 new ConditionalField(HDFields.TransparentDepthPostPass,             surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
