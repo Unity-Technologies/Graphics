@@ -359,7 +359,7 @@ namespace UnityEditor.VFX.Block
                 }
 
                 if (SampleMode == CurveSampleMode.BySpeed)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "SpeedRange", VFXPropertyAttribute.Create(new MinAttribute(0.0f))), new Vector2(0.0f, 1.0f));
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "SpeedRange", new MinAttribute(0.0f)), new Vector2(0.0f, 1.0f));
                 else if (SampleMode == CurveSampleMode.Custom)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "SampleTime"));
                 else if (SampleMode == CurveSampleMode.RandomConstantPerParticle)

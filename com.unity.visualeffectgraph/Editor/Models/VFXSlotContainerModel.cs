@@ -216,8 +216,7 @@ namespace UnityEditor.VFX
         public override void OnUnknownChange()
         {
             base.OnUnknownChange();
-            SyncSlots(VFXSlot.Direction.kInput, false);
-            SyncSlots(VFXSlot.Direction.kOutput, false);
+            ResyncSlots(false);
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
@@ -384,10 +383,7 @@ namespace UnityEditor.VFX
             {
                 // Update properties
                 for (int i = 0; i < nbSlots; ++i)
-                {
-                    VFXProperty prop = currentSlots[i].property;
                     currentSlots[i].UpdateAttributes(expectedProperties[i].property.attributes);
-                }
             }
 
             return recreate;
