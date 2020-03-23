@@ -65,5 +65,5 @@ This operator provides a custom read of any vertex attribute, you can choose the
 
 - The sampled mesh should be in [readable](https://docs.unity3d.com/ScriptReference/Mesh-isReadable.html), otherwise, operator and block will only return zero values. You can change this option in import settings.
 
-![Read/Write Option](G:\Unity\Dev_VFX_Extra\com.unity.visualeffectgraph\Documentation~\Images\ReadWrite.png)
+![Read/Write Option](Images\ReadWrite.png)
 
