@@ -346,7 +346,6 @@ namespace UnityEditor.VFX.Test
             Undo.PerformUndo(); //Should go back to local
             Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXCoordinateSpace.Local);
             Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].GetSpaceTransformationType(), SpaceableType.Position);
-
         }
 
         [Test]

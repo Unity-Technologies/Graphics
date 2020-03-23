@@ -6,7 +6,6 @@ using System.Linq;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using Utilities;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -2063,7 +2062,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
                 }
 
-                RenderPathTracing(hdCamera, cmd, m_CameraColorBuffer, renderContext, m_FrameCount);
+                RenderPathTracing(hdCamera, cmd, m_CameraColorBuffer);
             }
             else
             {
