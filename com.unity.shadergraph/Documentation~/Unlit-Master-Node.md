@@ -8,7 +8,9 @@ A [Master Node](Master-Node.md) for unlit materials.
 
 | Name        | Direction           | Type  | Stage | Binding | Description |
 |:------------ |:-------------|:-----|:-----|:---|:---|
-| Position      | Input | Vector 3 | Vertex | None | Defines the absolute object space vertex position per vertex |
+| Vertex Position | Input | Vector 3 | Vertex | Object Space Position | Defines the absolute object space vertex position per vertex. |
+| Vertex Normal | Input | Vector 3 | Vertex | Object Space Normal | Defines the absolute object space vertex normal per vertex. |
+| Vertex Tangent | Input | Vector 3 | Vertex | Object Space Tangent | Defines the absolute object space vertex tangent per vertex. |
 | Color      | Input | Vector 3 | Fragment | None | Defines material's color value. Expected range 0 - 1. |
 | Alpha      | Input | Vector 1 | Fragment | None | Defines material's alpha value. Used for transparency and/or alpha clip. Expected range 0 - 1.  |
 | Alpha Clip Threshold      | Input | Vector 1 | Fragment | None | Fragments with an alpha below this value will be discarded. Requires a node connection. Expected range 0 - 1. |

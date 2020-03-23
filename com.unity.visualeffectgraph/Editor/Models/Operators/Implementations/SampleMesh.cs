@@ -32,19 +32,19 @@ namespace UnityEditor.VFX.Operator
         {
             None = 0,
             Position = 1 << 0,
-            Normal = 1 << 2,
-            Tangent = 1 << 3,
-            Color = 1 << 4,
-            TexCoord0 = 1 << 5,
-            TexCoord1 = 1 << 6,
-            TexCoord2 = 1 << 7,
-            TexCoord3 = 1 << 8,
-            TexCoord4 = 1 << 9,
-            TexCoord5 = 1 << 10,
-            TexCoord6 = 1 << 11,
-            TexCoord7 = 1 << 12,
-            BlendWeight = 1 << 13,
-            BlendIndices = 1 << 14
+            Normal = 1 << 1,
+            Tangent = 1 << 2,
+            Color = 1 << 3,
+            TexCoord0 = 1 << 4,
+            TexCoord1 = 1 << 5,
+            TexCoord2 = 1 << 6,
+            TexCoord3 = 1 << 7,
+            TexCoord4 = 1 << 8,
+            TexCoord5 = 1 << 9,
+            TexCoord6 = 1 << 10,
+            TexCoord7 = 1 << 11,
+            BlendWeight = 1 << 12,
+            BlendIndices = 1 << 13
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Outputs the result of the specified mesh sampling.")]

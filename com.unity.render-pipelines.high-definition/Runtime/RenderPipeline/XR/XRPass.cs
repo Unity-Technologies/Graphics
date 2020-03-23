@@ -37,17 +37,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal readonly Rect viewport;
         internal readonly Mesh occlusionMesh;
         internal readonly int textureArraySlice;
-        internal readonly Camera.StereoscopicEye legacyStereoEye;
-
-        internal XRView(Camera camera, Camera.StereoscopicEye eye, int dstSlice)
-        {
-            projMatrix = camera.GetStereoProjectionMatrix(eye);
-            viewMatrix = camera.GetStereoViewMatrix(eye);
-            viewport = camera.pixelRect;
-            occlusionMesh = null;
-            textureArraySlice = dstSlice;
-            legacyStereoEye = eye;
-        }
 
         internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int dstSlice)
         {
@@ -56,7 +45,6 @@ namespace UnityEngine.Rendering.HighDefinition
             viewport = vp;
             occlusionMesh = null;
             textureArraySlice = dstSlice;
-            legacyStereoEye = (Camera.StereoscopicEye)(-1);
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -67,7 +55,6 @@ namespace UnityEngine.Rendering.HighDefinition
             viewport = renderParameter.viewport;
             occlusionMesh = renderParameter.occlusionMesh;
             textureArraySlice = renderParameter.textureArraySlice;
-            legacyStereoEye = (Camera.StereoscopicEye)(-1);
 
             // Convert viewport from normalized to screen space
             viewport.x      *= renderPass.renderTargetDesc.width;
@@ -116,10 +103,6 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomMirrorView customMirrorView = null;
         internal void SetCustomMirrorView(CustomMirrorView callback) => customMirrorView = callback;
 
-        // Legacy multipass support
-        internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
-        internal bool legacyMultipassEnabled  { get => enabled && !singlePassEnabled && legacyMultipassEye >= 0; }
-
         internal static XRPass Create(XRPassCreateInfo createInfo)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
@@ -146,11 +129,6 @@ namespace UnityEngine.Rendering.HighDefinition
             passInfo.copyDepth = false;
 
             return passInfo;
-        }
-
-        internal void AddView(Camera camera, Camera.StereoscopicEye eye, int textureArraySlice = -1)
-        {
-            AddViewInternal(new XRView(camera, eye, textureArraySlice));
         }
 
         internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
@@ -200,6 +178,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
+                if (xrSdkEnabled)
+                {
+                    Debug.LogWarning("If you're trying to enable XR single-pass after the first frame, you need to set TextureXR.maxViews to 2 before the render pipeline is created (typically in a script with Awake()).");
+                }
+                
                 throw new NotImplementedException($"Invalid XR setup for single-pass, trying to add too many views! Max supported: {maxSupportedViews}");
             }
         }
@@ -207,28 +190,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Enable XR single-pass rendering.
         /// </summary>
-        public void StartSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
+        public void StartSinglePass(CommandBuffer cmd)
         {
             if (enabled)
             {
                 // Required for some legacy shaders (text for example)
                 cmd.SetViewProjectionMatrices(GetViewMatrix(), GetProjMatrix());
 
-                if (camera.stereoEnabled)
-                {
-                    // Reset scissor and viewport for C++ stereo code
-                    cmd.DisableScissorRect();
-                    cmd.SetViewport(camera.pixelRect);
-
-                    renderContext.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-
-                    if (legacyMultipassEnabled)
-                        renderContext.StartMultiEye(camera, legacyMultipassEye);
-                    else
-                        renderContext.StartMultiEye(camera);
-                }
-                else if (singlePassEnabled)
+                if (singlePassEnabled)
                 {
                     if (viewCount <= TextureXR.slices)
                     {
@@ -246,39 +215,35 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Disable XR single-pass rendering.
         /// </summary>
-        public void StopSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
+        public void StopSinglePass(CommandBuffer cmd)
         {
             if (enabled)
             {
-                if (camera.stereoEnabled)
-                {
-                    renderContext.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-                    renderContext.StopMultiEye(camera);
-                }
-                else
-                {
-                    cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
-                    cmd.SetInstanceMultiplier(1);
-                }
+                cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
+                cmd.SetInstanceMultiplier(1);
             }
         }
 
-        internal void EndCamera(CommandBuffer cmd, HDCamera hdCamera, ScriptableRenderContext renderContext)
+        /// <summary>Obsolete</summary>
+        [Obsolete]
+        public void StartSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
+        {
+            StartSinglePass(cmd);
+        }
+
+        /// <summary>Obsolete</summary>
+        [Obsolete]
+        public void StopSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
+        {
+            StopSinglePass(cmd);
+        }
+
+        internal void EndCamera(CommandBuffer cmd, HDCamera hdCamera)
         {
             if (!enabled)
                 return;
 
-            StopSinglePass(cmd, hdCamera.camera, renderContext);
-
-            // Legacy VR - push to XR headset and/or display mirror
-            if (hdCamera.camera.stereoEnabled)
-            {
-                if (legacyMultipassEnabled)
-                    renderContext.StereoEndRender(hdCamera.camera, legacyMultipassEye, legacyMultipassEye == 1);
-                else
-                    renderContext.StereoEndRender(hdCamera.camera);
-            }
+            StopSinglePass(cmd);
 
             // Callback for custom mirror view
             if (customMirrorView != null)
