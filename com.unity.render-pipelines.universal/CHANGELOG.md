@@ -135,6 +135,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a shader issue that caused the Color in Sprite Shape to work improperly.
 - Fixed an issue with URP switching such that every available URP makes a total set of supported features such that all URPs are taken into consideration. [case 1157420](https://issuetracker.unity3d.com/issues/lwrp-srp-switching-doesnt-work-even-with-manually-adding-shadervariants-per-scene)
 - Metallic slider on the Lit shader is now linear meaning correct values are used for PBR.
+- Fixed an issue where Post-Processing caused nothing to render on GLES2.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide

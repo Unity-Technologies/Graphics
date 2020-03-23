@@ -1,13 +1,15 @@
 ### **Please read**
 **PR workflow guidelines**
-* SRP ABV will start automatically when you open your PR
+* SRP ABV will start automatically on Yamato when you open your PR
 * Changes to docs and md files will **not** trigger ABV jobs 
 * Consider making use of **draft PRs** if you are not 100% sure that your PR is ready for review
 * ABV will restart if you add a new commit to a branch with an open PR (hence why you should consider using draft PRs)
 * Adding [skip ci] (case insensitive) to the title of PRs will stop any jobs being trigger automatically - you will need to open Yamato and find your branch to run ABV
+* You can also add [skip ci] to commit messages to prevent CI from running on that push
+* Add [cancel old ci] to your commit message if you've made changes you want to test and no longer need the previous jobs
 
 ### Checklist for PR maker
-- [ ] Have you added a backport label (if needed)? For example, the `need-backport-2019.3` label. After you backport the PR, the label changes to `backported-2019.3`.
+- [ ] Have you added a backport label (if needed)? For example, the `need-backport-*` label. After you backport the PR, the label changes to `backported-*`.
 - [ ] Have you updated the changelog? Each package has a `CHANGELOG.md` file.
 - [ ] Have you updated or added the documentation for your PR? When you add a new feature, change a property name, or change the behavior of a feature, it's best practice to include related documentation changes in the same PR.
 - [ ] Have you added a graphic test for your PR (if needed)? When you add a new feature, or discover a bug that tests don't cover, please add a graphic test.
@@ -25,7 +27,7 @@ Why is this PR needed, what hard problem is it solving/fixing?
 - [ ] Checked new UI names with UX convention
 - [ ] Tested UI multi-edition + Undo/Redo + Prefab overrides + Alignment in Preset
 - [ ] C# and shader warnings (supress shader cache to see them)
-- [ ] Checked new resources path for the reloader (in devloper mode, you have a button at end of resources that check the pathes)
+- [ ] Checked new resources path for the reloader (in developer mode, you have a button at end of resources that check the paths)
 - Other: 
 
 **Automated Tests**: What did you setup? (Add a screenshot or the reference image of the test please)
