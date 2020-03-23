@@ -36,6 +36,11 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 50
     min: 0
+  directionalTransmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
   cascadeShadowSplitCount:
     m_OverrideState: 0
     m_Value: 4
