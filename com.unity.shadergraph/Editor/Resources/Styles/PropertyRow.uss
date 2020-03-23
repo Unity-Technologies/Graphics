@@ -28,6 +28,6 @@ PropertyRow > #container > #label > Label {
 
 PropertyRow > #container > #content{
     flex-grow: 1;
-    height: 24px;
+    height: auto;
     justify-content: center;
 }

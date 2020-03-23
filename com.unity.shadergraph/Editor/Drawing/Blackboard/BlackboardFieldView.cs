@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 switch(property)
                 {
                     case Vector1ShaderProperty vector1Property:
-                        vector1Property.value = vector1Property.value;
+                        vector1Property = (Vector1ShaderProperty)value;
                         break;
                     case Vector2ShaderProperty vector2Property:
                         break;
@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         private int m_SelectedIndex;
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
-        private Action m_propertyUpdateTrigger;
+        private Action m_propertyViewUpdateTrigger;
 
         public string displayName
         {
@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_UndoGroup = Undo.GetCurrentGroup();
                     _graphData.owner.RegisterCompleteObjectUndo("Change property value");
                 }
-                // Handle scaping input field edit
+                // Handle escaping input field edit
                 if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
                 {
                     Undo.RevertAllDownToGroup(m_UndoGroup);
@@ -372,12 +372,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 shaderInputPropertyDrawer.GetPropertyData(_graphData.isSubGraph,
                     this.ChangeExposedField,
                     this.ChangeReferenceNameField,
+                    () => { _graphData.OnKeywordChanged(); },
                     this.ChangePropertyValue,
                     this.RegisterPropertyChangeUndo,
                     this.MarkNodesAsDirty);
             }
 
-            this.m_propertyUpdateTrigger = inspectorUpdateDelegate;
+            this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
         }
 
         public PropertyInfo[] GetPropertyInfo()
@@ -416,10 +417,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             _graphData.owner.RegisterCompleteObjectUndo(actionName);
         }
 
-        void MarkNodesAsDirty(ModificationScope modificationScope = ModificationScope.Node)
+        void MarkNodesAsDirty(bool triggerPropertyViewUpdate = false, ModificationScope modificationScope = ModificationScope.Node)
         {
             DirtyNodes(modificationScope);
-            this.m_propertyUpdateTrigger();
+            if(triggerPropertyViewUpdate)
+                this.m_propertyViewUpdateTrigger();
         }
 
         void ChangePropertyValue(object newValue)
@@ -430,36 +432,50 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             switch(property)
             {
+                case BooleanShaderProperty booleanProperty:
+                    booleanProperty.value = (bool) newValue;
+                    break;
                 case Vector1ShaderProperty vector1Property:
-                    vector1Property.value = (float)newValue;
+                    vector1Property.value = (float) newValue;
                     break;
                 case Vector2ShaderProperty vector2Property:
+                    vector2Property.value = (Vector2) newValue;
                     break;
                 case Vector3ShaderProperty vector3Property:
+                    vector3Property.value = (Vector3) newValue;
                     break;
                 case Vector4ShaderProperty vector4Property:
+                    vector4Property.value = (Vector4) newValue;
                     break;
                 case ColorShaderProperty colorProperty:
+                    colorProperty.value = (Color) newValue;
                     break;
                 case Texture2DShaderProperty texture2DProperty:
+                    texture2DProperty.value.texture = (Texture) newValue;
                     break;
                 case Texture2DArrayShaderProperty texture2DArrayProperty:
+                    texture2DArrayProperty.value.textureArray = (Texture2DArray) newValue;
                     break;
                 case Texture3DShaderProperty texture3DProperty:
+                    texture3DProperty.value.texture = (Texture3D) newValue;
                     break;
                 case CubemapShaderProperty cubemapProperty:
-                    break;
-                case BooleanShaderProperty booleanProperty:
+                    cubemapProperty.value.cubemap = (Cubemap) newValue;
                     break;
                 case Matrix2ShaderProperty matrix2Property:
+                    matrix2Property.value = (Matrix4x4) newValue;
                     break;
                 case Matrix3ShaderProperty matrix3Property:
+                    matrix3Property.value = (Matrix4x4) newValue;
                     break;
                 case Matrix4ShaderProperty matrix4Property:
+                    matrix4Property.value = (Matrix4x4) newValue;
                     break;
                 case SamplerStateShaderProperty samplerStateProperty:
+                    samplerStateProperty.value = (TextureSamplerState) newValue;
                     break;
                 case GradientShaderProperty gradientProperty:
+                    gradientProperty.value = (Gradient) newValue;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
