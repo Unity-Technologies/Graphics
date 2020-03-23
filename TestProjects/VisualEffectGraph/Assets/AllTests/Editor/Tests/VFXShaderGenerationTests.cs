@@ -171,7 +171,7 @@ namespace UnityEditor.VFX.Test
                 uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true)
             };
             HashSet<string> dependencies = new HashSet<string>();
-            var stringBuilder = VFXCodeGenerator.Build(updateContext, VFXCompilationMode.Runtime, contextCompiledData,dependencies);
+            var stringBuilder = VFXCodeGenerator.Build(updateContext, VFXCompilationMode.Runtime, contextCompiledData, dependencies);
 
             var code = stringBuilder.ToString();
             Assert.IsTrue(code.Contains(VFXBlockSourceVariantTest.sourceCodeVariant[0]));

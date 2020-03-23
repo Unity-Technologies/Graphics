@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.Test
 
         internal static void CreateSystems(VFXView view, VFXViewController viewController, int count, int offset, string name = null)
         {
-            Func<int, VFXContextController> fnContextController = delegate (int i)
+            Func<int, VFXContextController> fnContextController = delegate(int i)
             {
                 viewController.ApplyChanges();
                 var controller = viewController.allChildren.OfType<VFXContextController>().Cast<VFXContextController>().ToArray();
