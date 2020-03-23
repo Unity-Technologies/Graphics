@@ -142,7 +142,7 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}_dependencies:
     {% if package.hascodependencies %}
     - {{ platform.copycmd }}
     {% endif %}
-    - upm-ci package test -u {{ platform.editorpath }} --type updated-dependencies-tests --package-path {{ package.packagename }}
+    - upm-ci package test -u {{ platform.editorpath }} --type updated-dependencies-tests --package-path {{ package.packagename }} --semver minor
   artifacts:
     logs:
       paths:
