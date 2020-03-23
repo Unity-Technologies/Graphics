@@ -63,6 +63,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float alpha = 1.0;
 
+    surfaceData.ambientOcclusion = 1.0;
+    surfaceData.specularOcclusion = 1.0;
     surfaceData.specularLobe = 0;
 
 #ifdef _AXF_BRDF_TYPE_SVBRDF
