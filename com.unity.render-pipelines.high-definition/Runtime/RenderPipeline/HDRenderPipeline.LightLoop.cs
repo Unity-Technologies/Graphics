@@ -257,7 +257,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderSSR(    RenderGraph     renderGraph,
-                                        HDCamera            hdCamera,
+                                    HDCamera        hdCamera,
                                     TextureHandle   normalBuffer,
                                     TextureHandle   motionVectorsBuffer,
                                     TextureHandle   depthPyramid,
@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
 
-                    passData.parameters = PrepareSSRParameters(hdCamera);
+                    passData.parameters = PrepareSSRParameters(hdCamera, m_DepthBufferMipChainInfo);
                     passData.depthPyramid = builder.ReadTexture(depthPyramid);
                     passData.colorPyramid = builder.ReadTexture(colorPyramid);
                     passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
