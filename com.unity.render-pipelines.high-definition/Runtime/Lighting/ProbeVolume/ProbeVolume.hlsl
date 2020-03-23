@@ -414,7 +414,7 @@ void EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, i
                                 float3(0.5, 1.5, 1.5) * probeWeightTNW +
                                 float3(1.5, 1.5, 1.5) * probeWeightTNE;
 
-#if DEBUG_DISPLAY
+#ifdef DEBUG_DISPLAY
                             // If we are visualizing validity data, we do not want to apply our bilateral filter texture coordinate modification
                             // because ideally, our filter will avoid sampling from invalid data - making this debug mode useless.
                             if (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
@@ -426,7 +426,7 @@ void EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, i
 
                         float3 probeVolumeAtlasUVW = probeVolumeTexel3D * s_probeVolumeData.resolutionInverse * s_probeVolumeData.scale + s_probeVolumeData.bias;
 
-#if DEBUG_DISPLAY
+#ifdef DEBUG_DISPLAY
                         if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
                         {
                             float validity = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 3), 0).x;

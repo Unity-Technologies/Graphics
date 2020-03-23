@@ -10,8 +10,6 @@
 // Need to add all the required includes to use our custom probe volume clustered light list.
 // Need PositionInputs definition for use as argument in LightLoopDef accessor functions.
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-// #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-// #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 #endif // endof SHADER_PASS == SHADERPASS_GBUFFER
 
