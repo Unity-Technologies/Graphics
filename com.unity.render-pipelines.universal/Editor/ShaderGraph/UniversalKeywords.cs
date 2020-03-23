@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 referenceName = "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
-                scope = KeywordScope.Global,
+                scope = KeywordScope.Local,
             };
 
             public static KeywordDescriptor ETCExternalAlpha = new KeywordDescriptor()
