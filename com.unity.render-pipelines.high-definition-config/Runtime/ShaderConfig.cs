@@ -30,7 +30,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         AreaLights = 1,
 
-        DeferredShadowFiltering = HDShadowFilteringQuality.Medium,
         BarnDoor = 0
     };
 
@@ -44,6 +43,5 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_PrecomputedAtmosphericAttenuation = (int)ShaderOptions.PrecomputedAtmosphericAttenuation;
         public static int s_AreaLights = (int)ShaderOptions.AreaLights;
         public static int s_BarnDoor = (int)ShaderOptions.BarnDoor;
-        public static HDShadowFilteringQuality s_DeferredShadowFiltering = (HDShadowFilteringQuality)ShaderOptions.DeferredShadowFiltering;
     }
 }
