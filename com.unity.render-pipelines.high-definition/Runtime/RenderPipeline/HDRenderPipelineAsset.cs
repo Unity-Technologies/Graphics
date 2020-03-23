@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
+using Utilities;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
