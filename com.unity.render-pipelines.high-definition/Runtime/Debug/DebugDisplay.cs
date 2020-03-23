@@ -5,6 +5,42 @@ using UnityEngine.Rendering.HighDefinition.Attributes;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    unsafe struct ShaderVariablesDebugDisplay
+    {
+        [HLSLArray(32, typeof(Vector4))]
+        public fixed float _DebugRenderingLayersColors[32 * 4];
+        [HLSLArray(11, typeof(ShaderGenUInt4))]
+        public fixed int _DebugViewMaterialArray[11 * 4]; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
+
+        public int _DebugLightingMode; // Match enum DebugLightingMode
+        public int _DebugLightLayersMask;
+        public int _DebugShadowMapMode;
+        public int _DebugMipMapMode; // Match enum DebugMipMapMode
+
+        public int _DebugFullScreenMode;
+        public float _DebugTransparencyOverdrawWeight;
+        public int _DebugMipMapModeTerrainTexture; // Match enum DebugMipMapModeTerrainTexture
+        public int _ColorPickerMode; // Match enum ColorPickerDebugMode
+
+        public Vector4 _DebugLightingAlbedo; // x == bool override, yzw = albedo for diffuse
+        public Vector4 _DebugLightingSmoothness; // x == bool override, y == override value
+        public Vector4 _DebugLightingNormal; // x == bool override
+        public Vector4 _DebugLightingAmbientOcclusion; // x == bool override, y == override value
+        public Vector4 _DebugLightingSpecularColor; // x == bool override, yzw = specular color
+        public Vector4 _DebugLightingEmissiveColor; // x == bool override, yzw = emissive color
+        public Vector4 _DebugLightingMaterialValidateHighColor; // user can specific the colors for the validator error conditions
+        public Vector4 _DebugLightingMaterialValidateLowColor;
+        public Vector4 _DebugLightingMaterialValidatePureMetalColor;
+        public Vector4 _MousePixelCoord;  // xy unorm, zw norm
+        public Vector4 _MouseClickPixelCoord;  // xy unorm, zw norm
+
+        public float _DebugExposure;
+        public int _MatcapMixAlbedo;
+        public float _MatcapViewScale;
+        public int _DebugSingleShadowIndex;
+    }
+
     /// <summary>
     /// Full Screen Debug Mode.
     /// </summary>

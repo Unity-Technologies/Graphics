@@ -2598,17 +2598,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
-
-            // We push this parameter here because we know that normal/deferred shadows are not yet rendered
-            if (debugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
-            {
-                int shadowIndex = (int)debugDisplaySettings.data.lightingDebugSettings.shadowMapIndex;
-
-                if (debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection)
-                    shadowIndex = m_DebugSelectedLightShadowIndex;
-                cmd.SetGlobalInt(HDShaderIDs._DebugSingleShadowIndex, shadowIndex);
-            }
-
             return m_enableBakeShadowMask;
         }
 
