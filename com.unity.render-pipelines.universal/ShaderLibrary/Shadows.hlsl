@@ -43,12 +43,12 @@ float4      _CascadeShadowSplitSpheres0;
 float4      _CascadeShadowSplitSpheres1;
 float4      _CascadeShadowSplitSpheres2;
 float4      _CascadeShadowSplitSpheres3;
-float4      _CascadeShadowSplitSphereRadii; //(x: is used as shadow dist if the cascades is not in use.)
+float4      _CascadeShadowSplitSphereRadii;
 half4       _MainLightShadowOffset0;
 half4       _MainLightShadowOffset1;
 half4       _MainLightShadowOffset2;
 half4       _MainLightShadowOffset3;
-half4       _MainLightShadowParams;  // (x: shadowStrength, y: 1.0 if soft shadows, 0.0 otherwise)
+float4       _MainLightShadowParams;  // (x: shadowStrength, y: 1.0 if soft shadows, 0.0 otherwise, z:shadow distance)
 float4      _MainLightShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
@@ -65,10 +65,6 @@ half4       _AdditionalShadowOffset3;
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 
 float4 _ShadowBias; // x: depth bias, y: normal bias
-
-
-
-float3 _fragPositionWS;//TODO: remove
 
 #define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= 0.0 || shadowCoord.z >= 1.0
 
@@ -187,43 +183,8 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     // 1-tap hardware comparison
     attenuation = SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
 #endif
-#if FADE_SHADOWS
-#if defined(_MAIN_LIGHT_SHADOWS_CASCADE)
-    float3 fromCenter0 = _WorldSpaceCameraPos - _CascadeShadowSplitSpheres0.xyz;
-    float3 fromCenter1 = _WorldSpaceCameraPos - _CascadeShadowSplitSpheres1.xyz;
-    float3 fromCenter2 = _WorldSpaceCameraPos - _CascadeShadowSplitSpheres2.xyz;
-    float3 fromCenter3 = _WorldSpaceCameraPos - _CascadeShadowSplitSpheres3.xyz;
-    float4 worldToCascadeDistances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
-
-    half4 weights = half4(_CascadeShadowSplitSphereRadii > 0);
-    weights.xyz = saturate(weights.xyz-weights.yzw);
-    float lastCascadeDistanceFromCam2 = dot(weights, worldToCascadeDistances2);
-    float lastCascadeRadius = dot(weights, _CascadeShadowSplitSphereRadii);
-    float3 lastCascadeCenter =
-        weights.x * _CascadeShadowSplitSpheres0
-        + weights.y * _CascadeShadowSplitSpheres1
-        + weights.z * _CascadeShadowSplitSpheres2
-        + weights.w * _CascadeShadowSplitSpheres3;
-
-    float3 camToFrag = _WorldSpaceCameraPos - _fragPositionWS;
-    float camToFragDist2 = dot(camToFrag, camToFrag);
-
-    float fragFromCenter = _fragPositionWS - lastCascadeCenter;
-    float fragDistFromCenter2 = dot(fragFromCenter, fragFromCenter);
-
-    bool isWithoutFade = lastCascadeDistanceFromCam2 > camToFragDist2;
-
-    float shadowFade = isWithoutFade + !isWithoutFade * saturate(1 - 2*fragDistFromCenter2 / lastCascadeRadius);
-#else
-    float3 camToFrag = _WorldSpaceCameraPos - _fragPositionWS;
-    float camToFragDist2 = dot(camToFrag, camToFrag);
-    float shadowFade = saturate(1-(camToFragDist2/_CascadeShadowSplitSphereRadii.x)*(camToFragDist2 / _CascadeShadowSplitSphereRadii.x));
-#endif
-#else
-    float shadowFade = 1.0;
-#endif
     //LerpWhiteTo(b, t) is the lerp operation with the first paremeter set to 1: lerp(1,b,t). Which means it will lerp between 1 and b with t.
-    attenuation = LerpWhiteTo(attenuation, shadowStrength * shadowFade);
+    attenuation = LerpWhiteTo(attenuation, shadowStrength);
     // Shadow coords that fall out of the light frustum volume must always return attenuation 1.0
     // TODO: We could use branch here to save some perf on some platforms.
     return BEYOND_SHADOW_FAR(shadowCoord) ? 1.0 : attenuation;
@@ -245,7 +206,6 @@ half ComputeCascadeIndex(float3 positionWS)
 
 float4 TransformWorldToShadowCoord(float3 positionWS)
 {
-    _fragPositionWS = positionWS;
 #ifdef _MAIN_LIGHT_SHADOWS_CASCADE
     half cascadeIndex = ComputeCascadeIndex(positionWS);
 #else
@@ -255,17 +215,34 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
     return mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 }
 
+half computeShadowFade(float3 positionWS, float shadowStrength)
+{
+    float3 fragToCamVec = _WorldSpaceCameraPos - positionWS;
+    float distanceFragToCam2 = dot(fragToCamVec, fragToCamVec);
+    float shadowDist = _MainLightShadowParams.z;
+    return shadowStrength * (1 - saturate((distanceFragToCam2 - shadowDist * 0.8) / (shadowDist - shadowDist * 0.8)));
+}
+
 half MainLightRealtimeShadow(float4 shadowCoord)
 {
 #if !defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     return 1.0h;
 #endif
-
-    ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     half4 shadowParams = GetMainLightShadowParams();
+    ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
 }
 
+half MainLightRealtimeShadow(float3 positionWS, float4 shadowCoord)
+{
+    half4 shadowParams = GetMainLightShadowParams();
+    shadowParams.x = computeShadowFade(positionWS, shadowParams.x);
+#if !defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+    return 1.0h;
+#endif  
+    ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
+    return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
+}
 half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 {
 #if !defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
@@ -289,6 +266,7 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 #endif
 
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
+    shadowParams.x = computeShadowFade(positionWS, shadowParams.x);
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
 }
 
