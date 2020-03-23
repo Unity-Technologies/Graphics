@@ -116,7 +116,6 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             bool downScale;
-            int downScaleDivider;
             int sampleCount;
             float intensity;
             float radius;
@@ -140,7 +139,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 //m_DepthSource = m_FeatureSettings.depthSource;
             }
 
-            downScaleDivider = downScale ? 2 : 1;
+            int downScaleDivider = downScale ? 2 : 1;
             FilterMode filterMode = downScale ? FilterMode.Bilinear : FilterMode.Point;
 
             // Material settings

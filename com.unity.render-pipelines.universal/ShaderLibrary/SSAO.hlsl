@@ -6,11 +6,11 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 //#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 
-TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
-TEXTURE2D(_TempTarget); SAMPLER(sampler_TempTarget);
-TEXTURE2D(_TempTarget2); SAMPLER(sampler_TempTarget2);
-TEXTURE2D(_ScreenSpaceAOTexture); SAMPLER(sampler_ScreenSpaceAOTexture);
-TEXTURE2D(_CameraGBufferTexture2); SAMPLER(sampler_CameraGBufferTexture2);
+TEXTURE2D_X(_BaseMap); SAMPLER(sampler_BaseMap);
+TEXTURE2D_X(_TempTarget); SAMPLER(sampler_TempTarget);
+TEXTURE2D_X(_TempTarget2); SAMPLER(sampler_TempTarget2);
+TEXTURE2D_X(_ScreenSpaceAOTexture); SAMPLER(sampler_ScreenSpaceAOTexture);
+//TEXTURE2D(_CameraGBufferTexture2); SAMPLER(sampler_CameraGBufferTexture2);
 
 // SSAO Settings
 int _SSAO_Samples;
@@ -18,7 +18,7 @@ half _SSAO_Intensity;
 half _SSAO_Radius;
 float _SSAO_DownScale;
 
-#define SAMPLE_BASEMAP(uv)  SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
+#define SAMPLE_BASEMAP(uv)  SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
 #define INTENSITY _SSAO_Intensity
 #define RADIUS _SSAO_Radius
 #define DOWNSAMPLE _SSAO_DownScale
