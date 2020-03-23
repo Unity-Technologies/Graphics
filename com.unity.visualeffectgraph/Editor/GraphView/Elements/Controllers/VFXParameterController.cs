@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
 
 
         object[] m_CustomAttributes;
-        VFXPropertyAttribute[] m_Attributes;
+        VFXPropertyAttributes m_Attributes;
 
         string m_MemberPath;
 
@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UI
                 type = info.FieldType;
             }
             m_CustomAttributes = m_FieldInfos[m_FieldInfos.Length - 1].GetCustomAttributes(true);
-            m_Attributes = VFXPropertyAttribute.Create(m_CustomAttributes);
+            m_Attributes = new VFXPropertyAttributes(m_CustomAttributes);
         }
 
         public VFXSubParameterController[] children
@@ -112,7 +112,7 @@ namespace UnityEditor.VFX.UI
 
         object[] IPropertyRMProvider.customAttributes { get { return m_CustomAttributes; } }
 
-        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return m_Attributes; } }
+        VFXPropertyAttributes IPropertyRMProvider.attributes { get { return m_Attributes; } }
 
         int IPropertyRMProvider.depth { get { return m_FieldPath.Length; } }
 
@@ -218,9 +218,9 @@ namespace UnityEditor.VFX.UI
             get { return m_Min ? "Min" : "Max"; }
         }
 
-        public VFXPropertyAttribute[] attributes
+        public VFXPropertyAttributes attributes
         {
-            get { return new VFXPropertyAttribute[] {}; }
+            get { return new VFXPropertyAttributes(); }
         }
 
         public object[] customAttributes
@@ -847,15 +847,15 @@ namespace UnityEditor.VFX.UI
 
         public object[] customAttributes { get { return new object[] {}; } }
 
-        public VFXPropertyAttribute[] attributes
+        public VFXPropertyAttributes attributes
         {
             get
             {
                 if (canHaveRange)
                 {
-                    return VFXPropertyAttribute.Create(new object[] { new RangeAttribute(RangeToFloat(minValue), RangeToFloat(maxValue)) });
+                    return new VFXPropertyAttributes(new RangeAttribute(RangeToFloat(minValue), RangeToFloat(maxValue)));
                 }
-                return new VFXPropertyAttribute[] {};
+                return new VFXPropertyAttributes();
             }
         }
 

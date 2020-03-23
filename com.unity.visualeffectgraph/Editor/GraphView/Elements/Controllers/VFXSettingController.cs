@@ -82,11 +82,11 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
-        public VFXPropertyAttribute[] attributes
+        public VFXPropertyAttributes attributes
         {
             get
             {
-                return VFXPropertyAttribute.Create(customAttributes);
+                return new VFXPropertyAttributes(customAttributes);
             }
         }
 
