@@ -107,7 +107,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ThreadMap:
-        m_Texture: {fileID: 2800000, guid: cd19c89d4b2f99f439cb28098be331dc, type: 3}
+        m_Texture: {fileID: 2800000, guid: dd4dec4e20efc5b458b00a1fcb3a9a75, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TransmittanceColorMap:
@@ -170,8 +170,8 @@ Material:
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _EnergyConservingSpecularColor: 1
-    - _FuzzMapUVScale: 0.1
-    - _FuzzStrength: 0.18
+    - _FuzzMapUVScale: 0.2
+    - _FuzzStrength: 0.087
     - _HdrpVersion: 2
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
@@ -233,7 +233,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _ThreadAOStrength01: 0.655
     - _ThreadNormalStrength: 1
-    - _ThreadSmoothnessScale: 0.35
+    - _ThreadSmoothnessScale: 0.205
     - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
@@ -273,7 +273,7 @@ Material:
     - _uvBaseMask: {r: 1, g: 0, b: 0, a: 0}
     - _uvBaseST: {r: 1, g: 1, b: 0, a: 0}
     - _uvThreadMask: {r: 1, g: 0, b: 0, a: 0}
-    - _uvThreadST: {r: 40, g: 40, b: 0, a: 0}
+    - _uvThreadST: {r: 30, g: 30, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &3775346471072160633
 MonoBehaviour:
