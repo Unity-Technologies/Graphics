@@ -255,6 +255,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             InitializeCameraData(camera, additionalCameraData, out var cameraData);
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+            ApplyAdaptivePerformance(ref cameraData);
+#endif
             RenderSingleCamera(context, cameraData, true, cameraData.postProcessEnabled);
         }
 
@@ -301,6 +304,10 @@ namespace UnityEngine.Rendering.Universal
                 var cullResults = context.Cull(ref cullingParameters);
                 InitializeRenderingData(asset, ref cameraData, ref cullResults, requiresBlitToBackbuffer, anyPostProcessingEnabled, out var renderingData);
 
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+                ApplyAdaptivePerformance(ref renderingData);
+#endif
+
                 renderer.Setup(context, ref renderingData);
                 renderer.Execute(context, ref renderingData);
             }
@@ -309,6 +316,79 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
             context.Submit();
         }
+
+
+
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+        static void ApplyAdaptivePerformance(ref CameraData cameraData)
+        {
+            var MaxShadowDistanceMultiplier = AdaptivePerformance.AdaptivePerformanceSettings.MaxShadowDistanceMultiplier;
+            cameraData.maxShadowDistance *= MaxShadowDistanceMultiplier;
+
+            var RenderScaleMultiplier = AdaptivePerformance.AdaptivePerformanceSettings.RenderScaleMultiplier;
+            cameraData.renderScale *= RenderScaleMultiplier;
+
+            // TODO
+            if (!cameraData.isStereoEnabled)
+            {
+                cameraData.cameraTargetDescriptor.width = (int)(cameraData.camera.pixelWidth * cameraData.renderScale);
+                cameraData.cameraTargetDescriptor.height = (int)(cameraData.camera.pixelHeight * cameraData.renderScale);
+            }
+
+            var antialiasingQualityIndex = (int)cameraData.antialiasingQuality - AdaptivePerformance.AdaptivePerformanceSettings.MainLightShadowCascadesCountBias;
+            if (antialiasingQualityIndex < 0)
+                cameraData.antialiasing = AntialiasingMode.None;
+            cameraData.antialiasingQuality = (AntialiasingQuality)Mathf.Clamp(antialiasingQualityIndex, (int)AntialiasingQuality.Low, (int)AntialiasingQuality.High);
+        }
+        static void ApplyAdaptivePerformance(ref RenderingData renderingData)
+        {
+            var MainLightShadowmapResultionMultiplier = AdaptivePerformance.AdaptivePerformanceSettings.MainLightShadowmapResultionMultiplier;
+            renderingData.shadowData.mainLightShadowmapWidth = (int)(renderingData.shadowData.mainLightShadowmapWidth * MainLightShadowmapResultionMultiplier);
+            renderingData.shadowData.mainLightShadowmapHeight = (int)(renderingData.shadowData.mainLightShadowmapHeight * MainLightShadowmapResultionMultiplier);
+
+            var MainLightShadowCascadesCountBias = AdaptivePerformance.AdaptivePerformanceSettings.MainLightShadowCascadesCountBias;
+            renderingData.shadowData.mainLightShadowCascadesCount = Mathf.Clamp(renderingData.shadowData.mainLightShadowCascadesCount - MainLightShadowCascadesCountBias, 0, 4);
+
+            var shadowQualityIndex = AdaptivePerformance.AdaptivePerformanceSettings.ShadowQualityBias;
+            for (int i = 0; i < shadowQualityIndex; i++)
+            {
+                if (renderingData.shadowData.supportsSoftShadows)
+                {
+                    renderingData.shadowData.supportsSoftShadows = false;
+                    continue;
+                }
+
+                if (renderingData.shadowData.supportsAdditionalLightShadows)
+                {
+                    renderingData.shadowData.supportsAdditionalLightShadows = false;
+                    continue;
+                }
+
+                if (renderingData.shadowData.supportsMainLightShadows)
+                {
+                    renderingData.shadowData.supportsMainLightShadows = false;
+                    continue;
+                }
+
+                break;
+            }
+
+            if (AdaptivePerformance.AdaptivePerformanceSettings.LutBias >= 1 && renderingData.postProcessingData.lutSize == 32)
+                renderingData.postProcessingData.lutSize = 16;
+
+            /*var MaxShadowDistanceMultiplier = AdaptivePerformance.AdaptivePerformanceSettings.MaxShadowDistanceMultiplier;
+            renderingData.cameraData.maxShadowDistance *= MaxShadowDistanceMultiplier;
+
+            var RenderScaleMultiplier = AdaptivePerformance.AdaptivePerformanceSettings.RenderScaleMultiplier;
+            renderingData.cameraData.renderScale *= RenderScaleMultiplier;
+
+            if (!renderingData.cameraData.isStereoEnabled)
+            {
+                renderingData.cameraData.cameraTargetDescriptor.width = (int)((float)renderingData.cameraData.camera.pixelWidth * renderingData.cameraData.renderScale);
+                renderingData.cameraData.cameraTargetDescriptor.height = (int)((float)renderingData.cameraData.camera.pixelHeight * renderingData.cameraData.renderScale);
+            }*/
+        }
+#endif
 
         /// <summary>
         // Renders a camera stack. This method calls RenderSingleCamera for each valid camera in the stack.
