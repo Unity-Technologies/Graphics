@@ -84,6 +84,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114340500867371532}
   m_ParameterInfo: []
+  m_ImportDependencies: []
   m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies: []
@@ -161,10 +162,10 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 8926484042661614540}
   - {fileID: 8926484042661614541}
   - {fileID: 8926484042661614542}
   - {fileID: 8926484042661614614}
+  - {fileID: 8926484042661614540}
   m_OutputSlots: []
   m_Label: 
   m_Data: {fileID: 8926484042661614647}
@@ -191,7 +192,6 @@ MonoBehaviour:
   castShadows: 0
   useExposureWeight: 0
   shaderGraph: {fileID: 0}
-  shadergraphGUID: 
 --- !u!114 &8926484042661614540
 MonoBehaviour:
   m_ObjectHideFlags: 0

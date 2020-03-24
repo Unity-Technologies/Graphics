@@ -7,23 +7,12 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel KMain_Variant0 MAIN=KMain_Variant0 VARIANT=0
-#pragma kernel KMain_Variant1 MAIN=KMain_Variant1 VARIANT=1
-#pragma kernel KMain_Variant2 MAIN=KMain_Variant2 VARIANT=2
-#pragma kernel KMain_Variant3 MAIN=KMain_Variant3 VARIANT=3
-#pragma kernel KMain_Variant4 MAIN=KMain_Variant4 VARIANT=4
-#pragma kernel KMain_Variant5 MAIN=KMain_Variant5 VARIANT=5
-#pragma kernel KMain_Variant6 MAIN=KMain_Variant6 VARIANT=6
-#pragma kernel KMain_Variant7 MAIN=KMain_Variant7 VARIANT=7
+#pragma kernel Uber
 
-#pragma kernel KMain_Variant8 MAIN=KMain_Variant8 ENABLE_ALPHA VARIANT=8
-#pragma kernel KMain_Variant9 MAIN=KMain_Variant9 ENABLE_ALPHA VARIANT=9
-#pragma kernel KMain_Variant10 MAIN=KMain_Variant10 ENABLE_ALPHA VARIANT=10
-#pragma kernel KMain_Variant11 MAIN=KMain_Variant11 ENABLE_ALPHA VARIANT=11
-#pragma kernel KMain_Variant12 MAIN=KMain_Variant12 ENABLE_ALPHA VARIANT=12
-#pragma kernel KMain_Variant13 MAIN=KMain_Variant13 ENABLE_ALPHA VARIANT=13
-#pragma kernel KMain_Variant14 MAIN=KMain_Variant14 ENABLE_ALPHA VARIANT=14
-#pragma kernel KMain_Variant15 MAIN=KMain_Variant15 ENABLE_ALPHA VARIANT=15
+#pragma multi_compile _ CHROMATIC_ABERRATION
+#pragma multi_compile _ VIGNETTE
+#pragma multi_compile _ LENS_DISTORTION
+#pragma multi_compile _ ENABLE_ALPHA
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
@@ -92,25 +81,24 @@ float2 DistortUV(float2 uv)
 {
     // Lens distortion
     // Note: this variant should never be set with XR
-    if (VARIANT & UBERPOSTFEATUREFLAGS_LENS_DISTORTION)
-    {
-        uv = (uv - 0.5) * DistScale + 0.5;
-        float2 ruv = DistAxis * (uv - 0.5 - DistCenter);
-        float ru = length(float2(ruv));
+#ifdef LENS_DISTORTION
+    uv = (uv - 0.5) * DistScale + 0.5;
+    float2 ruv = DistAxis * (uv - 0.5 - DistCenter);
+    float ru = length(float2(ruv));
 
-        UNITY_BRANCH
-        if (DistIntensity > 0.0)
-        {
-            float wu = ru * DistTheta;
-            ru = tan(wu) * (rcp(ru * DistSigma));
-            uv = uv + ruv * (ru - 1.0);
-        }
-        else
-        {
-            ru = rcp(ru) * DistTheta * atan(ru * DistSigma);
-            uv = uv + ruv * (ru - 1.0);
-        }
+    UNITY_BRANCH
+    if (DistIntensity > 0.0)
+    {
+        float wu = ru * DistTheta;
+        ru = tan(wu) * (rcp(ru * DistSigma));
+        uv = uv + ruv * (ru - 1.0);
     }
+    else
+    {
+        ru = rcp(ru) * DistTheta * atan(ru * DistSigma);
+        uv = uv + ruv * (ru - 1.0);
+    }
+#endif
 
     return uv;
 }
@@ -118,7 +106,7 @@ float2 DistortUV(float2 uv)
 #define GROUP_SIZE 8
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
+void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
@@ -130,38 +118,36 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Chromatic aberration    
     // Inspired by the method described in "Rendering Inside" [Playdead 2016]
     // https://twitter.com/pixelmager/status/717019757766123520
-    if (VARIANT & UBERPOSTFEATUREFLAGS_CHROMATIC_ABERRATION)
+#ifdef CHROMATIC_ABERRATION
+    float2 coords = 2.0 * uv - 1.0;
+    float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
+    float2 diff = end - uv;
+    int samples = clamp(int(length(_ScreenSize.xy * diff / 2.0)), 3, ChromaMaxSamples);
+    float2 delta = diff / samples;
+    float2 pos = uv;
+    float3 sum = 0.0, filterSum = 0.0;
+
+    for (int i = 0; i < samples; i++)
     {
-        float2 coords = 2.0 * uv - 1.0;
-        float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
-        float2 diff = end - uv;
-        int samples = clamp(int(length(_ScreenSize.xy * diff / 2.0)), 3, ChromaMaxSamples);
-        float2 delta = diff / samples;
-        float2 pos = uv;
-        float3 sum = 0.0, filterSum = 0.0;
+        float t = (i + 0.5) / samples;
+        float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(DistortUV(pos)), 0.0).xyz;
+        float3 filter = SAMPLE_TEXTURE2D_LOD(_ChromaSpectralLut, sampler_ChromaSpectralLut, float2(t, 0.0), 0).xyz;
 
-        for (int i = 0; i < samples; i++)
-        {
-            float t = (i + 0.5) / samples;
-            float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(DistortUV(pos)), 0.0).xyz;
-            float3 filter = SAMPLE_TEXTURE2D_LOD(_ChromaSpectralLut, sampler_ChromaSpectralLut, float2(t, 0.0), 0).xyz;
+        sum += s * filter;
+        filterSum += filter;
+        pos += delta;
+    }
 
-            sum += s * filter;
-            filterSum += filter;
-            pos += delta;
-        }
-
-        color.xyz = sum / filterSum;
+    color.xyz = sum / filterSum;
 #ifdef ENABLE_ALPHA
-        inputColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0);
-        color.w = inputColor.w;
+    inputColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0);
+    color.w = inputColor.w;
 #endif
-    }
-    else
-    {
-        color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).CTYPE_SWIZZLE;
-        inputColor = color;
-    }
+
+#else
+    color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).CTYPE_SWIZZLE;
+    inputColor = color;
+#endif
 
     // Bloom
     UNITY_BRANCH
@@ -188,25 +174,26 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     // Vignette
-    if (VARIANT & UBERPOSTFEATUREFLAGS_VIGNETTE)
+#ifdef VIGNETTE
+
+    UNITY_BRANCH
+    if (VignetteMode == 0u) // Procedural
     {
-        UNITY_BRANCH
-        if (VignetteMode == 0u) // Procedural
-        {
-            float2 d = abs(uvDistorted - VignetteCenter) * VignetteIntensity;
-            d.x *= lerp(1.0, _ScreenSize.x / _ScreenSize.y, VignetteRounded);
-            d = pow(saturate(d), VignetteRoundness);
-            float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);
-            color.xyz *= lerp(VignetteColor, (1.0).xxx, vfactor);
-        }
-        else // Masked
-        {
-            float vfactor = SAMPLE_TEXTURE2D_LOD(_VignetteMask, sampler_VignetteMask, uvDistorted, 0).w;
-            vfactor = FastSRGBToLinear(vfactor);
-            float3 newColor = color.xyz * lerp(VignetteColor, (1.0).xxx, vfactor);
-            color.xyz = lerp(color.xyz, newColor, VignetteOpacity);
-        }
+        float2 d = abs(uvDistorted - VignetteCenter) * VignetteIntensity;
+        d.x *= lerp(1.0, _ScreenSize.x / _ScreenSize.y, VignetteRounded);
+        d = pow(saturate(d), VignetteRoundness);
+        float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);
+        color.xyz *= lerp(VignetteColor, (1.0).xxx, vfactor);
     }
+    else // Masked
+    {
+        float vfactor = SAMPLE_TEXTURE2D_LOD(_VignetteMask, sampler_VignetteMask, uvDistorted, 0).w;
+        vfactor = FastSRGBToLinear(vfactor);
+        float3 newColor = color.xyz * lerp(VignetteColor, (1.0).xxx, vfactor);
+        color.xyz = lerp(color.xyz, newColor, VignetteOpacity);
+    }
+
+#endif
 
     // Grading, tonemapping
     // The branch is only used for frame settings & exr log export - else grading is always enabled
