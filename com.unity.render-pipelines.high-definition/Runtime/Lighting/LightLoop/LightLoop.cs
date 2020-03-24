@@ -555,7 +555,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static int s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel;
 
         static int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
-        static int[] s_shadeOpaqueIndirectShadowMaskFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
         static int s_deferredContactShadowKernel;
 
@@ -768,15 +767,11 @@ namespace UnityEngine.Rendering.HighDefinition
             s_shadeOpaqueDirectFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl");
             s_shadeOpaqueDirectFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl_DebugDisplay");
 
-            s_shadeOpaqueDirectShadowMaskFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_ShadowMask_Fptl");
-            s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_ShadowMask_Fptl_DebugDisplay");
-
             s_deferredContactShadowKernel = contactShadowComputeShader.FindKernel("DeferredContactShadow");
 
             for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
             {
                 s_shadeOpaqueIndirectFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_Fptl_Variant" + variant);
-                s_shadeOpaqueIndirectShadowMaskFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_ShadowMask_Fptl_Variant" + variant);
             }
 
             m_TextureCaches.Initialize(asset, defaultResources, iBLFilterBSDFArray);
@@ -3614,6 +3609,12 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDeferredLightingCompute)))
             {
                 cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, resources.lightListBuffer);
+                parameters.deferredComputeShader.shaderKeywords = null;
+
+                if (parameters.enableShadowMasks)
+                {
+                    parameters.deferredComputeShader.EnableKeyword("SHADOWS_SHADOWMASK");
+                }
 
                 for (int variant = 0; variant < parameters.numVariants; variant++)
                 {
@@ -3621,18 +3622,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (parameters.enableFeatureVariants)
                     {
-                        kernel = parameters.enableShadowMasks ? s_shadeOpaqueIndirectShadowMaskFptlKernels[variant] : s_shadeOpaqueIndirectFptlKernels[variant];
+                        kernel = s_shadeOpaqueIndirectFptlKernels[variant];
                     }
                     else
                     {
-                        if (parameters.enableShadowMasks)
-                        {
-                            kernel = parameters.debugDisplaySettings.IsDebugDisplayEnabled() ? s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel : s_shadeOpaqueDirectShadowMaskFptlKernel;
-                        }
-                        else
-                        {
-                            kernel = parameters.debugDisplaySettings.IsDebugDisplayEnabled() ? s_shadeOpaqueDirectFptlDebugDisplayKernel : s_shadeOpaqueDirectFptlKernel;
-                        }
+                        kernel = parameters.debugDisplaySettings.IsDebugDisplayEnabled() ? s_shadeOpaqueDirectFptlDebugDisplayKernel : s_shadeOpaqueDirectFptlKernel;
                     }
 
                     cmd.SetComputeTextureParam(parameters.deferredComputeShader, kernel, HDShaderIDs._CameraDepthTexture, resources.depthTexture);

@@ -587,6 +587,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
 - Obsolete Utilities namespace was removed, instead use UnityEngine.Rendering (case 1204677)
 - Moved most of the compute shaders to the multi_compile API instead of multiple kernels.
+- Use multi_compile API for deferred compute shader with shadow mask.
 
 ## [7.1.1] - 2019-09-05
 
