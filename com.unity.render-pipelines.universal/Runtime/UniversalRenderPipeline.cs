@@ -255,6 +255,9 @@ namespace UnityEngine.Rendering.Universal
                     renderer.Execute(context, ref renderingData);
                 }
                 context.ExecuteCommandBuffer(cmd);
+                // context submit is required here. Shadow pass is executed out of order 
+                // and we need to ensure we submit the shadow pass work before starting the next shadow pass.
+                context.Submit();
                 CommandBufferPool.Release(cmd);
             }
 
