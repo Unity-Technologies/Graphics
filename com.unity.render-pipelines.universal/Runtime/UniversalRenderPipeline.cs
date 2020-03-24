@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            var xrPasses = m_XRSystem.SetupFrame(cameraData, /*XRTODO XR single pass settings in urp asset pipeline*/ true, /*XRTODO: test mode*/ false);
+            var xrPasses = m_XRSystem.SetupFrame(ref cameraData, /*XRTODO XR single pass settings in urp asset pipeline*/ true, /*XRTODO: test mode*/ false);
             foreach (XRPass xrPass in xrPasses)
             {
                 cameraData.xrPass = xrPass;
@@ -262,7 +262,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.camera.cameraType == CameraType.Game && cameraData.resolveFinalTarget)
             {
                 CommandBuffer cmd = CommandBufferPool.Get();
-                m_XRSystem.RenderMirrorView(cmd);
+                m_XRSystem.RenderMirrorView(cmd, ref cameraData);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }

@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.Universal
             return maxViews;
         }
 
-        // XRTODO: Remove this BIG HACK. (Workaround URP Skybox)
+        // XRTODO: Remove MountShimLayer/UnmountShimLayer. (Workaround URP Skybox using legacy skybox shader, XRSDK MSAA not exposed to SRP)
         internal bool MountShimLayer()
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        internal List<XRPass> SetupFrame(CameraData cameraData, bool singlePassAllowed, bool singlePassTestModeActive)
+        internal List<XRPass> SetupFrame(ref CameraData cameraData, bool singlePassAllowed, bool singlePassTestModeActive)
         {
             Camera camera = cameraData.camera;
             bool xrSdkActive = RefreshXrSdk();
@@ -395,7 +395,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _SRGBRead          = Shader.PropertyToID("_SRGBRead");
         }
 
-        internal void RenderMirrorView(CommandBuffer cmd)
+        internal void RenderMirrorView(CommandBuffer cmd, ref CameraData cameraData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (display == null || !display.running)
@@ -407,7 +407,7 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, _XRMirrorProfilingSampler))
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-
+                bool yflip = cameraData.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
                 int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
                 if (display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode))
                 {
@@ -420,8 +420,9 @@ namespace UnityEngine.Rendering.Universal
                         for (int i = 0; i < blitDesc.blitParamsCount; ++i)
                         {
                             blitDesc.GetBlitParameter(i, out var blitParam);
-
-                            Vector4 scaleBias = new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
+            
+                            Vector4 scaleBias = yflip ? new Vector4(blitParam.srcRect.width, -blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.height + blitParam.srcRect.y) :
+                                                        new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
                             Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
                             if(!blitParam.srcTex.sRGB)
