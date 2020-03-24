@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlendingMode(1);
                 DepthTest(1);
                 DepthWrite(1);
-                if(target.doubleSided)
+                if(target.doubleSidedMode != DoubleSidedMode.Disabled)
                 {
                     CullMode(1);
                 }
@@ -60,10 +60,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Misc
-            DoubleSided(1);
-            AlphaClipping(1);
-            AddPrecomputedVelocity(1);
-            ShadowMatte(1);
+            DoubleSided(0);
+            AlphaClipping(0);
+            AddPrecomputedVelocity(0);
+            ShadowMatte(0);
         }
 
 #region Properties
@@ -324,16 +324,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         void DoubleSided(int indentLevel)
         {
-            this.Add(new PropertyRow(new Label("Double-Sided")), (row) =>
+            this.Add(new PropertyRow(new Label("Double-Sided Mode")), (row) =>
             {
-                row.Add(new Toggle(), (field) =>
+                row.Add(new EnumField(target.doubleSidedMode), (field) =>
                 {
-                    field.value = target.doubleSided;
+                    field.value = target.doubleSidedMode;
                     field.RegisterValueChangedCallback(evt => {
-                        if (Equals(target.doubleSided, evt.newValue))
+                        if (Equals(target.doubleSidedMode, evt.newValue))
                             return;
 
-                        target.doubleSided = evt.newValue;
+                        target.doubleSidedMode = (DoubleSidedMode)evt.newValue;
                         onChange();
                     });
                 });

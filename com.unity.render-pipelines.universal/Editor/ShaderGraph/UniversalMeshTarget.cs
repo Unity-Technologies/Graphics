@@ -153,15 +153,27 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     else
                         activeBlocks.Add(BlockFields.SurfaceDescription.Metallic);
 
+                    switch (m_NormalDropOffSpace)
+                    {
+                        case NormalDropOffSpace.Tangent:
+                            activeBlocks.Add(BlockFields.SurfaceDescription.NormalTS);
+                            break;
+                        case NormalDropOffSpace.World:
+                            activeBlocks.Add(BlockFields.SurfaceDescription.NormalWS);
+                            break;
+                        case NormalDropOffSpace.Object:
+                            activeBlocks.Add(BlockFields.SurfaceDescription.NormalOS);
+                            break;
+                    }
+
                     activeBlocks.Add(BlockFields.SurfaceDescription.Smoothness);
-                    activeBlocks.Add(BlockFields.SurfaceDescription.Normal);
                     activeBlocks.Add(BlockFields.SurfaceDescription.Emission);
                     activeBlocks.Add(BlockFields.SurfaceDescription.Occlusion);
                     break;
                 // TODO: Move Sprite to separate Target?
                 case MaterialType.SpriteLit:
                     activeBlocks.Add(BlockFields.SurfaceDescription.SpriteMask);
-                    activeBlocks.Add(BlockFields.SurfaceDescription.Normal);
+                    activeBlocks.Add(BlockFields.SurfaceDescription.NormalTS);
                     break;
                 case MaterialType.SpriteUnlit:
                     activeBlocks.Add(BlockFields.SurfaceDescription.SpriteMask);
@@ -211,7 +223,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 new ConditionalField(Fields.VelocityPrecomputed, !isSprite && m_AddPrecomputedVelocity),
                 new ConditionalField(Fields.DoubleSided,         !isSprite && m_TwoSided),
                 new ConditionalField(Fields.SpecularSetup,       m_MaterialType == MaterialType.Lit && m_WorkflowMode == WorkflowMode.Specular),
-                new ConditionalField(Fields.Normal,              m_MaterialType == MaterialType.Lit && blocks.Contains(BlockFields.SurfaceDescription.Normal)),
+                new ConditionalField(Fields.Normal,              m_MaterialType == MaterialType.Lit && (blocks.Contains(BlockFields.SurfaceDescription.NormalTS) ||
+                                                                                                        blocks.Contains(BlockFields.SurfaceDescription.NormalWS) ||
+                                                                                                        blocks.Contains(BlockFields.SurfaceDescription.NormalOS))),
             };
         }
 

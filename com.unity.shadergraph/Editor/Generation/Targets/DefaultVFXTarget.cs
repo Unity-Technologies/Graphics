@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
             {
                 activeBlocks.Add(BlockFields.SurfaceDescription.Metallic);
                 activeBlocks.Add(BlockFields.SurfaceDescription.Smoothness);
-                activeBlocks.Add(BlockFields.SurfaceDescription.Normal);
+                activeBlocks.Add(BlockFields.SurfaceDescription.NormalTS);
                 activeBlocks.Add(BlockFields.SurfaceDescription.Emission);
             }
 

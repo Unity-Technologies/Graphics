@@ -65,6 +65,16 @@ namespace UnityEditor.ShaderGraph
         {
             name = $"{fieldDescriptor.tag}.{fieldDescriptor.name}";
             m_Descriptor = fieldDescriptor;
+
+            // TODO: This exposes the MaterialSlot API
+            // TODO: This needs to be removed but is currently required by HDRP for DiffusionProfileInputMaterialSlot
+            if(m_Descriptor is CustomSlotBlockFieldDescriptor customSlotDescriptor)
+            {
+                AddSlot(customSlotDescriptor.slot);
+                RemoveSlotsNameNotMatching(new int[] {0});
+                return;
+            }
+
             m_Requirements = fieldDescriptor.control.GetRequirements();
             AddSlot();
         }

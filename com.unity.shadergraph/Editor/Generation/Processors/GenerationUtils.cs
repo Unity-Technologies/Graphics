@@ -15,11 +15,14 @@ namespace UnityEditor.ShaderGraph
         internal static List<FieldDescriptor> GetActiveFieldsFromConditionals(ConditionalField[] conditionalFields)
         {
             var fields = new List<FieldDescriptor>();
-            foreach(ConditionalField conditionalField in conditionalFields)
+            if(conditionalFields != null)
             {
-                if(conditionalField.condition == true)
+                foreach(ConditionalField conditionalField in conditionalFields)
                 {
-                    fields.Add(conditionalField.field);
+                    if(conditionalField.condition == true)
+                    {
+                        fields.Add(conditionalField.field);
+                    }
                 }
             }
 

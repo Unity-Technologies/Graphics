@@ -12,4 +12,17 @@
             this.shaderStage = shaderStage;
         }
     }
+
+    // TODO: This exposes the MaterialSlot API
+    // TODO: This needs to be removed but is currently required by HDRP for DiffusionProfileInputMaterialSlot
+    internal class CustomSlotBlockFieldDescriptor : BlockFieldDescriptor
+    {
+        public MaterialSlot slot { get; }
+
+        public CustomSlotBlockFieldDescriptor(string tag, string name, string define, MaterialSlot slot)
+            : base (tag, name, define, null, ShaderStage.Fragment)
+        {
+            this.slot = slot;
+        }
+    }
 }
