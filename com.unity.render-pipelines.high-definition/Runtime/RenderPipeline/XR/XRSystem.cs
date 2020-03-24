@@ -76,7 +76,10 @@ namespace UnityEngine.Rendering.HighDefinition
             SubsystemManager.GetInstances(displayList);
 
             for (int i = 0; i < displayList.Count; i++)
+            {
                 displayList[i].disableLegacyRenderer = true;
+                displayList[i].sRGB = true;
+            }
         }
 #endif
 

@@ -477,6 +477,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cubemap thumbnail generation at project load time. 
 - Fixed XR culling with multiple cameras
 - Fixed XR single-pass with Mock HMD plugin
+- Fixed sRGB mismatch with XR SDK
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
