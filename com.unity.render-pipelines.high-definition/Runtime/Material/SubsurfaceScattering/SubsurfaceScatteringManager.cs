@@ -97,11 +97,9 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeSubsurfaceScattering()
         {
             // Disney SSS (compute + combine)
-            string kernelName = asset.currentPlatformRenderPipelineSettings.increaseSssSampleCount ? "SubsurfaceScatteringHQ" : "SubsurfaceScatteringMQ";
-            string kernelNameMSAA = asset.currentPlatformRenderPipelineSettings.increaseSssSampleCount ? "SubsurfaceScatteringHQ_MSAA" : "SubsurfaceScatteringMQ_MSAA";
+            string kernelName = "SubsurfaceScattering";
             m_SubsurfaceScatteringCS = defaultResources.shaders.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel(kernelName);
-            m_SubsurfaceScatteringKernelMSAA = m_SubsurfaceScatteringCS.FindKernel(kernelNameMSAA);
             m_CombineLightingPass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.combineLightingPS);
             m_CombineLightingPass.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SubsurfaceScattering);
             m_CombineLightingPass.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SubsurfaceScattering);
@@ -267,7 +265,18 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new SubsurfaceScatteringParameters();
 
             parameters.subsurfaceScatteringCS = m_SubsurfaceScatteringCS;
-            parameters.subsurfaceScatteringCSKernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SubsurfaceScatteringKernelMSAA : m_SubsurfaceScatteringKernel;
+            parameters.subsurfaceScatteringCS.shaderKeywords = null;
+
+            if (asset.currentPlatformRenderPipelineSettings.increaseSssSampleCount)
+            {
+                m_SubsurfaceScatteringCS.EnableKeyword("SSS_ENABLE_NEAR_FIELD");
+            }
+            if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            {
+                m_SubsurfaceScatteringCS.EnableKeyword("ENABLE_MSAA");
+            }
+
+            parameters.subsurfaceScatteringCSKernel = m_SubsurfaceScatteringKernel;
             parameters.needTemporaryBuffer = NeedTemporarySubsurfaceBuffer() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             parameters.copyStencilForSplitLighting = m_SSSCopyStencilForSplitLighting;
             parameters.combineLighting = m_CombineLightingPass;
