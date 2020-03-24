@@ -89,6 +89,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new debug panel for volumes
 - Added XR setting to control camera jitter for temporal effects
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
+- Added support for specular AA from geometric curvature in AxF
+- Added support for baked AO (no input for now) in AxF
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -486,6 +488,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed render texture with XR
 - Fixed issue with resources being accessed before initialization process has been performed completely. 
 - Half fixed shuriken particle light that cast shadows (only the first one will be correct)
+- Fix reflection hierarchy for CARPAINT in AxF.
+- Fix precise fresnel for delta lights for SVBRDF in AxF.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
