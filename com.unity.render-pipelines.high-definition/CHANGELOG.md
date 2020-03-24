@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
 - Fixed cubemap thumbnail generation at project load time. 
+- Fixed an issue where default volume would not update when switching profile.
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
