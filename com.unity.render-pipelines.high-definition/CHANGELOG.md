@@ -479,6 +479,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR single-pass with Mock HMD plugin
 - Fixed sRGB mismatch with XR SDK
 - Fixed an issue where default volume would not update when switching profile.
+- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601) 
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
