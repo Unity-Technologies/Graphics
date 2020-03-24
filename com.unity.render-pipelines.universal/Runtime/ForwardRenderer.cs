@@ -554,12 +554,12 @@ namespace UnityEngine.Rendering.Universal
                 isCompatibleBackbufferTextureDimension = UnityEngine.XR.XRSettings.deviceEyeTextureDimension == cameraTargetDescriptor.dimension;
 #endif
 
-            bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve;
+            bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport;
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
 
             return requiresBlitForOffscreenCamera || isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                   !isCompatibleBackbufferTextureDimension || !cameraData.isDefaultViewport || isCapturing ||
+                   !isCompatibleBackbufferTextureDimension || isCapturing ||
                    (Display.main.requiresBlitToBackbuffer && !isStereoEnabled);
         }
 
