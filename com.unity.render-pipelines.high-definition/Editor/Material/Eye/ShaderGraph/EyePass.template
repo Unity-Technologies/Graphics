@@ -58,9 +58,7 @@ Pass
         #define OUTPUT_SPLIT_LIGHTING
     #endif
 
-    #ifdef DEBUG_DISPLAY
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-    #else
+    #ifndef DEBUG_DISPLAY
         // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
         // Don't do it with debug display mode as it is possible there is no depth prepass in this case
         #if !defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ALPHATEST)
