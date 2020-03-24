@@ -4743,7 +4743,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Iridescence alterates the specular color depending on the view direction.
+  m_text: Iridescence alters the specular color depending on the view direction.
     It simulates an iridescent film on top of the material.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4818,7 +4818,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 1068290592}
-    characterCount: 129
+    characterCount: 126
     spriteCount: 0
     spaceCount: 19
     wordCount: 20
@@ -5671,7 +5671,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Foliage\nThis material uses Translucency in oder to let light go through
+  m_text: "Foliage\nThis material uses Translucency in order to let light go through
     the leaves. This effect is also controlled by a Diffusion profile which allows
     you to tint the lighting. \nIn the material, you can modulate how much light
     goes through with the Thickness value or the Thickness Map.\nThin materials will
@@ -5725,7 +5725,7 @@ MonoBehaviour:
   m_enableWordWrapping: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
-  m_firstOverflowCharacterIndex: 178
+  m_firstOverflowCharacterIndex: 179
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_isTextTruncated: 0
@@ -5749,7 +5749,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 1264842109}
-    characterCount: 383
+    characterCount: 384
     spriteCount: 0
     spaceCount: 65
     wordCount: 65
@@ -6381,7 +6381,7 @@ MonoBehaviour:
     are used to represent unique details.\n\nUsed alone, the Detail map can represent
     pretty well materials that don't need hue variation in the Base Color or in Metallic
     value.\n\nDetail maps can also be used with the Layered Lit shader when blending
-    several material is necessary.\n\nDetail maps can easily be shared accross different
+    several material is necessary.\n\nDetail maps can easily be shared across different
     materials and building a library of detail maps is very useful to add details
     to generic materials such as plaster, plastic, metal, rubber, concrete, ..."
   m_isRightToLeft: 0
