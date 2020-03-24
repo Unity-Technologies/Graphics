@@ -6,6 +6,14 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     static class VisibleLightExtensionMethods
     {
+        public struct VisibleLightAxisAndPosition
+        {
+            public Vector3 Position;
+            public Vector3 Forward;
+            public Vector3 Up;
+            public Vector3 Right;
+        }
+
         public static Vector3 GetPosition(this VisibleLight value)
         {
             return value.localToWorldMatrix.GetColumn(3);
@@ -24,6 +32,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public static Vector3 GetRight(this VisibleLight value)
         {
             return value.localToWorldMatrix.GetColumn(0);
+        }
+
+        public static VisibleLightAxisAndPosition GetAxisAndPosition(this VisibleLight value)
+        {
+            var matrix = value.localToWorldMatrix;
+            VisibleLightAxisAndPosition output;
+            output.Position = matrix.GetColumn(3);
+            output.Forward  = matrix.GetColumn(2);
+            output.Up       = matrix.GetColumn(1);
+            output.Right    = matrix.GetColumn(0);
+            return output;
         }
     }
 
@@ -1281,11 +1300,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var lightData = new LightData();
 
+            var visibleLightAxisAndPosition = light.GetAxisAndPosition();
+
             lightData.lightLayers = additionalLightData.GetLightLayers();
 
             lightData.lightType = gpuLightType;
 
-            lightData.positionRWS = light.GetPosition();
+            lightData.positionRWS = visibleLightAxisAndPosition.Position;
 
             bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
 
@@ -1323,9 +1344,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.color = GetLightColor(light);
 
-            lightData.forward = light.GetForward();
-            lightData.up = light.GetUp();
-            lightData.right = light.GetRight();
+            lightData.forward = visibleLightAxisAndPosition.Forward;
+            lightData.up = visibleLightAxisAndPosition.Up;
+            lightData.right = visibleLightAxisAndPosition.Right;
 
             lightDimensions.x = additionalLightData.shapeWidth;
             lightDimensions.y = additionalLightData.shapeHeight;
