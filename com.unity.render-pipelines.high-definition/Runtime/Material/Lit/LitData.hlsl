@@ -259,6 +259,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     bentNormalWS = surfaceData.normalWS;
 #endif
 
+#if defined(DEBUG_DISPLAY)  && !defined(SHADER_STAGE_RAY_TRACING)
+    if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+    {
+        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base.uv, _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
+        surfaceData.metallic = 0;
+    }
+
+    // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+    // as it can modify attribute use for static lighting
+    ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
+#endif
+
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
     // If user provide bent normal then we process a better term
 #if defined(_BENTNORMALMAP) && defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
@@ -279,18 +291,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #if defined(_ENABLE_GEOMETRIC_SPECULAR_AA) && !defined(SHADER_STAGE_RAY_TRACING)
     // Specular AA
     surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
-#endif
-
-#if defined(DEBUG_DISPLAY)  && !defined(SHADER_STAGE_RAY_TRACING)
-    if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-    {
-        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base.uv, _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
-        surfaceData.metallic = 0;
-    }
-
-    // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
-    // as it can modify attribute use for static lighting
-    ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
 #endif
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData

@@ -1042,7 +1042,7 @@ namespace UnityEditor.Rendering
                             arrayInfos[0].elementType != typeof(ShaderGenUInt4) &&
                             arrayInfos[0].elementType != typeof(Matrix4x4))
                         {
-                            Error("Invalid HLSLArray target: '" + field.FieldType + "'" + ", only Vector4 and ShaderGenUInt4 are supported for integer arrays in constant buffers.");
+                            Error("Invalid HLSLArray target: '" + field.FieldType + "'" + ", only Vector4, Matrix4x4 and ShaderGenUInt4 are supported for arrays in constant buffers.");
                             return false;
                         }
 
