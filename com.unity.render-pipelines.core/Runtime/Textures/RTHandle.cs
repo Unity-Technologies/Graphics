@@ -50,7 +50,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public string name { get { return m_Name; } }
 
-        public bool enableMSAA { get { return m_EnableMSAA; } }
+        /// <summary>
+        /// Returns true is MSAA is enabled, false otherwise.
+        /// </summary>
+        public bool isMSAAEnabled { get { return m_EnableMSAA; } }
 
         // Keep constructor private
         internal RTHandle(RTHandleSystem owner)
