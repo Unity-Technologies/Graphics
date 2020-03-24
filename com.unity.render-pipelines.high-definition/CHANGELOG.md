@@ -592,6 +592,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Obsolete Utilities namespace was removed, instead use UnityEngine.Rendering (case 1204677)
 - Moved most of the compute shaders to the multi_compile API instead of multiple kernels.
 - Use multi_compile API for deferred compute shader with shadow mask.
+- Changed a few resources used by ray tracing shaders to be global resources (using register space1) for improved CPU performance.
 
 ## [7.1.1] - 2019-09-05
 
