@@ -10,5 +10,4 @@ using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX
 {
-    
 }

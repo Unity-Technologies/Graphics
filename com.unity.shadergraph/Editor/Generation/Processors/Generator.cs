@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using Data.Util;
+using UnityEditor.ShaderGraph.Drawing;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -80,7 +82,7 @@ namespace UnityEditor.ShaderGraph
 
         void BuildShader()
         {
-            var activeNodeList = ListPool<AbstractMaterialNode>.Get();
+            var activeNodeList = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, m_OutputNode);
 
             var shaderProperties = new PropertyCollector();
@@ -90,7 +92,7 @@ namespace UnityEditor.ShaderGraph
 
             if(m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
-                m_GraphData.AddValidationError(m_OutputNode.tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+                m_GraphData.AddValidationError(m_OutputNode.guid, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
 
                 m_ConfiguredTextures = shaderProperties.GetConfiguredTexutres();
                 m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader);
@@ -110,9 +112,22 @@ namespace UnityEditor.ShaderGraph
                 {
                     TargetSetupContext context = new TargetSetupContext();
                     context.SetMasterNode(m_OutputNode as IMasterNode);
+
+                    // Instead of setup target, we can also just do get context
                     m_TargetImplementations[i].SetupTarget(ref context);
                     GetAssetDependencyPaths(context);
                     GenerateSubShader(i, context.descriptor);
+                }
+
+                // Either grab the pipeline default for the active node or the user override
+                if (m_OutputNode is ICanChangeShaderGUI canChangeShaderGui)
+                {
+                    string customEditor = GenerationUtils.FinalCustomEditorString(canChangeShaderGui);
+
+                    if (customEditor != null)
+                    {
+                        m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
+                    }
                 }
 
                 m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
@@ -126,7 +141,7 @@ namespace UnityEditor.ShaderGraph
             if(descriptor.passes == null)
                 return;
 
-            //early out of preview generation if no passes are used in preview
+            // Early out of preview generation if no passes are used in preview
             if (m_Mode == GenerationMode.Preview && descriptor.generatesPreview == false)
                 return;
 
@@ -148,8 +163,6 @@ namespace UnityEditor.ShaderGraph
                         GenerateShaderPass(targetIndex, pass.descriptor, activeFields);
                 }
             }
-            if (!string.IsNullOrEmpty(descriptor.customEditorOverride))
-                m_Builder.AppendLine(descriptor.customEditorOverride);
         }
 
         void GenerateShaderPass(int targetIndex, PassDescriptor pass, ActiveFields activeFields)

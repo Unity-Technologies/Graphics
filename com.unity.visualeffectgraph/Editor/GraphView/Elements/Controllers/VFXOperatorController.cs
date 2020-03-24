@@ -29,11 +29,11 @@ namespace UnityEditor.VFX.UI
 
         public VFXOperatorController(VFXOperator model, VFXViewController viewController) : base(model, viewController)
         {
-            if( model is VFXSubgraphOperator)
+            if (model is VFXSubgraphOperator)
             {
                 // Prevent breaking the editor opening.
                 try
-                { 
+                {
                     model.ResyncSlots(false);
                     model.UpdateOutputExpressions();
                 }
@@ -63,10 +63,12 @@ namespace UnityEditor.VFX.UI
             if (desc == null)
                 return;
 
-            var param = viewController.AddVFXParameter(Vector2.zero, desc); // parameters should have zero for position, position is help by the nodes
+            var param = viewController.AddVFXParameter(Vector2.zero, desc, false); // parameters should have zero for position, position is help by the nodes
             param.SetSettingValue("m_Exposed", exposed);
 
             VFXSlot.CopyLinks(param.GetOutputSlot(0), model.GetOutputSlot(0), false);
+
+            viewController.AddVFXModel(Vector2.zero, param);
 
             param.CreateDefaultNode(position);
 

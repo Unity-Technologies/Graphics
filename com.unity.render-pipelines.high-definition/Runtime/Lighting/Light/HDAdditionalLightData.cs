@@ -195,11 +195,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public float innerSpotPercent01 => innerSpotPercent / 100f;
 
-        [Range(0.0f, 1.0f)]
+        [Range(0.0f, 16.0f)]
         [SerializeField, FormerlySerializedAs("lightDimmer")]
         float m_LightDimmer = 1.0f;
         /// <summary>
-        /// Get/Set the light dimmer.
+        /// Get/Set the light dimmer / multiplier, between 0 and 16. 
         /// </summary>
         public float lightDimmer
         {
@@ -209,14 +209,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_LightDimmer == value)
                     return;
 
-                m_LightDimmer = Mathf.Clamp01(value);
+                m_LightDimmer = Mathf.Clamp(value, 0.0f, 16.0f);
             }
         }
 
-        [Range(0.0f, 1.0f), SerializeField, FormerlySerializedAs("volumetricDimmer")]
+        [Range(0.0f, 16.0f), SerializeField, FormerlySerializedAs("volumetricDimmer")]
         float m_VolumetricDimmer = 1.0f;
         /// <summary>
-        /// Get/Set the light dimmer on volumetric effects, between 0 and 1.
+        /// Get/Set the light dimmer / multiplier on volumetric effects, between 0 and 16.
         /// </summary>
         public float volumetricDimmer
         {
@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_VolumetricDimmer == value)
                     return;
 
-                m_VolumetricDimmer = Mathf.Clamp01(value);
+                m_VolumetricDimmer = Mathf.Clamp(value, 0.0f, 16.0f);
             }
         }
 
@@ -858,6 +858,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_DistanceBasedFiltering = false;
+        /// <summary>
+        /// Uses the distance to the occluder to improve the shadow denoising.
+        /// </summary>
+        internal bool distanceBasedFiltering
+        {
+            get => m_DistanceBasedFiltering;
+            set
+            {
+                if (m_DistanceBasedFiltering == value)
+                    return;
+
+                m_DistanceBasedFiltering = value;
+            }
+        }
+
         [Range(k_MinEvsmExponent, k_MaxEvsmExponent)]
         [SerializeField, FormerlySerializedAs("evsmExponent")]
         float m_EvsmExponent = 15.0f;
@@ -967,6 +984,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint GetLightLayers()
         {
             int value = (int)lightlayersMask;
+            return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
+        }
+
+        /// <summary>
+        /// Returns a mask of shadow light layers as uint and handle the case of Everything as being 0xFF and not -1
+        /// </summary>
+        /// <returns></returns>
+        public uint GetShadowLayers()
+        {
+            int value = RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask);
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 
@@ -1430,7 +1457,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
 
         // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
-        [System.NonSerialized] internal Matrix4x4 previousTransform = new Matrix4x4();
+        [System.NonSerialized] internal Matrix4x4 previousTransform = Matrix4x4.identity;
         // Temporary index that stores the current shadow index for the light
         [System.NonSerialized] internal int shadowIndex = -1;
 
@@ -1620,12 +1647,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (frameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_UseRayTracedShadows)
             {
                 bool validShadow = false;
-                if (processedLight.gpuLightType == GPULightType.Rectangle && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
-                {
-                    // For area light shadows, we only support them  when in deferred mode
-                    validShadow = true;
-                }
-                else if (processedLight.gpuLightType == GPULightType.Point || (processedLight.gpuLightType == GPULightType.Spot && processedLight.lightVolumeType == LightVolumeType.Cone))
+                if (processedLight.gpuLightType == GPULightType.Point
+                        || processedLight.gpuLightType == GPULightType.Rectangle
+                        || (processedLight.gpuLightType == GPULightType.Spot && processedLight.lightVolumeType == LightVolumeType.Cone))
                 {
                     validShadow = true;
                 }
@@ -1873,7 +1897,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                     // Assign all setting common to every lights
-                    SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
+                    SetCommonShadowRequestSettings(shadowRequest, visibleLight, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
                 }
 
                 shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
@@ -1893,7 +1917,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return firstShadowRequestIndex;
         }
 
-        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 viewProjection, Vector2 viewportSize, int lightIndex)
+        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 viewProjection, Vector2 viewportSize, int lightIndex)
         {
             // zBuffer param to reconstruct depth position (for transmission)
             float f = legacyLight.range;
@@ -1917,7 +1941,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightType == HDLightType.Directional || lightType == HDLightType.Spot && spotLightShape == SpotLightShape.Box)
                 shadowRequest.position = new Vector3(shadowRequest.view.m03, shadowRequest.view.m13, shadowRequest.view.m23);
             else
-                shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? transform.position - cameraPos : transform.position;
+                shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? visibleLight.GetPosition() - cameraPos : visibleLight.GetPosition();
 
             shadowRequest.shadowToWorld = invViewProjection.transpose;
             shadowRequest.zClip = (lightType != HDLightType.Directional);
@@ -2576,7 +2600,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Synchronize all the HD Additional Light values with the Light component.
         /// </summary>
-        public void UpdateAllLightValues(bool fromTimeLine = false)
+        public void UpdateAllLightValues()
+        {
+            UpdateAllLightValues(false);
+        }
+
+        internal void UpdateAllLightValues(bool fromTimeLine)
         {
             UpdateShapeSize();
 

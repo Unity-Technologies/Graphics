@@ -20,11 +20,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="input">The Texture resource to use as a color render target.</param>
         /// <param name="index">Index for multiple render target usage.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public RenderGraphMutableResource UseColorBuffer(in RenderGraphMutableResource input, int index)
+        public TextureHandle UseColorBuffer(TextureHandle input, int index)
         {
-            if (input.type != RenderGraphResourceType.Texture)
-                throw new ArgumentException("Trying to write to a resource that is not a texture or is invalid.");
-
             m_RenderPass.SetColorBuffer(input, index);
             m_Resources.UpdateTextureFirstWrite(input, m_RenderPass.index);
             return input;
@@ -36,11 +33,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="input">The Texture resource to use as a depth buffer during the pass.</param>
         /// <param name="flags">Specify the access level for the depth buffer. This allows you to say whether you will read from or write to the depth buffer, or do both.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public RenderGraphMutableResource UseDepthBuffer(in RenderGraphMutableResource input, DepthAccess flags)
+        public TextureHandle UseDepthBuffer(TextureHandle input, DepthAccess flags)
         {
-            if (input.type != RenderGraphResourceType.Texture)
-                throw new ArgumentException("Trying to write to a resource that is not a texture or is invalid.");
-
             m_RenderPass.SetDepthBuffer(input, flags);
             if ((flags | DepthAccess.Read) != 0)
                 m_Resources.UpdateTextureLastRead(input, m_RenderPass.index);
@@ -54,10 +48,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="input">The Texture resource to read from during the pass.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public RenderGraphResource ReadTexture(in RenderGraphResource input)
+        public TextureHandle ReadTexture(TextureHandle input)
         {
-            if (input.type != RenderGraphResourceType.Texture)
-                throw new ArgumentException("Trying to read a resource that is not a texture or is invalid.");
             m_RenderPass.resourceReadList.Add(input);
             m_Resources.UpdateTextureLastRead(input, m_RenderPass.index);
             return input;
@@ -68,10 +60,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="input">The Texture resource to write to during the pass.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public RenderGraphMutableResource WriteTexture(in RenderGraphMutableResource input)
+        public TextureHandle WriteTexture(TextureHandle input)
         {
-            if (input.type != RenderGraphResourceType.Texture)
-                throw new ArgumentException("Trying to write to a resource that is not a texture or is invalid.");
             // TODO: Manage resource "version" for debugging purpose
             m_RenderPass.resourceWriteList.Add(input);
             m_Resources.UpdateTextureFirstWrite(input, m_RenderPass.index);
@@ -83,10 +73,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="input">The Renderer List resource to use during the pass.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public RenderGraphResource UseRendererList(in RenderGraphResource input)
+        public RendererListHandle UseRendererList(RendererListHandle input)
         {
-            if (input.type != RenderGraphResourceType.RendererList)
-                throw new ArgumentException("Trying use a resource that is not a renderer list.");
             m_RenderPass.usedRendererListList.Add(input);
             return input;
         }

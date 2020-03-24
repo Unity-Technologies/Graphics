@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -177,31 +178,30 @@ namespace UnityEditor.ShaderGraph
             return property.referenceName;
         }
         
-        protected override bool CalculateNodeHasError(ref string errorMessage)
+        protected override void CalculateNodeHasError()
         {
             if (!propertyGuid.Equals(Guid.Empty) && !owner.properties.Any(x => x.guid == propertyGuid))
             {
-                errorMessage = "Property Node has no associated Blackboard property.";
-                return true;
+                owner.AddConcretizationError(guid, "Property Node has no associated Blackboard property.");
             }
-
-            return false;
         }
 
-        public override bool ValidateConcretePrecision(ref string errorMessage)
+        public override void EvaluateConcretePrecision()
         {
             // Get precision from Property
             var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
             if (property == null)
-                return true;
-
+            {
+                owner.AddConcretizationError(guid, string.Format("No matching poperty found on owner for node {0}", guid));
+                hasError = true;
+                return;
+            }
             // If Property has a precision override use that
             precision = property.precision;
             if (precision != Precision.Inherit)
                 concretePrecision = precision.ToConcrete();
             else
                 concretePrecision = owner.concretePrecision;
-                return false;
             }
         
         public override void OnBeforeSerialize()
