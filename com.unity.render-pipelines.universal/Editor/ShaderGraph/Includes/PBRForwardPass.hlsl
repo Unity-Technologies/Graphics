@@ -31,7 +31,7 @@
 
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
     #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
-        inputdata.bakedGI *= SampleAmbientOcclusion(input.positionCS);
+        inputData.bakedGI *= SampleAmbientOcclusion(input.positionCS);
     #endif
 }
 

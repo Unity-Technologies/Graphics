@@ -108,7 +108,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
     #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
-        inputdata.bakedGI *= SampleAmbientOcclusion(IN.clipPos);
+        input.bakedGI *= SampleAmbientOcclusion(IN.clipPos);
     #endif
 }
 
