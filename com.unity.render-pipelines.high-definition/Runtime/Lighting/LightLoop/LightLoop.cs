@@ -1937,7 +1937,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
-            }
+        }
 
         internal int GetCurrentShadowCount()
         {
@@ -2594,7 +2594,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_lightList.lightsPerView[0].lightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].lightVolumes);
                 }
 
-                UpdateDataBuffers();
+                PushLightDataGlobalParams(cmd);
             }
 
             m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
@@ -3115,24 +3115,6 @@ namespace UnityEngine.Rendering.HighDefinition
             PushLightLoopGlobalParams(globalParams, cmd);
         }
 
-        void BindLightDataParameters(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            var globalParams = PrepareLightDataGlobalParameters(hdCamera);
-            PushLightDataGlobalParams(globalParams, cmd);
-        }
-
-        void UpdateDataBuffers()
-        {
-            m_LightLoopLightData.directionalLightData.SetData(m_lightList.directionalLights);
-            m_LightLoopLightData.lightData.SetData(m_lightList.lights);
-            m_LightLoopLightData.envLightData.SetData(m_lightList.envLights);
-            m_LightLoopLightData.decalData.SetData(DecalSystem.m_DecalDatas, 0, 0, Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen)); // don't add more than the size of the buffer
-
-            // These two buffers have been set in Rebuild(). At this point, view 0 contains combined data from all views
-            m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].bounds);
-            m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_lightList.lightsPerView[0].lightVolumes);
-        }
-
         HDAdditionalLightData GetHDAdditionalLightData(Light light)
         {
             HDAdditionalLightData add = null;
@@ -3146,24 +3128,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 add = HDUtils.s_DefaultHDAdditionalLightData;
 
             return add;
-        }
-
-        struct LightDataGlobalParameters
-        {
-            public HDCamera hdCamera;
-            public LightList lightList;
-            public LightLoopTextureCaches textureCaches;
-            public LightLoopLightData lightData;
-        }
-
-        LightDataGlobalParameters PrepareLightDataGlobalParameters(HDCamera hdCamera)
-        {
-            LightDataGlobalParameters parameters = new LightDataGlobalParameters();
-            parameters.hdCamera = hdCamera;
-            parameters.lightList = m_lightList;
-            parameters.textureCaches = m_TextureCaches;
-            parameters.lightData = m_LightLoopLightData;
-            return parameters;
         }
 
         struct ShadowGlobalParameters
@@ -3246,22 +3210,26 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnableSSRefraction = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1u : 0u;
         }
 
-        static void PushLightDataGlobalParams(in LightDataGlobalParameters param, CommandBuffer cmd)
+        void PushLightDataGlobalParams(CommandBuffer cmd)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushLightDataGlobalParameters)))
-            {
-                cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, param.textureCaches.lightCookieManager.atlasTexture);
-                cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, param.textureCaches.lightCookieManager.cubeCache);
-                cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, param.textureCaches.reflectionProbeCache.GetTexCache());
-                cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, param.textureCaches.reflectionPlanarProbeCache.GetTexCache());
+            m_LightLoopLightData.directionalLightData.SetData(m_lightList.directionalLights);
+            m_LightLoopLightData.lightData.SetData(m_lightList.lights);
+            m_LightLoopLightData.envLightData.SetData(m_lightList.envLights);
+            m_LightLoopLightData.decalData.SetData(DecalSystem.m_DecalDatas, 0, 0, Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen)); // don't add more than the size of the buffer
 
-                cmd.SetGlobalBuffer(HDShaderIDs._LightDatas, param.lightData.lightData);
-                cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, param.lightData.envLightData);
-                cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, param.lightData.decalData);
+            // These two buffers have been set in Rebuild(). At this point, view 0 contains combined data from all views
+            m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].bounds);
+            m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_lightList.lightsPerView[0].lightVolumes);
 
-                // Directional lights are made available immediately after PrepareLightsForGPU for the PBR sky.
-                cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, param.lightData.directionalLightData);
-            }
+            cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
+            cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_TextureCaches.lightCookieManager.cubeCache);
+            cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_TextureCaches.reflectionProbeCache.GetTexCache());
+            cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_TextureCaches.reflectionPlanarProbeCache.GetTexCache());
+
+            cmd.SetGlobalBuffer(HDShaderIDs._LightDatas, m_LightLoopLightData.lightData);
+            cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, m_LightLoopLightData.envLightData);
+            cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, m_LightLoopLightData.decalData);
+            cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
         }
 
         static void PushShadowGlobalParams(in ShadowGlobalParameters param, CommandBuffer cmd)

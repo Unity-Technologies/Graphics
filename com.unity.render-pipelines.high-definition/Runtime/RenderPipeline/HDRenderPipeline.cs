@@ -1016,36 +1016,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             hdCamera.UpdateShaderVariablesXRCB(ref m_ShaderVariablesXRCB);
             ConstantBuffer<ShaderVariablesXR>.PushGlobal(cmd, m_ShaderVariablesXRCB, HDShaderIDs._ShaderVariablesXR);
-        }
 
-        void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushGlobalParameters)))
-            {
-                PushVolumetricLightingGlobalParams(hdCamera, cmd, m_FrameCount);
-
-                // It will be overridden for transparent pass.
-                cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, (int)UnityEngine.Rendering.ColorWriteMask.All);
-
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
-                {
-                    cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_SharedRTManager.GetMotionVectorsBuffer());
-                }
-                else
-                {
-                    cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, TextureXR.GetBlackTexture());
-                }
-
-                // Light loop stuff...
-                if (hdCamera.IsSSREnabled())
-                    cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, m_SsrLightingTexture);
-                else
-                    cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, TextureXR.GetClearTexture());
-
-
-                m_SkyManager.SetGlobalSkyData(cmd, hdCamera);
-
-            }
+            // This one is not in a constant buffer because it's only used as a parameter for some shader's render states. It's not actually used inside shader code.
+            cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, (int)ColorWriteMask.All);
         }
 
         void CopyDepthBufferIfNeeded(HDCamera hdCamera, CommandBuffer cmd)
@@ -1951,8 +1924,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, m_CurrentDebugDisplaySettings, aovRequest);
 
             UpdateShaderVariablesGlobalCB(hdCamera, cmd);
-            // Let's bind as soon as possible the light data
-            BindLightDataParameters(hdCamera, cmd);
 
             // Configure all the keywords
             ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
@@ -1964,7 +1935,6 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTextureArray);
 
-            PushGlobalParams(hdCamera, cmd);
             VFXManager.ProcessCameraCommand(camera, cmd);
 
             if (GL.wireframe)
@@ -2053,9 +2023,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderCameraMotionVectors(cullingResults, hdCamera, renderContext, cmd);
             }
 
+
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
+                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_SharedRTManager.GetMotionVectorsBuffer());
+            else
+                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, TextureXR.GetBlackTexture());
+
 #if UNITY_EDITOR
-            var showGizmos = camera.cameraType == CameraType.SceneView ||
-                            (camera.targetTexture == null && camera.cameraType == CameraType.Game);
+            var showGizmos = camera.cameraType == CameraType.SceneView || (camera.targetTexture == null && camera.cameraType == CameraType.Game);
 #endif
 
             RenderTransparencyOverdraw(cullingResults, hdCamera, renderContext, cmd);
@@ -3838,7 +3813,10 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderSSR(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext)
         {
             if (!hdCamera.IsSSREnabled())
+            {
+                cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, TextureXR.GetClearTexture());
                 return;
+            }
 
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
             bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
@@ -3865,6 +3843,7 @@ namespace UnityEngine.Rendering.HighDefinition
             	}
 			}
 
+            cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, m_SsrLightingTexture);
             PushFullScreenDebugTexture(hdCamera, cmd, m_SsrLightingTexture, FullScreenDebugMode.ScreenSpaceReflections);
         }
 

@@ -27,7 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class BuildGPULightListPassData
         {
-            public LightDataGlobalParameters lightDataGlobalParameters;
             public ShadowGlobalParameters shadowGlobalParameters;
             public LightLoopGlobalParameters lightLoopGlobalParameters;
 
@@ -45,7 +44,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
-                passData.lightDataGlobalParameters = PrepareLightDataGlobalParameters(hdCamera);
                 passData.shadowGlobalParameters = PrepareShadowGlobalParameters(hdCamera);
                 passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera);
                 passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera);
@@ -83,7 +81,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     BuildDispatchIndirectArguments(data.buildGPULightListParameters, data.buildGPULightListResources, tileFlagsWritten, context.cmd);
 
                     // TODO RENDERGRAPH WARNING: Note that the three sets of variables are bound here, but it should be handled differently.
-                    PushLightDataGlobalParams(data.lightDataGlobalParameters, context.cmd);
                     PushShadowGlobalParams(data.shadowGlobalParameters, context.cmd);
                     PushLightLoopGlobalParams(data.lightLoopGlobalParameters, context.cmd);
                 });
