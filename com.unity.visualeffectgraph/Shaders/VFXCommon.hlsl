@@ -353,7 +353,7 @@ float4 SampleMeshColor(Buffer<float> vertices, uint offset, uint channelFormatAn
     if (channelFormatAndDimension == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-    float4 colorSRGB = (float4)0.0f
+    float4 colorSRGB = (float4)0.0f;
     uint format = channelFormatAndDimension & 0xff;
     if (format == VERTEXATTRIBUTEFORMAT_UNORM8)
     {

@@ -83,9 +83,9 @@ namespace UnityEditor.VFX.Operator
                 case VertexAttributeFlag.TexCoord6:
                 case VertexAttributeFlag.TexCoord7:
 #if UNITY_2020_2_OR_NEWER
-                    return typeof(Vector2);
-#else
                     return typeof(Vector4);
+#else
+                    return typeof(Vector2);
 #endif
                 case VertexAttributeFlag.BlendWeight: return typeof(Vector4);
                 case VertexAttributeFlag.BlendIndices: return typeof(Vector4);
