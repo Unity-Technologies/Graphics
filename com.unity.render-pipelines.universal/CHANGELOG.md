@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - The number of maximum visible lights is now set to 32 if the platform is mobile or if the graphics API is OpenGLCore, otherwise it is set to 256.
 - UniversalRenderPipelineAsset no longer supports presets [case 1197020](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-on-preset-of-universalrenderpipelineassets)
+- You can now subclass ForwardRenderer to create a custom renderer based on it.
 
 ### Fixed
 - Fixed an issue with shadows not appearing on terrains when no cascades were selected [case 1226530](https://issuetracker.unity3d.com/issues/urp-no-shadows-on-terrain-when-cascades-is-set-to-no-cascades-in-render-pipeline-asset-settings)
@@ -20,6 +21,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader compilation errors when using multiple lights in DX10 level GPU. [case 1222302](https://issuetracker.unity3d.com/issues/urp-no-materials-apart-from-ui-are-rendered-when-using-direct3d11-graphics-api-on-a-dx10-gpu)
 - Fixed an issue where opaque objects were outputting incorrect alpha values [case 1168283](https://issuetracker.unity3d.com/issues/lwrp-alpha-clipping-material-makes-other-materials-look-like-alpha-clipping-when-gameobject-is-shown-in-render-texture)
 - Fixed an issue with URP switching such that every avaiable URP makes a total set of supported features such that all URPs are taken into consideration. [case 1157420](https://issuetracker.unity3d.com/issues/lwrp-srp-switching-doesnt-work-even-with-manually-adding-shadervariants-per-scene)
+- Fixed an issue that causes viewport to not work correctly when rendering to textures. [case 1225103](https://issuetracker.unity3d.com/issues/urp-the-viewport-rect-isnt-correctly-applied-when-the-camera-is-outputting-into-a-rendertexture)
+- Fixed an issue that caused incorrect sampling of HDR reflection probe textures.
+- Fixed UI text of RenderObjects feature to display LightMode tag instead of Shader Pass Name. [case 1201696](https://issuetracker.unity3d.com/issues/render-feature-slash-pass-ui-has-a-field-for-shader-pass-name-when-it-actually-expects-shader-pass-lightmode)
 
 ## [7.3.0] - 2020-03-11
 
