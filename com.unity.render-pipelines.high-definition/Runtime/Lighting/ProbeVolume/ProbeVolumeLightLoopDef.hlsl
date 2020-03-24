@@ -5,7 +5,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeShaderVariables.hlsl"
 
 #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
 // Cluster helper functions copied and lightly modified from ClusteredUtils.hlsl with ENABLE_DEPTH_TEXTURE_BACKPLANE undefined
 
 // List of globals required for sampling probe volume light list data structure:
@@ -91,7 +91,7 @@ uint ProbeVolumeFetchIndex(uint lightStart, uint lightOffset)
     return g_vProbeVolumesLightListGlobal[lightStart + lightOffset];
 }
 
-#endif // endof SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
+#endif // endof SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
 #endif // endof defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 
 #endif // endof PROBE_VOLUME_LIGHT_LOOP_DEF

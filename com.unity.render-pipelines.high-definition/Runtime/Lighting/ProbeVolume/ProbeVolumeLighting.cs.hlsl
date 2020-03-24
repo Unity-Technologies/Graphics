@@ -16,19 +16,21 @@
 // PackingRules = Exact
 struct ProbeVolumeEngineData
 {
-    float weight;
     float3 debugColor;
-    int payloadIndex;
+    float weight;
     float3 rcpPosFaceFade;
-    float3 rcpNegFaceFade;
     float rcpDistFadeLen;
+    float3 rcpNegFaceFade;
     float endTimesRcpDistFadeLen;
     float3 scale;
+    int payloadIndex;
     float3 bias;
+    int volumeBlendMode;
     float4 octahedralDepthScaleBias;
     float3 resolution;
+    uint lightLayers;
     float3 resolutionInverse;
-    int volumeBlendMode;
+    float unused;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.SphericalHarmonicsL1
@@ -43,29 +45,25 @@ struct SphericalHarmonicsL1
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.ProbeVolumeEngineData
 //
-float GetWeight(ProbeVolumeEngineData value)
-{
-    return value.weight;
-}
 float3 GetDebugColor(ProbeVolumeEngineData value)
 {
     return value.debugColor;
 }
-int GetPayloadIndex(ProbeVolumeEngineData value)
+float GetWeight(ProbeVolumeEngineData value)
 {
-    return value.payloadIndex;
+    return value.weight;
 }
 float3 GetRcpPosFaceFade(ProbeVolumeEngineData value)
 {
     return value.rcpPosFaceFade;
 }
-float3 GetRcpNegFaceFade(ProbeVolumeEngineData value)
-{
-    return value.rcpNegFaceFade;
-}
 float GetRcpDistFadeLen(ProbeVolumeEngineData value)
 {
     return value.rcpDistFadeLen;
+}
+float3 GetRcpNegFaceFade(ProbeVolumeEngineData value)
+{
+    return value.rcpNegFaceFade;
 }
 float GetEndTimesRcpDistFadeLen(ProbeVolumeEngineData value)
 {
@@ -75,9 +73,17 @@ float3 GetScale(ProbeVolumeEngineData value)
 {
     return value.scale;
 }
+int GetPayloadIndex(ProbeVolumeEngineData value)
+{
+    return value.payloadIndex;
+}
 float3 GetBias(ProbeVolumeEngineData value)
 {
     return value.bias;
+}
+int GetVolumeBlendMode(ProbeVolumeEngineData value)
+{
+    return value.volumeBlendMode;
 }
 float4 GetOctahedralDepthScaleBias(ProbeVolumeEngineData value)
 {
@@ -87,13 +93,17 @@ float3 GetResolution(ProbeVolumeEngineData value)
 {
     return value.resolution;
 }
+uint GetLightLayers(ProbeVolumeEngineData value)
+{
+    return value.lightLayers;
+}
 float3 GetResolutionInverse(ProbeVolumeEngineData value)
 {
     return value.resolutionInverse;
 }
-int GetVolumeBlendMode(ProbeVolumeEngineData value)
+float GetUnused(ProbeVolumeEngineData value)
 {
-    return value.volumeBlendMode;
+    return value.unused;
 }
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.SphericalHarmonicsL1

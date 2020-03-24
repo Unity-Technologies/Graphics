@@ -6,41 +6,46 @@ using System.Runtime.InteropServices;
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Optimized version of 'ProbeVolumeArtistParameters'.
+    // Currently 128-bytes.
     // TODO: pack better. This data structure contains a bunch of UNORMs.
     [GenerateHLSL]
     public struct ProbeVolumeEngineData
     {
-        public float   weight;
         public Vector3 debugColor;
-        public int     payloadIndex;
+        public float weight;
         public Vector3 rcpPosFaceFade;
+        public float rcpDistFadeLen;
         public Vector3 rcpNegFaceFade;
-        public float   rcpDistFadeLen;
-        public float   endTimesRcpDistFadeLen;
+        public float endTimesRcpDistFadeLen;
         public Vector3 scale;
+        public int payloadIndex;
         public Vector3 bias;
+        public int volumeBlendMode;
         public Vector4 octahedralDepthScaleBias;
         public Vector3 resolution;
+        public uint lightLayers;
         public Vector3 resolutionInverse;
-        public int     volumeBlendMode;
+        public float unused;
 
         public static ProbeVolumeEngineData GetNeutralValues()
         {
             ProbeVolumeEngineData data;
 
-            data.weight = 0.0f;
             data.debugColor = Vector3.zero;
-            data.payloadIndex  = -1;
+            data.weight = 0.0f;
             data.rcpPosFaceFade = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-            data.rcpNegFaceFade = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
             data.rcpDistFadeLen = 0;
+            data.rcpNegFaceFade = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
             data.endTimesRcpDistFadeLen = 1;
             data.scale = Vector3.zero;
+            data.payloadIndex  = -1;
             data.bias = Vector3.zero;
+            data.volumeBlendMode = 0;
             data.octahedralDepthScaleBias = Vector4.zero;
             data.resolution = Vector3.zero;
+            data.lightLayers = 0;
             data.resolutionInverse = Vector3.zero;
-            data.volumeBlendMode = 0;
+            data.unused = 0.0f;
 
             return data;
         }
@@ -613,7 +618,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var logVolume = CalculateProbeVolumeLogVolume(volume.parameters.size);
 
-                        m_ProbeVolumeSortKeys[sortCount++] = PackProbeVolumeSortKey(logVolume, probeVolumesIndex);
+                        m_ProbeVolumeSortKeys[sortCount++] = PackProbeVolumeSortKey(volume.parameters.volumeBlendMode, logVolume, probeVolumesIndex);
                     }
                 }
 
@@ -710,17 +715,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static void UnpackProbeVolumeSortKey(uint sortKey, out int probeIndex)
         {
-            const uint PROBE_VOLUME_MASK = (1 << 12) - 1;
+            const uint PROBE_VOLUME_MASK = (1 << 11) - 1;
             probeIndex = (int)(sortKey & PROBE_VOLUME_MASK);
         }
 
-        internal static uint PackProbeVolumeSortKey(float logVolume, int probeVolumeIndex)
+        internal static uint PackProbeVolumeSortKey(VolumeBlendMode volumeBlendMode, float logVolume, int probeVolumeIndex)
         {
-            // 20 bit volume, 12 bit index
-            Debug.Assert((uint)logVolume < (1 << 20));
-            Debug.Assert((uint)probeVolumeIndex < (1 << 12));
-            const uint PROBE_VOLUME_MASK = (1 << 12) - 1;
-            return (uint)logVolume << 12 | ((uint)probeVolumeIndex & PROBE_VOLUME_MASK);
+            // 1 bit blendMode, 20 bit volume, 11 bit index
+            Debug.Assert(logVolume >= 0.0f && (uint)logVolume < (1 << 20));
+            Debug.Assert(probeVolumeIndex >= 0 && (uint)probeVolumeIndex < (1 << 11));
+            const uint VOLUME_MASK = (1 << 20) - 1;
+            const uint INDEX_MASK = (1 << 11) - 1;
+
+            // Sort probe volumes primarily by blend mode, and secondarily by size.
+            // In the lightloop, this means we will evaluate all Additive and Subtractive blending volumes first,
+            // and finally our Normal (over) blending volumes.
+            // This allows us to early out during the Normal blend volumes if opacity has reached 1.0 across all threads.
+            uint blendModeBits = ((volumeBlendMode != VolumeBlendMode.Normal) ? 1u : 0u) << 31;
+            uint logVolumeBits = ((uint)logVolume & VOLUME_MASK) << 11;
+            uint indexBits = (uint)probeVolumeIndex & INDEX_MASK;
+
+            return blendModeBits | logVolumeBits | indexBits;
         }
 
         void DisplayProbeVolumeAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, int sliceMode)

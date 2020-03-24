@@ -15,8 +15,8 @@
 // UnityEngine.Rendering.HighDefinition.ProbeVolumesEvaluationModes:  static fields
 //
 #define PROBEVOLUMESEVALUATIONMODES_DISABLED (0)
-#define PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP (1)
-#define PROBEVOLUMESEVALUATIONMODES_MATERIALPASS (2)
+#define PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP (1)
+#define PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS (2)
 
 //
 // UnityEngine.Rendering.HighDefinition.ShaderOptions:  static fields

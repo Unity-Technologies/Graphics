@@ -3,7 +3,7 @@
 
 #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
 
 #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
 // G-Buffer pass does not constain the standard light loop.
@@ -13,7 +13,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 #endif // endof SHADER_PASS == SHADERPASS_GBUFFER
 
-#elif SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
+#elif SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
 #define UNINITIALIZED_GI float3((1 << 11), 1, (1 << 10))
 
 bool IsUninitializedGI(float3 bakedGI)
@@ -30,80 +30,8 @@ float4x4 GetProbeVolumeWorldToObject()
     return ApplyCameraTranslationToInverseMatrix(unity_ProbeVolumeWorldToObject);
 }
 
-// In unity we can have a mix of fully baked lightmap (static lightmap) + enlighten realtime lightmap (dynamic lightmap)
-// for each case we can have directional lightmap or not.
-// Else we have lightprobe for dynamic/moving entity. Either SH9 per object lightprobe or SH4 per pixel per object volume probe
-float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap)
+float3 EvaluateLightmap(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap)
 {
-    // If there is no lightmap, it assume lightprobe
-#if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
-
-#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-// SHADEROPTIONS_PROBE_VOLUMES can be defined in ShaderConfig.cs.hlsl but set to 0 for disabled.
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
-    // ProbeVolumes are incompatible with legacy Light probes
-    return _EnableProbeVolumes ? UNINITIALIZED_GI : float3(0, 0, 0);
-
-#elif SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
-    if (!_EnableProbeVolumes)
-    {
-        return float3(0, 0, 0);
-    }
-
-#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
-
-    // Need PositionInputs for indexing tiles / clusters, but they are not availbile from the current SampleBakedGI() function signature.
-    // Avoiding updating the function signature for now, because there is a shadergraph node that this would effect.
-    // For now, pay the cost of reconstructing PositionInputs here.
-    float4 positionCS = mul(UNITY_MATRIX_VP, float4(positionRWS, 1.0));
-    positionCS.xyz /= positionCS.w;
-    float2 positionNDC = positionCS.xy * float2(0.5, -0.5) + 0.5;
-    float2 positionSS = positionNDC.xy * _ScreenSize.xy;
-    uint2 tileCoord = uint2(positionSS) / ProbeVolumeGetTileSize();
-
-    PositionInputs posInputs;
-    posInputs.positionWS = positionRWS;
-    posInputs.tileCoord = tileCoord; // Needed for cluster Indexing.
-    posInputs.linearDepth = LinearEyeDepth(positionRWS, UNITY_MATRIX_V); // Needed for cluster Indexing.
-    posInputs.positionNDC = float2(0, 0); // Not needed for cluster indexing.
-    posInputs.deviceDepth = 0.0f; // Not needed for cluster indexing.
-
-
-    return EvaluateProbeVolumesMaterialPass(posInputs, normalWS);
-#else
-    return float3(0, 0, 0);
-#endif // endof SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
-#endif // endof SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
-#endif // endof defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-
-    if (unity_ProbeVolumeParams.x == 0.0)
-    {
-        // TODO: pass a tab of coefficient instead!
-        real4 SHCoefficients[7];
-        SHCoefficients[0] = unity_SHAr;
-        SHCoefficients[1] = unity_SHAg;
-        SHCoefficients[2] = unity_SHAb;
-        SHCoefficients[3] = unity_SHBr;
-        SHCoefficients[4] = unity_SHBg;
-        SHCoefficients[5] = unity_SHBb;
-        SHCoefficients[6] = unity_SHC;
-
-        return SampleSH9(SHCoefficients, normalWS);
-    }
-    else
-    {
-#if RAYTRACING_ENABLED
-        if (unity_ProbeVolumeParams.w == 1.0)
-            return SampleProbeVolumeSH9(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
-                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
-        else
-#endif
-            return SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
-                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
-    }
-
-#else
-
     float3 bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
 #ifdef UNITY_LIGHTMAP_FULL_HDR
@@ -139,8 +67,127 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
 #endif
 
     return bakeDiffuseLighting;
+}
 
+float3 EvaluateProbeVolumeLegacy(float3 positionRWS, float3 normalWS)
+{
+    if (unity_ProbeVolumeParams.x == 0.0)
+    {
+        // TODO: pass a tab of coefficient instead!
+        real4 SHCoefficients[7];
+        SHCoefficients[0] = unity_SHAr;
+        SHCoefficients[1] = unity_SHAg;
+        SHCoefficients[2] = unity_SHAb;
+        SHCoefficients[3] = unity_SHBr;
+        SHCoefficients[4] = unity_SHBg;
+        SHCoefficients[5] = unity_SHBb;
+        SHCoefficients[6] = unity_SHC;
+
+        return SampleSH9(SHCoefficients, normalWS);
+    }
+    else
+    {
+#if RAYTRACING_ENABLED
+        if (unity_ProbeVolumeParams.w == 1.0)
+            return SampleProbeVolumeSH9(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
+                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
+        else
 #endif
+            return SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
+                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
+    }
+}
+
+float3 EvaluateProbeVolumes(PositionInputs posInputs, float3 normalWS, uint renderingLayers)
+{
+    #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+    // SHADEROPTIONS_PROBE_VOLUMES can be defined in ShaderConfig.cs.hlsl but set to 0 for disabled.
+    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+        // If probe volumes are evaluated in the lightloop, we place a sentinel value to detect that no lightmap data is present at the current pixel,
+        // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
+        return _EnableProbeVolumes ? UNINITIALIZED_GI : float3(0, 0, 0);
+    #elif SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
+    #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
+
+    #if SHADERPASS == SHADERPASS_GBUFFER
+        // posInputs.tileCoord will be zeroed out in GBuffer pass. Need to manually compute tile coord here.
+        float2 positionSS = posInputs.positionNDC.xy * _ScreenSize.xy;
+        uint2 tileCoord = uint2(positionSS) / ProbeVolumeGetTileSize();
+        posInputs.tileCoord = tileCoord;
+    #endif
+
+        return _EnableProbeVolumes ? EvaluateProbeVolumesMaterialPass(posInputs, normalWS, renderingLayers) : float3(0, 0, 0);
+    #else
+        // !(SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)
+        return float3(0, 0, 0);
+    #endif
+    #else
+        // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_DISABLED
+        return float3(0, 0, 0);
+    #endif
+
+    #else
+        // !defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+        return float3(0, 0, 0);
+    #endif
+}
+
+// In unity we can have a mix of fully baked lightmap (static lightmap) + enlighten realtime lightmap (dynamic lightmap)
+// for each case we can have directional lightmap or not.
+// Else we have lightprobe for dynamic/moving entity. Either SH9 per object lightprobe or SH4 per pixel per object volume probe
+float3 SampleBakedGI(PositionInputs posInputs, float3 normalWS, uint renderingLayers, float2 uvStaticLightmap, float2 uvDynamicLightmap)
+{
+    float3 positionRWS = posInputs.positionWS;
+
+#if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
+    // TODO: (Nick): If probe volumes are enabled, should we blend lightmap data with additive / subtractive probe volume data?
+    return EvaluateLightmap(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap);
+
+#elif defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED
+    return EvaluateProbeVolumes(posInputs, normalWS, renderingLayers);
+#else
+    // Fallback to legacy ProbeVolume when lightmaps are not availible and Probe Volumes are disabled.
+    return EvaluateProbeVolumeLegacy(positionRWS, normalWS);
+#endif
+#else
+    // Fallback to legacy ProbeVolume when lightmaps are not availible and Probe Volumes are disabled.
+    return EvaluateProbeVolumeLegacy(positionRWS, normalWS);
+#endif
+}
+
+// Function signature of SampleBakedGI changed when probe volumes we added, as they require full PositionInputs.
+// This legacy function signature is exposed in a shader graph node, so must continue to be supported.
+float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap)
+{
+    // Need PositionInputs for indexing probe volume clusters, but they are not availbile from the current SampleBakedGI() function signature.
+    // Reconstruct.
+    uint renderingLayers = DEFAULT_LIGHT_LAYERS;
+    PositionInputs posInputs;
+    ZERO_INITIALIZE(PositionInputs, posInputs);
+    posInputs.positionWS = positionRWS;
+
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
+#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
+    float4 positionCS = mul(UNITY_MATRIX_VP, float4(positionRWS, 1.0));
+    positionCS.xyz /= positionCS.w;
+    float2 positionNDC = positionCS.xy * float2(0.5, (_ProjectionParams.x > 0) ? 0.5 : -0.5) + 0.5;
+    float2 positionSS = positionNDC.xy * _ScreenSize.xy;
+    uint2 tileCoord = uint2(positionSS) / ProbeVolumeGetTileSize();
+
+    posInputs.tileCoord = tileCoord; // Needed for probe volume cluster Indexing.
+    posInputs.linearDepth = LinearEyeDepth(positionRWS, UNITY_MATRIX_V); // Needed for probe volume cluster Indexing.
+    posInputs.positionNDC = float2(0, 0); // Not needed for probe volume cluster indexing.
+    posInputs.deviceDepth = 0.0f; // Not needed for probe volume cluster indexing.
+
+    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
+    renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+#endif
+#endif
+#endif
+
+    return SampleBakedGI(posInputs, normalWS, renderingLayers, uvStaticLightmap, uvDynamicLightmap);
 }
 
 float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS not use for now

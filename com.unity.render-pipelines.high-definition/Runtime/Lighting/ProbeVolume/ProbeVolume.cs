@@ -75,6 +75,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float backfaceTolerance;
         public int dilationIterations;
 
+        public LightLayerEnum lightLayers;
+
         public Vector3 positiveFade
         {
             get
@@ -139,6 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.weight = 1;
             this.dilationIterations = 2;
             this.backfaceTolerance = 0.25f;
+            this.lightLayers = LightLayerEnum.LightLayerDefault;
         }
 
         public void Constrain()
@@ -216,6 +219,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.resolution = new Vector3(this.resolutionX, this.resolutionY, this.resolutionZ);
             data.resolutionInverse = new Vector3(1.0f / (float)this.resolutionX, 1.0f / (float)this.resolutionY, 1.0f / (float)this.resolutionZ);
+
+            data.lightLayers = (uint)this.lightLayers;
+
+            data.unused = 0.0f;
 
             return data;
         }

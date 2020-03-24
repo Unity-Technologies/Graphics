@@ -1,7 +1,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 
 #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 #endif
 #endif
@@ -421,10 +421,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #endif
 
 #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
     if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
     {
-        EvaluateProbeVolumesLightLoop(posInput, bsdfData, builtinData);
+        float3 probeVolumeDiffuseLighting = EvaluateProbeVolumesLightLoop(posInput, bsdfData, builtinData);
+        builtinData.bakeDiffuseLighting = probeVolumeDiffuseLighting;
+        builtinData.backBakeDiffuseLighting = float3(0, 0, 0);
     }
 #endif
 #endif

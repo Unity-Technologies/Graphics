@@ -191,7 +191,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     if (mask & _ViewTilesFlags)
                     {
                     #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-                    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
+                    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
                         if (category == LIGHTCATEGORY_PROBE_VOLUME)
                         {
                         #if defined(USE_CLUSTERED_LIGHTLIST)
@@ -250,7 +250,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint count;
 
                 #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-                #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
+                #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
                     if (category == LIGHTCATEGORY_PROBE_VOLUME)
                     {
                     #if defined(USE_CLUSTERED_LIGHTLIST)
@@ -277,7 +277,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     else if(lightListIndex >= 0 && lightListIndex < (int)count)
                     {
                     #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-                    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIALPASS
+                    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
                         if (category == LIGHTCATEGORY_PROBE_VOLUME)
                         {
                         #if defined(USE_CLUSTERED_LIGHTLIST)

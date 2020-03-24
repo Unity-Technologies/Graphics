@@ -33,6 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty backfaceTolerance;
         public SerializedProperty dilationIterations;
 
+        public SerializedProperty lightLayers;
+
         SerializedObject m_SerializedObject;
 
         public SerializedProbeVolume(SerializedObject serializedObject)
@@ -71,6 +73,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             backfaceTolerance = probeVolumeParams.FindPropertyRelative("backfaceTolerance");
             dilationIterations = probeVolumeParams.FindPropertyRelative("dilationIterations");
+
+            lightLayers = probeVolumeParams.FindPropertyRelative("lightLayers");
         }
 
         public void Apply()

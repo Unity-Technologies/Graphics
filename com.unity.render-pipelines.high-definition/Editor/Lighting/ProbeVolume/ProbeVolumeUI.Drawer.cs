@@ -255,6 +255,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            EditorGUILayout.PropertyField(serialized.lightLayers);
             EditorGUILayout.PropertyField(serialized.volumeBlendMode, Styles.s_VolumeBlendModeLabel);
             EditorGUILayout.Slider(serialized.weight, 0.0f, 1.0f, Styles.s_WeightLabel);
             EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);

@@ -54,13 +54,16 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     else
 #endif
 
-    // Sample lightmap/lightprobe/volume proxy
-    builtinData.bakeDiffuseLighting = SampleBakedGI(posInput.positionWS, normalWS, texCoord1.xy, texCoord2.xy);
+    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
+    uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+
+    // Sample lightmap/probevolume/lightprobe/volume proxy
+    builtinData.bakeDiffuseLighting = SampleBakedGI(posInput, normalWS, renderingLayers, texCoord1.xy, texCoord2.xy);
     // We also sample the back lighting in case we have transmission. If not use this will be optimize out by the compiler
     // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
     // however it may not optimize the lightprobe case due to the proxy volume relying on dynamic if (to verify), not a problem for SH9, but a problem for proxy volume.
     // TODO: optimize more this code.
-    builtinData.backBakeDiffuseLighting = SampleBakedGI(posInput.positionWS, backNormalWS, texCoord1.xy, texCoord2.xy);
+    builtinData.backBakeDiffuseLighting = SampleBakedGI(posInput, backNormalWS, renderingLayers, texCoord1.xy, texCoord2.xy);
 
 #ifdef SHADOWS_SHADOWMASK
     float4 shadowMask = SampleShadowMask(posInput.positionWS, texCoord1.xy);
@@ -70,8 +73,8 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     builtinData.shadowMask3 = shadowMask.w;
 #endif
 
-    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-    builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+
+    builtinData.renderingLayers = renderingLayers;
 }
 
 // This function is similar to ApplyDebugToSurfaceData but for BuiltinData
@@ -103,7 +106,7 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
                             inout BuiltinData builtinData)
 {
 #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHTLOOP
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
     if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
         return;
 #endif
