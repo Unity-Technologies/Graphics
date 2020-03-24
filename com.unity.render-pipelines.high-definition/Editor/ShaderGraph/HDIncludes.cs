@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         const string kMaterialUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl";
         const string kDecalUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl";
         //pre graph material includes
+        const string kDebugDisplay = "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl";
         const string kUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl";
         const string kLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl";
         const string kEye = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl";
@@ -80,6 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { kShaderVariables, IncludeLocation.Pregraph },
             { kFragInputs, IncludeLocation.Pregraph },
             { kShaderPass, IncludeLocation.Pregraph },
+            { kDebugDisplay, IncludeLocation.Pregraph },            
             { kMaterial, IncludeLocation.Pregraph },
         };
         public static IncludeCollection CoreUtility = new IncludeCollection
