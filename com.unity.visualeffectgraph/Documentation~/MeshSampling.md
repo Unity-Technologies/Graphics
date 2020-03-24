@@ -41,7 +41,7 @@ This operator provides a custom read of any vertex attribute. To select the outp
 
 #### Input Slot
 
-- **Mesh** : The Mesh to fetch
+- **Mesh** : The Mesh to fetch.
 - **Vertex** : The vertex index to sample (if **Spawn Mode** is setup to **Custom**)
 
 #### Output Slot
