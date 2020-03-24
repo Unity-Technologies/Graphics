@@ -89,6 +89,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new debug panel for volumes
 - Added XR setting to control camera jitter for temporal effects
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
+- Added API to enable proper recording of path traced scenes (with the Unity recorder or other tools).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -585,6 +586,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
 - Obsolete Utilities namespace was removed, instead use UnityEngine.Rendering (case 1204677)
+- Moved most of the compute shaders to the multi_compile API instead of multiple kernels.
+- Use multi_compile API for deferred compute shader with shadow mask.
 
 ## [7.1.1] - 2019-09-05
 

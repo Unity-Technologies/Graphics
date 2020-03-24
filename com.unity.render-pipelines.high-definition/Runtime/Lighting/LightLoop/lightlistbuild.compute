@@ -1,15 +1,11 @@
 // The implementation is based on the demo on "fine pruned tiled lighting" published in GPU Pro 7.
 // https://github.com/wolfgangfengel/GPU-Pro-7
 
-#pragma kernel TileLightListGen                             LIGHTLISTGEN=TileLightListGen
-#pragma kernel TileLightListGen_SrcBigTile                  LIGHTLISTGEN=TileLightListGen_SrcBigTile							USE_TWO_PASS_TILED_LIGHTING
-#pragma kernel TileLightListGen_FeatureFlags                LIGHTLISTGEN=TileLightListGen_FeatureFlags							USE_FEATURE_FLAGS
-#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags     LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags				USE_TWO_PASS_TILED_LIGHTING     USE_FEATURE_FLAGS
-#pragma kernel TileLightListGen_Oblique                             LIGHTLISTGEN=TileLightListGen_Oblique								USE_OBLIQUE_MODE
-#pragma kernel TileLightListGen_SrcBigTile_Oblique                  LIGHTLISTGEN=TileLightListGen_SrcBigTile_Oblique                    USE_TWO_PASS_TILED_LIGHTING		USE_OBLIQUE_MODE
-#pragma kernel TileLightListGen_FeatureFlags_Oblique                LIGHTLISTGEN=TileLightListGen_FeatureFlags_Oblique                  USE_FEATURE_FLAGS				USE_OBLIQUE_MODE
-#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags_Oblique     LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags_Oblique       USE_TWO_PASS_TILED_LIGHTING     USE_FEATURE_FLAGS	 USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen
 
+#pragma multi_compile _ USE_TWO_PASS_TILED_LIGHTING
+#pragma multi_compile _ USE_FEATURE_FLAGS
+#pragma multi_compile _ USE_OBLIQUE_MODE
 
 //#pragma #pragma enable_d3d11_debug_symbols
 
@@ -150,7 +146,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 #endif
 
 [numthreads(NR_THREADS, 1, 1)]
-void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
+void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 tileIDX = u3GroupID.xy;
