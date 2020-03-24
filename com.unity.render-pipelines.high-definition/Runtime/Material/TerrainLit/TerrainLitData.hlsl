@@ -228,12 +228,6 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 
     float3 bentNormalWS = surfaceData.normalWS;
 
-    // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
-    // Don't do spec occ from Ambient if there is no mask mask
-#if defined(_MASKMAP) && !defined(_SPECULAR_OCCLUSION_NONE)
-    surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-#endif
-
 #ifdef DEBUG_DISPLAY
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
@@ -243,6 +237,12 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
     // as it can modify attribute use for static lighting
     ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
+#endif
+
+    // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
+    // Don't do spec occ from Ambient if there is no mask mask
+#if defined(_MASKMAP) && !defined(_SPECULAR_OCCLUSION_NONE)
+    surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #endif
 
     GetBuiltinData(input, V, posInput, surfaceData, 1, bentNormalWS, 0, builtinData);
