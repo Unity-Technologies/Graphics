@@ -145,3 +145,27 @@ VFXBlackboardCategory > .mainContainer > #sectionHeader
     height: 0.01px;
     border-bottom-width: 1px;
 }
+
+.VFXParameterEnumValuePropertyRM > VFXStringField,.VFXParameterEnumValuePropertyRM > VFXStringField >.textfield
+{
+    flex: 1 1 auto;
+}
+.propertyrm.VFXParameterEnumValuePropertyRM #icon
+{
+    width:0px;
+}
+.propertyrm.VFXParameterEnumValuePropertyRM .propertyrm /*The value field*/
+{
+    margin-right:2px;
+}
+.propertyrm.VFXParameterEnumValuePropertyRM .propertyrm .fieldContainer/*The value field*/
+{
+    height:18px;
+}
+
+.propertyrm.VFXParameterEnumValuePropertyRM .propertyrm #label 
+{
+    margin-right:0;
+    padding-left:0;
+    padding-right:0;
+}

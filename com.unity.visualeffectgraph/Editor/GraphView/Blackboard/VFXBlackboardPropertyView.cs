@@ -202,6 +202,7 @@ namespace  UnityEditor.VFX.UI
                 {
                     insertIndex += 1 + (m_SubProperties != null ? m_SubProperties.Count : 0) + 1; //main property + subproperties + tooltip
                 }
+                bool mustRelayout = false;
 
                 if (controller.canHaveValueFilter)
                 {
@@ -217,12 +218,6 @@ namespace  UnityEditor.VFX.UI
                             m_MaxProperty.RemoveFromHierarchy();
                         m_MaxProperty = PropertyRM.Create(controller.maxController, 55);
                     }
-                    if( m_EnumProperty == null || !m_EnumProperty.IsCompatible(controller.enumController))
-                    {
-                        if (m_EnumProperty != null)
-                            m_EnumProperty.RemoveFromHierarchy();
-                        m_EnumProperty = new VFXListParameterEnumValuePropertyRM(controller.enumController, 55);
-                    }
 
                     if (m_ValueFilterProperty == null)
                     {
@@ -236,6 +231,7 @@ namespace  UnityEditor.VFX.UI
                         {
                             Insert(insertIndex++, m_MinProperty);
                             Insert(insertIndex++, m_MaxProperty);
+                            mustRelayout = true;
                         }
                     }
                     else if (m_MinProperty.parent != null)
@@ -245,9 +241,19 @@ namespace  UnityEditor.VFX.UI
                     }
                     if (controller.valueFilter == ValueFilter.Enum)
                     {
-                        Insert(insertIndex++, m_EnumProperty);
+                        if (m_EnumProperty == null || !m_EnumProperty.IsCompatible(controller.enumController))
+                        {
+                            if (m_EnumProperty != null)
+                                m_EnumProperty.RemoveFromHierarchy();
+                            m_EnumProperty = new VFXListParameterEnumValuePropertyRM(controller.enumController, 55);
+                        }
+                        if (m_EnumProperty.parent == null)
+                        {
+                            Insert(insertIndex++, m_EnumProperty);
+                            mustRelayout = true;
+                        }
                     }
-                    else if( m_EnumProperty.parent != null)
+                    else if(m_EnumProperty != null && m_EnumProperty.parent != null)
                     {
                         m_EnumProperty.RemoveFromHierarchy();
                     }
@@ -270,6 +276,9 @@ namespace  UnityEditor.VFX.UI
                         m_ValueFilterProperty = null;
                     }
                 }
+
+                if( mustRelayout)
+                    Relayout();
             }
             else
             {
@@ -324,11 +333,16 @@ namespace  UnityEditor.VFX.UI
         {
             if (panel != null)
             {
-                float labelWidth = 70;
-                GetPreferedWidths(ref labelWidth);
-                ApplyWidths(labelWidth);
+                Relayout();
             }
             UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+        }
+
+        private void Relayout()
+        {
+            float labelWidth = 70;
+            GetPreferedWidths(ref labelWidth);
+            ApplyWidths(labelWidth);
         }
     }
 }
