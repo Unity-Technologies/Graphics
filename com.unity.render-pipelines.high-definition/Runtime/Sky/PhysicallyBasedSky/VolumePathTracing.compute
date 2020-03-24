@@ -174,7 +174,7 @@ float Exp2Erfc(float x)
     float t, u, y;
 
     t = 3.9788608f * rcp(x + 3.9788608f); // Reduce the range
-    u = t - 0.5f;                        // Center around 0
+    u = t - 0.5f;                         // Center around 0
 
     y =           -0.010297533124685f;
     y = fmaf(y, u, 0.288184314966202f);
@@ -200,12 +200,12 @@ float ChapmanUpper(float z, float absCosTheta)
     float tp   = 1 + sinTheta;       // 1 + Sin
     float rstp = rsqrt(tp);          // 1 / Sqrt[1 + Sin]
     float rtp  = rstp * rstp;        // 1 / (1 + Sin)
-    float stm  = absCosTheta * rstp; // Sqrt[1 - Sin] = Abs[Cos / Sqrt[1 + Sin]]
+    float stm  = absCosTheta * rstp; // Sqrt[1 - Sin] = Abs[Cos] / Sqrt[1 + Sin]
     float arg  = zp12 * stm;         // Sqrt[z - z * Sin], argument of Erfc
     float e2ec = Exp2Erfc(arg);      // Exp[x^2] * Erfc[x]
 
     // Term 1 of Equation 46.
-    float mul1 = absCosTheta * rtp;  // Sqrt[(1 - Sin) / (1 + Sin)] = Abs[Cos / (1 + Sin)]
+    float mul1 = absCosTheta * rtp;  // Sqrt[(1 - Sin) / (1 + Sin)] = Abs[Cos] / (1 + Sin)
     float trm1 = mul1 * (1 - 0.5 * rtp);
 
     // Term 2 of Equation 46.
@@ -266,15 +266,37 @@ float CosAtDist(float r, float rRcp, float cosTheta, float s)
     return ((s * rRcp) + cosTheta) * rsqrt(x2);
 }
 
+// This variant of the function evaluates optical depth along an infinite path.
 // 'r' is the radial distance from the center of the planet.
+// 'viewZ' is the Z coordinate of the view direction.
+// seaLvlAtt = (sigma_t * k) is the sea-level (height = 0) attenuation coefficient.
+// 'R' is the radius of the planet.
+// 'H' is the scale height.
+// hRcp = rcp(H) is the falloff exponent.
+float3 OptDepthSpherExpMedium(float r, float viewZ, float R,
+                              float3 seaLvlAtt, float H, float hRcp)
+{
+    float cosTheta = -viewZ; // p = x - s * v
+
+    float z = r * hRcp;
+    float Z = R * hRcp;
+
+    float ch = RescaledChapman(z, Z, cosTheta);
+
+    return ch * H * seaLvlAtt;
+}
+
+// This variant of the function evaluates optical depth along a bounded path.
+// 'r' is the radial distance from the center of the planet.
+// rRcp = 1 / r.
 // 'viewZ' is the Z coordinate of the view direction.
 // 'dist' is the distance.
 // seaLvlAtt = (sigma_t * k) is the sea-level (height = 0) attenuation coefficient.
 // 'R' is the radius of the planet.
 // 'H' is the scale height.
-// rcpH = rcp(H) is the falloff exponent.
+// hRcp = rcp(H) is the falloff exponent.
 float3 OptDepthSpherExpMedium(float r, float rRcp, float viewZ, float dist, float R,
-                              float3 seaLvlAtt, float H, float rcpH)
+                              float3 seaLvlAtt, float H, float hRcp)
 {
     float rX        = r;
     float rRcpX     = rRcp;
@@ -285,14 +307,13 @@ float3 OptDepthSpherExpMedium(float r, float rRcp, float viewZ, float dist, floa
     // Potentially swap X and Y.
     // Convention: at the point Y, the ray points up.
     cosThetaX = (cosThetaY >= 0) ? cosThetaX : -cosThetaX;
-    cosThetaY = abs(cosThetaY);
 
-    float Z   = R  * rcpH;
-    float zX  = rX * rcpH;
-    float zY  = rY * rcpH;
+    float Z   = R  * hRcp;
+    float zX  = rX * hRcp;
+    float zY  = rY * hRcp;
 
     float chX = RescaledChapman(zX, Z, cosThetaX);
-    float chY = ChapmanUpper(zY, cosThetaY) * exp(Z - zY); // Rescaling adds 'exp'
+    float chY = ChapmanUpper(zY, abs(cosThetaY)) * exp(Z - zY); // Rescaling adds 'exp'
 
     // We may have swapped X and Y.
     float ch = abs(chX - chY);
@@ -308,27 +329,27 @@ float ConvertCdfToOpticalDepth(float cdf, float maxOpacity)
 
 #define EPS_ABS  0.0001
 #define EPS_REL  0.0001
-#define MAX_ITER 8
+#define MAX_ITER 4
 
 // 'optDepth' is the value to solve for.
 // 'maxOptDepth' is the maximum value along the ray, s.t. (maxOptDepth >= optDepth).
 // 'maxDist' is the maximum distance along the ray.
 float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, float R,
-                           float2 seaLvlAtt, float2 H, float2 rcpH, // Air & aerosols
+                           float2 seaLvlAtt, float2 H, float2 hRcp, // Air & aerosols
                            float maxOptDepth, float maxDist)
 {
-    const float  rcpOptDepth = rcp(optDepth);
-    const float2 Z           = R * rcpH;
+    const float  optDepthRcp = rcp(optDepth);
+    const float2 Z           = R * hRcp;
 
-    // Make an initial guess.
-    // Homogeneous assumption.
+    // Make an initial guess (homogeneous assumption).
     float t = maxDist * (optDepth * rcp(maxOptDepth));
+
     // Establish the ranges of valid distances ('tRange') and function values ('fRange').
     float tRange[2], fRange[2];
     tRange[0] = 0;        /* -> */  fRange[0] = 0           - optDepth;
     tRange[1] = maxDist;  /* -> */  fRange[1] = maxOptDepth - optDepth;
 
-    uint  numIter = 0;
+    uint  iter = 0;
     float absDiff = optDepth, relDiff = 1;
 
     do // Perform a Newton–Raphson iteration.
@@ -341,12 +362,15 @@ float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, flo
         // f' [t] = AttCoefAtDist[t],
         // f''[t] = AttCoefAtDist'[t] = -AttCoefAtDist[t] * CosAtDist[t] / H.
         float optDepthAtDist = 0, attAtDist = 0, attAtDistDeriv = 0;
-        optDepthAtDist += OptDepthSpherExpMedium(r, rRcp, viewZ, t, R, seaLvlAtt.x, H.x, rcpH.x); // Air
-        optDepthAtDist += OptDepthSpherExpMedium(r, rRcp, viewZ, t, R, seaLvlAtt.y, H.y, rcpH.y); // Aerosols
-        attAtDist      += seaLvlAtt.x * exp(Z.x - radAtDist * rcpH.x);                            // Air
-        attAtDist      += seaLvlAtt.y * exp(Z.y - radAtDist * rcpH.y);                            // Aerosols
-        attAtDistDeriv -= seaLvlAtt.x * exp(Z.x - radAtDist * rcpH.x) * cosAtDist * rcpH.x;       // Air
-        attAtDistDeriv -= seaLvlAtt.y * exp(Z.y - radAtDist * rcpH.y) * cosAtDist * rcpH.y;       // Aerosols
+        optDepthAtDist += OptDepthSpherExpMedium(r, rRcp, viewZ, t, R,
+                                                 seaLvlAtt.x, H.x, hRcp.x);
+        optDepthAtDist += OptDepthSpherExpMedium(r, rRcp, viewZ, t, R,
+                                                 seaLvlAtt.y, H.y, hRcp.y);
+        attAtDist      += seaLvlAtt.x * exp(Z.x - radAtDist * hRcp.x);
+        attAtDist      += seaLvlAtt.y * exp(Z.y - radAtDist * hRcp.y);
+        attAtDistDeriv -= seaLvlAtt.x * exp(Z.x - radAtDist * hRcp.x) * hRcp.x;
+        attAtDistDeriv -= seaLvlAtt.y * exp(Z.y - radAtDist * hRcp.y) * hRcp.y;
+        attAtDistDeriv *= cosAtDist;
 
         float   f = optDepthAtDist - optDepth;
         float  df = attAtDist;
@@ -381,9 +405,9 @@ float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, flo
             // via bisection, it is costly, and the convergence rate is low.
             // It's better to recall that, for short distances, optical depth is a
             // linear function of distance to an excellent degree of approximation.
-            slope   = (tBound - t) * rcp(fBound - f);
-            dt      = -f * slope;
-            numIter = MAX_ITER;
+            slope = (tBound - t) * rcp(fBound - f);
+            dt    = -f * slope;
+            iter  = MAX_ITER;
         }
 
         tRange[1 - sgn] = t; // Adjust the range using the
@@ -392,14 +416,14 @@ float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, flo
         t = t + dt;
 
         absDiff = abs(optDepthAtDist - optDepth);
-        relDiff = abs(optDepthAtDist * rcpOptDepth - 1);
+        relDiff = abs(optDepthAtDist * optDepthRcp - 1);
 
-        numIter++;
+        iter++;
 
         // Stop when the accuracy goal has been reached.
         // Note that this uses the accuracy corresponding to the old value of 't'.
         // The new value of 't' we just computed should result in higher accuracy.
-    } while ((absDiff > EPS_ABS) && (relDiff > EPS_REL) && (numIter < MAX_ITER));
+    } while ((absDiff > EPS_ABS) && (relDiff > EPS_REL) && (iter < MAX_ITER));
 
     return t;
 }
