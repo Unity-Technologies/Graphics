@@ -459,10 +459,6 @@ Pass
         float coatTextureFilteringVariance = 0.0;
         //$NormalTexturtextureFiltering: coatTextureFilteringVariance = DecodeVariance(surfaceDescription.CodedCoatNormalVarianceMeasure);
 
-        $Specular.AA: surfaceData.perceptualSmoothnessA = NormalFiltering(surfaceData.perceptualSmoothnessA, geometricVariance + textureFilteringVariance, surfaceDescription.SpecularAAThreshold);
-        $Specular.AA: surfaceData.perceptualSmoothnessB = NormalFiltering(surfaceData.perceptualSmoothnessB, geometricVariance + textureFilteringVariance, surfaceDescription.SpecularAAThreshold);
-        $Specular.AA: surfaceData.coatPerceptualSmoothness = NormalFiltering(surfaceData.coatPerceptualSmoothness, geometricVariance + coatTextureFilteringVariance, surfaceDescription.SpecularAAThreshold);
-
         #if defined(DEBUG_DISPLAY)
             if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
             {
@@ -473,6 +469,10 @@ Pass
             // as it can modify attributes used for static lighting
             ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
         #endif
+
+        $Specular.AA: surfaceData.perceptualSmoothnessA = NormalFiltering(surfaceData.perceptualSmoothnessA, geometricVariance + textureFilteringVariance, surfaceDescription.SpecularAAThreshold);
+        $Specular.AA: surfaceData.perceptualSmoothnessB = NormalFiltering(surfaceData.perceptualSmoothnessB, geometricVariance + textureFilteringVariance, surfaceDescription.SpecularAAThreshold);
+        $Specular.AA: surfaceData.coatPerceptualSmoothness = NormalFiltering(surfaceData.coatPerceptualSmoothness, geometricVariance + coatTextureFilteringVariance, surfaceDescription.SpecularAAThreshold);
     }
 
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)

@@ -896,7 +896,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     });
                 }
 
-                material.children.Add(new DebugUI.BoolField { displayName = "Override AmbientOcclusion", getter = () => data.lightingDebugSettings.overrideAmbientOcclusion, setter = value => data.lightingDebugSettings.overrideAmbientOcclusion = value, onValueChanged = RefreshLightingDebug });
+                material.children.Add(new DebugUI.BoolField { displayName = "Override Ambient Occlusion", getter = () => data.lightingDebugSettings.overrideAmbientOcclusion, setter = value => data.lightingDebugSettings.overrideAmbientOcclusion = value, onValueChanged = RefreshLightingDebug });
                 if (data.lightingDebugSettings.overrideAmbientOcclusion)
                 {
                     material.children.Add(new DebugUI.Container
