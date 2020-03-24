@@ -12,19 +12,8 @@ public class SetupGraphicsTestCases : IPrebuildSetup
 {
     public static void RebuildVisualEffectAsset(VisualEffectAsset vfx)
     {
-        //We are in Assembly-CSharp-Editor, we don't want to be friend of this namespace
-        var visualEffectAssetExt = AppDomain.CurrentDomain.GetAssemblies()  .Select(o => o.GetType("UnityEditor.VFX.VisualEffectAssetExtensions"))
-                                                                            .Where(o => o != null)
-                                                                            .FirstOrDefault();
-        var fnGetResource = visualEffectAssetExt.GetMethod("GetResource");
-        fnGetResource = fnGetResource.MakeGenericMethod(new Type[] { typeof(VisualEffectAsset) });
-        var resource = fnGetResource.Invoke(null, new object[] { vfx });
-        var fnGetOrCreate = visualEffectAssetExt.GetMethod("GetOrCreateGraph");
-        var graph = fnGetOrCreate.Invoke(null, new object[] { resource });
-
-        var fnRecompileIfNeeded = graph.GetType().GetMethod("RecompileIfNeeded");
-        fnRecompileIfNeeded.Invoke(graph, new object[] { false, false });
     }
+
     private static string GetAssetBundleBasePath()
     {
         var basePath = System.IO.Directory.GetCurrentDirectory();
@@ -73,7 +62,19 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         {
             Directory.CreateDirectory(bundlePath);
         }
-        UnityEditor.BuildPipeline.BuildAssetBundles(bundlePath, UnityEditor.BuildAssetBundleOptions.None, UnityEditor.BuildTarget.StandaloneWindows64);
+        BuildTarget target = UnityEditor.BuildTarget.NoTarget;
+
+#if UNITY_STANDALONE_OSX
+        target = UnityEditor.BuildTarget.StandaloneOSX;
+#elif UNITY_STANDALONE_LINUX
+        target = UnityEditor.BuildTarget.StandaloneLinux64;
+#elif UNITY_STANDALONE_WIN
+        target = UnityEditor.BuildTarget.StandaloneWindows64;
+#else
+        Debug.LogError("Unable to choose the correct target while building AssetBundle");
+#endif
+
+        UnityEditor.BuildPipeline.BuildAssetBundles(bundlePath, UnityEditor.BuildAssetBundleOptions.None, target);
         if (!Directory.Exists("Assets/StreamingAssets"))
             Directory.CreateDirectory("Assets/StreamingAssets");
         File.WriteAllText("Assets/StreamingAssets/AssetBundlePath.txt", bundlePath);

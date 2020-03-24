@@ -13,7 +13,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class StackLitSettingsView : VisualElement
+    class StackLitSettingsView : MasterNodeSettingsView
     {
         StackLitMasterNode m_Node;
 
@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
-        public StackLitSettingsView(StackLitMasterNode node)
+        public StackLitSettingsView(StackLitMasterNode node) : base(node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
@@ -581,6 +581,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             --indentLevel; //...Advanced options
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeSurfaceType(ChangeEvent<Enum> evt)
