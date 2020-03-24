@@ -42,7 +42,8 @@ namespace UnityEditor.VFX.Operator
                     {
                         yield return offset;
                         offset += stride;
-                    } while (offset < stride * m_EntryCount + 1);
+                    }
+                    while (offset < stride * m_EntryCount + 1);
                 }
             }
         }

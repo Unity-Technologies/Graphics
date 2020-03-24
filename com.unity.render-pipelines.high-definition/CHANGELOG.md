@@ -92,8 +92,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for fog attenuation in path tracing.
 - Added a new debug panel for volumes
 - Added XR setting to control camera jitter for temporal effects
+- Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
+- Added API to enable proper recording of path traced scenes (with the Unity recorder or other tools).
 
 ### Fixed
+- Fix when rescale probe all direction below zero (1219246)
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
 - Sorting, undo, labels, layout in the Lighting Explorer.
 - Fixed sky settings and materials in Shader Graph Samples package
@@ -476,7 +479,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error in the console when switching shader to decal in the material UI.
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
+- Fixed cubemap thumbnail generation at project load time.
 - Fixed cubemap thumbnail generation at project load time. 
+- Fixed XR culling with multiple cameras
+- Fixed XR single-pass with Mock HMD plugin
+- Fixed sRGB mismatch with XR SDK
+- Fixed an issue where default volume would not update when switching profile.
+- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601) 
+- Fixed an issue where AO override would not override specular occlusion.
+- Fixed an issue where Volume inspector might not refresh correctly in some cases.
+- Fixed render texture with XR
+- Fixed issue with resources being accessed before initialization process has been performed completely. 
+- Half fixed shuriken particle light that cast shadows (only the first one will be correct)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -576,6 +590,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
 - Obsolete Utilities namespace was removed, instead use UnityEngine.Rendering (case 1204677)
+- Moved most of the compute shaders to the multi_compile API instead of multiple kernels.
+- Use multi_compile API for deferred compute shader with shadow mask.
 
 ## [7.1.1] - 2019-09-05
 

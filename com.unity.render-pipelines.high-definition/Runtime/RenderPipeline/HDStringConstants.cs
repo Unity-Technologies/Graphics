@@ -725,6 +725,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _PositionTextureRW               = Shader.PropertyToID("_PositionTextureRW");
         public static readonly int _DiffuseLightingTextureRW        = Shader.PropertyToID("_DiffuseLightingTextureRW");
 
+        // Accumulation
+        public static readonly int _AccumulationFrameIndex          = Shader.PropertyToID("_AccumulationFrameIndex");
+        public static readonly int _AccumulationNumSamples          = Shader.PropertyToID("_AccumulationNumSamples");
+        public static readonly int _AccumulationWeights             = Shader.PropertyToID("_AccumulationWeights");
+        public static readonly int _AccumulationNeedsExposure       = Shader.PropertyToID("_AccumulationNeedsExposure");
+        public static readonly int _RadianceTexture                 = Shader.PropertyToID("_RadianceTexture");
+
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
         public static readonly int _PreIntegratedFGD_CharlieAndFabric = Shader.PropertyToID("_PreIntegratedFGD_CharlieAndFabric");
