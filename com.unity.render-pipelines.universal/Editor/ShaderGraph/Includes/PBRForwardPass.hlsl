@@ -28,7 +28,11 @@
 
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SAMPLE_GI_SSAO(input.lightmapUV, input.sh, inputData.normalWS, input.positionCS);
+
+    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
+    #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
+        inputdata.bakedGI *= SampleAmbientOcclusion(input.positionCS);
+    #endif
 }
 
 PackedVaryings vert(Attributes input)

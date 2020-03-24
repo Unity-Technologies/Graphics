@@ -68,7 +68,11 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SAMPLE_GI_SSAO(input.lightmapUV, input.vertexSH, inputData.normalWS, input.positionCS);
+
+    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
+        inputdata.bakedGI *= SampleAmbientOcclusion(input.positionCS);
+    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

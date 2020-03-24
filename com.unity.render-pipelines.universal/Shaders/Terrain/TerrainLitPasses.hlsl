@@ -106,7 +106,10 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.fogCoord = IN.fogFactorAndVertexLight.x;
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
-    input.bakedGI = SAMPLE_GI_SSAO(IN.uvMainAndLM.zw, SH, input.normalWS, IN.clipPos);
+    input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
+    #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
+        inputdata.bakedGI *= SampleAmbientOcclusion(IN.clipPos);
+    #endif
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS

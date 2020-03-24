@@ -130,7 +130,12 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half3 normalWS = input.normal;
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
-                color *= SAMPLE_GI_SSAO(input.lightmapUV, input.vertexSH, normalWS, input.vertex);
+
+                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+                #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
+                    color *= SampleAmbientOcclusion(input.vertex);
+                #endif
+
                 color = MixFog(color, input.uv0AndFogCoord.z);
                 alpha = OutputAlpha(alpha);
 
@@ -327,7 +332,11 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half3 normalWS = input.normal;
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
-                color *= SAMPLE_GI_SSAO(input.lightmapUV, input.vertexSH, normalWS, input.vertex);
+
+                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+                #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
+                    color *= SampleAmbientOcclusion(input.vertex);
+                #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
                 alpha = OutputAlpha(alpha);
 
