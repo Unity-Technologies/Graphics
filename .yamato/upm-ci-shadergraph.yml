@@ -328,7 +328,7 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
       
       UTR_RESULT=$?
       mkdir -p TestProjects/{{ project.folder }}/test-results/
-      scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results/ TestProjects/{{ project.folder }}/test-results/
+      scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results/ TestProjects/{{ project.folder }}/test-results/
       exit $UTR_RESULT
 
   dependencies:
