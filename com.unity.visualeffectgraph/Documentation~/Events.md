@@ -60,4 +60,3 @@ These Blocks connect to a **GPUEvent** Context. This Context does not handle any
 To gather data from the parent particle, a child system must refer to [Source Attributes](Attributes.md) in its Initialize Context. To do this, a child system can use a **Get Source Attribute** Operator, or an **Inherit Attribute** Block. For a visual example, see the image below.
 
 ![](Images/GPUEvent.png)*In this example, the child System inherits the source position of the particle that creates it. It also inherit roughly 50% of the parent particle's speed.*
-

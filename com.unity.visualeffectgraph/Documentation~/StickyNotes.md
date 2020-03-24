@@ -15,7 +15,7 @@ To create a Sticky Note, right-click an empty space in the graph view and, in th
 
 ### Controls
 
-This section describes how to edit text, move and resize the Sticky Note, and perform other actions. 
+This section describes how to edit text, move and resize the Sticky Note, and perform other actions.
 
 #### Editing text
 

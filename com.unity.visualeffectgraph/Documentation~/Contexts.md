@@ -16,7 +16,7 @@ Contexts connect to one another in a vertical, linear order. To achieve this, th
 
 ## Configuring Contexts
 
-To change the behavior of the Context, adjust its [settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector. 
+To change the behavior of the Context, adjust its [settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector.
 
 Some settings also change how the Context looks. For example in a **Quad Output** Context, if you set the UV Mode to **FlipbookMotionBlend**, Unity adds the following extra properties to the Context header: **Flipbook Size**, **Motion Vector Map**, and **Motion Vector Scale**.
 
@@ -52,7 +52,7 @@ Event Contexts only display their name, which is a string. To trigger an Event C
 
 ## Spawn
 
-Spawn Contexts are standalone systems that have three States: Running, Idle, and Waiting. 
+Spawn Contexts are standalone systems that have three States: Running, Idle, and Waiting.
 
 * **Looping** (Running): This state means that Unity computes the Blocks in the Context and spawns new particles.
 * **Finished** (Idle): This state means that the spawn machine is off and does not compute Blocks in the Context or spawn particles.
@@ -60,7 +60,7 @@ Spawn Contexts are standalone systems that have three States: Running, Idle, and
 
 To customize **Spawn** Contexts, you can add compatible **Blocks** to them. For information on the Spawn Context API, see the [Script Reference](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VFXSpawnerLoopState.html).
 
-### Enabling and disabling 
+### Enabling and disabling
 
 Spawn Contexts expose two [flow slots](GraphLogicAndPhilosophy.md#processing-workflow-vertical-logic): **Start** and **Stop**:
 
