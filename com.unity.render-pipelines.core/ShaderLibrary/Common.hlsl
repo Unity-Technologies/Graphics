@@ -496,6 +496,7 @@ uint FastLog2(uint x)
 #endif
 
 // Using pow often result to a warning like this
+// "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
 // PositivePow remove this warning when you know the value is positive or 0 and avoid inf/NAN.
 // Note: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx pow(0, >0) == 0
 TEMPLATE_2_REAL(PositivePow, base, power, return pow(abs(base), power))
