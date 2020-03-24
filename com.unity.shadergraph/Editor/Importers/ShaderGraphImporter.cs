@@ -17,6 +17,12 @@ namespace UnityEditor.ShaderGraph
     [ScriptedImporter(32, Extension, 3)]
     class ShaderGraphImporter : ScriptedImporter
     {
+        [Serializable]
+        private class ShaderGraphExportDependencies : ScriptableObject
+        {
+            public List<UnityEngine.Object> assetDependencies = new List<UnityEngine.Object>();
+        }
+
         public const string Extension = "shadergraph";
 
         public const string k_ErrorShader = @"
@@ -148,6 +154,15 @@ Shader ""Hidden/GraphErrorShader2""
 
                 ctx.DependsOnSourceAsset(sourceAssetDependencyPath);
             }
+
+            var exportDependencies = ScriptableObject.CreateInstance<ShaderGraphExportDependencies>();
+            exportDependencies.hideFlags = HideFlags.HideInHierarchy;
+            var deps = GatherDependenciesFromSourceFile(ctx.assetPath);
+            foreach(string dependency in deps)
+            {
+                exportDependencies.assetDependencies.Add(AssetDatabase.LoadAssetAtPath(dependency, typeof(UnityEngine.Object)));
+            }
+            ctx.AddObjectToAsset("Export Dependencies", exportDependencies);
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, GraphData graph)
