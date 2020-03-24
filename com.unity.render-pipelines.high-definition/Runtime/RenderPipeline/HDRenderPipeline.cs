@@ -2326,6 +2326,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.NanTracker);
                 PushFullScreenLightingDebugTexture(hdCamera, cmd, m_CameraColorBuffer);
 
+                if (m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
+                {
+                    RenderAccumulation(hdCamera, cmd, m_CameraColorBuffer, m_CameraColorBuffer, false);
+                }
+
 #if UNITY_EDITOR
                 // Render gizmos that should be affected by post processes
                 if (showGizmos)
