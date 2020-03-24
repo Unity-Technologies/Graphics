@@ -1322,7 +1322,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             foreach (var req in renderRequests)
                             {
-                                if (req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
+                                if (camera == req.hdCamera.camera && req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
                                 {
                                     UnsafeGenericPool<HDCullingResults>.Release(cullingResults);
                                     cullingResults = req.cullingResults;
