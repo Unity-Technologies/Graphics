@@ -34,9 +34,9 @@ namespace UnityEditor.VFX
     {
         None =          0,
         SpawnEvent =    1 << 0,
-        Particle =      1 << 1,     
+        Particle =      1 << 1,
         Mesh =          1 << 2,
-        ParticleStrip = 1 << 3 | Particle, // strips 
+        ParticleStrip = 1 << 3 | Particle, // strips
     };
 
     [Serializable]
@@ -65,7 +65,8 @@ namespace UnityEditor.VFX
         public string label
         {
             get { return m_Label; }
-            set {
+            set
+            {
                 var invalidationCause = InvalidationCause.kUIChanged;
                 if (contextType == VFXContextType.Spawner && m_Label != value)
                     invalidationCause = InvalidationCause.kSettingChanged;
@@ -233,8 +234,8 @@ namespace UnityEditor.VFX
                 return false;
 
             //If link already present, returns false
-            if (from.m_OutputFlowSlot[fromIndex].link   .Any(o => o.context == to   && o.slotIndex == toIndex) ||
-                to.m_InputFlowSlot[toIndex].link        .Any(o => o.context == from && o.slotIndex == fromIndex))
+            if (from.m_OutputFlowSlot[fromIndex].link.Any(o => o.context == to   && o.slotIndex == toIndex) ||
+                to.m_InputFlowSlot[toIndex].link.Any(o => o.context == from && o.slotIndex == fromIndex))
                 return false;
 
             return true;
@@ -373,7 +374,7 @@ namespace UnityEditor.VFX
 
         public void SetDefaultData(bool notify)
         {
-            InnerSetData(VFXData.CreateDataType(GetGraph(),ownedType), notify);
+            InnerSetData(VFXData.CreateDataType(GetGraph(), ownedType), notify);
         }
 
         public virtual void OnDataChanges(VFXData oldData, VFXData newData)
@@ -437,52 +438,52 @@ namespace UnityEditor.VFX
 
         public IEnumerable<VFXBlock> activeFlattenedChildrenWithImplicit
         {
-            get{
+            get
+            {
                 List<VFXBlock> blocks = new List<VFXBlock>();
-                
-                foreach(var ctxblk in implicitPreBlock)
+
+                foreach (var ctxblk in implicitPreBlock)
                 {
                     if (ctxblk is VFXSubgraphBlock subgraphBlk)
                         foreach (var blk in subgraphBlk.recursiveSubBlocks)
                         {
                             if (blk.enabled)
-                             blocks.Add(blk);
+                                blocks.Add(blk);
                         }
                     else
                     {
                         if (ctxblk.enabled)
-                                blocks.Add(ctxblk);
+                            blocks.Add(ctxblk);
                     }
                 }
 
-                foreach( var ctxblk in children )
+                foreach (var ctxblk in children)
                 {
                     if (ctxblk is VFXSubgraphBlock subgraphBlk)
                         foreach (var blk in subgraphBlk.recursiveSubBlocks)
                         {
                             if (blk.enabled)
-                             blocks.Add(blk);
+                                blocks.Add(blk);
                         }
                     else
                     {
                         if (ctxblk.enabled)
-                                blocks.Add(ctxblk);
+                            blocks.Add(ctxblk);
                     }
-
                 }
 
-                foreach(var ctxblk in implicitPostBlock)
+                foreach (var ctxblk in implicitPostBlock)
                 {
                     if (ctxblk is VFXSubgraphBlock subgraphBlk)
                         foreach (var blk in subgraphBlk.recursiveSubBlocks)
                         {
                             if (blk.enabled)
-                             blocks.Add(blk);
+                                blocks.Add(blk);
                         }
                     else
                     {
                         if (ctxblk.enabled)
-                                blocks.Add(ctxblk);
+                            blocks.Add(ctxblk);
                     }
                 }
                 return blocks;
@@ -530,79 +531,6 @@ namespace UnityEditor.VFX
         private VFXContextSlot[] m_OutputFlowSlot;
 
         public char letter { get; set; }
-
-
-        string shaderNamePrefix = "Hidden/VFX";
-
-        public string shaderName
-        {
-            get
-            {
-                string assetName = string.Empty;
-                try
-                {
-                    var resource = GetGraph().visualEffectResource;
-                    var asset = resource.asset;
-
-                    assetName = asset!= null ? asset.name : resource.name;
-                }
-                catch(Exception e)
-                {
-                    Debug.LogException(e, this);
-                }
-
-                string prefix = shaderNamePrefix + (assetName == string.Empty? "" : "/"+assetName);
-                if (GetData() != null)
-                {
-                    string dataName = GetData().fileName;
-                    if (!string.IsNullOrEmpty(dataName))
-                        prefix += "/" + dataName;
-                }
-
-                if (letter != '\0')
-                {
-                    if (string.IsNullOrEmpty(label))
-                        return string.Format("{2}/({0}) {1}", letter, libraryName, prefix);
-                    else
-                        return string.Format("{2}/({0}) {1}", letter, label, prefix);
-                }
-                else
-                {
-                    if (string.IsNullOrEmpty(label))
-                        return string.Format("{1}/{0}", libraryName, prefix);
-                    else
-                        return string.Format("{1}/{0}",label, prefix);
-                }
-            }
-        }
-        public string fileName
-        {
-            get
-            {
-                string prefix = string.Empty;
-                if (GetData() != null)
-                {
-                    string dataName = GetData().fileName;
-                    if (!string.IsNullOrEmpty(dataName))
-                        prefix += "[" + dataName + "]";
-                }
-
-                if (letter != '\0')
-                {
-                    if (string.IsNullOrEmpty(label))
-                        return string.Format("{2}{0} {1}", letter, libraryName, prefix);
-                    else
-                        return string.Format("{2}{0} {1}", letter, label, prefix);
-                }
-                else
-                {
-                    if (string.IsNullOrEmpty(label))
-                        return string.Format("{1}{0}", libraryName, prefix);
-                    else
-                        return string.Format("{1}{0}", label, prefix);
-                }
-            }
-        }
 
         public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {

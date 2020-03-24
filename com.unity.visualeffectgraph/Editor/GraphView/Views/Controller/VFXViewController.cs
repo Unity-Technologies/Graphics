@@ -581,7 +581,7 @@ namespace UnityEditor.VFX.UI
                 return false;
             }
 
-            if( input.sourceNode.viewController != output.sourceNode.viewController)
+            if (input.sourceNode.viewController != output.sourceNode.viewController)
             {
                 return false;
             }
@@ -604,7 +604,7 @@ namespace UnityEditor.VFX.UI
                 }
 
                 VFXParameterNodeController toController = input.sourceNode as VFXParameterNodeController;
-                if( toController != null)
+                if (toController != null)
                 {
                     var infos = toController.infos;
                     if (infos.linkedSlots == null)
@@ -768,10 +768,10 @@ namespace UnityEditor.VFX.UI
 
                 if (to != null)
                 {
-                    if( explicitDelete )
+                    if (explicitDelete)
                     {
-                         to.sourceNode.OnEdgeFromInputGoingToBeRemoved(to);
-                         edge.output.sourceNode.OnEdgeFromOutputGoingToBeRemoved(edge.output,edge.input);
+                        to.sourceNode.OnEdgeFromInputGoingToBeRemoved(to);
+                        edge.output.sourceNode.OnEdgeFromOutputGoingToBeRemoved(edge.output, edge.input);
                     }
                     var slot = to.model;
                     if (slot != null)
@@ -1138,10 +1138,11 @@ namespace UnityEditor.VFX.UI
             return model;
         }
 
-        public VFXParameter AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
+        public VFXParameter AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc, bool parent = true)
         {
             var model = desc.CreateInstance();
-            AddVFXModel(pos, model);
+            if (parent)
+                AddVFXModel(pos, model);
 
             VFXParameter parameter = model as VFXParameter;
 
@@ -1165,11 +1166,10 @@ namespace UnityEditor.VFX.UI
             return model;
         }
 
-
         public VFXNodeController GetNewNodeController(VFXModel model)
         {
             List<VFXNodeController> nodeControllers = null;
-            if ( m_SyncedModels.TryGetValue(model, out nodeControllers))
+            if (m_SyncedModels.TryGetValue(model, out nodeControllers))
             {
                 return nodeControllers.FirstOrDefault();
             }
@@ -1226,7 +1226,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXNodeController AddVFXParameter(Vector2 pos, VFXParameterController parameterController, VFXGroupNodeController groupNode)
         {
-            if( parameterController.isOutput && parameterController.nodeCount > 0)
+            if (parameterController.isOutput && parameterController.nodeCount > 0)
             {
                 return parameterController.nodes.First();
             }
@@ -1728,11 +1728,11 @@ namespace UnityEditor.VFX.UI
             {
                 VFXParameter parameter = model as VFXParameter;
 
-                if ( parameter.isOutput)
+                if (parameter.isOutput)
                 {
-                    if(parameter.GetNbInputSlots() < 1)
+                    if (parameter.GetNbInputSlots() < 1)
                     {
-                        parameter.AddSlot(VFXSlot.Create(new VFXProperty(typeof(float),"i"),VFXSlot.Direction.kInput));
+                        parameter.AddSlot(VFXSlot.Create(new VFXProperty(typeof(float), "i"), VFXSlot.Direction.kInput));
                     }
                     while (parameter.GetNbInputSlots() > 1)
                     {
@@ -1870,8 +1870,7 @@ namespace UnityEditor.VFX.UI
 
         public void GroupNodes(IEnumerable<VFXNodeController> nodes)
         {
-
-            foreach( var g in groupNodes) // remove nodes from other exisitings groups
+            foreach (var g in groupNodes) // remove nodes from other exisitings groups
             {
                 g.RemoveNodes(nodes);
             }
@@ -1897,7 +1896,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-
         List<VFXSystemController> m_Systems = new List<VFXSystemController>();
 
         public ReadOnlyCollection<VFXSystemController> systems
@@ -1905,119 +1903,118 @@ namespace UnityEditor.VFX.UI
             get { return m_Systems.AsReadOnly(); }
         }
 
-        
 
         public void UpdateSystems()
         {
             try
             {
-            VFXContext[] directContexts = graph.children.OfType<VFXContext>().ToArray();
+                VFXContext[] directContexts = graph.children.OfType<VFXContext>().ToArray();
 
-            HashSet<VFXContext> initializes = new HashSet<VFXContext>(directContexts.Where(t => t.contextType == VFXContextType.Init).ToArray());
-            HashSet<VFXContext> updates = new HashSet<VFXContext>(directContexts.Where(t => t.contextType == VFXContextType.Update).ToArray());
+                HashSet<VFXContext> initializes = new HashSet<VFXContext>(directContexts.Where(t => t.contextType == VFXContextType.Init).ToArray());
+                HashSet<VFXContext> updates = new HashSet<VFXContext>(directContexts.Where(t => t.contextType == VFXContextType.Update).ToArray());
 
-            List<Dictionary<VFXContext, int>> systems = new List<Dictionary<VFXContext, int>>();
+                List<Dictionary<VFXContext, int>> systems = new List<Dictionary<VFXContext, int>>();
 
 
-            while (initializes.Count > 0 || updates.Count > 0)
-            {
-                int generation = 0;
-
-                VFXContext currentContext;
-                if (initializes.Count > 0)
+                while (initializes.Count > 0 || updates.Count > 0)
                 {
-                    currentContext = initializes.First();
-                    initializes.Remove(currentContext);
-                }
-                else
-                {
-                    currentContext = updates.First();
-                    updates.Remove(currentContext);
-                }
+                    int generation = 0;
 
-                Dictionary<VFXContext, int> system = new Dictionary<VFXContext, int>();
-
-                system.Add(currentContext, generation);
-
-                var allChildren = currentContext.outputFlowSlot.Where(t => t != null).SelectMany(t => t.link.Select(u => u.context)).Where(t => t != null).ToList();
-                while (allChildren.Count() > 0)
-                {
-                    ++generation;
-
-                    foreach (var child in allChildren)
+                    VFXContext currentContext;
+                    if (initializes.Count > 0)
                     {
-                        initializes.Remove(child);
-                        updates.Remove(child);
-                        system.Add(child, generation);
-                    }
-
-                    var allSubChildren = allChildren.SelectMany(t => t.outputFlowSlot.Where(u => u != null).SelectMany(u => u.link.Select(v => v.context).Where(v => v != null)));
-                    var allPreChildren = allChildren.SelectMany(t => t.inputFlowSlot.Where(u => u != null).SelectMany(u => u.link.Select(v => v.context).Where(v => v != null && v.contextType != VFXContextType.Spawner && v.contextType != VFXContextType.SpawnerGPU)));
-
-                    allChildren = allSubChildren.Concat(allPreChildren).Except(system.Keys).ToList();
-                }
-
-                if (system.Count > 1)
-                    systems.Add(system);
-            }
-
-            while (m_Systems.Count() < systems.Count())
-            {
-                VFXSystemController systemController = new VFXSystemController(this,graph.UIInfos);
-                m_Systems.Add(systemController);
-            }
-
-            while (m_Systems.Count() > systems.Count())
-            {
-                VFXSystemController systemController = m_Systems.Last();
-                m_Systems.RemoveAt(m_Systems.Count - 1);
-                systemController.OnDisable();
-            }
-
-            for (int i = 0; i < systems.Count(); ++i)
-            {
-                var contextToController = systems[i].Keys.Select(t => new KeyValuePair<VFXContextController, VFXContext>((VFXContextController)GetNodeController(t, 0), t)).Where(t => t.Key != null).ToDictionary(t => t.Value, t => t.Key);
-                m_Systems[i].contexts = contextToController.Values.ToArray();
-                m_Systems[i].title = m_Graph.systemNames.GetUniqueSystemName(m_Systems[i].contexts.First().model.GetData());
-                VFXContextType type = VFXContextType.None;
-                VFXContext prevContext = null;
-                var orderedContexts = contextToController.Keys.OrderBy(t => t.contextType).ThenBy(t => systems[i][t]).ThenBy(t => t.position.x).ThenBy(t => t.position.y).ToArray();
-
-                char letter = 'A';
-                foreach (var context in orderedContexts)
-                {
-                    if (context.contextType == type)
-                    {
-                        if (prevContext != null)
-                        {
-                            letter = 'A';
-                            prevContext.letter = letter;
-                            prevContext = null;
-                        }
-
-                        if (letter == 'Z') // loop back to A in the unlikely event that there are more than 26 contexts
-                            letter = 'a';
-                        else if( letter == 'z')
-                            letter = 'α';
-                        else if( letter == 'ω')
-                            letter = 'A';
-                        context.letter = ++letter;
+                        currentContext = initializes.First();
+                        initializes.Remove(currentContext);
                     }
                     else
                     {
-                        context.letter = '\0';
-                        prevContext = context;
+                        currentContext = updates.First();
+                        updates.Remove(currentContext);
                     }
-                    type = context.contextType;
+
+                    Dictionary<VFXContext, int> system = new Dictionary<VFXContext, int>();
+
+                    system.Add(currentContext, generation);
+
+                    var allChildren = currentContext.outputFlowSlot.Where(t => t != null).SelectMany(t => t.link.Select(u => u.context)).Where(t => t != null).ToList();
+                    while (allChildren.Count() > 0)
+                    {
+                        ++generation;
+
+                        foreach (var child in allChildren)
+                        {
+                            initializes.Remove(child);
+                            updates.Remove(child);
+                            system.Add(child, generation);
+                        }
+
+                        var allSubChildren = allChildren.SelectMany(t => t.outputFlowSlot.Where(u => u != null).SelectMany(u => u.link.Select(v => v.context).Where(v => v != null)));
+                        var allPreChildren = allChildren.SelectMany(t => t.inputFlowSlot.Where(u => u != null).SelectMany(u => u.link.Select(v => v.context).Where(v => v != null && v.contextType != VFXContextType.Spawner && v.contextType != VFXContextType.SpawnerGPU)));
+
+                        allChildren = allSubChildren.Concat(allPreChildren).Except(system.Keys).ToList();
+                    }
+
+                    if (system.Count > 1)
+                        systems.Add(system);
                 }
 
+                while (m_Systems.Count() < systems.Count())
+                {
+                    VFXSystemController systemController = new VFXSystemController(this, graph.UIInfos);
+                    m_Systems.Add(systemController);
+                }
+
+                while (m_Systems.Count() > systems.Count())
+                {
+                    VFXSystemController systemController = m_Systems.Last();
+                    m_Systems.RemoveAt(m_Systems.Count - 1);
+                    systemController.OnDisable();
+                }
+
+                for (int i = 0; i < systems.Count(); ++i)
+                {
+                    var contextToController = systems[i].Keys.Select(t => new KeyValuePair<VFXContextController, VFXContext>((VFXContextController)GetNodeController(t, 0), t)).Where(t => t.Key != null).ToDictionary(t => t.Value, t => t.Key);
+                    m_Systems[i].contexts = contextToController.Values.ToArray();
+                    m_Systems[i].title = m_Graph.systemNames.GetUniqueSystemName(m_Systems[i].contexts.First().model.GetData());
+                    VFXContextType type = VFXContextType.None;
+                    VFXContext prevContext = null;
+                    var orderedContexts = contextToController.Keys.OrderBy(t => t.contextType).ThenBy(t => systems[i][t]).ThenBy(t => t.position.x).ThenBy(t => t.position.y).ToArray();
+
+                    char letter = 'A';
+                    foreach (var context in orderedContexts)
+                    {
+                        if (context.contextType == type)
+                        {
+                            if (prevContext != null)
+                            {
+                                letter = 'A';
+                                prevContext.letter = letter;
+                                prevContext = null;
+                            }
+
+                            if (letter == 'Z') // loop back to A in the unlikely event that there are more than 26 contexts
+                                letter = 'a';
+                            else if (letter == 'z')
+                                letter = 'α';
+                            else if (letter == 'ω')
+                                letter = 'A';
+                            context.letter = ++letter;
+                        }
+                        else
+                        {
+                            context.letter = '\0';
+                            prevContext = context;
+                        }
+                        type = context.contextType;
+                    }
+                }
             }
-            }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Debug.LogException(e);
             }
         }
+
         private VFXGraph m_Graph;
 
         private VFXUI m_UI;
