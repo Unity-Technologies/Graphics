@@ -2156,6 +2156,19 @@ namespace UnityEngine.Rendering.HighDefinition
             return sortCount;
         }
 
+        List<Matrix4x4> GetWorldToViewMatrices(HDCamera hdCamera)
+        {
+
+            // Prepare per view data
+            int viewCount = hdCamera.viewCount;
+            List<Matrix4x4> worldToMatrices = new List<Matrix4x4>(viewCount);
+            for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
+            {
+                worldToMatrices.Add(GetWorldToViewMatrix(hdCamera, viewIndex));
+            }
+            return worldToMatrices;
+        }
+
         void PrepareGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, int processedLightCount)
         {
             Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
@@ -2187,6 +2200,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // will be use...)
             // The lightLoop is in charge, not the shadow pass.
             // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
+
+            var worldToMatrices = GetWorldToViewMatrices(hdCamera);
 
             // 2. Go through all lights, convert them to GPU format.
             // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
@@ -2269,8 +2284,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Then culling side. Must be call in this order as we pass the created Light data to the function
                     for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                     {
-                        var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
-                        GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView, viewIndex);
+                        GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToMatrices[viewIndex], viewIndex);
                     }
 
                     // We make the light position camera-relative as late as possible in order
