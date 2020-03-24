@@ -103,6 +103,8 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 TEXTURE2D_X(_PositionTextureRW);
     // Normal value at the exit point
 TEXTURE2D_X(_NormalTextureRW);
+    // Direction value at the exit point
+TEXTURE2D_X(_DirectionTextureRW);
     // Diffuse lighting at the exit point
 TEXTURE2D_X(_DiffuseLightingTextureRW);
     // Through put of the walk that was calculated
@@ -159,8 +161,8 @@ void RaytracingDiffuseDeferred(uint3 dispatchThreadId : SV_DispatchThreadID, uin
     builtinData.shadowMask2 = 1.0;
     builtinData.shadowMask3 = 1.0;
 
-    // We are evaluating a diffuse signal so view does not matter, let's pick the one that is guaranteed to be right
-    float3 viewWS = normalWS;
+    // We are evaluating a diffuse signal so view does not matter, let's pick the one that is guaranteed to be right (for some reason the LTC code fails if V == N)
+    float3 viewWS = LOAD_TEXTURE2D_X(_DirectionTextureRW, currentCoord).xyz;
 
     // Create the pos input
     PositionInputs posInput;

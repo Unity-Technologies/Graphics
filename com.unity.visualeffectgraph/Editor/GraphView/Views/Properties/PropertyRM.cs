@@ -236,7 +236,7 @@ namespace UnityEditor.VFX.UI
 
         void UpdateExpandable()
         {
-            if (m_Provider.expandable && (m_Provider.expandableIfShowsEverything || ! showsEverything))
+            if (m_Provider.expandable && (m_Provider.expandableIfShowsEverything || !showsEverything))
             {
                 if (!m_IconClickableAdded)
                 {
@@ -251,7 +251,7 @@ namespace UnityEditor.VFX.UI
                 {
                     RemoveFromClassList("icon-expanded");
                 }
-                    AddToClassList("icon-expandable");
+                AddToClassList("icon-expandable");
             }
             else
             {
@@ -601,7 +601,7 @@ namespace UnityEditor.VFX.UI
         {
             (m_Field as VisualElement).SetEnabled(propertyEnabled);
 
-            if( propertyEnabled)
+            if (propertyEnabled)
             {
                 if (m_TooltipHolder.parent != null)
                     m_TooltipHolder.RemoveFromHierarchy();
@@ -672,7 +672,7 @@ namespace UnityEditor.VFX.UI
         {
             fieldControl.SetEnabled(propertyEnabled);
 
-            if( propertyEnabled)
+            if (propertyEnabled)
             {
                 if (m_TooltipHolder.parent != null)
                     m_TooltipHolder.RemoveFromHierarchy();

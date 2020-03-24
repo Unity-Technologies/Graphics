@@ -1,5 +1,6 @@
-#pragma kernel MaterialFlagsGen_Write       MATERIALFLAGSGEN=MaterialFlagsGen_Write
-#pragma kernel MaterialFlagsGen_Or          MATERIALFLAGSGEN=MaterialFlagsGen_Or        USE_OR
+#pragma kernel MaterialFlagsGen
+
+#pragma multi_compile _ USE_OR
 
 // #pragma enable_d3d11_debug_symbols
 
@@ -34,7 +35,7 @@ RWStructuredBuffer<uint> g_TileFeatureFlags;
 TEXTURE2D_X_UINT2(_StencilTexture);
 
 [numthreads(NR_THREADS, 1, 1)]
-void MATERIALFLAGSGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
+void MaterialFlagsGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 

@@ -34,7 +34,6 @@ namespace Unity.Testing.VisualEffectGraph
 
         void Update()
         {
-
         }
     }
 }

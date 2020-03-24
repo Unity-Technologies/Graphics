@@ -1,7 +1,7 @@
 <div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
 # Contexts
 
-Contexts are the main elements of the Graph Workflow logic (vertical) and define the succession and the relationships of operations and simulations. Every context defines one stage of computing, for example computing how many particles need to be spawned, creating new particles or updating all living particles. 
+Contexts are the main elements of the Graph Workflow logic (vertical) and define the succession and the relationships of operations and simulations. Every context defines one stage of computing, for example computing how many particles need to be spawned, creating new particles or updating all living particles.
 
 Context connect to each other when there is meaning : After creating new particles, an Initialize context can connect to a Update Particle context, or directly to a Output Particle Context to render the particles without simulating them.
 
@@ -13,7 +13,7 @@ Contexts connect to each other using the Ports at the top and the bottom.
 
 ## Configuring Contexts
 
-Adjusting Context [Settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector can change the way the Operator looks and behaves. 
+Adjusting Context [Settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector can change the way the Operator looks and behaves.
 
 > For instance, Changing the UV Mode of a `Quad Output` Context, from *Simple* to *FlipbookMotionBlend* will add Extra *Flipbook Size*, *Motion Vector Map* and *Motion Vector Scale* Properties to the Context Header.
 
@@ -49,7 +49,7 @@ Event Contexts only display a Name as a string that need to be called on the Com
 
 ## Spawn
 
-Spawn Contexts are standalone systems that have three States : Playing, Stopped and Delayed. 
+Spawn Contexts are standalone systems that have three States : Playing, Stopped and Delayed.
 
 * **Looping** (Running) state means that the Blocks are computed and will perform spawn of new particles
 * **Finished** (Idle) state means that the spawn machine is off and will not spawn particles
@@ -59,12 +59,12 @@ Spawn contexts can be customized using compatible **Blocks**.
 
 You can find Spawn Context API Reference [here](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VFXSpawnerLoopState.html).
 
-### Turning On and Off 
+### Turning On and Off
 
 Spawn Contexts expose two [Flow Input Slots](GraphLogicAndPhilosophy.md#processing-workflow-vertical-logic): Start and Stop:
 
 - Start input **Resets** and/or **Start** the Spawn System : if not connected, it is implicitly bound to the `OnPlay` [Event](Events.md) . Hitting Start many times has the same effect as pushing it once.
-- Stop input **Stops** the Spawn System : if not connected, it is implicitly bound to the `OnStop` [Event](Events.md) 
+- Stop input **Stops** the Spawn System : if not connected, it is implicitly bound to the `OnStop` [Event](Events.md)
 
 ### Looping and Delaying
 
@@ -72,7 +72,7 @@ Spawn contexts contains a state and will perform spawning particles based on a l
 
 * The spawn context can emit during **loops of defined duration** (meaning the internal spawn time will reset at each loop's beginning) . By default the duration is **infinite**.
   * In order to set the loop mode, select the context in the graph and change the loop duration popup in the Inspector. (Possible Values : Infinite, Constant, Random)
-* Spawn contexts can perform **one**, **many** or an **infinity** of **loops**. 
+* Spawn contexts can perform **one**, **many** or an **infinity** of **loops**.
   * In order to set this setting, select the spawn context in the graph and change the Loop count popup in the Inspector (Possible Values : Infinite, Constant, Random)
 * Spawn contexts can perform a **delay** **before** and/or a**delay after** each loop. During a delay, the spawn time elapses normally but no spawn is performed.
   * In order to set these setting, select the spawn context in the graph and change the Delay Before Loop and Delay After Loop popups in the Inspector (Possible Values: None, Constant, Random)
@@ -89,7 +89,7 @@ Setting a loop count, loop duration and / or delays will display new connectable
 
 ## GPU Event
 
-GPU Event contexts are experimental contexts that connect inputs to output GPU Events from other systems. They differ from Traditional Spawn as they are computed by the GPU.  Only one kind of Spawn can be connected to an Initialize Context (GPU Event and Spawn/Events are mutually Exclusive) 
+GPU Event contexts are experimental contexts that connect inputs to output GPU Events from other systems. They differ from Traditional Spawn as they are computed by the GPU.  Only one kind of Spawn can be connected to an Initialize Context (GPU Event and Spawn/Events are mutually Exclusive)
 
 > GPU Event contexts cannot be customized with Blocks.
 >

@@ -38,7 +38,7 @@ A Visual Effect Graph provides a **Workspace** where you can create Graph Elemen
 [Systems](Systems.md) are the main components of a Visual Effect. Every system defines one distinct part that the render pipeline simulates and renders alongside other systems. In the graph, systems that are defined by a succession of Contexts appear as dashed outlines (see the image above).
 
 * A **Spawn System** consists of a single Spawn Context.
-* A **Particle System** consists  of a succession of an Initialize, then Update, then Output context. 
+* A **Particle System** consists  of a succession of an Initialize, then Update, then Output context.
 * A **Mesh Output System** consists of a single Mesh Output Context.
 
 ### Contexts
@@ -47,8 +47,8 @@ A Visual Effect Graph provides a **Workspace** where you can create Graph Elemen
 The four most common Contexts in a Visual Effect Graph are:
 
 * **Spawn**. If active, Unity calls this every Frame, and computes the amount of particles to spawn.
-* **Initialize**. Unity calls this at the “birth” of every particle, This defines the initial state of the particle. 
-* **Update**. Unity calls this every frame for all particles, and uses this to perform simulations, for example Forces and Collisions.  
+* **Initialize**. Unity calls this at the “birth” of every particle, This defines the initial state of the particle.
+* **Update**. Unity calls this every frame for all particles, and uses this to perform simulations, for example Forces and Collisions.
 * **Output**. Unity calls this every frame for every particle. This determines the shape of a particle, and performs pre-render transformations.
 
 **Note:** Some Contexts, for example the Output Mesh, do not connect to any other Contexts as they do not relate to other systems.
@@ -60,7 +60,7 @@ When you create a Block, you can reorder it within it current Context, or move i
 
 To customize a Block, you can:
 
-* Adjust a property. To do this, connect a property Port to another Node with an Edge. 
+* Adjust a property. To do this, connect a property Port to another Node with an Edge.
 
 
 * Adjust the settings of a property. Settings are editable values without ports that you cannot connect to other Nodes.
@@ -87,7 +87,7 @@ If you change the value of a setting, you need to recompile the Graph to see the
 
 ## Other Graph Elements
 
-### Groups 
+### Groups
 
 You can group Nodes together to organize your graphs. You can drag grouped Nodes around together and even give them a title to describe what the group does. To add a Group, select multiple Nodes, right-click, and select **Group Selection**.
 

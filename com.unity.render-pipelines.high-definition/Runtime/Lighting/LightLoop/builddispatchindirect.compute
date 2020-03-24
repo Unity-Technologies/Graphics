@@ -1,5 +1,7 @@
-#pragma kernel BuildDispatchIndirect        BUILDINDIRECT=BuildDispatchIndirect         IS_DRAWPROCEDURALINDIRECT=0
-#pragma kernel BuildDrawProceduralIndirect  BUILDINDIRECT=BuildDrawProceduralIndirect   IS_DRAWPROCEDURALINDIRECT=1
+#pragma kernel BuildIndirect
+
+#pragma multi_compile _ IS_DRAWPROCEDURALINDIRECT
+
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -24,7 +26,7 @@ uniform uint g_NumTiles;
 uniform uint g_NumTilesX;
 
 [numthreads(NR_THREADS, 1, 1)]
-void BUILDINDIRECT(uint3 dispatchThreadId : SV_DispatchThreadID)
+void BuildIndirect(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     if (dispatchThreadId.x >= g_NumTiles)
         return;
@@ -43,7 +45,7 @@ void BUILDINDIRECT(uint3 dispatchThreadId : SV_DispatchThreadID)
         uint variant = FeatureFlagsToTileVariant(featureFlags);
         uint tileOffset;
 
-#if IS_DRAWPROCEDURALINDIRECT
+#ifdef IS_DRAWPROCEDURALINDIRECT
         // We are filling up an indirect argument buffer for DrawProceduralIndirect.
         // The buffer contains {vertex count per instance, instance count, start vertex location, and start instance location} = {0, instance count, 0, 0, 0}
         InterlockedAdd(g_DispatchIndirectBuffer[variant * 4 + 1], 1, tileOffset);
