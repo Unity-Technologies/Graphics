@@ -222,10 +222,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _CoarseStencilBufferSize;
 
-        // Uniform variables that defines if we should be using the raytraced indirect diffuse
-        public int      _RaytracedIndirectDiffuse;
+        public int      _RaytracedIndirectDiffuse; // Uniform variables that defines if we should be using the raytraced indirect diffuse
         public int      _UseRayTracedReflections;
-        public int      _RaytracingFrameIndex;
+        public int      _RaytracingFrameIndex;  // Index of the current frame [0, 7]
         public float    _Pad7;
     }
 }

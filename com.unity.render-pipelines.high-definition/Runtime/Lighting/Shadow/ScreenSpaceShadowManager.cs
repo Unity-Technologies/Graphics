@@ -326,10 +326,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Inject the ray-tracing sampling data
                         m_BlueNoise.BindDitheredRNGData8SPP(cmd);
 
-                        // Compute the current frame index
-                        int frameIndex = RayTracingFrameIndex(hdCamera);
-                        cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
-
                         // Inject the ray generation data
                         RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
                         cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
@@ -540,8 +536,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeMatrixParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingAreaWorldToLocal, m_WorldToLocalArea);
                 cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingTargetAreaLight, lightIndex);
                 cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, additionalLightData.numRayTracingSamples);
-                int frameIndex = RayTracingFrameIndex(hdCamera);
-                cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                 // Bind the input buffers
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
@@ -791,8 +785,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetGlobalInt(HDShaderIDs._RaytracingSampleIndex, sampleIdx);
                     cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, additionalLightData.numRayTracingSamples);
                     cmd.SetComputeFloatParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingLightRadius, additionalLightData.shapeRadius);
-                    int frameIndex = RayTracingFrameIndex(hdCamera);
-                    cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                     // If this is a spot light, inject the spot angle in radians
                     if (lightData.lightType == GPULightType.Spot)
@@ -844,7 +836,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandle shadowHistoryDistanceArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity)
                             ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity, ShadowHistoryDistanceBufferAllocatorFunction, 1);
 
-                    // We need to set the history as invalid if the light has moved (rotated or translated), 
+                    // We need to set the history as invalid if the light has moved (rotated or translated),
                     float historyValidity = 1.0f;
                     if (additionalLightData.previousTransform != additionalLightData.transform.localToWorldMatrix
                         || !hdCamera.ValidShadowHistory(additionalLightData, lightData.screenSpaceShadowIndex, lightData.lightType))

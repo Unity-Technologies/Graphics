@@ -91,8 +91,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, aoSettings.rayLength.value);
                 cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, aoSettings.sampleCount.value);
                 int frameIndex = m_RenderPipeline.RayTracingFrameIndex(hdCamera);
-                cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
-                cmd.SetGlobalInt(HDShaderIDs._RayCountEnabled, rayCountManager.RayCountIsEnabled());
 
                 // Set the data for the ray generation
                 cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._DepthTexture, m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer());
