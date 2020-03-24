@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed render texture with XR
 - Fixed sRGB mismatch with XR SDK
 - Fixed XR single-pass with Mock HMD plugin
+- Fixed XR culling with multiple cameras
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
