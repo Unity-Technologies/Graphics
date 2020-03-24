@@ -31,6 +31,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         #if XR_MODE
         float4 posCS : TEXCOORD0;
         #endif
+        float3 screenUV : TEXCOORD1;
         UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
     };
@@ -73,6 +74,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         output.positionCS = vertexInput.positionCS;
         #endif
 
+        output.screenUV = output.positionCS.xyw;
+        #if UNITY_UV_STARTS_AT_TOP
+        output.screenUV.xy = output.screenUV.xy * float2(0.5, -0.5) + 0.5 * output.screenUV.z;
+        #else
+        output.screenUV.xy = output.screenUV.xy * 0.5 + 0.5 * output.screenUV.z;
+        #endif
+
         #if XR_MODE
         output.posCS = output.positionCS;
         #endif
@@ -85,6 +93,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
     float4x4 _ScreenToWorld;
+    SamplerState my_point_clamp_sampler;
 
     float3 _LightPosWS;
     float3 _LightColor;
@@ -102,10 +111,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         UNITY_SETUP_INSTANCE_ID(input);
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-        float d        = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
-        half4 gbuffer0 = LOAD_TEXTURE2D_X(_GBuffer0, input.positionCS.xy);
-        half4 gbuffer1 = LOAD_TEXTURE2D_X(_GBuffer1, input.positionCS.xy);
-        half4 gbuffer2 = LOAD_TEXTURE2D_X(_GBuffer2, input.positionCS.xy);
+        // Using SAMPLE_TEXTURE2D is faster than using LOAD_TEXTURE2D on iOS platforms (5% faster shader).
+        // Possible reason: HLSLcc upcasts Load() operation to float, which doesn't happen for Sample()?
+        float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
+        float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, my_point_clamp_sampler, screen_uv, 0).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
+        half4 gbuffer0 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, my_point_clamp_sampler, screen_uv, 0);
+        half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
+        half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
 
         #if XR_MODE
             #if UNITY_REVERSED_Z
