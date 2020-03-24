@@ -280,6 +280,7 @@ CBUFFER_START(UnityGlobal)
     float _ProbeExposureScale;
     int  _UseRayTracedReflections;
     int  _RaytracingFrameIndex;
+    uint  _EnableRecursiveRayTracing;
 
     float4 _CoarseStencilBufferSize;
 
