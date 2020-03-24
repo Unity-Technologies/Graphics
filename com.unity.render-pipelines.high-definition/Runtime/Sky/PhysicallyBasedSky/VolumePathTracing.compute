@@ -535,6 +535,8 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
         assert(ray.maxDist > 0);
     }
 
+    float pathContribution = 0;
+
     for (bounce = 1; bounce <= bounceCount; bounce++) // Bounces are indexed starting from 1
     {
         seed = permute(tileIndexInDispatch, tileCountInDispatch, s_RandomPrimes[bounce / 2]);
@@ -550,13 +552,68 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
         float maxSampledOpacity  = OpacityFromOpticalDepth(maxSampledOptDepth);
         float sampledOptDepth    = ConvertCdfToOpticalDepth(rnd.x, maxSampledOpacity);
 
+        // Sample participating media.
         float t = SampleSpherExpMedium(sampledOptDepth, r, rRcp, -cosTheta, R,
                                        float2(_AirSeaLevelExtinction[(uint)ray.frequency], _AerosolSeaLevelExtinction),
                                        float2(_AirScaleHeight, _AerosolScaleHeight),
                                        float2(_AirDensityFalloff, _AerosolDensityFalloff),
                                        maxSampledOptDepth, ray.maxDist);
 
-        return t;
+
+
+        // Perform next event estimation.
+        float3 P = ray.origin + t * ray.direction; // TODO: 1-D
+        float3 V = - ray.direction;                // TODO: 1-D
+
+        ApplySphericalSymmetry(P, V, /* -> */ r, rSq, rRcp, cosTheta); // TODO: optimize me :-(
+
+        float airScaCoef = _AirSeaLevelScattering[(uint)ray.frequency]     * exp((R - r) * _AirDensityFalloff);
+        float airAttCoef = _AirSeaLevelExtinction[(uint)ray.frequency]     * exp((R - r) * _AirDensityFalloff);
+        float aerScaCoef = _AerosolSeaLevelScattering[(uint)ray.frequency] * exp((R - r) * _AerosolDensityFalloff);
+        float aerAttCoef = _AerosolSeaLevelExtinction                      * exp((R - r) * _AerosolDensityFalloff);
+        float totalAtt   = airAttCoef + aerAttCoef;
+
+        float airAlbedo = airScaCoef * rcp(totalAtt);
+        float aerAlbedo = aerScaCoef * rcp(totalAtt);
+
+
+        for (uint lightIndex = 0; lightIndex < _DirectionalLightCount; lightIndex++)
+        {
+            DirectionalLightData light = _DirectionalLightDatas[lightIndex];
+
+            // Use scalar or integer cores (more efficient).
+            bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+
+            if (!interactsWithSky) continue;
+
+            float3 L = -light.forward.xyz;
+
+            ApplySphericalSymmetry(P, V, /* -> */ r, rSq, rRcp, cosTheta); // TODO: optimize me :-(
+
+            float LdotN  = dot(L, P) * rsqrt(dot(P, P)); // TODO: 1-D
+            float cosHor = ComputeCosineOfHorizonAngle(rRcp);
+
+            if (LdotN > cosHor) // Visible?
+            {
+                float LdotV    = dot(L, V);
+                float airPhase = IsotropicPhaseFunction();
+                float aerPhase = CornetteShanksPhaseFunction(_AerosolAnisotropy, -LdotV);
+
+                float emittedRadiance = light.color.rgb[(uint)ray.frequency];
+                float lightOptDepth   = 0;
+                lightOptDepth += OptDepthSpherExpMedium(r, rRcp, -LdotN, ray.maxDist, R, _AirSeaLevelExtinction,     _AirScaleHeight,     _AirDensityFalloff);
+                lightOptDepth += OptDepthSpherExpMedium(r, rRcp, -LdotN, ray.maxDist, R, _AerosolSeaLevelExtinction, _AerosolScaleHeight, _AerosolDensityFalloff);
+
+                pathContribution += (airAlbedo * airPhase + aerAlbedo * aerPhase) * radiance;
+            }
+
+
+
+
+        float
+
+        pathContribution +=
+
         // return OpacityFromOpticalDepth(optDepth);
     }
 
