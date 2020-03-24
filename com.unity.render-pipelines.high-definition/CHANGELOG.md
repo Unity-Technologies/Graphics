@@ -119,6 +119,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the Tint parameter to Sky Colored Fog.
 
 ### Fixed
+- Fix when rescale probe all direction below zero (1219246)
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
 - Fixed TerrainLitGUI when per-pixel normal property is not present.
 - Fixed a bug due to depth history begin overriden too soon
