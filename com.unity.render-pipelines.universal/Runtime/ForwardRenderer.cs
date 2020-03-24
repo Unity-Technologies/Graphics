@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
-            RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor; ;
+            RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 #if ENABLE_VR && ENABLE_VR_MODULE
             if(cameraData.xrPass.enabled)
                 cameraTargetDescriptor = cameraData.xrPass.renderTargetDesc;
