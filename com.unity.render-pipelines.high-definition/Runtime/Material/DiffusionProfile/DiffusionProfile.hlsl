@@ -23,7 +23,7 @@ float3 ComputeTransmittanceDisney(float3 S, float3 volumeAlbedo, float thickness
 float3 EvalBurleyDiffusionProfile(float r, float3 S)
 {
     float3 exp_13 = exp2(((LOG2_E * (-1.0/3.0)) * r) * S); // Exp[-S * r / 3]
-    float3 expSum = exp_13 * (1 + exp_13 + exp_13);        // Exp[-S * r / 3] + Exp[-S * r]
+    float3 expSum = exp_13 * (1 + exp_13 * exp_13);        // Exp[-S * r / 3] + Exp[-S * r]
 
     return (S * rcp(8 * PI)) * expSum; // S / (8 * Pi) * (Exp[-S * r / 3] + Exp[-S * r])
 }
@@ -49,7 +49,7 @@ void SampleBurleyDiffusionProfile(float u, float rcpS, out float r, out float rc
     // exp_13 = Exp[-x/3] = Exp[-1/3 * 3 * Log[c / (4 * u)]]
     // exp_13 = Exp[-Log[c / (4 * u)]] = (4 * u) / c
     // exp_1  = Exp[-x] = exp_13 * exp_13 * exp_13
-    // expSum = exp_1 + exp_13 = exp_13 * (1 + exp_13 + exp_13)
+    // expSum = exp_1 + exp_13 = exp_13 * (1 + exp_13 * exp_13)
     // rcpExp = rcp(expSum) = c^3 / ((4 * u) * (c^2 + 16 * u^2))
     float rcpExp = ((c * c) * c) * rcp((4 * u) * ((c * c) + (4 * u) * (4 * u)));
 
