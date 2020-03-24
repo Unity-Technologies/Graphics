@@ -5,8 +5,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 
-TEXTURE2D(_CameraDepthTexture); SAMPLER(sampler_CameraDepthTexture);
-TEXTURE2D(_CameraOpaqueTexture); SAMPLER(sampler_CameraOpaqueTexture);
+TEXTURE2D_X(_CameraDepthTexture); SAMPLER(sampler_CameraDepthTexture);
+TEXTURE2D_X(_CameraOpaqueTexture); SAMPLER(sampler_CameraOpaqueTexture);
 
 // Pre-multiplied alpha helper
 #if defined(_ALPHAPREMULTIPLY_ON)
@@ -53,7 +53,7 @@ float SoftParticles(float near, float far, float4 projection)
     float fade = 1;
     if (near > 0.0 || far > 0.0)
     {
-        float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, projection.xy / projection.w), _ZBufferParams);
+        float sceneZ = LinearEyeDepth(SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(projection.xy / projection.w)).r, _ZBufferParams);
         float thisZ = LinearEyeDepth(projection.z / projection.w, _ZBufferParams);
         fade = saturate (far * ((sceneZ - near) - thisZ));
     }
@@ -80,7 +80,8 @@ half3 AlphaModulate(half3 albedo, half alpha)
 half3 Distortion(float4 baseColor, float3 normal, half strength, half blend, float4 projection)
 {
     float2 screenUV = (projection.xy / projection.w) + normal.xy * strength * baseColor.a;
-    float4 Distortion = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, screenUV);
+    screenUV = UnityStereoTransformScreenSpaceTex(screenUV);
+    float4 Distortion = SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, screenUV);
     return lerp(Distortion.rgb, baseColor.rgb, saturate(baseColor.a - blend));
 }
 
