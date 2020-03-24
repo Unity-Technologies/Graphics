@@ -88,6 +88,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for fog attenuation in path tracing.
 - Added a new debug panel for volumes
 - Added XR setting to control camera jitter for temporal effects
+- Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -472,7 +473,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error in the console when switching shader to decal in the material UI.
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
-- Fixed cubemap thumbnail generation at project load time. 
+- Fixed cubemap thumbnail generation at project load time.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
