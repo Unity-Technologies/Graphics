@@ -1,14 +1,19 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.TestTools.Graphics;
 
 public class SetToCameraNearPlane : MonoBehaviour
 {
     new public MeshRenderer renderer;
     new public Camera camera;
+    public GraphicsTestSettings testSettings;
+
     [Range(0, 1)]
     public float screenSize = 0.8f;
     public float nearPlaneOffset = 0.001f;
+
+    public Vector2 extend = Vector2.one;
 
     void Start()
     {
@@ -17,22 +22,28 @@ public class SetToCameraNearPlane : MonoBehaviour
 
     void PlaceObject ()
     {
-        var parent = renderer.transform.parent;
+        float captureRatio = testSettings.ImageComparisonSettings.TargetWidth * 1.0f / testSettings.ImageComparisonSettings.TargetHeight;
+        float objectRatio = extend.x / extend.y;
 
-        renderer.transform.parent = null;
-        renderer.transform.localPosition = Vector3.zero ;
-        renderer.transform.localRotation = Quaternion.identity;
-        renderer.transform.localScale = Vector3.one;
-        float maxDimension = Mathf.Max(renderer.bounds.extents.x, renderer.bounds.extents.y);
+        bool scaleBaseOnX = objectRatio >= captureRatio;
 
         float camDistance = camera.nearClipPlane + nearPlaneOffset;
 
-        float targetScreenDimension = Mathf.Sin( camera.fieldOfView * Mathf.Max(Screen.height / Screen.width, 1f) * 0.5f * screenSize ) * camDistance;
+        float nearPlaneTargetSize = 1f;
+
+        if (camera.orthographic)
+        {
+            nearPlaneTargetSize = camera.orthographicSize * ((scaleBaseOnX) ? captureRatio : 1f) * screenSize;
+        }
+        else
+        {
+            nearPlaneTargetSize = Mathf.Sin(camera.fieldOfView * 0.5f * Mathf.Deg2Rad * ((scaleBaseOnX) ? captureRatio : 1f)) * camDistance * screenSize;
+        }
 
         renderer.transform.parent = camera.transform;
         renderer.transform.localPosition = new Vector3(0, 0, camDistance);
         renderer.transform.localRotation = Quaternion.identity;
-        renderer.transform.localScale = Vector3.one * Mathf.Abs( targetScreenDimension / maxDimension );
+        renderer.transform.localScale = Vector3.one * Mathf.Abs(nearPlaneTargetSize / ( (scaleBaseOnX) ? extend.x : extend.y ) );
 
     }
 
@@ -44,5 +55,13 @@ public class SetToCameraNearPlane : MonoBehaviour
             place = false;
             PlaceObject();
         }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (renderer == null) return;
+
+        Gizmos.matrix = renderer.transform.localToWorldMatrix;
+        Gizmos.DrawWireCube(Vector3.zero, extend * 2f);
     }
 }

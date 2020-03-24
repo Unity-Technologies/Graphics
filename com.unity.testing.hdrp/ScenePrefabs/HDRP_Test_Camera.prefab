@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 20109210616973140}
   - component: {fileID: 114777190906822814}
   - component: {fileID: 114995348509370400}
+  - component: {fileID: 580412863073167814}
   m_Layer: 0
   m_Name: HDRP_Test_Camera
   m_TagString: MainCamera
@@ -209,6 +210,25 @@ MonoBehaviour:
   checkMemoryAllocation: 1
   renderPipelineAsset: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7,
     type: 2}
+--- !u!114 &580412863073167814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1132393308280272}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aba9db29cdbc7481a86ff2d206b4dad6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  renderer: {fileID: 131257220995741923}
+  camera: {fileID: 20109210616973140}
+  testSettings: {fileID: 114995348509370400}
+  screenSize: 0.8
+  nearPlaneOffset: 0.001
+  extend: {x: 4, y: 1.8}
+  place: 0
 --- !u!1 &6002938546587368868
 GameObject:
   m_ObjectHideFlags: 0
@@ -221,7 +241,6 @@ GameObject:
   - component: {fileID: 131257220995741923}
   - component: {fileID: 205429588873169433}
   - component: {fileID: 704450088499825821}
-  - component: {fileID: 7824038205131403234}
   m_Layer: 0
   m_Name: BrokenTestText
   m_TagString: Untagged
@@ -238,7 +257,7 @@ Transform:
   m_GameObject: {fileID: 6002938546587368868}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0.501}
-  m_LocalScale: {x: 0.07889347, y: 0.07889347, z: 0.07889347}
+  m_LocalScale: {x: 0.08037274, y: 0.08037274, z: 0.08037274}
   m_Children: []
   m_Father: {fileID: 4209882255362944}
   m_RootOrder: 0
@@ -327,20 +346,3 @@ MonoBehaviour:
     graphicsDeviceType: 21
   - platform: 16
     graphicsDeviceType: 21
---- !u!114 &7824038205131403234
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6002938546587368868}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aba9db29cdbc7481a86ff2d206b4dad6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  renderer: {fileID: 131257220995741923}
-  camera: {fileID: 20109210616973140}
-  screenSize: 0.9
-  nearPlaneOffset: 0.001
-  place: 0
