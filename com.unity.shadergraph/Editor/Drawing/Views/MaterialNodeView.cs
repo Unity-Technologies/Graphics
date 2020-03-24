@@ -372,7 +372,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
-            throw new NotImplementedException();
+            // Currently unimplemented
         }
 
         private void SetSelfSelected()
