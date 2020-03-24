@@ -167,6 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 display = displayList[0];
                 display.disableLegacyRenderer = true;
+                display.textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
 
                 return display.running;
             }
