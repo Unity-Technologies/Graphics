@@ -412,17 +412,17 @@ half3 SampleSHVertex(half3 normalWS)
 
 // SH Pixel Evaluation. Depending on target SH sampling might be done
 // mixed or fully in pixel. See SampleSHVertex
-half3 SampleSHPixel(half3 L2Term, half3 normalWS, half3 positionCS)
+half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 {
 #if defined(EVALUATE_SH_VERTEX)
-    return L2Term * SampleAO(positionCS);
+    return L2Term;
 #elif defined(EVALUATE_SH_MIXED)
     half3 L0L1Term = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
-    return max(half3(0, 0, 0), L2Term + L0L1Term) * SampleAO(positionCS);
+    return max(half3(0, 0, 0), L2Term + L0L1Term)
 #endif
 
     // Default: Evaluate SH fully per-pixel
-    return SampleSH(normalWS) * SampleAO(positionCS);
+    return SampleSH(normalWS);
 }
 
 // Sample baked lightmap. Non-Direction and Directional if available.
@@ -471,11 +471,15 @@ half3 HackSampleSH(half3 normalWS)
     return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
 }
 #define SAMPLE_GI(lmName, shName, normalWSName) HackSampleSH(normalWSName);
+#define SAMPLE_GI_SSAO(lmName, shName, normalWSName, positionCS) SAMPLE_GI(lmName, shName, normalWSName)
 #elif defined(LIGHTMAP_ON)
-#define SAMPLE_GI(lmName, shName, normalWSName, positionCS) SampleLightmap(lmName, normalWSName)
+#define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
+#define SAMPLE_GI_SSAO(lmName, shName, normalWSName, positionCS) SAMPLE_GI(lmName, shName, normalWSName)
 #else
-#define SAMPLE_GI(lmName, shName, normalWSName, positionCS) SampleSHPixel(shName, normalWSName, positionCS)
+#define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
+#define SAMPLE_GI_SSAO(lmName, shName, normalWSName, positionCS) SAMPLE_GI(lmName, shName, normalWSName) * SampleAO(positionCS)
 #endif
+
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
 {

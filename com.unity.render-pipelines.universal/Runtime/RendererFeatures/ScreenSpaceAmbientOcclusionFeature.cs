@@ -13,6 +13,11 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
     private Material m_Material;
     private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;
 
+    // Constants
+    private const string NORMAL_RECONSTRUCTION_LOW_KEYWORD    = "_RECONSTRUCT_NORMAL_LOW";
+    private const string NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD = "_RECONSTRUCT_NORMAL_MEDIUM";
+    private const string NORMAL_RECONSTRUCTION_HIGH_KEYWORD   = "_RECONSTRUCT_NORMAL_HIGH";
+
     // Enums
     public enum DepthSource
     {
@@ -20,37 +25,46 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         //DepthNormals
     }
 
+    public enum NormalReconstructionQuality
+    {
+        Low,    // 1 Depth Sample
+        Medium, // 6 Depth Samples
+        High    // 9 Depth Samples
+    }
+
     // Classes
     [Serializable]
     public class Settings
     {
-        public Shader shader;
-        public bool useVolumes = false;
-        public DepthSource depthSource = DepthSource.Depth;
-        public bool downScale = false;
-        public float intensity = 1.0f;
-        public float radius = 0.1f;
-        public int sampleCount = 10;
+        public Shader Shader;
+        public bool UseVolumes = false;
+        public DepthSource DepthSource = DepthSource.Depth;
+        public NormalReconstructionQuality NormalReconstructionQuality = NormalReconstructionQuality.Medium;
+        public bool DownScale = false;
+        public float Intensity = 2.0f;
+        public float Radius = 0.05f;
+        public int SampleCount = 10;
+
     }
 
     // Called from OnEnable and OnValidate...
     public override void Create()
     {
-        if (settings.shader == null)
+        if (settings.Shader == null)
         {
-            settings.shader = Shader.Find("Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion");
+            settings.Shader = Shader.Find("Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion");
         }
 
         if (m_Material == null)
         {
-            if (settings.shader != null)
+            if (settings.Shader != null)
             {
-                m_Material = CoreUtils.CreateEngineMaterial(settings.shader);
+                m_Material = CoreUtils.CreateEngineMaterial(settings.Shader);
             }
         }
 
         // Create the pass...
-        m_SSAOPass = new ScreenSpaceAmbientOcclusionPass(name, m_Material, RenderPassEvent.AfterRenderingPrePasses);
+        m_SSAOPass = new ScreenSpaceAmbientOcclusionPass(name, m_Material, RenderPassEvent.AfterRenderingPrePasses); ;
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
@@ -71,6 +85,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
     // The SSAO Pass
     private class ScreenSpaceAmbientOcclusionPass : ScriptableRenderPass
     {
+        // Private Variables
         private string m_ProfilerTag;
         private Material m_Material;
         private RenderTargetHandle m_Texture;
@@ -79,11 +94,13 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         private RenderTargetIdentifier m_ScreenSpaceOcclusionTexture;
         private Settings m_FeatureSettings;
 
-        private const string m_TextureName = "_ScreenSpaceAOTexture";
-        private static readonly int _BaseMap = Shader.PropertyToID("_BaseMap");
-        private static readonly int _TempRenderTexture1 = Shader.PropertyToID("_TempRenderTexture1");
-        private static readonly int _TempRenderTexture2 = Shader.PropertyToID("_TempRenderTexture2");
+        // Constants
+        private const string SSAO_TEXTURE_NAME = "_ScreenSpaceAOTexture";
+        private static readonly int s_BaseMap = Shader.PropertyToID("_BaseMap");
+        private static readonly int s_TempRenderTexture1ID = Shader.PropertyToID("_TempRenderTexture1");
+        private static readonly int s_TempRenderTexture2ID = Shader.PropertyToID("_TempRenderTexture2");
 
+        // Enums
         private enum ShaderPass
         {
             OcclusionDepth = 0,
@@ -103,7 +120,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         {
             m_ProfilerTag = profilerTag;
             m_Material = material;
-            m_Texture.Init(m_TextureName);
+            m_Texture.Init(SSAO_TEXTURE_NAME);
             m_ScreenSpaceOcclusionTexture = m_Texture.Identifier();
             renderPassEvent = rpEvent;
         }
@@ -119,23 +136,26 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             int sampleCount;
             float intensity;
             float radius;
+            NormalReconstructionQuality reconstructionQuality;
 
             // Override the settings if there are either global volumes or local volumes near the camera
             ScreenSpaceAmbientOcclusionVolume volume = VolumeManager.instance.stack.GetComponent<ScreenSpaceAmbientOcclusionVolume>();
-            if (m_FeatureSettings.useVolumes && volume != null)
+            if (m_FeatureSettings.UseVolumes && volume != null)
             {
                 radius = volume.radius.value;
                 downScale = volume.downSample.value;
                 intensity = volume.intensity.value;
                 sampleCount = volume.sampleCount.value;
+                reconstructionQuality = volume.normalReconstructionQuality.value;
                 //m_DepthSource = volume.depthSource.value;
             }
             else
             {
-                radius = m_FeatureSettings.radius;
-                downScale = m_FeatureSettings.downScale;
-                intensity = m_FeatureSettings.intensity;
-                sampleCount = m_FeatureSettings.sampleCount;
+                radius = m_FeatureSettings.Radius;
+                downScale = m_FeatureSettings.DownScale;
+                intensity = m_FeatureSettings.Intensity;
+                sampleCount = m_FeatureSettings.SampleCount;
+                reconstructionQuality = m_FeatureSettings.NormalReconstructionQuality;
                 //m_DepthSource = m_FeatureSettings.depthSource;
             }
 
@@ -148,19 +168,40 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             m_Material.SetFloat("_SSAO_Radius", radius);
             m_Material.SetInt("_SSAO_Samples", sampleCount);
 
+            m_Material.DisableKeyword(NORMAL_RECONSTRUCTION_LOW_KEYWORD);
+            m_Material.DisableKeyword(NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD);
+            m_Material.DisableKeyword(NORMAL_RECONSTRUCTION_HIGH_KEYWORD);
+            //if (m_DepthSource == DepthSource.Depth)
+            {
+                switch (reconstructionQuality)
+                {
+                    case NormalReconstructionQuality.Low:
+                        m_Material.EnableKeyword(NORMAL_RECONSTRUCTION_LOW_KEYWORD);
+                        break;
+                    case NormalReconstructionQuality.Medium:
+                        m_Material.EnableKeyword(NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD);
+                        break;
+                    case NormalReconstructionQuality.High:
+                        m_Material.EnableKeyword(NORMAL_RECONSTRUCTION_HIGH_KEYWORD);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
             // Setup descriptors
             m_Descriptor = cameraTextureDescriptor;
             m_Descriptor.msaaSamples = 1;
             m_Descriptor.depthBufferBits = 0;
             m_Descriptor.width = m_Descriptor.width / downScaleDivider;
             m_Descriptor.height = m_Descriptor.height / downScaleDivider;
-
             m_Descriptor.colorFormat = RenderTextureFormat.R8;
-            cmd.GetTemporaryRT(m_Texture.id, m_Descriptor, FilterMode.Point);
+
 
             var desc = GetStereoCompatibleDescriptor(cameraTextureDescriptor.width, cameraTextureDescriptor.height, GraphicsFormat.R8G8B8A8_UNorm);
-            cmd.GetTemporaryRT(_TempRenderTexture1, desc, filterMode);
-            cmd.GetTemporaryRT(_TempRenderTexture2, desc, filterMode);
+            cmd.GetTemporaryRT(m_Texture.id, m_Descriptor, FilterMode.Point);
+            cmd.GetTemporaryRT(s_TempRenderTexture1ID, desc, filterMode);
+            cmd.GetTemporaryRT(s_TempRenderTexture2ID, desc, filterMode);
 
             // Configure targets and clear color
             ConfigureTarget(m_ScreenSpaceOcclusionTexture);
@@ -225,19 +266,19 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceAmbientOcclusion, true);
 
             // Occlusion pass
-            cmd.Blit(_TempRenderTexture1, _TempRenderTexture1, m_Material, occlusionPass);
+            cmd.Blit(s_TempRenderTexture1ID, s_TempRenderTexture1ID, m_Material, occlusionPass);
 
             // Horizontal Blur
-            cmd.SetGlobalTexture(_BaseMap, _TempRenderTexture1);
-            cmd.Blit(_TempRenderTexture1, _TempRenderTexture2, m_Material, horizonalBlurPass);
+            cmd.SetGlobalTexture(s_BaseMap, s_TempRenderTexture1ID);
+            cmd.Blit(s_TempRenderTexture1ID, s_TempRenderTexture2ID, m_Material, horizonalBlurPass);
 
             // Vertical Blur
-            cmd.SetGlobalTexture(_BaseMap, _TempRenderTexture2);
-            cmd.Blit(_TempRenderTexture2, _TempRenderTexture1, m_Material, verticalPass);
+            cmd.SetGlobalTexture(s_BaseMap, s_TempRenderTexture2ID);
+            cmd.Blit(s_TempRenderTexture2ID, s_TempRenderTexture1ID, m_Material, verticalPass);
 
             // Final Composition
-            cmd.SetGlobalTexture(_BaseMap, _TempRenderTexture1);
-            cmd.Blit(_TempRenderTexture1, m_ScreenSpaceOcclusionTexture, m_Material, finalPass);
+            cmd.SetGlobalTexture(s_BaseMap, s_TempRenderTexture1ID);
+            cmd.Blit(s_TempRenderTexture1ID, m_ScreenSpaceOcclusionTexture, m_Material, finalPass);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -253,8 +294,8 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
 
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceAmbientOcclusion, false);
             cmd.ReleaseTemporaryRT(m_Texture.id);
-            cmd.ReleaseTemporaryRT(_TempRenderTexture1);
-            cmd.ReleaseTemporaryRT(_TempRenderTexture2);
+            cmd.ReleaseTemporaryRT(s_TempRenderTexture1ID);
+            cmd.ReleaseTemporaryRT(s_TempRenderTexture2ID);
         }
 
         RenderTextureDescriptor GetStereoCompatibleDescriptor(int width, int height, GraphicsFormat format, int depthBufferBits = 0)

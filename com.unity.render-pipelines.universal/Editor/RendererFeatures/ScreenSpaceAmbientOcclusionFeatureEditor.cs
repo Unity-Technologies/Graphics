@@ -13,19 +13,21 @@ namespace UnityEditor.Experimental.Rendering.Universal
         {
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-            public static GUIContent shader = new GUIContent("Shader", "");
-            public static GUIContent useVolumes = new GUIContent("Use Volumes", "");
-            //public static GUIContent depthSource = new GUIContent("Depth Source", "");
-            public static GUIContent intensity = new GUIContent("Intensity", "");
-            public static GUIContent radius = new GUIContent("Radius", "");
-            public static GUIContent sampleCount = new GUIContent("Sample Count", "");
-            public static GUIContent downScale = new GUIContent("Downscale", "");
+            public static GUIContent Shader = new GUIContent("Shader", "");
+            public static GUIContent UseVolumes = new GUIContent("Use Volumes", "");
+            //public static GUIContent DepthSource = new GUIContent("Depth Source", "");
+            public static GUIContent NormalRenconstructionQuality = new GUIContent("Normal Reconstruction Quality", "");
+            public static GUIContent Intensity = new GUIContent("Intensity", "");
+            public static GUIContent Radius = new GUIContent("Radius", "");
+            public static GUIContent SampleCount = new GUIContent("Sample Count", "");
+            public static GUIContent DownScale = new GUIContent("Downscale", "");
         }
 
         // Serialized Properties
         private SerializedProperty m_Shader;
         private SerializedProperty m_UseVolumes;
         //private SerializedProperty m_DepthSource;
+        private SerializedProperty m_NormalReconstructionQuality;
         private SerializedProperty m_Intensity;
         private SerializedProperty m_Radius;
         private SerializedProperty m_DownScale;
@@ -35,13 +37,14 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         private void Init(SerializedProperty property)
         {
-            m_Shader = property.FindPropertyRelative("shader");
-            m_UseVolumes = property.FindPropertyRelative("useVolumes");
-            //m_DepthSource = property.FindPropertyRelative("depthSource");
-            m_Intensity = property.FindPropertyRelative("intensity");
-            m_Radius = property.FindPropertyRelative("radius");
-            m_DownScale = property.FindPropertyRelative("downScale");
-            m_SampleCount = property.FindPropertyRelative("sampleCount");
+            m_Shader = property.FindPropertyRelative("Shader");
+            m_UseVolumes = property.FindPropertyRelative("UseVolumes");
+            //m_DepthSource = property.FindPropertyRelative("DepthSource");
+            m_NormalReconstructionQuality = property.FindPropertyRelative("NormalReconstructionQuality");
+            m_Intensity = property.FindPropertyRelative("Intensity");
+            m_Radius = property.FindPropertyRelative("Radius");
+            m_DownScale = property.FindPropertyRelative("DownScale");
+            m_SampleCount = property.FindPropertyRelative("SampleCount");
             m_properties.Add(property.serializedObject);
         }
 
@@ -56,19 +59,22 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 Init(property);
             }
 
-            EditorGUI.PropertyField(rect, m_Shader, Styles.shader);
+            //EditorGUI.PropertyField(rect, m_Shader, Styles.Shader);
+            //rect.y += Styles.defaultLineSpace;
+
+            rect.y += Styles.defaultLineSpace;
+            EditorGUI.PropertyField(rect, m_UseVolumes, Styles.UseVolumes);
             rect.y += Styles.defaultLineSpace;
 
-            EditorGUI.PropertyField(rect, m_UseVolumes, Styles.useVolumes);
-            rect.y += Styles.defaultLineSpace;
-            rect.y += Styles.defaultLineSpace;
 
             if (m_UseVolumes.boolValue)
             {
                 rect.height += Styles.defaultLineSpace;
                 rect.height += Styles.defaultLineSpace;
                 rect.height += Styles.defaultLineSpace;
+                rect.height += Styles.defaultLineSpace;
                 EditorGUI.HelpBox(rect, "Settings will be taken from SSAO volumes. Make sure you have a Volume in your scene with a Screen Space Ambient Occlusion override.", MessageType.Info);
+                rect.y += Styles.defaultLineSpace;
                 rect.y += Styles.defaultLineSpace;
                 rect.y += Styles.defaultLineSpace;
                 rect.y += Styles.defaultLineSpace;
@@ -78,16 +84,22 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 //EditorGUI.PropertyField(rect, m_DepthSource, Styles.depthSource);
                 //rect.y += Styles.defaultLineSpace;
 
-                EditorGUI.PropertyField(rect, m_DownScale, Styles.downScale);
+                EditorGUI.PropertyField(rect, m_DownScale, Styles.DownScale);
                 rect.y += Styles.defaultLineSpace;
 
-                EditorGUI.Slider(rect, m_Intensity, 0f, 10f, Styles.intensity);
+                //if (m_DepthSource == DepthSource.Depth)
+                {
+                    EditorGUI.PropertyField(rect, m_NormalReconstructionQuality, Styles.NormalRenconstructionQuality);
+                    rect.y += Styles.defaultLineSpace;
+                }
+
+                EditorGUI.Slider(rect, m_Intensity, 0f, 10f, Styles.Intensity);
                 rect.y += Styles.defaultLineSpace;
 
-                EditorGUI.Slider(rect, m_Radius, 0f, 1f, Styles.radius);
+                EditorGUI.Slider(rect, m_Radius, 0f, 10f, Styles.Radius);
                 rect.y += Styles.defaultLineSpace;
 
-                EditorGUI.IntSlider(rect, m_SampleCount, 0, 32, Styles.sampleCount);
+                EditorGUI.IntSlider(rect, m_SampleCount, 0, 32, Styles.SampleCount);
                 rect.y += Styles.defaultLineSpace;
             }
 

@@ -56,7 +56,8 @@ static const float kContrast = 0.6;
 
 // The constant below controls the geometry-awareness of the bilateral
 // filter. The higher value, the more sensitive it is.
-static const float kGeometryCoeff = 0.8;
+static const float kGeometryCoeff = -1.0;
+
 
 // The constants below are used in the AO estimator. Beta is mainly used
 // for suppressing self-shadowing noise, and Epsilon is used to prevent
@@ -103,8 +104,7 @@ float2 CosSin(float theta)
 // Pseudo random number generator with 2D coordinates
 float UVRandom(float u, float v)
 {
-    float f = dot(float2(12.9898, 78.233), float2(u, v));
-    return frac(43758.5453 * sin(f));
+    return frac(sin(dot(float2(u, v), float2(12.9898, 78.233)))*43758.5453);
 }
 
 // Check if the camera is perspective.
@@ -114,21 +114,23 @@ float CheckPerspective(float x)
     return lerp(x, 1.0, unity_OrthoParams.w);
 }
 
+// Normal vector comparer (for geometry-aware weighting)
+half CompareNormal(half3 d1, half3 d2)
+{
+    return smoothstep(kGeometryCoeff, 1.0, dot(d1, d2));
+}
+
+float GetLinearDepth(float2 uv)
+{
+    return LinearEyeDepth(SampleSceneDepth(uv.xy).r, _ZBufferParams);
+}
+
 // Reconstruct view-space position from UV and depth.
 // p11_22 = (unity_CameraProjection._11, unity_CameraProjection._22)
 // p13_31 = (unity_CameraProjection._13, unity_CameraProjection._23)
-float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
+float3 ReconstructViewPos(float3 uvDepth, float2 p11_22, float2 p13_31)
 {
-    return float3((uv * 2.0 - 1.0 - p13_31) / p11_22 * CheckPerspective(depth), depth);
-}
-
-// Interleaved gradient function from Jimenez 2014
-// http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
-float GradientNoise(float2 uv)
-{
-    uv = floor(uv * _ScreenParams.xy);
-    float f = dot(float2(0.06711056, 0.00583715), uv);
-    return frac(52.9829189 * frac(f));
+    return float3((uvDepth.xy * 2.0 - 1.0 - p13_31) / p11_22 * CheckPerspective(uvDepth.z), uvDepth.z);
 }
 
 // Sample point picker
@@ -137,7 +139,7 @@ float3 PickSamplePoint(float2 uv, float index)
     // Uniformly distributed points on a unit sphere
     // http://mathworld.wolfram.com/SpherePointPicking.html
 #if defined(FIX_SAMPLING_PATTERN)
-    float gn = GradientNoise(uv * DOWNSAMPLE);
+    float gn = InterleavedGradientNoise(uv * DOWNSAMPLE * GetScreenParams().xy, index);
     // FIXME: This was added to avoid a NVIDIA driver issue.
     //                                       vvvvvvvvvvvv
     float u     = frac(UVRandom(0.0, index + uv.x * 1e-10) + gn) * 2.0 - 1.0;
@@ -154,17 +156,6 @@ float3 PickSamplePoint(float2 uv, float index)
     return v * l;
 }
 
-// Normal vector comparer (for geometry-aware weighting)
-half CompareNormal(half3 d1, half3 d2)
-{
-    return smoothstep(kGeometryCoeff, 1.0, dot(d1, d2));
-}
-
-float SampleDepth(float2 uv)
-{
-    return LinearEyeDepth(SampleSceneDepth(uv.xy).r, _ZBufferParams);
-}
-
 // Try reconstructing normal accurately from depth buffer.
 // input DepthBuffer: stores linearized depth in range (0, 1).
 // 5 taps on each direction: | z | x | * | y | w |, '*' denotes the center sample.
@@ -172,69 +163,68 @@ float SampleDepth(float2 uv)
 // https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/
 float3 ReconstructNormal(float2 uv, float2 p11_22, float2 p13_31)
 {
-    float2 delta = GetScreenParams().zw - 1.0;
+    #if defined(_RECONSTRUCT_NORMAL_LOW)
+        float3 P0 = ReconstructViewPos(float3(uv,  GetLinearDepth(uv)), p11_22, p13_31);
 
-    // Sample the neighbour fragments
-    float2 lUV = float2(-delta.x, 0.0);
-    float2 rUV = float2( delta.x, 0.0);
-    float2 uUV = float2(0.0,  delta.y);
-    float2 dUV = float2(0.0, -delta.y);
+        // Use the cross product to calculate the normal...
+        return normalize(cross(ddy(P0), ddx(P0)));
+    #else
+        float2 delta = GetScreenParams().zw - 1.0;
 
-    float3 c  = float3(uv,             0.0); // Center
-    float3 l1 = float3(uv + lUV * 1.0, 0.0); // Left1
-    float3 l2 = float3(uv + lUV * 2.0, 0.0); // Left2
-    float3 r1 = float3(uv + rUV * 1.0, 0.0); // Right1
-    float3 r2 = float3(uv + rUV * 2.0, 0.0); // Right2
-    float3 u1 = float3(uv + uUV * 1.0, 0.0); // Up1
-    float3 u2 = float3(uv + uUV * 2.0, 0.0); // Up2
-    float3 d1 = float3(uv + dUV * 1.0, 0.0); // Down1
-    float3 d2 = float3(uv + dUV * 2.0, 0.0); // Down2
+        // Sample the neighbour fragments
+        float2 lUV = float2(-delta.x, 0.0);
+        float2 rUV = float2( delta.x, 0.0);
+        float2 uUV = float2(0.0,  delta.y);
+        float2 dUV = float2(0.0, -delta.y);
 
-    c.z  = SampleDepth( c.xy);
-    l1.z = SampleDepth(l1.xy);
-    l2.z = SampleDepth(l2.xy);
-    r1.z = SampleDepth(r1.xy);
-    r2.z = SampleDepth(r2.xy);
-    u1.z = SampleDepth(u1.xy);
-    u2.z = SampleDepth(u2.xy);
-    d1.z = SampleDepth(d1.xy);
-    d2.z = SampleDepth(d2.xy);
+        float3 c  = float3(uv,       0.0); c.z  = GetLinearDepth( c.xy); // Center
+        float3 l1 = float3(uv + lUV, 0.0); l1.z = GetLinearDepth(l1.xy); // Left1
+        float3 r1 = float3(uv + rUV, 0.0); r1.z = GetLinearDepth(r1.xy); // Right1
+        float3 u1 = float3(uv + uUV, 0.0); u1.z = GetLinearDepth(u1.xy); // Up1
+        float3 d1 = float3(uv + dUV, 0.0); d1.z = GetLinearDepth(d1.xy); // Down1
 
-    // Determine the closest horizontal and vertical pixels...
-    float2 he = float2( abs( (2.0 * l1.z - l2.z) - c.z), abs( (2.0 * r2.z - r1.z) - c.z) );
-    float2 ve = float2( abs( (2.0 * d2.z - d1.z) - c.z), abs( (2.0 * u1.z - u2.z) - c.z) );
 
-    // horizontal: left = 0.0 right = 1.0
-    // vertical  : down = 0.0    up = 1.0
-    const uint closest_horizontal = he.x > he.y ? 1 : 0;
-    const uint closest_vertical   = ve.x > ve.y ? 1 : 0;
+        // Determine the closest horizontal and vertical pixels...
+        // horizontal: left = 0.0 right = 1.0
+        // vertical  : down = 0.0    up = 1.0
+        #if defined(_RECONSTRUCT_NORMAL_MEDIUM)
+            uint closest_horizontal = l1.z > r1.z ? 0 : 1;
+            uint closest_vertical   = d1.z > u1.z ? 0 : 1;
+        #else
+            float3 l2 = float3(uv + lUV * 2.0, 0.0); l2.z = GetLinearDepth(l2.xy); // Left2
+            float3 r2 = float3(uv + rUV * 2.0, 0.0); r2.z = GetLinearDepth(r2.xy); // Right2
+            float3 u2 = float3(uv + uUV * 2.0, 0.0); u2.z = GetLinearDepth(u2.xy); // Up2
+            float3 d2 = float3(uv + dUV * 2.0, 0.0); d2.z = GetLinearDepth(d2.xy); // Down2
 
-    // Calculate the triangle, in a counter-clockwize order, to
-    // use based on the closest horizontal and vertical depths.
-    // h == 0.0 && v == 0.0: p1 = left,  p2 = down
-    // h == 0.0 && v == 1.0: p1 = up,    p2 = left
-    // h == 1.0 && v == 0.0: p1 = down,  p2 = right
-    // h == 1.0 && v == 1.0: p1 = right, p2 = up
-    float3 p1;
-    float3 p2;
-    if (closest_vertical == 0)
-    {
-        p1 = closest_horizontal == 0 ? l1 : d1;
-        p2 = closest_horizontal == 0 ? d1 : r1;
-    }
-    else
-    {
-        p1 = closest_horizontal == 0 ? u1 : r1;
-        p2 = closest_horizontal == 0 ? l1 : u1;
-    }
+            const uint closest_horizontal = abs( (2.0 * l1.z - l2.z) - c.z) < abs( (2.0 * r1.z - r2.z) - c.z) ? 0 : 1;
+            const uint closest_vertical   = abs( (2.0 * d1.z - d2.z) - c.z) < abs( (2.0 * u1.z - u2.z) - c.z) ? 0 : 1;
+        #endif
 
-    // Calculate the view space positions for the three points...
-    float3 P0 = ReconstructViewPos( c.xy,  c.z, p11_22, p13_31);
-    float3 P1 = ReconstructViewPos(p1.xy, p1.z, p11_22, p13_31);
-    float3 P2 = ReconstructViewPos(p2.xy, p2.z, p11_22, p13_31);
 
-    // Use the cross product to calculate the normal...
-    return normalize(cross(P1 - P0, P2 - P0)) * -1;
+        // Calculate the triangle, in a counter-clockwize order, to
+        // use based on the closest horizontal and vertical depths.
+        // h == 0.0 && v == 0.0: p1 = left,  p2 = down
+        // h == 1.0 && v == 0.0: p1 = down,  p2 = right
+        // h == 1.0 && v == 1.0: p1 = right, p2 = up
+        // h == 0.0 && v == 1.0: p1 = up,    p2 = left
+        // Calculate the view space positions for the three points...
+        float3 P0 = ReconstructViewPos(c, p11_22, p13_31);
+        float3 P1;
+        float3 P2;
+        if (closest_vertical == 0)
+        {
+            P1 = ReconstructViewPos( (closest_horizontal == 0 ? l1 : d1), p11_22, p13_31 );
+            P2 = ReconstructViewPos( (closest_horizontal == 0 ? d1 : r1), p11_22, p13_31 );
+        }
+        else
+        {
+            P1 = ReconstructViewPos( (closest_horizontal == 0 ? u1 : r1), p11_22, p13_31 );
+            P2 = ReconstructViewPos( (closest_horizontal == 0 ? l1 : u1), p11_22, p13_31 );
+        }
+
+        // Use the cross product to calculate the normal...
+        return normalize(cross(P1 - P0, P2 - P0)) * -1;
+    #endif
 }
 
 float3 SampleNormal(float2 uv, float2 p11_22, float2 p13_31)
@@ -262,11 +252,11 @@ float4 SSAO(Varyings input) : SV_Target
     float2 p13_31 = float2(camProj._13, camProj._23);
 
     // View space normal and depth
-    float depth_o = SampleDepth(uv.xy);
+    float depth_o = GetLinearDepth(uv.xy);
     float3 norm_o = SampleNormal(uv, p11_22, p13_31);
 
     // Reconstruct the view-space position.
-    float3 vpos_o = ReconstructViewPos(uv.xy, depth_o, p11_22, p13_31);
+    float3 vpos_o = ReconstructViewPos(float3(uv, depth_o), p11_22, p13_31);
 
     float ao = 0.0;
     for (int s = 0; s < int(SAMPLE_COUNT); s++)
@@ -287,14 +277,14 @@ float4 SSAO(Varyings input) : SV_Target
         float2 uv_s1_01 = (spos_s1.xy / CheckPerspective(vpos_s1.z) + 1.0) * 0.5;
 
         // Depth at the sample point
-        float depth_s1 = SampleDepth(uv_s1_01);
+        float depth_s1 = GetLinearDepth(uv_s1_01);
 
         // Relative position of the sample point
-        float3 vpos_s2 = ReconstructViewPos(uv_s1_01, depth_s1, p11_22, p13_31);
+        float3 vpos_s2 = ReconstructViewPos(float3(uv_s1_01, depth_s1), p11_22, p13_31);
         float3 v_s2 = vpos_s2 - vpos_o;
 
         // Estimate the obscurance value
-        float a1 = max(dot(v_s2, norm_o) - kBeta * depth_o, 0.00);
+        float a1 = max(dot(v_s2, norm_o) - kBeta * depth_o, 0.0000);
         float a2 = dot(v_s2, v_s2) + EPSILON;
         ao += a1 / a2;
     }
@@ -307,7 +297,6 @@ float4 SSAO(Varyings input) : SV_Target
 
     return PackAONormal(ao, norm_o);
 }
-
 
 // Geometry-aware separable bilateral filter
 float4 FragBlur(Varyings input) : SV_Target
@@ -358,7 +347,7 @@ float4 FragBlur(Varyings input) : SV_Target
 
         s /= w0 + w1a + w1b + w2a + w2b + w3a + w3b;
     #else
-        // Fater 5-tap Gaussian with linear sampling
+        // Faster 5-tap Gaussian with linear sampling
         half4 p0  = SAMPLE_BASEMAP(uv.xy                         );
         half4 p1a = SAMPLE_BASEMAP(uv.xy - (delta * 1.3846153846));
         half4 p1b = SAMPLE_BASEMAP(uv.xy + (delta * 1.3846153846));
