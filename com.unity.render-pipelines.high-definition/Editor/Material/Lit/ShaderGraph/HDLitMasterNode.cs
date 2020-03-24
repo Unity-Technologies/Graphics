@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "Lit (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.HDLitMasterNode")]
-    class HDLitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class HDLitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string AlbedoSlotName = "Albedo";
         public const string AlbedoDisplaySlotName = "BaseColor";
@@ -801,6 +801,20 @@ namespace UnityEditor.Rendering.HighDefinition
             return hash;
         }
 
+        [SerializeField] private string m_ShaderGUIOverride;
+        public string ShaderGUIOverride
+        {
+            get => m_ShaderGUIOverride;
+            set => m_ShaderGUIOverride = value;
+        }
+
+        [SerializeField] private bool m_OverrideEnabled;
+        public bool OverrideEnabled
+        {
+            get => m_OverrideEnabled;
+            set => m_OverrideEnabled = value;
+        }
+
         public HDLitMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -1037,7 +1051,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         #pragma warning restore CS0618 // Type or member is obsolete
                                 renderingPass = HDRenderQueue.RenderQueueType.PreRefraction;
                             }
-                            else 
+                            else
                             {
                                 renderingPass = HDRenderQueue.RenderQueueType.Transparent;
                             }
@@ -1065,16 +1079,16 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(Fields.GraphVertex,                    IsSlotConnected(PositionSlotId) || 
-                                                                                IsSlotConnected(VertexNormalSlotID) || 
+                new ConditionalField(Fields.GraphVertex,                    IsSlotConnected(PositionSlotId) ||
+                                                                                IsSlotConnected(VertexNormalSlotID) ||
                                                                                 IsSlotConnected(VertexTangentSlotID)),
                 new ConditionalField(Fields.GraphPixel,                     true),
                 new ConditionalField(Fields.LodCrossFade,                   supportLodCrossFade.isOn),
-                
+
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                 !pass.Equals(HDPasses.HDLit.MotionVectors)),
-                
+
                 // Dots
                 new ConditionalField(HDFields.DotsInstancing,               dotsInstancing.isOn),
                 new ConditionalField(HDFields.DotsProperties,               hasDotsProperties),
@@ -1093,7 +1107,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Surface Type
                 new ConditionalField(Fields.SurfaceOpaque,                  surfaceType == SurfaceType.Opaque),
                 new ConditionalField(Fields.SurfaceTransparent,             surfaceType != SurfaceType.Opaque),
-                
+
                 // Blend Mode
                 new ConditionalField(Fields.BlendAdd,                       surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
                 new ConditionalField(Fields.BlendAlpha,                     surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
@@ -1131,7 +1145,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Misc
                 new ConditionalField(Fields.AlphaTest,                      alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
-                new ConditionalField(HDFields.AlphaTestShadow,              alphaTest.isOn && alphaTestShadow.isOn && 
+                new ConditionalField(HDFields.AlphaTestShadow,              alphaTest.isOn && alphaTestShadow.isOn &&
                                                                                 pass.pixelPorts.Contains(AlphaThresholdShadowSlotId)),
                 new ConditionalField(HDFields.AlphaTestPrepass,             alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId)),
                 new ConditionalField(HDFields.AlphaTestPostpass,            alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId)),
@@ -1142,22 +1156,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.DisableSSR,                   !receiveSSR.isOn),
                 new ConditionalField(HDFields.DisableSSRTransparent,        !receiveSSRTransparent.isOn),
                 new ConditionalField(Fields.VelocityPrecomputed,                addPrecomputedVelocity.isOn),
-                new ConditionalField(HDFields.SpecularAA,                   specularAA.isOn && 
+                new ConditionalField(HDFields.SpecularAA,                   specularAA.isOn &&
                                                                                 pass.pixelPorts.Contains(SpecularAAThresholdSlotId) &&
                                                                                 pass.pixelPorts.Contains(SpecularAAScreenSpaceVarianceSlotId)),
                 new ConditionalField(HDFields.EnergyConservingSpecular,     energyConservingSpecular.isOn),
-                new ConditionalField(HDFields.BentNormal,                   IsSlotConnected(BentNormalSlotId) && 
+                new ConditionalField(HDFields.BentNormal,                   IsSlotConnected(BentNormalSlotId) &&
                                                                                 pass.pixelPorts.Contains(BentNormalSlotId)),
                 new ConditionalField(HDFields.AmbientOcclusion,             pass.pixelPorts.Contains(AmbientOcclusionSlotId) &&
                                                                                 (IsSlotConnected(AmbientOcclusionSlotId) ||
                                                                                 ambientOcclusionSlot.value != ambientOcclusionSlot.defaultValue)),
                 new ConditionalField(HDFields.CoatMask,                     pass.pixelPorts.Contains(CoatMaskSlotId) &&
                                                                                 (IsSlotConnected(CoatMaskSlotId) || coatMaskSlot.value > 0.0f)),
-                new ConditionalField(HDFields.Tangent,                      IsSlotConnected(TangentSlotId) && 
+                new ConditionalField(HDFields.Tangent,                      IsSlotConnected(TangentSlotId) &&
                                                                                 pass.pixelPorts.Contains(TangentSlotId)),
-                new ConditionalField(HDFields.LightingGI,                   IsSlotConnected(LightingSlotId) && 
+                new ConditionalField(HDFields.LightingGI,                   IsSlotConnected(LightingSlotId) &&
                                                                                 pass.pixelPorts.Contains(LightingSlotId)),
-                new ConditionalField(HDFields.BackLightingGI,               IsSlotConnected(BackLightingSlotId) && 
+                new ConditionalField(HDFields.BackLightingGI,               IsSlotConnected(BackLightingSlotId) &&
                                                                                 pass.pixelPorts.Contains(BackLightingSlotId)),
                 new ConditionalField(HDFields.DepthOffset,                  depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
                 new ConditionalField(HDFields.TransparentBackFace,          surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
