@@ -55,6 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_DefaultVolume.priority = float.MinValue;
                 s_DefaultVolume.sharedProfile = defaultVolumeProfile;
             }
+
             if (
                 // In case the asset was deleted or the reference removed
                 s_DefaultVolume.sharedProfile == null || s_DefaultVolume.sharedProfile.Equals(null)
@@ -65,7 +66,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 || !UnityEditor.AssetDatabase.Contains(s_DefaultVolume.sharedProfile)
 #endif
             )
+            {
                 s_DefaultVolume.sharedProfile = defaultVolumeProfile;
+            }
+
+            if (s_DefaultVolume.sharedProfile != defaultVolumeProfile)
+            {
+                s_DefaultVolume.sharedProfile = defaultVolumeProfile;
+            }
 
             return s_DefaultVolume;
         }
