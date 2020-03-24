@@ -19,7 +19,7 @@ You can run HDRP Projects on Xbox One, PS4, and compute Shader compatible device
 
 ### Virtual Reality
 
-HDRP is compatible with VR and optimized for single-pass rendering. For more information about Virtual Reality, see the [VR documentation](VR-In-HDRP.md).
+HDRP is compatible with VR and optimized for single-pass rendering. For more information about Virtual Reality, see the [VR documentation](VR-Overview.md).
 
 ### Camera-relative rendering
 
@@ -104,7 +104,7 @@ The Fabric Shader allows you to render realistic fabric Materials in HDRP. You c
 
 ![](Images/HDRPFeatures-AxFShader.png)
 
-The AxF Shader supports the [X-Rite AxF](https://www.xrite.com/axf) measured Material format. The AxF importer, which is part of the [Unity Industry Bundle](https://unity.com/solutions/automotive-transportation/industry-bundle), automatically populates an AxF Material when it imports AxF Assets.
+The AxF Shader supports the [X-Rite AxF](https://www.xrite.com/axf) measured Material format. The AxF importer, available in [Unity Enterprise for Product Lifecylce](https://unity.com/products/unity-enterprise-product-lifecycle), automatically populates an AxF Material when it imports AxF Assets.
 
 ### Decal Shader
 

@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>Enable Screen Space Reflections.</summary>
         [Tooltip("Enable Screen Space Reflections.")]
-        public BoolParameter enabled = new BoolParameter(false);
+        public BoolParameter enabled = new BoolParameter(true);
 
         /// <summary>
         /// Enable ray traced reflections.

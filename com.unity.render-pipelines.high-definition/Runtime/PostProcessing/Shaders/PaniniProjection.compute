@@ -3,8 +3,9 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel KMainGeneric         MAIN=KMainGeneric           GENERIC
-#pragma kernel KMainUnitDistance    MAIN=KMainUnitDistance      UNITDISTANCE
+#pragma kernel KMain
+
+#pragma multi_compile GENERIC UNITDISTANCE
 
 TEXTURE2D_X(_InputTexture);
 
@@ -102,7 +103,7 @@ float2 Panini_Generic(float2 view_pos, float d)
 }
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
+void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 

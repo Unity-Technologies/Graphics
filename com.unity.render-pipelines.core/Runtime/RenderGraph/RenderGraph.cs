@@ -106,16 +106,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             internal string                           name;
             internal int                              index;
             internal ProfilingSampler                 customSampler;
-            internal List<RenderGraphResource>        resourceReadList = new List<RenderGraphResource>();
-            internal List<RenderGraphMutableResource> resourceWriteList = new List<RenderGraphMutableResource>();
-            internal List<RenderGraphResource>        usedRendererListList = new List<RenderGraphResource>();
+            internal List<TextureHandle>            resourceReadList = new List<TextureHandle>();
+            internal List<TextureHandle>            resourceWriteList = new List<TextureHandle>();
+            internal List<RendererListHandle>       usedRendererListList = new List<RendererListHandle>();
             internal bool                             enableAsyncCompute;
-            internal RenderGraphMutableResource       depthBuffer { get { return m_DepthBuffer; } }
-            internal RenderGraphMutableResource[]     colorBuffers { get { return m_ColorBuffers; } }
+            internal TextureHandle                  depthBuffer { get { return m_DepthBuffer; } }
+            internal TextureHandle[]                colorBuffers { get { return m_ColorBuffers; } }
             internal int                              colorBufferMaxIndex { get { return m_MaxColorBufferIndex; } }
 
-            protected RenderGraphMutableResource[]    m_ColorBuffers = new RenderGraphMutableResource[RenderGraph.kMaxMRTCount];
-            protected RenderGraphMutableResource      m_DepthBuffer;
+            protected TextureHandle[]               m_ColorBuffers = new TextureHandle[kMaxMRTCount];
+            protected TextureHandle                 m_DepthBuffer;
             protected int                             m_MaxColorBufferIndex = -1;
 
             internal void Clear()
@@ -130,14 +130,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 // Invalidate everything
                 m_MaxColorBufferIndex = -1;
-                m_DepthBuffer = new RenderGraphMutableResource();
+                m_DepthBuffer = new TextureHandle();
                 for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
                 {
-                    m_ColorBuffers[i] = new RenderGraphMutableResource();
+                    m_ColorBuffers[i] = new TextureHandle();
                 }
             }
 
-            internal void SetColorBuffer(in RenderGraphMutableResource resource, int index)
+            internal void SetColorBuffer(TextureHandle resource, int index)
             {
                 Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
                 m_MaxColorBufferIndex = Math.Max(m_MaxColorBufferIndex, index);
@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 resourceWriteList.Add(resource);
             }
 
-            internal void SetDepthBuffer(in RenderGraphMutableResource resource, DepthAccess flags)
+            internal void SetDepthBuffer(TextureHandle resource, DepthAccess flags)
             {
                 m_DepthBuffer = resource;
                 if ((flags | DepthAccess.Read) != 0)
@@ -185,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphResourceRegistry m_Resources;
         RenderGraphObjectPool       m_RenderGraphPool = new RenderGraphObjectPool();
         List<RenderPass>            m_RenderPasses = new List<RenderPass>();
-        List<RenderGraphResource>   m_RendererLists = new List<RenderGraphResource>();
+        List<RendererListHandle>    m_RendererLists = new List<RendererListHandle>();
         RenderGraphDebugParams      m_DebugParameters = new RenderGraphDebugParams();
         RenderGraphLogger           m_Logger = new RenderGraphLogger();
 
@@ -241,10 +241,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="rt">External RTHandle that needs to be imported.</param>
         /// <param name="shaderProperty">Optional property that allows you to specify a Shader property name to use for automatic resource binding.</param>
-        /// <returns>A new RenderGraphMutableResource.</returns>
-        public RenderGraphMutableResource ImportTexture(RTHandle rt, int shaderProperty = 0)
+        /// <returns>A new TextureHandle.</returns>
+        public TextureHandle ImportTexture(RTHandle rt, int shaderProperty = 0)
         {
             return m_Resources.ImportTexture(rt, shaderProperty);
+        }
+
+        /// <summary>
+        /// Import the final backbuffer to render graph.
+        /// </summary>
+        /// <param name="rt">Backbuffer render target identifier.</param>
+        /// <returns>A new TextureHandle for the backbuffer.</returns>
+        public TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
+        {
+            return m_Resources.ImportBackbuffer(rt);
         }
 
         /// <summary>
@@ -252,8 +262,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="desc">Texture descriptor.</param>
         /// <param name="shaderProperty">Optional property that allows you to specify a Shader property name to use for automatic resource binding.</param>
-        /// <returns>A new RenderGraphMutableResource.</returns>
-        public RenderGraphMutableResource CreateTexture(TextureDesc desc, int shaderProperty = 0)
+        /// <returns>A new TextureHandle.</returns>
+        public TextureHandle CreateTexture(TextureDesc desc, int shaderProperty = 0)
         {
             if (m_DebugParameters.tagResourceNamesWithRG)
                 desc.name = string.Format("{0}_RenderGraph", desc.name);
@@ -265,8 +275,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="texture">Texture from which the descriptor should be used.</param>
         /// <param name="shaderProperty">Optional property that allows you to specify a Shader property name to use for automatic resource binding.</param>
-        /// <returns>A new RenderGraphMutableResource.</returns>
-        public RenderGraphMutableResource CreateTexture(in RenderGraphResource texture, int shaderProperty = 0)
+        /// <returns>A new TextureHandle.</returns>
+        public TextureHandle CreateTexture(TextureHandle texture, int shaderProperty = 0)
         {
             var desc = m_Resources.GetTextureResourceDesc(texture);
             if (m_DebugParameters.tagResourceNamesWithRG)
@@ -279,13 +289,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="texture"></param>
         /// <returns>The input texture descriptor.</returns>
-        public TextureDesc GetTextureDesc(in RenderGraphResource texture)
+        public TextureDesc GetTextureDesc(TextureHandle texture)
         {
-            if (texture.type != RenderGraphResourceType.Texture)
-            {
-                throw new ArgumentException("Trying to retrieve a TextureDesc from a resource that is not a texture.");
-            }
-
             return m_Resources.GetTextureResourceDesc(texture);
         }
 
@@ -293,8 +298,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Creates a new Renderer List Render Graph resource.
         /// </summary>
         /// <param name="desc">Renderer List descriptor.</param>
-        /// <returns>A new RenderGraphResource.</returns>
-        public RenderGraphResource CreateRendererList(in RendererListDesc desc)
+        /// <returns>A new TextureHandle.</returns>
+        public RendererListHandle CreateRendererList(in RendererListDesc desc)
         {
             return m_Resources.CreateRendererList(desc);
         }

@@ -66,14 +66,23 @@ namespace UnityEngine.Rendering.HighDefinition
     [Flags]
     public enum DebugLightLayersMask
     {
+        /// <summary>No light layer debug.</summary>
         None = 0,
+        /// <summary>Debug light layer 1.</summary>
         LightLayer1 = 1 << 0,
+        /// <summary>Debug light layer 2.</summary>
         LightLayer2 = 1 << 1,
+        /// <summary>Debug light layer 3.</summary>
         LightLayer3 = 1 << 2,
+        /// <summary>Debug light layer 4.</summary>
         LightLayer4 = 1 << 3,
+        /// <summary>Debug light layer 5.</summary>
         LightLayer5 = 1 << 4,
+        /// <summary>Debug light layer 6.</summary>
         LightLayer6 = 1 << 5,
+        /// <summary>Debug light layer 7.</summary>
         LightLayer7 = 1 << 6,
+        /// <summary>Debug light layer 8.</summary>
         LightLayer8 = 1 << 7,
     }
 
