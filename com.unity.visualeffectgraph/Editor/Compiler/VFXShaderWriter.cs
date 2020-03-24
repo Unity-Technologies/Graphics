@@ -34,6 +34,7 @@ namespace UnityEditor.VFX
         {
             builder.Append(initialValue);
         }
+
         public static string GetValueString(VFXValueType type, object value)
         {
             var format = "";
@@ -219,10 +220,16 @@ namespace UnityEditor.VFX
         {
             foreach (var texture in mapper.textures)
             {
-                string name = mapper.GetName(texture);
-                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType),name);
-                WriteLineFormat("SamplerState sampler{0};", name);
-                WriteLineFormat("float4 {0}_TexelSize;", name);
+                var names = mapper.GetNames(texture);
+
+                // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
+                for (int i = 0; i < names.Count; ++i)
+                {
+                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), names[i]);
+                    WriteLineFormat("SamplerState sampler{0};", names[i]);
+                    WriteLineFormat("float4 {0}_TexelSize;", names[i]); // TODO This is not very good to add a uniform for each texture that is hardly ever used
+                    WriteLine();
+                }
             }
         }
 
@@ -400,12 +407,13 @@ namespace UnityEditor.VFX
 
             WriteFormat("{0} {1};\n", VFXExpression.TypeToCode(type), variableName);
         }
-        public void WriteDeclaration(VFXValueType type, string variableName,string semantic)
+
+        public void WriteDeclaration(VFXValueType type, string variableName, string semantic)
         {
             if (!VFXExpression.IsTypeValidOnGPU(type))
                 throw new ArgumentException(string.Format("Invalid GPU Type: {0}", type));
 
-            WriteFormat("VFX_OPTIONAL_INTERPOLATION {0} {1} : {2};\n", VFXExpression.TypeToCode(type), variableName,semantic);
+            WriteFormat("VFX_OPTIONAL_INTERPOLATION {0} {1} : {2};\n", VFXExpression.TypeToCode(type), variableName, semantic);
         }
 
         public void WriteVariable(VFXExpression exp, Dictionary<VFXExpression, string> variableNames)

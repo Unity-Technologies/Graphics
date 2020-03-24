@@ -32,7 +32,7 @@ Not all Contexts can connect to one another. To keep a consistent workflow, the 
 
 For a breakdown of context compatibility, see the table below.
 
-| Context                | Input Data Type                               | Output Data Type    | Specific Comments                                            |
+| Context            | Input Data Type                      | Output Data Type | Specific Comments                                            |
 | ---------------------- | --------------------------------------------- | ------------------- | ------------------------------------------------------------ |
 | **Event**              | **None**                                      | **SpawnEvent** (1+) | **None**                                                     |
 | **Spawn**              | **SpawnEvent** (1+)                           | **SpawnEvent** (1+) | Has two input flow slots which start and stop the **Spawn** context respectively. |
@@ -113,7 +113,7 @@ To customize **Initialize **Contexts, you can add compatible **Blocks** to them.
 
 Initialize contexts are the entry point of new systems. As such, they display the following information and configuration details in their header:
 
-| Property/Setting       | Description                                  |
+| Property/Setting   | Description                                 |
 | ---------------------- | -------------------------------------------- |
 | **Bounds** (Property)  | Controls the Bounding box of the System.     |
 | **Capacity** (Setting) | Controls the allocation count of the System. |
@@ -127,7 +127,7 @@ Particle Update Contexts also automatically process some computations for partic
 To customize **Update** Contexts, you can add compatible **Blocks** to them.
 
 
-| Setting                 | Description                                                  |
+| Setting             | Description                                                  |
 | ----------------------- | ------------------------------------------------------------ |
 | **Integration**         | Specifies the type of velocity integration to use for the particles.<br/>&#8226; **None**: No velocity Integration .<br/>&#8226; **Euler**: Applies simple Euler velocity integration to the particles positions every frame. |
 | **Angular Integration** | Specifies the type of angular integration to use for the particles.<br/>&#8226; **None**: No velocity Integration .<br/>&#8226; **Euler**: Applies simple Euler angular velocity integration to the particles angles every frame. |

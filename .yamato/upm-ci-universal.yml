@@ -415,16 +415,14 @@ Build_{{ project.name }}_Android_{{ android_api.name }}_{{ editor.version }}:
 {% endif %}
   skip_checkout: true
   commands:
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
-    - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
-    - unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/unity_revision.txt -p WindowsEditor {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
+    - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
     - >
       %ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%
     - powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
     - NetSh Advfirewall set allprofiles state off
     - |
       set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-      utr\utr --suite=playmode --platform=Android --editor-location=WindowsEditor --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200 --player-connection-ip=%BOKKEN_DEVICE_IP%
+      .\utr --suite=playmode --platform=Android --editor-location=WindowsEditor --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200 --player-connection-ip=%BOKKEN_DEVICE_IP%
     - start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}

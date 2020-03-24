@@ -7,6 +7,6 @@
     "description": "This package contains common graphics tests from several scriptable renderpipeline",
     "dependencies": {
         "com.unity.visualeffectgraph": "8.0.0",
-        "com.unity.testframework.graphics": "8.0.0"
+        "com.unity.testframework.graphics": "7.1.5-preview"
     }
 }

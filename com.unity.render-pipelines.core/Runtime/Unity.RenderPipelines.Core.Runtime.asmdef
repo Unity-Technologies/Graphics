@@ -22,11 +22,6 @@
             "define": "ENABLE_XR_MODULE"
         },
         {
-            "name": "com.unity.modules.xr",
-            "expression": "1.0.0",
-            "define": "ENABLE_XR_MODULE"
-        },
-        {
             "name": "com.unity.inputsystem",
             "expression": "0.0.0",
             "define": "ENABLE_INPUT_SYSTEM_PACKAGE"
