@@ -57,7 +57,7 @@
         "$type": "Unity.Build.Classic.ClassicBuildProfile, Unity.Build.Classic",
         "Target": 19,
         "Configuration": 2,
-        "Pipeline": "GlobalObjectId_V1-1-99fe1e2a22b18e14d9dd5dacc75a0212-93214019566545601-0",
+        "Pipeline": "GlobalObjectId_V1-1-b1eccdd0b529ba646810dbe5bf826452-93214019566545601-0",
         "ExcludedAssemblies": []
     }, {
         "$type": "Unity.Build.Classic.ClassicScriptingSettings, Unity.Build.Classic",
