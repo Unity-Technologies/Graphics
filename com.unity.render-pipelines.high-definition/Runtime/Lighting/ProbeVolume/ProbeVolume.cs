@@ -359,7 +359,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             ProbeVolumeSettingsKey bakeKeyCurrent = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
-            if (ProbeVolumeSettingsKeyEquals(ref bakeKey, ref bakeKeyCurrent)) { return; }
+            if (ProbeVolumeSettingsKeyEquals(ref bakeKey, ref bakeKeyCurrent) &&
+                m_DebugProbeMatricesList != null) { return; }
 
             parameters.Constrain();
 
