@@ -219,6 +219,12 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 return;
             }
 
+            // Don't execute the SSAO passes if it doesn't contribute to the final image...
+            if (m_FeatureSettings.Intensity <= 0.0f)
+            {
+                return;
+            }
+
             ExecuteSSAO(
                 context,
                 ref renderingData,
