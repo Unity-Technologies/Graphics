@@ -532,25 +532,7 @@ TEMPLATE_2_REAL(PositivePow, base, power, return pow(abs(base), power))
 //        for behavior depending on pow(0, y) giving always 0, especially for 0 < y < 1.
 //
 // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx
-float SafePositivePow(float base, float power)
-{
-    return pow(max(abs(base), float(FLT_EPS)), power);
-}
-
-float2 SafePositivePow(float2 base, float2 power)
-{
-    return pow(max(abs(base), float2(FLT_EPS, FLT_EPS)), power);
-}
-
-float3 SafePositivePow(float3 base, float3 power)
-{
-    return pow(max(abs(base), float3(FLT_EPS, FLT_EPS, FLT_EPS)), power);
-}
-
-float4 SafePositivePow(float4 base, float4 power)
-{
-    return pow(max(abs(base), float4(FLT_EPS, FLT_EPS, FLT_EPS, FLT_EPS)), power);
-}
+TEMPLATE_2_REAL(SafePositivePow, base, power, return pow(max(abs(base), real(REAL_EPS)), power))
 
 // Composes a floating point value with the magnitude of 'x' and the sign of 's'.
 // See the comment about FastSign() below.
