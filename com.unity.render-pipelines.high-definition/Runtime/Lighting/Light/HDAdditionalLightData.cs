@@ -1932,11 +1932,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: think about VR (use different camera position for each eye)
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
+                HDUtils.MatrixTimesTranslation(ref shadowRequest.view, cameraPos);
                 var translation = Matrix4x4.Translate(cameraPos);
-                shadowRequest.view *= translation;
                 translation.SetColumn(3, -cameraPos);
                 translation[15] = 1.0f;
-                invViewProjection = translation * invViewProjection;
+                HDUtils.TranslationTimesMatrix(ref invViewProjection, -cameraPos);
             }
 
             HDLightType lightType = type;

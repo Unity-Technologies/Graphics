@@ -994,5 +994,31 @@ namespace UnityEngine.Rendering.HighDefinition
             string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
             DisplayUnsupportedMessage(msg);
         }
+
+        // TODO_FCC: THIS IS A PROOF OF CONCEPT, NEED TO MOVE THESE FUNCTIONS SOMEWHERE BEFORE PR.
+        internal static void MatrixTimesTranslation(ref Matrix4x4 matrix, Vector3 translation)
+        {
+            matrix.m03 += (matrix.m00 * translation.x + matrix.m01 * translation.y + matrix.m02 * translation.z);
+            matrix.m13 += (matrix.m10 * translation.x + matrix.m11 * translation.y + matrix.m12 * translation.z);
+            matrix.m23 += (matrix.m20 * translation.x + matrix.m21 * translation.y + matrix.m22 * translation.z);
+        }
+        internal static void TranslationTimesMatrix(ref Matrix4x4 matrix, Vector3 translation)
+        {
+            matrix.m00 += translation.x * matrix.m30;
+            matrix.m01 += translation.x * matrix.m31;
+            matrix.m02 += translation.x * matrix.m32;
+            matrix.m03 += translation.x * matrix.m33;
+
+            matrix.m10 += translation.y * matrix.m30;
+            matrix.m11 += translation.y * matrix.m31;
+            matrix.m12 += translation.y * matrix.m32;
+            matrix.m13 += translation.y * matrix.m33;
+
+            matrix.m20 += translation.z * matrix.m30;
+            matrix.m21 += translation.z * matrix.m31;
+            matrix.m22 += translation.z * matrix.m32;
+            matrix.m23 += translation.z * matrix.m33;
+
+        }
     }
 }
