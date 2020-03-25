@@ -4,7 +4,6 @@
 // Global Constant Buffers - b registers. Unity supports a maximum of 16 global constant buffers.
 	// Ray tracing specific constant buffers
 #define UNITY_RAY_TRACING_GLOBAL_CBUFFER_REGISTER               b3
-#define UNITY_RAY_TRACING_LIGHT_LOOP_CBUFFER_REGISTER           b4
 
 // Global Input Resources - t registers. Unity supports a maximum of 64 global input resources (compute buffers, textures, acceleration structure).
 #define RAY_TRACING_ACCELERATION_STRUCTURE_REGISTER             t0

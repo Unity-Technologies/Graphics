@@ -253,6 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ShaderVariablesXR = Shader.PropertyToID("ShaderVariablesXR");
         public static readonly int _ShaderVariablesVolumetric = Shader.PropertyToID("ShaderVariablesVolumetric");
         public static readonly int _ShaderVariablesLightList = Shader.PropertyToID("ShaderVariablesLightList");
+        public static readonly int _ShaderVariablesRaytracingLightLoop = Shader.PropertyToID("ShaderVariablesRaytracingLightLoop");
         public static readonly int _ShaderVariablesDebugDisplay = Shader.PropertyToID("ShaderVariablesDebugDisplay");
 
         public static readonly int _SSSBufferTexture = Shader.PropertyToID("_SSSBufferTexture");
@@ -422,15 +423,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string _RaytracingAccelerationStructureName          = "_RaytracingAccelerationStructure";
 
         // Light Cluster
-        public static readonly int _MinClusterPos                   = Shader.PropertyToID("_MinClusterPos");
-        public static readonly int _MaxClusterPos                   = Shader.PropertyToID("_MaxClusterPos");
-        public static readonly int _LightPerCellCount               = Shader.PropertyToID("_LightPerCellCount");
         public static readonly int _LightDatasRT                    = Shader.PropertyToID("_LightDatasRT");
         public static readonly int _EnvLightDatasRT                 = Shader.PropertyToID("_EnvLightDatasRT");
-        public static readonly int _PunctualLightCountRT            = Shader.PropertyToID("_PunctualLightCountRT");
-        public static readonly int _AreaLightCountRT                = Shader.PropertyToID("_AreaLightCountRT");
-        public static readonly int _EnvLightCountRT                 = Shader.PropertyToID("_EnvLightCountRT");
         public static readonly int _RaytracingLightCluster          = Shader.PropertyToID("_RaytracingLightCluster");
+        public static readonly int _RaytracingLightClusterRW        = Shader.PropertyToID("_RaytracingLightClusterRW");
 
         // Denoising
         public static readonly int _HistoryBuffer                   = Shader.PropertyToID("_HistoryBuffer");

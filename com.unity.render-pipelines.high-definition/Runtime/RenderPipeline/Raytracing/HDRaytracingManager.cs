@@ -105,6 +105,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_RayTracingIntermediateBufferRGBA2;
         RTHandle m_RayTracingIntermediateBufferRGBA3;
 
+        ShaderVariablesRaytracingLightLoop m_ShaderVariablesRaytracingLightLoopCB = new ShaderVariablesRaytracingLightLoop();
+
         internal RTHandle GetRayTracingBuffer(InternalRayTracingBuffers bufferID)
         {
             switch (bufferID)
@@ -574,7 +576,21 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_RayTracingLightCluster.EvaluateLightClusters(cmd, hdCamera, m_RayTracingLights);
                 m_ValidRayTracingCluster = true;
+
+                UpdateShaderVariablesRaytracingLightLoopCB(hdCamera, cmd);
             }
+        }
+
+        void UpdateShaderVariablesRaytracingLightLoopCB(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            m_ShaderVariablesRaytracingLightLoopCB._MinClusterPos = m_RayTracingLightCluster.GetMinClusterPos();
+            m_ShaderVariablesRaytracingLightLoopCB._LightPerCellCount = (uint)m_RayTracingLightCluster.GetLightPerCellCount();
+            m_ShaderVariablesRaytracingLightLoopCB._MaxClusterPos = m_RayTracingLightCluster.GetMaxClusterPos();
+            m_ShaderVariablesRaytracingLightLoopCB._PunctualLightCountRT = (uint)m_RayTracingLightCluster.GetPunctualLightCount();
+            m_ShaderVariablesRaytracingLightLoopCB._AreaLightCountRT = (uint)m_RayTracingLightCluster.GetAreaLightCount();
+            m_ShaderVariablesRaytracingLightLoopCB._EnvLightCountRT = (uint)m_RayTracingLightCluster.GetEnvLightCount();
+
+            ConstantBuffer<ShaderVariablesRaytracingLightLoop>.PushGlobal(cmd, m_ShaderVariablesRaytracingLightLoopCB, HDShaderIDs._ShaderVariablesRaytracingLightLoop);
         }
 
         internal RayTracingAccelerationStructure RequestAccelerationStructure()
