@@ -44,7 +44,7 @@ namespace UnityEditor
         static void CheckVFXManagerOnce()
         {
             VFXManagerEditor.CheckVFXManager();
-            EditorApplication.update-= CheckVFXManagerOnce;
+            EditorApplication.update -= CheckVFXManagerOnce;
         }
 
         static VisualEffectAssetEditorUtility()
@@ -52,10 +52,8 @@ namespace UnityEditor
             EditorApplication.update += CheckVFXManagerOnce;
 
 
-
             UnityEngine.VFX.VFXManager.activateVFX = true;
         }
-
 
         public const string templateAssetName = "Simple Particle System.vfx";
         public const string templateBlockSubgraphAssetName = "Default Subgraph Block.vfxblock";
@@ -79,10 +77,9 @@ namespace UnityEditor
             Selection.activeObject = go;
         }
 
-
         public static VisualEffectAsset CreateNewAsset(string path)
         {
-            return CreateNew<VisualEffectAsset>(path);  
+            return CreateNew<VisualEffectAsset>(path);
         }
 
         public static T CreateNew<T>(string path) where T : UnityObject
@@ -109,7 +106,7 @@ namespace UnityEditor
                 Debug.LogError("Couldn't read template for new vfx asset : " + e.Message);
                 return;
             }
-            
+
             Texture2D texture = EditorGUIUtility.FindTexture(typeof(VisualEffectAsset));
             var action = ScriptableObject.CreateInstance<DoCreateNewVFX>();
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "New VFX.vfx", texture, null);
@@ -124,7 +121,7 @@ namespace UnityEditor
                     var templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);
                     System.IO.File.WriteAllText(pathName, templateString);
                 }
-                catch(FileNotFoundException)
+                catch (FileNotFoundException)
                 {
                     CreateNewAsset(pathName);
                 }
@@ -169,8 +166,8 @@ namespace UnityEditor
 
             CreateVisualEffectSubgraph<VisualEffectSubgraphBlock, DoCreateNewSubgraphBlock>(fileName, templateBlockSubgraphAssetName);
         }
-        
-        public static void CreateVisualEffectSubgraph<T,U>(string fileName,string templateName) where U : EndNameEditAction
+
+        public static void CreateVisualEffectSubgraph<T, U>(string fileName, string templateName) where U : EndNameEditAction
         {
             string templateString = "";
 
@@ -179,7 +176,7 @@ namespace UnityEditor
             {
                 templateString = System.IO.File.ReadAllText(templatePath + templateName);
 
-                ProjectWindowUtil.CreateAssetWithContent(fileName, templateString,texture);
+                ProjectWindowUtil.CreateAssetWithContent(fileName, templateString, texture);
             }
             catch (System.Exception e)
             {
@@ -190,6 +187,6 @@ namespace UnityEditor
 
                 return;
             }
-        }                
+        }
     }
 }

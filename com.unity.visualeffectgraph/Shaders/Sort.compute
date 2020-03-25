@@ -93,29 +93,29 @@ uint GetLDSIndex(uint index)
 
 void LoadFromMemory(uint ldsIndex,uint memIndex)
 {
-	KVP kvp = { REJECTED_VALUE, 0 };
-	if (memIndex < GetElementCount())
-		kvp = inputSequence[memIndex];
+    KVP kvp = { REJECTED_VALUE, 0 };
+    if (memIndex < GetElementCount())
+        kvp = inputSequence[memIndex];
 
-	uint paddedLdsIndex = GetLDSIndex(ldsIndex);
-	scratch[paddedLdsIndex] = kvp.key;
-	scratch[paddedLdsIndex + LDS_VALUES_OFFSET] = asfloat(kvp.value);
+    uint paddedLdsIndex = GetLDSIndex(ldsIndex);
+    scratch[paddedLdsIndex] = kvp.key;
+    scratch[paddedLdsIndex + LDS_VALUES_OFFSET] = asfloat(kvp.value);
 }
 
 void StoreToMemory(uint memIndex, uint ldsIndex)
 {
-	if (memIndex < GetElementCount())
-	{
-		uint paddedLdsIndex = GetLDSIndex(ldsIndex);
-		uint value = asuint(scratch[paddedLdsIndex + LDS_VALUES_OFFSET]);
+    if (memIndex < GetElementCount())
+    {
+        uint paddedLdsIndex = GetLDSIndex(ldsIndex);
+        uint value = asuint(scratch[paddedLdsIndex + LDS_VALUES_OFFSET]);
 #if FINAL_PASS
-		sortedSequence[memIndex] = value;
+        sortedSequence[memIndex] = value;
 #else
-		float key = scratch[paddedLdsIndex];
-		KVP kvp = { key, value };
-		sortedSequence[memIndex] = kvp;
+        float key = scratch[paddedLdsIndex];
+        KVP kvp = { key, value };
+        sortedSequence[memIndex] = kvp;
 #endif
-	}
+    }
 }
 
 // Bitonic sort on small chunks of kvp of size ELEMENTS_COUNT - execute in O(log²(ELEMENTS_COUNT))
@@ -128,12 +128,12 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 
     // Load data from memory to LDS
     //[unroll]
-	for (uint i = 0; i < ELEMENTS_PER_THREAD; ++i)
-	{
-		uint index = BITONIC_THREADS_COUNT * i + id;
-		uint memIndex = DST_INDEX(groupId.x, index);
-		LoadFromMemory(index, memIndex);
-	}
+    for (uint i = 0; i < ELEMENTS_PER_THREAD; ++i)
+    {
+        uint index = BITONIC_THREADS_COUNT * i + id;
+        uint memIndex = DST_INDEX(groupId.x, index);
+        LoadFromMemory(index, memIndex);
+    }
 
     GroupMemoryBarrierWithGroupSync(); // LDS Writes visible
 
@@ -178,12 +178,12 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 
     // Store sorted data from LDS to memory
     //[unroll]
-	for (uint j = 0; j < ELEMENTS_PER_THREAD; ++j)
-	{
-		uint index = BITONIC_THREADS_COUNT * j + id; //(id / 32) * 64 * ITERATIONS_COUNT + (id & 31) + j * 32;//id * ITERATIONS_COUNT * 2 + j;
-		uint memIndex = DST_INDEX(groupId.x, index);
-		StoreToMemory(memIndex, index);
-	}
+    for (uint j = 0; j < ELEMENTS_PER_THREAD; ++j)
+    {
+        uint index = BITONIC_THREADS_COUNT * j + id; //(id / 32) * 64 * ITERATIONS_COUNT + (id & 31) + j * 32;//id * ITERATIONS_COUNT * 2 + j;
+        uint memIndex = DST_INDEX(groupId.x, index);
+        StoreToMemory(memIndex, index);
+    }
 }
 
 CBUFFER_START(MergePassConstants)

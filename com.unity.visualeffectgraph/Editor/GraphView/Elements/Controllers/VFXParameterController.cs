@@ -16,11 +16,11 @@ namespace UnityEditor.VFX.UI
 {
     class VFXSubParameterController : Controller, IPropertyRMProvider
     {
-
         public const int ExpandedChange = 1;
         public override void ApplyChanges()
         {
         }
+
         VFXParameterController m_Parameter;
         //int m_Field;
         int[] m_FieldPath;
@@ -312,7 +312,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXParameterController(VFXParameter model, VFXViewController viewController) : base(viewController, model)
         {
-            m_Slot = isOutput?model.inputSlots[0]:model.outputSlots[0];
+            m_Slot = isOutput ? model.inputSlots[0] : model.outputSlots[0];
             viewController.RegisterNotification(m_Slot, OnSlotChanged);
 
             exposedName = MakeNameUnique(exposedName);
@@ -717,7 +717,6 @@ namespace UnityEditor.VFX.UI
                     m_Slot = model.isOutput ? model.inputSlots[0] : model.outputSlots[0];
                     viewController.RegisterNotification(m_Slot, OnSlotChanged);
                 }
-
             }
         }
 
@@ -737,7 +736,7 @@ namespace UnityEditor.VFX.UI
         public Bounds GetGizmoBounds(VisualEffect component)
         {
             if (isOutput)
-                return  new Bounds();
+                return new Bounds();
             if (m_Context == null)
             {
                 m_Context = new ParameterGizmoContext(this);
@@ -800,7 +799,7 @@ namespace UnityEditor.VFX.UI
         public bool UpdateControllers()
         {
             bool changed = false;
-            var nodes = model.nodes.GroupBy(t=>t.id).ToDictionary(t => t.Key, t => t.First());
+            var nodes = model.nodes.GroupBy(t => t.id).ToDictionary(t => t.Key, t => t.First());
 
             foreach (var removedController in m_Controllers.Where(t => !nodes.ContainsKey(t.Key)).ToArray())
             {
