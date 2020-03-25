@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added XR setting to control camera jitter for temporal effects
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
 - Added API to enable proper recording of path traced scenes (with the Unity recorder or other tools).
+- Added support for fog in Recursive rendering, ray traced reflections and ray traced indirect diffuse.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
