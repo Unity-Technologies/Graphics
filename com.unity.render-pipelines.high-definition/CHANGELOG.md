@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Volume inspector might not refresh correctly in some cases.
 - Half fixed shuriken particle light that cast shadows (only the first one will be correct)
 - Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601) 
+- Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
