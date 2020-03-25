@@ -305,7 +305,6 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
     type: Unity::metal::macmini
     image: slough-ops/macos-10.14-xcode:stable
     flavor: m1.mac
-  skip_checkout: true
 {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
     CUSTOM_REVISION: custom_revision_not_set
