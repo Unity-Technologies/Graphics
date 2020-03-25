@@ -52,6 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         const string kPassGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl";
         const string kPassForward = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl";
         const string kPassDecal = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl";
+        const string kPassConstant = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl";
         //pregraph raytracing includes
         const string kRaytracingMacros = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl";
         const string kShaderVariablesRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl";
@@ -171,6 +172,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { LitCommon },
             { kPassDepthOnly, IncludeLocation.Postgraph },
+        };
+
+        public static IncludeCollection RayTracingPrepass = new IncludeCollection
+        {
+            { LitCommon },
+            { kPassConstant, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection LitMotionVectors = new IncludeCollection

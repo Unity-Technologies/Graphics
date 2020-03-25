@@ -731,6 +731,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Misc
                 new ConditionalField(Fields.AlphaTest,                              alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
+                new ConditionalField(HDFields.DoAlphaTest,                          alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
                 new ConditionalField(HDFields.AlphaFog,                             surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
                 new ConditionalField(HDFields.BlendPreserveSpecular,                surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
                 new ConditionalField(HDFields.DisableDecals,                        !receiveDecals.isOn),

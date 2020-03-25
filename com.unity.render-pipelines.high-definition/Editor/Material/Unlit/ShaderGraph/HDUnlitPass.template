@@ -118,7 +118,7 @@ Pass
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky.
         #ifdef _ALPHATEST_ON
-            $AlphaTest: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+            $DoAlphaTest: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
         #endif
 
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);

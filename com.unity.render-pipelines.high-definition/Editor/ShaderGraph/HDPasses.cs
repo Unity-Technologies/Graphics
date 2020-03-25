@@ -732,7 +732,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = HDRenderStates.HDLitTransparentDepthPrePostPass,
                 pragmas = HDPragmas.DotsInstancedInV1AndV2,
                 defines = HDDefines.TransparentDepthPrepass,
-                keywords = HDKeywords.TransparentDepthPrepass,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.LitDepthOnly,
 
                 // Custom Template
@@ -807,9 +807,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDTransparentDepthPrePostPass,
                 pragmas = HDPragmas.DotsInstancedInV1AndV2,
-                defines = HDDefines.TransparentDepthPostpass,
-                keywords = HDKeywords.TransparentDepthPostpass,
+                defines = HDDefines.ShaderGraphRaytracingHigh,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.LitDepthOnly,
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("Lit"),
+            };
+
+            public static PassDescriptor RayTracingPrepass = new PassDescriptor()
+            {
+                // Definition
+                displayName = "RayTracingPrepass",
+                referenceName = "SHADERPASS_CONSTANT",
+                lightMode = "RayTracingPrepass",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                pixelPorts = HDPortMasks.Pixel.HDLitRayTracingPrepass,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                renderStates = HDRenderStates.RayTracingPrepass,
+                pragmas = HDPragmas.BasicForRaytracing,
+                defines = HDDefines.ShaderGraphRaytracingHigh,
+                keywords = HDKeywords.HDBase,
+                includes = HDIncludes.RayTracingPrepass,
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Lit"),
@@ -1275,7 +1300,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = HDRenderStates.HDTransparentDepthPrePostPass,
                 pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.TransparentDepthPrepass,
-                keywords = HDKeywords.TransparentDepthPrepass,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.HairDepthOnly,
 
                 // Custom Template
@@ -1351,8 +1376,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDTransparentDepthPrePostPass,
                 pragmas = HDPragmas.InstancedRenderingLayer,
-                defines = HDDefines.TransparentDepthPostpass,
-                keywords = HDKeywords.TransparentDepthPostpass,
+                defines = HDDefines.ShaderGraphRaytracingHigh,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.HairDepthOnly,
 
                 // Custom Template

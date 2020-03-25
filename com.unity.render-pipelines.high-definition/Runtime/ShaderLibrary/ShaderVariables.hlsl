@@ -284,6 +284,8 @@ GLOBAL_CBUFFER_START(UnityGlobal, UNITY_GLOBAL_CBUFFER_REGISTER)
     int  _UseRayTracedReflections;
     // Index of the current frame [0, 7]
     int  _RaytracingFrameIndex;
+    uint  _EnableRecursiveRayTracing;
+
     float4 _CoarseStencilBufferSize;
 
 CBUFFER_END
