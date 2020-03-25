@@ -59,6 +59,7 @@ pack_{{ template.id }}:
   artifacts:
     packages:
       paths:
+        - "upm-ci~/packages/**/*"
         - "upm-ci~/templates/**/*"
 {% endfor %}
 
