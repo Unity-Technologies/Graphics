@@ -98,6 +98,10 @@ namespace UnityEngine.Rendering
         /// Generate constant buffer declaration or not.
         /// </summary>
         public bool generateCBuffer;
+        /// <summary>
+        /// If specified, when generating a constant buffer, use this explicit register.
+        /// </summary>
+        public int constantRegister;
 
         /// <summary>
         /// GenerateHLSL attribute constructor.
@@ -109,7 +113,8 @@ namespace UnityEngine.Rendering
         /// <param name="paramDefinesStart">Start value of debug defines.</param>
         /// <param name="omitStructDeclaration">Omit structure declaration.</param>
         /// <param name="containsPackedFields">Contains packed fields.</param>
-        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needSetters = false, bool needParamDebug = false, int paramDefinesStart = 1, bool omitStructDeclaration = false, bool containsPackedFields = false, bool generateCBuffer = false)
+        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needSetters = false, bool needParamDebug = false, int paramDefinesStart = 1,
+                                bool omitStructDeclaration = false, bool containsPackedFields = false, bool generateCBuffer = false, int constantRegister = -1)
         {
             packingRules = rules;
             this.needAccessors = needAccessors;
@@ -119,6 +124,7 @@ namespace UnityEngine.Rendering
             this.omitStructDeclaration = omitStructDeclaration;
             this.containsPackedFields = containsPackedFields;
             this.generateCBuffer = generateCBuffer;
+            this.constantRegister = constantRegister;
         }
     }
 
