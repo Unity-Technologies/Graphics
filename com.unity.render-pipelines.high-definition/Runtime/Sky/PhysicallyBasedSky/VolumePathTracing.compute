@@ -41,6 +41,7 @@ uint  _DispatchThreadCount;
 uint  _DispatchWidth;
 uint  _PassIndex;
 uint  _BounceCount;
+uint  _NumPaths;
 
 // 3x3, but Unity can only set 4x4...
 float4x4 _PlanetRotation;
@@ -250,6 +251,8 @@ float RescaledChapman(float z, float Z, float cosTheta)
     return ch;
 }
 
+#define spectrum float3
+
 float RadAtDist(float r, float rRcp, float cosTheta, float s)
 {
     float x2 = 1 + (s * rRcp) * ((s * rRcp) + 2 * cosTheta);
@@ -268,18 +271,15 @@ float CosAtDist(float r, float rRcp, float cosTheta, float s)
 
 // This variant of the function evaluates optical depth along an infinite path.
 // 'r' is the radial distance from the center of the planet.
-// 'viewZ' is the Z coordinate of the view direction.
+// 'cosTheta' is the value of the dot product of the ray direction and the surface normal.
 // seaLvlAtt = (sigma_t * k) is the sea-level (height = 0) attenuation coefficient.
 // 'R' is the radius of the planet.
-// 'H' is the scale height.
-// hRcp = rcp(H) is the falloff exponent.
-float3 OptDepthSpherExpMedium(float r, float viewZ, float R,
-                              float3 seaLvlAtt, float H, float hRcp)
+// n = (1 / H) is the falloff exponent, where 'H' is the scale height.
+spectrum OptDepthSpherExpMedium(float r, float cosTheta, float R,
+                                spectrum seaLvlAtt, float H, float n)
 {
-    float cosTheta = -viewZ; // p = x - s * v
-
-    float z = r * hRcp;
-    float Z = R * hRcp;
+    float z = r * n;
+    float Z = R * n;
 
     float ch = RescaledChapman(z, Z, cosTheta);
 
@@ -288,19 +288,18 @@ float3 OptDepthSpherExpMedium(float r, float viewZ, float R,
 
 // This variant of the function evaluates optical depth along a bounded path.
 // 'r' is the radial distance from the center of the planet.
-// rRcp = 1 / r.
-// 'viewZ' is the Z coordinate of the view direction.
+// rRcp = (1 / r).
+// 'cosTheta' is the value of the dot product of the ray direction and the surface normal.
 // 'dist' is the distance.
 // seaLvlAtt = (sigma_t * k) is the sea-level (height = 0) attenuation coefficient.
 // 'R' is the radius of the planet.
-// 'H' is the scale height.
-// hRcp = rcp(H) is the falloff exponent.
-float3 OptDepthSpherExpMedium(float r, float rRcp, float viewZ, float dist, float R,
-                              float3 seaLvlAtt, float H, float hRcp)
+// n = (1 / H) is the falloff exponent, where 'H' is the scale height.
+spectrum OptDepthSpherExpMedium(float r, float rRcp, float cosTheta, float dist, float R,
+                                spectrum seaLvlAtt, float H, float n)
 {
     float rX        = r;
     float rRcpX     = rRcp;
-    float cosThetaX = -viewZ; // p = x - s * v
+    float cosThetaX = cosTheta;
     float rY        = RadAtDist(rX, rRcpX, cosThetaX, dist);
     float cosThetaY = CosAtDist(rX, rRcpX, cosThetaX, dist);
 
@@ -308,9 +307,9 @@ float3 OptDepthSpherExpMedium(float r, float rRcp, float viewZ, float dist, floa
     // Convention: at the point Y, the ray points up.
     cosThetaX = (cosThetaY >= 0) ? cosThetaX : -cosThetaX;
 
-    float Z   = R  * hRcp;
-    float zX  = rX * hRcp;
-    float zY  = rY * hRcp;
+    float zX  = rX * n;
+    float zY  = rY * n;
+    float Z   = R  * n;
 
     float chX = RescaledChapman(zX, Z, cosThetaX);
     float chY = ChapmanUpper(zY, abs(cosThetaY)) * exp(Z - zY); // Rescaling adds 'exp'
@@ -321,10 +320,10 @@ float3 OptDepthSpherExpMedium(float r, float rRcp, float viewZ, float dist, floa
     return ch * H * seaLvlAtt;
 }
 
-float ConvertCdfToOpticalDepth(float cdf, float maxOpacity)
+float ConvertCdfToOpticalDepth(float cdf, float viewOpacity)
 {
     // Equation 24.
-    return -log(1 - cdf * maxOpacity);
+    return -log(1 - cdf * viewOpacity);
 }
 
 #define EPS_ABS  0.0001
@@ -334,12 +333,12 @@ float ConvertCdfToOpticalDepth(float cdf, float maxOpacity)
 // 'optDepth' is the value to solve for.
 // 'maxOptDepth' is the maximum value along the ray, s.t. (maxOptDepth >= optDepth).
 // 'maxDist' is the maximum distance along the ray.
-float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, float R,
-                           float2 seaLvlAtt, float2 H, float2 hRcp, // Air & aerosols
+float SampleSpherExpMedium(float optDepth, float r, float rRcp, float cosTheta, float R,
+                           float2 seaLvlAtt, float2 H, float2 n, // Air & aerosols
                            float maxOptDepth, float maxDist)
 {
     const float  optDepthRcp = rcp(optDepth);
-    const float2 Z           = R * hRcp;
+    const float2 Z           = R * n;
 
     // Make an initial guess (homogeneous assumption).
     float t = maxDist * (optDepth * rcp(maxOptDepth));
@@ -354,7 +353,6 @@ float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, flo
 
     do // Perform a Newton–Raphson iteration.
     {
-        float cosTheta  = -viewZ; // p = x - s * v
         float radAtDist = RadAtDist(r, rRcp, cosTheta, t);
         float cosAtDist = CosAtDist(r, rRcp, cosTheta, t);
         // Evaluate the function and its derivatives:
@@ -362,14 +360,14 @@ float SampleSpherExpMedium(float optDepth, float r, float rRcp, float viewZ, flo
         // f' [t] = AttCoefAtDist[t],
         // f''[t] = AttCoefAtDist'[t] = -AttCoefAtDist[t] * CosAtDist[t] / H.
         float optDepthAtDist = 0, attAtDist = 0, attAtDistDeriv = 0;
-        optDepthAtDist += OptDepthSpherExpMedium(r, rRcp, viewZ, t, R,
-                                                 seaLvlAtt.x, H.x, hRcp.x);
-        optDepthAtDist += OptDepthSpherExpMedium(r, rRcp, viewZ, t, R,
-                                                 seaLvlAtt.y, H.y, hRcp.y);
-        attAtDist      += seaLvlAtt.x * exp(Z.x - radAtDist * hRcp.x);
-        attAtDist      += seaLvlAtt.y * exp(Z.y - radAtDist * hRcp.y);
-        attAtDistDeriv -= seaLvlAtt.x * exp(Z.x - radAtDist * hRcp.x) * hRcp.x;
-        attAtDistDeriv -= seaLvlAtt.y * exp(Z.y - radAtDist * hRcp.y) * hRcp.y;
+        optDepthAtDist += OptDepthSpherExpMedium(r, rRcp, cosTheta, t, R,
+                                                 seaLvlAtt.x, H.x, n.x);
+        optDepthAtDist += OptDepthSpherExpMedium(r, rRcp, cosTheta, t, R,
+                                                 seaLvlAtt.y, H.y, n.y);
+        attAtDist      += seaLvlAtt.x * exp(Z.x - radAtDist * n.x);
+        attAtDist      += seaLvlAtt.y * exp(Z.y - radAtDist * n.y);
+        attAtDistDeriv -= seaLvlAtt.x * exp(Z.x - radAtDist * n.x) * n.x;
+        attAtDistDeriv -= seaLvlAtt.y * exp(Z.y - radAtDist * n.y) * n.y;
         attAtDistDeriv *= cosAtDist;
 
         float   f = optDepthAtDist - optDepth;
@@ -440,6 +438,9 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                     uint groupSize1D, uint tileSize1D, uint bounceCount, uint passIndex,
                     float3 rayOrigin, out uint2 positionSS)
 {
+    float radiance[3];
+    ZERO_INITIALIZE_ARRAY(float, radiance, 3);
+
     uint tileSize2D      = tileSize1D * tileSize1D;
     uint tilesPerGroup1D = groupSize1D / tileSize1D;
     uint tilesPerGroup2D = Sq(tilesPerGroup1D);
@@ -536,6 +537,8 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
     }
 
     float pathContribution = 0;
+    float frequencyPdf     = 1.0/3.0;
+    float pathPdf          = frequencyPdf;
 
     for (bounce = 1; bounce <= bounceCount; bounce++) // Bounces are indexed starting from 1
     {
@@ -544,28 +547,29 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                       cmj6D(pointIndex, bounce * 3 + 1, seed),
                       cmj6D(pointIndex, bounce * 3 + 2, seed));
 
-        float3 optDepth = 0; // Air + aerosols + ozone
-        optDepth += OptDepthSpherExpMedium(r, rRcp, -cosTheta, ray.maxDist, R, _AirSeaLevelExtinction,     _AirScaleHeight,     _AirDensityFalloff);
-        optDepth += OptDepthSpherExpMedium(r, rRcp, -cosTheta, ray.maxDist, R, _AerosolSeaLevelExtinction, _AerosolScaleHeight, _AerosolDensityFalloff);
+        float maxOptDepth = 0; // Air + aerosols + ozone
+        maxOptDepth += OptDepthSpherExpMedium(r, rRcp, cosTheta, ray.maxDist, R,
+                                              _AirSeaLevelExtinction[(uint)ray.frequency],
+                                              _AirScaleHeight, _AirDensityFalloff).r;
+        maxOptDepth += OptDepthSpherExpMedium(r, rRcp, cosTheta, ray.maxDist, R,
+                                              _AerosolSeaLevelExtinction,
+                                              _AerosolScaleHeight, _AerosolDensityFalloff).r;
 
-        float maxSampledOptDepth = optDepth[(uint)ray.frequency];
-        float maxSampledOpacity  = OpacityFromOpticalDepth(maxSampledOptDepth);
-        float sampledOptDepth    = ConvertCdfToOpticalDepth(rnd.x, maxSampledOpacity);
+        float viewOpacity     = OpacityFromOpticalDepth(maxOptDepth);
+        float sampledOptDepth = ConvertCdfToOpticalDepth(rnd.x, viewOpacity);
 
         // Sample participating media.
-        float t = SampleSpherExpMedium(sampledOptDepth, r, rRcp, -cosTheta, R,
+        float t = SampleSpherExpMedium(sampledOptDepth, r, rRcp, cosTheta, R,
                                        float2(_AirSeaLevelExtinction[(uint)ray.frequency], _AerosolSeaLevelExtinction),
                                        float2(_AirScaleHeight, _AerosolScaleHeight),
                                        float2(_AirDensityFalloff, _AerosolDensityFalloff),
-                                       maxSampledOptDepth, ray.maxDist);
-
-
+                                       viewOpacity, ray.maxDist);
 
         // Perform next event estimation.
         float3 P = ray.origin + t * ray.direction; // TODO: 1-D
-        float3 V = - ray.direction;                // TODO: 1-D
+        float3 D = ray.direction;                  // TODO: 1-D
 
-        ApplySphericalSymmetry(P, V, /* -> */ r, rSq, rRcp, cosTheta); // TODO: optimize me :-(
+        ApplySphericalSymmetry(P, D, /* -> */ r, rSq, rRcp, cosTheta); // TODO: optimize me :-(
 
         float airScaCoef = _AirSeaLevelScattering[(uint)ray.frequency]     * exp((R - r) * _AirDensityFalloff);
         float airAttCoef = _AirSeaLevelExtinction[(uint)ray.frequency]     * exp((R - r) * _AirDensityFalloff);
@@ -588,36 +592,36 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
 
             float3 L = -light.forward.xyz;
 
-            ApplySphericalSymmetry(P, V, /* -> */ r, rSq, rRcp, cosTheta); // TODO: optimize me :-(
+            ApplySphericalSymmetry(P, D, /* -> */ r, rSq, rRcp, cosTheta); // TODO: optimize me :-(
 
             float LdotN  = dot(L, P) * rsqrt(dot(P, P)); // TODO: 1-D
             float cosHor = ComputeCosineOfHorizonAngle(rRcp);
 
             if (LdotN > cosHor) // Visible?
             {
-                float LdotV    = dot(L, V);
+                float LdotD    = dot(L, D);
                 float airPhase = IsotropicPhaseFunction();
-                float aerPhase = CornetteShanksPhaseFunction(_AerosolAnisotropy, -LdotV);
+                float aerPhase = CornetteShanksPhaseFunction(_AerosolAnisotropy, LdotD);
 
+                float lightOptDepth = 0;
+                lightOptDepth += OptDepthSpherExpMedium(r, rRcp, LdotN, ray.maxDist, R,
+                                                        _AirSeaLevelExtinction[(uint)ray.frequency],
+                                                        _AirScaleHeight, _AirDensityFalloff).r;
+                lightOptDepth += OptDepthSpherExpMedium(r, rRcp, LdotN, ray.maxDist, R,
+                                                        _AerosolSeaLevelExtinction,
+                                                        _AerosolScaleHeight, _AerosolDensityFalloff).r;
+
+                float lightTransm     = TransmittanceFromOpticalDepth(lightOptDepth);
                 float emittedRadiance = light.color.rgb[(uint)ray.frequency];
-                float lightOptDepth   = 0;
-                lightOptDepth += OptDepthSpherExpMedium(r, rRcp, -LdotN, ray.maxDist, R, _AirSeaLevelExtinction,     _AirScaleHeight,     _AirDensityFalloff);
-                lightOptDepth += OptDepthSpherExpMedium(r, rRcp, -LdotN, ray.maxDist, R, _AerosolSeaLevelExtinction, _AerosolScaleHeight, _AerosolDensityFalloff);
 
-                pathContribution += (airAlbedo * airPhase + aerAlbedo * aerPhase) * radiance;
+                pathContribution += viewOpacity * (airAlbedo * airPhase + aerAlbedo * aerPhase) * (lightTransm * emittedRadiance);
             }
-
-
-
-
-        float
-
-        pathContribution +=
-
-        // return OpacityFromOpticalDepth(optDepth);
+        }
     }
 
-    return 0;
+    radiance[(uint)ray.frequency] += rcp(_NumPaths) * pathContribution / pathPdf;
+
+    return float3(radiance[0], radiance[1], radiance[2]);
 }
 
 // Floating-point atomics are not supported. Use fixed-point math in units of HALF_MIN instead.
@@ -632,7 +636,7 @@ void main(uint2 groupCoordInDispatch  : SV_GroupID,
           uint  threadIndexInGroup    : SV_GroupIndex,
           uint2 threadCoordInDispatch : SV_DispatchThreadID)
 {
-    if (_PassIndex > 255) return;
+    if (_PassIndex >= _NumPaths) return;
 
     const uint groupIndexInDispatch = groupCoordInDispatch.y * _DispatchWidth + groupCoordInDispatch.x;
 
@@ -674,5 +678,5 @@ void main(uint2 groupCoordInDispatch  : SV_GroupID,
     // float  newSampleCount = oldSampleCount + sampleCount;
     // float4 newValue       = float4((oldRadiance * oldSampleCount + radiance) * rcp(max(newSampleCount, 1)), newSampleCount);
     // _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] = newValue;
-    _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] = radiance.r;
+    _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] += float4(radiance, 1);
 }
