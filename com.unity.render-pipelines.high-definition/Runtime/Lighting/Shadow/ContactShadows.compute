@@ -1,6 +1,6 @@
-// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel DeferredContactShadow                DEFERRED_CONTACT_SHADOW_GENERIC=DeferredContactShadow
-#pragma kernel DeferredContactShadowMSAA            DEFERRED_CONTACT_SHADOW_GENERIC=DeferredContactShadowMSAA         ENABLE_MSAA
+#pragma kernel DeferredContactShadow
+
+#pragma multi_compile _ ENABLE_MSAA
 
 #ifdef SHADER_API_PSSL
 #   pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
@@ -156,7 +156,7 @@ bool ComputeContactShadow(PositionInputs posInput, float3 direction, inout float
 }
 
 [numthreads(DEFERRED_SHADOW_TILE_SIZE, DEFERRED_SHADOW_TILE_SIZE, 1)]
-void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)
+void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
