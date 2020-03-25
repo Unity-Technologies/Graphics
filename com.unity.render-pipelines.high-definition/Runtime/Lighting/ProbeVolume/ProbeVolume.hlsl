@@ -236,6 +236,8 @@ float3 EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData,
         {
             v_probeVolumeListOffset++;
 
+            if (probeVolumeHierarchyWeight >= 1.0) { continue; }
+
             if (!IsMatchingLightLayer(s_probeVolumeData.lightLayers, renderingLayers)) { continue; }
 
             bool isWeightAccumulated = s_probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_NORMAL;
