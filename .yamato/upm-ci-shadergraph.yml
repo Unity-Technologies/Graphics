@@ -371,10 +371,11 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
       set GIT_REVISION=$GIT_REVISION
       set YAMATO_JOB_ID=$YAMATO_JOB_ID
       ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }} --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results'
-
+  after:
+    - |
       UTR_RESULT=$?
       mkdir -p TestProjects/{{ project.folder }}/test-results/
-      scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results/ TestProjects/{{ project.folder }}/test-results/
+      scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results/ TestProjects/{{ project.folder }}/test-results/
       exit $UTR_RESULT
 
   dependencies:
