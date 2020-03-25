@@ -3311,7 +3311,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.MaterialPass)
                 return;
 
-            // TODO: (Nick): We may need to clearLightLists even if this feature is disabled to stay robust to pipeline changes.
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 return;
 
@@ -3408,8 +3407,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        //  Only used with Clustered in GBuffer / Forward passes. Not used in LightLoop.
-        // TODO: (Nick) Finish up / verify this function.
+        // Only used with Clustered in GBuffer / Forward passes. Not used in LightLoop.
         static void ProbeVolumesVoxelLightListGeneration(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd, ProbeVolumeList probeVolumesList)
         {
             Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass);

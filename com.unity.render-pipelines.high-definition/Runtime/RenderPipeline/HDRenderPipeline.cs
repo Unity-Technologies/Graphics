@@ -2218,7 +2218,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     BuildGPULightLists(hdCamera, cmd);
-                    // TODO: (Nick): Verify - is this a bug in HDRP? seems like we need to call PushLightLoopGlobalParams() here to support non-async path.
                 }
 
                 if (!hdCamera.frameSettings.SSAORunsAsync())
