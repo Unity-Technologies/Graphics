@@ -4,6 +4,8 @@ namespace UnityEngine.Rendering.HighDefinition
     enum ConstantRegister
     {
         Global = 0,
+        XR = 1,
+        PBRSky = 2,
     }
 
     // We need to keep the number of different constant buffers low.

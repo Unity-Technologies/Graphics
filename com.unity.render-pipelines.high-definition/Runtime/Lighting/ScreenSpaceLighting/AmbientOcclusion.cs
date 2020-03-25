@@ -467,20 +467,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.temporalAccumulation || parameters.fullResolution)
             {
-                ConstantBuffer<ShaderVariablesAmbientOcclusion>.Set(cmd, parameters.denoiseAOCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
+                var blurCS = parameters.spatialDenoiseAOCS;
+                ConstantBuffer<ShaderVariablesAmbientOcclusion>.Set(cmd, blurCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
 
                 // Spatial
-                cmd.SetComputeTextureParam(parameters.denoiseAOCS, parameters.denoiseKernelSpatial, HDShaderIDs._AOPackedData, packedDataTex);
+                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._AOPackedData, packedDataTex);
                 if (parameters.temporalAccumulation)
                 {
-                    cmd.SetComputeTextureParam(parameters.denoiseAOCS, parameters.denoiseKernelSpatial, HDShaderIDs._AOPackedBlurred, packedDataBlurredTex);
+                    cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._AOPackedBlurred, packedDataBlurredTex);
                 }
                 else
                 {
-                    cmd.SetComputeTextureParam(parameters.denoiseAOCS, parameters.denoiseKernelSpatial, HDShaderIDs._OcclusionTexture, aoOutputTex);
+                    cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._OcclusionTexture, aoOutputTex);
                 }
 
-                cmd.DispatchCompute(parameters.denoiseAOCS, parameters.denoiseKernelSpatial, threadGroupX, threadGroupY, parameters.viewCount);
+                cmd.DispatchCompute(blurCS, parameters.denoiseKernelSpatial, threadGroupX, threadGroupY, parameters.viewCount);
             }
 
             if (parameters.temporalAccumulation)
@@ -493,12 +494,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 var blurCS = parameters.temporalDenoiseAOCS;
-                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOParams1, parameters.aoParams1);
-                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOParams2, parameters.aoParams2);
-                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOParams3, parameters.aoParams3);
-                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOParams4, parameters.aoParams4);
-                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
-
+                ConstantBuffer<ShaderVariablesAmbientOcclusion>.Set(cmd, blurCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
 
                 // Temporal
                 cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOPackedData, packedDataTex);

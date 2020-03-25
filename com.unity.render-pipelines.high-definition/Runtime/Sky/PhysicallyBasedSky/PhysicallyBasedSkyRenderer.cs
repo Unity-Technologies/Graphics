@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InScatteredRadianceTableSizeW = 64,  // <N, L>,
         }
 
-        [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+        [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.PBRSky)]
         unsafe struct ShaderVariablesPhysicallyBasedSky
         {
             // All the distance-related entries use SI units (meter, 1/meter, etc).

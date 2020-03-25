@@ -15,7 +15,7 @@
 
 // Generated from UnityEngine.Rendering.HighDefinition.PhysicallyBasedSkyRenderer+ShaderVariablesPhysicallyBasedSky
 // PackingRules = Exact
-CBUFFER_START(ShaderVariablesPhysicallyBasedSky)
+GLOBAL_CBUFFER_START(ShaderVariablesPhysicallyBasedSky, b2)
     float _PlanetaryRadius;
     float _RcpPlanetaryRadius;
     float _AtmosphericDepth;

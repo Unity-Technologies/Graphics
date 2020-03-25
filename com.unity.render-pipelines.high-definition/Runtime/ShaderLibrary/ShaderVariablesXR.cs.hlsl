@@ -6,7 +6,7 @@
 #define SHADERVARIABLESXR_CS_HLSL
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesXR
 // PackingRules = Exact
-CBUFFER_START(ShaderVariablesXR)
+GLOBAL_CBUFFER_START(ShaderVariablesXR, b1)
     float4x4 _XRViewMatrix[2];
     float4x4 _XRInvViewMatrix[2];
     float4x4 _XRProjMatrix[2];
