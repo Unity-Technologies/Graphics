@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
 - Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
+- Hidden unsupported choice in emission in Materials
 
 ## [8.0.0] - 2020-05-25
 
@@ -561,6 +562,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hide the Probes section in the Renderer editos because it was unused.
 - Moved BeginCameraRendering callback right before culling.
 - Changed the visibility of the Indirect Lighting Controller component to public.
+<<<<<<< HEAD
+=======
+- Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
+- Improved behaviour of transmission color on transparent surfaces in path tracing.
+- Light dimmer can now get values higher than one and was renamed to multiplier in the UI.
+- Removed info box requesting volume component for Visual Environment and updated the documentation with the relevant information.
+- Improved light selection oracle for light sampling in path tracing.
+- Stripped ray tracing subsurface passes with ray tracing is not enabled.
+- Remove LOD cross fade code for ray tracing shaders
+- Removed legacy VR code
+- Add range-based clipping to box lights (case 1178780)
+- Improve area light culling (case 1085873)
+- Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
+- Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
+- Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
+- Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
+- Obsolete Utilities namespace was removed, instead use UnityEngine.Rendering (case 1204677)
+- Moved most of the compute shaders to the multi_compile API instead of multiple kernels.
+- Use multi_compile API for deferred compute shader with shadow mask.
+- Remove the raytracing rendering queue system to make recursive raytraced material work when raytracing is disabled
+- Changed a few resources used by ray tracing shaders to be global resources (using register space1) for improved CPU performance.
+- All custom pass volumes are now executed for one injection point instead of the first one.
+- Hidden unsupported choice in emission in Materials
+>>>>>>> 4e749150f9... Hdrp/fix material baked emission (#5392)
 
 ## [7.1.1] - 2019-09-05
 
