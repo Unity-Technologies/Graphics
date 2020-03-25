@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Keyword = input as ShaderKeyword;
             if(m_Keyword == null)
                 return;
-            
+
             // KeywordDefinition
             var keywordDefinitionField = new EnumField((Enum)m_Keyword.keywordDefinition);
             keywordDefinitionField.RegisterValueChangedCallback(evt =>
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Keyword.keywordDefinition = (KeywordDefinition)evt.newValue;
                 Rebuild();
             });
-            AddRow("Definition", keywordDefinitionField, m_Keyword.isEditable);
+            AddRow("Definition", keywordDefinitionField, !m_Keyword.isBuiltIn);
 
             // KeywordScope
             if(m_Keyword.keywordDefinition != KeywordDefinition.Predefined)
@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return;
                     m_Keyword.keywordScope = (KeywordScope)evt.newValue;
                 });
-                AddRow("Scope", keywordScopeField, m_Keyword.isEditable);
+                AddRow("Scope", keywordScopeField, !m_Keyword.isBuiltIn);
             }
 
             switch(m_Keyword.keywordType)
@@ -102,8 +102,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Entries
             m_Container = new IMGUIContainer(() => OnGUIHandler ()) { name = "ListContainer" };
-            AddRow("Entries", m_Container, keyword.isEditable);
+            AddRow("Entries", m_Container, !keyword.isBuiltIn);
         }
+
+        public ShaderKeyword keyword => m_Keyword;
 
         private void OnGUIHandler()
         {
@@ -118,15 +120,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         internal void RecreateList()
-        {           
+        {
             // Create reorderable list from entries
             m_ReorderableList = new ReorderableList(m_Keyword.entries, typeof(KeywordEntry), true, true, true, true);
         }
 
-        private void AddCallbacks() 
+        private void AddCallbacks()
         {
-            // Draw Header      
-            m_ReorderableList.drawHeaderCallback = (Rect rect) => 
+            // Draw Header
+            m_ReorderableList.drawHeaderCallback = (Rect rect) =>
             {
                 int indent = 14;
                 var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
@@ -136,42 +138,42 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
 
             // Draw Element
-            m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => 
+            m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
                 KeywordEntry entry = ((KeywordEntry)m_ReorderableList.list[index]);
                 EditorGUI.BeginChangeCheck();
-                
+
                 var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.displayName, EditorStyles.label);
                 var referenceName = EditorGUI.DelayedTextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName, EditorStyles.label);
 
                 displayName = GetDuplicateSafeDisplayName(entry.id, displayName);
                 referenceName = GetDuplicateSafeReferenceName(entry.id, referenceName.ToUpper());
-                
-                if(EditorGUI.EndChangeCheck())
+
+                if (EditorGUI.EndChangeCheck())
                 {
-                    m_Keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);
-                    
+                    m_Keyword.entries[index] = new KeywordEntry(entry.id, displayName, referenceName);
+
                     DirtyNodes();
                     Rebuild();
-                }   
+                }
             };
 
             // Element height
-            m_ReorderableList.elementHeightCallback = (int indexer) => 
+            m_ReorderableList.elementHeightCallback = (int indexer) =>
             {
                 return m_ReorderableList.elementHeight;
             };
 
             // Can add
-            m_ReorderableList.onCanAddCallback = (ReorderableList list) => 
-            {  
-                return list.count < 8;
+            m_ReorderableList.onCanAddCallback = (ReorderableList list) =>
+            {
+                return list.count < KeywordNode.k_MaxEnumEntries;
             };
 
             // Can remove
-            m_ReorderableList.onCanRemoveCallback = (ReorderableList list) => 
-            {  
-                return list.count > 2;
+            m_ReorderableList.onCanRemoveCallback = (ReorderableList list) =>
+            {
+                return list.count > KeywordNode.k_MinEnumEntries;
             };
 
             // Add callback delegates
@@ -190,17 +192,41 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             graph.owner.RegisterCompleteObjectUndo("Add Keyword Entry");
 
-            var index = list.list.Count + 1;
+            int index = GetFirstUnusedID();
+            if (index <= 0)
+                return; // Error has already occured, don't attempt to add this entry.
+
             var displayName = GetDuplicateSafeDisplayName(index, "New");
             var referenceName = GetDuplicateSafeReferenceName(index, "NEW");
 
             // Add new entry
             m_Keyword.entries.Add(new KeywordEntry(index, displayName, referenceName));
 
-            // Update GUI
+            // Update Blackboard & Nodes
+            DirtyNodes();
             Rebuild();
             graph.OnKeywordChanged();
             m_SelectedIndex = list.list.Count - 1;
+        }
+
+        // Allowed indicies are 1-MAX_ENUM_ENTRIES
+        private int GetFirstUnusedID()
+        {
+            List<int> ususedIDs = new List<int>();
+
+            foreach (KeywordEntry keywordEntry in m_Keyword.entries)
+            {
+                ususedIDs.Add(keywordEntry.id);
+            }
+
+            for (int x = 1; x <= KeywordNode.k_MaxEnumEntries; x++)
+            {
+                if (!ususedIDs.Contains(x))
+                    return x;
+            }
+
+            Debug.LogError("GetFirstUnusedID: Attempting to get unused ID when all IDs are used.");
+            return -1;
         }
 
         private void RemoveEntry(ReorderableList list)
@@ -216,8 +242,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             int value = Mathf.Clamp(m_Keyword.value, 0, m_Keyword.entries.Count - 1);
             m_Keyword.value = value;
 
+            // Update Blackboard & Nodes
+            DirtyNodes();
             Rebuild();
             graph.OnKeywordChanged();
+            m_SelectedIndex = m_SelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_SelectedIndex;
         }
 
         private void ReorderEntries(ReorderableList list)

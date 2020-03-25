@@ -12,7 +12,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class HDUnlitSettingsView : VisualElement
+    class HDUnlitSettingsView : MasterNodeSettingsView
     {
         HDUnlitMasterNode m_Node;
 
@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
-        public HDUnlitSettingsView(HDUnlitMasterNode node)
+        public HDUnlitSettingsView(HDUnlitMasterNode node) : base(node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
@@ -226,17 +226,8 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("DOTS instancing", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.dotsInstancing.isOn;
-                    toggle.OnToggleChanged(ChangeDotsInstancing);
-                });
-            });
-
-
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeSurfaceType(ChangeEvent<Enum> evt)
@@ -292,15 +283,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             };
             UpdateRenderingPassValue(evt.newValue);
         }
-
-        void ChangeDotsInstancing(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("DotsInstancing Change");
-            ToggleData td = m_Node.dotsInstancing;
-            td.isOn = evt.newValue;
-            m_Node.dotsInstancing = td;
-        }
-
 
         void UpdateRenderingPassValue(HDRenderQueue.RenderQueueType newValue)
         {

@@ -141,7 +141,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                     else
                     {
-                        RendererLighting.ClearDirtyLighting(cmd);
+                        RendererLighting.ClearDirtyLighting(cmd, lightStats.blendStylesUsed);
                     }
 
                     CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);

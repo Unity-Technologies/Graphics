@@ -10,10 +10,10 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class PBRSettingsView : VisualElement
+    class PBRSettingsView : MasterNodeSettingsView
     {
         PBRMasterNode m_Node;
-        public PBRSettingsView(PBRMasterNode node)
+        public PBRSettingsView(PBRMasterNode node) : base(node)
         {
             m_Node = node;
 
@@ -63,16 +63,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         toggle.OnToggleChanged(ChangeTwoSided);
                     });
                 });
-            ps.Add(new PropertyRow(new Label("DOTS instancing")), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.dotsInstancing.isOn;
-                    toggle.OnToggleChanged(ChangeDotsInstancing);
-                });
-            });
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeWorkFlow(ChangeEvent<Enum> evt)
@@ -104,7 +97,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ChangeSpaceOfNormalDropOffMode(ChangeEvent<Enum> evt)
         {
-              if (Equals(m_Node.normalDropOffSpace, evt.newValue))
+            if (Equals(m_Node.normalDropOffSpace, evt.newValue))
                 return;
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Normal Space Drop-Off Mode Change");
@@ -117,14 +110,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             ToggleData td = m_Node.twoSided;
             td.isOn = evt.newValue;
             m_Node.twoSided = td;
-        }
-
-        void ChangeDotsInstancing(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("DotsInstancing Change");
-            ToggleData td = m_Node.dotsInstancing;
-            td.isOn = evt.newValue;
-            m_Node.dotsInstancing = td;
         }
     }
 }
