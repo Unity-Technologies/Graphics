@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where AO override would not override specular occlusion.
 - Fixed an issue where Volume inspector might not refresh correctly in some cases.
 - Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
-- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601) 
+- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601)
+- Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
