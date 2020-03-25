@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
         XrMaxViews = 1,
 #endif
-        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.MaterialPass,
+        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.Disabled,
         AreaLights = 1,
 
         DeferredShadowFiltering = HDShadowFilteringQuality.Medium,
