@@ -734,12 +734,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 return false;
 
-            var customPass = CustomPassVolume.GetActivePassVolume(injectionPoint);
+            bool executed = false;
+            foreach(var customPassVolume in CustomPassVolume.GetActivePassVolumes(injectionPoint))
+            {
+                if (customPassVolume == null)
+                    return false;
 
-            if (customPass == null)
-                return false;
+                executed |= customPassVolume.WillExecuteInjectionPoint(hdCamera);
+            }
 
-            return customPass.WillExecuteInjectionPoint(hdCamera);
+            return executed;
         }
 
         internal static bool PostProcessIsFinalPass(HDCamera hdCamera)

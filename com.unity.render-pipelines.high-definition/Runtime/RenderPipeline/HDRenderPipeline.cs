@@ -3592,20 +3592,23 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 return false;
 
-            var customPass = CustomPassVolume.GetActivePassVolume(injectionPoint);
-
-            if (customPass == null)
-                return false;
-
-            var customPassTargets = new CustomPass.RenderTargets
+            bool executed = false;
+            foreach (var customPass in CustomPassVolume.GetActivePassVolumes(injectionPoint))
             {
-                cameraColorMSAABuffer = m_CameraColorMSAABuffer,
-                cameraColorBuffer = (injectionPoint == CustomPassInjectionPoint.AfterPostProcess) ? m_IntermediateAfterPostProcessBuffer : m_CameraColorBuffer,
-                customColorBuffer = m_CustomPassColorBuffer,
-                customDepthBuffer = m_CustomPassDepthBuffer,
-            };
+                if (customPass == null)
+                    return false;
 
-            return customPass.Execute(context, cmd, hdCamera, cullingResults, m_SharedRTManager, customPassTargets);
+                var customPassTargets = new CustomPass.RenderTargets
+                {
+                    cameraColorMSAABuffer = m_CameraColorMSAABuffer,
+                    cameraColorBuffer = (injectionPoint == CustomPassInjectionPoint.AfterPostProcess) ? m_IntermediateAfterPostProcessBuffer : m_CameraColorBuffer,
+                    customColorBuffer = m_CustomPassColorBuffer,
+                    customDepthBuffer = m_CustomPassDepthBuffer,
+                };
+                executed |= customPass.Execute(context, cmd, hdCamera, cullingResults, m_SharedRTManager, customPassTargets);
+            }
+
+            return executed;
         }
 
         void RenderTransparentDepthPrepass(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
