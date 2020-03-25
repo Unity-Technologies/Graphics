@@ -410,7 +410,10 @@ namespace UnityEditor.Rendering
 
             if (attr.generateCBuffer)
             {
-                shaderText += "CBUFFER_START(" + type.Name + ")\n";
+                if (attr.constantRegister != -1)
+                    shaderText += "GLOBAL_CBUFFER_START(" + type.Name + ", b" + attr.constantRegister + ")\n";
+                else
+                    shaderText += "CBUFFER_START(" + type.Name + ")\n";
             }
             else if (!attr.omitStructDeclaration)
             {

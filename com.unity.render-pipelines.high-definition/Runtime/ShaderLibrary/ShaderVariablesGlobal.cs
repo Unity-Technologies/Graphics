@@ -1,5 +1,11 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // Global Constant Buffers - b registers. Unity supports a maximum of 16 global constant buffers.
+    enum ConstantRegister
+    {
+        Global = 0,
+    }
+
     // We need to keep the number of different constant buffers low.
     // Indeed, those are bound for every single drawcall so if we split things in various CB (lightloop, SSS, Fog, etc)
     // We multiply the number of CB we have to bind per drawcall.
@@ -15,7 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // - Base element size for array should be 4 components of 4 bytes (Vector4 or Vector4Int basically) otherwise the array will be interlaced with padding on shader side.
     // Try to keep data grouped by access and rendering system as much as possible (fog params or light params together for example).
     // => Don't move a float parameter away from where it belongs for filling a hole. Add padding in this case.
-    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.Global)]
     unsafe struct ShaderVariablesGlobal
     {
         public const int defaultLightLayers = 0xFF;
@@ -222,10 +228,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _CoarseStencilBufferSize;
 
-        // Uniform variables that defines if we should be using the raytraced indirect diffuse
-        public int      _RaytracedIndirectDiffuse;
+        public int      _RaytracedIndirectDiffuse; // Uniform variables that defines if we should be using the raytraced indirect diffuse
         public int      _UseRayTracedReflections;
-        public int      _RaytracingFrameIndex;
+        public int      _RaytracingFrameIndex;  // Index of the current frame [0, 7]
         public float    _Pad7;
     }
 }

@@ -12,7 +12,7 @@
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal
 // PackingRules = Exact
-CBUFFER_START(ShaderVariablesGlobal)
+GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4x4 _ViewMatrix;
     float4x4 _InvViewMatrix;
     float4x4 _ProjMatrix;
