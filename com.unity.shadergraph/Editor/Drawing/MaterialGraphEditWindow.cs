@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         GraphEditorView m_GraphEditorView;
-        GraphEditorView graphEditorView
+        internal GraphEditorView graphEditorView
         {
             get { return m_GraphEditorView; }
             private set
