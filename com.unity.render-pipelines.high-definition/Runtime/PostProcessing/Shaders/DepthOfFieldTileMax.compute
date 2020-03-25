@@ -4,10 +4,9 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel KClear
-#pragma kernel KMainNearFar     MAIN=KMainNearFar       NEAR FAR
-#pragma kernel KMainNear        MAIN=KMainNear          NEAR
-#pragma kernel KMainFar         MAIN=KMainFar           FAR
+#pragma kernel KMain
+#pragma multi_compile _ NEAR
+#pragma multi_compile _ FAR
 
 // Indirect arguments have to be in a RWBuffer
 // The first three uints are near threadgroups, the last three are far threadgroups
@@ -32,16 +31,8 @@ AppendStructuredBuffer<TileData> _FarTileList;
 groupshared float gs_cacheNear[TILE_SIZE * TILE_SIZE];
 groupshared float gs_cacheFar[TILE_SIZE * TILE_SIZE];
 
-[numthreads(2, 1, 1)]
-void KClear(uint dispatchThreadId : SV_DispatchThreadID)
-{
-    _IndirectBuffer[dispatchThreadId * 3    ] = 0; // ThreadGroupCountX
-    _IndirectBuffer[dispatchThreadId * 3 + 1] = 1; // ThreadGroupCountY
-    _IndirectBuffer[dispatchThreadId * 3 + 2] = 1; // ThreadGroupCountZ
-}
-
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
-void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID)
+void KMain(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID)
 {
     uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
 

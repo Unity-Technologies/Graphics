@@ -202,9 +202,7 @@ Pass
     $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
     $splice(GraphDefines)
 
-    #ifdef DEBUG_DISPLAY
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-    #else
+    #ifndef DEBUG_DISPLAY
         // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
         // Don't do it with debug display mode as it is possible there is no depth prepass in this case
         #if !defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ALPHATEST)
@@ -461,10 +459,6 @@ Pass
         float coatTextureFilteringVariance = 0.0;
         //$NormalTexturtextureFiltering: coatTextureFilteringVariance = DecodeVariance(surfaceDescription.CodedCoatNormalVarianceMeasure);
 
-        $Specular.AA: surfaceData.perceptualSmoothnessA = NormalFiltering(surfaceData.perceptualSmoothnessA, geometricVariance + textureFilteringVariance, surfaceDescription.SpecularAAThreshold);
-        $Specular.AA: surfaceData.perceptualSmoothnessB = NormalFiltering(surfaceData.perceptualSmoothnessB, geometricVariance + textureFilteringVariance, surfaceDescription.SpecularAAThreshold);
-        $Specular.AA: surfaceData.coatPerceptualSmoothness = NormalFiltering(surfaceData.coatPerceptualSmoothness, geometricVariance + coatTextureFilteringVariance, surfaceDescription.SpecularAAThreshold);
-
         #if defined(DEBUG_DISPLAY)
             if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
             {
@@ -475,6 +469,10 @@ Pass
             // as it can modify attributes used for static lighting
             ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
         #endif
+
+        $Specular.AA: surfaceData.perceptualSmoothnessA = NormalFiltering(surfaceData.perceptualSmoothnessA, geometricVariance + textureFilteringVariance, surfaceDescription.SpecularAAThreshold);
+        $Specular.AA: surfaceData.perceptualSmoothnessB = NormalFiltering(surfaceData.perceptualSmoothnessB, geometricVariance + textureFilteringVariance, surfaceDescription.SpecularAAThreshold);
+        $Specular.AA: surfaceData.coatPerceptualSmoothness = NormalFiltering(surfaceData.coatPerceptualSmoothness, geometricVariance + coatTextureFilteringVariance, surfaceDescription.SpecularAAThreshold);
     }
 
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
