@@ -5,28 +5,12 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel VolumetricLightingBruteforceMQ            VolumetricLighting=VolumetricLightingBruteforceMQ            LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
-#pragma kernel VolumetricLightingTiledMQ                 VolumetricLighting=VolumetricLightingTiledMQ                 ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
-#pragma kernel VolumetricLightingBruteforceReprojMQ      VolumetricLighting=VolumetricLightingBruteforceReprojMQ      LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
-#pragma kernel VolumetricLightingTiledReprojMQ           VolumetricLighting=VolumetricLightingTiledReprojMQ           ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
+#pragma kernel VolumetricLighting
 
-#pragma kernel VolumetricLightingBruteforceAnisoMQ       VolumetricLighting=VolumetricLightingBruteforceAnisoMQ       LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
-#pragma kernel VolumetricLightingTiledAnisoMQ            VolumetricLighting=VolumetricLightingTiledAnisoMQ            ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
-#pragma kernel VolumetricLightingBruteforceReprojAnisoMQ VolumetricLighting=VolumetricLightingBruteforceReprojAnisoMQ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
-#pragma kernel VolumetricLightingTiledReprojAnisoMQ      VolumetricLighting=VolumetricLightingTiledReprojAnisoMQ      ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
-
-#pragma kernel VolumetricLightingBruteforceHQ            VolumetricLighting=VolumetricLightingBruteforceHQ            LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
-#pragma kernel VolumetricLightingTiledHQ                 VolumetricLighting=VolumetricLightingTiledHQ                 ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
-#pragma kernel VolumetricLightingBruteforceReprojHQ      VolumetricLighting=VolumetricLightingBruteforceReprojHQ      LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
-#pragma kernel VolumetricLightingTiledReprojHQ           VolumetricLighting=VolumetricLightingTiledReprojHQ           ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
-
-#pragma kernel VolumetricLightingBruteforceAnisoHQ       VolumetricLighting=VolumetricLightingBruteforceAnisoHQ       LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
-#pragma kernel VolumetricLightingTiledAnisoHQ            VolumetricLighting=VolumetricLightingTiledAnisoHQ            ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
-#pragma kernel VolumetricLightingBruteforceReprojAnisoHQ VolumetricLighting=VolumetricLightingBruteforceReprojAnisoHQ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
-#pragma kernel VolumetricLightingTiledReprojAnisoHQ      VolumetricLighting=VolumetricLightingTiledReprojAnisoHQ      ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
-
-#pragma kernel FilterVolumetricLightingX FilterVolumetricLighting=FilterVolumetricLightingX LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_HQ
-#pragma kernel FilterVolumetricLightingY FilterVolumetricLighting=FilterVolumetricLightingY LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_HQ VERTICAL_PASS
+#pragma multi_compile _ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+#pragma multi_compile _ ENABLE_REPROJECTION
+#pragma multi_compile _ ENABLE_ANISOTROPY
+#pragma multi_compile VL_PRESET_MQ VL_PRESET_HQ
 
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     #define USE_BIG_TILE_LIGHTLIST
@@ -534,7 +518,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // https://en.wikipedia.org/wiki/Stochastic_universal_sampling
         float perPixelRandomOffset = GenerateHashedRandomFloat(posInput.positionSS);
 
-    #if ENABLE_REPROJECTION
+    #ifdef ENABLE_REPROJECTION
         // This is a time-based sequence of 7 equidistant numbers from 1/14 to 13/14.
         // Each of them is the centroid of the interval of length 2/14.
         float rndVal = frac(perPixelRandomOffset + _VBufferSampleOffset.z);
@@ -567,7 +551,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         }
         #endif
 
-    #if ENABLE_REPROJECTION
+    #ifdef ENABLE_REPROJECTION
         // Clamp here to prevent generation of NaNs.
         float4 voxelValue           = float4(aggregateLighting.radianceNoPhase, extinction * dt);
         float4 linearizedVoxelValue = LinearizeRGBD(voxelValue);
@@ -608,7 +592,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float4 linearizedBlendValue = normalizedBlendValue * dt;
         float4 blendValue = DelinearizeRGBD(linearizedBlendValue);
 
-    #if ENABLE_ANISOTROPY
+    #ifdef ENABLE_ANISOTROPY
         // Estimate the influence of the phase function on the results of the current frame.
         float3 phaseCurrFrame;
 
@@ -630,7 +614,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
     #else // ENABLE_REPROJECTION
 
-    #if ENABLE_ANISOTROPY
+    #ifdef ENABLE_ANISOTROPY
         float4 blendValue = float4(aggregateLighting.radianceComplete, extinction * dt);
     #else
         float4 blendValue = float4(aggregateLighting.radianceNoPhase,  extinction * dt);
@@ -641,7 +625,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Compute the transmittance from the camera to 't0'.
         float transmittance = TransmittanceFromOpticalDepth(opticalDepth);
 
-    #if ENABLE_ANISOTROPY
+    #ifdef ENABLE_ANISOTROPY
         float phase = _CornetteShanksConstant;
     #else
         float phase = IsotropicPhaseFunction();
@@ -714,7 +698,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     ray.xDirDerivWS = rightDirWS * (rcpLenRightDir * unitDistFaceSize); // Normalize & rescale
     ray.yDirDerivWS = cross(ray.xDirDerivWS, ray.centerDirWS); // Will have the length of 'unitDistFaceSize' by construction
 
-#if ENABLE_REPROJECTION
+#ifdef ENABLE_REPROJECTION
     ray.jitterDirWS = normalize(ray.centerDirWS + _VBufferSampleOffset.x * ray.xDirDerivWS
                                                 + _VBufferSampleOffset.y * ray.yDirDerivWS);
 #else
@@ -731,68 +715,4 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     ApplyCameraRelativeXR(ray.originWS);
 
     FillVolumetricLightingBuffer(context, featureFlags, posInput, tileIndex, ray);
-}
-
-#define SIGMA_FILTER 2.0
-
-float Gaussian(float radius, float sigma)
-{
-    float v = radius / sigma;
-    return exp(-(v*v));
-}
-
-[numthreads(GROUP_SIZE_1D, GROUP_SIZE_1D, 1)]
-void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
-                                uint2 groupId          : SV_GroupID,
-                                uint2 groupThreadId    : SV_GroupThreadID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    // Compute the coordinate that this thread needs to process
-    uint2 currentCoord  = groupId * GROUP_SIZE_1D + groupThreadId;
-
-    // Compute the half size of the slices, used to define the filtering radius
-    uint halfSliceCount = _VBufferSliceCount / 2;
-
-    // Loop through the slices that this thread needs to process
-    for (uint currentSlice = 0; currentSlice < _VBufferSliceCount; currentSlice++)
-    {
-        // Compute the output voxel coordinate
-        uint3 voxelCoord = uint3(currentCoord, currentSlice + _VBufferSliceCount * unity_StereoEyeIndex);
-
-        // Values used for accumulation
-        float sumW = 0.0;
-        float4 value = float4(0.0, 0.0, 0.0, 0.0);
-        #ifdef VERTICAL_PASS
-        int3 vec = int3(0, 1, 0);
-        #else
-        int3 vec = int3(1, 0, 0);
-        #endif
-
-        // Compute the radius for this slice
-        int radius =  currentSlice > halfSliceCount ? 2 : 1;
-        // Loop through the values required for our kernel
-        for (int idx = -radius; idx <= radius; ++idx)
-        {
-            // Compute the next tapping coordinate
-            int3 tapCoord = int3(voxelCoord.x, voxelCoord.y, voxelCoord.z) + vec * idx;
-            // Tap the value we should be tapping from
-            float4 currentValue = _VBufferLightingFeedback[tapCoord];
-            // Compute the weight for this tap
-            float weight = Gaussian(abs(idx), SIGMA_FILTER);
-
-            // If this is outside of the image, force the weight to 0
-            #ifdef VERTICAL_PASS
-            if (tapCoord.y < 0.0 || tapCoord.y >= _VBufferViewportSize.y) weight = 0;
-            #else
-            if (tapCoord.x < 0.0|| tapCoord.x >= _VBufferViewportSize.x) weight = 0;
-            #endif
-
-            // Accumulate the value and weight
-            value += currentValue * weight;
-            sumW += weight;
-        }
-        // Normalize and output
-        _VBufferLightingIntegral[voxelCoord] = value / sumW;
-    }
 }
