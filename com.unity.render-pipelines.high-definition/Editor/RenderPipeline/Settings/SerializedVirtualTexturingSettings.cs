@@ -8,17 +8,15 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public SerializedProperty root;
 
-        public SerializedProperty cpuCacheSizeInMegaBytes;
-        public SerializedProperty gpuCacheSizeInMegaBytes;
-        public SerializedProperty gpuCacheSizeOverridesStreaming;
+        public SerializedProperty streamingCpuCacheSizeInMegaBytes;
+        public SerializedProperty streamingGpuCacheSettings;
 
         public SerializedVirtualTexturingSettings(SerializedProperty root)
         {
             this.root = root;
 
-            cpuCacheSizeInMegaBytes = root.Find((VirtualTexturingSettingsSRP s) => s.cpuCacheSizeInMegaBytes);
-            gpuCacheSizeInMegaBytes = root.Find((VirtualTexturingSettingsSRP s) => s.gpuCacheSizeInMegaBytes);
-            gpuCacheSizeOverridesStreaming = root.Find((VirtualTexturingSettingsSRP s) => s.gpuCacheSizeOverridesStreaming);
+            streamingCpuCacheSizeInMegaBytes = root.Find((VirtualTexturingSettingsSRP s) => s.streamingCpuCacheSizeInMegaBytes);
+            streamingGpuCacheSettings = root.Find((VirtualTexturingSettingsSRP s) => s.streamingGpuCacheSettings);
         }
     }
 #endif

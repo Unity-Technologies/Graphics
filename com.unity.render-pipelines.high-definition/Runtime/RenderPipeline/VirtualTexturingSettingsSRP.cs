@@ -11,38 +11,8 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     public sealed class VirtualTexturingSettingsSRP
     {
-        public int cpuCacheSizeInMegaBytes = 256;
-        public int gpuCacheSizeInMegaBytes = 64;
-
-        // On the UI side we only expose the overrides used for streaming.
-        public List<VirtualTexturingGPUCacheSizeOverride> gpuCacheSizeOverridesStreaming = new List<VirtualTexturingGPUCacheSizeOverride>();
-
-        // Returns settings as passed to the Virtual Texturing API.
-        public VirtualTexturing.VirtualTexturingSettings GetSettings()
-        {
-            VirtualTexturing.VirtualTexturingSettings settings = new VirtualTexturing.VirtualTexturingSettings();
-
-            settings.cpuCache.sizeInMegaBytes = (uint) cpuCacheSizeInMegaBytes;
-
-            List<VirtualTexturingGPUCacheSizeOverride> overrides = new List<VirtualTexturingGPUCacheSizeOverride>();
-            overrides.AddRange(gpuCacheSizeOverridesStreaming);
-            settings.gpuCache.sizeOverrides = overrides.ToArray();
-
-            settings.gpuCache.sizeInMegaBytes = (uint) gpuCacheSizeInMegaBytes;
-
-            return settings;
-        }
-
-        public static UnityEngine.Rendering.VirtualTexturing.VirtualTexturingSettings Default
-        {
-            get
-            {
-                UnityEngine.Rendering.VirtualTexturing.VirtualTexturingSettings settings = new UnityEngine.Rendering.VirtualTexturing.VirtualTexturingSettings();
-                settings.cpuCache.sizeInMegaBytes = 64;
-                settings.gpuCache.sizeInMegaBytes = 256;
-                return settings;
-            }
-        }
+        public int streamingCpuCacheSizeInMegaBytes = 256;
+        public List<VirtualTexturingGpuCacheSetting> streamingGpuCacheSettings = new List<VirtualTexturingGpuCacheSetting>() { new VirtualTexturingGpuCacheSetting() { format = Experimental.Rendering.GraphicsFormat.None, sizeInMegaBytes = 128 } };
     }
 #endif
 }

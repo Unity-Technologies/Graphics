@@ -360,14 +360,13 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if ENABLE_VIRTUALTEXTURES
-            if (asset.virtualTexturingSettings != null)
-            {
-                VirtualTexturing.System.ApplyVirtualTexturingSettings(asset.virtualTexturingSettings.GetSettings());
-            }
-            else
-            {
-                VirtualTexturing.System.ApplyVirtualTexturingSettings(VirtualTexturingSettingsSRP.Default);
-            }
+            VirtualTexturingSettingsSRP settings = asset.virtualTexturingSettings;
+
+            if (settings == null)
+                settings = new VirtualTexturingSettingsSRP();
+
+            VirtualTexturing.System.SetCpuCacheSize(settings.streamingCpuCacheSizeInMegaBytes);
+            VirtualTexturing.System.SetGpuCacheSettings(settings.streamingGpuCacheSettings.ToArray());
 #endif
 
             // Initial state of the RTHandle system.
