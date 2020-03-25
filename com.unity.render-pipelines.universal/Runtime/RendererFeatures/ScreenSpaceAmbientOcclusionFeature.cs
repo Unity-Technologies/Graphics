@@ -25,25 +25,25 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         //DepthNormals
     }
 
-    public enum NormalReconstructionQuality
+    public enum QualityOptions
     {
-        Low,    // 1 Depth Sample
-        Medium, // 6 Depth Samples
-        High    // 9 Depth Samples
+        Low,
+        Medium,
+        High
     }
 
     // Classes
     [Serializable]
     public class Settings
     {
-        public Shader Shader;
-        public bool UseVolumes = false;
-        public DepthSource DepthSource = DepthSource.Depth;
-        public NormalReconstructionQuality NormalReconstructionQuality = NormalReconstructionQuality.Medium;
-        public bool DownScale = false;
-        public float Intensity = 2.0f;
-        public float Radius = 0.05f;
-        public int SampleCount = 10;
+        public Shader Shader                = null;
+        public bool UseVolumes              = false;
+        public DepthSource DepthSource      = DepthSource.Depth;
+        public QualityOptions NormalQuality = QualityOptions.Medium;
+        public bool DownScale               = false;
+        public float Intensity              = 0.0f;
+        public float Radius                 = 0.05f;
+        public int SampleCount              = 10;
 
     }
 
@@ -95,7 +95,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         private Settings m_FeatureSettings;
 
         // Constants
-        private const string SSAO_TEXTURE_NAME = "_ScreenSpaceAOTexture";
+        private const string SSAO_TEXTURE_NAME = "_ScreenSpaceAmbientOcclusionTexture";
         private static readonly int s_BaseMap = Shader.PropertyToID("_BaseMap");
         private static readonly int s_TempRenderTexture1ID = Shader.PropertyToID("_TempRenderTexture1");
         private static readonly int s_TempRenderTexture2ID = Shader.PropertyToID("_TempRenderTexture2");
@@ -136,17 +136,17 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             int sampleCount;
             float intensity;
             float radius;
-            NormalReconstructionQuality reconstructionQuality;
+            QualityOptions reconstructionQualityOptions;
 
             // Override the settings if there are either global volumes or local volumes near the camera
             ScreenSpaceAmbientOcclusionVolume volume = VolumeManager.instance.stack.GetComponent<ScreenSpaceAmbientOcclusionVolume>();
             if (m_FeatureSettings.UseVolumes && volume != null)
             {
-                radius = volume.radius.value;
-                downScale = volume.downSample.value;
-                intensity = volume.intensity.value;
-                sampleCount = volume.sampleCount.value;
-                reconstructionQuality = volume.normalReconstructionQuality.value;
+                radius = volume.Radius.value;
+                downScale = volume.DownScale.value;
+                intensity = volume.Intensity.value;
+                sampleCount = volume.SampleCount.value;
+                reconstructionQualityOptions = volume.NormalQuality.value;
                 //m_DepthSource = volume.depthSource.value;
             }
             else
@@ -155,7 +155,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 downScale = m_FeatureSettings.DownScale;
                 intensity = m_FeatureSettings.Intensity;
                 sampleCount = m_FeatureSettings.SampleCount;
-                reconstructionQuality = m_FeatureSettings.NormalReconstructionQuality;
+                reconstructionQualityOptions = m_FeatureSettings.NormalQuality;
                 //m_DepthSource = m_FeatureSettings.depthSource;
             }
 
@@ -173,15 +173,15 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             m_Material.DisableKeyword(NORMAL_RECONSTRUCTION_HIGH_KEYWORD);
             //if (m_DepthSource == DepthSource.Depth)
             {
-                switch (reconstructionQuality)
+                switch (reconstructionQualityOptions)
                 {
-                    case NormalReconstructionQuality.Low:
+                    case QualityOptions.Low:
                         m_Material.EnableKeyword(NORMAL_RECONSTRUCTION_LOW_KEYWORD);
                         break;
-                    case NormalReconstructionQuality.Medium:
+                    case QualityOptions.Medium:
                         m_Material.EnableKeyword(NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD);
                         break;
-                    case NormalReconstructionQuality.High:
+                    case QualityOptions.High:
                         m_Material.EnableKeyword(NORMAL_RECONSTRUCTION_HIGH_KEYWORD);
                         break;
                     default:

@@ -9,7 +9,7 @@
 TEXTURE2D_X(_BaseMap); SAMPLER(sampler_BaseMap);
 TEXTURE2D_X(_TempTarget); SAMPLER(sampler_TempTarget);
 TEXTURE2D_X(_TempTarget2); SAMPLER(sampler_TempTarget2);
-TEXTURE2D_X(_ScreenSpaceAOTexture); SAMPLER(sampler_ScreenSpaceAOTexture);
+TEXTURE2D_X(_ScreenSpaceAmbientOcclusionTexture); SAMPLER(sampler_ScreenSpaceAmbientOcclusionTexture);
 //TEXTURE2D(_CameraGBufferTexture2); SAMPLER(sampler_CameraGBufferTexture2);
 
 // SSAO Settings
@@ -301,6 +301,7 @@ float4 SSAO(Varyings input) : SV_Target
 // Geometry-aware separable bilateral filter
 float4 FragBlur(Varyings input) : SV_Target
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     float2 uv = input.uv;
 
     #if defined(BLUR_HORIZONTAL)
@@ -370,7 +371,7 @@ float4 FragBlur(Varyings input) : SV_Target
         half w2b = CompareNormal(n0, GetPackedNormal(p2b)) * 0.0702702703;
 
         half s;
-        s = GetPackedAO(p0)  * w0;
+        s  = GetPackedAO(p0)  * w0;
         s += GetPackedAO(p1a) * w1a;
         s += GetPackedAO(p1b) * w1b;
         s += GetPackedAO(p2a) * w2a;
@@ -401,7 +402,7 @@ half BlurSmall(TEXTURE2D_PARAM(tex, samp), float2 uv, float2 delta)
     half w4 = CompareNormal(n0, GetPackedNormal(p4));
 
     half s;
-    s = GetPackedAO(p0) * w0;
+    s  = GetPackedAO(p0) * w0;
     s += GetPackedAO(p1) * w1;
     s += GetPackedAO(p2) * w2;
     s += GetPackedAO(p3) * w3;
@@ -413,6 +414,7 @@ half BlurSmall(TEXTURE2D_PARAM(tex, samp), float2 uv, float2 delta)
 // Final composition shader
 float4 FragComposition(Varyings input) : SV_Target
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     float2 uv = input.uv;
 
     float2 delta = (GetScreenParams().zw - 1.0) / DOWNSAMPLE;
@@ -431,7 +433,7 @@ float4 FragComposition(Varyings input) : SV_Target
     CompositionOutput FragCompositionGBuffer(Varyings i)
     {
         float2 delta = (GetScreenParams().zw - 1.0) / DOWNSAMPLE;
-        half ao = BlurSmall(TEXTURE2D_ARGS(_ScreenSpaceAOTexture, sampler_ScreenSpaceAOTexture), i.uv.xy, delta);
+        half ao = BlurSmall(TEXTURE2D_ARGS(_ScreenSpaceAmbientOcclusionTexture, sampler_ScreenSpaceAmbientOcclusionTexture), i.uv.xy, delta);
 
         CompositionOutput o;
         o.gbuffer0 = half4(0.0, 0.0, 0.0, ao);

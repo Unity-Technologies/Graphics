@@ -32,7 +32,8 @@
 #endif
 
 #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
-TEXTURE2D(_ScreenSpaceAOTexture); SAMPLER(sampler_ScreenSpaceAOTexture);
+TEXTURE2D_X(_ScreenSpaceAmbientOcclusionTexture);
+SAMPLER(sampler_ScreenSpaceAmbientOcclusionTexture);
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -371,13 +372,9 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 // Samples the Ambient Occlusion texture
 half SampleAmbientOcclusion(half3 positionCS)
 {
-#if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    positionCS.x *= 0.50;
-#endif
-
-
 #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
-    return SAMPLE_TEXTURE2D(_ScreenSpaceAOTexture, sampler_ScreenSpaceAOTexture, positionCS.xy * (GetScreenParams().zw - 1.0)).x;
+    float2 uv = UnityStereoTransformScreenSpaceTex(positionCS.xy * (GetScreenParams().zw - 1.0));
+    return SAMPLE_TEXTURE2D(_ScreenSpaceAmbientOcclusionTexture, sampler_ScreenSpaceAmbientOcclusionTexture, uv).x;
 #endif
 
     return 1.0;

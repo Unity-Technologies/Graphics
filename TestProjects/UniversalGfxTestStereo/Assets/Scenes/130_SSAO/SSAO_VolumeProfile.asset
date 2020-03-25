@@ -1,5 +1,40 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-6873141326034612746
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64207e0258cd4497a9c5a74224bf66f0, type: 3}
+  m_Name: ScreenSpaceAmbientOcclusionVolume
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  DownScale:
+    m_OverrideState: 0
+    m_Value: 0
+  SampleCount:
+    m_OverrideState: 0
+    m_Value: 10
+    min: 2
+    max: 32
+  Intensity:
+    m_OverrideState: 1
+    m_Value: 10
+    min: 0
+    max: 10
+  Radius:
+    m_OverrideState: 0
+    m_Value: 0.05
+    min: 0.001
+    max: 10
+  NormalQuality:
+    m_OverrideState: 0
+    m_Value: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12,7 +47,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
   m_Name: SSAO_VolumeProfile
   m_EditorClassIdentifier: 
-  components: []
+  components:
+  - {fileID: -6873141326034612746}
 --- !u!114 &499369269818499701
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -27,24 +63,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
-  downSample:
+  DownScale:
     m_OverrideState: 0
     m_Value: 0
-  sampleCount:
-    m_OverrideState: 1
-    m_Value: 27
+  SampleCount:
+    m_OverrideState: 0
+    m_Value: 10
     min: 2
     max: 32
-  intensity:
-    m_OverrideState: 1
-    m_Value: 2
+  Intensity:
+    m_OverrideState: 0
+    m_Value: 0
     min: 0
-    max: 2
-  radius:
-    m_OverrideState: 1
-    m_Value: 1
+    max: 10
+  Radius:
+    m_OverrideState: 0
+    m_Value: 0.05
     min: 0.001
-    max: 1
+    max: 10
+  NormalQuality:
+    m_OverrideState: 0
+    m_Value: 1
 --- !u!114 &7502819906769272846
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -59,21 +98,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
-  downSample:
+  DownScale:
     m_OverrideState: 0
     m_Value: 0
-  sampleCount:
+  SampleCount:
     m_OverrideState: 0
     m_Value: 10
     min: 2
     max: 32
-  intensity:
+  Intensity:
     m_OverrideState: 0
-    m_Value: 1
+    m_Value: 0
     min: 0
     max: 10
-  radius:
+  Radius:
     m_OverrideState: 0
     m_Value: 0.05
     min: 0.001
-    max: 1
+    max: 10
+  NormalQuality:
+    m_OverrideState: 0
+    m_Value: 1

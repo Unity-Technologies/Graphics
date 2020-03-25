@@ -16,18 +16,18 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent Shader = new GUIContent("Shader", "");
             public static GUIContent UseVolumes = new GUIContent("Use Volumes", "");
             //public static GUIContent DepthSource = new GUIContent("Depth Source", "");
-            public static GUIContent NormalRenconstructionQuality = new GUIContent("Normal Reconstruction Quality", "");
+            public static GUIContent NormalQuality = new GUIContent("Normal Quality", "");
             public static GUIContent Intensity = new GUIContent("Intensity", "");
             public static GUIContent Radius = new GUIContent("Radius", "");
             public static GUIContent SampleCount = new GUIContent("Sample Count", "");
-            public static GUIContent DownScale = new GUIContent("Downscale", "");
+            public static GUIContent DownScale = new GUIContent("Down Scale", "");
         }
 
         // Serialized Properties
         private SerializedProperty m_Shader;
         private SerializedProperty m_UseVolumes;
         //private SerializedProperty m_DepthSource;
-        private SerializedProperty m_NormalReconstructionQuality;
+        private SerializedProperty m_NormalQuality;
         private SerializedProperty m_Intensity;
         private SerializedProperty m_Radius;
         private SerializedProperty m_DownScale;
@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_Shader = property.FindPropertyRelative("Shader");
             m_UseVolumes = property.FindPropertyRelative("UseVolumes");
             //m_DepthSource = property.FindPropertyRelative("DepthSource");
-            m_NormalReconstructionQuality = property.FindPropertyRelative("NormalReconstructionQuality");
+            m_NormalQuality = property.FindPropertyRelative("NormalQuality");
             m_Intensity = property.FindPropertyRelative("Intensity");
             m_Radius = property.FindPropertyRelative("Radius");
             m_DownScale = property.FindPropertyRelative("DownScale");
@@ -89,7 +89,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
                 //if (m_DepthSource == DepthSource.Depth)
                 {
-                    EditorGUI.PropertyField(rect, m_NormalReconstructionQuality, Styles.NormalRenconstructionQuality);
+                    EditorGUI.PropertyField(rect, m_NormalQuality, Styles.NormalQuality);
                     rect.y += Styles.defaultLineSpace;
                 }
 
