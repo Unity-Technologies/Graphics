@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Utilities;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -49,6 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             /// <summary>Utility matrix (used by sky) to map screen position to WS view direction.</summary>
             public Matrix4x4 pixelCoordToViewDirWS;
+
+            // We need this to track the previous VP matrix with camera translation excluded. Internal since it is used only in its "previous" form
+            internal Matrix4x4 viewProjectionNoCameraTrans;
 
             /// <summary>World Space camera position.</summary>
             public Vector3 worldSpaceCameraPos;
@@ -340,6 +342,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return antialiasing == AntialiasingMode.TemporalAntialiasing;
         }
 
+        internal bool IsSSREnabled()
+        {
+            var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
+            return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value;
+        }
+
+        internal bool IsTransparentSSREnabled()
+        {
+            var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
+            return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
+        }
+
         internal bool IsVolumetricReprojectionEnabled()
         {
             bool a = Fog.IsVolumetricFogEnabled(this);
@@ -389,7 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdrp.ReinitializeVolumetricBufferParams(this);
 
                 bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
-                bool isHistoryColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing;
+                bool isHistoryColorPyramidRequired = IsSSREnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 
                 int numColorPyramidBuffersRequired = 0;
@@ -592,12 +606,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
 
-            // TODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
+            // XRTODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
             if (true)
             {
                 cmd.SetGlobalInt(HDShaderIDs._XRViewCount, viewCount);
 
                 // Convert AoS to SoA for GPU constant buffer until we can use StructuredBuffer via command buffer
+                // XRTODO: use the new API and remove this code
                 for (int i = 0; i < viewCount; i++)
                 {
                     m_XRViewMatrix[i] = m_XRViewConstants[i].viewMatrix;
@@ -678,14 +693,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class ExecuteCaptureActionsPassData
         {
-            public RenderGraphResource input;
-            public RenderGraphMutableResource tempTexture;
+            public TextureHandle input;
+            public TextureHandle tempTexture;
             public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> recorderCaptureActions;
             public Vector2 viewportScale;
             public Material blitMaterial;
         }
 
-        internal void ExecuteCaptureActions(RenderGraph renderGraph, RenderGraphResource input)
+        internal void ExecuteCaptureActions(RenderGraph renderGraph, TextureHandle input)
         {
             if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
                 return;
@@ -935,6 +950,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             var gpuVP = gpuNonJitteredProj * gpuView;
+            Matrix4x4 noTransViewMatrix = gpuView;
+            if (ShaderConfig.s_CameraRelativeRendering == 0)
+            {
+                // In case we are not camera relative, gpuView contains the camera translation component at this stage, so we need to remove it.
+                noTransViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
+
+            }
+            var gpuVPNoTrans = gpuNonJitteredProj * noTransViewMatrix;
 
             // A camera can be rendered multiple times in a single frame with different resolution/fov that would change the projection matrix
             // In this case we need to update previous rendering information.
@@ -947,12 +970,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     viewConstants.prevWorldSpaceCameraPos = cameraPosition;
                     viewConstants.prevViewProjMatrix = gpuVP;
                     viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
+                    viewConstants.prevViewProjMatrixNoCameraTrans = gpuVPNoTrans;
                 }
                 else
                 {
                     viewConstants.prevWorldSpaceCameraPos = viewConstants.worldSpaceCameraPos;
                     viewConstants.prevViewProjMatrix = viewConstants.nonJitteredViewProjMatrix;
-                    viewConstants.prevViewProjMatrixNoCameraTrans = viewConstants.prevViewProjMatrix;
+                    viewConstants.prevViewProjMatrixNoCameraTrans = viewConstants.viewProjectionNoCameraTrans;
                 }
             }
 
@@ -965,6 +989,7 @@ namespace UnityEngine.Rendering.HighDefinition
             viewConstants.nonJitteredViewProjMatrix = gpuNonJitteredProj * gpuView;
             viewConstants.worldSpaceCameraPos = cameraPosition;
             viewConstants.worldSpaceCameraPosViewOffset = Vector3.zero;
+            viewConstants.viewProjectionNoCameraTrans = gpuVPNoTrans;
 
             var gpuProjAspect = HDUtils.ProjectionMatrixAspect(gpuProj);
             viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize, gpuProjAspect);
@@ -975,12 +1000,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 viewConstants.prevWorldSpaceCameraPos -= viewConstants.worldSpaceCameraPos; // Make it relative w.r.t. the curr cam pos
                 viewConstants.prevViewProjMatrix *= Matrix4x4.Translate(cameraDisplacement); // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
                 viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
-            }
-            else
-            {
-                Matrix4x4 noTransViewMatrix = viewMatrix;
-                noTransViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
-                viewConstants.prevViewProjMatrixNoCameraTrans = gpuNonJitteredProj * noTransViewMatrix;
             }
         }
 
@@ -1106,8 +1125,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
-            // Do not add extra jitter in VR (micro-variations from head tracking are enough)
-            if (xr.enabled)
+            // Do not add extra jitter in VR unless requested (micro-variations from head tracking are usually enough)
+            if (xr.enabled && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter)
             {
                 taaJitter = Vector4.zero;
                 return origProj;

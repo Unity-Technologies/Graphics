@@ -11,7 +11,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class HairSettingsView : VisualElement
+    class HairSettingsView : MasterNodeSettingsView
     {
         HairMasterNode m_Node;
 
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
-        public HairSettingsView(HairMasterNode node)
+        public HairSettingsView(HairMasterNode node) : base(node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
@@ -247,15 +247,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("DOTS instancing", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.dotsInstancing.isOn;
-                    toggle.OnToggleChanged(ChangeDotsInstancing);
-                });
-            });
-
             ps.Add(new PropertyRow(CreateLabel("Support LOD CrossFade", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
@@ -266,6 +257,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             });
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeSurfaceType(ChangeEvent<Enum> evt)
@@ -462,14 +454,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
             m_Node.zTest = (CompareFunction)evt.newValue;
-        }
-
-        void ChangeDotsInstancing(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("DotsInstancing Change");
-            ToggleData td = m_Node.dotsInstancing;
-            td.isOn = evt.newValue;
-            m_Node.dotsInstancing = td;
         }
 
         void ChangeSupportLODCrossFade(ChangeEvent<bool> evt)

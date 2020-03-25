@@ -449,6 +449,42 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static string GetCorePath()
             => "Packages/com.unity.render-pipelines.core/";
 
+        // It returns the previously set RenderPipelineAsset, assetWasFromQuality is true if the current asset was set through the quality settings
+        internal static RenderPipelineAsset SwitchToBuiltinRenderPipeline(out bool assetWasFromQuality)
+        {
+            var graphicSettingAsset = GraphicsSettings.renderPipelineAsset;
+            assetWasFromQuality = false;
+            if (graphicSettingAsset != null)
+            {
+                // Check if the currently used pipeline is the one from graphics settings
+                if (GraphicsSettings.currentRenderPipeline == graphicSettingAsset)
+                {
+                    GraphicsSettings.renderPipelineAsset = null;
+                    return graphicSettingAsset;
+                }
+            }
+            // If we are here, it means the asset comes from quality settings
+            var assetFromQuality = QualitySettings.renderPipeline;
+            QualitySettings.renderPipeline = null;
+            assetWasFromQuality = true;
+            return assetFromQuality;
+        }
+
+        // Set the renderPipelineAsset, either on the quality settings if it was unset from there or in GraphicsSettings.
+        // IMPORTANT: RenderPipelineManager.currentPipeline won't be HDRP until a camera.Render() call is made. 
+        internal static void RestoreRenderPipelineAsset(bool wasUnsetFromQuality, RenderPipelineAsset renderPipelineAsset)
+        {
+            if(wasUnsetFromQuality)
+            {
+                QualitySettings.renderPipeline = renderPipelineAsset;
+            }
+            else
+            {
+                GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
+            }
+
+        }
+
         internal struct PackedMipChainInfo
         {
             public Vector2Int textureSize;
@@ -693,12 +729,25 @@ namespace UnityEngine.Rendering.HighDefinition
             return distanceFade * weight;
         }
 
-        internal static bool PostProcessIsFinalPass()
+        internal static bool WillCustomPassBeExecuted(HDCamera hdCamera, CustomPassInjectionPoint injectionPoint)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
+                return false;
+
+            var customPass = CustomPassVolume.GetActivePassVolume(injectionPoint);
+
+            if (customPass == null)
+                return false;
+
+            return customPass.WillExecuteInjectionPoint(hdCamera);
+        }
+
+        internal static bool PostProcessIsFinalPass(HDCamera hdCamera)
         {
             // Post process pass is the final blit only when not in developer mode.
             // In developer mode, we support a range of debug rendering that needs to occur after post processes.
             // In order to simplify writing them, we don't Y-flip in the post process pass but add a final blit at the end of the frame.
-            return !Debug.isDebugBuild;
+            return !Debug.isDebugBuild && !WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess);
         }
 
         // These two convertion functions are used to store GUID assets inside materials,
@@ -943,12 +992,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
-            DisplayUnsupportedMessage(msg);
-        }
-
-        internal static void DisplayUnsupportedXRMessage()
-        {
-            string msg = "AR/VR devices are not supported, no rendering will occur";
             DisplayUnsupportedMessage(msg);
         }
     }

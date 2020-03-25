@@ -5,9 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal struct ShadowResult
     {
-        public RenderGraphResource punctualShadowResult;
-        public RenderGraphResource directionalShadowResult;
-        public RenderGraphResource areaShadowResult;
+        public TextureHandle punctualShadowResult;
+        public TextureHandle directionalShadowResult;
+        public TextureHandle areaShadowResult;
     }
 
     partial class HDShadowManager
@@ -45,25 +45,25 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         class RenderShadowsPassData
         {
-            public RenderGraphMutableResource atlasTexture;
-            public RenderGraphMutableResource momentAtlasTexture1;
-            public RenderGraphMutableResource momentAtlasTexture2;
-            public RenderGraphMutableResource intermediateSummedAreaTexture;
-            public RenderGraphMutableResource summedAreaTexture;
+            public TextureHandle atlasTexture;
+            public TextureHandle momentAtlasTexture1;
+            public TextureHandle momentAtlasTexture2;
+            public TextureHandle intermediateSummedAreaTexture;
+            public TextureHandle summedAreaTexture;
 
             public RenderShadowsParameters parameters;
             public ShadowDrawingSettings shadowDrawSettings;
         }
 
-        RenderGraphMutableResource AllocateMomentAtlas(RenderGraph renderGraph, string name, int shaderID = 0)
+        TextureHandle AllocateMomentAtlas(RenderGraph renderGraph, string name, int shaderID = 0)
         {
             return renderGraph.CreateTexture(new TextureDesc(width / 2, height / 2)
                     { colorFormat = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true }, shaderID);
         }
 
-        internal RenderGraphResource RenderShadows(RenderGraph renderGraph, CullingResults cullResults, FrameSettings frameSettings, string shadowPassName)
+        internal TextureHandle RenderShadows(RenderGraph renderGraph, CullingResults cullResults, FrameSettings frameSettings, string shadowPassName)
         {
-            RenderGraphResource result = new RenderGraphResource();
+            TextureHandle result = new TextureHandle();
 
             if (m_ShadowRequests.Count == 0)
                 return result;

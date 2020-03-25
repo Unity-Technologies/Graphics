@@ -13,13 +13,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now use the right-click context menu to set the precision on multiple selected nodes.
 - When you start the Editor, Shader Graph now displays Properties in the Blackboard as collapsed.
 - Updated the zoom level to let you zoom in further.
+- Blackboard properties now have a __Duplicate__ menu option. When you duplicate properties, Shader Graph maintains the order, and inserts duplicates below the current selection.
+- When you convert a node to a Sub Graph, the dialog now opens up in the directory of the original graph that contained the node. If the new Sub Graph is outside this directory, it also remembers that path for the next dialog to ease folder navigation.
 - If Unity Editor Analytics are enabled, Shader Graph collects anonymous data about which nodes you use in your graphs. This helps the Shader Graph team focus our efforts on the most common graph scenarios, and better understand the needs of our customers. We don't track edge data and cannot recreate your graphs in any form.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
+- When a Shader Graph or Sub Graph Asset associated with a open window has been deleted, Unity now displays a dialog that asks whether you would like to save the graph as a new Asset or close the window.
 - Added a drop-down menu to the PBR Master Node that lets you select the final coordinate space of normals delivered from the fragment function. 
 - Added support for users to drag and drop Blackboard Properties from one graph to another.
+- Breaking out GraphData validation into clearer steps.
+- Added AlphaToMask render state.
+- Added a field to the Master Nodes that overrides the generated shader's ShaderGUI, which determines how a Material that uses a Shader Graph looks.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
+- Copied nodes are now pasted at the cursor location instead of slightly offset from their original location
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -38,10 +45,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added StencilOverride support.
 - Sticky Notes can now be grouped properly.
 - Fixed an issue where nodes couldn't be copied from a group.
+- Fixed a bug that occurred when you duplicated multiple Blackboard properties or keywords simultaneously, where Shader Graph stopped working, potentially causing data loss.
+- Fixed a bug where you couldn't reorder Blackboard properties.
+- Shader Graph now properly duplicates the __Exposed__ status for Shader properties and keywords.
+- Fixed a bug where the __Save Graph As__ dialog for a Shader or Sub Graph sometimes appeared in the wrong Project when you had multiple Unity Projects open simultaneously.
 - Fixed an issue where adding the first output to a Sub Graph without any outputs prior caused Shader Graphs containing the Sub Graph to break.
 - Fixed an issue where Shader Graph shaders using the `CameraNode` failed to build on PS4 with "incompatible argument list for call to 'mul'".
 - Fixed a bug that caused problems with Blackboard property ordering.
 - Fixed a bug where the redo functionality in Shader Graph often didn't work.
+- Fixed a bug where using the Save As command on a Sub Graph raised an exception.
+- Fixed a bug where the input fields sometimes didn't render properly. [1176268](https://issuetracker.unity3d.com/issues/shadergraph-input-fields-get-cut-off-after-minimizing-and-maximizing-become-unusable)
 - Fixed a bug where the Gradient property didn't work with all system locales. [1140924](https://issuetracker.unity3d.com/issues/shader-graph-shader-doesnt-compile-when-using-a-gradient-property-and-a-regional-format-with-comma-decimal-separator-is-used)
 - Fixed a bug where Properties in the Blackboard could have duplicate names.
 - Fixed a bug where you could drag the Blackboard into a graph even when you disabled the Blackboard.
@@ -53,11 +66,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where boolean keywords in a Shader Graph caused HDRP Material features to fail. [1204827](https://issuetracker.unity3d.com/issues/hdrp-shadergraph-adding-a-boolean-keyword-to-an-hdrp-lit-shader-makes-material-features-not-work)
 - Fixed a bug where Object space normals scaled with Object Scale. 
 - Documentation links on nodes now point to the correct URLs and package versions.
+- Fixed an issue where Sub Graphs sometimes had duplicate names when you converted nodes into Sub Graphs. 
+- Fixed an issue where the number of ports on Keyword nodes didn't update when you added or removed Enum Keyword entries.
+- Fixed an issue where colors in graphs didn't update when you changed a Blackboard Property's precision while the Color Mode is set to Precision.
+- Fixed a bug where custom mesh in the Master Preview didn't work.
 - Fixed a number of memory leaks that caused Shader Graph assets to stay in memory after closing the Shader Graph window.
 - You can now smoothly edit controls on the `Dielectric Specular` node.
 - Fixed Blackboard Properties to support scientific notation.
 - Fixed a bug where the error `Output value 'vert' is not initialized` displayed on all PBR graphs in Universal. [1210710](https://issuetracker.unity3d.com/issues/output-value-vert-is-not-completely-initialized-error-is-thrown-when-pbr-graph-is-created-using-urp)
 - Fixed a bug where PBR and Unlit master nodes in Universal had Alpha Clipping enabled by default.
+- Fixed an issue in where analytics wasn't always working.
+- Fixed a bug where if a user had a Blackboard Property Reference start with a digit the generated shader would be broken.
+- Avoid unintended behavior by removing the ability to create presets from Shader Graph (and Sub Graph) assets. [1220914](https://issuetracker.unity3d.com/issues/shadergraph-preset-unable-to-open-editor-when-clicking-on-open-shader-editor-in-the-shadersubgraphimporter)
+- Fixed a bug where undo would make the Master Preview visible regardless of its toggle status.
+- Fixed a bug where any change to the PBR master node settings would lose connection to the normal slot. 
+- Fixed a bug where the user couldn't open up HDRP Master Node Shader Graphs without the Render Pipeline set to HDRP.
+- Fixed a bug where adding a HDRP Master Node to a Shader Graph would softlock the Shader Graph.
+- Fixed a bug where shaders fail to compile due to `#pragma target` generation when your system locale uses commas instead of periods.
+- Fixed a compilation error when using Hybrid Renderer due to incorrect positioning of macros.
+- Fixed a bug with the `Transform` node where converting from `Absolute World` space in a sub graph causes invalid subscript errors. [1190813](https://issuetracker.unity3d.com/issues/shadergraph-invalid-subscript-errors-are-thrown-when-connecting-a-subgraph-with-transform-node-with-unlit-master-node)
 
 ## [7.1.1] - 2019-09-05
 ### Added

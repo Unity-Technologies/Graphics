@@ -3,8 +3,9 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel KMain        MAIN=KMain
-#pragma kernel KMainAlpha   MAIN=KMainAlpha         ENABLE_ALPHA
+#pragma kernel KMain
+
+#pragma multi_compile _ ENABLE_ALPHA
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
@@ -21,7 +22,7 @@ CBUFFER_END
 #define GROUP_SIZE 8
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
+void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
