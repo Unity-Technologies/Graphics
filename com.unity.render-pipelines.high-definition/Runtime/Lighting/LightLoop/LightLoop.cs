@@ -1552,31 +1552,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList.lights.Add(lightData);
         }
 
-        Vector3 TMP_MULTIPLY(Matrix4x4 worldToView, Vector3 positionWS)
-        {
-            return worldToView.MultiplyPoint(positionWS);
-        }
-
-        Matrix4x4 MatrixMultiply(Matrix4x4 worldToView, Matrix4x4 lightToWorld)
-        {
-            return worldToView * lightToWorld;
-        }
-
-        void GetAxisA(Matrix4x4 worldToView, Matrix4x4 lightToWorld, out Vector3 xAxisVS, out Vector3 yAxisVS, out Vector3 zAxisVS)
-        {
-            Matrix4x4 lightToView = MatrixMultiply(worldToView, lightToWorld);
-            xAxisVS = lightToView.GetColumn(0);
-            yAxisVS = lightToView.GetColumn(1);
-            zAxisVS = lightToView.GetColumn(2);
-        }
-
-        void GetAxisB(Matrix4x4 worldToView, Matrix4x4 lightToWorld, out Vector3 xAxisVS, out Vector3 yAxisVS, out Vector3 zAxisVS)
-        {
-            xAxisVS = worldToView.MultiplyVector(lightToWorld.GetColumn(0));
-            yAxisVS = worldToView.MultiplyVector(lightToWorld.GetColumn(1));
-            zAxisVS = worldToView.MultiplyVector(lightToWorld.GetColumn(2));
-        }
-
         // TODO: we should be able to do this calculation only with LightData without VisibleLight light, but for now pass both
         void GetLightVolumeDataAndBound(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
             VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView, int viewIndex)
@@ -1585,7 +1560,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var range = lightDimensions.z;
             var lightToWorld = light.localToWorldMatrix;
             Vector3 positionWS = lightData.positionRWS;
-            Vector3 positionVS = TMP_MULTIPLY(worldToView, positionWS);
+            Vector3 positionVS = worldToView.MultiplyPoint(positionWS);
 
             Vector3 xAxisVS = worldToView.MultiplyVector(lightToWorld.GetColumn(0));
             Vector3 yAxisVS = worldToView.MultiplyVector(lightToWorld.GetColumn(1));
@@ -2251,9 +2226,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // The lightLoop is in charge, not the shadow pass.
             // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
 
-            // Determine non-per light data
+            // Determine data that is light independent
             int viewCount = hdCamera.viewCount;
-            var worldToMatrices = GetWorldToViewMatrices(hdCamera, viewCount);
+            List<Matrix4x4> worldToMatrices = new List<Matrix4x4>(viewCount);
+            for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
+            {
+                worldToMatrices.Add(GetWorldToViewMatrix(hdCamera, viewIndex));
+            }
             BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset);
 
             // 2. Go through all lights, convert them to GPU format.
