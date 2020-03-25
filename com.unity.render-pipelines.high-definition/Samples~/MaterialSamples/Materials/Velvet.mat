@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Velvet
   m_Shader: {fileID: 4800000, guid: e816bb13b8cf2944599acc993048a906, type: 3}
-  m_ShaderKeywords: _DISABLE_SSR _DOUBLESIDED_ON
+  m_ShaderKeywords: _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 1
@@ -199,6 +199,7 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _ReceivesSSR: 0
+    - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
     - _RequireSplitLighting: 1
     - _SSRefractionProjectionModel: 0
@@ -231,7 +232,7 @@ Material:
     - _Thickness: 1
     - _ThicknessMultiplier: 1
     - _ThreadAOStrength01: 0
-    - _ThreadNormalStrength: 0.241
+    - _ThreadNormalStrength: 0
     - _ThreadSmoothnessScale: 0
     - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
@@ -253,9 +254,9 @@ Material:
     - _ZWrite: 1
     - _useThreadMap: 0
     m_Colors:
-    - _BaseColor: {r: 0.027450982, g: 0.003921569, b: 0.007843138, a: 1}
+    - _BaseColor: {r: 0.156, g: 0.022285713, b: 0.04457147, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.027450982, g: 0.003921569, b: 0.007843138, a: 1}
+    - _Color: {r: 0.15599996, g: 0.022285713, b: 0.044571444, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}

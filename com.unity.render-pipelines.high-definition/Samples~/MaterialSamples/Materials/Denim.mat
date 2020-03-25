@@ -7,13 +7,13 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Linen
+  m_Name: Denim
   m_Shader: {fileID: 4800000, guid: e816bb13b8cf2944599acc993048a906, type: 3}
   m_ShaderKeywords: _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 1
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2000
   stringTagMap:
     MotionVector: User
   disabledShaderPasses:
@@ -55,7 +55,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FuzzMap:
-        m_Texture: {fileID: 2800000, guid: 46d2baa7dbdc17345a1851e9866cae69, type: 3}
+        m_Texture: {fileID: 2800000, guid: 7f873702d03bf8c498d3273363602a76, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _HeightMap:
@@ -107,7 +107,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ThreadMap:
-        m_Texture: {fileID: 2800000, guid: 96621ef40ef616245b8e7ccbe29c8847, type: 3}
+        m_Texture: {fileID: 2800000, guid: 4e90328c1b67ed844985e5f97b7e7e26, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TransmittanceColorMap:
@@ -137,7 +137,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
-    - _DiffusionProfileHash: 2.7485805
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -170,8 +170,8 @@ Material:
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _EnergyConservingSpecularColor: 1
-    - _FuzzMapUVScale: 0.1
-    - _FuzzStrength: 0.06
+    - _FuzzMapUVScale: 0.7
+    - _FuzzStrength: 0.046
     - _HdrpVersion: 2
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
@@ -206,7 +206,7 @@ Material:
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 0.5
-    - _SmoothnessMax: 0.461
+    - _SmoothnessMax: 0.443
     - _SmoothnessMin: 0
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
@@ -231,9 +231,9 @@ Material:
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
-    - _ThreadAOStrength01: 1
-    - _ThreadNormalStrength: 1
-    - _ThreadSmoothnessScale: 0.046
+    - _ThreadAOStrength01: 0.325
+    - _ThreadNormalStrength: 1.955
+    - _ThreadSmoothnessScale: 0.097
     - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
@@ -254,10 +254,10 @@ Material:
     - _ZWrite: 1
     - _useThreadMap: 1
     m_Colors:
-    - _BaseColor: {r: 0.688, g: 0.6365376, b: 0.57104003, a: 1}
+    - _BaseColor: {r: 0.22694911, g: 0.38066933, b: 0.5660378, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.688, g: 0.6365376, b: 0.57104003, a: 1}
-    - _DiffusionProfileAsset: {r: -1.415065e+35, g: 8.5898663e-17, b: -5.2136603e+35, a: 8.070834e-22}
+    - _Color: {r: 0.22694907, g: 0.3806693, b: 0.5660378, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
@@ -273,7 +273,7 @@ Material:
     - _uvBaseMask: {r: 1, g: 0, b: 0, a: 0}
     - _uvBaseST: {r: 1, g: 1, b: 0, a: 0}
     - _uvThreadMask: {r: 1, g: 0, b: 0, a: 0}
-    - _uvThreadST: {r: 60, g: 60, b: 0, a: 0}
+    - _uvThreadST: {r: 20, g: 20, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &3775346471072160633
 MonoBehaviour:
