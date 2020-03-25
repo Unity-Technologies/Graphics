@@ -1,7 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Rendering;
+using UnityEditor.Rendering;
+using Utilities;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
