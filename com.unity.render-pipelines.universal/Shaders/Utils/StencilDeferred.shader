@@ -138,7 +138,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
         bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
-        #if SHADER_API_SWITCH
+        #if SHADER_API_MOBILE || SHADER_API_SWITCH
         // Specular highlights are still silenced by setting specular to 0.0 during gbuffer pass and GPU timing is still reduced.
         bool materialSpecularHighlightsOff = false;
         #else
@@ -246,10 +246,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 Ref 48       // 0b00110000
                 WriteMask 16 // 0b00010000
                 ReadMask 112 // 0b01110000
-                CompBack Equal
-                PassBack Zero
-                FailBack Keep
-                ZFailBack Keep
+                Comp Equal
+                Pass Zero
+                Fail Keep
+                ZFail Keep
             }
 
             HLSLPROGRAM
