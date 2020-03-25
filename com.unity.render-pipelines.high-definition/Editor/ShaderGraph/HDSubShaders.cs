@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -74,6 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.HDLit.TransparentDepthPrepass, new FieldCondition(HDFields.TransparentDepthPrePass, true) },
                 { HDPasses.HDLit.Forward },
                 { HDPasses.HDLit.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
+                { HDPasses.HDLit.RayTracingPrepass, new FieldCondition(HDFields.RayTracing, true) },
             },
             customEditorOverride = "Rendering.HighDefinition.HDLitGUI",
         };
