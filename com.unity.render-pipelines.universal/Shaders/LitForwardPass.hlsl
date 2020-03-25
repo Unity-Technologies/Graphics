@@ -124,8 +124,28 @@ Varyings LitPassVertex(Attributes input)
     return output;
 }
 
+inline float4 EncodrIntToRGBA( int v ) {
+  int pos0 = 0xff & v;
+  int pos1 = 0xff & (v >> 8);
+  int pos2 = 0xff & (v >> 16);
+  int pos3 = 0xff & (v >> 24);
+  return float4(asfloat(pos3), asfloat(pos2), asfloat(pos1), asfloat(pos0));
+}
+
+inline float4 EncodeFloatRGBA( float v ) {
+  float4 enc = float4(1.0, 255.0, 65025.0, 16581375.0) * v;
+  enc = frac(enc);
+  enc -= enc.yzww * float4(1.0/255.0,1.0/255.0,1.0/255.0,0.0);
+  return enc;
+}
+
 // Used in Standard (Physically Based) shader
-half4 LitPassFragment(Varyings input) : SV_Target
+#ifdef RENDER_WITH_MODE_TEST
+int
+#else
+float4
+#endif
+LitPassFragment(Varyings input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -140,7 +160,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     #ifdef RENDER_WITH_MODE_TEST
-    return half4(inputData.normalWS, 1.0f);
+    return asint(unity_LODFade.z);
     #endif
     return color;
 }
