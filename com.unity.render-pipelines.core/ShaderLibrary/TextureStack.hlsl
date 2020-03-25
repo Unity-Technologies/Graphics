@@ -10,9 +10,6 @@
 #endif
 #include "VirtualTexturing.hlsl"
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-
-
 /*
     This header adds the following pseudo definitions. Actual types etc may vary depending
     on vt- being on or off.
