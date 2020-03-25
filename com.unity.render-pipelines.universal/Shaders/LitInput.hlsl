@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
 float4 _BaseMap_ST;
@@ -77,22 +78,29 @@ half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
     return specGloss;
 }
 
-half SampleOcclusion(float2 uv)
+half SampleOcclusion(float2 uv, float3 positionCS)
 {
-#ifdef _OCCLUSIONMAP
-// TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
-#if defined(SHADER_API_GLES)
-    return SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
-#else
-    half occ = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
-    return LerpWhiteTo(occ, _OcclusionStrength);
-#endif
-#else
-    return 1.0;
-#endif
+    half occlusion;
+    #ifdef _OCCLUSIONMAP
+        // TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
+        #if defined(SHADER_API_GLES)
+            occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
+        #else
+            occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
+            occlusion = LerpWhiteTo(occlusion, _OcclusionStrength);
+        #endif
+    #else
+        occlusion = 1.0;
+    #endif
+
+    #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
+        occlusion = min(occlusion, SampleScreenSpaceAmbientOcclusionTexture(positionCS));
+    #endif
+
+    return occlusion;
 }
 
-inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)
+inline void InitializeStandardLitSurfaceData(float2 uv, float3 positionCS, out SurfaceData outSurfaceData)
 {
     half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
     outSurfaceData.alpha = Alpha(albedoAlpha.a, _BaseColor, _Cutoff);
@@ -110,7 +118,7 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 
     outSurfaceData.smoothness = specGloss.a;
     outSurfaceData.normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
-    outSurfaceData.occlusion = SampleOcclusion(uv);
+    outSurfaceData.occlusion = SampleOcclusion(uv, positionCS);
     outSurfaceData.emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));
 }
 

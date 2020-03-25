@@ -28,11 +28,7 @@
 
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
-
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
-    #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
-        inputData.bakedGI *= SampleAmbientOcclusion(input.positionCS);
-    #endif
 }
 
 PackedVaryings vert(Attributes input)
@@ -52,6 +48,10 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+
+    #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
+        surfaceDescription.Occlusion = min(SampleScreenSpaceAmbientOcclusionTexture(unpacked.positionCS), surfaceDescription.Occlusion);
+    #endif
 
     #if _AlphaClip
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);

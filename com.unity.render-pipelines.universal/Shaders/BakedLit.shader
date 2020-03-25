@@ -119,25 +119,25 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half alpha = texColor.a * _BaseColor.a;
                 AlphaDiscard(alpha, _Cutoff);
 
-#ifdef _ALPHAPREMULTIPLY_ON
-                color *= alpha;
-#endif
+                #ifdef _ALPHAPREMULTIPLY_ON
+                    color *= alpha;
+                #endif
 
-    #if defined(_NORMALMAP)
-                half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
-                half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
-    #else
-                half3 normalWS = input.normal;
-    #endif
+                #if defined(_NORMALMAP)
+                    half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
+                    half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
+                #else
+                    half3 normalWS = input.normal;
+                #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
+
+                alpha = OutputAlpha(alpha);
 
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
-                    color *= SampleAmbientOcclusion(input.vertex);
+                    color *= SampleScreenSpaceAmbientOcclusionTexture(input.vertex);
                 #endif
-
                 color = MixFog(color, input.uv0AndFogCoord.z);
-                alpha = OutputAlpha(alpha);
 
                 return half4(color, alpha);
             }
@@ -321,24 +321,25 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half alpha = texColor.a * _BaseColor.a;
                 AlphaDiscard(alpha, _Cutoff);
 
-#ifdef _ALPHAPREMULTIPLY_ON
-                color *= alpha;
-#endif
+                #ifdef _ALPHAPREMULTIPLY_ON
+                    color *= alpha;
+                #endif
 
-    #if defined(_NORMALMAP)
-                half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
-                half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
-    #else
-                half3 normalWS = input.normal;
-    #endif
+                #if defined(_NORMALMAP)
+                    half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
+                    half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
+                #else
+                    half3 normalWS = input.normal;
+                #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
+
+                alpha = OutputAlpha(alpha);
 
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
-                    color *= SampleAmbientOcclusion(input.vertex);
+                    color *= SampleScreenSpaceAmbientOcclusionTexture(input.vertex);
                 #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
-                alpha = OutputAlpha(alpha);
 
                 return half4(color, alpha);
             }

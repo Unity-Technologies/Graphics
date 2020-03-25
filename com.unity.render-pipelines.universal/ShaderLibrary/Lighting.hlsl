@@ -370,7 +370,7 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 ///////////////////////////////////////////////////////////////////////////////
 
 // Samples the Ambient Occlusion texture
-half SampleAmbientOcclusion(half3 positionCS)
+half SampleScreenSpaceAmbientOcclusionTexture(half3 positionCS)
 {
 #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
     float2 uv = UnityStereoTransformScreenSpaceTex(positionCS.xy * (GetScreenParams().zw - 1.0));
@@ -623,7 +623,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     return half4(color, alpha);
 }
 
-half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
+half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha, half occlusion = 1.0)
 {
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
@@ -647,7 +647,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     diffuseColor += inputData.vertexLighting;
 #endif
 
-    half3 finalColor = diffuseColor * diffuse + emission;
+    half3 finalColor = diffuseColor * diffuse * occlusion + emission;
 
 #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     finalColor += specularColor;

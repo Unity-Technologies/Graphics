@@ -24,8 +24,7 @@ struct Varyings
 Varyings UniversalVertexMeta(Attributes input)
 {
     Varyings output;
-    output.positionCS = MetaVertexPosition(input.positionOS, input.uv1, input.uv2,
-        unity_LightmapST, unity_DynamicLightmapST);
+    output.positionCS = MetaVertexPosition(input.positionOS, input.uv1, input.uv2, unity_LightmapST, unity_DynamicLightmapST);
     output.uv = TRANSFORM_TEX(input.uv0, _BaseMap);
     return output;
 }
@@ -33,7 +32,7 @@ Varyings UniversalVertexMeta(Attributes input)
 half4 UniversalFragmentMeta(Varyings input) : SV_Target
 {
     SurfaceData surfaceData;
-    InitializeStandardLitSurfaceData(input.uv, surfaceData);
+    InitializeStandardLitSurfaceData(input.uv, input.positionCS, surfaceData);
 
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);

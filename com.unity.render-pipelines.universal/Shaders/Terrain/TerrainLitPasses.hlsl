@@ -105,11 +105,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 
     input.fogCoord = IN.fogFactorAndVertexLight.x;
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
-
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
-    #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
-        input.bakedGI *= SampleAmbientOcclusion(IN.clipPos);
-    #endif
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
@@ -320,61 +316,63 @@ void ComputeMasks(out half4 masks[4], half4 hasMask, Varyings IN)
 // Used in Standard Terrain shader
 half4 SplatmapFragment(Varyings IN) : SV_TARGET
 {
-#ifdef _ALPHATEST_ON
-    ClipHoles(IN.uvMainAndLM.xy);
-#endif
+    #ifdef _ALPHATEST_ON
+        ClipHoles(IN.uvMainAndLM.xy);
+    #endif
 
     half3 normalTS = half3(0.0h, 0.0h, 1.0h);
-#ifdef TERRAIN_SPLAT_BASEPASS
-    half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uvMainAndLM.xy).rgb;
-    half smoothness = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uvMainAndLM.xy).a;
-    half metallic = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MetallicTex, IN.uvMainAndLM.xy).r;
-    half alpha = 1;
-    half occlusion = 1;
-#else
+    #ifdef TERRAIN_SPLAT_BASEPASS
+        half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uvMainAndLM.xy).rgb;
+        half smoothness = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uvMainAndLM.xy).a;
+        half metallic = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MetallicTex, IN.uvMainAndLM.xy).r;
+        half alpha = 1;
+        half occlusion = 1;
+    #else
+        half4 hasMask = half4(_LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3);
+        half4 masks[4];
+        ComputeMasks(masks, hasMask, IN);
 
-    half4 hasMask = half4(_LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3);
-    half4 masks[4];
-    ComputeMasks(masks, hasMask, IN);
+        float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
+        half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
 
-    float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
-    half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
+        #ifdef _TERRAIN_BLEND_HEIGHT
+            // disable Height Based blend when there are more than 4 layers (multi-pass breaks the normalization)
+            if (_NumLayersCount <= 4)
+                HeightBasedSplatModify(splatControl, masks);
+        #endif
 
-#ifdef _TERRAIN_BLEND_HEIGHT
-    // disable Height Based blend when there are more than 4 layers (multi-pass breaks the normalization)
-    if (_NumLayersCount <= 4)
-        HeightBasedSplatModify(splatControl, masks);
-#endif
+        half weight;
+        half4 mixedDiffuse;
+        half4 defaultSmoothness;
+        SplatmapMix(IN.uvMainAndLM, IN.uvSplat01, IN.uvSplat23, splatControl, weight, mixedDiffuse, defaultSmoothness, normalTS);
+        half3 albedo = mixedDiffuse.rgb;
 
-    half weight;
-    half4 mixedDiffuse;
-    half4 defaultSmoothness;
-    SplatmapMix(IN.uvMainAndLM, IN.uvSplat01, IN.uvSplat23, splatControl, weight, mixedDiffuse, defaultSmoothness, normalTS);
-    half3 albedo = mixedDiffuse.rgb;
+        half4 defaultMetallic = half4(_Metallic0, _Metallic1, _Metallic2, _Metallic3);
+        half4 defaultOcclusion = half4(_MaskMapRemapScale0.g, _MaskMapRemapScale1.g, _MaskMapRemapScale2.g, _MaskMapRemapScale3.g) +
+                                half4(_MaskMapRemapOffset0.g, _MaskMapRemapOffset1.g, _MaskMapRemapOffset2.g, _MaskMapRemapOffset3.g);
 
-    half4 defaultMetallic = half4(_Metallic0, _Metallic1, _Metallic2, _Metallic3);
-    half4 defaultOcclusion = half4(_MaskMapRemapScale0.g, _MaskMapRemapScale1.g, _MaskMapRemapScale2.g, _MaskMapRemapScale3.g) +
-                            half4(_MaskMapRemapOffset0.g, _MaskMapRemapOffset1.g, _MaskMapRemapOffset2.g, _MaskMapRemapOffset3.g);
+        half4 maskSmoothness = half4(masks[0].a, masks[1].a, masks[2].a, masks[3].a);
+        defaultSmoothness = lerp(defaultSmoothness, maskSmoothness, hasMask);
+        half smoothness = dot(splatControl, defaultSmoothness);
 
-    half4 maskSmoothness = half4(masks[0].a, masks[1].a, masks[2].a, masks[3].a);
-    defaultSmoothness = lerp(defaultSmoothness, maskSmoothness, hasMask);
-    half smoothness = dot(splatControl, defaultSmoothness);
+        half4 maskMetallic = half4(masks[0].r, masks[1].r, masks[2].r, masks[3].r);
+        defaultMetallic = lerp(defaultMetallic, maskMetallic, hasMask);
+        half metallic = dot(splatControl, defaultMetallic);
 
-    half4 maskMetallic = half4(masks[0].r, masks[1].r, masks[2].r, masks[3].r);
-    defaultMetallic = lerp(defaultMetallic, maskMetallic, hasMask);
-    half metallic = dot(splatControl, defaultMetallic);
+        half4 maskOcclusion = half4(masks[0].g, masks[1].g, masks[2].g, masks[3].g);
+        defaultOcclusion = lerp(defaultOcclusion, maskOcclusion, hasMask);
+        half occlusion = dot(splatControl, defaultOcclusion);
+        #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
+            occlusion = min(occlusion, SampleScreenSpaceAmbientOcclusionTexture(IN.clipPos));
+        #endif
 
-    half4 maskOcclusion = half4(masks[0].g, masks[1].g, masks[2].g, masks[3].g);
-    defaultOcclusion = lerp(defaultOcclusion, maskOcclusion, hasMask);
-    half occlusion = dot(splatControl, defaultOcclusion);
-
-    half alpha = weight;
-#endif
+        half alpha = weight;
+    #endif
 
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
-    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
 
+    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
     SplatmapFinalColor(color, inputData.fogCoord);
 
     return half4(color.rgb, 1.0h);
