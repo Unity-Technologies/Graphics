@@ -2103,7 +2103,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             processedData.additionalLightData = additionalLightData;
             processedData.lightType = additionalLightData.ComputeLightType(lightComponent);
-            processedData.distanceToCamera = (light.GetPosition() - hdCamera.camera.transform.position).magnitude;
+            processedData.distanceToCamera = (additionalLightData.transform.position - hdCamera.camera.transform.position).magnitude;
 
             // Evaluate the types that define the current light
             processedData.lightCategory = LightCategory.Count;
