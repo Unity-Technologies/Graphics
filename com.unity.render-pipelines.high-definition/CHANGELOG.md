@@ -65,7 +65,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
-- Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
 
 ## [8.0.0] - 2020-05-25
 
