@@ -1453,7 +1453,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDSceneSelection,
-                pragmas = HDPragmas.DotsInstancedInV2OnlyRenderingLayer,
+                pragmas = HDPragmas.DotsInstancedInV2OnlyRenderingLayerEditorSync,
                 defines = HDDefines.SceneSelection,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.StackLitDepthOnly,
