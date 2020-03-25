@@ -909,6 +909,43 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputTex                       = Shader.PropertyToID("_InputTex");
         public static readonly int _LoD                            = Shader.PropertyToID("_LoD");
         public static readonly int _FaceIndex                      = Shader.PropertyToID("_FaceIndex");
+
+        // Probe Volumes
+        public static readonly int _ProbeVolumeAtlasSH             = Shader.PropertyToID("_ProbeVolumeAtlasSH");
+        public static readonly int _ProbeVolumeAtlasResolutionAndSliceCount = Shader.PropertyToID("_ProbeVolumeAtlasResolutionAndSliceCount");
+        public static readonly int _ProbeVolumeAtlasResolutionAndSliceCountInverse = Shader.PropertyToID("_ProbeVolumeAtlasResolutionAndSliceCountInverse");
+        public static readonly int _ProbeVolumeAtlasOctahedralDepth = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepth");
+        public static readonly int _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthResolutionAndInverse");
+        public static readonly int _ProbeVolumeLeakMitigationMode  = Shader.PropertyToID("_ProbeVolumeLeakMitigationMode");
+        public static readonly int _ProbeVolumeNormalBiasWS        = Shader.PropertyToID("_ProbeVolumeNormalBiasWS");
+        public static readonly int _ProbeVolumeBilateralFilterWeightMin = Shader.PropertyToID("_ProbeVolumeBilateralFilterWeightMin");
+        public static readonly int _ProbeVolumeBilateralFilterWeight = Shader.PropertyToID("_ProbeVolumeBilateralFilterWeight");
+        public static readonly int _ProbeVolumeResolution          = Shader.PropertyToID("_ProbeVolumeResolution");
+        public static readonly int _ProbeVolumeResolutionInverse   = Shader.PropertyToID("_ProbeVolumeResolutionInverse");
+        public static readonly int _ProbeVolumeAtlasScale          = Shader.PropertyToID("_ProbeVolumeAtlasScale");
+        public static readonly int _ProbeVolumeAtlasBias           = Shader.PropertyToID("_ProbeVolumeAtlasBias");
+        public static readonly int _ProbeVolumeAtlasReadBufferCount = Shader.PropertyToID("_ProbeVolumeAtlasReadBufferCount");
+        public static readonly int _ProbeVolumeAtlasReadBuffer     = Shader.PropertyToID("_ProbeVolumeAtlasReadBuffer");
+        public static readonly int _ProbeVolumeAtlasReadValidityBuffer = Shader.PropertyToID("_ProbeVolumeAtlasReadValidityBuffer");
+        public static readonly int _ProbeVolumeAtlasWriteTextureSH = Shader.PropertyToID("_ProbeVolumeAtlasWriteTextureSH");
+        public static readonly int _ProbeVolumeAtlasOctahedralDepthScaleBias = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthScaleBias");
+        public static readonly int _ProbeVolumeAtlasOctahedralDepthReadBufferCount = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthReadBufferCount");
+        public static readonly int _ProbeVolumeAtlasOctahedralDepthReadBuffer = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthReadBuffer");
+        public static readonly int _ProbeVolumeAtlasOctahedralDepthWriteTexture = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthWriteTexture");
+        public static readonly int _ProbeVolumeAtlasOctahedralDepthScaleBiasTexels = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthScaleBiasTexels");
+        public static readonly int _ProbeVolumeAtlasOctahedralDepthRWTexture = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthRWTexture");
+        public static readonly int _FilterSampleCount              = Shader.PropertyToID("_FilterSampleCount");
+        public static readonly int _FilterSharpness                = Shader.PropertyToID("_FilterSharpness");
+        public static readonly int _AtlasTextureSH                 = Shader.PropertyToID("_AtlasTextureSH");
+        public static readonly int _TextureViewScale               = Shader.PropertyToID("_TextureViewScale");
+        public static readonly int _TextureViewBias                = Shader.PropertyToID("_TextureViewBias");
+        public static readonly int _TextureViewResolution          = Shader.PropertyToID("_TextureViewResolution");
+        public static readonly int _AtlasTextureOctahedralDepth    = Shader.PropertyToID("_AtlasTextureOctahedralDepth");
+        public static readonly int _AtlasTextureOctahedralDepthScaleBias = Shader.PropertyToID("_AtlasTextureOctahedralDepthScaleBias");
+        public static readonly int _ValidRange                     = Shader.PropertyToID("_ValidRange");
+        public static readonly int _ProbeVolumeAtlasSliceMode      = Shader.PropertyToID("_ProbeVolumeAtlasSliceMode");
+
+
     }
 
     // Shared material property names
