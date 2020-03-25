@@ -12,6 +12,7 @@ using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
+using Node = UnityEditor.Experimental.GraphView.Node;
 using UnityEditor.VersionControl;
 using UnityEditor.Searcher;
 
@@ -315,14 +316,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 using (SetupNodesMarker.Auto())
                 {
-                    foreach (var node in graph.GetNodes<AbstractMaterialNode>())
-                        AddNode(node);
+                    AddNodes(graph.GetNodes<AbstractMaterialNode>());
                 }
 
                 using (SetupEdgesMarker.Auto())
                 {
-                    foreach (var edge in graph.edges)
-                        AddEdge(edge);
+                    AddEdges(graph.edges);
                 }
 
                 Add(content);
@@ -802,7 +801,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         List<GraphElement> m_GraphElementsTemp = new List<GraphElement>();
 
-        void AddNode(AbstractMaterialNode node)
+        private static readonly ProfilerMarker UpdateGroupsMarker = new ProfilerMarker("UpdateGroups");
+        void AddNode(AbstractMaterialNode node, bool usePrebuiltVisualGroupMap = false)
         {
             var materialNode = (AbstractMaterialNode)node;
             Node nodeView;
@@ -838,20 +838,56 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            // This should also work for sticky notes
-            m_GraphElementsTemp.Clear();
-            m_GraphView.graphElements.ToList(m_GraphElementsTemp);
-
-            if (materialNode.groupGuid != Guid.Empty)
+            using (UpdateGroupsMarker.Auto())
             {
-                foreach (var element in m_GraphElementsTemp)
+                if (usePrebuiltVisualGroupMap)
                 {
-                    if (element is ShaderGroup groupView && groupView.userData.guid == materialNode.groupGuid)
-                    {
+                    // cheaper way to add the node to groups it is in
+                    ShaderGroup groupView;
+                    visualGroupMap.TryGetValue(materialNode.groupGuid, out groupView);
+                    if (groupView != null)
                         groupView.AddElement(nodeView);
+                }
+                else
+                {
+                    // This should also work for sticky notes
+                    m_GraphElementsTemp.Clear();
+                    m_GraphView.graphElements.ToList(m_GraphElementsTemp);
+
+                    if (materialNode.groupGuid != Guid.Empty)
+                    {
+                        foreach (var element in m_GraphElementsTemp)
+                        {
+                            if (element is ShaderGroup groupView && groupView.userData.guid == materialNode.groupGuid)
+                            {
+                                groupView.AddElement(nodeView);
+                            }
+                        }
                     }
                 }
             }
+        }
+
+        private static Dictionary<Guid, ShaderGroup> visualGroupMap = new Dictionary<Guid, ShaderGroup>();
+        private static void AddToVisualGroupMap(GraphElement e)
+        {
+            ShaderGroup sg = e as ShaderGroup;
+            if (sg != null)
+                visualGroupMap.Add(sg.userData.guid, sg);
+        }
+        private static Action<GraphElement> AddToVisualGroupMapAction = AddToVisualGroupMap;
+        void BuildVisualGroupMap()
+        {
+            visualGroupMap.Clear();
+            m_GraphView.graphElements.ForEach(AddToVisualGroupMapAction);
+        }
+
+        void AddNodes(IEnumerable<AbstractMaterialNode> nodes)
+        {
+            BuildVisualGroupMap();
+            foreach (var node in nodes)
+                AddNode(node, true);
+            visualGroupMap.Clear();
         }
 
         void AddGroup(GroupData groupData)
@@ -914,6 +950,83 @@ namespace UnityEditor.ShaderGraph.Drawing
             nodeView.node.drawState = drawState;
             nodeView.gvNode.MarkDirtyRepaint();
             port.MarkDirtyRepaint();
+        }
+
+        private static Dictionary<AbstractMaterialNode, IShaderNodeView> visualNodeMap = new Dictionary<AbstractMaterialNode, IShaderNodeView>();
+        private static void AddToVisualNodeMap(Node n)
+        {
+            IShaderNodeView snv = n as IShaderNodeView;
+            if (snv != null)
+                visualNodeMap.Add(snv.node, snv);
+        }
+        private static Action<Node> AddToVisualNodeMapAction = AddToVisualNodeMap;
+        void BuildVisualNodeMap()
+        {
+            visualNodeMap.Clear();
+            m_GraphView.nodes.ForEach(AddToVisualNodeMapAction);
+        }
+
+        void AddEdges(IEnumerable<IEdge> edges)
+        {
+            // fast way
+            BuildVisualNodeMap();
+            foreach (IEdge edge in edges)
+            {
+                AddEdgeUsingVisualNodeMapNoUpdate(edge);
+            }
+
+            // apply the update on every node
+            foreach (IShaderNodeView nodeView in visualNodeMap.Values)
+            {
+                nodeView.gvNode.RefreshPorts();
+                nodeView.UpdatePortInputTypes();
+            }
+
+            // cleanup temp data
+            visualNodeMap.Clear();
+        }
+
+        Edge AddEdgeUsingVisualNodeMapNoUpdate(IEdge edge)
+        {
+            var sourceNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+            if (sourceNode == null)
+            {
+                Debug.LogWarning("Source node is null");
+                return null;
+            }
+            var sourceSlot = sourceNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
+
+            var targetNode = m_Graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+            if (targetNode == null)
+            {
+                Debug.LogWarning("Target node is null");
+                return null;
+            }
+            var targetSlot = targetNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
+
+            IShaderNodeView sourceNodeView;
+            visualNodeMap.TryGetValue(sourceNode, out sourceNodeView);
+            if (sourceNodeView != null)
+            {
+                var sourceAnchor = sourceNodeView.gvNode.outputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(sourceSlot));
+
+                IShaderNodeView targetNodeView;
+                visualNodeMap.TryGetValue(targetNode, out targetNodeView);
+
+                var targetAnchor = targetNodeView.gvNode.inputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(targetSlot));
+
+                var edgeView = new Edge
+                {
+                    userData = edge,
+                    output = sourceAnchor,
+                    input = targetAnchor
+                };
+                edgeView.output.Connect(edgeView);
+                edgeView.input.Connect(edgeView);
+                m_GraphView.AddElement(edgeView);
+                return edgeView;
+            }
+            return null;
         }
 
         Edge AddEdge(IEdge edge)
