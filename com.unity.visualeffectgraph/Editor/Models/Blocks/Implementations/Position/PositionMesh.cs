@@ -60,6 +60,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXNamedExpression(new VFXExpressionMeshChannelFormatAndDimension(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position)), "positionChannelFormatAndDimension");
                 yield return new VFXNamedExpression(new VFXExpressionMeshChannelFormatAndDimension(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal)), "normalChannelFormatAndDimension");
 #else
+                yield return new VFXNamedExpression(vertexIndex, "vertexIndex");
                 yield return new VFXNamedExpression(vertexStride, "meshVertexStride");
                 yield return new VFXNamedExpression(positionOffset, "meshPositionOffset");
                 yield return new VFXNamedExpression(normalOffset, "meshNormalOffset");
