@@ -1824,6 +1824,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cachedDataIsValid = cachedDataIsValid || (legacyLight.type == LightType.Directional);
             shadowIsCached = shadowIsCached && (hasCachedSlotInAtlas && cachedDataIsValid || legacyLight.type == LightType.Directional);
 
+            bool hasOrthoMatrix = false;
+
             for (int index = 0; index < count; index++)
             {
                 var         shadowRequest = shadowRequests[index];
@@ -1870,6 +1872,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         case HDLightType.Spot:
                             float spotAngleForShadows = useCustomSpotLightShadowCone ? Math.Min(customSpotLightShadowCone, visibleLight.light.spotAngle)  : visibleLight.light.spotAngle;
+                            hasOrthoMatrix = spotLightShape == SpotLightShape.Box;
                             HDShadowUtils.ExtractSpotLightData(
                                 spotLightShape, spotAngleForShadows, shadowNearPlane, aspectRatio, shapeWidth,
                                 shapeHeight, visibleLight, viewportSize, normalBias,
@@ -1878,6 +1881,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             );
                             break;
                         case HDLightType.Directional:
+                            hasOrthoMatrix = true;
                             UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
                             break;
                         case HDLightType.Area:
@@ -1899,7 +1903,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                     // Assign all setting common to every lights
-                    SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
+                    SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, HDUtils.MultiplyProjectionMatrix(shadowRequest.deviceProjectionYFlip, shadowRequest.view, hasOrthoMatrix), viewportSize, lightIndex);
                 }
 
                 shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
@@ -1933,9 +1937,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
                 HDUtils.MatrixTimesTranslation(ref shadowRequest.view, cameraPos);
-                var translation = Matrix4x4.Translate(cameraPos);
-                translation.SetColumn(3, -cameraPos);
-                translation[15] = 1.0f;
                 HDUtils.TranslationTimesMatrix(ref invViewProjection, -cameraPos);
             }
 

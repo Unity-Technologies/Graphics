@@ -1018,7 +1018,98 @@ namespace UnityEngine.Rendering.HighDefinition
             matrix.m21 += translation.z * matrix.m31;
             matrix.m22 += translation.z * matrix.m32;
             matrix.m23 += translation.z * matrix.m33;
+        }
 
+        // TODO_FCC: Need to move to a proper home.
+        // Perspective matrices are mostly constant values, so matrix multiplication can be faster done.
+        internal static Matrix4x4 MultiplyPerspectiveMatrix(Matrix4x4 perspective, Matrix4x4 rhs)
+        {
+            Matrix4x4 outMat;
+            outMat.m00 = perspective.m00 * rhs.m00;
+            outMat.m01 = perspective.m00 * rhs.m01;
+            outMat.m02 = perspective.m00 * rhs.m02;
+            outMat.m03 = perspective.m00 * rhs.m03;
+
+            outMat.m10 = perspective.m11 * rhs.m10;
+            outMat.m11 = perspective.m11 * rhs.m11;
+            outMat.m12 = perspective.m11 * rhs.m12;
+            outMat.m13 = perspective.m11 * rhs.m13;
+
+            outMat.m20 = perspective.m22 * rhs.m20 + perspective.m23 * rhs.m30;
+            outMat.m21 = perspective.m22 * rhs.m21 + perspective.m23 * rhs.m31;
+            outMat.m22 = perspective.m22 * rhs.m22 + perspective.m23 * rhs.m32;
+            outMat.m23 = perspective.m22 * rhs.m23 + perspective.m23 * rhs.m33;
+
+            outMat.m30 = -rhs.m20;
+            outMat.m31 = -rhs.m21;
+            outMat.m32 = -rhs.m22;
+            outMat.m33 = -rhs.m23;
+
+            return outMat;
+        }
+
+        internal static Matrix4x4 MultiplyOrthoMatrixCentered(Matrix4x4 ortho, Matrix4x4 rhs)
+        {
+            Matrix4x4 outMat;
+            outMat.m00 = ortho.m00 * rhs.m00;
+            outMat.m01 = ortho.m00 * rhs.m01;
+            outMat.m02 = ortho.m00 * rhs.m02;
+            outMat.m03 = ortho.m00 * rhs.m03;
+
+            outMat.m10 = ortho.m11 * rhs.m10;
+            outMat.m11 = ortho.m11 * rhs.m11;
+            outMat.m12 = ortho.m11 * rhs.m12;
+            outMat.m13 = ortho.m11 * rhs.m13;
+
+            outMat.m20 = ortho.m22 * rhs.m20 + ortho.m23 * rhs.m30;
+            outMat.m21 = ortho.m22 * rhs.m21 + ortho.m23 * rhs.m31;
+            outMat.m22 = ortho.m22 * rhs.m22 + ortho.m23 * rhs.m32;
+            outMat.m23 = ortho.m22 * rhs.m23 + ortho.m23 * rhs.m33;
+
+            outMat.m30 = rhs.m20;
+            outMat.m31 = rhs.m21;
+            outMat.m32 = rhs.m22;
+            outMat.m33 = rhs.m23;
+
+            return outMat;
+        }
+        // General case has m03 and m13 != 0
+        internal static Matrix4x4 MultiplyOrthoMatrix(Matrix4x4 ortho, Matrix4x4 rhs)
+        {
+            Matrix4x4 outMat;
+            outMat.m00 = ortho.m00 * rhs.m00 + ortho.m03 * rhs.m30;
+            outMat.m01 = ortho.m00 * rhs.m01 + ortho.m03 * rhs.m31;
+            outMat.m02 = ortho.m00 * rhs.m02 + ortho.m03 * rhs.m32;
+            outMat.m03 = ortho.m00 * rhs.m03 + ortho.m03 * rhs.m33;
+
+            outMat.m10 = ortho.m11 * rhs.m10 + ortho.m13 * rhs.m30;
+            outMat.m11 = ortho.m11 * rhs.m11 + ortho.m13 * rhs.m31;
+            outMat.m12 = ortho.m11 * rhs.m12 + ortho.m13 * rhs.m32;
+            outMat.m13 = ortho.m11 * rhs.m13 + ortho.m13 * rhs.m33;
+
+            outMat.m20 = ortho.m22 * rhs.m20 + ortho.m23 * rhs.m30;
+            outMat.m21 = ortho.m22 * rhs.m21 + ortho.m23 * rhs.m31;
+            outMat.m22 = ortho.m22 * rhs.m22 + ortho.m23 * rhs.m32;
+            outMat.m23 = ortho.m22 * rhs.m23 + ortho.m23 * rhs.m33;
+
+            outMat.m30 = rhs.m20;
+            outMat.m31 = rhs.m21;
+            outMat.m32 = rhs.m22;
+            outMat.m33 = rhs.m23;
+            return outMat;
+        }
+
+        // Note: centered means that left/right and top/bottom are both the same distance from center
+        internal static Matrix4x4 MultiplyOrthoMatrix(Matrix4x4 ortho, Matrix4x4 rhs, bool centered)
+        {
+            return centered ? MultiplyOrthoMatrix(ortho, rhs) : MultiplyOrthoMatrixCentered(ortho, rhs);
+        }
+
+        internal static Matrix4x4 MultiplyProjectionMatrix(Matrix4x4 projMatrix, Matrix4x4 rhs, bool orthoCentered)
+        {
+            return orthoCentered
+                ? MultiplyOrthoMatrixCentered(projMatrix, rhs)
+                : MultiplyPerspectiveMatrix(projMatrix, rhs);
         }
     }
 }

@@ -286,7 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
             proj = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
 
-            Matrix4x4 devProjView = deviceProj * view;
+            Matrix4x4 devProjView = HDUtils.MultiplyPerspectiveMatrix(deviceProj, view);
             // We can avoid computing proj * view for frustum planes, if device has reversed Z we flip the culling planes
             GeometryUtility.CalculateFrustumPlanes(devProjView, s_CachedPlanes);
             if (SystemInfo.usesReversedZBuffer)
