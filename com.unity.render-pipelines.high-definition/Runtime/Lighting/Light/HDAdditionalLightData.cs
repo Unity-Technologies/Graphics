@@ -1462,12 +1462,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [System.NonSerialized] internal int shadowIndex = -1;
 
         // Runtime datas used to compute light intensity
-        Light m_Light;
+        Light m_Light = null;
         internal Light legacyLight
         {
             get
             {
-                TryGetComponent<Light>(out m_Light);
+                if(m_Light == null)
+                    TryGetComponent<Light>(out m_Light);
+
                 return m_Light;
             }
         }

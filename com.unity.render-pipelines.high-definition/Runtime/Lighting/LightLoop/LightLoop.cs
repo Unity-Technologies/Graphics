@@ -2209,11 +2209,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO_FCC: Remove this as a function, but it is a win! 10%
-        List<Matrix4x4> GetWorldToViewMatrices(HDCamera hdCamera)
+        List<Matrix4x4> GetWorldToViewMatrices(HDCamera hdCamera, int viewCount)
         {
-
-            // Prepare per view data
-            int viewCount = hdCamera.viewCount;
             List<Matrix4x4> worldToMatrices = new List<Matrix4x4>(viewCount);
             for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
             {
@@ -2255,7 +2252,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
 
             // Determine non-per light data
-            var worldToMatrices = GetWorldToViewMatrices(hdCamera);
+            int viewCount = hdCamera.viewCount;
+            var worldToMatrices = GetWorldToViewMatrices(hdCamera, viewCount);
             BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset);
 
             // 2. Go through all lights, convert them to GPU format.
