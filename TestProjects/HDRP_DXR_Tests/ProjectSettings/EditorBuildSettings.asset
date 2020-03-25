@@ -63,6 +63,9 @@ EditorBuildSettings:
     path: Assets/Scenes/501_RecursiveRendering.unity
     guid: 9a47aa07fa8a82341a976363fec6b1d2
   - enabled: 1
+    path: Assets/Scenes/501_RecursiveRenderingTransparent.unity
+    guid: 0aa69ee950a3fa049b5220e96247f794
+  - enabled: 1
     path: Assets/Scenes/502_RecursiveRenderingDisabled.unity
     guid: 57e38207c84f9e943b0202ebdece2187
   - enabled: 1
