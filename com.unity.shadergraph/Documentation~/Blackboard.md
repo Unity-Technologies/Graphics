@@ -11,6 +11,6 @@ You can move the Blackboard anywhere in the [Shader Graph Window](Shader-Graph-W
 
 To create a new Property or Keyword, click the **Add (+)** button on the Blackboard's title bar, and select a Property or Keyword type.
 
-To reorder items listed on the Blackboard, drag and drop them. To delete items, use the Delete key on Windows, or the Command + Backspace key combination on OS X. To rename an item, double-click on its name, and enter a new name. Drag Properties and Keywords from the Blackboard to the graph to create a corresponding node.
+To reorder items listed on the Blackboard, drag and drop them. To delete items, use the Delete key on Windows, or the Command + Backspace key combination on OS X. To rename an item, double-click on its name, and enter a new name (note: quotation marks in display names will get stripped and replaced with underscores). Drag Properties and Keywords from the Blackboard to the graph to create a corresponding node.
 
 For a full list of Property types, see [Property Types](Property-Types).
