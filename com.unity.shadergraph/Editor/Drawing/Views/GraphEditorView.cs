@@ -15,6 +15,8 @@ using Edge = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.VersionControl;
 using UnityEditor.Searcher;
 
+using Unity.Profiling;
+
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -99,32 +101,57 @@ namespace UnityEditor.ShaderGraph.Drawing
             get => m_ColorManager;
         }
 
+        private static readonly ProfilerMarker GraphEditorViewConstructorMarker = new ProfilerMarker("GraphEditorViewConstructor");
+        private static readonly ProfilerMarker SetupStyleSheetsMarker = new ProfilerMarker("SetupStyleSheets");
+        private static readonly ProfilerMarker SetupPreviewManagerMarker = new ProfilerMarker("SetupPreviewManager");
+        private static readonly ProfilerMarker SetupUserViewSettingsMarker = new ProfilerMarker("SetupUserViewSettings");
+        private static readonly ProfilerMarker SetupToolbarsMarker = new ProfilerMarker("SetupToolbars");
+        private static readonly ProfilerMarker SetupBlackboardProviderMarker = new ProfilerMarker("SetupBlackboardProvider");
+        private static readonly ProfilerMarker SetupGroupsMarker = new ProfilerMarker("SetupGroups");
+        private static readonly ProfilerMarker SetupNotesMarker = new ProfilerMarker("SetupNotes");
+        private static readonly ProfilerMarker SetupNodesMarker = new ProfilerMarker("SetupNodes");
+        private static readonly ProfilerMarker SetupEdgesMarker = new ProfilerMarker("SetupEdges");
+
         public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager)
         {
-            m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
-            m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
-            m_GraphViewElementsRemovedFromGroup = OnElementsRemovedFromGroup;
-
-            m_Graph = graph;
-            m_MessageManager = messageManager;
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
-            previewManager = new PreviewManager(graph, messageManager);
-            previewManager.onPrimaryMasterChanged = OnPrimaryMasterChanged;
-
-            var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
-            m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
-            m_ColorManager = new ColorManager(m_UserViewSettings.colorProvider);
-
-            string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
-            if (!string.IsNullOrEmpty(serializedWindowLayout))
+            using (GraphEditorViewConstructorMarker.Auto())
             {
-                m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
-            }
-            else
-            {
-                m_FloatingWindowsLayout = new FloatingWindowsLayout
+                m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
+                m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
+                m_GraphViewElementsRemovedFromGroup = OnElementsRemovedFromGroup;
+
+                m_Graph = graph;
+                m_MessageManager = messageManager;
+
+                using (SetupStyleSheetsMarker.Auto())
                 {
-                    blackboardLayout =
+                    styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
+                }
+
+                using (SetupPreviewManagerMarker.Auto())
+                {
+                    previewManager = new PreviewManager(graph, messageManager);
+                    previewManager.onPrimaryMasterChanged = OnPrimaryMasterChanged;
+                }
+
+                var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
+
+                using (SetupUserViewSettingsMarker.Auto())
+                {
+                    m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
+                    m_ColorManager = new ColorManager(m_UserViewSettings.colorProvider);
+                }
+
+                string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
+                if (!string.IsNullOrEmpty(serializedWindowLayout))
+                {
+                    m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
+                }
+                else
+                {
+                    m_FloatingWindowsLayout = new FloatingWindowsLayout
+                    {
+                        blackboardLayout =
                     {
                         dockingTop = true,
                         dockingLeft = true,
@@ -132,128 +159,135 @@ namespace UnityEditor.ShaderGraph.Drawing
                         horizontalOffset = 16,
                         size = new Vector2(200, 400)
                     }
-                };
-            }
+                    };
+                }
 
-            if (m_FloatingWindowsLayout.masterPreviewSize.x > 0f && m_FloatingWindowsLayout.masterPreviewSize.y > 0f)
-            {
-                previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
-            }
-
-            previewManager.RenderPreviews();
-            var colorProviders = m_ColorManager.providerNames.ToArray();
-            var toolbar = new IMGUIContainer(() =>
+                if (m_FloatingWindowsLayout.masterPreviewSize.x > 0f && m_FloatingWindowsLayout.masterPreviewSize.y > 0f)
                 {
-                    GUILayout.BeginHorizontal(EditorStyles.toolbar);
-                    if (GUILayout.Button("Save Asset", EditorStyles.toolbarButton))
-                    {
-                        if (saveRequested != null)
-                            saveRequested();
-                    }
-                    GUILayout.Space(6);
-                    if (GUILayout.Button("Save As...", EditorStyles.toolbarButton))
-                    {
-                        saveAsRequested();
-                    }
-                    GUILayout.Space(6);
-                    if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
-                    {
-                        if (showInProjectRequested != null)
-                            showInProjectRequested();
-                    }
+                    previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
+                }
 
-                    EditorGUI.BeginChangeCheck();
-                    GUILayout.Label("Precision");
-                    graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
-                    if (EditorGUI.EndChangeCheck())
+                previewManager.RenderPreviews(false);
+
+                using (SetupToolbarsMarker.Auto())
+                {
+                    var colorProviders = m_ColorManager.providerNames.ToArray();
+                    var toolbar = new IMGUIContainer(() =>
                     {
-                        var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-                        m_ColorManager.SetNodesDirty(nodeList);
-                        graph.ValidateGraph();
-                        m_ColorManager.UpdateNodeViews(nodeList);
-                        foreach (var node in graph.GetNodes<AbstractMaterialNode>())
+                        GUILayout.BeginHorizontal(EditorStyles.toolbar);
+                        if (GUILayout.Button("Save Asset", EditorStyles.toolbarButton))
                         {
-                            node.Dirty(ModificationScope.Graph);
+                            if (saveRequested != null)
+                                saveRequested();
                         }
-                    }
-
-                    if (isCheckedOut != null)
-                    {
-                        if (!isCheckedOut() && Provider.enabled && Provider.isActive)
+                        GUILayout.Space(6);
+                        if (GUILayout.Button("Save As...", EditorStyles.toolbarButton))
                         {
-                            if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
+                            saveAsRequested();
+                        }
+                        GUILayout.Space(6);
+                        if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
+                        {
+                            if (showInProjectRequested != null)
+                                showInProjectRequested();
+                        }
+
+                        EditorGUI.BeginChangeCheck();
+                        GUILayout.Label("Precision");
+                        graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+                            m_ColorManager.SetNodesDirty(nodeList);
+                            graph.ValidateGraph();
+                            m_ColorManager.UpdateNodeViews(nodeList);
+                            foreach (var node in graph.GetNodes<AbstractMaterialNode>())
                             {
-                                if (checkOut != null)
-                                    checkOut();
+                                node.Dirty(ModificationScope.Graph);
                             }
                         }
-                        else
+
+                        if (isCheckedOut != null)
                         {
-                            EditorGUI.BeginDisabledGroup(true);
-                            GUILayout.Button("Check Out", EditorStyles.toolbarButton);
-                            EditorGUI.EndDisabledGroup();
-                        }
-                    }
-
-                    GUILayout.FlexibleSpace();
-
-                    EditorGUI.BeginChangeCheck();
-                    GUILayout.Label("Color Mode");
-                    var newColorIdx = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
-                    GUILayout.Space(4);
-                    m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
-
-                    GUILayout.Space(6);
-
-                    m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        if(newColorIdx != m_ColorManager.activeIndex)
-                        {
-                            m_ColorManager.SetActiveProvider(newColorIdx, m_GraphView.Query<MaterialNodeView>().ToList());
-                            m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
+                            if (!isCheckedOut() && Provider.enabled && Provider.isActive)
+                            {
+                                if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
+                                {
+                                    if (checkOut != null)
+                                        checkOut();
+                                }
+                            }
+                            else
+                            {
+                                EditorGUI.BeginDisabledGroup(true);
+                                GUILayout.Button("Check Out", EditorStyles.toolbarButton);
+                                EditorGUI.EndDisabledGroup();
+                            }
                         }
 
-                        UpdateSubWindowsVisibility();
+                        GUILayout.FlexibleSpace();
 
-                        var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
-                        EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
-                    }
-                    GUILayout.EndHorizontal();
-                });
-            Add(toolbar);
+                        EditorGUI.BeginChangeCheck();
+                        GUILayout.Label("Color Mode");
+                        var newColorIdx = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
+                        GUILayout.Space(4);
+                        m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
 
-            var content = new VisualElement { name = "content" };
-            {
-                m_GraphView = new MaterialGraphView(graph) { name = "GraphView", viewDataKey = "MaterialGraphView" };
-                m_GraphView.SetupZoom(0.05f, 8);
-                m_GraphView.AddManipulator(new ContentDragger());
-                m_GraphView.AddManipulator(new SelectionDragger());
-                m_GraphView.AddManipulator(new RectangleSelector());
-                m_GraphView.AddManipulator(new ClickSelector());
-                m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
-                RegisterGraphViewCallbacks();
-                content.Add(m_GraphView);
+                        GUILayout.Space(6);
 
-                m_BlackboardProvider = new BlackboardProvider(graph);
-                m_GraphView.Add(m_BlackboardProvider.blackboard);
+                        m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            if (newColorIdx != m_ColorManager.activeIndex)
+                            {
+                                m_ColorManager.SetActiveProvider(newColorIdx, m_GraphView.Query<MaterialNodeView>().ToList());
+                                m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
+                            }
 
-                CreateMasterPreview();
+                            UpdateSubWindowsVisibility();
 
-                UpdateSubWindowsVisibility();
-
-                m_GraphView.graphViewChanged = GraphViewChanged;
-
-                RegisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
-                if (m_Graph.isSubGraph)
-                {
-                    m_GraphView.AddToClassList("subgraph");
+                            var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
+                            EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
+                        }
+                        GUILayout.EndHorizontal();
+                    });
+                    Add(toolbar);
                 }
-            }
 
-            m_SearchWindowProvider = ScriptableObject.CreateInstance<SearcherProvider>();
-            m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
-            m_GraphView.nodeCreationRequest = (c) =>
+                var content = new VisualElement { name = "content" };
+                {
+                    m_GraphView = new MaterialGraphView(graph) { name = "GraphView", viewDataKey = "MaterialGraphView" };
+                    m_GraphView.SetupZoom(0.05f, 8);
+                    m_GraphView.AddManipulator(new ContentDragger());
+                    m_GraphView.AddManipulator(new SelectionDragger());
+                    m_GraphView.AddManipulator(new RectangleSelector());
+                    m_GraphView.AddManipulator(new ClickSelector());
+                    m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                    RegisterGraphViewCallbacks();
+                    content.Add(m_GraphView);
+
+                    using (SetupBlackboardProviderMarker.Auto())
+                    {
+                        m_BlackboardProvider = new BlackboardProvider(graph);
+                        m_GraphView.Add(m_BlackboardProvider.blackboard);
+                    }
+
+                    CreateMasterPreview();
+
+                    UpdateSubWindowsVisibility();
+
+                    m_GraphView.graphViewChanged = GraphViewChanged;
+
+                    RegisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
+                    if (m_Graph.isSubGraph)
+                    {
+                        m_GraphView.AddToClassList("subgraph");
+                    }
+                }
+
+                m_SearchWindowProvider = ScriptableObject.CreateInstance<SearcherProvider>();
+                m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
+                m_GraphView.nodeCreationRequest = (c) =>
                 {
                     m_SearchWindowProvider.connectedPort = null;
                     SearcherWindow.Show(editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
@@ -261,25 +295,38 @@ namespace UnityEditor.ShaderGraph.Drawing
                         c.screenMousePosition - editorWindow.position.position, null);
                 };
 
-            m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
+                m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
-            foreach (var graphGroup in graph.groups)
-            {
-                AddGroup(graphGroup);
+                using (SetupGroupsMarker.Auto())
+                {
+                    foreach (var graphGroup in graph.groups)
+                    {
+                        AddGroup(graphGroup);
+                    }
+                }
+
+                using (SetupNotesMarker.Auto())
+                {
+                    foreach (var stickyNote in graph.stickyNotes)
+                    {
+                        AddStickyNote(stickyNote);
+                    }
+                }
+
+                using (SetupNodesMarker.Auto())
+                {
+                    foreach (var node in graph.GetNodes<AbstractMaterialNode>())
+                        AddNode(node);
+                }
+
+                using (SetupEdgesMarker.Auto())
+                {
+                    foreach (var edge in graph.edges)
+                        AddEdge(edge);
+                }
+
+                Add(content);
             }
-
-            foreach (var stickyNote in graph.stickyNotes)
-            {
-                AddStickyNote(stickyNote);
-            }
-
-            foreach (var node in graph.GetNodes<AbstractMaterialNode>())
-                AddNode(node);
-
-            foreach (var edge in graph.edges)
-                AddEdge(edge);
-
-            Add(content);
         }
 
         void UpdateSubWindowsVisibility()
@@ -559,7 +606,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ColorManager.UpdateNodeViews(nodeList);
             }
 
-            previewManager.RenderPreviews();
+            previewManager.RenderPreviews(true);
+
             m_BlackboardProvider.HandleGraphChanges();
             m_GroupHashSet.Clear();
 
