@@ -267,12 +267,20 @@ namespace UnityEngine.Rendering.HighDefinition
             proj = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
 
-            GeometryUtility.CalculateFrustumPlanes(proj * view, s_CachedPlanes);
+            Matrix4x4 devProjView = deviceProj * view;
+            // We can avoid computing proj * view for frustum planes, if device has reversed Z we flip the culling planes
+            GeometryUtility.CalculateFrustumPlanes(devProjView, s_CachedPlanes);
+            if (SystemInfo.usesReversedZBuffer)
+            {
+                var tmpPlane = s_CachedPlanes[2];
+                s_CachedPlanes[2] = s_CachedPlanes[3];
+                s_CachedPlanes[3] = tmpPlane;
+            }
             splitData.cullingPlaneCount = 6;
             for (int i = 0; i < 6; i++)
                 splitData.SetCullingPlane(i, s_CachedPlanes[i]);
 
-            return deviceProj * view;
+            return devProjView;
         }
 
         static float CalcGuardAnglePerspective(float angleInDeg, float resolution, float filterWidth, float normalBiasMax, float guardAngleMaxInDeg)
