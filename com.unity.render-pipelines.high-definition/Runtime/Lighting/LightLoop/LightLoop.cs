@@ -2183,17 +2183,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return sortCount;
         }
 
-        // TODO_FCC: Remove this as a function, but it is a win! 10%
-        List<Matrix4x4> GetWorldToViewMatrices(HDCamera hdCamera, int viewCount)
-        {
-            List<Matrix4x4> worldToMatrices = new List<Matrix4x4>(viewCount);
-            for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
-            {
-                worldToMatrices.Add(GetWorldToViewMatrix(hdCamera, viewIndex));
-            }
-            return worldToMatrices;
-        }
-
         void PrepareGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, int processedLightCount)
         {
             Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
