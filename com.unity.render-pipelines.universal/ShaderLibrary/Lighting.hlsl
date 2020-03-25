@@ -374,7 +374,7 @@ half SampleAmbientOcclusion(half3 positionCS)
 {
 #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
     float2 uv = UnityStereoTransformScreenSpaceTex(positionCS.xy * (GetScreenParams().zw - 1.0));
-    return SAMPLE_TEXTURE2D(_ScreenSpaceAmbientOcclusionTexture, sampler_ScreenSpaceAmbientOcclusionTexture, uv).x;
+    return SAMPLE_TEXTURE2D_X(_ScreenSpaceAmbientOcclusionTexture, sampler_ScreenSpaceAmbientOcclusionTexture, uv).x;
 #endif
 
     return 1.0;

@@ -387,11 +387,11 @@ float4 FragBlur(Varyings input) : SV_Target
 // Geometry-aware bilateral filter (single pass/small kernel)
 half BlurSmall(TEXTURE2D_PARAM(tex, samp), float2 uv, float2 delta)
 {
-    half4 p0 = SAMPLE_TEXTURE2D(tex, samp, UnityStereoTransformScreenSpaceTex(uv                             ));
-    half4 p1 = SAMPLE_TEXTURE2D(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2(-delta.x, -delta.y)));
-    half4 p2 = SAMPLE_TEXTURE2D(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2( delta.x, -delta.y)));
-    half4 p3 = SAMPLE_TEXTURE2D(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2(-delta.x,  delta.y)));
-    half4 p4 = SAMPLE_TEXTURE2D(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2( delta.x,  delta.y)));
+    half4 p0 = SAMPLE_TEXTURE2D_X(tex, samp, UnityStereoTransformScreenSpaceTex(uv                             ));
+    half4 p1 = SAMPLE_TEXTURE2D_X(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2(-delta.x, -delta.y)));
+    half4 p2 = SAMPLE_TEXTURE2D_X(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2( delta.x, -delta.y)));
+    half4 p3 = SAMPLE_TEXTURE2D_X(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2(-delta.x,  delta.y)));
+    half4 p4 = SAMPLE_TEXTURE2D_X(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2( delta.x,  delta.y)));
 
     half3 n0 = GetPackedNormal(p0);
 
