@@ -251,7 +251,7 @@ Material:
     - _ZTestModeDistortion: 8
     - _ZTestTransparent: 4
     - _ZWrite: 1
-    - _useThreadMap: 1
+    - _useThreadMap: 0
     m_Colors:
     - _BaseColor: {r: 0.027450982, g: 0.003921569, b: 0.007843138, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
