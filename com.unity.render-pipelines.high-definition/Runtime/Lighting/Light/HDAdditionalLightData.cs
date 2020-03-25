@@ -1467,7 +1467,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if(m_Light == null)
+                // Calling TryGetComponent only when needed is faster than letting the null check happen inside TryGetComponent
+                if (m_Light == null)
                     TryGetComponent<Light>(out m_Light);
 
                 return m_Light;
