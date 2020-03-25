@@ -169,9 +169,7 @@ void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inou
     #ifdef VARYINGS_DS_NEED_COLOR
         input.color
     #else
-//forest-begin: Tessellated displacement scale
-        float4(0.0, 0.0, 0.0, 1.0)
-//forest-end:
+        float4(0.0, 0.0, 0.0, 0.0)
     #endif
         );
 #endif // _TESSELLATION_DISPLACEMENT
