@@ -1,4 +1,5 @@
 using UnityEngine.Experimental.GlobalIllumination;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using Unity.Collections;
 
@@ -26,16 +27,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
-
-            const int initialWidth = 1920;
-            const int initialHeight = 1080;
-            m_GBufferDescriptors[0] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);            // albedo          albedo          albedo          occlusion       (sRGB rendertarget)
-            m_GBufferDescriptors[1] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);            // specular        specular        specular        metallic        (sRGB rendertarget)
-            m_GBufferDescriptors[2] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0);           // encoded-normal  encoded-normal  encoded-normal  smoothness
-            //m_GBufferDescriptors[3] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.B10G11R11_UFloatPack32, 0); // GI              GI              GI              [unused]        (lighting buffer)  // <- initialized in DeferredRenderer.cs as DeferredRenderer.m_CameraColorAttachment
-
             m_HasDepthPrepass = false;
-
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
@@ -49,12 +41,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture, RenderTargetHandle[] colorAttachments, bool hasDepthPrepass)
         {
-            for(int gbufferIndex = 0; gbufferIndex < m_GBufferDescriptors.Length ; ++gbufferIndex)
-            {
-                var graphicsFormat = m_GBufferDescriptors[gbufferIndex].graphicsFormat;
+            GraphicsFormat normalSmoothnessFmt = m_DeferredLights.accurateGbufferNormals
+                ? GraphicsFormat.R8G8B8A8_UNorm
+                : GraphicsFormat.R8G8B8A8_SNorm;
+
+            for (int gbufferIndex = 0; gbufferIndex < m_GBufferDescriptors.Length ; ++gbufferIndex)
                 m_GBufferDescriptors[gbufferIndex] = renderingData.cameraData.cameraTargetDescriptor;
-                m_GBufferDescriptors[gbufferIndex].graphicsFormat = graphicsFormat;
-            }
+
+            m_GBufferDescriptors[0].graphicsFormat = GraphicsFormat.R8G8B8A8_SRGB;                // albedo          albedo          albedo          occlusion       (sRGB rendertarget)
+            m_GBufferDescriptors[1].graphicsFormat = GraphicsFormat.R8G8B8A8_SRGB;                // specular        specular        specular        metallic        (sRGB rendertarget)
+            m_GBufferDescriptors[2].graphicsFormat = normalSmoothnessFmt;                         // encoded-normal  encoded-normal  encoded-normal  smoothness
+            //m_GBufferDescriptors[3].graphicsFormat = GraphicsFormat.B10G11R11_UFloatPack32, 0); // GI              GI              GI              [unused]        (lighting buffer)  // <- initialized in DeferredRenderer.cs as DeferredRenderer.m_CameraColorAttachment
 
             m_DepthBufferDescriptor = renderingData.cameraData.cameraTargetDescriptor;
             m_DepthBufferDescriptor.colorFormat = RenderTextureFormat.Depth;
