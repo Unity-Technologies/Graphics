@@ -4,19 +4,17 @@ using UnityEngine;
 
 public class EditorLogWatcher : IDisposable
 {
-    const string editorLogFileName = "Editor.log";
-
     public delegate void OnLogWriteCallback(string newLines);
 
-    OnLogWriteCallback  logWriteCallback;
-    FileStream          logStream;
+    OnLogWriteCallback  m_LogWriteCallback;
+    FileStream          m_LogStream;
 
     public EditorLogWatcher(OnLogWriteCallback callback)
     {
-        logWriteCallback = callback;
+        m_LogWriteCallback = callback ?? throw new ArgumentNullException(nameof(callback));
 
-        logStream = new FileStream(GetEditorLogPath(), FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 1 * 1024 * 1024, FileOptions.RandomAccess | FileOptions.SequentialScan);
-        logStream.Seek(logStream.Length, SeekOrigin.Begin);
+        m_LogStream = new FileStream(GetEditorLogPath(), FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 1 * 1024 * 1024, FileOptions.RandomAccess | FileOptions.SequentialScan);
+        m_LogStream.Seek(m_LogStream.Length, SeekOrigin.Begin);
     }
 
     string GetEditorLogPath()
@@ -40,14 +38,12 @@ public class EditorLogWatcher : IDisposable
 #endif
     }
 
-    string GetEditorLogFolderPath() => Path.GetDirectoryName(GetEditorLogPath());
-
     public void Dispose()
     {
-        using (var s = new StreamReader(logStream))
+        using (var s = new StreamReader(m_LogStream))
         {
             while (!s.EndOfStream)
-                logWriteCallback?.Invoke(s.ReadLine());
+                m_LogWriteCallback.Invoke(s.ReadLine());
         }
     }
 }

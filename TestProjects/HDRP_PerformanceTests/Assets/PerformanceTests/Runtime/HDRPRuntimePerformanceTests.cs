@@ -4,20 +4,19 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using System;
 using UnityEngine.Rendering;
-using Unity.PerformanceTesting;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 using static PerformanceTestUtils;
-using static PerformanceMetricNames;
+using Unity.PerformanceTesting;
 
-public class HDRP_RuntimePerformanceTests : PerformanceTests
+public class HDRPRuntimePerformanceTests : PerformanceTests
 {
-    const int WarmupCount = 10;
+    const int WarmupCount = 20;
     const int MeasurementCount = 30;  // Number of frames to measure
     const int GlobalTimeout = 120 * 1000;       // 2 min
     const int minMemoryReportSize = 128 * 1024; // in bytes
 
-    public static IEnumerable<CounterTestDescription> GetCounterTests()
+    static IEnumerable<CounterTestDescription> GetCounterTests()
     {
         if (testScenesAsset == null)
             yield break;
@@ -25,7 +24,7 @@ public class HDRP_RuntimePerformanceTests : PerformanceTests
             yield return new CounterTestDescription{ assetData = asset, sceneData = scene };
     }
 
-    IEnumerable<ProfilingSampler> GetAllMarkers(HDCamera hDCamera)
+    static IEnumerable<ProfilingSampler> GetAllMarkers(HDCamera hDCamera)
     {
         yield return hDCamera.profilingSampler;
         foreach (var val in Enum.GetValues(typeof(HDProfileId)))
@@ -40,10 +39,10 @@ public class HDRP_RuntimePerformanceTests : PerformanceTests
         var camera = GameObject.FindObjectOfType<Camera>();
         var hdCamera = HDCamera.GetOrCreate(camera, 0); // We don't support XR for now
 
-        yield return MeasureProfilingSamplers(GetAllMarkers(hdCamera), 20, MeasurementCount);
+        yield return MeasureProfilingSamplers(GetAllMarkers(hdCamera), WarmupCount, MeasurementCount);
     }
 
-    public static IEnumerable<MemoryTestDescription> GetMemoryTests()
+    static IEnumerable<MemoryTestDescription> GetMemoryTests()
     {
         if (testScenesAsset == null)
             yield break;

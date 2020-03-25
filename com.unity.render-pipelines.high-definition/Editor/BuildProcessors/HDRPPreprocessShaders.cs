@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Track list of materials asking for specific preprocessor step
         List<BaseShaderPreprocessor> shaderProcessorsList;
 
-        internal static event System.Action<Shader, ShaderSnippetData, int, double> reportShaderStrippingData;
+        internal static event System.Action<Shader, ShaderSnippetData, int, double> shaderPreprocessed;
 
         uint m_TotalVariantsInputCount;
         uint m_TotalVariantsOutputCount;
@@ -301,7 +301,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             Debug.Log(shader + " -> " + shaderStripingWatch.Elapsed.TotalMilliseconds);
             shaderStripingWatch.Stop();
-            reportShaderStrippingData?.Invoke(shader, snippet, inputData.Count, shaderStripingWatch.Elapsed.TotalMilliseconds);
+            shaderPreprocessed?.Invoke(shader, snippet, inputData.Count, shaderStripingWatch.Elapsed.TotalMilliseconds);
         }
     }
 

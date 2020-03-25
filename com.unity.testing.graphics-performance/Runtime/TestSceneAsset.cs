@@ -69,7 +69,7 @@ public struct CounterTestDescription
     public TestSceneAsset.SRPAssetData  assetData;
 
     public override string ToString()
-        => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, kDefault);
+        => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, k_Default);
 }
 
 public struct MemoryTestDescription

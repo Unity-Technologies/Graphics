@@ -11,16 +11,24 @@ using Object = UnityEngine.Object;
 [CustomEditor(typeof(TestSceneAsset))]
 class TestSceneAssetEditor : Editor
 {
-    ReorderableList counterSceneList;
-    ReorderableList counterSRPAssets;
-    ReorderableList memorySceneList;
-    ReorderableList memorySRPAssets;
-    ReorderableList buildSceneList;
-    ReorderableList buildSRPAssets;
+    ReorderableList m_CounterSceneList;
+    ReorderableList m_CounterSRPAssets;
+    ReorderableList m_MemorySceneList;
+    ReorderableList m_MemorySRPAssets;
+    ReorderableList m_BuildSceneList;
+    ReorderableList m_BuildSRPAssets;
 
     ReorderableList srpAssetAliasesList;
 
     static float fieldHeight => EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+
+    static class Styles
+    {
+        public static readonly string countersText = "Performance Counters Tests";
+        public static readonly string memoryText = "Memory Tests";
+        public static readonly string buildTimeText = "Build Time Tests";
+        public static readonly string refreshTestRunner = "Refresh Test Runner List (can take up to ~20s)";
+    }
 
     public void OnEnable()
     {
@@ -28,9 +36,9 @@ class TestSceneAssetEditor : Editor
         SerializedProperty memoryProperty = serializedObject.FindProperty(nameof(TestSceneAsset.memoryTestSuite));
         SerializedProperty buildProperty = serializedObject.FindProperty(nameof(TestSceneAsset.buildTestSuite));
 
-        InitReorderableListFromProperty(counterProperty, out counterSceneList, out counterSRPAssets);
-        InitReorderableListFromProperty(memoryProperty, out memorySceneList, out memorySRPAssets);
-        InitReorderableListFromProperty(buildProperty, out buildSceneList, out buildSRPAssets);
+        InitReorderableListFromProperty(counterProperty, out m_CounterSceneList, out m_CounterSRPAssets);
+        InitReorderableListFromProperty(memoryProperty, out m_MemorySceneList, out m_MemorySRPAssets);
+        InitReorderableListFromProperty(buildProperty, out m_BuildSceneList, out m_BuildSRPAssets);
 
         void InitReorderableListFromProperty(SerializedProperty testSuite, out ReorderableList sceneList, out ReorderableList srpAssetList)
         {
@@ -61,7 +69,7 @@ class TestSceneAssetEditor : Editor
             var sceneGUID = AssetDatabase.FindAssets($"t:Scene {sceneName.stringValue}", new [] {"Assets"}).FirstOrDefault();
             var sceneAsset = String.IsNullOrEmpty(sceneGUID) ? null : AssetDatabase.LoadAssetAtPath<SceneAsset>(AssetDatabase.GUIDToAssetPath(sceneGUID));
             sceneAsset = EditorGUI.ObjectField(rect, "Test Scene", sceneAsset, typeof(SceneAsset), false) as SceneAsset;
-            sceneName.stringValue = sceneAsset?.name;
+            sceneName.stringValue = sceneAsset != null && !sceneAsset.Equals(null) ? sceneAsset.name : null;
             scenePath.stringValue = AssetDatabase.GetAssetPath(sceneAsset);
             sceneLabels.stringValue = GetLabelForAsset(sceneAsset);
 
@@ -138,21 +146,23 @@ class TestSceneAssetEditor : Editor
         list.elementHeight = fieldHeight * 2;
     }
 
-    string GetLabelForAsset(Object asset)
+    static string GetLabelForAsset(Object asset)
     {
         if (asset == null)
-            return kDefault;
+            return k_Default;
 
         var labels = AssetDatabase.GetLabels(asset);
         if (labels.Length > 0)
             return String.Join("_", labels);
         else
-            return kDefault;
+            return k_Default;
     }
 
     void DefaultListAdd(ReorderableList list)
     {
         ReorderableList.defaultBehaviours.DoAddButton(list);
+
+        serializedObject.Update();
 
         // Enable the scene by default
         var element = list.serializedProperty.GetArrayElementAtIndex(list.count - 1);
@@ -165,24 +175,25 @@ class TestSceneAssetEditor : Editor
 
     void DefaultListDelete(ReorderableList list)
     {
+        serializedObject.Update();
         list.serializedProperty.DeleteArrayElementAtIndex(list.index);
         serializedObject.ApplyModifiedProperties();
     }
 
     public override void OnInspectorGUI()
     {
-        if (Resources.Load(PerformanceTestUtils.testSceneResourcePath) == null)
-            EditorGUILayout.HelpBox($"Test Scene Asset have been moved from it's expected location, please move it back to Resources/{PerformanceTestUtils.testSceneResourcePath}", MessageType.Error);
+        if (PerformanceTestSettings.GetTestSceneDescriptionAsset() == null)
+            EditorGUILayout.HelpBox($"Test Scene Asset is null, please set it in Project Settings / Performance Tests", MessageType.Error);
 
         EditorGUIUtility.labelWidth = 100;
 
-        DrawTestBlock(counterSceneList, counterSRPAssets, "Performance Counters Tests");
-        DrawTestBlock(memorySceneList, memorySRPAssets, "Memory Tests");
-        DrawTestBlock(buildSceneList, buildSRPAssets, "Build Time Tests");
+        DrawTestBlock(m_CounterSceneList, m_CounterSRPAssets, Styles.countersText);
+        DrawTestBlock(m_MemorySceneList, m_MemorySRPAssets, Styles.memoryText);
+        DrawTestBlock(m_BuildSceneList, m_BuildSRPAssets, Styles.buildTimeText);
 
         EditorGUILayout.Space();
 
-        if (GUILayout.Button("Refresh Test Runner List (can take up to ~20s)"))
+        if (GUILayout.Button(Styles.refreshTestRunner))
             CompilationPipeline.RequestScriptCompilation();
         
         EditorGUILayout.Space();

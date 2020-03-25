@@ -64,9 +64,9 @@ public class PerformanceTests : IPrebuildSetup
 
         void CreateSampleGroups(ProfilingSampler sampler)
         {
-            SampleGroup cpuSample = new SampleGroup(FormatSampleGroupName(kTiming, kCPU, sampler.name), SampleUnit.Millisecond, false);
-            SampleGroup gpuSample = new SampleGroup(FormatSampleGroupName(kTiming, kGPU, sampler.name), SampleUnit.Millisecond, false);
-            SampleGroup inlineCPUSample = new SampleGroup(FormatSampleGroupName(kTiming, kInlineCPU, sampler.name), SampleUnit.Millisecond, false);
+            SampleGroup cpuSample = new SampleGroup(FormatSampleGroupName(k_Timing, k_CPU, sampler.name), SampleUnit.Millisecond, false);
+            SampleGroup gpuSample = new SampleGroup(FormatSampleGroupName(k_Timing, k_GPU, sampler.name), SampleUnit.Millisecond, false);
+            SampleGroup inlineCPUSample = new SampleGroup(FormatSampleGroupName(k_Timing, k_InlineCPU, sampler.name), SampleUnit.Millisecond, false);
             sampleGroups[sampler] = (cpuSample, inlineCPUSample, gpuSample);
         }
 
@@ -119,7 +119,7 @@ public class PerformanceTests : IPrebuildSetup
 
         // Report data
         foreach (var result in results)
-            Measure.Custom(new SampleGroup(FormatSampleGroupName(kMemory, result.name), SampleUnit.Byte, false), result.size);
-        Measure.Custom(new SampleGroup(FormatSampleGroupName(kTotalMemory, testDescription.assetType.Name), SampleUnit.Byte, false), totalMemory);
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_Memory, result.name), SampleUnit.Byte, false), result.size);
+        Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, testDescription.assetType.Name), SampleUnit.Byte, false), totalMemory);
     }
 }

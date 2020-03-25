@@ -19,12 +19,7 @@ using Object = UnityEngine.Object;
 
 public class EditorPerformanceTests
 {
-    const int BuildTimeout = 10 * 60 * 1000; // 10 min for each build test
     const string buildLocation = "TmpBuild";
-
-    // TODO
-    public const string testSceneResourcePath = "TestScenes";
-    static TestSceneAsset testScenesAsset = PerformanceTestSettings.GetTestSceneDescriptionAsset();
 
     protected BuildReport BuildPlayer(string scenePath)
     {
@@ -32,7 +27,6 @@ public class EditorPerformanceTests
         buildPlayerOptions.scenes = new[] { scenePath };
         buildPlayerOptions.locationPathName = buildLocation;
         buildPlayerOptions.target = BuildTarget.StandaloneWindows64;
-        buildPlayerOptions.options = BuildOptions.Development; // TODO: remove dev build test
 
         // Make sure we compile the shaders when we build:
         ClearShaderCache();
@@ -43,18 +37,18 @@ public class EditorPerformanceTests
         return report;
     }
 
-    protected void ReportBuildData(BuildReport report)
+    protected static void ReportBuildData(BuildReport report)
     {
         BuildSummary summary = report.summary;
-        Measure.Custom(FormatSampleGroupName(kSize, kTotal).ToSampleGroup(SampleUnit.Byte), summary.totalSize);
-        Measure.Custom(FormatSampleGroupName(kSize, kShader).ToSampleGroup(SampleUnit.Byte), GetAssetSizeInBuild(report, typeof(Shader)));
-        Measure.Custom(FormatSampleGroupName(kSize, kComputeShader).ToSampleGroup(SampleUnit.Byte), GetAssetSizeInBuild(report, typeof(ComputeShader)));
-        Measure.Custom(FormatSampleGroupName(kTime, kTotal).ToSampleGroup(SampleUnit.Millisecond), summary.totalTime.TotalMilliseconds);
-        Measure.Custom(FormatSampleGroupName(kBuild, kWarnings).ToSampleGroup(), summary.totalWarnings);
-        Measure.Custom(FormatSampleGroupName(kBuild, kSuccess).ToSampleGroup(), summary.result == BuildResult.Succeeded ? 1 : 0);
+        Measure.Custom(FormatSampleGroupName(k_Size, k_Total).ToSampleGroup(SampleUnit.Byte), summary.totalSize);
+        Measure.Custom(FormatSampleGroupName(k_Size, k_Shader).ToSampleGroup(SampleUnit.Byte), GetAssetSizeInBuild(report, typeof(Shader)));
+        Measure.Custom(FormatSampleGroupName(k_Size, k_ComputeShader).ToSampleGroup(SampleUnit.Byte), GetAssetSizeInBuild(report, typeof(ComputeShader)));
+        Measure.Custom(FormatSampleGroupName(k_Time, k_Total).ToSampleGroup(SampleUnit.Millisecond), summary.totalTime.TotalMilliseconds);
+        Measure.Custom(FormatSampleGroupName(k_Build, k_Warnings).ToSampleGroup(), summary.totalWarnings);
+        Measure.Custom(FormatSampleGroupName(k_Build, k_Success).ToSampleGroup(), summary.result == BuildResult.Succeeded ? 1 : 0);
     }
 
-    protected ulong GetAssetSizeInBuild(BuildReport report, Type assetType)
+    protected static ulong GetAssetSizeInBuild(BuildReport report, Type assetType)
     {
         ulong assetSize = 0;
         foreach (var packedAsset in report.packedAssets)
@@ -67,7 +61,7 @@ public class EditorPerformanceTests
         return assetSize;
     }
 
-    protected void ReportShaderSize(BuildReport report, string shaderNameFilter)
+    protected static void ReportShaderSize(BuildReport report, string shaderNameFilter)
     {
         foreach (var packedAsset in report.packedAssets)
         {
@@ -76,14 +70,14 @@ public class EditorPerformanceTests
                 if (content.type == typeof(ComputeShader))
                 {
                     var computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(content.sourceAssetPath);
-                    Measure.Custom(FormatSampleGroupName(kSize, kComputeShader, computeShader.name).ToSampleGroup(SampleUnit.Byte), content.packedSize);
+                    Measure.Custom(FormatSampleGroupName(k_Size, k_ComputeShader, computeShader.name).ToSampleGroup(SampleUnit.Byte), content.packedSize);
                 }
                 else if (content.type == typeof(Shader))
                 {
                     var shader = AssetDatabase.LoadAssetAtPath<Shader>(content.sourceAssetPath);
 
-                    if (shader?.name?.Contains(shaderNameFilter) ?? false)
-                        Measure.Custom(FormatSampleGroupName(kSize, kShader, shader.name).ToSampleGroup(SampleUnit.Byte), content.packedSize);
+                    if (shader != null && !shader.Equals(null) && shader.name.Contains(shaderNameFilter))
+                        Measure.Custom(FormatSampleGroupName(k_Size, k_Shader, shader.name).ToSampleGroup(SampleUnit.Byte), content.packedSize);
                 }
             }
         }

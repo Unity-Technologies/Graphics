@@ -29,4 +29,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/0002_TransparentOverdraw.unity
     guid: f2681721199474a41bfc8d4ddc3d9aeb
+  - enabled: 1
+    path: Assets/Scenes/0002_TransparentOverdraw.unity
+    guid: f2681721199474a41bfc8d4ddc3d9aeb
   m_configObjects: {}
