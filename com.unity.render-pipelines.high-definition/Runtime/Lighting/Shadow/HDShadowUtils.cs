@@ -183,7 +183,26 @@ namespace UnityEngine.Rendering.HighDefinition
             invproj.m33 = proj.m22 / proj.m23;
             invproj.m32 = invproj.m33 / proj.m22;
 
-            vpinv = invview * invproj;
+            // We explicitly perform the invview * invproj multiplication given that there are lots of 0s involved, so it will be much faster.
+            vpinv.m00 = invview.m00 * invproj.m00;
+            vpinv.m01 = invview.m01 * invproj.m11;
+            vpinv.m02 = invview.m03 * invproj.m32;
+            vpinv.m03 = invview.m00 * invproj.m03 + invview.m01 * invproj.m13 - invview.m02 + invview.m03 * invproj.m33;
+
+            vpinv.m10 = invview.m10 * invproj.m00;
+            vpinv.m11 = invview.m11 * invproj.m11;
+            vpinv.m12 = invview.m13 * invproj.m32;
+            vpinv.m13 = invview.m10 * invproj.m03 + invview.m11 * invproj.m13 - invview.m12 + invview.m13 * invproj.m33;
+
+            vpinv.m20 = invview.m20 * invproj.m00;
+            vpinv.m21 = invview.m21 * invproj.m11;
+            vpinv.m22 = invview.m23 * invproj.m32;
+            vpinv.m23 = invview.m20 * invproj.m03 + invview.m21 * invproj.m13 - invview.m22 + invview.m23 * invproj.m33;
+
+            vpinv.m30 = 0.0f;
+            vpinv.m31 = 0.0f;
+            vpinv.m32 = invproj.m32;
+            vpinv.m33 = invproj.m33;
         }
 
         public static Matrix4x4 ExtractSpotLightProjectionMatrix(float range, float spotAngle, float nearPlane, float aspectRatio, float guardAngle)
