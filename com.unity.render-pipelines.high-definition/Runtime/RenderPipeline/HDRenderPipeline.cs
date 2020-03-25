@@ -212,6 +212,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderStateBlock m_DepthStateOpaque;
         RenderStateBlock m_DepthStateNoWrite;
 
+        readonly List<CustomPassVolume> m_ActivePassVolumes = new List<CustomPassVolume>(6);
+
         // Detect when windows size is changing
         int m_MaxCameraWidth;
         int m_MaxCameraHeight;
@@ -3593,7 +3595,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             bool executed = false;
-            foreach (var customPass in CustomPassVolume.GetActivePassVolumes(injectionPoint))
+            CustomPassVolume.GetActivePassVolumes(injectionPoint, m_ActivePassVolumes);
+            foreach (var customPass in m_ActivePassVolumes)
             {
                 if (customPass == null)
                     return false;

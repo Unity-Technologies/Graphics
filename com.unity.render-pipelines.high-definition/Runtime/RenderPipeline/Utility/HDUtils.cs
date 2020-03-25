@@ -24,6 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
         /// <summary>Default HDAdditionalCameraData</summary>
         static internal HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
+        
+        static List<CustomPassVolume> m_TempCustomPassVolumeList = new List<CustomPassVolume>();
 
         static Texture3D m_ClearTexture3D;
         static RTHandle m_ClearTexture3DRTH;
@@ -735,7 +737,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             bool executed = false;
-            foreach(var customPassVolume in CustomPassVolume.GetActivePassVolumes(injectionPoint))
+            CustomPassVolume.GetActivePassVolumes(injectionPoint, m_TempCustomPassVolumeList);
+            foreach(var customPassVolume in m_TempCustomPassVolumeList)
             {
                 if (customPassVolume == null)
                     return false;
