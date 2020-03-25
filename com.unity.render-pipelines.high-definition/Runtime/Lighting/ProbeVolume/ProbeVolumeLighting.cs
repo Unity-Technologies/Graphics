@@ -731,7 +731,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // In the lightloop, this means we will evaluate all Additive and Subtractive blending volumes first,
             // and finally our Normal (over) blending volumes.
             // This allows us to early out during the Normal blend volumes if opacity has reached 1.0 across all threads.
-            uint blendModeBits = ((volumeBlendMode != VolumeBlendMode.Normal) ? 1u : 0u) << 31;
+            uint blendModeBits = ((volumeBlendMode != VolumeBlendMode.Normal) ? 0u : 1u) << 31;
             uint logVolumeBits = ((uint)logVolume & VOLUME_MASK) << 11;
             uint indexBits = (uint)probeVolumeIndex & INDEX_MASK;
 
