@@ -129,24 +129,34 @@ namespace UnityEngine.Rendering.HighDefinition
                     passID = m_RenderFullscreenSkyWithBackplateID;
             }
 
-                m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
-                m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
-                m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters0, GetBackplateParameters0(hdriSky));
-                m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters1, GetBackplateParameters1(backplatePhi, hdriSky));
-                m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters2, GetBackplateParameters2(hdriSky));
-                m_SkyHDRIMaterial.SetColor(HDShaderIDs._BackplateShadowTint, hdriSky.shadowTint.value);
-                uint shadowFilter = 0u;
-                if (hdriSky.pointLightShadow.value)
-                    shadowFilter |= unchecked((uint)LightFeatureFlags.Punctual);
-                if (hdriSky.dirLightShadow.value)
-                    shadowFilter |= unchecked((uint)LightFeatureFlags.Directional);
-                if (hdriSky.rectLightShadow.value)
-                    shadowFilter |= unchecked((uint)LightFeatureFlags.Area);
-                m_SkyHDRIMaterial.SetInt(HDShaderIDs._BackplateShadowFilter, unchecked((int)shadowFilter));
-
-                // This matrix needs to be updated at the draw call frequency.
-                m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
-                CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, passID);
+            if (hdriSky.flowmap.overrideState)
+            {
+                m_SkyHDRIMaterial.EnableKeyword("USE_FLOWMAP");
+                m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Flowmap, hdriSky.flowmap.value);
+                m_SkyHDRIMaterial.SetFloat(HDShaderIDs._FlowSpeed, hdriSky.flowSpeed.value);
+                m_SkyHDRIMaterial.SetFloat(HDShaderIDs._FlowStrength, hdriSky.flowStrength.value);
             }
+            else
+                m_SkyHDRIMaterial.DisableKeyword("USE_FLOWMAP");
+
+            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
+            m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
+            m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters0, GetBackplateParameters0(hdriSky));
+            m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters1, GetBackplateParameters1(backplatePhi, hdriSky));
+            m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters2, GetBackplateParameters2(hdriSky));
+            m_SkyHDRIMaterial.SetColor(HDShaderIDs._BackplateShadowTint, hdriSky.shadowTint.value);
+            uint shadowFilter = 0u;
+            if (hdriSky.pointLightShadow.value)
+                shadowFilter |= unchecked((uint)LightFeatureFlags.Punctual);
+            if (hdriSky.dirLightShadow.value)
+                shadowFilter |= unchecked((uint)LightFeatureFlags.Directional);
+            if (hdriSky.rectLightShadow.value)
+                shadowFilter |= unchecked((uint)LightFeatureFlags.Area);
+            m_SkyHDRIMaterial.SetInt(HDShaderIDs._BackplateShadowFilter, unchecked((int)shadowFilter));
+
+            // This matrix needs to be updated at the draw call frequency.
+            m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
+            CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, passID);
         }
     }
+}

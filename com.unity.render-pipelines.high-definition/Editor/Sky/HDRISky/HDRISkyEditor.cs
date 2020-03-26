@@ -13,6 +13,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_hdriSky;
         SerializedDataParameter m_UpperHemisphereLuxValue;
         SerializedDataParameter m_UpperHemisphereLuxColor;
+        SerializedDataParameter m_flowmap;
+        SerializedDataParameter m_flowSpeed;
+        SerializedDataParameter m_flowStrength;
         SerializedDataParameter m_EnableBackplate;
         SerializedDataParameter m_BackplateType;
         SerializedDataParameter m_GroundLevel;
@@ -45,6 +48,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_hdriSky                   = Unpack(o.Find(x => x.hdriSky));
             m_UpperHemisphereLuxValue   = Unpack(o.Find(x => x.upperHemisphereLuxValue));
             m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
+
+            m_flowmap                   = Unpack(o.Find(x => x.flowmap));
+            m_flowSpeed                 = Unpack(o.Find(x => x.flowSpeed));
+            m_flowStrength              = Unpack(o.Find(x => x.flowStrength));
 
             m_EnableBackplate           = Unpack(o.Find(x => x.enableBackplate));
             m_BackplateType             = Unpack(o.Find(x => x.backplateType));
@@ -108,7 +115,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginChangeCheck();
             {
                 PropertyField(m_hdriSky);
-                base.CommonSkySettingsGUI();
             }
             bool updateDefaultShadowTint = false;
             if (EditorGUI.EndChangeCheck())
@@ -116,6 +122,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 GetUpperHemisphereLuxValue();
                 updateDefaultShadowTint = true;
             }
+
+            PropertyField(m_flowmap);
+            {
+                EditorGUI.indentLevel++;
+                PropertyField(m_flowSpeed);
+                PropertyField(m_flowStrength);
+                EditorGUI.indentLevel--;
+            }
+            base.CommonSkySettingsGUI();
 
             if (isInAdvancedMode)
             {

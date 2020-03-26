@@ -10,6 +10,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
+    #pragma shader_feature_local USE_FLOWMAP
+
     #pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
@@ -46,12 +48,17 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
+    
+    TEXTURECUBE(_Flowmap);
+    SAMPLER(sampler_Flowmap);
 
     float4 _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
     float4 _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
     float4 _BackplateParameters1; // x: BackplateType, y: BlendAmount, zw: backplate rotation (cosPhi_plate, sinPhi_plate)
     float4 _BackplateParameters2; // xy: BackplateTextureRotation (cos/sin), zw: Backplate Texture Offset
     float3 _BackplateShadowTint;  // xyz: ShadowTint
+    float  _FlowSpeed;
+    float  _FlowStrength;
     uint   _BackplateShadowFilter;
 
     #define _Intensity          _SkyParam.x
@@ -173,7 +180,39 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     float3 GetSkyColor(float3 dir)
     {
+#ifdef USE_FLOWMAP
+        // Find cube normal at sample point
+        float3 absdir = abs(dir);
+        float absmax = max(max(absdir.x, absdir.y), absdir.z);
+        float3 normal = float3(
+            (absmax == absdir.x) * sign(dir.x),
+            (absmax == absdir.y) * sign(dir.y),
+            (absmax == absdir.z) * sign(dir.z)
+        );
+
+        // Compute distortion directions on the cube
+        float3 tangent = (absmax == absdir.y) ? float3(0.0, 0.0, 1.0) : float3(0.0, 1.0, 0.0);
+        float3 bitangent = cross(normal, tangent);
+
+        // Compute flow factor
+        float2 flow = SAMPLE_TEXTURECUBE_LOD(_Flowmap, sampler_Flowmap, dir, 0).rg * 2.0 - 1.0;
+        float time = _Time.y * _FlowSpeed;
+        float2 alpha = frac(float2(time, time + 0.5)) - 0.5;
+        float2 uv1 = alpha.x * flow;
+        float2 uv2 = alpha.y * flow;
+
+        // Sample twice
+        float3 dir1 = dir + uv1.x * tangent + uv1.y * bitangent;
+        float3 color1 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir1, 0).rgb;
+
+        float3 dir2 = dir + uv2.x * tangent + uv2.y * bitangent;
+        float3 color2 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir2, 0).rgb;
+
+        // Blend color samples
+        return lerp(color1, color2, abs(2.0 * alpha.x));
+#else
         return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+#endif
     }
 
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
