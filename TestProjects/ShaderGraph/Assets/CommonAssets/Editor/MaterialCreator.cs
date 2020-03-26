@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEditor;
 using System.Linq;
@@ -40,7 +40,7 @@ public class MaterialCreator : MonoBehaviour
         Transform nodesXform = GameObject.Find("Nodes").transform;
 
         IEnumerable<Material> matsInScene = nodesXform.GetComponentsInChildren<Renderer>().Select(r => r.sharedMaterial);
-        
+
         HashSet<Material> matSet = new HashSet<Material>(matsInScene);
 
         IEnumerable<Material> matsInSelection = Selection.objects.Where(m => m is Material).Cast<Material>();
@@ -70,7 +70,7 @@ public class MaterialCreator : MonoBehaviour
                 go.transform.position = new Vector3(x, 0, z);
                 go.GetComponent<MeshRenderer>().sharedMaterial = m;
                 go.transform.SetParent(tempContainer.transform, true);
-                
+
                 ++x;
 
                 if(x > dim)
@@ -79,6 +79,29 @@ public class MaterialCreator : MonoBehaviour
                     ++z;
                 }
             }
+        }
+    }
+
+    // Was used to create the flipbook scene
+    [MenuItem("Tools/SG Tests/Create Materials Based on GO Names")]
+    static void CreateDigitMaterials()
+    {
+        if (Selection.gameObjects.Length == 0)
+            return;
+
+        GameObject firstObject = Selection.gameObjects[0];
+        var mat = firstObject.GetComponent<MeshRenderer>().sharedMaterial;
+        string path = Path.GetDirectoryName(AssetDatabase.GetAssetPath(mat));
+
+        foreach (GameObject go in Selection.gameObjects)
+        {
+            float goNameAsFloat = float.Parse(go.name);
+
+            string finalPath = path + "\\" + goNameAsFloat + ".mat";
+            AssetDatabase.CreateAsset(go.GetComponent<MeshRenderer>().material, finalPath);
+            var newMat = AssetDatabase.LoadAssetAtPath<Material>(finalPath);
+            newMat.SetFloat("FlipbookTile", goNameAsFloat);
+            go.GetComponent<MeshRenderer>().material = newMat;
         }
     }
 }
