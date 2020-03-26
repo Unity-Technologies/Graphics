@@ -7,20 +7,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static class Vertex
         {
-            public static int[] UnlitDefault = new int[]
-            {
-                UnlitMasterNode.PositionSlotId,
-                UnlitMasterNode.VertNormalSlotId,
-                UnlitMasterNode.VertTangentSlotId,
-            };
-
-            public static int[] PBRDefault = new int[]
-            {
-                PBRMasterNode.PositionSlotId,
-                PBRMasterNode.VertNormalSlotId,
-                PBRMasterNode.VertTangentSlotId,
-            };
-
             public static int[] HDUnlitDefault = new int[]
             {
                 HDUnlitMasterNode.PositionSlotId,
@@ -71,46 +57,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static class Pixel
         {
-            public static int[] UnlitDefault = new int[]
-            {
-                UnlitMasterNode.ColorSlotId,
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId,
-            };
-
-            public static int[] UnlitOnlyAlpha = new int[]
-            {
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId,
-            };
-
-            public static int[] PBRDefault = new int[]
-            {
-                PBRMasterNode.AlbedoSlotId,
-                PBRMasterNode.NormalSlotId,
-                PBRMasterNode.MetallicSlotId,
-                PBRMasterNode.SpecularSlotId,
-                PBRMasterNode.EmissionSlotId,
-                PBRMasterNode.SmoothnessSlotId,
-                PBRMasterNode.OcclusionSlotId,
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId,
-            };
-
-            public static int[] PBROnlyAlpha = new int[]
-            {
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId,
-            };
-
-            public static int[] PBRDepthMotionVectors = new int[]
-            {
-                PBRMasterNode.NormalSlotId,
-                PBRMasterNode.SmoothnessSlotId,
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId,
-            };
-
             public static int[] HDUnlitDefault = new int[]
             {
                 HDUnlitMasterNode.ColorSlotId,
