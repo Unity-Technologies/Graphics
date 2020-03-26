@@ -104,7 +104,7 @@ namespace UnityEditor.VFX.UI
 
         static Texture2D[] m_IconStates;
 
-        public Label m_Label;
+        protected Label m_Label;
 
 
         public bool m_PropertyEnabled;

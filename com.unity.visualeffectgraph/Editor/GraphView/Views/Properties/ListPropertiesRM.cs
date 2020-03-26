@@ -41,6 +41,12 @@ namespace UnityEditor.VFX.UI
             {
                 m_List.OnRemove(index);
             }
+            protected override void ElementMoved(int movedIndex, int targetIndex)
+            {
+                base.ElementMoved(movedIndex, targetIndex);
+
+                m_List.ElementMoved(movedIndex, targetIndex);
+            }
         }
 
         void OnAdd()
@@ -55,6 +61,16 @@ namespace UnityEditor.VFX.UI
         void OnRemove(int index)
         {
             ((List<T>)m_Provider.value).RemoveAt(index);
+            NotifyValueChanged();
+            Update();
+        }
+
+        void ElementMoved(int movedIndex,int targetIndex)
+        {
+            var list = ((List<T>)m_Provider.value);
+            T tmp = list[movedIndex];
+            list.RemoveAt(movedIndex);
+            list.Insert(targetIndex, tmp);
             NotifyValueChanged();
             Update();
         }
@@ -84,7 +100,10 @@ namespace UnityEditor.VFX.UI
 
             for (int i = 0; i < itemCount; ++i)
             {
-                (m_List.ItemAt(i) as U).UpdateGUI(force);
+                var item = (m_List.ItemAt(i) as U);
+                (item.provider as ItemProvider).m_Index = i;
+                item.name = item.provider.name;
+                item.Update();
             }
         }
 
@@ -92,7 +111,7 @@ namespace UnityEditor.VFX.UI
         class ItemProvider : IPropertyRMProvider
         {
             PropertyRM<List<T>> m_List;
-            int m_Index;
+            public int m_Index;
 
             public ItemProvider(PropertyRM<List<T>> list, int index)
             {
