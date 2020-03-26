@@ -154,10 +154,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Lazy<RTHandle> m_CustomPassColorBuffer;
         Lazy<RTHandle> m_CustomPassDepthBuffer;
 
-//forest-begin: G-Buffer motion vectors
-		RenderTargetIdentifier[][] m_GBuffersWithVelocity = {new RenderTargetIdentifier[1], new RenderTargetIdentifier[2], new RenderTargetIdentifier[3], new RenderTargetIdentifier[4], new RenderTargetIdentifier[5], new RenderTargetIdentifier[6], new RenderTargetIdentifier[7], new RenderTargetIdentifier[8]};
-//forest-end:
-
         // The current MSAA count
         MSAASamples m_MSAASamples;
 
@@ -1079,10 +1075,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Raise or remove the depth msaa flag based on the frame setting
             CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
-
-//forest-begin: G-Buffer motion vectors
-			CoreUtils.SetKeyword(cmd, "GBUFFER_MOTION_VECTORS", hdCamera.frameSettings.IsEnabled(FrameSettingsField.GBufferMotionVectors));
-//forest-end:
         }
 
         struct RenderRequest
@@ -3012,22 +3004,8 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingSample(cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? "GBuffer Debug" : "GBuffer", CustomSamplerId.GBuffer.GetSampler()))
             {
                 // setup GBuffer for rendering
+                CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
 
-//forest-begin: G-Buffer motion vectors
-                var gBuffers = m_GbufferManager.GetBuffersRTI(hdCamera.frameSettings);
-				if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.GBufferMotionVectors))
-                {
-                    // GBuffer count can be varied so append extra velocity buffer at the end
-                    var newGBuffers = m_GBuffersWithVelocity[gBuffers.Length];
-                    for(var i = 0; i < gBuffers.Length; i++ )
-                    {
-                        newGBuffers[i] = gBuffers[i];
-                    }
-                    newGBuffers[gBuffers.Length] = m_SharedRTManager.GetMotionVectorsBuffer();
-                    gBuffers = newGBuffers;
-				}
-                CoreUtils.SetRenderTarget(cmd, gBuffers, m_SharedRTManager.GetDepthStencilBuffer());
-//forest-end:
                 var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting));
                 DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
 
