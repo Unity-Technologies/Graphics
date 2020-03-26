@@ -501,6 +501,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         // --------------------------------------------------
+        // Transparent Depth Prepass & Postpass
+        
+        public static RenderStateCollection RayTracingPrepass = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            // Note: we use default ZTest LEqual so if the object have already been render in depth prepass, it will re-render to tag stencil
+        };
+
+        // --------------------------------------------------
         // Transparent Backface
 
         public static RenderStateCollection HDTransparentBackface = new RenderStateCollection
