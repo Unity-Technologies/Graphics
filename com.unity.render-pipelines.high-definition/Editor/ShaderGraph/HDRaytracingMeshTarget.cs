@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -41,6 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     return HDSubShaders.HDLitRaytracing;
                 case HDUnlitMasterNode _:
                     return HDSubShaders.HDUnlitRaytracing;
+                case StackLitMasterNode _:
+                    return HDSubShaders.StackLitRaytracing;
                 default:
                     return null;
             }
