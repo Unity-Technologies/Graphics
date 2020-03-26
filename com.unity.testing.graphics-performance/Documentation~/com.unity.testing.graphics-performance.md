@@ -219,6 +219,8 @@ HAVING median <> 0
 ORDER BY time, metric
 ```
 
+There are some specific functions to the google big query database, so if you want to be sure that something exists / work in a certain way I suggest you to check out the [Google Big Query SQL documentation page](https://cloud.google.com/bigquery/docs/reference/standard-sql/functions-and-operators).
+
 Here's the scheme of the database, every field should be populated automatically by the performance package. If you encounter any issue with a value in the db, you can ask in #devs-performance-testing on slack.
 
 | Field name                                        | Type      | Mode     | 
