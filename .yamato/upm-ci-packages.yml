@@ -109,7 +109,7 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}:
     flavor: {{ platform.agent.flavor }}
   commands:
     - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
     - unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
     {% if package.hascodependencies %}
     - {{ platform.copycmd }}
@@ -139,7 +139,7 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}_dependencies:
     flavor: {{ platform.agent.flavor }}
   commands:
     - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
     - unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
     {% if package.hascodependencies %}
     - {{ platform.copycmd }}
