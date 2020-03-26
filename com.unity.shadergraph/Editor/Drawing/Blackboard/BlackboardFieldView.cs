@@ -15,7 +15,7 @@ using UnityEditorInternal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-     abstract class BlackboardFieldView : VisualElement, IInspectable
+    class BlackboardFieldView : VisualElement, IInspectable
     {
         readonly BlackboardField m_BlackboardField;
         readonly GraphData m_Graph;
@@ -76,11 +76,41 @@ namespace UnityEditor.ShaderGraph.Drawing
         static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
 
         // Common
-        TextField m_ReferenceNameField;
         IManipulator m_ResetReferenceMenu;
-        EventCallback<KeyDownEvent> m_KeyDownCallback;
-        EventCallback<FocusOutEvent> m_FocusOutCallback;
-        int m_UndoGroup = -1;
+
+        private void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
+        {
+            switch(m_Input)
+            {
+                case AbstractShaderProperty property:
+                    var colorManager = GetFirstAncestorOfType<GraphEditorView>().colorManager;
+                    var nodes = GetFirstAncestorOfType<GraphEditorView>().graphView.Query<MaterialNodeView>().ToList();
+
+                    colorManager.SetNodesDirty(nodes);
+                    colorManager.UpdateNodeViews(nodes);
+
+                    foreach (var node in graph.GetNodes<PropertyNode>())
+                    {
+                        node.Dirty(modificationScope);
+                    }
+                    break;
+                case ShaderKeyword keyword:
+                    foreach (var node in graph.GetNodes<KeywordNode>())
+                    {
+                        node.UpdateNode();
+                        node.Dirty(modificationScope);
+                    }
+
+                    // Cant determine if Sub Graphs contain the keyword so just update them
+                    foreach (var node in graph.GetNodes<SubGraphNode>())
+                    {
+                        node.Dirty(modificationScope);
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
         // Keyword
         private ReorderableList m_ReorderableList;
@@ -89,6 +119,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
         private Action m_propertyViewUpdateTrigger;
+        private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
 
         public string displayName
         {
@@ -112,42 +143,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_BlackboardField = blackboardField;
             m_Graph = graph;
             m_Input = input;
-
-            CreateCallbacks();
         }
 
-        public object GetUnderlyingObject()
+        public object GetObjectToInspect()
         {
             return shaderInput;
-        }
-
-        void CreateCallbacks()
-        {
-            m_KeyDownCallback = new EventCallback<KeyDownEvent>(evt =>
-            {
-                // Record Undo for input field edit
-                if (m_UndoGroup == -1)
-                {
-                    m_UndoGroup = Undo.GetCurrentGroup();
-                    graph.owner.RegisterCompleteObjectUndo("Change property value");
-                }
-                // Handle escaping input field edit
-                if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
-                {
-                    Undo.RevertAllDownToGroup(m_UndoGroup);
-                    m_UndoGroup = -1;
-                    evt.StopPropagation();
-                }
-                // Dont record Undo again until input field is unfocused
-                m_UndoGroup++;
-                this.MarkDirtyRepaint();
-            });
-
-            m_FocusOutCallback = new EventCallback<FocusOutEvent>(evt =>
-            {
-                // Reset UndoGroup when done editing input field
-                m_UndoGroup = -1;
-            });
         }
 
         void UpdateReferenceNameResetMenu()
@@ -169,38 +169,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             evt.menu.AppendAction("Reset Reference", e =>
                 {
                     m_Input.overrideReferenceName = null;
-                    m_ReferenceNameField.value = m_Input.referenceName;
-                    m_ReferenceNameField.RemoveFromClassList("modified");
+                    this.m_resetReferenceNameTrigger(shaderInput.referenceName);
                     DirtyNodes(ModificationScope.Graph);
                 }, DropdownMenuAction.AlwaysEnabled);
-        }
-
-        void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
-        {
-            switch(m_Input)
-            {
-                case AbstractShaderProperty property:
-                    foreach (var node in m_Graph.GetNodes<PropertyNode>())
-                        node.Dirty(modificationScope);
-                    break;
-                case ShaderKeyword keyword:
-                {
-                    foreach (var node in m_Graph.GetNodes<KeywordNode>())
-                    {
-                        node.UpdateNode();
-                        node.Dirty(modificationScope);
-                    }
-
-                    // Cant determine if Sub Graphs contain the keyword so just update them
-                    foreach (var node in m_Graph.GetNodes<SubGraphNode>())
-                    {
-                        node.Dirty(modificationScope);
-                    }
-                    break;
-                }
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
         }
 
 #region PropertyDrawers
@@ -215,9 +186,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     this.ChangePropertyValue,
                     this.RegisterPropertyChangeUndo,
                     this.MarkNodesAsDirty);
+
+                this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
+                this.m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
             }
 
-            this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
         }
 
         public PropertyInfo[] GetPropertyInfo()
@@ -233,7 +206,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ChangeReferenceNameField(string newValue)
         {
-            m_Graph.owner.RegisterCompleteObjectUndo("Change Reference Name");
             if (newValue != m_Input.referenceName)
                 m_Graph.SanitizeGraphInputReferenceName(m_Input, newValue);
 

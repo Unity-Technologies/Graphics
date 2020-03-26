@@ -115,7 +115,7 @@ namespace Drawing.Inspector
                     PropertyInfo[] properties;
                     if (selectable is IInspectable inspectable)
                     {
-                        dataObject = inspectable.GetUnderlyingObject();
+                        dataObject = inspectable.GetObjectToInspect();
                         if (dataObject == null)
                             throw new NullReferenceException("DataObject returned by Inspectable is null!");
 

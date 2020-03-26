@@ -423,7 +423,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public string displayName => $"{m_Title.text} (Sticky Note)";
-        public object GetUnderlyingObject()
+        public object GetObjectToInspect()
         {
             throw new System.NotImplementedException();
         }

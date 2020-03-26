@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public object GetUnderlyingObject()
+        public object GetObjectToInspect()
         {
             throw new NotImplementedException();
         }

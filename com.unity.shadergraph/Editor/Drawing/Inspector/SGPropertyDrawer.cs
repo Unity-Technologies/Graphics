@@ -1089,6 +1089,7 @@ namespace Drawing.Inspector
         }
     }
 
+    // #TODO - This does a lot of things a controller would, think about splitting stuff up to be more MVC
     [SGPropertyDrawer(typeof(ShaderInput))]
     class ShaderInputPropertyDrawer : IPropertyDrawer
     {
@@ -1102,7 +1103,12 @@ namespace Drawing.Inspector
         private ReorderableList m_ReorderableList;
         private int m_SelectedIndex;
 
+        // Reference Name
+        private TextField m_ReferenceNameField;
+        public ChangeReferenceNameCallback _resetReferenceNameCallback;
+
         private ShaderInput shaderInput;
+
         private bool isSubGraph { get ; set;  }
         private ChangeExposedFieldCallback _exposedFieldChangedCallback;
         private ChangeReferenceNameCallback _referenceNameChangedCallback;
@@ -1173,20 +1179,26 @@ namespace Drawing.Inspector
                     "Reference",
                     out var propertyVisualElement));
 
-                var propertyTextField = (TextField) propertyVisualElement;
-                propertyTextField.RegisterValueChangedCallback(
+                m_ReferenceNameField = (TextField) propertyVisualElement;
+                m_ReferenceNameField.RegisterValueChangedCallback(
                     evt =>
                     {
                         this._preChangeValueCallback("Change Reference Name");
                         this._referenceNameChangedCallback(evt.newValue);
 
                         if (string.IsNullOrEmpty(shaderInput.overrideReferenceName))
-                            propertyTextField.RemoveFromClassList("modified");
+                            m_ReferenceNameField.RemoveFromClassList("modified");
                         else
-                            propertyTextField.AddToClassList("modified");
+                            m_ReferenceNameField.AddToClassList("modified");
 
                         this._postChangeValueCallback(false, ModificationScope.Graph);
                     });
+
+                _resetReferenceNameCallback = newValue =>
+                {
+                    m_ReferenceNameField.value = newValue;
+                    m_ReferenceNameField.RemoveFromClassList("modified");
+                };
 
                 if(!string.IsNullOrEmpty(shaderInput.overrideReferenceName))
                     propertyVisualElement.AddToClassList("modified");
@@ -1837,6 +1849,29 @@ namespace Drawing.Inspector
             m_SelectedIndex = list.index;
         }
 
+        // Allowed indicies are 1-MAX_ENUM_ENTRIES
+        private int GetFirstUnusedID()
+        {
+            if(!(shaderInput is ShaderKeyword keyword))
+                return 0;
+
+            List<int> unusedIDs = new List<int>();
+
+            foreach (KeywordEntry keywordEntry in keyword.entries)
+            {
+                unusedIDs.Add(keywordEntry.id);
+            }
+
+            for (int x = 1; x <= KeywordNode.k_MaxEnumEntries; x++)
+            {
+                if (!unusedIDs.Contains(x))
+                    return x;
+            }
+
+            Debug.LogError("GetFirstUnusedID: Attempting to get unused ID when all IDs are used.");
+            return -1;
+        }
+
         private void AddEntry(ReorderableList list)
         {
             if(!(shaderInput is ShaderKeyword keyword))
@@ -1844,7 +1879,10 @@ namespace Drawing.Inspector
 
             this._preChangeValueCallback("Add Keyword Entry");
 
-            var index = list.list.Count + 1;
+            int index = GetFirstUnusedID();
+            if (index <= 0)
+                return; // Error has already occured, don't attempt to add this entry.
+
             var displayName = GetDuplicateSafeDisplayName(index, "New");
             var referenceName = GetDuplicateSafeReferenceName(index, "NEW");
 
@@ -1852,7 +1890,6 @@ namespace Drawing.Inspector
             keyword.entries.Add(new KeywordEntry(index, displayName, referenceName));
 
             // Update GUI
-            // Rebuild();
             this._postChangeValueCallback(true);
             this._keywordChangedCallback();
             m_SelectedIndex = list.list.Count - 1;
@@ -1877,6 +1914,7 @@ namespace Drawing.Inspector
             // Rebuild();
             this._postChangeValueCallback(true);
             this._keywordChangedCallback();
+            m_SelectedIndex = m_SelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_SelectedIndex;
         }
 
         private void ReorderEntries(ReorderableList list)

@@ -438,7 +438,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return generator.generatedShader;
         }
 
-        public object GetUnderlyingObject()
+        public object GetObjectToInspect()
         {
             return this.node;
         }

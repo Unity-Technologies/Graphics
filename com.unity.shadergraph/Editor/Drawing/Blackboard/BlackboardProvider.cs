@@ -316,7 +316,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
                     field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
-                    var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
+                    var propertyView = new BlackboardFieldView(field, m_Graph, property);
                     row = new BlackboardRow(field, propertyView) { userData = input };
 
                     if (index < 0 || index > m_InputRows.Count)
@@ -337,7 +337,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     typeText = keyword.isBuiltIn ? "Built-in " + typeText : typeText;
 
                     field = new BlackboardField(icon, keyword.displayName, typeText) { userData = keyword };
-                    var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
+                    var keywordView = new BlackboardFieldView(field, m_Graph, keyword);
                     row = new BlackboardRow(field, keywordView);
 
                     if (index < 0 || index > m_InputRows.Count)
