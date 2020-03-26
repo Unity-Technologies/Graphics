@@ -122,7 +122,7 @@ return objectScale;");
                             heightmap,
                             edgesSampler.Any() ? GetSlotValue(kHeightmapSamplerSlotId, generationMode) : "sampler" + heightmap);
                     }
-                    s.Append(perPixelDisplacementInclude);
+                    s.AppendLine(perPixelDisplacementInclude);
                 });
         }
 
