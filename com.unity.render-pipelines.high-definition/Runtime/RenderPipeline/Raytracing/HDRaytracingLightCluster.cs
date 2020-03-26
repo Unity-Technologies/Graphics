@@ -694,7 +694,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
 
                 var envLightData = new EnvLightData();
-                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, m_RenderPipeline.m_CurrentDebugDisplaySettings, ref envLightData);
+                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData);
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.

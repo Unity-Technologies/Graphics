@@ -274,7 +274,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static int[] HDLitTransparentDepthPostpass = new int[]
             {
                 HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdDepthPrepassSlotId,
+                HDLitMasterNode.AlphaThresholdDepthPostpassSlotId,
+                HDLitMasterNode.DepthOffsetSlotId,
+            };
+
+            public static int[] HDLitRayTracingPrepass = new int[]
+            {
+                HDLitMasterNode.AlphaSlotId,
+                HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
             };
 
