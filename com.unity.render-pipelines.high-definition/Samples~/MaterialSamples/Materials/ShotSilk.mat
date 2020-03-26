@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Satin
+  m_Name: ShotSilk
   m_Shader: {fileID: 4800000, guid: 16421cf35ab84f44bb91798b9c46be6d, type: 3}
   m_ShaderKeywords: _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
   m_LightmapFlags: 4
@@ -68,7 +68,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FuzzMap:
-        m_Texture: {fileID: 2800000, guid: 2e0a359b392828444b3a2ad8a99161aa, type: 3}
+        m_Texture: {fileID: 2800000, guid: 632ea38a7fe456b4d87ded4efbea8d6c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _HeightMap:
@@ -120,7 +120,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ThreadMap:
-        m_Texture: {fileID: 2800000, guid: be990ccbd19eeec4fb39d13da3b1d421, type: 3}
+        m_Texture: {fileID: 2800000, guid: 963d136eca7b7bc4e838b34654450ab2, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TransmittanceColorMap:
@@ -184,7 +184,7 @@ Material:
     - _EnableWind: 0
     - _EnergyConservingSpecularColor: 1
     - _FuzzMapUVScale: 0.2
-    - _FuzzStrength: 0.091
+    - _FuzzStrength: 0.1
     - _HdrpVersion: 2
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
@@ -219,7 +219,7 @@ Material:
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 0.5
-    - _SmoothnessMax: 0.052
+    - _SmoothnessMax: 0.2
     - _SmoothnessMin: 0
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
@@ -244,9 +244,9 @@ Material:
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
-    - _ThreadAOStrength01: 0.6
-    - _ThreadNormalStrength: 1
-    - _ThreadSmoothnessScale: 0
+    - _ThreadAOStrength01: 0.29
+    - _ThreadNormalStrength: 0.2
+    - _ThreadSmoothnessScale: 0.2
     - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
@@ -265,11 +265,11 @@ Material:
     - _ZTestModeDistortion: 8
     - _ZTestTransparent: 4
     - _ZWrite: 1
-    - _useThreadMap: 0
+    - _useThreadMap: 1
     m_Colors:
-    - _BaseColor: {r: 0.6313726, g: 0.5568628, b: 0.3254902, a: 1}
+    - _BaseColor: {r: 0.45098042, g: 0.15294118, b: 0.38823533, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.6313726, g: 0.5568628, b: 0.32549015, a: 1}
+    - _Color: {r: 0.45098042, g: 0.15294114, b: 0.3882353, a: 1}
     - _DiffusionProfileAsset: {r: -8.851371e-34, g: 1.2241986e+22, b: -2.5962676e-29, a: -2.918011e-34}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
@@ -277,7 +277,7 @@ Material:
     - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
-    - _SpecularColor: {r: 0.86666673, g: 0.8862746, b: 0.7686275, a: 1}
+    - _SpecularColor: {r: 0.10399998, g: 0.41326314, b: 0.624, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
@@ -286,5 +286,5 @@ Material:
     - _uvBaseMask: {r: 1, g: 0, b: 0, a: 0}
     - _uvBaseST: {r: 1, g: 1, b: 0, a: 0}
     - _uvThreadMask: {r: 1, g: 0, b: 0, a: 0}
-    - _uvThreadST: {r: 150, g: 150, b: 0, a: 0}
+    - _uvThreadST: {r: 100, g: 100, b: 0, a: 0}
   m_BuildTextureStacks: []

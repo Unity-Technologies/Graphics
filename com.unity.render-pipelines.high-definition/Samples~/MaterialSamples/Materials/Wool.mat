@@ -107,7 +107,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ThreadMap:
-        m_Texture: {fileID: 2800000, guid: dd4dec4e20efc5b458b00a1fcb3a9a75, type: 3}
+        m_Texture: {fileID: 2800000, guid: 838330f64b9f8354796242a4fc530cb6, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TransmittanceColorMap:
@@ -170,8 +170,8 @@ Material:
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _EnergyConservingSpecularColor: 1
-    - _FuzzMapUVScale: 0.3
-    - _FuzzStrength: 0.288
+    - _FuzzMapUVScale: 0.66
+    - _FuzzStrength: 0.296
     - _HdrpVersion: 2
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
@@ -231,9 +231,9 @@ Material:
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
-    - _ThreadAOStrength01: 0.655
-    - _ThreadNormalStrength: 1
-    - _ThreadSmoothnessScale: 0.205
+    - _ThreadAOStrength01: 1
+    - _ThreadNormalStrength: 2
+    - _ThreadSmoothnessScale: 0
     - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
@@ -254,9 +254,9 @@ Material:
     - _ZWrite: 1
     - _useThreadMap: 1
     m_Colors:
-    - _BaseColor: {r: 0.77254903, g: 0.5276047, b: 0.50980395, a: 1}
+    - _BaseColor: {r: 0.41553935, g: 0.42606673, b: 0.4339623, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.77254903, g: 0.52760464, b: 0.5098039, a: 1}
+    - _Color: {r: 0.41553932, g: 0.4260667, b: 0.43396226, a: 1}
     - _DiffusionProfileAsset: {r: -1.2618865e-19, g: -639.73883, b: -625913.7, a: 0.0000000012495336}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
@@ -273,7 +273,7 @@ Material:
     - _uvBaseMask: {r: 1, g: 0, b: 0, a: 0}
     - _uvBaseST: {r: 1, g: 1, b: 0, a: 0}
     - _uvThreadMask: {r: 1, g: 0, b: 0, a: 0}
-    - _uvThreadST: {r: 15, g: 15, b: 0, a: 0}
+    - _uvThreadST: {r: 15, g: 15, b: 0.44, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &3775346471072160633
 MonoBehaviour:

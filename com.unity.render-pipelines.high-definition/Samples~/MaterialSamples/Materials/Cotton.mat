@@ -107,7 +107,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ThreadMap:
-        m_Texture: {fileID: 2800000, guid: dd4dec4e20efc5b458b00a1fcb3a9a75, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8ba4df4ce48ed49429490ee07034ac7e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TransmittanceColorMap:
