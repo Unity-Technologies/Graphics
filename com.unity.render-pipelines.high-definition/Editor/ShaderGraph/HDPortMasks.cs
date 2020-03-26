@@ -7,13 +7,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static class Vertex
         {
-            public static int[] HDLitDefault = new int[]
-            {
-                HDLitMasterNode.PositionSlotId,
-                HDLitMasterNode.VertexNormalSlotID,
-                HDLitMasterNode.VertexTangentSlotID,
-            };
-
             public static int[] EyeDefault = new int[]
             {
                 EyeMasterNode.PositionSlotId,
@@ -50,149 +43,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static class Pixel
         {
-            public static int[] HDLitDefault = new int[]
-            {
-                HDLitMasterNode.AlbedoSlotId,
-                HDLitMasterNode.NormalSlotId,
-                HDLitMasterNode.BentNormalSlotId,
-                HDLitMasterNode.TangentSlotId,
-                HDLitMasterNode.SubsurfaceMaskSlotId,
-                HDLitMasterNode.ThicknessSlotId,
-                HDLitMasterNode.DiffusionProfileHashSlotId,
-                HDLitMasterNode.IridescenceMaskSlotId,
-                HDLitMasterNode.IridescenceThicknessSlotId,
-                HDLitMasterNode.SpecularColorSlotId,
-                HDLitMasterNode.CoatMaskSlotId,
-                HDLitMasterNode.MetallicSlotId,
-                HDLitMasterNode.EmissionSlotId,
-                HDLitMasterNode.SmoothnessSlotId,
-                HDLitMasterNode.AmbientOcclusionSlotId,
-                HDLitMasterNode.SpecularOcclusionSlotId,
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.AnisotropySlotId,
-                HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
-                HDLitMasterNode.SpecularAAThresholdSlotId,
-                HDLitMasterNode.RefractionIndexSlotId,
-                HDLitMasterNode.RefractionColorSlotId,
-                HDLitMasterNode.RefractionDistanceSlotId,
-                HDLitMasterNode.LightingSlotId,
-                HDLitMasterNode.BackLightingSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
-            };
-
-            public static int[] HDLitMeta = new int[]
-            {
-                HDLitMasterNode.AlbedoSlotId,
-                HDLitMasterNode.NormalSlotId,
-                HDLitMasterNode.BentNormalSlotId,
-                HDLitMasterNode.TangentSlotId,
-                HDLitMasterNode.SubsurfaceMaskSlotId,
-                HDLitMasterNode.ThicknessSlotId,
-                HDLitMasterNode.DiffusionProfileHashSlotId,
-                HDLitMasterNode.IridescenceMaskSlotId,
-                HDLitMasterNode.IridescenceThicknessSlotId,
-                HDLitMasterNode.SpecularColorSlotId,
-                HDLitMasterNode.CoatMaskSlotId,
-                HDLitMasterNode.MetallicSlotId,
-                HDLitMasterNode.EmissionSlotId,
-                HDLitMasterNode.SmoothnessSlotId,
-                HDLitMasterNode.AmbientOcclusionSlotId,
-                HDLitMasterNode.SpecularOcclusionSlotId,
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.AnisotropySlotId,
-                HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
-                HDLitMasterNode.SpecularAAThresholdSlotId,
-                HDLitMasterNode.RefractionIndexSlotId,
-                HDLitMasterNode.RefractionColorSlotId,
-                HDLitMasterNode.RefractionDistanceSlotId,
-            };
-
-            public static int[] HDLitShadowCaster = new int[]
-            {
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.AlphaThresholdShadowSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
-            };
-
-            public static int[] HDLitSceneSelection = new int[]
-            {
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
-            };
-
-            public static int[] HDLitDepthMotionVectors = new int[]
-            {
-                HDLitMasterNode.NormalSlotId,
-                HDLitMasterNode.SmoothnessSlotId,
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
-            };
-
-            public static int[] HDLitDistortion = new int[]
-            {
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.DistortionSlotId,
-                HDLitMasterNode.DistortionBlurSlotId,
-            };
-
-            public static int[] HDLitTransparentDepthPrepass = new int[]
-            {
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdDepthPrepassSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
-                HDLitMasterNode.NormalSlotId,
-                HDLitMasterNode.SmoothnessSlotId,
-            };
-
-            public static int[] HDLitTransparentBackface = new int[]
-            {
-                HDLitMasterNode.AlbedoSlotId,
-                HDLitMasterNode.NormalSlotId,
-                HDLitMasterNode.BentNormalSlotId,
-                HDLitMasterNode.TangentSlotId,
-                HDLitMasterNode.SubsurfaceMaskSlotId,
-                HDLitMasterNode.ThicknessSlotId,
-                HDLitMasterNode.DiffusionProfileHashSlotId,
-                HDLitMasterNode.IridescenceMaskSlotId,
-                HDLitMasterNode.IridescenceThicknessSlotId,
-                HDLitMasterNode.SpecularColorSlotId,
-                HDLitMasterNode.CoatMaskSlotId,
-                HDLitMasterNode.MetallicSlotId,
-                HDLitMasterNode.EmissionSlotId,
-                HDLitMasterNode.SmoothnessSlotId,
-                HDLitMasterNode.AmbientOcclusionSlotId,
-                HDLitMasterNode.SpecularOcclusionSlotId,
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.AnisotropySlotId,
-                HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
-                HDLitMasterNode.SpecularAAThresholdSlotId,
-                HDLitMasterNode.RefractionIndexSlotId,
-                HDLitMasterNode.RefractionColorSlotId,
-                HDLitMasterNode.RefractionDistanceSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
-            };
-
-            public static int[] HDLitTransparentDepthPostpass = new int[]
-            {
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdDepthPostpassSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
-            };
-
-            public static int[] HDLitRayTracingPrepass = new int[]
-            {
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
-            };
-
             public static int[] EyeMETA = new int[]
             {
                 EyeMasterNode.AlbedoSlotId,
@@ -532,36 +382,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 StackLitMasterNode.LightingSlotId,
                 StackLitMasterNode.BackLightingSlotId,
                 StackLitMasterNode.DepthOffsetSlotId,
-            };
-
-            public static int[] DecalDefault = new int[]
-            {
-                DecalMasterNode.AlbedoSlotId,
-                DecalMasterNode.BaseColorOpacitySlotId,
-                DecalMasterNode.NormalSlotId,
-                DecalMasterNode.NormaOpacitySlotId,
-                DecalMasterNode.MetallicSlotId,
-                DecalMasterNode.AmbientOcclusionSlotId,
-                DecalMasterNode.SmoothnessSlotId,
-                DecalMasterNode.MAOSOpacitySlotId,
-            };
-
-            public static int[] DecalEmissive = new int[]
-            {
-                DecalMasterNode.EmissionSlotId
-            };
-
-            public static int[] DecalMeshEmissive = new int[]
-            {
-                DecalMasterNode.AlbedoSlotId,
-                DecalMasterNode.BaseColorOpacitySlotId,
-                DecalMasterNode.NormalSlotId,
-                DecalMasterNode.NormaOpacitySlotId,
-                DecalMasterNode.MetallicSlotId,
-                DecalMasterNode.AmbientOcclusionSlotId,
-                DecalMasterNode.SmoothnessSlotId,
-                DecalMasterNode.MAOSOpacitySlotId,
-                DecalMasterNode.EmissionSlotId,
             };
         }
     }

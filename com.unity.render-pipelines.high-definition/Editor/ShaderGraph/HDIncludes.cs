@@ -274,18 +274,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 #endregion
 
-#region Decal
-        public static IncludeCollection Decal = new IncludeCollection
-        {
-            { CorePregraph },
-            { kPacking, IncludeLocation.Pregraph },
-            { kColor, IncludeLocation.Pregraph },
-            { kFunctions, IncludeLocation.Pregraph },
-            { kDecal, IncludeLocation.Pregraph },
-            { kPassDecal, IncludeLocation.Postgraph },
-        };
-#endregion
-
 #region Raytracing Includes
         public static IncludeCollection Raytracing = new IncludeCollection
         {

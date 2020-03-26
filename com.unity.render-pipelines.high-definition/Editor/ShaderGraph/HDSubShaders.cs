@@ -72,23 +72,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // customEditorOverride = "Rendering.HighDefinition.StackLitGUI",
         };
 
-        public static SubShaderDescriptor Decal = new SubShaderDescriptor()
-        {
-            pipelineTag = HDRenderPipeline.k_ShaderTagName,
-            generatesPreview = true,
-            passes = new PassCollection
-            {
-                { HDPasses.Decal.Projector3RT, new FieldCondition(HDFields.DecalDefault, true) },
-                { HDPasses.Decal.Projector4RT, new FieldCondition(HDFields.DecalDefault, true) },
-                { HDPasses.Decal.ProjectorEmissive, new FieldCondition(HDFields.AffectsEmission, true) },
-                { HDPasses.Decal.Mesh3RT, new FieldCondition(HDFields.DecalDefault, true) },
-                { HDPasses.Decal.Mesh4RT, new FieldCondition(HDFields.DecalDefault, true) },
-                { HDPasses.Decal.MeshEmissive, new FieldCondition(HDFields.AffectsEmission, true) },
-                { HDPasses.Decal.Preview, new FieldCondition(Fields.IsPreview, true) },
-            },
-            // customEditorOverride = "Rendering.HighDefinition.DecalGUI",
-        };
-
         public static SubShaderDescriptor FabricRaytracing = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
