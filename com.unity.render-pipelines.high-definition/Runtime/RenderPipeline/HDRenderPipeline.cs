@@ -365,8 +365,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (settings == null)
                 settings = new VirtualTexturingSettingsSRP();
 
-            VirtualTexturing.System.SetCpuCacheSize(settings.streamingCpuCacheSizeInMegaBytes);
-            VirtualTexturing.System.SetGpuCacheSettings(settings.streamingGpuCacheSettings.ToArray());
+            VirtualTexturing.System.SetCPUCacheSize(settings.streamingCpuCacheSizeInMegaBytes);
+            VirtualTexturing.System.SetGPUCacheSettings(settings.streamingGpuCacheSettings.ToArray());
 #endif
 
             // Initial state of the RTHandle system.

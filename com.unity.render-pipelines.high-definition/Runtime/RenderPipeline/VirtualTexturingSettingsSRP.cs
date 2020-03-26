@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public sealed class VirtualTexturingSettingsSRP
     {
         public int streamingCpuCacheSizeInMegaBytes = 256;
-        public List<VirtualTexturingGpuCacheSetting> streamingGpuCacheSettings = new List<VirtualTexturingGpuCacheSetting>() { new VirtualTexturingGpuCacheSetting() { format = Experimental.Rendering.GraphicsFormat.None, sizeInMegaBytes = 128 } };
+        public List<VirtualTexturingGPUCacheSetting> streamingGpuCacheSettings = new List<VirtualTexturingGPUCacheSetting>() { new VirtualTexturingGPUCacheSetting() { format = Experimental.Rendering.GraphicsFormat.None, sizeInMegaBytes = 128 } };
     }
 #endif
 }

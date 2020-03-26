@@ -49,13 +49,13 @@ namespace UnityEditor.Rendering.HighDefinition
             serialized.serializedObject.ApplyModifiedProperties();
         }
 
-        VirtualTexturingGpuCacheSetting[] GetGPUCacheSizeOverrideArrayFromProperty(SerializedProperty property)
+        VirtualTexturingGPUCacheSetting[] GetGPUCacheSizeOverrideArrayFromProperty(SerializedProperty property)
         {
-            List<VirtualTexturingGpuCacheSetting> settings = new List<VirtualTexturingGpuCacheSetting>();
+            List<VirtualTexturingGPUCacheSetting> settings = new List<VirtualTexturingGPUCacheSetting>();
             for (int i = 0; i < property.arraySize; ++i)
             {
                 SerializedProperty settingProperty = property.GetArrayElementAtIndex(i);
-                settings.Add(new VirtualTexturingGpuCacheSetting()
+                settings.Add(new VirtualTexturingGPUCacheSetting()
                     { format = (GraphicsFormat)settingProperty.FindPropertyRelative("format").intValue, sizeInMegaBytes = (uint)settingProperty.FindPropertyRelative("sizeInMegaBytes").intValue });
             }
 
@@ -69,6 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 list.drawHeaderCallback =
                     (Rect rect) =>
                     {
+                        GUI.Label(rect, s_Styles.gpuCacheSize);
                     };
 
                 list.drawElementCallback = drawCallback;
@@ -78,7 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     List<GraphicsFormat> availableFormats = new List<GraphicsFormat>(EditorHelpers.QuerySupportedFormats());
 
                     // We can't just pass in existing settings as a parameter to CreateGPUCacheSizeOverrideList() because lambdas can't capture ref params.
-                    VirtualTexturingGpuCacheSetting[] existingSettings = GetGPUCacheSizeOverrideArrayFromProperty(serializedRPAsset.virtualTexturingSettings.streamingGpuCacheSettings);
+                    VirtualTexturingGPUCacheSetting[] existingSettings = GetGPUCacheSizeOverrideArrayFromProperty(serializedRPAsset.virtualTexturingSettings.streamingGpuCacheSettings);
                     RemoveOverriddenFormats(availableFormats, existingSettings);
 
                     int index = property.arraySize;
@@ -106,10 +107,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             GraphicsFormat FormatAndChannelTransformStringToGraphicsFormat(string format, string channelTransform)
             {
+                if (format == "None") return GraphicsFormat.None;
+
                 return (GraphicsFormat)Enum.Parse(typeof(GraphicsFormat), $"{format}_{channelTransform}");
             }
 
-            void RemoveOverriddenFormats(List<GraphicsFormat> formats, VirtualTexturingGpuCacheSetting[] settings)
+            void RemoveOverriddenFormats(List<GraphicsFormat> formats, VirtualTexturingGPUCacheSetting[] settings)
             {
                 foreach (var existingCacheSizeOverride in settings)
                 {
@@ -117,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            void GPUCacheSizeOverridesGUI(Rect rect, int settingIdx, SerializedProperty settingListProperty, VirtualTexturingGpuCacheSetting[] settingList)
+            void GPUCacheSizeOverridesGUI(Rect rect, int settingIdx, SerializedProperty settingListProperty, VirtualTexturingGPUCacheSetting[] settingList)
             {
                 var cacheSizeOverrideProperty = settingListProperty.GetArrayElementAtIndex(settingIdx);
                 var cacheSizeOverride = settingList[settingIdx];
@@ -179,6 +182,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             }
 
                             cacheSizeOverrideProperty.FindPropertyRelative("format").intValue = (int)FormatAndChannelTransformStringToGraphicsFormat(localFormat, channelTransformString);
+
                             serializedObject.ApplyModifiedProperties();
                         });
                     }
@@ -235,7 +239,7 @@ namespace UnityEditor.Rendering.HighDefinition
             sealed class Styles
             {
                 public readonly GUIContent cpuCacheSize = new GUIContent("CPU Cache Size", "Amount of CPU memory (in MB) that can be allocated by the Virtual Texturing system to use to cache texture data.");
-                public readonly GUIContent gpuCacheSize = new GUIContent("GPU Cache Size per Format", "Amount of GPU memory (in MB) that can be allocated per format by the Virtual Texturing system to cache texture data. Can be overridden to use a different size per format.");
+                public readonly GUIContent gpuCacheSize = new GUIContent("GPU Cache Size per Format", "Amount of GPU memory (in MB) that can be allocated per format by the Virtual Texturing system to cache texture data. The value assigned to None is used for all unspecified formats.");
 
                 public readonly GUIContent gpuCacheSizeOverrideFormat = new GUIContent("Format", "Format and channel transform that will be overridden.");
                 public readonly GUIContent gpuCacheSizeOverrideSize = new GUIContent("Size", "Size (in MB) of the setting.");
