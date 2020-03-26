@@ -1,0 +1,43 @@
+project:
+  name: Universal_Stereo
+  folder: UniversalGfxTestStereo
+editors:
+  - version: 2020.1
+    rerun_strategy: on-new-revision
+  # - version: fast-2020.1
+  #   rerun_strategy: on-new-revision
+  # - version: trunk
+  #   rerun_strategy: on-new-revision
+  # - version: fast-trunk
+  #   rerun_strategy: on-new-revision
+  # - version: CUSTOM-REVISION
+  #   rerun_strategy: always
+platforms:
+  - name: Win
+    os: windows
+    standalone_split: true
+    apis: # TODO no apis specified
+      - name: ''
+        cmd: ''
+    agent_default:
+      type: Unity::VM::GPU
+      image: sdet/gamecode_win10:stable
+      flavor: b1.large
+    agent_standalone_build:
+      type: Unity::VM
+      image: sdet/gamecode_win10:stable
+      flavor: b1.xlarge
+    agent_editmode:
+      type: Unity::VM
+      image: sdet/gamecode_win10:stable
+      flavor: b1.large
+    components:
+      - editor
+      - il2cpp
+dependencies_in_all:
+  - platform_name: Win
+    api_name: '' # TODO no apiname
+    test_platform_names:
+      - Standalone
+      - editmode
+      - playmode

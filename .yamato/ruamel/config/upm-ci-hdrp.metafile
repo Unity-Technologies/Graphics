@@ -1,6 +1,6 @@
 project:
-  name: VFX_LWRP
-  folder: VisualEffectGraph_LWRP
+  name: HDRP #TODO add XR, remove standalone
+  folder: HDRP_Tests
 editors:
   - version: 2020.1
     rerun_strategy: on-new-revision
@@ -19,13 +19,15 @@ platforms:
     apis:
       - name: DX11
         cmd: -force-d3d11
+      - name: DX12
+        cmd: -force-d3d12
       - name: Vulkan
         cmd: -force-vulkan
     agent_default:
       type: Unity::VM::GPU
       image: sdet/gamecode_win10:stable
       flavor: b1.large
-    agent_standalone_build:
+    agent_standalone_build: #TODO remove
       type: Unity::VM
       image: sdet/gamecode_win10:stable
       flavor: b1.xlarge
@@ -36,7 +38,7 @@ platforms:
     components:
       - editor
       - il2cpp
-  - name: OSX
+  - name: OSX #TODO metal doesnt have editmode
     os: macos
     standalone_split: false
     apis:
@@ -49,19 +51,6 @@ platforms:
     components:
       - editor
       - il2cpp
-  - name: OSX
-    os: macos
-    standalone_split: true
-    apis:
-      - name: OpenGLCore
-        cmd:
-    agent_default:
-      type: Unity::VM::osx
-      image: buildfarm/mac:stable
-      flavor: m1.mac
-    components:
-      - editor
-      - il2cpp 
   - name: Linux
     os: linux
     standalone_split: false
@@ -85,5 +74,6 @@ dependencies_in_all:
   - platform_name: Win
     api_name: DX11
     test_platform_names:
-      - Standalone
+      - editmode
       - playmode
+      #TODO - playmode XR

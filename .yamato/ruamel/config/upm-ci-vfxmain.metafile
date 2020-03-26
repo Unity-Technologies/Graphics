@@ -1,6 +1,6 @@
 project:
-  name: VFX_LWRP
-  folder: VisualEffectGraph_LWRP
+  name: VFXMain
+  folder: VisualEffectGraph
 editors:
   - version: 2020.1
     rerun_strategy: on-new-revision
@@ -36,7 +36,7 @@ platforms:
     components:
       - editor
       - il2cpp
-  - name: OSX
+  - name: OSX #TODO metal doesnt have editmode
     os: macos
     standalone_split: false
     apis:
@@ -86,4 +86,5 @@ dependencies_in_all:
     api_name: DX11
     test_platform_names:
       - Standalone
+      - editmode
       - playmode

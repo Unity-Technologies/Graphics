@@ -22,7 +22,7 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
         'dependencies' : [
             {
                 'path' : f'.yamato/z_editor.yml#editor:priming:{editor["version"]}:{platform["os"]}',
-                'rerun' : f'{editor["rerun_strategy"]}'
+                'rerun' : editor["rerun_strategy"]
             }
         ],
         'commands' : cmd,
