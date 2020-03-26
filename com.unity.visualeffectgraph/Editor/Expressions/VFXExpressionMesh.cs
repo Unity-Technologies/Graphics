@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionSampleMeshFloat(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        public VFXExpressionSampleMeshFloat(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
         {
         }
 
@@ -44,7 +44,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionSampleMeshFloat2(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        public VFXExpressionSampleMeshFloat2(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
         {
         }
 
@@ -75,7 +75,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionSampleMeshFloat3(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelOffset) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[] { mesh, vertexOffset, channelOffset })
+        public VFXExpressionSampleMeshFloat3(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelOffset) : base(Flags.None, new VFXExpression[] { mesh, vertexOffset, channelOffset })
         {
         }
 
@@ -106,7 +106,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionSampleMeshFloat4(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        public VFXExpressionSampleMeshFloat4(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
         {
         }
 
@@ -137,7 +137,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionSampleMeshColor(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        public VFXExpressionSampleMeshColor(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
         {
         }
 
@@ -359,7 +359,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionMeshChannelFormatAndDimension(VFXExpression mesh, VFXExpression channelIndex) : base(MeshFlags.kCommonFlag | Flags.InvalidOnGPU, new VFXExpression[2] { mesh, channelIndex })
+        public VFXExpressionMeshChannelFormatAndDimension(VFXExpression mesh, VFXExpression channelIndex) : base(Flags.InvalidOnGPU, new VFXExpression[2] { mesh, channelIndex })
         {
         }
 
