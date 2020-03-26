@@ -327,9 +327,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            // TODO RENDERGRAPH
-            //cmd.SetGlobalInt(HDShaderIDs._UseRayTracedReflections, usesRaytracedReflections ? 1 : 0);
-
             PushFullScreenDebugTexture(renderGraph, result, FullScreenDebugMode.ScreenSpaceReflections);
             return result;
         }
