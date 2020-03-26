@@ -1,3 +1,5 @@
+using UnityEngine.Rendering;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     // TODO remove every occurrence of ShadowSplitData in function parameters when we'll have scriptable culling
@@ -262,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deviceProj = GL.GetGPUProjectionMatrix(proj, false);
             proj = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
-            return  HDUtils.MultiplyPerspectiveMatrix(deviceProj, view);
+            return  CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
         }
 
         static Matrix4x4 ExtractPointLightMatrix(VisibleLight vl, uint faceIdx, float nearPlane, float guardAngle, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
@@ -288,7 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
             proj = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
 
-            Matrix4x4 devProjView = HDUtils.MultiplyPerspectiveMatrix(deviceProj, view);
+            Matrix4x4 devProjView = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
             // We can avoid computing proj * view for frustum planes, if device has reversed Z we flip the culling planes as we should have computed them with proj
             GeometryUtility.CalculateFrustumPlanes(devProjView, s_CachedPlanes);
             if (SystemInfo.usesReversedZBuffer)

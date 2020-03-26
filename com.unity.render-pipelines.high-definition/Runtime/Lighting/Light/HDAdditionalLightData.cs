@@ -1910,7 +1910,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // Assign all setting common to every lights
-                    SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, HDUtils.MultiplyProjectionMatrix(shadowRequest.deviceProjectionYFlip, shadowRequest.view, hasOrthoMatrix), viewportSize, lightIndex, lightType, filteringQuality);
+                    SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, CoreMatrixUtils.MultiplyProjectionMatrix(shadowRequest.deviceProjectionYFlip, shadowRequest.view, hasOrthoMatrix), viewportSize, lightIndex, lightType, filteringQuality);
                 }
 
                 shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
@@ -1943,8 +1943,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: think about VR (use different camera position for each eye)
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
-                HDUtils.MatrixTimesTranslation(ref shadowRequest.view, cameraPos);
-                HDUtils.TranslationTimesMatrix(ref invViewProjection, -cameraPos);
+                CoreMatrixUtils.MatrixTimesTranslation(ref shadowRequest.view, cameraPos);
+                CoreMatrixUtils.TranslationTimesMatrix(ref invViewProjection, -cameraPos);
             }
 
             if (lightType == HDLightType.Directional || lightType == HDLightType.Spot && spotLightShape == SpotLightShape.Box)
