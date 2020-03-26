@@ -304,38 +304,30 @@ namespace UnityEngine.Rendering.Universal
             int lastActiveOverlayCameraIndex = -1;
             if (cameraStack != null && cameraStack.Count > 0)
             {
-                // TODO: Add support to camera stack in VR multi pass mode
-                if (!IsMultiPassStereoEnabled(baseCamera))
+                var baseCameraRendererType = baseCameraAdditionalData?.scriptableRenderer.GetType();
+
+                for (int i = 0; i < cameraStack.Count; ++i)
                 {
-                    var baseCameraRendererType = baseCameraAdditionalData?.scriptableRenderer.GetType();
+                    Camera currCamera = cameraStack[i];
 
-                    for (int i = 0; i < cameraStack.Count; ++i)
+                    if (currCamera != null && currCamera.isActiveAndEnabled)
                     {
-                        Camera currCamera = cameraStack[i];
+                        currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
 
-                        if (currCamera != null && currCamera.isActiveAndEnabled)
+                        if (data == null || data.renderType != CameraRenderType.Overlay)
                         {
-                            currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
-
-                            if (data == null || data.renderType != CameraRenderType.Overlay)
-                            {
-                                Debug.LogWarning(string.Format("Stack can only contain Overlay cameras. {0} will skip rendering.", currCamera.name));
-                            }
-                            else if (data?.scriptableRenderer.GetType() != baseCameraRendererType)
-                            {
-                                Debug.LogWarning(string.Format("Only cameras with the same renderer type as the base camera can be stacked. {0} will skip rendering", currCamera.name));
-                            }
-                            else
-                            {
-                                anyPostProcessingEnabled |= data.renderPostProcessing;
-                                lastActiveOverlayCameraIndex = i;
-                            }
+                            Debug.LogWarning(string.Format("Stack can only contain Overlay cameras. {0} will skip rendering.", currCamera.name));
+                        }
+                        else if (data?.scriptableRenderer.GetType() != baseCameraRendererType)
+                        {
+                            Debug.LogWarning(string.Format("Only cameras with the same renderer type as the base camera can be stacked. {0} will skip rendering", currCamera.name));
+                        }
+                        else
+                        {
+                            anyPostProcessingEnabled |= data.renderPostProcessing;
+                            lastActiveOverlayCameraIndex = i;
                         }
                     }
-                }
-                else
-                {
-                    Debug.LogWarning("Multi pass stereo mode doesn't support Camera Stacking. Overlay cameras will skip rendering.");
                 }
             }
 
