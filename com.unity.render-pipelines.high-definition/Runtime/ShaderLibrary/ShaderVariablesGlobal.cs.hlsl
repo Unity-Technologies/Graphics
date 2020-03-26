@@ -128,7 +128,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _RaytracedIndirectDiffuse;
     int _UseRayTracedReflections;
     int _RaytracingFrameIndex;
-    float _Pad7;
+    uint _EnableRecursiveRayTracing;
 CBUFFER_END
 
 
