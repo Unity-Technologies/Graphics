@@ -202,6 +202,18 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        public static bool IsTypeCanBeConstantFolded(VFXValueType type)
+        {
+            switch (type)
+            {
+                //Mesh API can modify the vertex count & layout.
+                //Thus, all mesh related expression should never been constant folded while generating code.
+                case VFXValueType.Mesh:
+                    return false;
+            }
+            return true;
+        }
+
         public static bool IsTexture(VFXValueType type)
         {
             switch (type)

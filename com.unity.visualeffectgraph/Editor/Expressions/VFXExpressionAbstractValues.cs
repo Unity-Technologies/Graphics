@@ -147,6 +147,8 @@ namespace UnityEditor.VFX
             var flags = Flags.None;
             if (!IsTypeValidOnGPU(valueType))
                 flags |= VFXExpression.Flags.InvalidOnGPU;
+            if (!IsTypeCanBeConstantFolded(valueType))
+                flags |= VFXExpression.Flags.InvalidConstant;
             return flags;
         }
 
