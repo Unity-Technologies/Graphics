@@ -8,6 +8,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         const string kAssetGuid = "c01e45594b63bd8419839b581ee0f601";
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/PBR/ShaderGraph/PBRPass.template";
 
+        public PBRSubTarget()
+        {
+            displayName = "PBR";
+        }
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
@@ -394,7 +399,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // These are duplicated from HDLitSubTarget
             // We avoid moving these to CoreIncludes because this SubTarget will be removed with Stacks
 
-            const string kLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl";
             const string kLitDecalData = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
             const string kPassGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl";
 
@@ -402,7 +406,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
-                { kLit, IncludeLocation.Pregraph },
+                { CoreIncludes.kLit, IncludeLocation.Pregraph },
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
                 { kLitDecalData, IncludeLocation.Pregraph },
@@ -439,7 +443,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
                 { CoreIncludes.kLighting, IncludeLocation.Pregraph },
                 { CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph },
-                { kLit, IncludeLocation.Pregraph },
+                { CoreIncludes.kLit, IncludeLocation.Pregraph },
                 { CoreIncludes.kLightLoop, IncludeLocation.Pregraph },
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },

@@ -8,6 +8,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         const string kAssetGuid = "625d75e9f0cb52546993731fe9ceeb47";
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/UnlitPass.template";
 
+        public UnlitSubTarget()
+        {
+            displayName = "Unlit";
+        }
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
@@ -287,14 +292,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // These are duplicated from HDUnlitSubTarget
             // We avoid moving these to CoreIncludes because this SubTarget will be removed with Stacks
-            
-            const string kUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl";
+
             const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
             
             public static IncludeCollection Meta = new IncludeCollection
             {
                 { CoreIncludes.CorePregraph },
-                { kUnlit, IncludeLocation.Pregraph },
+                { CoreIncludes.kUnlit, IncludeLocation.Pregraph },
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
                 { CoreIncludes.kPassLightTransport, IncludeLocation.Postgraph },
@@ -303,7 +307,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static IncludeCollection DepthOnly = new IncludeCollection
             {
                 { CoreIncludes.CorePregraph },
-                { kUnlit, IncludeLocation.Pregraph },
+                { CoreIncludes.kUnlit, IncludeLocation.Pregraph },
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
                 { CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph },
@@ -312,7 +316,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static IncludeCollection MotionVectors = new IncludeCollection
             {
                 { CoreIncludes.CorePregraph },
-                { kUnlit, IncludeLocation.Pregraph },
+                { CoreIncludes.kUnlit, IncludeLocation.Pregraph },
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
                 { CoreIncludes.kPassMotionVectors, IncludeLocation.Postgraph },
@@ -321,7 +325,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static IncludeCollection ForwardOnly = new IncludeCollection
             {
                 { CoreIncludes.CorePregraph },
-                { kUnlit, IncludeLocation.Pregraph },
+                { CoreIncludes.kUnlit, IncludeLocation.Pregraph },
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
                 { CoreIncludes.kCommonLighting, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },

@@ -91,59 +91,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 #endregion
 
-#region Unlit
-        public static IncludeCollection UnlitMeta = new IncludeCollection
-        {
-            { CorePregraph },
-            { kUnlit, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { kPassLightTransport, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection UnlitDepthOnly = new IncludeCollection
-        {
-            { CorePregraph },
-            { kUnlit, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { kPassDepthOnly, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection UnlitMotionVectors = new IncludeCollection
-        {
-            { CorePregraph },
-            { kUnlit, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { kPassMotionVectors, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection UnlitForwardOnly = new IncludeCollection
-        {
-            { CorePregraph },
-            { kUnlit, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { kCommonLighting, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
-            { kShadowContext, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
-            { kHDShadow, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
-            { kLightLoopDef, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
-            { kPunctualLightCommon, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
-            { kHDShadowLoop, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
-            { kForwardUnlit, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection UnlitDistortion = new IncludeCollection
-        {
-            { CorePregraph },
-            { kUnlit, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { kDisortionVectors, IncludeLocation.Postgraph },
-        };
-#endregion
-
 #region Lit
         public static IncludeCollection LitCommon = new IncludeCollection
         {

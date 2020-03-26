@@ -10,6 +10,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         const string kAssetGuid = "d6c78107b64145745805d963de80cc17";
 
+        public UniversalLitSubTarget()
+        {
+            displayName = "Lit";
+        }
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));

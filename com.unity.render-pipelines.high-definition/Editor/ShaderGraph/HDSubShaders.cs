@@ -5,23 +5,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class HDSubShaders
     {
-        public static SubShaderDescriptor HDUnlit = new SubShaderDescriptor()
-        {
-            pipelineTag = HDRenderPipeline.k_ShaderTagName,
-            generatesPreview = true,
-            passes = new PassCollection
-            {
-                { HDPasses.HDUnlit.ShadowCaster },
-                { HDPasses.HDUnlit.META },
-                { HDPasses.HDUnlit.SceneSelection },
-                { HDPasses.HDUnlit.DepthForwardOnly },
-                { HDPasses.HDUnlit.MotionVectors },
-                { HDPasses.HDUnlit.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
-                { HDPasses.HDUnlit.ForwardOnly },
-            },
-            // customEditorOverride = "Rendering.HighDefinition.HDUnlitGUI",
-        };
-
         public static SubShaderDescriptor HDLit = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
@@ -153,20 +136,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.HDLitRaytracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.HDLitRaytracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.HDLitRaytracing.PathTracing, new FieldCondition(Fields.IsPreview, false) },
-            },
-        };
-
-        public static SubShaderDescriptor HDUnlitRaytracing = new SubShaderDescriptor()
-        {
-            pipelineTag = HDRenderPipeline.k_ShaderTagName,
-            generatesPreview = false,
-            passes = new PassCollection
-            {
-                { HDPasses.HDUnlitRaytracing.Indirect, new FieldCondition(Fields.IsPreview, false) },
-                { HDPasses.HDUnlitRaytracing.Visibility, new FieldCondition(Fields.IsPreview, false) },
-                { HDPasses.HDUnlitRaytracing.Forward, new FieldCondition(Fields.IsPreview, false) },
-                { HDPasses.HDUnlitRaytracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
-                { HDPasses.HDUnlitRaytracing.PathTracing, new FieldCondition(Fields.IsPreview, false) },
             },
         };
     }

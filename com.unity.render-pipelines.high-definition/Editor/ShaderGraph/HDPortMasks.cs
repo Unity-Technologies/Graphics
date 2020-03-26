@@ -7,13 +7,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static class Vertex
         {
-            public static int[] HDUnlitDefault = new int[]
-            {
-                HDUnlitMasterNode.PositionSlotId,
-                HDUnlitMasterNode.VertexNormalSlotId,
-                HDUnlitMasterNode.VertexTangentSlotId,
-            };
-
             public static int[] HDLitDefault = new int[]
             {
                 HDLitMasterNode.PositionSlotId,
@@ -57,37 +50,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static class Pixel
         {
-            public static int[] HDUnlitDefault = new int[]
-            {
-                HDUnlitMasterNode.ColorSlotId,
-                HDUnlitMasterNode.AlphaSlotId,
-                HDUnlitMasterNode.AlphaThresholdSlotId,
-                HDUnlitMasterNode.EmissionSlotId,
-            };
-
-            public static int[] HDUnlitOnlyAlpha = new int[]
-            {
-                HDUnlitMasterNode.AlphaSlotId,
-                HDUnlitMasterNode.AlphaThresholdSlotId,
-            };
-
-            public static int[] HDUnlitDistortion = new int[]
-            {
-                HDUnlitMasterNode.AlphaSlotId,
-                HDUnlitMasterNode.AlphaThresholdSlotId,
-                HDUnlitMasterNode.DistortionSlotId,
-                HDUnlitMasterNode.DistortionBlurSlotId,
-            };
-
-            public static int[] HDUnlitForward = new int[]
-            {
-                HDUnlitMasterNode.ColorSlotId,
-                HDUnlitMasterNode.AlphaSlotId,
-                HDUnlitMasterNode.AlphaThresholdSlotId,
-                HDUnlitMasterNode.EmissionSlotId,
-                HDUnlitMasterNode.ShadowTintSlotId,
-            };
-
             public static int[] HDLitDefault = new int[]
             {
                 HDLitMasterNode.AlbedoSlotId,
