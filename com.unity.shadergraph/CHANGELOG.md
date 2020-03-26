@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added a field to the Master Nodes that overrides the generated shader's ShaderGUI.
 
+### Changed
+- Error messages reported on Sub Graph output nodes for invalid previews now present clearer information, with documentation support.
+
 ### Fixed
 - Fixed a bug where any change to the PBR master node settings would lose connection to the normal slot.
 - Fixed a bug where the user couldn't open up HDRP Master Node Shader Graphs without the Render Pipeline set to HDRP.
