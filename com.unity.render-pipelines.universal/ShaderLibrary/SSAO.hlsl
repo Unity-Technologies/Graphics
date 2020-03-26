@@ -1,16 +1,18 @@
 #ifndef UNIVERSAL_SSAO_INCLUDED
 #define UNIVERSAL_SSAO_INCLUDED
 
+// Includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 //#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 
-TEXTURE2D_X(_BaseMap); SAMPLER(sampler_BaseMap);
-TEXTURE2D_X(_TempTarget); SAMPLER(sampler_TempTarget);
-TEXTURE2D_X(_TempTarget2); SAMPLER(sampler_TempTarget2);
-TEXTURE2D_X(_ScreenSpaceAmbientOcclusionTexture); SAMPLER(sampler_ScreenSpaceAmbientOcclusionTexture);
-//TEXTURE2D(_CameraGBufferTexture2); SAMPLER(sampler_CameraGBufferTexture2);
+// Textures & Samplers
+TEXTURE2D_X(_BaseMap);
+TEXTURE2D_X(_ScreenSpaceAmbientOcclusionTexture);
+
+SAMPLER(sampler_BaseMap);
+SAMPLER(sampler_ScreenSpaceAmbientOcclusionTexture);
 
 // SSAO Settings
 int _SSAO_Samples;
@@ -65,6 +67,7 @@ static const float kGeometryCoeff = -1.0;
 // for further details of these constants.
 static const float kBeta = 0.002;
 #define EPSILON         1.0e-4
+
 
 
 // Gamma encoding (only needed in gamma lighting mode)
