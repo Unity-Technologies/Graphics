@@ -184,11 +184,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         // Find cube normal at sample point
         float3 absdir = abs(dir);
         float absmax = max(max(absdir.x, absdir.y), absdir.z);
-        float3 normal = float3(
-            (absmax == absdir.x) * sign(dir.x),
-            (absmax == absdir.y) * sign(dir.y),
-            (absmax == absdir.z) * sign(dir.z)
-        );
+        float3 normal = (absmax == absdir) * sign(dir);
 
         // Compute distortion directions on the cube
         float3 tangent = (absmax == absdir.y) ? float3(0.0, 0.0, 1.0) : float3(0.0, 1.0, 0.0);
@@ -198,8 +194,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float2 flow = SAMPLE_TEXTURECUBE_LOD(_Flowmap, sampler_Flowmap, dir, 0).rg * 2.0 - 1.0;
         float time = _Time.y * _FlowSpeed;
         float2 alpha = frac(float2(time, time + 0.5)) - 0.5;
-        float2 uv1 = alpha.x * flow;
-        float2 uv2 = alpha.y * flow;
+        float2 uv1 = alpha.x * _FlowStrength * flow;
+        float2 uv2 = alpha.y * _FlowStrength * flow;
 
         // Sample twice
         float3 dir1 = dir + uv1.x * tangent + uv1.y * bitangent;
