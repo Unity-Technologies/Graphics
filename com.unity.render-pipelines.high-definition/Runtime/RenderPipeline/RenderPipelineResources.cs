@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
-    public partial class RenderPipelineResources : ScriptableObject
+    partial class RenderPipelineResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
@@ -29,6 +29,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugLightVolumePS;
             [Reload("Runtime/Debug/DebugLightVolumes.compute")]
             public ComputeShader debugLightVolumeCS;
+            [Reload("Runtime/Debug/DebugBlitQuad.Shader")]
+            public Shader debugBlitQuad;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
@@ -47,6 +49,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Lighting tile pass
             [Reload("Runtime/Lighting/LightLoop/cleardispatchindirect.compute")]
             public ComputeShader clearDispatchIndirectCS;
+            [Reload("Runtime/Lighting/LightLoop/ClearLightLists.compute")]
+            public ComputeShader clearLightListsCS;
             [Reload("Runtime/Lighting/LightLoop/builddispatchindirect.compute")]
             public ComputeShader buildDispatchIndirectCS;
             [Reload("Runtime/Lighting/LightLoop/scrbound.compute")]
@@ -57,6 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader buildPerBigTileLightListCS;
             [Reload("Runtime/Lighting/LightLoop/lightlistbuild-clustered.compute")]
             public ComputeShader buildPerVoxelLightListCS;              // clustered
+            [Reload("Runtime/Lighting/LightLoop/lightlistbuild-clearatomic.compute")]
+            public ComputeShader lightListClusterClearAtomicIndexCS;
             [Reload("Runtime/Lighting/LightLoop/materialflags.compute")]
             public ComputeShader buildMaterialFlagsCS;
             [Reload("Runtime/Lighting/LightLoop/Deferred.compute")]
@@ -67,6 +73,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader volumeVoxelizationCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLighting.compute")]
             public ComputeShader volumetricLightingCS;
+            [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLightingFiltering.compute")]
+            public ComputeShader volumetricLightingFilteringCS;
             [Reload("Runtime/Lighting/LightLoop/DeferredTile.shader")]
             public Shader deferredTilePS;
             [Reload("Runtime/Lighting/Shadow/ScreenSpaceShadows.shader")]
@@ -80,6 +88,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // General
             [Reload("Runtime/RenderPipeline/RenderPass/MotionVectors/CameraMotionVectors.shader")]
             public Shader cameraMotionVectorsPS;
+            [Reload("Runtime/ShaderLibrary/ClearStencilBuffer.shader")]
+            public Shader clearStencilBufferPS;
             [Reload("Runtime/ShaderLibrary/CopyStencilBuffer.shader")]
             public Shader copyStencilBufferPS;
             [Reload("Runtime/ShaderLibrary/CopyDepthBuffer.shader")]
@@ -91,6 +101,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader downsampleDepthPS;
             [Reload("Runtime/ShaderLibrary/UpsampleTransparent.shader")]
             public Shader upsampleTransparentPS;
+
+            [Reload("Runtime/ShaderLibrary/ResolveStencilBuffer.compute")]
+            public ComputeShader resolveStencilCS;
 
             // Sky
             [Reload("Runtime/Sky/BlitCubemap.shader")]
@@ -131,8 +144,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader preIntegratedFGD_WardPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_CookTorrance.shader")]
             public Shader preIntegratedFGD_CookTorrancePS;
-            [Reload("Runtime/Material/CustomPass/DefaultRenderer.shader")]
-            public Shader defaultRendererCustomPass;
 
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]
@@ -171,8 +182,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Ambient occlusion
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAO.compute")]
             public ComputeShader GTAOCS;
-            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAODenoise.compute")]
-            public ComputeShader GTAODenoiseCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOSpatialDenoise.compute")]
+            public ComputeShader GTAOSpatialDenoiseCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOTemporalDenoise.compute")]
+            public ComputeShader GTAOTemporalDenoiseCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOCopyHistory.compute")]
+            public ComputeShader GTAOCopyHistoryCS;
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOBlurAndUpsample.compute")]
             public ComputeShader GTAOBlurAndUpsample;
 
@@ -189,6 +204,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader nanKillerCS;
             [Reload("Runtime/PostProcessing/Shaders/Exposure.compute")]
             public ComputeShader exposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/ApplyExposure.compute")]
+            public ComputeShader applyExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
             public ComputeShader uberPostCS;
             [Reload("Runtime/PostProcessing/Shaders/LutBuilder3D.compute")]
@@ -213,12 +230,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader depthOfFieldGatherCS;
             [Reload("Runtime/PostProcessing/Shaders/DepthOfFieldCombine.compute")]
             public ComputeShader depthOfFieldCombineCS;
+            [Reload("Runtime/PostProcessing/Shaders/DepthOfFieldPreCombineFar.compute")]
+            public ComputeShader depthOfFieldPreCombineFarCS;
+            [Reload("Runtime/PostProcessing/Shaders/DepthOfFieldClearIndirectArgs.compute")]
+            public ComputeShader depthOfFieldClearIndirectArgsCS;
             [Reload("Runtime/PostProcessing/Shaders/PaniniProjection.compute")]
             public ComputeShader paniniProjectionCS;
             [Reload("Runtime/PostProcessing/Shaders/MotionBlurMotionVecPrep.compute")]
             public ComputeShader motionBlurMotionVecPrepCS;
-            [Reload("Runtime/PostProcessing/Shaders/MotionBlurTilePass.compute")]
-            public ComputeShader motionBlurTileGenCS;
+            [Reload("Runtime/PostProcessing/Shaders/MotionBlurGenTilePass.compute")]
+            public ComputeShader motionBlurGenTileCS;
+            [Reload("Runtime/PostProcessing/Shaders/MotionBlurMergeTilePass.compute")]
+            public ComputeShader motionBlurMergeTileCS;
+            [Reload("Runtime/PostProcessing/Shaders/MotionBlurNeighborhoodTilePass.compute")]
+            public ComputeShader motionBlurNeighborhoodTileCS;
             [Reload("Runtime/PostProcessing/Shaders/MotionBlur.compute")]
             public ComputeShader motionBlurCS;
             [Reload("Runtime/PostProcessing/Shaders/BloomPrefilter.compute")]
@@ -237,6 +262,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
+            [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
+            public ComputeShader contrastAdaptiveSharpenCS;
+
+            // Accumulation
+            [Reload("Runtime/RenderPipeline/Accumulation/Shaders/Accumulation.compute")]
+            public ComputeShader accumulationCS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
@@ -326,6 +357,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             [Reload("Runtime/RenderPipelineResources/defaultDiffusionProfile.asset")]
             public DiffusionProfileSettings defaultDiffusionProfile;
+            
+            //Area Light Emissive Meshes
+            [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
+            public Mesh emissiveCylinderMesh;
+            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.FBX")]
+            public Mesh emissiveQuadMesh;
         }
 
         public ShaderResources shaders;
@@ -347,11 +384,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
                 && GUILayout.Button("Reload All"))
             {
-                var resources = target as RenderPipelineResources;
-                resources.materials = null;
-                resources.textures = null;
-                resources.shaders = null;
-                resources.shaderGraphs = null;
+                foreach (var field in typeof(RenderPipelineResources).GetFields())
+                    field.SetValue(target, null);
+
                 ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
             }
         }

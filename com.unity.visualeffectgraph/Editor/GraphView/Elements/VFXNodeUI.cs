@@ -135,13 +135,6 @@ namespace UnityEditor.VFX.UI
                     m_SelectionBorder.style.borderLeftWidth =
                         m_SelectionBorder.style.borderRightWidth = (m_Selected ? 2 : (m_Hovered ? 1 : 0));
 
-            /*
-            m_SelectionBorder.style.borderBottom =
-                m_SelectionBorder.style.borderTop =
-                    m_SelectionBorder.style.borderLeft =
-                        m_SelectionBorder.style.borderRight = (m_Selected ? 1 : (m_Hovered ? 1 : 0));*/
-
-
             m_SelectionBorder.style.borderBottomColor =
                 m_SelectionBorder.style.borderTopColor =
                     m_SelectionBorder.style.borderLeftColor =
@@ -231,7 +224,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            if(m_SettingsDivider != null)
+            if (m_SettingsDivider != null)
                 m_SettingsDivider.visible = hasSettingDivider && hasSettings;
             Profiler.EndSample();
         }
@@ -273,6 +266,8 @@ namespace UnityEditor.VFX.UI
 
             var newAnchors = ports.Except(existingAnchors.Keys).ToArray();
 
+
+            VFXDataAnchor firstAnchor = null;
             foreach (var newController in newAnchors)
             {
                 Profiler.BeginSample("VFXNodeUI.InstantiateDataAnchor");
@@ -283,7 +278,12 @@ namespace UnityEditor.VFX.UI
 
                 container.Add(newElement);
                 existingAnchors[newController] = newElement;
+                if (firstAnchor == null)
+                    firstAnchor = newElement as VFXDataAnchor;
             }
+
+            if (firstAnchor != null)
+                firstAnchor.AddToClassList("first");
             Profiler.EndSample();
 
             Profiler.BeginSample("VFXNodeUI.SyncAnchors Reorder");
@@ -329,11 +329,11 @@ namespace UnityEditor.VFX.UI
         {
             title = controller.title;
 
-            foreach( var setting in m_Settings)
+            foreach (var setting in m_Settings)
             {
                 setting.UpdateGUI(true);
             }
-            foreach( VFXEditableDataAnchor input in GetPorts(true,false).OfType<VFXEditableDataAnchor>())
+            foreach (VFXEditableDataAnchor input in GetPorts(true, false).OfType<VFXEditableDataAnchor>())
             {
                 input.AssetMoved();
             }
@@ -458,7 +458,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public const int DefaultLabelWidth = 116;
+        public const int DefaultLabelWidth = 148;
 
         protected void AddSetting(VFXSettingController setting)
         {

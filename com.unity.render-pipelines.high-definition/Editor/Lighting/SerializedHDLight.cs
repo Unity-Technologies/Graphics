@@ -1,6 +1,7 @@
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -18,6 +19,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty spotLightShape;
         public SerializedProperty shapeWidth;
         public SerializedProperty shapeHeight;
+        public SerializedProperty barnDoorAngle;
+        public SerializedProperty barnDoorLength;
         public SerializedProperty aspectRatio;
         public SerializedProperty shapeRadius;
         public SerializedProperty maxSmoothness;
@@ -25,12 +28,16 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty volumetricDimmer;
         public SerializedProperty lightUnit;
         public SerializedProperty displayAreaLightEmissiveMesh;
+        public SerializedProperty areaLightEmissiveMeshCastShadow;
+        public SerializedProperty deportedAreaLightEmissiveMeshCastShadow;
+        public SerializedProperty areaLightEmissiveMeshMotionVector;
+        public SerializedProperty deportedAreaLightEmissiveMeshMotionVector;
         public SerializedProperty renderingLayerMask;
         public SerializedProperty shadowNearPlane;
-        public SerializedProperty shadowSoftness;
         public SerializedProperty blockerSampleCount;
         public SerializedProperty filterSampleCount;
         public SerializedProperty minFilterSize;
+        public SerializedProperty scaleForSoftness;
         public SerializedProperty areaLightCookie;   // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
         public SerializedProperty areaLightShadowCone;
         public SerializedProperty useCustomSpotLightShadowCone;
@@ -38,6 +45,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty useScreenSpaceShadows;
         public SerializedProperty interactsWithSky;
         public SerializedProperty angularDiameter;
+        public SerializedProperty flareSize;
+        public SerializedProperty flareTint;
+        public SerializedProperty flareFalloff;
+        public SerializedProperty surfaceTexture;
+        public SerializedProperty surfaceTint;
         public SerializedProperty distance;
         public SerializedProperty useRayTracedShadows;
         public SerializedProperty numRayTracingSamples;
@@ -45,6 +57,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty filterSizeTraced;
         public SerializedProperty sunLightConeAngle;
         public SerializedProperty lightShadowRadius;
+        public SerializedProperty semiTransparentShadow;
+        public SerializedProperty colorShadow;
+        public SerializedProperty distanceBasedFiltering;
         public SerializedProperty evsmExponent;
         public SerializedProperty evsmLightLeakBias;
         public SerializedProperty evsmVarianceBias;
@@ -72,15 +87,18 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedScalableSettingValue contactShadows;
         public SerializedProperty rayTracedContactShadow;
         public SerializedProperty shadowTint;
+        public SerializedProperty penumbraTint;
         public SerializedProperty shadowUpdateMode;
         public SerializedScalableSettingValue shadowResolution;
-
+        
         // Bias control
         public SerializedProperty slopeBias;
         public SerializedProperty normalBias;
 
         private SerializedProperty pointLightHDType;
         private SerializedProperty areaLightShapeProperty;
+
+        private IEnumerable<GameObject> emissiveMeshes;
 
         public bool needUpdateAreaLightEmissiveMeshComponents = false;
 
@@ -120,7 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        // This scope is here mainly to keep pointLightHDType isolated 
+        // This scope is here mainly to keep pointLightHDType isolated
         public struct LightTypeEditionScope : System.IDisposable
         {
             public LightTypeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
@@ -135,7 +153,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.EndProperty();
             }
         }
-        
+
         //areaLightShape need to be accessed by its property to always report modification in the right way
         public AreaLightShape areaLightShape
         {
@@ -167,7 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        // This scope is here mainly to keep pointLightHDType and areaLightShapeProperty isolated 
+        // This scope is here mainly to keep pointLightHDType and areaLightShapeProperty isolated
         public struct AreaLightShapeEditionScope : System.IDisposable
         {
             public AreaLightShapeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
@@ -185,11 +203,85 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        struct AreaLightEmissiveMeshEditionScope : System.IDisposable
+        {
+            SerializedHDLight m_Serialized;
+            public AreaLightEmissiveMeshEditionScope(SerializedHDLight serialized)
+            {
+                m_Serialized = serialized;
+                foreach (GameObject emissiveMesh in m_Serialized.emissiveMeshes)
+                {
+                    emissiveMesh.hideFlags &= ~HideFlags.NotEditable;
+                }
+                m_Serialized.areaLightEmissiveMeshCastShadow.serializedObject.Update();
+            }
+
+            void System.IDisposable.Dispose()
+            {
+                m_Serialized.areaLightEmissiveMeshCastShadow.serializedObject.ApplyModifiedProperties();
+                foreach (GameObject emissiveMesh in m_Serialized.emissiveMeshes)
+                {
+                    emissiveMesh.hideFlags |= HideFlags.NotEditable;
+                }
+                m_Serialized.areaLightEmissiveMeshCastShadow.serializedObject.Update();
+            }
+        }
+
+        public struct AreaLightEmissiveMeshDrawScope : System.IDisposable
+        {
+            int propertyCount;
+            bool oldEnableState;
+            public AreaLightEmissiveMeshDrawScope(Rect rect, GUIContent label, bool enabler, params SerializedProperty[] properties)
+            {
+                propertyCount = properties.Count(p => p != null);
+                foreach (var property in properties)
+                    if (property != null)
+                        EditorGUI.BeginProperty(rect, label, property);
+                oldEnableState = GUI.enabled;
+                GUI.enabled = enabler;
+            }
+
+            void System.IDisposable.Dispose()
+            {
+                GUI.enabled = oldEnableState;
+                for (int i = 0; i < propertyCount; ++i)
+                    EditorGUI.EndProperty();
+            }
+        }
+
+        public void UpdateAreaLightEmissiveMeshCastShadow(UnityEngine.Rendering.ShadowCastingMode shadowCastingMode)
+        {
+            using (new AreaLightEmissiveMeshEditionScope(this))
+            {
+                areaLightEmissiveMeshCastShadow.intValue = (int)shadowCastingMode;
+                if (deportedAreaLightEmissiveMeshCastShadow != null) //only possible while editing from prefab
+                    deportedAreaLightEmissiveMeshCastShadow.intValue = (int)shadowCastingMode;
+                
+            }
+        }
+        
+        public enum MotionVector
+        {
+            CameraMotionOnly = MotionVectorGenerationMode.Camera,
+            PerObjectMotion = MotionVectorGenerationMode.Object,
+            ForceNoMotion = MotionVectorGenerationMode.ForceNoMotion
+        }
+
+        public void UpdateAreaLightEmissiveMeshMotionVectorGeneration(MotionVector motionVectorGenerationMode)
+        {
+            using (new AreaLightEmissiveMeshEditionScope(this))
+            {
+                areaLightEmissiveMeshMotionVector.intValue = (int)motionVectorGenerationMode;
+                if (deportedAreaLightEmissiveMeshMotionVector != null) //only possible while editing from prefab
+                    deportedAreaLightEmissiveMeshMotionVector.intValue = (int)motionVectorGenerationMode;
+            }
+        }
+
         public SerializedHDLight(HDAdditionalLightData[] lightDatas, LightEditor.Settings settings)
         {
             serializedObject = new SerializedObject(lightDatas);
             this.settings = settings;
-            
+
             using (var o = new PropertyFetcher<HDAdditionalLightData>(serializedObject))
             {
                 intensity = o.Find("m_Intensity");
@@ -207,15 +299,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 spotLightShape = o.Find("m_SpotLightShape");
                 shapeWidth = o.Find("m_ShapeWidth");
                 shapeHeight = o.Find("m_ShapeHeight");
+                barnDoorAngle = o.Find("m_BarnDoorAngle");
+                barnDoorLength = o.Find("m_BarnDoorLength");
                 aspectRatio = o.Find("m_AspectRatio");
                 shapeRadius = o.Find("m_ShapeRadius");
                 maxSmoothness = o.Find("m_MaxSmoothness");
                 applyRangeAttenuation = o.Find("m_ApplyRangeAttenuation");
                 shadowNearPlane = o.Find("m_ShadowNearPlane");
-                shadowSoftness = o.Find("m_ShadowSoftness");
                 blockerSampleCount = o.Find("m_BlockerSampleCount");
                 filterSampleCount = o.Find("m_FilterSampleCount");
                 minFilterSize = o.Find("m_MinFilterSize");
+                scaleForSoftness = o.Find("m_SoftnessScale");
                 areaLightCookie = o.Find("m_AreaLightCookie");
                 areaLightShadowCone = o.Find("m_AreaLightShadowCone");
                 useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone");
@@ -223,6 +317,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 useScreenSpaceShadows = o.Find("m_UseScreenSpaceShadows");
                 interactsWithSky = o.Find("m_InteractsWithSky");
                 angularDiameter = o.Find("m_AngularDiameter");
+                flareSize = o.Find("m_FlareSize");
+                flareFalloff = o.Find("m_FlareFalloff");
+                flareTint = o.Find("m_FlareTint");
+                surfaceTexture = o.Find("m_SurfaceTexture");
+                surfaceTint = o.Find("m_SurfaceTint");
                 distance = o.Find("m_Distance");
                 useRayTracedShadows = o.Find("m_UseRayTracedShadows");
                 numRayTracingSamples = o.Find("m_NumRayTracingSamples");
@@ -230,6 +329,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 filterSizeTraced = o.Find("m_FilterSizeTraced");
                 sunLightConeAngle = o.Find("m_SunLightConeAngle");
                 lightShadowRadius = o.Find("m_LightShadowRadius");
+                semiTransparentShadow = o.Find("m_SemiTransparentShadow");
+                colorShadow = o.Find("m_ColorShadow");
+                distanceBasedFiltering = o.Find("m_DistanceBasedFiltering");
                 evsmExponent = o.Find("m_EvsmExponent");
                 evsmVarianceBias = o.Find("m_EvsmVarianceBias");
                 evsmLightLeakBias = o.Find("m_EvsmLightLeakBias");
@@ -258,6 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 contactShadows = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.useContactShadow));
                 rayTracedContactShadow = o.Find("m_RayTracedContactShadow");
                 shadowTint = o.Find("m_ShadowTint");
+                penumbraTint = o.Find("m_PenumbraTint");
                 shadowUpdateMode = o.Find("m_ShadowUpdateMode");
                 shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
 
@@ -267,8 +370,43 @@ namespace UnityEditor.Rendering.HighDefinition
                 // private references for prefab handling
                 pointLightHDType = o.Find("m_PointlightHDType");
                 areaLightShapeProperty = o.Find("m_AreaLightShape");
+
+                // emission mesh
+                areaLightEmissiveMeshCastShadow = o.Find("m_AreaLightEmissiveMeshShadowCastingMode");
+                areaLightEmissiveMeshMotionVector = o.Find("m_AreaLightEmissiveMeshMotionVectorGenerationMode");
             }
+
+            RefreshEmissiveMeshReference();
         }
+
+        void RefreshEmissiveMeshReference()
+        {
+            IEnumerable<MeshRenderer> meshRenderers = serializedObject.targetObjects.Select(ld => ((HDAdditionalLightData)ld).emissiveMeshRenderer).Where(mr => mr != null);
+            emissiveMeshes = meshRenderers.Select(mr => mr.gameObject).ToArray();
+            if (meshRenderers.Count() > 0)
+            {
+                SerializedObject meshRendererSerializedObject = new SerializedObject(meshRenderers.ToArray());
+                deportedAreaLightEmissiveMeshCastShadow = meshRendererSerializedObject.FindProperty("m_CastShadows");
+                deportedAreaLightEmissiveMeshMotionVector = meshRendererSerializedObject.FindProperty("m_MotionVectors");
+            }
+            else
+                deportedAreaLightEmissiveMeshCastShadow = deportedAreaLightEmissiveMeshMotionVector = null;
+        }
+
+        public void FetchAreaLightEmissiveMeshComponents()
+        {
+            // Only apply display emissive mesh changes or type change as only ones that can happens
+            // Plus perhaps if we update deportedAreaLightEmissiveMeshMotionVector.serializedObject,
+            // it can no longuer have target here as refreshed only below
+            ApplyInternal(withDeportedEmissiveMeshData: false);
+
+            foreach (HDAdditionalLightData target in serializedObject.targetObjects)
+                target.UpdateAreaLightEmissiveMesh();
+
+            RefreshEmissiveMeshReference();
+            Update();
+        }
+
 
         public void Update()
         {
@@ -282,10 +420,14 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Update();
         }
 
-        public void Apply()
+        void ApplyInternal(bool withDeportedEmissiveMeshData)
         {
             serializedObject.ApplyModifiedProperties();
             settings.ApplyModifiedProperties();
+            if (withDeportedEmissiveMeshData)
+                deportedAreaLightEmissiveMeshMotionVector?.serializedObject.ApplyModifiedProperties();
         }
+
+        public void Apply() => ApplyInternal(withDeportedEmissiveMeshData: true);
     }
 }

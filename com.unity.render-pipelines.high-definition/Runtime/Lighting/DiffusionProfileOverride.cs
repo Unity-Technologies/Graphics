@@ -2,15 +2,16 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [Serializable, VolumeComponentMenu("Diffusion Profile Override")]
-    public sealed class DiffusionProfileOverride : VolumeComponent
+    [Serializable, VolumeComponentMenu("Material/Diffusion Profile Override")]
+    sealed class DiffusionProfileOverride : VolumeComponent
     {
         [Tooltip("List of diffusion profiles used inside the volume.")]
-        public DiffusionProfileSettingsParameter diffusionProfiles = new DiffusionProfileSettingsParameter(default(DiffusionProfileSettings[]));
+        [SerializeField]
+        internal DiffusionProfileSettingsParameter diffusionProfiles = new DiffusionProfileSettingsParameter(default(DiffusionProfileSettings[]));
     }
 
     [Serializable]
-    public sealed class DiffusionProfileSettingsParameter : VolumeParameter<DiffusionProfileSettings[]>
+    sealed class DiffusionProfileSettingsParameter : VolumeParameter<DiffusionProfileSettings[]>
     {
         public DiffusionProfileSettingsParameter(DiffusionProfileSettings[] value, bool overrideState = true)
             : base(value, overrideState) { }

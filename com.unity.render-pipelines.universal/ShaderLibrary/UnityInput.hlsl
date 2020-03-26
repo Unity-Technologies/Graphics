@@ -7,7 +7,7 @@
 #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
 
-#if defined(STEREO_MULTIVIEW_ON) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)) && !(defined(SHADER_API_SWITCH))
+#if defined(STEREO_MULTIVIEW_ON) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_VULKAN)) && !(defined(SHADER_API_SWITCH))
     #define UNITY_STEREO_MULTIVIEW_ENABLED
 #endif
 
@@ -20,6 +20,7 @@
 #define unity_MatrixV unity_StereoMatrixV[unity_StereoEyeIndex]
 #define unity_MatrixInvV unity_StereoMatrixInvV[unity_StereoEyeIndex]
 #define unity_MatrixVP unity_StereoMatrixVP[unity_StereoEyeIndex]
+#define unity_MatrixInvVP mul(unity_StereoMatrixInvV[unity_StereoEyeIndex], unity_StereoCameraInvProjection[unity_StereoEyeIndex])
 
 #define unity_CameraProjection unity_StereoCameraProjection[unity_StereoEyeIndex]
 #define unity_CameraInvProjection unity_StereoCameraInvProjection[unity_StereoEyeIndex]
@@ -188,6 +189,7 @@ float4x4 glstate_matrix_projection;
 float4x4 unity_MatrixV;
 float4x4 unity_MatrixInvV;
 float4x4 unity_MatrixVP;
+float4x4 unity_MatrixInvVP;
 float4 unity_StereoScaleOffset;
 int unity_StereoEyeIndex;
 #endif

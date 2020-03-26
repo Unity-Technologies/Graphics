@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
     class CameraCache<K>: IDisposable
     {
         Dictionary<K, (Camera camera, int lastFrame)> m_Cache = new Dictionary<K, (Camera camera, int lastFrame)>();
+        K[] cameraKeysCache = new K[0];
 
         /// <summary> Get or create a camera for the specified key </summary>
         /// <param name="key">The key to look at.</param>
@@ -22,11 +23,12 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         /// This frame count is assigned to the returned camera to know the age of its last use.
         /// </param>
+        /// <param name="cameraType"> The type of camera to create if one does not exists.</param>
         /// <returns>
         /// The cached camera if the key was found,
         /// otherwise a new camera that was inserted in the cache during the call.
         /// </returns>
-        public Camera GetOrCreate(K key, int frameCount)
+        public Camera GetOrCreate(K key, int frameCount, CameraType cameraType = CameraType.Game)
         {
             if (m_Cache == null)
                 throw new ObjectDisposedException(nameof(CameraCache<K>));
@@ -34,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_Cache.TryGetValue(key, out var camera) || camera.camera == null || camera.camera.Equals(null))
             {
                 camera = (new GameObject().AddComponent<Camera>(), frameCount);
+                camera.camera.cameraType = cameraType;
                 m_Cache[key] = camera;
             }
             else
@@ -51,12 +54,21 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_Cache == null)
                 throw new ObjectDisposedException(nameof(CameraCache<K>));
-
-            var toDelete = m_Cache.Where(pair => (frameCount - pair.Value.lastFrame) > frameWindow).ToArray();
-            foreach (var pair in toDelete)
+            
+            // In case cameraKeysCache length does not matches the current cache length, we resize it:
+            if (cameraKeysCache.Length != m_Cache.Count)
+                cameraKeysCache = new K[m_Cache.Count];
+            
+            // Copy keys to remove them from the dictionary (avoids collection modifed while iterating error)
+            m_Cache.Keys.CopyTo(cameraKeysCache, 0);
+            foreach (var key in cameraKeysCache)
             {
-                m_Cache.Remove(pair.Key);
-                CoreUtils.Destroy(pair.Value.camera.gameObject);
+                m_Cache.TryGetValue(key, out var value);
+                if ((frameCount - value.lastFrame) > frameWindow)
+                {
+                    CoreUtils.Destroy(value.camera.gameObject);
+                    m_Cache.Remove(key);
+                }
             }
         }
 

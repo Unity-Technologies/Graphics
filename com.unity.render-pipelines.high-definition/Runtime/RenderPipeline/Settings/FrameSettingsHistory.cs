@@ -5,10 +5,16 @@ using System.Linq;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Type of entity on which frame settings are applied.
+    /// </summary>
     public enum FrameSettingsRenderType
     {
+        /// <summary>Frame settings are applied to a camera.</summary>
         Camera,
+        /// <summary>Frame settings are applied to a baked or custom reflection probe.</summary>
         CustomOrBakedReflection,
+        /// <summary>Frame settings are applied to a realtime reflection.</summary>
         RealtimeReflection
     }
 
@@ -54,6 +60,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             string IFrameSettingsHistoryContainer.panelName
                 => "Scene Camera";
+
+            public MinimalHistoryContainer()
+                => m_FrameSettingsHistory.debug = HDRenderPipeline.defaultAsset?.GetDefaultFrameSettings(FrameSettingsRenderType.Camera) ?? new FrameSettings();
 
             Action IDebugData.GetReset()
                 //caution: we actually need to retrieve the

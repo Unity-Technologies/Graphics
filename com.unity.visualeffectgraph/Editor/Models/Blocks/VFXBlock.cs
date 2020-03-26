@@ -39,8 +39,18 @@ namespace UnityEditor.VFX
             get
             {
                 if (GetParent() == null) return true; // a block is invalid only if added to incompatible context.
-                return (compatibleContexts & GetParent().contextType) == GetParent().contextType;
+                if ((compatibleContexts & GetParent().contextType) != GetParent().contextType)
+                    return false;
+                if (GetParent() is VFXBlockSubgraphContext subgraphContext)
+                    return (subgraphContext.compatibleContextType & compatibleContexts) == subgraphContext.compatibleContextType;
+
+                return true;
             }
+        }
+
+        public bool isActive
+        {
+            get { return enabled && isValid; }
         }
 
         public abstract VFXContextType compatibleContexts { get; }
@@ -54,15 +64,15 @@ namespace UnityEditor.VFX
         {
             get
             {
-                 var attribs = new Dictionary< VFXAttribute, VFXAttributeMode >();
-                 foreach (var a in attributes)
-                 {
-                     VFXAttributeMode mode = VFXAttributeMode.None;
-                     attribs.TryGetValue(a.attrib, out mode);
-                     mode |= a.mode;
-                     attribs[a.attrib] = mode;
-                 }
-                 return attribs.Select(kvp => new VFXAttributeInfo(kvp.Key,kvp.Value));
+                var attribs = new Dictionary<VFXAttribute, VFXAttributeMode>();
+                foreach (var a in attributes)
+                {
+                    VFXAttributeMode mode = VFXAttributeMode.None;
+                    attribs.TryGetValue(a.attrib, out mode);
+                    mode |= a.mode;
+                    attribs[a.attrib] = mode;
+                }
+                return attribs.Select(kvp => new VFXAttributeInfo(kvp.Key, kvp.Value));
             }
         }
 

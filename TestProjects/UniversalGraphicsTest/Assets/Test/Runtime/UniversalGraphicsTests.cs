@@ -6,10 +6,15 @@ using UnityEngine.TestTools;
 using UnityEngine.XR;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.Experimental.Rendering.Universal;
 
 public class UniversalGraphicsTests
 {
-
+#if UNITY_ANDROID
+    static bool wasFirstSceneRan = false;
+    const int firstSceneAdditionalFrames = 3;
+#endif
     public const string universalPackagePath = "Assets/ReferenceImages";
 
     [UnityTest, Category("UniversalRP")]
@@ -32,6 +37,7 @@ public class UniversalGraphicsTests
 
         if (scene.name.Substring(3, 4).Equals("_xr_"))
         {
+#if ENABLE_VR && ENABLE_VR_MODULE
             Assume.That((Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer), "Stereo Universal tests do not run on MacOSX.");
 
             XRSettings.LoadDeviceByName("MockHMD");
@@ -45,34 +51,59 @@ public class UniversalGraphicsTests
 
             foreach (var camera in cameras)
                 camera.stereoTargetEye = StereoTargetEyeMask.Both;
+#else
+            yield return null;
+#endif
         }
         else
         {
+#if ENABLE_VR && ENABLE_VR_MODULE
             XRSettings.enabled = false;
+#endif
             yield return null;
         }
 
         for (int i = 0; i < settings.WaitFrames; i++)
             yield return null;
 
+#if UNITY_ANDROID
+        // On Android first scene often needs a bit more frames to load all the assets
+        // otherwise the screenshot is just a black screen
+        if (!wasFirstSceneRan)
+        {
+            for(int i = 0; i < firstSceneAdditionalFrames; i++)
+            {
+                yield return null;
+            }
+            wasFirstSceneRan = true;
+        }
+#endif
+
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings);
 
-#if CHECK_ALLOCATIONS_WHEN_RENDERING
         // Does it allocate memory when it renders what's on the main camera?
         bool allocatesMemory = false;
         var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        try
-        {
-            ImageAssert.AllocatesMemory(mainCamera, 512, 512); // 512 used for height and width to render
-        }
-        catch (AssertionException)
-        {
-            allocatesMemory = true;
-        }
-        if (allocatesMemory)
-            Assert.Fail("Allocated memory when rendering what is on main camera");
-#endif
 
+        // 2D Renderer is currently allocating memory, skip it as it will always fail GC alloc tests.
+        var additionalCameraData = mainCamera.GetUniversalAdditionalCameraData();
+        bool is2DRenderer = additionalCameraData.scriptableRenderer is Renderer2D;
+        
+        // Post-processing is allocating memory. Case https://fogbugz.unity3d.com/f/cases/1227490/
+        bool isPostProcessingEnabled = additionalCameraData.renderPostProcessing;
+        if (!is2DRenderer && !isPostProcessingEnabled)
+        {
+            try
+            {
+                ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
+            }
+            catch (AssertionException)
+            {
+                allocatesMemory = true;
+            }
+            if (allocatesMemory)
+                Assert.Fail("Allocated memory when rendering what is on main camera");
+        }
     }
 
 #if UNITY_EDITOR

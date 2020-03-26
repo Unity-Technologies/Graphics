@@ -21,11 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            // This still needs to be added.
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Parallax-Occlusion-Mapping-Node"; }
-        }
+        public override string documentationURL => Documentation.GetPageLink("SGNode-Parallax-Occlusion-Mapping");
 
         // Input slots
         private const int kHeightmapSlotId = 2;
@@ -82,12 +78,11 @@ namespace UnityEditor.Rendering.HighDefinition
             return $"Unity_HDRP_ParallaxOcclusionMapping_{concretePrecision.ToShaderString()}";
         }
 
-        public override void ValidateNode()
+        public override void Setup()
         {
+            base.Setup();
             var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(kHeightmapSlotId);
             textureSlot.defaultType = Texture2DShaderProperty.DefaultType.Black;
-
-            base.ValidateNode();
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)

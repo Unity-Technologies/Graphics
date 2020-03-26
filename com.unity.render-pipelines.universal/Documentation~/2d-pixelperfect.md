@@ -4,7 +4,7 @@ The __2D Pixel Perfect__ package contains the __Pixel Perfect Camera__ component
 
 It is a single component that makes all the calculations Unity needs to scale the viewport with resolution changes, so that you don’t need to do it manually. You can use the component settings to adjust the definition of the rendered pixel art within the camera viewport, and you can use the __Run in Edit Mode__ feature to preview any changes immediately in the Game view.
 
-![Pixel Perfect Camera gizmo](images/2D_Pix_image_0.png)  
+![Pixel Perfect Camera gizmo](Images/2D/2D_Pix_image_0.png)  
 
 Attach the __Pixel Perfect Camera__ component to the main Camera GameObject in the Scene, it is represented by two green bounding boxes centered on the __Camera__ gizmo in the Scene view. The solid green bounding box shows the visible area in Game view, while the dotted bounding box shows the __Reference Resolution.__
 
@@ -16,15 +16,15 @@ Before using the component, first ensure your Sprites are prepared correctly for
 
 1. After importing your textures into the project as Sprites, set all Sprites to the same __Pixels Per Unit__ value.
 
-    ![Setting PPU value](images/2D_Pix_image_1.png)
+    ![Setting PPU value](Images/2D/2D_Pix_image_1.png)
     
 2. In the Sprites' Inspector window, set their __Filter Mode__ to ‘Point’.
 
-    ![Set 'Point' mode](images/2D_Pix_image_2.png)
+    ![Set 'Point' mode](Images/2D/2D_Pix_image_2.png)
     
 3. Set their __Compression__ to 'None'.
 
-    ![Set 'None' compression](images/2D_Pix_image_3.png)
+    ![Set 'None' compression](Images/2D/2D_Pix_image_3.png)
     
 4. Follow the steps below to correctly set the pivot for a Sprite
 
@@ -36,13 +36,13 @@ Before using the component, first ensure your Sprites are prepared correctly for
     
     4. Repeat for each __Sprite__ element as necessary.
     
-    ![Setting the Sprite’s Pivot](images/2D_Pix_image_4.png)
+    ![Setting the Sprite’s Pivot](Images/2D/2D_Pix_image_4.png)
 
 ## Snap Settings
 
 To ensure the pixelated movement of Sprites are consistent with each other, follow the below steps to set the proper snap settings for your project.
 
-![Snap Setting window](images/2D_Pix_image_5.png)
+![Snap Setting window](Images/2D/2D_Pix_image_5.png)
 
 1. To open the __Snap settings__, go to __Edit__ > __Snap Settings.__
    
@@ -52,7 +52,7 @@ To ensure the pixelated movement of Sprites are consistent with each other, foll
 
 ## Properties
 
-![Property table](images/2D_Pix_image_6.png)  
+![Property table](Images/2D/2D_Pix_image_6.png)  
 The component's Inspector window
 
 |__Property__|__Function__|
@@ -78,7 +78,7 @@ By default, the Scene is rendered at the pixel perfect resolution closest to the
 
 Enable this option to have the Scene rendered to a temporary texture set as close as possible to the __Reference Resolution__, while maintaining the full screen aspect ratio. This temporary texture is then upscaled to fit the entire screen.
 
-![Box examples](images/2D_Pix_image_7.png)
+![Box examples](Images/2D/2D_Pix_image_7.png)
 
 The result is unaliased and unrotated pixels, which may be a desirable visual style for certain game projects.
 
@@ -92,8 +92,8 @@ __Pixel Snapping__ prevents subpixel movement and make Sprites appear to move in
 
 Crops the viewport along the checked axis with black bars to match the __Reference Resolution__. Black bars are added to make the Game view fit the full screen resolution.
 
-| ![Uncropped cat](images/2D_Pix_image_8.png) | ![Cropped cat](images/2D_Pix_image_9.png) |
-| :-----------------------------------------: | :---------------------------------------: |
-|                  Uncropped                  |                  Cropped                  |
+| ![Uncropped cat](Images/2D/2D_Pix_image_8.png) | ![Cropped cat](Images/2D/2D_Pix_image_9.png) |
+| :--------------------------------------------: | :------------------------------------------: |
+|                   Uncropped                    |                   Cropped                    |
 
 

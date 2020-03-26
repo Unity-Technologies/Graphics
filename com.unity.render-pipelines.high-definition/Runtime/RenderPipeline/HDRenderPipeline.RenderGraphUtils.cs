@@ -62,44 +62,42 @@ namespace UnityEngine.Rendering.HighDefinition
             return clearColor;
         }
 
+
         // XR Specific
         class XRRenderingPassData
         {
-            public Camera camera;
             public XRPass xr;
         }
 
-        void StartSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
+        internal static void StartXRSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
         {
             if (hdCamera.xr.enabled)
             {
                 using (var builder = renderGraph.AddRenderPass<XRRenderingPassData>("Start XR single-pass", out var passData))
                 {
-                    passData.camera = hdCamera.camera;
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
                     (XRRenderingPassData data, RenderGraphContext context) =>
                     {
-                        data.xr.StartSinglePass(context.cmd, data.camera, context.renderContext);
+                        data.xr.StartSinglePass(context.cmd);
                     });
                 }
             }
         }
 
-        void StopSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
+        internal static void StopXRSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
         {
             if (hdCamera.xr.enabled)
             {
                 using (var builder = renderGraph.AddRenderPass<XRRenderingPassData>("Stop XR single-pass", out var passData))
                 {
-                    passData.camera = hdCamera.camera;
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
                     (XRRenderingPassData data, RenderGraphContext context) =>
                     {
-                        data.xr.StopSinglePass(context.cmd, data.camera, context.renderContext);
+                        data.xr.StopSinglePass(context.cmd);
                     });
                 }
             }
@@ -121,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (EndCameraXRPassData data, RenderGraphContext ctx) =>
                     {
-                        data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera, ctx.renderContext);
+                        data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera);
                     });
                 }
             }
@@ -130,12 +128,12 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderOcclusionMeshesPassData
         {
             public HDCamera hdCamera;
-            public RenderGraphMutableResource depthBuffer;
+            public TextureHandle depthBuffer;
         }
 
-        void RenderOcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource depthBuffer)
+        void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer)
         {
-            if (hdCamera.xr.enabled && hdCamera.xr.xrSdkEnabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
+            if (hdCamera.xr.enabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOcclusionMeshesPassData>("XR Occlusion Meshes", out var passData))
                 {
@@ -149,6 +147,45 @@ namespace UnityEngine.Rendering.HighDefinition
                     });
                 }
             }
+        }
+    }
+
+    internal struct XRSinglePassScope : System.IDisposable
+    {
+        readonly RenderGraph m_RenderGraph;
+        readonly HDCamera m_HDCamera;
+
+        bool m_Disposed;
+
+        public XRSinglePassScope(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            m_RenderGraph = renderGraph;
+            m_HDCamera = hdCamera;
+            m_Disposed = false;
+
+            HDRenderPipeline.StartXRSinglePass(renderGraph, hdCamera);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        // Protected implementation of Dispose pattern.
+        void Dispose(bool disposing)
+        {
+            if (m_Disposed)
+                return;
+
+            // As this is a struct, it could have been initialized using an empty constructor so we
+            // need to make sure `cmd` isn't null to avoid a crash. Switching to a class would fix
+            // this but will generate garbage on every frame (and this struct is used quite a lot).
+            if (disposing)
+            {
+                HDRenderPipeline.StopXRSinglePass(m_RenderGraph, m_HDCamera);
+            }
+
+            m_Disposed = true;
         }
     }
 }

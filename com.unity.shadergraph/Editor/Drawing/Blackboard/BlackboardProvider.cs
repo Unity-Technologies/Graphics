@@ -16,15 +16,19 @@ namespace UnityEditor.ShaderGraph.Drawing
         readonly Dictionary<Guid, BlackboardRow> m_InputRows;
         readonly BlackboardSection m_PropertySection;
         readonly BlackboardSection m_KeywordSection;
+
+        public const int k_PropertySectionIndex = 0;
+        public const int k_KeywordSectionIndex = 1;
+
         public Blackboard blackboard { get; private set; }
         Label m_PathLabel;
         TextField m_PathLabelTextField;
         bool m_EditPathCancelled = false;
         List<Node> m_SelectedNodes = new List<Node>();
 
-        Dictionary<ShaderInput, bool> m_ExpandedInputs = new Dictionary<ShaderInput, bool>();
+        Dictionary<Guid, bool> m_ExpandedInputs = new Dictionary<Guid, bool>();
 
-        public Dictionary<ShaderInput, bool> expandedInputs
+        public Dictionary<Guid, bool> expandedInputs
         {
             get { return m_ExpandedInputs; }
         }
@@ -225,7 +229,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             gm.AddSeparator($"Keyword/");
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
             {
-                var keyword = ShaderKeyword.Create(builtinKeywordDescriptor);
+                var keyword = ShaderKeyword.CreateBuiltInKeyword(builtinKeywordDescriptor);
                 AddBuiltinKeyword(gm, keyword);
             }
         }
@@ -244,13 +248,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
         {
-            var field = (BlackboardFieldView)visualElement;
+            var field = (BlackboardField)visualElement;
             var input = (ShaderInput)field.userData;
             if (!string.IsNullOrEmpty(newText) && newText != input.displayName)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Edit Graph Input Name");
-                m_Graph.SanitizeGraphInputName(input);
                 input.displayName = newText;
+                m_Graph.SanitizeGraphInputName(input);
                 field.text = input.displayName;
                 DirtyNodes();
             }
@@ -269,11 +273,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             foreach (var input in m_Graph.addedInputs)
+            {
                 AddInputRow(input, index: m_Graph.GetGraphInputIndex(input));
+            }
 
             foreach (var expandedInput in expandedInputs)
             {
-                SessionState.SetBool(expandedInput.Key.guid.ToString(), expandedInput.Value);
+                SessionState.SetBool($"Unity.ShaderGraph.Input.{expandedInput.Key}.isExpanded", expandedInput.Value);
             }
 
             if (m_Graph.movedInputs.Any())
@@ -301,7 +307,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 input.generatePropertyBlock = input.isExposable;
             }
 
-            BlackboardFieldView field = null;
+            BlackboardField field = null;
             BlackboardRow row = null;
 
             switch(input)
@@ -309,28 +315,39 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AbstractShaderProperty property:
                 {
                     var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-                    field = new BlackboardFieldView(m_Graph, input, icon, property.displayName, property.propertyType.ToString()) { userData = property };
-                    row = new BlackboardRow(field, null) { userData = input };
-                    if (index < 0)
+                    field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
+                    var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
+                    row = new BlackboardRow(field, propertyView) { userData = input };
+
+                    if (index < 0 || index > m_InputRows.Count)
                         index = m_InputRows.Count;
+
                     if (index == m_InputRows.Count)
                         m_PropertySection.Add(row);
                     else
                         m_PropertySection.Insert(index, row);
+
                     break;
                 }
                 case ShaderKeyword keyword:
                 {
                     var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.generatePropertyBlock)) ? exposedIcon : null;
-                    var typeText = keyword.isEditable ? keyword.keywordType.ToString() : "Built-in Keyword";
-                    field = new BlackboardFieldView(m_Graph, input, icon, keyword.displayName, typeText) { userData = keyword };
-                    row = new BlackboardRow(field, null);
-                    if (index < 0)
+
+                    string typeText = keyword.keywordType.ToString()  + " Keyword";
+                    typeText = keyword.isBuiltIn ? "Built-in " + typeText : typeText;
+
+                    field = new BlackboardField(icon, keyword.displayName, typeText) { userData = keyword };
+                    var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
+                    row = new BlackboardRow(field, keywordView);
+
+                    if (index < 0 || index > m_InputRows.Count)
                         index = m_InputRows.Count;
+
                     if (index == m_InputRows.Count)
                         m_KeywordSection.Add(row);
                     else
                         m_KeywordSection.Insert(index, row);
+
                     break;
                 }
                 default:
@@ -346,14 +363,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             pill.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 
             var expandButton = row.Q<Button>("expandButton");
-            expandButton.RemoveFromHierarchy();
+            expandButton.RegisterCallback<MouseDownEvent>(evt => OnExpanded(evt, input), TrickleDown.TrickleDown);
 
             m_InputRows[input.guid] = row;
-            m_InputRows[input.guid].expanded = SessionState.GetBool(input.guid.ToString(), true);
 
-            if (create)
+            if (!create)
+            {
+                m_InputRows[input.guid].expanded = SessionState.GetBool($"Unity.ShaderGraph.Input.{input.guid.ToString()}.isExpanded", false);
+            }
+            else
             {
                 row.expanded = true;
+                m_ExpandedInputs[input.guid] = true;
                 m_Graph.owner.RegisterCompleteObjectUndo("Create Graph Input");
                 m_Graph.AddGraphInput(input);
                 field.OpenTextEditor();
@@ -367,7 +388,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnExpanded(MouseDownEvent evt, ShaderInput input)
         {
-            m_ExpandedInputs[input] = !m_InputRows[input.guid].expanded;
+            m_ExpandedInputs[input.guid] = !m_InputRows[input.guid].expanded;
         }
 
         void DirtyNodes()

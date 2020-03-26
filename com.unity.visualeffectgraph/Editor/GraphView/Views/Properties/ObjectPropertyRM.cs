@@ -98,7 +98,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
-            if( force )
+            if (force)
                 m_ObjectField.SetValueWithoutNotify(null);
             m_ObjectField.SetValueWithoutNotify(m_Value);
         }
@@ -114,7 +114,7 @@ namespace UnityEditor.VFX.UI
                 Debug.Log("Error Trying to convert" + (obj != null ? obj.GetType().Name : "null") + " to " + typeof(UnityObject).Name);
             }
 
-            UpdateGUI(false);
+            UpdateGUI(!object.ReferenceEquals(m_Value, obj));
         }
 
         public override bool showsEverything { get { return true; } }

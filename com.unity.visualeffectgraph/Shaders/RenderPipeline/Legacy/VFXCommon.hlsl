@@ -2,11 +2,21 @@
 
 Texture2D _CameraDepthTexture;
 
+//Additionnal empty wrapper (equivalent to expected functions in com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl)
+float3 GetAbsolutePositionWS(float3 positionRWS)
+{
+    return positionRWS;
+}
+float3 GetCameraRelativePositionWS(float3 positionWS)
+{
+    return positionWS;
+}
+
 void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input) {}
 
 void VFXEncodeMotionVector(float2 velocity, out float4 outBuffer)
 {
-	outBuffer = (float4)0.0f; //TODO
+    outBuffer = (float4)0.0f; //TODO
 }
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
@@ -16,17 +26,17 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
 
 float4 VFXTransformFinalColor(float4 color)
 {
-	return color;
+    return color;
 }
 
 float4 VFXTransformPositionWorldToNonJitteredClip(float3 posWS)
 {
-	return VFXTransformPositionWorldToClip(posWS); //TODO
+    return VFXTransformPositionWorldToClip(posWS); //TODO
 }
 
 float4 VFXTransformPositionWorldToPreviousClip(float3 posWS)
 {
-	return VFXTransformPositionWorldToClip(posWS); //TODO
+    return VFXTransformPositionWorldToClip(posWS); //TODO
 }
 
 float4 VFXTransformPositionObjectToClip(float3 posOS)
@@ -36,12 +46,12 @@ float4 VFXTransformPositionObjectToClip(float3 posOS)
 
 float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
 {
-	return VFXTransformPositionObjectToClip(posOS); //TODO
+    return VFXTransformPositionObjectToClip(posOS); //TODO
 }
 
 float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
 {
-	return VFXTransformPositionObjectToClip(posOS); //TODO
+    return VFXTransformPositionObjectToClip(posOS); //TODO
 }
 
 float3 VFXTransformPositionWorldToView(float3 posWS)

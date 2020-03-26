@@ -77,8 +77,8 @@ namespace UnityEditor.VFX.UI
             m_DragIndicator = new VisualElement();
 
             m_DragIndicator.name = "dragIndicator";
-            m_DragIndicator.style.position = PositionType.Absolute;
             hierarchy.Add(m_DragIndicator);
+            m_DragIndicator.style.display = DisplayStyle.None;
 
             ClearClassList();
             AddToClassList("blackboardSection");
@@ -115,7 +115,7 @@ namespace UnityEditor.VFX.UI
             var blackboard = GetFirstAncestorOfType<VFXBlackboard>();
             if (blackboard != null)
             {
-                blackboard.SetCategoryName(this, m_NameField.value);
+                blackboard.SetCategoryName(this, string.IsNullOrEmpty(m_NameField.value) ? "Untitled" : m_NameField.value);
             }
         }
 
@@ -190,7 +190,7 @@ namespace UnityEditor.VFX.UI
 
                 if (value)
                 {
-                    m_MainContainer.Insert(1,m_Header);
+                    m_MainContainer.Insert(1, m_Header);
                 }
                 else
                 {
@@ -202,14 +202,13 @@ namespace UnityEditor.VFX.UI
 
         private void SetDragIndicatorVisible(bool visible)
         {
-            if (visible && (m_DragIndicator.parent == null))
+            if (visible)
             {
-                hierarchy.Add(m_DragIndicator);
-                m_DragIndicator.visible = true;
+                m_DragIndicator.style.display = DisplayStyle.Flex;
             }
-            else if ((visible == false) && (m_DragIndicator.parent != null))
+            else
             {
-                hierarchy.Remove(m_DragIndicator);
+                m_DragIndicator.style.display = DisplayStyle.None;
             }
         }
 
@@ -260,9 +259,8 @@ namespace UnityEditor.VFX.UI
                 SetDragIndicatorVisible(true);
 
                 Rect dragLayout = m_DragIndicator.layout;
-                m_DragIndicator.style.left = 0f;
-                m_DragIndicator.style.top = indicatorY - dragLayout.height / 2;
 
+                m_DragIndicator.style.top = indicatorY - dragLayout.height / 2;
             }
             else
             {
@@ -289,14 +287,14 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
-            if (selection.OfType< VFXBlackboardCategory>().Any())
+            if (selection.OfType<VFXBlackboardCategory>().Any())
                 return;
 
             if (m_InsertIndex != -1)
             {
                 var parent = GetFirstAncestorOfType<VFXBlackboard>();
                 if (parent != null)
-                    parent.OnMoveParameter(selection.OfType<VisualElement>().Select(t => t.GetFirstOfType<VFXBlackboardRow>()).Where(t=> t!= null), this, m_InsertIndex);
+                    parent.OnMoveParameter(selection.OfType<VisualElement>().Select(t => t.GetFirstOfType<VFXBlackboardRow>()).Where(t => t != null), this, m_InsertIndex);
                 SetDragIndicatorVisible(false);
                 evt.StopPropagation();
                 m_InsertIndex = -1;
@@ -337,7 +335,7 @@ namespace UnityEditor.VFX.UI
 
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            if (evt.target == this && (capabilities & Capabilities.Selectable)!= 0)
+            if (evt.target == this && (capabilities & Capabilities.Selectable) != 0)
             {
                 evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
 

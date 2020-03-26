@@ -4,8 +4,14 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Static class with unsafe utility functions.
+    /// </summary>
     public static unsafe class CoreUnsafeUtils
     {
+        /// <summary>
+        /// Fixed Buffer String Queue class.
+        /// </summary>
         public struct FixedBufferStringQueue
         {
             byte* m_ReadCursor;
@@ -15,8 +21,16 @@ namespace UnityEngine.Rendering
             readonly byte* m_BufferStart;
             readonly int m_BufferLength;
 
+            /// <summary>
+            /// Number of element in the queue.
+            /// </summary>
             public int Count { get; private set; }
 
+            /// <summary>
+            /// Constructor.
+            /// </summary>
+            /// <param name="ptr">Buffer pointer.</param>
+            /// <param name="length">Length of the provided allocated buffer in byte.</param>
             public FixedBufferStringQueue(byte* ptr, int length)
             {
                 m_BufferStart = ptr;
@@ -29,6 +43,11 @@ namespace UnityEngine.Rendering
                 Clear();
             }
 
+            /// <summary>
+            /// Try to push a new element in the queue.
+            /// </summary>
+            /// <param name="v">Element to push in the queue.</param>
+            /// <returns>True if the new element could be pushed in the queue. False if reserved memory was not enough.</returns>
             public bool TryPush(string v)
             {
                 var size = v.Length * sizeof(char) + sizeof(int);
@@ -48,6 +67,11 @@ namespace UnityEngine.Rendering
                 return true;
             }
 
+            /// <summary>
+            /// Pop an element of the queue.
+            /// </summary>
+            /// <param name="v">Output result string.</param>
+            /// <returns>True if an element was succesfuly poped.</returns>
             public bool TryPop(out string v)
             {
                 var size = *(int*)m_ReadCursor;
@@ -63,6 +87,9 @@ namespace UnityEngine.Rendering
                 return false;
             }
 
+            /// <summary>
+            /// Clear the queue.
+            /// </summary>
             public void Clear()
             {
                 m_WriteCursor = m_BufferStart;
@@ -72,8 +99,16 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Key Getter interface.
+        /// </summary>
+        /// <typeparam name="TValue">Value</typeparam>
+        /// <typeparam name="TKey">Key</typeparam>
         public interface IKeyGetter<TValue, TKey>
         {
+            /// <summary>Getter</summary>
+            /// <param name="v">The value</param>
+            /// <returns>The key</returns>
             TKey Get(ref TValue v);
         }
 
@@ -85,6 +120,13 @@ namespace UnityEngine.Rendering
         { public uint Get(ref uint v) { return v; } }
 
 
+        /// <summary>
+        /// Extension method to copy elements of a list into a buffer.
+        /// </summary>
+        /// <typeparam name="T">Type of the provided List.</typeparam>
+        /// <param name="list">Input List.</param>
+        /// <param name="dest">Destination buffer.</param>
+        /// <param name="count">Number of elements to copy.</param>
         public static void CopyTo<T>(this List<T> list, void* dest, int count)
             where T : struct
         {
@@ -93,6 +135,13 @@ namespace UnityEngine.Rendering
                 UnsafeUtility.WriteArrayElement<T>(dest, i, list[i]);
         }
 
+        /// <summary>
+        /// Extension method to copy elements of an array into a buffer.
+        /// </summary>
+        /// <typeparam name="T">Type of the provided array.</typeparam>
+        /// <param name="list">Input List.</param>
+        /// <param name="dest">Destination buffer.</param>
+        /// <param name="count">Number of elements to copy.</param>
         public static void CopyTo<T>(this T[] list, void* dest, int count)
             where T : struct
         {
@@ -101,18 +150,38 @@ namespace UnityEngine.Rendering
                 UnsafeUtility.WriteArrayElement<T>(dest, i, list[i]);
         }
 
+        /// <summary>
+        /// Quick Sort
+        /// </summary>
+        /// <param name="arr">uint array.</param>
+        /// <param name="left">Left boundary.</param>
+        /// <param name="right">Left boundary.</param>
         public static unsafe void QuickSort(uint[] arr, int left, int right)
         {
             fixed (uint* ptr = arr)
                 CoreUnsafeUtils.QuickSort<uint, uint, UintKeyGetter>(ptr, left, right);
         }
 
+        /// <summary>
+        /// Quick sort.
+        /// </summary>
+        /// <typeparam name="T">Type to compare.</typeparam>
+        /// <param name="count">Number of element.</param>
+        /// <param name="data">Buffer to sort.</param>
         public static void QuickSort<T>(int count, void* data)
             where T : struct, IComparable<T>
         {
             QuickSort<T, T, DefaultKeyGetter<T>>(data, 0, count - 1);
         }
 
+        /// <summary>
+        /// Quick sort.
+        /// </summary>
+        /// <typeparam name="TValue">Value type.</typeparam>
+        /// <typeparam name="TKey">Key Type.</typeparam>
+        /// <typeparam name="TGetter">Getter type.</typeparam>
+        /// <param name="count">Number of element.</param>
+        /// <param name="data">Data to sort.</param>
         public static void QuickSort<TValue, TKey, TGetter>(int count, void* data)
             where TKey : struct, IComparable<TKey>
             where TValue : struct
@@ -121,6 +190,15 @@ namespace UnityEngine.Rendering
             QuickSort<TValue, TKey, TGetter>(data, 0, count - 1);
         }
 
+        /// <summary>
+        /// Quick sort.
+        /// </summary>
+        /// <typeparam name="TValue">Value type.</typeparam>
+        /// <typeparam name="TKey">Key Type.</typeparam>
+        /// <typeparam name="TGetter">Getter type.</typeparam>
+        /// <param name="data">Data to sort.</param>
+        /// <param name="left">Left boundary.</param>
+        /// <param name="right">Right boundary.</param>
         public static void QuickSort<TValue, TKey, TGetter>(void* data, int left, int right)
             where TKey : struct, IComparable<TKey>
             where TValue : struct
@@ -139,6 +217,14 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Index of an element in a buffer.
+        /// </summary>
+        /// <typeparam name="T">Data type.</typeparam>
+        /// <param name="data">Data buffer.</param>
+        /// <param name="count">Number of elements.</param>
+        /// <param name="v">Element to test against.</param>
+        /// <returns>The first index of the provided element.</returns>
         public static int IndexOf<T>(void* data, int count, T v)
             where T : struct, IEquatable<T>
         {
@@ -157,6 +243,10 @@ namespace UnityEngine.Rendering
         ///
         /// Assumes that <paramref name="newHashes"/> and <paramref name="oldHashes"/> are sorted.
         /// </summary>
+        /// <typeparam name="TOldValue">Old value type.</typeparam>
+        /// <typeparam name="TOldGetter">Old getter type.</typeparam>
+        /// <typeparam name="TNewValue">New value type.</typeparam>
+        /// <typeparam name="TNewGetter">New getter type.</typeparam>
         /// <param name="oldHashCount">Number of hashes in <paramref name="oldHashes"/>.</param>
         /// <param name="oldHashes">Previous hashes to compare.</param>
         /// <param name="newHashCount">Number of hashes in <paramref name="newHashes"/>.</param>
@@ -166,6 +256,7 @@ namespace UnityEngine.Rendering
         /// <param name="addCount">Number of elements to add will be written here.</param>
         /// <param name="remCount">Number of elements to remove will be written here.</param>
         /// <returns>The number of operation to perform (<code><paramref name="addCount"/> + <paramref name="remCount"/></code>)</returns>
+
         public static int CompareHashes<TOldValue, TOldGetter, TNewValue, TNewGetter>(
             int oldHashCount, void* oldHashes,
             int newHashCount, void* newHashes,
@@ -266,6 +357,18 @@ namespace UnityEngine.Rendering
             return numOperations;
         }
 
+        /// <summary>
+        /// Compare hashes.
+        /// </summary>
+        /// <param name="oldHashCount">Number of hashes in <paramref name="oldHashes"/>.</param>
+        /// <param name="oldHashes">Previous hashes to compare.</param>
+        /// <param name="newHashCount">Number of hashes in <paramref name="newHashes"/>.</param>
+        /// <param name="newHashes">New hashes to compare.</param>
+        /// <param name="addIndices">Indices of element to add in <paramref name="newHashes"/> will be written here.</param>
+        /// <param name="removeIndices">Indices of element to remove in <paramref name="oldHashes"/> will be written here.</param>
+        /// <param name="addCount">Number of elements to add will be written here.</param>
+        /// <param name="remCount">Number of elements to remove will be written here.</param>
+        /// <returns>The number of operation to perform (<code><paramref name="addCount"/> + <paramref name="remCount"/></code>)</returns>
         public static int CompareHashes(
             int oldHashCount, Hash128* oldHashes,
             int newHashCount, Hash128* newHashes,
@@ -283,6 +386,8 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>Combine all of the hashes of a collection of hashes.</summary>
+        /// <typeparam name="TValue">Value type.</typeparam>
+        /// <typeparam name="TGetter">Getter type.</typeparam>
         /// <param name="count">Number of hash to combine.</param>
         /// <param name="hashes">Hashes to combine.</param>
         /// <param name="outHash">Hash to update.</param>
@@ -300,6 +405,12 @@ namespace UnityEngine.Rendering
 
         }
 
+        /// <summary>
+        /// Combine hashes.
+        /// </summary>
+        /// <param name="count">Number of hash to combine.</param>
+        /// <param name="hashes">Hashes to combine.</param>
+        /// <param name="outHash">Hash to update.</param>
         public static void CombineHashes(int count, Hash128* hashes, Hash128* outHash)
         {
             CombineHashes<Hash128, DefaultKeyGetter<Hash128>>(count, hashes, outHash);
@@ -355,6 +466,11 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Checks for duplicates in an array.
+        /// </summary>
+        /// <param name="arr">Input array.</param>
+        /// <returns>True if there is any duplicate in the input array.</returns>
         public static unsafe bool HaveDuplicates(int[] arr)
         {
             int* copy = stackalloc int[arr.Length];

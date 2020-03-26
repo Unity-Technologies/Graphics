@@ -1136,20 +1136,25 @@ namespace Drawing.Inspector
             var propertySheet = new PropertySheet();
             // #TODO Handle child classes, needs extra work?
             shaderInput = actualObject as ShaderInput;
-            BuildExposedField(propertySheet, shaderInput);
-            BuildReferenceNameField(propertySheet, shaderInput);
-            BuildPropertyFields(propertySheet, shaderInput);
+            BuildExposedField(propertySheet);
+            BuildReferenceNameField(propertySheet);
+            BuildPropertyFields(propertySheet);
             BuildKeywordFields(propertySheet, shaderInput);
             return propertySheet;
         }
 
-        void BuildExposedField(PropertySheet propertySheet, ShaderInput shaderInput)
+        void BuildExposedField(PropertySheet propertySheet)
         {
             if(!isSubGraph)
             {
                 var boolPropertyDrawer = new BoolPropertyDrawer();
                 propertySheet.Add(boolPropertyDrawer.CreateGUIForField(
-                    evt => _exposedFieldChangedCallback(evt.isOn),
+                    evt =>
+                    {
+                        this._preChangeValueCallback("Change Exposed Toggle");
+                        this._exposedFieldChangedCallback(evt.isOn);
+                        this._postChangeValueCallback(false, ModificationScope.Graph);
+                    },
                     new ToggleData(shaderInput.generatePropertyBlock),
                     "Exposed",
                     out var propertyToggle));
@@ -1157,16 +1162,31 @@ namespace Drawing.Inspector
             }
         }
 
-        void BuildReferenceNameField(PropertySheet propertySheet, ShaderInput shaderInput)
+        void BuildReferenceNameField(PropertySheet propertySheet)
         {
             if (!isSubGraph || shaderInput is ShaderKeyword)
             {
                 var textPropertyDrawer = new TextPropertyDrawer();
                 propertySheet.Add(textPropertyDrawer.CreateGUIForField(
-                    evt => _referenceNameChangedCallback(evt),
+                    null,
                     (string)shaderInput.referenceName,
                     "Reference",
                     out var propertyVisualElement));
+
+                var propertyTextField = (TextField) propertyVisualElement;
+                propertyTextField.RegisterValueChangedCallback(
+                    evt =>
+                    {
+                        this._preChangeValueCallback("Change Reference Name");
+                        this._referenceNameChangedCallback(evt.newValue);
+
+                        if (string.IsNullOrEmpty(shaderInput.overrideReferenceName))
+                            propertyTextField.RemoveFromClassList("modified");
+                        else
+                            propertyTextField.AddToClassList("modified");
+
+                        this._postChangeValueCallback(false, ModificationScope.Graph);
+                    });
 
                 if(!string.IsNullOrEmpty(shaderInput.overrideReferenceName))
                     propertyVisualElement.AddToClassList("modified");
@@ -1175,7 +1195,7 @@ namespace Drawing.Inspector
             }
         }
 
-        void BuildPropertyFields(PropertySheet propertySheet, ShaderInput shaderInput)
+        void BuildPropertyFields(PropertySheet propertySheet)
         {
             var property = shaderInput as AbstractShaderProperty;
             if(property == null)
@@ -1653,7 +1673,7 @@ namespace Drawing.Inspector
                 KeywordDefinition.ShaderFeature,
                 out var typeField));
 
-            typeField.SetEnabled(keyword.isEditable);
+            typeField.SetEnabled(!keyword.isBuiltIn);
 
             if (keyword.keywordDefinition != KeywordDefinition.Predefined)
             {
@@ -1670,7 +1690,7 @@ namespace Drawing.Inspector
                     KeywordScope.Local,
                     out var scopeField));
 
-                scopeField.SetEnabled(keyword.isEditable);
+                scopeField.SetEnabled(!keyword.isBuiltIn);
             }
 
             switch (keyword.keywordType)
@@ -1718,7 +1738,7 @@ namespace Drawing.Inspector
             // Entries
             var container = new IMGUIContainer(() => OnGUIHandler()) {name = "ListContainer"};
             AddPropertyRowToSheet(propertySheet, container, "Entries");
-            container.SetEnabled(keyword.isEditable);
+            container.SetEnabled(!keyword.isBuiltIn);
         }
 
         private static void AddPropertyRowToSheet(PropertySheet propertySheet, VisualElement control, string labelName)

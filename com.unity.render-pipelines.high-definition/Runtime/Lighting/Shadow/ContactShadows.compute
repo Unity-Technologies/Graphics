@@ -1,6 +1,6 @@
-// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel DeferredContactShadow                DEFERRED_CONTACT_SHADOW_GENERIC=DeferredContactShadow
-#pragma kernel DeferredContactShadowMSAA            DEFERRED_CONTACT_SHADOW_GENERIC=DeferredContactShadowMSAA         ENABLE_MSAA
+#pragma kernel DeferredContactShadow
+
+#pragma multi_compile _ ENABLE_MSAA
 
 #ifdef SHADER_API_PSSL
 #   pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
@@ -48,10 +48,8 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
 
     // Dither pattern is shifted by 0.5 because we want to jitter the ray starting position backward and forward (so we need values between -0.5 and 0.5)
     float ditherBias = 0.5f;
-    // With a mod of 8 and taa we'd get no visible flickering, but the stitching pattern is more noticeable. With %16 we do get a bit of visible flickering, but a smoother gradient.
-    // If TAA is off, the noise pattern does not vary over time.
     uint taaEnabled = _TaaFrameInfo.w;
-    float dither = InterleavedGradientNoise(positionSS, (_FrameCount % 16u) * taaEnabled) - ditherBias;
+    float dither = InterleavedGradientNoise(positionSS, (_FrameCount % 8u) * taaEnabled) - ditherBias;
 
     float3 rayStartWS = positionWS;
     float3 rayEndWS = rayStartWS + rayDirWS * rayLength;
@@ -102,7 +100,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
 
 #ifdef ENABLE_MSAA
         // Depth buffer depth for this sample
-        float sampleDepth = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthValues, s_point_clamp_sampler, sampleAlongRay.xy, 0.0f).y;
+        float sampleDepth = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthValues, s_point_clamp_sampler, ClampAndScaleUVForPoint(sampleAlongRay.xy), 0).y;
 #else
         // Depth buffer depth for this sample
         float sampleDepth = SampleDepth(saturate(sampleAlongRay.xy), tracingHalfRes);
@@ -110,7 +108,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
 
         float depthDiff = sampleDepth - sampleAlongRay.z;
 
-        if (depthDiff > 0.0f && depthDiff < compareThreshold)
+        if (depthDiff > 0.0f && depthDiff < compareThreshold && sampleAlongRay.z > 0)
         {
             if (tracingHalfRes)
             {
@@ -158,7 +156,7 @@ bool ComputeContactShadow(PositionInputs posInput, float3 direction, inout float
 }
 
 [numthreads(DEFERRED_SHADOW_TILE_SIZE, DEFERRED_SHADOW_TILE_SIZE, 1)]
-void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)
+void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 

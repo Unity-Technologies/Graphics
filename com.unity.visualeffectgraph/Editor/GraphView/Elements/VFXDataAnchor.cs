@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
 using Type = System.Type;
+using System.IO;
 using System.Linq;
 using UnityEngine.Profiling;
 
@@ -72,7 +73,7 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
         }
 
-        public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnified;
 
@@ -231,14 +232,19 @@ namespace UnityEditor.VFX.UI
             VFXViewController viewController = view.controller;
 
 
+            List<VisualElement> picked = new List<VisualElement>();
+            panel.PickAll(position, picked);
             VFXNodeUI endNode = null;
-            foreach (var node in view.GetAllNodes())
+
+            foreach (var element in picked)
             {
-                if (node.worldBound.Contains(position))
+                if (element is VFXNodeUI node)
                 {
                     endNode = node;
+                    break;
                 }
             }
+
 
             VFXDataEdge dataEdge  = edge as VFXDataEdge;
             bool exists = false;
@@ -265,7 +271,7 @@ namespace UnityEditor.VFX.UI
                     }
                     else
                     {
-                        foreach (var input in nodeController.inputPorts.Where(t => t.model == null || t.model.IsMasterSlot()))
+                        foreach (var input in nodeController.inputPorts.Where(t => t.model == null || t.model.IsMasterSlot() && !t.model.HasLink(true)))
                         {
                             if (viewController.CreateLink(input, controller))
                                 break;
@@ -278,16 +284,22 @@ namespace UnityEditor.VFX.UI
                 VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == controller.portType.UserFriendlyName());
                 if (parameterDesc != null)
                 {
-                    VFXParameter parameter = viewController.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(140, 20), parameterDesc);
+                    Vector2 pos = view.contentViewContainer.GlobalToBound(position) - new Vector2(140, 20);
+                    VFXParameter parameter = viewController.AddVFXParameter(pos, parameterDesc, false);
                     parameter.SetSettingValue("m_Exposed", true);
                     startSlot.Link(parameter.outputSlots[0]);
 
                     CopyValueToParameter(parameter);
+
+                    viewController.AddVFXModel(pos, parameter);
                 }
             }
             else if (!exists)
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
+                if (direction == Direction.Input)
+                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter)}));
+                else
+                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
             }
         }
 
@@ -304,17 +316,30 @@ namespace UnityEditor.VFX.UI
             {
                 VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
                 if (desc == null)
+                {
+                    string path = d.modelDescriptor as string;
+
+                    if (path != null && !path.StartsWith(VisualEffectAssetEditorUtility.templatePath))
+                    {
+                        if (Path.GetExtension(path) == VisualEffectSubgraphOperator.Extension)
+                        {
+                            var subGraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(path);
+                            if (subGraph != null && (!controller.viewController.model.isSubgraph || !subGraph.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) && subGraph.GetResource() != controller.viewController.model))
+                                return true;
+                        }
+                    }
                     return false;
+                }
 
                 container = desc.model as IVFXSlotContainer;
                 if (container == null)
                     return false;
 
-                if (    direction == Direction.Output
+                if (direction == Direction.Output
                     &&  mySlot != null
                     && container is VFXOperatorDynamicOperand
                     && (container as VFXOperatorDynamicOperand).validTypes.Contains(mySlot.property.type))
-                        return true;
+                    return true;
             }
 
             IEnumerable<Type> validTypes = null;

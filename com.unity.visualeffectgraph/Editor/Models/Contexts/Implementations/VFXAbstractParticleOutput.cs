@@ -62,6 +62,7 @@ namespace UnityEditor.VFX
         {
             Stretch,
             RepeatPerSegment,
+            Custom,
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies how the particle geometry is culled. This can be used to hide the front or back facing sides or make the mesh double-sided.")]
@@ -110,11 +111,13 @@ namespace UnityEditor.VFX
         public bool HasSorting()        { return (sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }
         int IVFXSubRenderer.sortPriority
         {
-            get {
+            get
+            {
                 return sortPriority;
             }
-            set {
-                if(sortPriority != value)
+            set
+            {
+                if (sortPriority != value)
                 {
                     sortPriority = value;
                     Invalidate(InvalidationCause.kSettingChanged);
@@ -140,7 +143,18 @@ namespace UnityEditor.VFX
 
         protected bool usesFlipbook { get { return supportsUV && (uvMode == UVMode.Flipbook || uvMode == UVMode.FlipbookBlend || uvMode == UVMode.FlipbookMotionBlend); } }
 
-        public virtual bool exposeAlphaThreshold { get => useAlphaClipping; }
+        public virtual bool exposeAlphaThreshold
+        {
+            get
+            {
+                if (useAlphaClipping)
+                    return true;
+                //For Motion & Shadow, allow use a alpha clipping and it shares the same value as color clipping for transparent particles
+                if (!isBlendModeOpaque && (hasMotionVector || hasShadowCasting))
+                    return true;
+                return false;
+            }
+        }
 
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
@@ -154,7 +168,7 @@ namespace UnityEditor.VFX
 
             if (hasSoftParticles)
             {
-                var softParticleFade = slotExpressions.First(o => o.name == "softParticlesFadeDistance");
+                var softParticleFade = slotExpressions.First(o => o.name == "softParticleFadeDistance");
                 var invSoftParticleFade = (VFXValue.Constant(1.0f) / softParticleFade.exp);
                 yield return new VFXNamedExpression(invSoftParticleFade, "invSoftParticlesFadeDistance");
             }
@@ -214,9 +228,9 @@ namespace UnityEditor.VFX
                 foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
                     yield return property;
 
-                if(colorMapping == ColorMappingMode.GradientMapped)
+                if (colorMapping == ColorMappingMode.GradientMapped)
                 {
-                    foreach(var property in PropertiesFromType("InputPropertiesGradientMapped"))
+                    foreach (var property in PropertiesFromType("InputPropertiesGradientMapped"))
                         yield return property;
                 }
 
@@ -228,7 +242,7 @@ namespace UnityEditor.VFX
                         case UVMode.FlipbookBlend:
                         case UVMode.FlipbookMotionBlend:
                             yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "flipBookSize"), new Vector2(4, 4));
-                            if(uvMode == UVMode.FlipbookMotionBlend)
+                            if (uvMode == UVMode.FlipbookMotionBlend)
                             {
                                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Texture2D), "motionVectorMap"));
                                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "motionVectorScale"), 1.0f);
@@ -246,7 +260,7 @@ namespace UnityEditor.VFX
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f), new TooltipAttribute("Alpha threshold used for pixel clipping"))), 0.5f);
 
                 if (hasSoftParticles)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticlesFadeDistance", VFXPropertyAttribute.Create(new MinAttribute(0.001f))), 1.0f);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticleFadeDistance", VFXPropertyAttribute.Create(new MinAttribute(0.001f))), 1.0f);
 
                 if (hasExposure && useExposureWeight)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "exposureWeight", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))), 1.0f);
@@ -257,7 +271,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                switch(colorMapping)
+                switch (colorMapping)
                 {
                     case ColorMappingMode.Default:
                         yield return "VFX_COLORMAPPING_DEFAULT";
@@ -272,7 +286,7 @@ namespace UnityEditor.VFX
                 else
                     yield return "IS_TRANSPARENT_PARTICLE";
 
-                if (useAlphaClipping)
+                if (hasAlphaClipping)
                     yield return "USE_ALPHA_TEST";
                 if (hasSoftParticles)
                     yield return "USE_SOFT_PARTICLE";

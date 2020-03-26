@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class DecalSettingsView : VisualElement
+    class DecalSettingsView : MasterNodeSettingsView
     {
         DecalMasterNode m_Node;
 
@@ -19,14 +19,14 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
-        public DecalSettingsView(DecalMasterNode node)
+        public DecalSettingsView(DecalMasterNode node) : base(node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
 
             int indentLevel = 0;
 
-            ps.Add(new PropertyRow(CreateLabel("Affects Albedo", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Affect BaseColor", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -81,6 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             });
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeAffectsAlbedo(ChangeEvent<bool> evt)

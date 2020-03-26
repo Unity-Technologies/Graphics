@@ -1,13 +1,13 @@
 float4 GetFlipbookMotionVectors(VFX_VARYING_PS_INPUTS i, float4 uvs, float blend)
 {
-	float4 mvs = (float4)0;
+    float4 mvs = (float4)0;
 #if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
-	float2 mvPrev = -(SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * blend;
+    float2 mvPrev = -(SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * blend;
     float2 mvNext = (SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.zw).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * (1.0-blend);
     mvs.xy = mvPrev;
     mvs.zw = mvNext;
 #endif
-	return mvs;
+    return mvs;
 }
 
 VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i) // uvs are provided from interpolants
@@ -18,12 +18,12 @@ VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i) // uvs are provided from interpolan
 #if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_FRAMEBLEND) && defined(VFX_VARYING_UV)
     data.uvs.zw = i.VFX_VARYING_UV.zw;
     data.blend = i.VFX_VARYING_FRAMEBLEND;
-	data.mvs = GetFlipbookMotionVectors(i, data.uvs, data.blend);
+    data.mvs = GetFlipbookMotionVectors(i, data.uvs, data.blend);
 #endif
 #endif
     return data;
 }
- 
+
 VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i,float2 uv) // uvs are provided from ps directly
 {
 #ifdef VFX_VARYING_FLIPBOOKSIZE
@@ -45,13 +45,13 @@ VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i,float2 uv) // uvs are provided from 
 #endif
 
 #if USE_UV_SCALE_BIAS && defined(VFX_VARYING_UV_SCALE)
-	uv.xy = uv.xy * i.VFX_VARYING_UV_SCALE + i.VFX_VARYING_UV_BIAS;
+    uv.xy = uv.xy * i.VFX_VARYING_UV_SCALE + i.VFX_VARYING_UV_BIAS;
 #endif
-	
-	VFXUVData data;
+
+    VFXUVData data;
     data = GetUVData(flipBookSize, invFlipBookSize, uv, texIndex);
-	data.mvs = GetFlipbookMotionVectors(i, data.uvs, data.blend);
-	return data;
+    data.mvs = GetFlipbookMotionVectors(i, data.uvs, data.blend);
+    return data;
 }
 
 float4 VFXGetParticleColor(VFX_VARYING_PS_INPUTS i)
@@ -115,6 +115,24 @@ void VFXClipFragmentColor(float alpha,VFX_VARYING_PS_INPUTS i)
     clip(alpha - VFX_EPSILON);
     #endif
     #endif
+}
+
+float3 VFXGetPositionRWS(float3 posWS)
+{
+#if VFX_WORLD_SPACE
+    return GetCameraRelativePositionWS(posWS);
+#else
+    return posWS;
+#endif
+}
+
+float3 VFXGetPositionAWS(float3 posWS)
+{
+#if VFX_LOCAL_SPACE
+    return GetAbsolutePositionWS(posWS);
+#else
+    return posWS;
+#endif
 }
 
 float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)

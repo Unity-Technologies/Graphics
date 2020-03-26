@@ -3,13 +3,24 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// Utility functions for cameras in the editor.
+    /// </summary>
     public static class CameraEditorUtils
     {
+        /// <summary>Delegate that must give an initialized preview camera</summary>
+        /// <param name="sourceCamera">The initial Camera we want a preview from</param>
+        /// <param name="previewSize">The size of the preview</param>
+        /// <returns>The Preview camera, initialized</returns>
         public delegate Camera GetPreviewCamera(Camera sourceCamera, Vector2 previewSize);
 
         const float k_PreviewNormalizedSize = 0.2f;
 
         internal static Material s_GUITextureBlit2SRGBMaterial;
+
+        /// <summary>
+        /// The material used to display a texture into SRGB
+        /// </summary>
         public static Material GUITextureBlit2SRGBMaterial
         {
             get
@@ -24,6 +35,12 @@ namespace UnityEditor.Rendering
                 return s_GUITextureBlit2SRGBMaterial;
             }
         }
+        /// <summary>
+        /// Draw the overlay of a Camera
+        /// </summary>
+        /// <param name="target">The Camera that we want a preview</param>
+        /// <param name="sceneView">The scene view where to draw it</param>
+        /// <param name="previewCameraGetter">The way to get the preview camera corresponding to the target</param>
 
         public static void DrawCameraSceneViewOverlay(Object target, SceneView sceneView, GetPreviewCamera previewCameraGetter)
         {
@@ -86,7 +103,11 @@ namespace UnityEditor.Rendering
                 previewCamera.targetTexture = null;
             }
         }
-
+        /// <summary>
+        /// Check if the view port rect have a positive size
+        /// </summary>
+        /// <param name="normalizedViewPortRect">The rect to check</param>
+        /// <returns>True: the rect have positive size</returns>
         public static bool IsViewPortRectValidToRender(Rect normalizedViewPortRect)
         {
             if (normalizedViewPortRect.width <= 0f || normalizedViewPortRect.height <= 0f)

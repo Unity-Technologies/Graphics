@@ -33,12 +33,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_ControlsDivider;
         IEdgeConnectorListener m_ConnectorListener;
         VisualElement m_PortInputContainer;
+        VisualElement m_SettingsContainer;
+        bool m_ShowSettings = false;
+        VisualElement m_SettingsButton;
+        VisualElement m_Settings;
+        VisualElement m_NodeSettingsView;
 
-        GraphView m_GraphView;
+        MaterialGraphView m_GraphView;
 
         public string displayName => $"{node.name} (Node)";
-
-        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, GraphView graphView)
+        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, MaterialGraphView graphView)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialNodeView"));
             styleSheets.Add(Resources.Load<StyleSheet>($"Styles/ColorMode"));
@@ -73,9 +77,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_ControlItems.childCount > 0)
                 contents.Add(controlsContainer);
 
-            // Node Base class toggles the 'expanded' variable already, this is on top of that call
-            m_CollapseButton.RegisterCallback<MouseUpEvent>(SetNodeExpandedStateOnSelection);
-
             if (node.hasPreview)
             {
                 // Add actual preview which floats on top of the node
@@ -97,7 +98,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     collapsePreviewButton.Add(new VisualElement { name = "icon" });
                     collapsePreviewButton.AddManipulator(new Clickable(() =>
                         {
-                            node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
                             SetPreviewExpandedStateOnSelection(false);
                         }));
                     m_PreviewImage.Add(collapsePreviewButton);
@@ -121,14 +121,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     expandPreviewButton.Add(new VisualElement { name = "icon" });
                     expandPreviewButton.AddManipulator(new Clickable(() =>
                         {
-                            node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
                             SetPreviewExpandedStateOnSelection(true);
                         }));
                     m_PreviewFiller.Add(expandPreviewButton);
                 }
                 contents.Add(m_PreviewFiller);
 
-                SetPreviewExpandedStateOnSelection(node.previewExpanded);
+                UpdatePreviewExpandedState(node.previewExpanded);
             }
 
             // Add port input container, which acts as a pixel cache for all port inputs
@@ -161,11 +160,49 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (masterNode != null)
             {
                 AddToClassList("master");
-
-                if (!masterNode.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                bool validTarget = false;
+                foreach(ITargetImplementation activeTarget in node.owner.validImplementations)
                 {
-                    AttachMessage("The current render pipeline is not compatible with this master node.", ShaderCompilerMessageSeverity.Error);
+                    //if we have a valid active target implementation and render pipeline, don't display the error
+                    if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
+                {
+                        validTarget = true;
+                        break;
+                    }
                 }
+                //if no active target implementations are valid with the current pipeline, display the error
+                if (!validTarget)
+                    AttachMessage("The active Master Node is not compatible with the current Render Pipeline. Assign a Render Pipeline in the graphics settings that is compatible with this Master Node.", ShaderCompilerMessageSeverity.Error);
+            }
+
+            m_NodeSettingsView = new NodeSettingsView();
+            m_NodeSettingsView.visible = false;
+            Add(m_NodeSettingsView);
+
+            m_SettingsButton = new VisualElement {name = "settings-button"};
+            m_SettingsButton.Add(new VisualElement { name = "icon" });
+
+            m_Settings = new VisualElement();
+            AddDefaultSettings();
+
+            // Add Node type specific settings
+            var nodeTypeSettings = node as IHasSettings;
+            if (nodeTypeSettings != null)
+                m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
+
+            // Add manipulators
+            m_SettingsButton.AddManipulator(new Clickable(() =>
+                {
+                    UpdateSettingsExpandedState();
+                }));
+
+            if(m_Settings.childCount > 0)
+            {
+                m_ButtonContainer = new VisualElement { name = "button-container" };
+                m_ButtonContainer.style.flexDirection = FlexDirection.Row;
+                m_ButtonContainer.Add(m_SettingsButton);
+                m_ButtonContainer.Add(m_CollapseButton);
+                m_TitleContainer.Add(m_ButtonContainer);
             }
 
             // Register OnMouseHover callbacks for node highlighting
@@ -220,6 +257,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Color GetColor()
         {
             return m_TitleContainer.resolvedStyle.borderBottomColor;
+        }
+
+        void OnGeometryChanged(GeometryChangedEvent evt)
+        {
+            // style.positionTop and style.positionLeft are in relation to the parent,
+            // so we translate the layout of the settings button to be in the coordinate
+            // space of the settings view's parent.
+
+            var settingsButtonLayout = m_SettingsButton.ChangeCoordinatesTo(m_NodeSettingsView.parent, m_SettingsButton.layout);
+            m_NodeSettingsView.style.top = settingsButtonLayout.yMax - 18f;
+            m_NodeSettingsView.style.left = settingsButtonLayout.xMin - 16f;
         }
 
         void OnSubGraphDoubleClick(MouseDownEvent evt)
@@ -313,51 +361,81 @@ namespace UnityEditor.ShaderGraph.Drawing
                 GraphUtil.OpenFile(path);
         }
 
-        string ConvertToShader(GenerationMode mode)
+        void AddDefaultSettings()
         {
-            List<PropertyCollector.TextureInfo> textureInfo;
-            if (node is IMasterNode masterNode)
-                return masterNode.GetShader(mode, node.name, out textureInfo);
+            PropertySheet ps = new PropertySheet();
+            bool hasDefaultSettings = false;
 
-            return node.owner.GetShader(node, mode, node.name).shader;
-        }
-
-        public PropertySheet GetInspectorContent()
-        {
-            var sheet = new PropertySheet();
+            if(node.canSetPrecision)
             {
-                if(node.canSetPrecision)
+                hasDefaultSettings = true;
+                ps.Add(new PropertyRow(new Label("Precision")), (row) =>
                 {
-                    sheet.Add(new PropertyRow(new Label("Precision")), (row) =>
+                    row.Add(new EnumField(node.precision), (field) =>
                     {
-                        row.Add(new EnumField(node.precision), (field) =>
+                        field.RegisterValueChangedCallback(evt =>
                         {
-                            field.RegisterValueChangedCallback(evt =>
-                            {
-                                if (evt.newValue.Equals(node.precision))
-                                    return;
+                            if (evt.newValue.Equals(node.precision))
+                                return;
 
-                                var editorView = GetFirstAncestorOfType<GraphEditorView>();
-                                var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+                            var editorView = GetFirstAncestorOfType<GraphEditorView>();
+                            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
 
-                                editorView.colorManager.SetNodesDirty(nodeList);
-                                node.owner.owner.RegisterCompleteObjectUndo("Change precision");
-                                node.precision = (Precision)evt.newValue;
-                                node.owner.ValidateGraph();
-                                editorView.colorManager.UpdateNodeViews(nodeList);
-                                node.Dirty(ModificationScope.Graph);
-                            });
+                            editorView.colorManager.SetNodesDirty(nodeList);
+                            node.owner.owner.RegisterCompleteObjectUndo("Change precision");
+                            node.precision = (Precision)evt.newValue;
+                            node.owner.ValidateGraph();
+                            editorView.colorManager.UpdateNodeViews(nodeList);
+                            node.Dirty(ModificationScope.Graph);
                         });
                     });
-                }
-
-                // Add Node type specific settings
-                if(node is IHasSettings settings)
-                {
-                    sheet.Add(settings.CreateSettingsElement());
-                }
+                });
             }
-            return sheet;
+
+            if(hasDefaultSettings)
+                m_Settings.Add(ps);
+        }
+
+        void RecreateSettings()
+        {
+            m_Settings.RemoveFromHierarchy();
+            m_Settings = new PropertySheet();
+
+            // Add default settings
+            AddDefaultSettings();
+
+            // Add Node type specific settings
+            var nodeTypeSettings = node as IHasSettings;
+            if (nodeTypeSettings != null)
+                m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
+
+            m_NodeSettingsView.Add(m_Settings);
+        }
+
+        void UpdateSettingsExpandedState()
+        {
+            m_ShowSettings = !m_ShowSettings;
+            if (m_ShowSettings)
+            {
+                m_NodeSettingsView.Add(m_Settings);
+                m_NodeSettingsView.visible = true;
+                m_SettingsButton.AddToClassList("clicked");
+                RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+                OnGeometryChanged(null);
+            }
+            else
+            {
+                m_Settings.RemoveFromHierarchy();
+                m_NodeSettingsView.visible = false;
+                m_SettingsButton.RemoveFromClassList("clicked");
+                UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            }
+        }
+
+        string ConvertToShader(GenerationMode mode)
+        {
+            var generator = new Generator(node.owner, node, mode, node.name);
+            return generator.generatedShader;
         }
 
         public object GetUnderlyingObject()
@@ -366,14 +444,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public PropertyInfo[] GetPropertyInfo()
-        {
+            {
             return this.node.GetType().GetProperties();
-        }
+            }
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
-        {
+            {
             // Currently unimplemented
         }
+
 
         private void SetSelfSelected()
         {
@@ -381,38 +460,33 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.AddToSelection(this);
         }
 
-        void SetNodeExpandedStateOnSelection(MouseUpEvent evt)
+        protected override void ToggleCollapse()
         {
-            if (!selected)
-                SetSelfSelected();
-            else
+            node.owner.owner.RegisterCompleteObjectUndo(!expanded ? "Expand Nodes" : "Collapse Nodes");
+            expanded = !expanded;
+
+            // If selected, expand/collapse the other applicable nodes that are also selected
+            if (selected)
             {
-                if (m_GraphView is MaterialGraphView)
-                {
-                    var matGraphView = m_GraphView as MaterialGraphView;
-                    matGraphView.SetNodeExpandedOnSelection(expanded);
-                }
+                m_GraphView.SetNodeExpandedForSelectedNodes(expanded, false);
             }
         }
 
         void SetPreviewExpandedStateOnSelection(bool state)
         {
-            if (!selected)
+            // If selected, expand/collapse the other applicable nodes that are also selected
+            if (selected)
             {
-                SetSelfSelected();
-                UpdatePreviewExpandedState(state);
+                m_GraphView.SetPreviewExpandedForSelectedNodes(state);
             }
             else
             {
-                if(m_GraphView is MaterialGraphView)
-                {
-                    var matGraphView = m_GraphView as MaterialGraphView;
-                    matGraphView.SetPreviewExpandedOnSelection(state);
-                }
+                node.owner.owner.RegisterCompleteObjectUndo(state ? "Expand Previews" : "Collapse Previews");
+                node.previewExpanded = state;
             }
         }
 
-        public bool CanToggleExpanded()
+        public bool CanToggleNodeExpanded()
         {
             return m_CollapseButton.enabledInHierarchy;
         }
@@ -463,8 +537,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Update slots to match node modification
             if (scope == ModificationScope.Topological)
             {
-                // TODO: Fix this
-                // RecreateSettings();
+                RecreateSettings();
 
                 var slots = node.GetSlots<MaterialSlot>().ToList();
 
@@ -644,11 +717,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseHover(EventBase evt)
         {
-            var graphView = GetFirstAncestorOfType<GraphEditorView>();
-            if (graphView == null)
+            var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
+            if (graphEditorView == null)
                 return;
 
-            var blackboardProvider = graphView.blackboardProvider;
+            var blackboardProvider = graphEditorView.blackboardProvider;
             if (blackboardProvider == null)
                 return;
 

@@ -1,11 +1,17 @@
+using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
-using UnityEditor;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    class HDSaveContext
+    {
+        public bool updateMaterials;
+    }
+
     [InitializeOnLoad]
-    public class ShaderGraphMaterialsUpdater
+    class ShaderGraphMaterialsUpdater
     {
         const string kMaterialFilter = "t:Material";
 
@@ -14,8 +20,17 @@ namespace UnityEditor.Rendering.HighDefinition
             GraphData.onSaveGraph += OnShaderGraphSaved;
         }
 
-        static void OnShaderGraphSaved(Shader shader)
+        static void OnShaderGraphSaved(Shader shader, object saveContext)
         {
+            // In case the shader is not HDRP
+            if (!(saveContext is HDSaveContext hdSaveContext))
+                return;
+
+            HDRenderPipeline.currentPipeline.ResetPathTracing();
+
+            if (!hdSaveContext.updateMaterials)
+                return;
+
             // Iterate all Materials
             string[] materialGuids = AssetDatabase.FindAssets(kMaterialFilter);
             try
@@ -26,8 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (i % 10 == 9)
                     {
                         EditorUtility.DisplayProgressBar(
-                            "Updating dependent materials...",
-                            string.Format("{0} / {1} materials updated.", i, length),
+                            "Checking material dependencies...",
+                            $"{i} / {length} materials.",
                             i / (float)(length - 1));
                     }
 
@@ -38,11 +53,18 @@ namespace UnityEditor.Rendering.HighDefinition
                      // Reset keywords
                     if (material.shader.name == shader.name)
                         HDShaderUtils.ResetMaterialKeywords(material);
+
+                    material = null;
+
+                    // Free the materials every 200 iterations, on big project loading all materials in memory can lead to a crash
+                    if ((i % 200 == 0) && i != 0)
+                        EditorUtility.UnloadUnusedAssetsImmediate(false);
                 }
             }
             finally
             {
                 EditorUtility.ClearProgressBar();
+                EditorUtility.UnloadUnusedAssetsImmediate(false);
             }
         }
     }

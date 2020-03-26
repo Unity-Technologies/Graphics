@@ -17,6 +17,10 @@ namespace UnityEngine.Rendering
     /// <seealso cref="VolumeParameter{T}"/>
     public abstract class VolumeParameter
     {
+        /// <summary>
+        /// A beautified string for debugger output. This is set on a <c>DebuggerDisplay</c> on every
+        /// parameter types.
+        /// </summary>
         public const string k_DebuggerDisplay = "{m_Value} ({m_OverrideState})";
 
         /// <summary>
@@ -99,6 +103,11 @@ namespace UnityEngine.Rendering
             return type.BaseType != null
                 && IsObjectParameter(type.BaseType);
         }
+
+        /// <summary>
+        /// Override this method to free all allocated resources
+        /// </summary>
+        public virtual void Release() {}
     }
 
     /// <summary>
@@ -205,13 +214,19 @@ namespace UnityEngine.Rendering
             m_Value = x;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Sets the value of this parameter to the value in <paramref name="parameter"/>.
+        /// </summary>
+        /// <param name="parameter">The <see cref="VolumeParameter"/> to copy the value from.</param>
         public override void SetValue(VolumeParameter parameter)
         {
             m_Value = parameter.GetValue<T>();
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Returns a hash code for the current object.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
         public override int GetHashCode()
         {
             unchecked
@@ -219,14 +234,17 @@ namespace UnityEngine.Rendering
                 int hash = 17;
                 hash = hash * 23 + overrideState.GetHashCode();
 
-                if (!ReferenceEquals(value, null))
+                if (!EqualityComparer<T>.Default.Equals(value, default)) // Catches null for references with boxing of value types
                     hash = hash * 23 + value.GetHashCode();
 
                 return hash;
             }
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
         public override string ToString() => $"{value} ({overrideState})";
 
         /// <summary>
@@ -261,7 +279,11 @@ namespace UnityEngine.Rendering
             return EqualityComparer<T>.Default.Equals(m_Value, other.m_Value);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Determines whether two object instances are equal.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns><c>true</c> if the specified object is equal to the current object, <c>false</c> otherwise.</returns>
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj))
@@ -281,6 +303,7 @@ namespace UnityEngine.Rendering
         /// <typeparamref name="T"/>.
         /// </summary>
         /// <param name="prop">The parameter to downcast.</param>
+        /// <returns>A value of type <typeparamref name="T"/>.</returns>
         public static explicit operator T(VolumeParameter<T> prop) => prop.m_Value;
     }
 
@@ -400,7 +423,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public int min;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override int value
         {
             get => m_Value;
@@ -439,7 +467,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public int min;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override int value
         {
             get => m_Value;
@@ -478,7 +511,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public int max;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override int value
         {
             get => m_Value;
@@ -517,7 +555,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public int max;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override int value
         {
             get => m_Value;
@@ -561,7 +604,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public int max;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override int value
         {
             get => m_Value;
@@ -607,7 +655,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public int max;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override int value
         {
             get => m_Value;
@@ -708,7 +761,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float min;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override float value
         {
             get => m_Value;
@@ -749,7 +807,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float min;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override float value
         {
             get => m_Value;
@@ -789,7 +852,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float max;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override float value
         {
             get => m_Value;
@@ -830,7 +898,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float max;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override float value
         {
             get => m_Value;
@@ -876,7 +949,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float max;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override float value
         {
             get => m_Value;
@@ -924,7 +1002,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float max;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override float value
         {
             get => m_Value;
@@ -972,7 +1055,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float max;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override Vector2 value
         {
             get => m_Value;
@@ -1036,7 +1124,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float max;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// The value that this parameter stores.
+        /// </summary>
+        /// <remarks>
+        /// You can override this property to define custom behaviors when the value is changed.
+        /// </remarks>
         public override Vector2 value
         {
             get => m_Value;

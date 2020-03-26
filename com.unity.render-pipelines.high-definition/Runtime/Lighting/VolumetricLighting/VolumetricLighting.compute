@@ -5,25 +5,12 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel VolumetricLightingBruteforceMQ            VolumetricLighting=VolumetricLightingBruteforceMQ            LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
-#pragma kernel VolumetricLightingTiledMQ                 VolumetricLighting=VolumetricLightingTiledMQ                 ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
-#pragma kernel VolumetricLightingBruteforceReprojMQ      VolumetricLighting=VolumetricLightingBruteforceReprojMQ      LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
-#pragma kernel VolumetricLightingTiledReprojMQ           VolumetricLighting=VolumetricLightingTiledReprojMQ           ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
+#pragma kernel VolumetricLighting
 
-#pragma kernel VolumetricLightingBruteforceAnisoMQ       VolumetricLighting=VolumetricLightingBruteforceAnisoMQ       LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
-#pragma kernel VolumetricLightingTiledAnisoMQ            VolumetricLighting=VolumetricLightingTiledAnisoMQ            ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
-#pragma kernel VolumetricLightingBruteforceReprojAnisoMQ VolumetricLighting=VolumetricLightingBruteforceReprojAnisoMQ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
-#pragma kernel VolumetricLightingTiledReprojAnisoMQ      VolumetricLighting=VolumetricLightingTiledReprojAnisoMQ      ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
-
-#pragma kernel VolumetricLightingBruteforceHQ            VolumetricLighting=VolumetricLightingBruteforceHQ            LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
-#pragma kernel VolumetricLightingTiledHQ                 VolumetricLighting=VolumetricLightingTiledHQ                 ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
-#pragma kernel VolumetricLightingBruteforceReprojHQ      VolumetricLighting=VolumetricLightingBruteforceReprojHQ      LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
-#pragma kernel VolumetricLightingTiledReprojHQ           VolumetricLighting=VolumetricLightingTiledReprojHQ           ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
-
-#pragma kernel VolumetricLightingBruteforceAnisoHQ       VolumetricLighting=VolumetricLightingBruteforceAnisoHQ       LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
-#pragma kernel VolumetricLightingTiledAnisoHQ            VolumetricLighting=VolumetricLightingTiledAnisoHQ            ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
-#pragma kernel VolumetricLightingBruteforceReprojAnisoHQ VolumetricLighting=VolumetricLightingBruteforceReprojAnisoHQ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
-#pragma kernel VolumetricLightingTiledReprojAnisoHQ      VolumetricLighting=VolumetricLightingTiledReprojAnisoHQ      ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
+#pragma multi_compile _ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+#pragma multi_compile _ ENABLE_REPROJECTION
+#pragma multi_compile _ ENABLE_ANISOTROPY
+#pragma multi_compile VL_PRESET_MQ VL_PRESET_HQ
 
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     #define USE_BIG_TILE_LIGHTLIST
@@ -220,8 +207,8 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
             float3 shadowN = L;
 
             // This code works for both surface reflection and thin object transmission.
-            float shadow = EvaluateShadow_Directional(context, posInput, light, unused, shadowN);
-            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
+            DirectionalShadowType shadow = EvaluateShadow_Directional(context, posInput, light, unused, shadowN);
+            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
             // Important:
             // Ideally, all scattering calculations should use the jittered versions
@@ -336,7 +323,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 float3 shadowN = L;
 
                 float shadow = EvaluateShadow_Punctual(context, posInput, light, unused, shadowN, L, distances);
-                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
+                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
 
                 // Important:
@@ -417,7 +404,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 float3 shadowN = L;
 
                 float shadow = EvaluateShadow_Punctual(context, posInput, light, unused, shadowN, L, distances);
-                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
+                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
 
                 // Important:
@@ -531,7 +518,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // https://en.wikipedia.org/wiki/Stochastic_universal_sampling
         float perPixelRandomOffset = GenerateHashedRandomFloat(posInput.positionSS);
 
-    #if ENABLE_REPROJECTION
+    #ifdef ENABLE_REPROJECTION
         // This is a time-based sequence of 7 equidistant numbers from 1/14 to 13/14.
         // Each of them is the centroid of the interval of length 2/14.
         float rndVal = frac(perPixelRandomOffset + _VBufferSampleOffset.z);
@@ -564,7 +551,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         }
         #endif
 
-    #if ENABLE_REPROJECTION
+    #ifdef ENABLE_REPROJECTION
         // Clamp here to prevent generation of NaNs.
         float4 voxelValue           = float4(aggregateLighting.radianceNoPhase, extinction * dt);
         float4 linearizedVoxelValue = LinearizeRGBD(voxelValue);
@@ -605,7 +592,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float4 linearizedBlendValue = normalizedBlendValue * dt;
         float4 blendValue = DelinearizeRGBD(linearizedBlendValue);
 
-    #if ENABLE_ANISOTROPY
+    #ifdef ENABLE_ANISOTROPY
         // Estimate the influence of the phase function on the results of the current frame.
         float3 phaseCurrFrame;
 
@@ -627,7 +614,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
     #else // ENABLE_REPROJECTION
 
-    #if ENABLE_ANISOTROPY
+    #ifdef ENABLE_ANISOTROPY
         float4 blendValue = float4(aggregateLighting.radianceComplete, extinction * dt);
     #else
         float4 blendValue = float4(aggregateLighting.radianceNoPhase,  extinction * dt);
@@ -638,7 +625,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Compute the transmittance from the camera to 't0'.
         float transmittance = TransmittanceFromOpticalDepth(opticalDepth);
 
-    #if ENABLE_ANISOTROPY
+    #ifdef ENABLE_ANISOTROPY
         float phase = _CornetteShanksConstant;
     #else
         float phase = IsotropicPhaseFunction();
@@ -711,7 +698,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     ray.xDirDerivWS = rightDirWS * (rcpLenRightDir * unitDistFaceSize); // Normalize & rescale
     ray.yDirDerivWS = cross(ray.xDirDerivWS, ray.centerDirWS); // Will have the length of 'unitDistFaceSize' by construction
 
-#if ENABLE_REPROJECTION
+#ifdef ENABLE_REPROJECTION
     ray.jitterDirWS = normalize(ray.centerDirWS + _VBufferSampleOffset.x * ray.xDirDerivWS
                                                 + _VBufferSampleOffset.y * ray.yDirDerivWS);
 #else

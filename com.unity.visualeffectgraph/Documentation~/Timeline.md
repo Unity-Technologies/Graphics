@@ -19,16 +19,16 @@ To create a Visual Effect Activation Track, drag and drop a GameObject that cont
 
 Once the track is created, you can add **Visual Effect Activation Clips** to the track by right clicking the track workspace, then select Add Visual Effect Activation Clip from the Context Menu.
 
-Selecting the Clip will display its properties in inspector:
+Selecting the Clip will display its properties in Inspector:
 
 ![](Images/TimelineVisualEffectActivationClipInspector.png)
 
-On Enter Event: 
+On Enter Event:
 
 * Name : (Default OnPlay) The name of the Event to Send when entering the clip.
 * Enter Event Attributes : A list of attributes to send with the Enter Event.
 
-On Exit Event: 
+On Exit Event:
 
 - Name : (Default OnStop) The name of the Event to Send when exiting the clip.
 - Exit Event Attributes : A list of attributes to send with the Exit Event.
@@ -50,4 +50,3 @@ Using a Timeline Animation Track, you can animate Exposed Properties the same wa
 In addition to the Timeline View, Properties can be animated in the Animation Window, like other Game Object Properties.
 
 In addition to Numeric Values, you can also change Textures during the animaion.
-

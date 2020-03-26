@@ -40,11 +40,35 @@ namespace UnityEditor.VFX.UI
             m_PropertyRM.UpdateGUI(true);
         }
 
+        public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            base.BuildContextualMenu(evt);
+
+            evt.menu.AppendAction("Copy Value", OnCopyValue);
+            evt.menu.AppendAction("Paste Value", OnPasteValue, OnValidatePasteValue);
+        }
+
+        static object s_Clipboard;
+
+        void OnCopyValue(DropdownMenuAction a)
+        {
+            s_Clipboard = controller.value;
+        }
+
+        void OnPasteValue(DropdownMenuAction a)
+        {
+            controller.value = VFXConverter.ConvertTo(s_Clipboard, portType);
+        }
+
+        DropdownMenuAction.Status OnValidatePasteValue(DropdownMenuAction a)
+        {
+            return s_Clipboard != null && controller.editable && VFXConverter.CanConvertTo(s_Clipboard.GetType(), portType) ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled;
+        }
 
         void OnAttachToPanel(AttachToPanelEvent e)
         {
             m_View = GetFirstAncestorOfType<VFXView>();
-            if( m_View == null)
+            if (m_View == null)
             {
                 //This can happen with asynchnous events.
                 return;

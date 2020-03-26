@@ -3,21 +3,23 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel KMainNearFar             MAIN=KMainNearFar           NEAR FAR
-#pragma kernel KMainNear                MAIN=KMainNear              NEAR
-#pragma kernel KMainFar                 MAIN=KMainFar               FAR
 
-#pragma kernel KMainNearFarFullRes      MAIN=KMainNearFarFullRes    FULL_RES NEAR FAR
-#pragma kernel KMainNearFullRes         MAIN=KMainNearFullRes       FULL_RES NEAR
-#pragma kernel KMainFarFullRes          MAIN=KMainFarFullRes        FULL_RES FAR
+#pragma multi_compile _ NEAR
+#pragma multi_compile _ FAR
+#pragma multi_compile _ FULL_RES
+#pragma multi_compile _ ENABLE_ALPHA
+
+#pragma kernel KMain
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_InputCoCTexture);
 
-RW_TEXTURE2D_X(float3, _OutputNearTexture);
+RW_TEXTURE2D_X(CTYPE, _OutputNearTexture);
 RW_TEXTURE2D_X(float, _OutputNearCoCTexture);
 
-RW_TEXTURE2D_X(float3, _OutputFarTexture);
+RW_TEXTURE2D_X(CTYPE, _OutputFarTexture);
 RW_TEXTURE2D_X(float, _OutputFarCoCTexture);
 
 SAMPLER(sampler_LinearClamp);
@@ -30,7 +32,7 @@ CBUFFER_END
 #define GROUP_SIZE 8
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
+void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
@@ -40,16 +42,16 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 #if FULL_RES
 
-    float3 tapColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).xyz;
+    CTYPE tapColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).CTYPE_SWIZZLE;
     float tapCoC = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS).x;
 
     float nearCoC = saturate(abs(min(tapCoC, 0.0)));
-    float3 nearColorAcc = tapColor;
+    CTYPE nearColorAcc = tapColor;
     float nearCoCAcc = nearCoC;
 
     // Pre-multiply CoC to reduce bleeding of background blur on focused areas
     float farCoC = saturate(tapCoC);
-    float3 farColorAcc = tapColor * farCoC;
+    CTYPE farColorAcc = tapColor * farCoC;
     float farCoCAcc = farCoC;
 
 #else
@@ -69,8 +71,8 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         float2(-0.4, -0.9)
     };
 
-    float3 nearColorAcc = 0.0;
-    float3 farColorAcc = 0.0;
+    CTYPE nearColorAcc = 0.0;
+    CTYPE farColorAcc = 0.0;
 
     float farCoCAcc = 0.0;
     float nearCoCAcc = 0.0;
@@ -83,7 +85,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     {
         float2 tapCoord = texelSize * kTaps[i] + uv;
 
-        float3 tapColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(tapCoord, texelSize), 0.0).xyz;
+        CTYPE tapColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(tapCoord, texelSize), 0.0).CTYPE_SWIZZLE;
         float tapCoC = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, sampler_LinearClamp, min(tapCoord * _CoCTargetScale.xy, maxCoordCoC), 0.0).x;
 
         float nearCoC = saturate(abs(min(tapCoC, 0.0)));

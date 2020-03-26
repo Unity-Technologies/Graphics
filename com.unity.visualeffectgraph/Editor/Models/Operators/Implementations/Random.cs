@@ -5,7 +5,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    public enum VFXSeedMode
+    enum VFXSeedMode
     {
         PerParticle,
         PerComponent,

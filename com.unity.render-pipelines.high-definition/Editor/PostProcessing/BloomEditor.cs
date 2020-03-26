@@ -7,6 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(Bloom))]
     sealed class BloomEditor : VolumeComponentWithQualityEditor
     {
+        SerializedDataParameter m_Threshold;
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_Scatter;
         SerializedDataParameter m_Tint;
@@ -16,7 +17,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // Advanced settings
         SerializedDataParameter m_HighQualityFiltering;
         SerializedDataParameter m_Resolution;
-        SerializedDataParameter m_Prefilter;
         SerializedDataParameter m_Anamorphic;
 
         public override bool hasAdvancedMode => true;
@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var o = new PropertyFetcher<Bloom>(serializedObject);
 
+            m_Threshold = Unpack(o.Find(x => x.threshold));
             m_Intensity = Unpack(o.Find(x => x.intensity));
             m_Scatter = Unpack(o.Find(x => x.scatter));
             m_Tint = Unpack(o.Find(x => x.tint));
@@ -35,7 +36,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
             m_Resolution = Unpack(o.Find("m_Resolution"));
-            m_Prefilter = Unpack(o.Find(x => x.prefilter));
             m_Anamorphic = Unpack(o.Find(x => x.anamorphic));
         }
 
@@ -44,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             base.OnInspectorGUI();
 
             EditorGUILayout.LabelField("Bloom", EditorStyles.miniLabel);
+            PropertyField(m_Threshold);
             PropertyField(m_Intensity);
             PropertyField(m_Scatter);
             PropertyField(m_Tint);
@@ -61,7 +62,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_HighQualityFiltering);
                 GUI.enabled = true;
 
-                PropertyField(m_Prefilter);
                 PropertyField(m_Anamorphic);
             }
         }

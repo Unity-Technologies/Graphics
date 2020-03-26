@@ -7,6 +7,8 @@ using UnityEngine.VFX;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.Profiling;
 
+using UnityObject = UnityEngine.Object;
+
 namespace UnityEditor.VFX.UI
 {
     interface IVFXAnchorController
@@ -119,7 +121,7 @@ namespace UnityEditor.VFX.UI
             UpdateInfos();
             Profiler.EndSample();
 
-            sourceNode.DataEdgesMightHaveChanged();            
+            sourceNode.DataEdgesMightHaveChanged();
 
             Profiler.BeginSample("VFXDataAnchorController.NotifyChange");
             NotifyChange(AnyThing);
@@ -324,7 +326,13 @@ namespace UnityEditor.VFX.UI
                             Profiler.EndSample();
                             if (evaluatedValue != null)
                             {
-                                return VFXConverter.ConvertTo(evaluatedValue, storageType);
+                                if (typeof(UnityObject).IsAssignableFrom(storageType))
+                                {
+                                    int instanceID = (int)evaluatedValue;
+                                    return VFXConverter.ConvertTo(EditorUtility.InstanceIDToObject(instanceID), storageType);
+                                }
+                                else
+                                    return VFXConverter.ConvertTo(evaluatedValue, storageType);
                             }
                         }
                         catch (System.Exception e)
@@ -755,8 +763,8 @@ namespace UnityEditor.VFX.UI
 
                 if (subSlot != null)
                 {
-                    object result = null ;
-                    if (m_Controller.viewController.CanGetEvaluatedContent(subSlot) && ( result = m_Controller.viewController.GetEvaluatedContent(subSlot)) != null)
+                    object result = null;
+                    if (subSlot.HasLink(true) && m_Controller.viewController.CanGetEvaluatedContent(subSlot) && (result = m_Controller.viewController.GetEvaluatedContent(subSlot)) != null)
                     {
                         m_ValueBuilder.Add(o => o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
                     }

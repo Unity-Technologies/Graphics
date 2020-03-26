@@ -2,8 +2,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
-Texture2D _CameraDepthTexture;
 float3 _LightDirection;
 
 void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input) {}
@@ -21,8 +21,8 @@ float4 VFXTransformFinalColor(float4 color)
 
 void VFXEncodeMotionVector(float2 velocity, out float4 outBuffer)
 {
-	//TODO : LWRP doesn't support motion vector & TAA yet
-	outBuffer = (float4)0.0f;
+    //TODO : LWRP doesn't support motion vector & TAA yet
+    outBuffer = (float4)0.0f;
 }
 
 float3 GetCurrentViewPosition()
@@ -37,14 +37,14 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
 
 float4 VFXTransformPositionWorldToNonJitteredClip(float3 posWS)
 {
-	//TODO : LWRP doesn't support motion vector & TAA yet
-	return VFXTransformPositionWorldToClip(posWS);
+    //TODO : LWRP doesn't support motion vector & TAA yet
+    return VFXTransformPositionWorldToClip(posWS);
 }
 
 float4 VFXTransformPositionWorldToPreviousClip(float3 posWS)
 {
-	//TODO : LWRP doesn't support motion vector & TAA yet
-	return VFXTransformPositionWorldToClip(posWS);
+    //TODO : LWRP doesn't support motion vector & TAA yet
+    return VFXTransformPositionWorldToClip(posWS);
 }
 
 float4 VFXTransformPositionObjectToClip(float3 posOS)
@@ -55,14 +55,14 @@ float4 VFXTransformPositionObjectToClip(float3 posOS)
 
 float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
 {
-	//TODO : LWRP doesn't support motion vector & TAA yet
-	return VFXTransformPositionObjectToClip(posOS);
+    //TODO : LWRP doesn't support motion vector & TAA yet
+    return VFXTransformPositionObjectToClip(posOS);
 }
 
 float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
 {
-	//TODO : LWRP doesn't support motion vector & TAA yet
-	return VFXTransformPositionObjectToClip(posOS);
+    //TODO : LWRP doesn't support motion vector & TAA yet
+    return VFXTransformPositionObjectToClip(posOS);
 }
 
 float3 VFXTransformPositionWorldToView(float3 posWS)
@@ -97,7 +97,7 @@ float4x4 VFXGetViewToWorldMatrix()
 
 float VFXSampleDepth(float4 posSS)
 {
-    return LOAD_TEXTURE2D(_CameraDepthTexture, posSS.xy).r;
+    return LoadSceneDepth(uint2(posSS.xy));
 }
 
 float VFXLinearEyeDepth(float depth)

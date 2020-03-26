@@ -33,9 +33,22 @@ public class HDRP_GraphicTestRunner
 
         Time.captureFramerate = settings.captureFramerate;
 
-        // Skip incompatible XR tests (layout set to None in the scene)
-        if (XRSystem.testModeEnabled && settings.xrLayout == XRLayoutOverride.None)
-            yield break;
+        if (XRSystem.testModeEnabled)
+        {
+            if (settings.xrCompatible)
+            {
+                XRSystem.automatedTestRunning = true;
+
+                // Increase tolerance to account for slight changes due to float precision
+                settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;
+                settings.ImageComparisonSettings.PerPixelCorrectnessThreshold *= settings.xrThresholdMultiplier;
+            }
+            else
+            {
+                // Skip incompatible XR tests
+                yield break;
+            }
+        }
 
         if (settings.doBeforeTest != null)
         {
@@ -52,22 +65,32 @@ public class HDRP_GraphicTestRunner
         if (settingsSG == null || !settingsSG.compareSGtoBI)
         {
             // Standard Test
-            ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
+            ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings?.ImageComparisonSettings);
 
-#if CHECK_ALLOCATIONS_WHEN_RENDERING
-            // Does it allocate memory when it renders what's on camera?
-            bool allocatesMemory = false;
-            try
+            if (settings.checkMemoryAllocation)
             {
-                ImageAssert.AllocatesMemory(camera, 512, 512); // 512 used for height and width to render
-            }
-            catch (AssertionException)
-            {
-                allocatesMemory = true;
-            }
-            if (allocatesMemory)
-                Assert.Fail("Allocated memory when rendering what is on camera");
+                // Does it allocate memory when it renders what's on camera?
+                bool allocatesMemory = false;
+                try
+                {
+                    // GC alloc from Camera.CustomRender (case 1206364)
+                    int gcAllocThreshold = 2;
+
+#if UNITY_2019_3
+                    // In case playmode tests for XR are enabled in 2019.3 we allow one GC alloc from XRSystem:120
+                    if (XRSystem.testModeEnabled)
+                        gcAllocThreshold += 1;
 #endif
+
+                    ImageAssert.AllocatesMemory(camera, settings?.ImageComparisonSettings, gcAllocThreshold);
+                }
+                catch (AssertionException)
+                {
+                    allocatesMemory = true;
+                }
+                if (allocatesMemory)
+                    Assert.Fail("Allocated memory when rendering what is on camera");
+            }
         }
         else
         {
@@ -126,6 +149,12 @@ public class HDRP_GraphicTestRunner
     public void DumpImagesInEditor()
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
+    }
+
+    [TearDown]
+    public void ResetSystemState()
+    {
+        XRSystem.automatedTestRunning = false;
     }
 #endif
 

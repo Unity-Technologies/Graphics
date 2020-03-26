@@ -14,16 +14,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public VolumeProfile defaultSkyAndFogProfile;
         [Reload("Editor/DefaultDXRScene/Sky and Fog Settings Profile.asset")]
         public VolumeProfile defaultDXRSkyAndFogProfile;
-        [Reload("Editor/DefaultScene/Scene PostProcess Profile.asset")]
-        public VolumeProfile defaultPostProcessingProfile;
-        [Reload("Editor/DefaultDXRScene/Scene PostProcess Profile.asset")]
-        public VolumeProfile defaultDXRPostProcessingProfile;
+        [Reload("Editor/DefaultDXRScene/DXR Settings.asset")]
+        public VolumeProfile defaultDXRSettings;
         [Reload(new[]
         {
             "Runtime/RenderPipelineResources/Skin Diffusion Profile.asset",
             "Runtime/RenderPipelineResources/Foliage Diffusion Profile.asset"
         })]
-        public DiffusionProfileSettings[] defaultDiffusionProfileSettingsList;
+        [SerializeField]
+        internal DiffusionProfileSettings[] defaultDiffusionProfileSettingsList;
+        
+        [Reload("Editor/RenderPipelineResources/DefaultSettingsVolumeProfile.asset")]
+        public VolumeProfile defaultSettingsVolumeProfile;
 
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
@@ -43,6 +45,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material defaultMirrorMat;
             [Reload("Runtime/RenderPipelineResources/Material/DefaultHDDecalMaterial.mat")]
             public Material defaultDecalMat;
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDParticleMaterial.mat")]
+            public Material defaultParticleMat;
             [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
             public Material defaultTerrainMat;
             [Reload("Editor/RenderPipelineResources/Materials/GUITextureBlit2SRGB.mat")]
@@ -65,14 +69,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader autodeskInteractiveTransparent;
         }
 
+        [Serializable, ReloadGroup]
+        public sealed class LookDevResources
+        {
+            [Reload("Editor/RenderPipelineResources/DefaultLookDevProfile.asset")]
+            public VolumeProfile defaultLookDevVolumeProfile;
+        }
+
         public ShaderResources shaders;
         public MaterialResources materials;
         public TextureResources textures;
         public ShaderGraphResources shaderGraphs;
+        public LookDevResources lookDev;
     }
-
-
-
+    
     [UnityEditor.CustomEditor(typeof(HDRenderPipelineEditorResources))]
     class HDRenderPipelineEditorResourcesEditor : UnityEditor.Editor
     {
@@ -84,15 +94,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
                 && GUILayout.Button("Reload All"))
             {
-                var resources = target as HDRenderPipelineEditorResources;
-                resources.defaultScene = null;
-                resources.defaultSkyAndFogProfile = null;
-                resources.defaultPostProcessingProfile = null;
-                resources.defaultDiffusionProfileSettingsList = null;
-                resources.materials = null;
-                resources.textures = null;
-                resources.shaders = null;
-                resources.shaderGraphs = null;
+                foreach(var field in typeof(HDRenderPipelineEditorResources).GetFields())
+                    field.SetValue(target, null);
+
                 ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
             }
         }

@@ -112,6 +112,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     output.mipFogNear.Override(input.mipFogNear.value);
                 if (input.mipFogFar.overrideState)
                     output.mipFogFar.Override(input.mipFogFar.value);
+                if (input.tint.overrideState)
+                    output.tint.Override(input.tint.value);
             }
 
             Fog CreateFogComponentIfNeeded(VolumeProfile profile)
@@ -202,6 +204,53 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorUtility.ClearProgressBar();
         }
 
+        [MenuItem("Edit/Render Pipeline/Upgrade Sky Intensity Mode", priority = CoreUtils.editMenuPriority2)]
+        static void UpgradeSkyIntensityMode(MenuCommand menuCommand)
+        {
+            if (!EditorUtility.DisplayDialog(DialogText.title, "This will upgrade all Volume Profiles containing Sky components with the new intensity mode paradigm. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
+                return;
+
+            var profilePathList = AssetDatabase.FindAssets("t:VolumeProfile", new string[] { "Assets" });
+
+            int profileCount = profilePathList.Length;
+            int profileIndex = 0;
+            foreach (string guid in profilePathList)
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                profileIndex++;
+                if (EditorUtility.DisplayCancelableProgressBar("Upgrade Sky Components", string.Format("({0} of {1}) {2}", profileIndex, profileCount, assetPath), (float)profileIndex / (float)profileCount))
+                    break;
+
+                VolumeProfile profile = AssetDatabase.LoadAssetAtPath(assetPath, typeof(VolumeProfile)) as VolumeProfile;
+
+                List<SkySettings> m_VolumeSkyList = new List<SkySettings>();
+                if (profile.TryGetAllSubclassOf<SkySettings>(typeof(SkySettings), m_VolumeSkyList))
+                {
+                    foreach (var sky in m_VolumeSkyList)
+                    {
+                        // Trivial case where multiplier is not used we ignore, otherwise we end up with a multiplier of 0.833 for a 0.0 EV100 exposure
+                        if (sky.multiplier.value == 1.0f)
+                            continue;
+                        else if (sky.skyIntensityMode.value == SkyIntensityMode.Exposure) // Not Lux
+                        {
+                            // Any component using Exposure and Multiplier at the same time must switch to multiplier as we will convert exposure*multiplier into a multiplier.
+                            sky.skyIntensityMode.Override(SkyIntensityMode.Multiplier);
+                        }
+
+                        // Convert exposure * multiplier to multiplier and reset exposure for all non trivial cases.
+                        sky.multiplier.Override(sky.multiplier.value * ColorUtils.ConvertEV100ToExposure(-sky.exposure.value));
+                        sky.exposure.Override(0.0f);
+
+                        EditorUtility.SetDirty(profile);
+                    }
+                }
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            EditorUtility.ClearProgressBar();
+        }
+
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
@@ -210,10 +259,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 newAsset.name = Path.GetFileName(pathName);
                 AssetDatabase.CreateAsset(newAsset, pathName);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
+                PostCreateAssetWork(newAsset);
             }
+
+            protected virtual void PostCreateAssetWork(TAssetType asset) {}
         }
 
-        class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings> { }
+        class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings>
+        {
+            protected override void PostCreateAssetWork(DiffusionProfileSettings asset)
+            {
+                // Update the hash after that the asset was saved on the disk (hash requires the GUID of the asset)
+                DiffusionProfileHashTable.UpdateDiffusionProfileHashNow(asset);
+            }
+        }
 
         [MenuItem("Assets/Create/Rendering/Diffusion Profile", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateDiffusionProfile()
@@ -430,6 +489,14 @@ namespace UnityEditor.Rendering.HighDefinition
             return anyMaterialDirty;
         }
 
+        [MenuItem("GameObject/Volume/Custom Pass", priority = CoreUtils.gameObjectMenuPriority)]
+        static void CreateGlobalVolume(MenuCommand menuCommand)
+        {
+            var go = CoreEditorUtils.CreateGameObject("Custom Pass", menuCommand.context);
+            var volume = go.AddComponent<CustomPassVolume>();
+            volume.isGlobal = true;
+        }
+
         class UnityContextualLogHandler : ILogHandler
         {
             UnityObject m_Context;
@@ -450,6 +517,99 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 k_DefaultLogHandler.LogFormat(LogType.Log, m_Context, "Context: {0} ({1})", m_Context, AssetDatabase.GetAssetPath(m_Context));
                 k_DefaultLogHandler.LogException(exception, context);
+            }
+        }
+
+        [MenuItem("Edit/Render Pipeline/Check Scene Content for Ray Tracing", priority = CoreUtils.editMenuPriority4)]
+        static void CheckSceneContentForRayTracing(MenuCommand menuCommand)
+        {
+            // Flag that holds
+            bool generalErrorFlag = false;
+            var rendererArray = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
+            List<Material> materialArray = new List<Material>(32);
+            ReflectionProbe reflectionProbe = new ReflectionProbe();
+
+            foreach (Renderer currentRenderer in rendererArray)
+            {
+                // If this is a reflection probe, we can ignore it.
+                if (currentRenderer.gameObject.TryGetComponent<ReflectionProbe>(out reflectionProbe)) continue;
+
+                // Get all the materials of the mesh renderer
+                currentRenderer.GetSharedMaterials(materialArray);
+                if (materialArray == null)
+                {
+                    Debug.LogWarning("The object "+ currentRenderer.name + " has a null material array.");
+                    generalErrorFlag = true;
+                    continue;
+                }
+
+                // For every sub-mesh/sub-material let's build the right flags
+                int numSubMeshes = 1;
+                if (!(currentRenderer.GetType() == typeof(SkinnedMeshRenderer)))
+                {
+                    currentRenderer.TryGetComponent(out MeshFilter meshFilter);
+                    if (meshFilter == null || meshFilter.sharedMesh == null)
+                    {
+                        Debug.LogWarning("The object " + currentRenderer.name + " has null meshfilter or mesh.");
+                        generalErrorFlag = true;
+                        continue;
+                    }
+                    numSubMeshes = meshFilter.sharedMesh.subMeshCount;
+                }
+                else
+                {
+                    SkinnedMeshRenderer skinnedMesh = (SkinnedMeshRenderer)currentRenderer;
+                    if (skinnedMesh.sharedMesh == null)
+                    {
+                        Debug.LogWarning("The object " + currentRenderer.name + " has null mesh.");
+                        generalErrorFlag = true;
+                        continue;
+                    }
+                    numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
+                }
+
+                bool materialIsOnlyTransparent = true;
+                bool hasTransparentSubMaterial = false;
+
+                for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
+                {
+                    // Initially we consider the potential mesh as invalid
+                    if (materialArray.Count > meshIdx)
+                    {
+                        // Grab the material for the current sub-mesh
+                        Material currentMaterial = materialArray[meshIdx];
+
+                        // The material is transparent if either it has the requested keyword or is in the transparent queue range
+                        if (currentMaterial != null)
+                        {
+                            bool materialIsTransparent = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
+                                || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
+                                && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue)
+                                || (HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.lowerBound <= currentMaterial.renderQueue
+                                && HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.upperBound >= currentMaterial.renderQueue);
+
+                            // aggregate the transparency info
+                            materialIsOnlyTransparent &= materialIsTransparent;
+                            hasTransparentSubMaterial |= materialIsTransparent;
+                        }
+                        else
+                        {
+                            Debug.LogWarning("The object " + currentRenderer.name + " has null material.");
+                            generalErrorFlag = true;
+                        }
+                    }
+                }
+
+                if (!materialIsOnlyTransparent && hasTransparentSubMaterial)
+                {
+                    Debug.LogWarning("The object " + currentRenderer.name + " has both transparent and opaque sub-meshes. This may cause performance issues");
+                    generalErrorFlag = true;
+                }
+            }
+
+            if (!generalErrorFlag)
+            {
+                Debug.Log("No errors were detected in the process.");
             }
         }
     }
