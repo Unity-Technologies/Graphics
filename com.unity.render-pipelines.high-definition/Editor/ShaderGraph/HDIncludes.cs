@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         const string kMaterialUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl";
         const string kDecalUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl";
         //pre graph material includes
+        const string kDebugDisplay = "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl";
         const string kUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl";
         const string kLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl";
         const string kEye = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl";
@@ -51,6 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         const string kPassGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl";
         const string kPassForward = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl";
         const string kPassDecal = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl";
+        const string kPassConstant = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl";
         //pregraph raytracing includes
         const string kRaytracingMacros = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl";
         const string kShaderVariablesRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl";
@@ -80,6 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { kShaderVariables, IncludeLocation.Pregraph },
             { kFragInputs, IncludeLocation.Pregraph },
             { kShaderPass, IncludeLocation.Pregraph },
+            { kDebugDisplay, IncludeLocation.Pregraph },            
             { kMaterial, IncludeLocation.Pregraph },
         };
         public static IncludeCollection CoreUtility = new IncludeCollection
@@ -169,6 +172,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { LitCommon },
             { kPassDepthOnly, IncludeLocation.Postgraph },
+        };
+
+        public static IncludeCollection RayTracingPrepass = new IncludeCollection
+        {
+            { LitCommon },
+            { kPassConstant, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection LitMotionVectors = new IncludeCollection

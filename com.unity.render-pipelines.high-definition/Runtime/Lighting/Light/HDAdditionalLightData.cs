@@ -858,6 +858,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_DistanceBasedFiltering = false;
+        /// <summary>
+        /// Uses the distance to the occluder to improve the shadow denoising.
+        /// </summary>
+        internal bool distanceBasedFiltering
+        {
+            get => m_DistanceBasedFiltering;
+            set
+            {
+                if (m_DistanceBasedFiltering == value)
+                    return;
+
+                m_DistanceBasedFiltering = value;
+            }
+        }
+
         [Range(k_MinEvsmExponent, k_MaxEvsmExponent)]
         [SerializeField, FormerlySerializedAs("evsmExponent")]
         float m_EvsmExponent = 15.0f;
@@ -1440,7 +1457,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
 
         // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
-        [System.NonSerialized] internal Matrix4x4 previousTransform = new Matrix4x4();
+        [System.NonSerialized] internal Matrix4x4 previousTransform = Matrix4x4.identity;
         // Temporary index that stores the current shadow index for the light
         [System.NonSerialized] internal int shadowIndex = -1;
 
@@ -1880,7 +1897,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                     // Assign all setting common to every lights
-                    SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
+                    SetCommonShadowRequestSettings(shadowRequest, visibleLight, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
                 }
 
                 shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
@@ -1900,7 +1917,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return firstShadowRequestIndex;
         }
 
-        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 viewProjection, Vector2 viewportSize, int lightIndex)
+        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 viewProjection, Vector2 viewportSize, int lightIndex)
         {
             // zBuffer param to reconstruct depth position (for transmission)
             float f = legacyLight.range;
@@ -1924,7 +1941,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightType == HDLightType.Directional || lightType == HDLightType.Spot && spotLightShape == SpotLightShape.Box)
                 shadowRequest.position = new Vector3(shadowRequest.view.m03, shadowRequest.view.m13, shadowRequest.view.m23);
             else
-                shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? transform.position - cameraPos : transform.position;
+                shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? visibleLight.GetPosition() - cameraPos : visibleLight.GetPosition();
 
             shadowRequest.shadowToWorld = invViewProjection.transpose;
             shadowRequest.zClip = (lightType != HDLightType.Directional);
@@ -2583,7 +2600,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Synchronize all the HD Additional Light values with the Light component.
         /// </summary>
-        public void UpdateAllLightValues(bool fromTimeLine = false)
+        public void UpdateAllLightValues()
+        {
+            UpdateAllLightValues(false);
+        }
+
+        internal void UpdateAllLightValues(bool fromTimeLine)
         {
             UpdateShapeSize();
 

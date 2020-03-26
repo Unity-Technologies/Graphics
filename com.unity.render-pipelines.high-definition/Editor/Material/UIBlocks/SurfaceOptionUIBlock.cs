@@ -59,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent zWriteEnableText = new GUIContent("Depth Write", "When enabled, transparent objects write to the depth buffer.");
             public static GUIContent transparentZTestText = new GUIContent("Depth Test", "Set the comparison function to use during the Z Testing.");
+            public static GUIContent rayTracingText = new GUIContent("Ray Tracing (Preview)", "If this option is enabled and recursive rendering is active, the object will be rendered using ray tracing.");
 
             public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Sets the sort priority (from -100 to 100) of transparent meshes using this Material. HDRP uses this value to calculate the sorting order of all transparent meshes on screen.");
             public static GUIContent enableTransparentFogText = new GUIContent("Receive fog", "When enabled, this Material can receive fog.");
@@ -210,6 +211,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty stencilRef = null;
         MaterialProperty zTest = null;
         MaterialProperty transparentCullMode = null;
+        MaterialProperty rayTracing = null;
 
         SurfaceType defaultSurfaceType { get { return SurfaceType.Opaque; } }
 
@@ -347,6 +349,7 @@ namespace UnityEditor.Rendering.HighDefinition
             stencilRef = FindProperty(kStencilRef);
             zTest = FindProperty(kZTestTransparent);
             transparentCullMode = FindProperty(kTransparentCullMode);
+            rayTracing = FindProperty(kRayTracing);
 
             refractionModel = FindProperty(kRefractionModel);
         }
@@ -533,6 +536,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // TODO: does not work with multi-selection
             Material material = materialEditor.target as Material;
 
+            // We only display the ray tracing option if the asset supports it (and the attributes exists in this shader)
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported && rayTracing != null)
+                materialEditor.ShaderProperty(rayTracing, Styles.rayTracingText);
+
             var mode = (SurfaceType)surfaceType.floatValue;
             var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
@@ -648,12 +655,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.AfterPostProcessing);
             }
 
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
-            {
-                m_RenderingPassNames.Add("Raytracing");
-                m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.Raytracing);
-            }
-
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
         }
 
@@ -682,12 +683,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_RenderingPassNames.Add("After post-process");
                 m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.AfterPostProcessing);
-            }
-
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
-            {
-                m_RenderingPassNames.Add("Raytracing");
-                m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.Raytracing);
             }
 
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
