@@ -59,7 +59,23 @@
         }
     ],
     "m_Groups": [],
-    "m_StickyNotes": [],
+    "m_StickyNotes": [
+        {
+            "m_GuidSerialized": "f5f3c11e-43a5-469f-9914-4d8803e15d84",
+            "m_Title": "",
+            "m_Content": "Note that Precision is Half\n",
+            "m_TextSize": 2,
+            "m_Theme": 0,
+            "m_Position": {
+                "serializedVersion": "2",
+                "x": -1020.0,
+                "y": -114.0,
+                "width": 239.0,
+                "height": 160.0
+            },
+            "m_GroupGuidSerialized": "00000000-0000-0000-0000-000000000000"
+        }
+    ],
     "m_SerializableEdges": [
         {
             "typeInfo": {
@@ -105,6 +121,6 @@
         }
     },
     "m_Path": "",
-    "m_ConcretePrecision": 0,
+    "m_ConcretePrecision": 1,
     "m_ActiveOutputNodeGuidSerialized": "42b817b4-a695-4f36-a53f-1ae1cc5efb62"
 }

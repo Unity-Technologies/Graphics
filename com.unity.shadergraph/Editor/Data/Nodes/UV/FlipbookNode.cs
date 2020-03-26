@@ -151,11 +151,11 @@ namespace UnityEditor.ShaderGraph
                         string offset;
                         if (concretePrecision == ConcretePrecision.Half)
                         {
-                            offset = "0.00001h";
+                            offset = "0.0001h";
                         }
                         else
                         {
-                            offset = "0.000001";
+                            offset = "0.00001";
                         }
 
                         s.AppendLine("Tile = floor(fmod(Tile + " + offset + ", Width*Height));");
