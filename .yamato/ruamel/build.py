@@ -1,12 +1,15 @@
 import ruamel
-from models import project_all as pa
-from models import project_test as pt
-from models.helpers.namer import file_path, file_path_all
+from jobs import project_all as pa
+from jobs import project_test as pt
+from jobs import editor_priming as ep
+from jobs.helpers.namer import file_path, file_path_all
 import sys, glob
 
-# TODO generate job names/ids
 
-def create_yml_jobs(metafile):
+def create_yml_jobs(project_metafile):
+    
+    with open(project_metafile) as f:
+        metafile = yaml.load(f)
     project = metafile["project"]
 
     for platform in metafile['platforms']:
@@ -44,7 +47,6 @@ def create_yml_all(metafile):
     for editor in metafile['editors']:
         
         job_id = f'All_{project_name}_{editor["version"]}'
-        
         yml[job_id] = pa.project_all(project_name, editor, dependencies_in_all)
     
 
@@ -54,6 +56,23 @@ def create_yml_all(metafile):
 
 
 
+def create_yml_editor(editor_metafile):
+
+    with open(editor_metafile) as f:
+        metafile = yaml.load(f)
+    
+    yml = {}
+    for platform in metafile["platforms"]:
+        for editor in metafile["editors"]:
+            job_id = f'editor:priming:{editor["version"]}:{platform["os"]}'
+            yml[job_id] = ep.editor(platform, editor)
+    
+    with open('.yamato/z_editor.yml', 'w') as f:
+        yaml.dump(yml, f) 
+
+
+
+# TODO clean up the code, make filenames more readable/reuse, split things appropriately (eg editor, files, etc), fix script arguments, fix testplatforms (xr), ...
 if __name__== "__main__":
     
     # configure yaml
@@ -61,21 +80,22 @@ if __name__== "__main__":
     yaml.width = 4096
     yaml.indent(offset=2, mapping=4, sequence=5)
     
-    # create yml for each specified project (universal, shadergraph, vfx_lwrp, ...)
+
+    # create editor
+    create_yml_editor('config/z_editor.metafile')
+
+
+    # create yml jobs for each specified project (universal, shadergraph, vfx_lwrp, ...)
     args = sys.argv
     if 'all' in args:
-        project_config_files = glob.glob('config/*.metafile')
+        project_metafiles = glob.glob('config/[!z_]*.metafile') 
     else:
-        project_config_files = [f'config/{project}.metafile' for project in args[1:]]
-
-    print(f'Running: {project_config_files}')
-    for project in project_config_files:
-        
-        with open(project) as f:
-            metafile = yaml.load(f)
-        
-        create_yml_jobs(metafile) # create jobs for testplatforms
-        create_yml_all(metafile) # create All_ job
+        project_metafiles = [f'config/{project}.metafile' for project in args[1:]]
+    print(f'Running: {project_metafiles}')
+    
+    for project_metafile in project_metafiles:
+        create_yml_jobs(project_metafile) # create jobs for testplatforms
+        create_yml_all(project_metafile) # create All_ job
 
 
 
