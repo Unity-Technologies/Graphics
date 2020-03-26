@@ -893,7 +893,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 182246180}
   m_LocalRotation: {x: -0.063858435, y: -0.89895606, z: 0.13996918, w: -0.41013262}
-  m_LocalPosition: {x: -2.94, y: 3.13, z: 6.52}
+  m_LocalPosition: {x: -11.12, y: 4.19, z: 11.23}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1239,12 +1239,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "These materials are created with a fabric shader that uses the Cotton
-    Wool material type.\n\nThis is a diffused shading model that can be used to create
-    materials like cotton, denim, wool, linen and velvet.\n\nWool is composed of
-    tiny scales around a core fiber. Cotton is what\u2019s known as a boll fiber,
-    which is to say it\u2019s a cellulose fiber produced by the plant as a way to
-    spread its seeds, and is generally smooth but kinky and irregular"
+  m_text: 'These materials are created with a fabric shader that uses the Cotton
+    Wool material type.
+
+
+    This is a diffused shading model that can be used to
+    create materials like cotton, denim, wool, linen and velvet.
+
+
+    The Knit or
+    weave has an influence on the appearance of the material as well as the fibers
+    that make up the fabric. Natural fibers are typically rougher and as a result
+    diffuse light a lot more.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1318,12 +1324,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -2.2390704}
   m_textInfo:
     textComponent: {fileID: 315967746}
-    characterCount: 437
+    characterCount: 400
     spriteCount: 0
-    spaceCount: 81
-    wordCount: 80
+    spaceCount: 73
+    wordCount: 72
     linkCount: 0
-    lineCount: 12
+    lineCount: 11
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
@@ -1442,76 +1448,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f70916a878dbe7a4789b71edd4ca6e41, type: 3}
---- !u!114 &365151035
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a81bcacc415a1f743bfdf703afc52027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  active: 1
-  m_AdvancedMode: 0
-  rotation:
-    m_OverrideState: 0
-    m_Value: 0
-    min: 0
-    max: 360
-  skyIntensityMode:
-    m_OverrideState: 0
-    m_Value: 0
-  exposure:
-    m_OverrideState: 0
-    m_Value: 10
-  multiplier:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0
-  upperHemisphereLuxValue:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0
-  upperHemisphereLuxColor:
-    m_OverrideState: 0
-    m_Value: {x: 0, y: 0, z: 0}
-  desiredLuxValue:
-    m_OverrideState: 0
-    m_Value: 20000
-  updateMode:
-    m_OverrideState: 0
-    m_Value: 0
-  updatePeriod:
-    m_OverrideState: 0
-    m_Value: 0
-    min: 0
-  includeSunInBaking:
-    m_OverrideState: 0
-    m_Value: 0
-  top:
-    m_OverrideState: 0
-    m_Value: {r: 0.079863995, g: 0.13676903, b: 0.29799998, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
-  middle:
-    m_OverrideState: 0
-    m_Value: {r: 0.48026317, g: 0.48026317, b: 0.5, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
-  bottom:
-    m_OverrideState: 0
-    m_Value: {r: 0.29799998, g: 0.16491261, b: 0.0839029, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
-  gradientDiffusion:
-    m_OverrideState: 0
-    m_Value: 4
 --- !u!1 &409108974
 GameObject:
   m_ObjectHideFlags: 0
@@ -1855,7 +1791,7 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 28.96, y: 5, z: 8.7}
+      m_BoxSize: {x: 13.44, y: 5, z: 18.59}
       m_BoxBlendDistancePositive: {x: 0.4, y: 0.4, z: 0.4}
       m_BoxBlendDistanceNegative: {x: 0.4, y: 0.4, z: 0.4}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
@@ -2096,7 +2032,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 28.96, y: 5, z: 8.7}
+  m_BoxSize: {x: 13.44, y: 5, z: 18.59}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -2122,7 +2058,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 518222927}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 4.002, y: 0.711, z: 0}
+  m_LocalPosition: {x: 1.01, y: 0.711, z: 2.12}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 563090809}
@@ -2215,11 +2151,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "These materials uses the Silk material type.\n\nIn general, silk and nylon
-    fibers are smoother because they\u2019re a single filament. Nylon is extruded
-    as a single smooth filament, and silk is a protein produced by the silkworm as
-    a single smooth filament.\n\nThis can be used to create fabrics like silk, nylon
-    and polyester."
+  m_text: "These materials uses the Silk material type.\n\nThis can be used to create
+    fabrics like silk, nylon and polyester.\n\nIn general, silk and nylon fibers
+    are smoother because they\u2019re a single filament. Nylon is extruded as a single
+    smooth filament, and silk is a protein produced by the silkworm as a single smooth
+    filament.\n\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2269,7 +2205,7 @@ MonoBehaviour:
   m_enableWordWrapping: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
-  m_firstOverflowCharacterIndex: 189
+  m_firstOverflowCharacterIndex: 114
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_isTextTruncated: 0
@@ -2293,12 +2229,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 632544997}
-    characterCount: 318
+    characterCount: 320
     spriteCount: 0
-    spaceCount: 55
+    spaceCount: 57
     wordCount: 54
     linkCount: 0
-    lineCount: 10
+    lineCount: 11
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
@@ -3014,7 +2950,7 @@ MonoBehaviour:
   m_text: 'Nylon
 
     Nylon is a man-made material that is an extruded polymer making
-    it smoother than natural fabrics like cottton and wool'
+    it smoother than natural fabrics like cotton and wool'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3088,7 +3024,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 977234751}
-    characterCount: 124
+    characterCount: 123
     spriteCount: 0
     spaceCount: 20
     wordCount: 21
@@ -3217,7 +3153,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1139053732}
   m_LocalRotation: {x: 0.00000016858739, y: 0.7071068, z: -0.70710677, w: 0.00000016858739}
-  m_LocalPosition: {x: 0, y: 0, z: -0.5}
+  m_LocalPosition: {x: 0, y: 0, z: -0.379}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 158346741}
@@ -3249,16 +3185,12 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Velvet
 
-    Velvet can be made from synthetic or natural fibres, it''s
+    Velvet can be made from synthetic or natural fibers, it''s
     the tufting that gives velvet it''s unique appearance.
 
-    You can se the sides
-    of the fibres clearly when looking at the Velvet but the fibers pointing directly
-    towards the camera aren''t easily seen.
-
-    The fibres of velvet point ourwards
-    from the surace and cause the surfaces directly facing the camera to appear darker
-    and the sides appear lighter. This is the opposite reaction as other fabrics'
+    The fibers of velvet
+    point outwards from the surface and cause the surfaces directly facing the camera
+    to appear darker.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3308,7 +3240,7 @@ MonoBehaviour:
   m_enableWordWrapping: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
-  m_firstOverflowCharacterIndex: 162
+  m_firstOverflowCharacterIndex: 164
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_isTextTruncated: 0
@@ -3332,12 +3264,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 1139053734}
-    characterCount: 456
+    characterCount: 239
     spriteCount: 0
-    spaceCount: 76
-    wordCount: 77
+    spaceCount: 38
+    wordCount: 39
     linkCount: 0
-    lineCount: 13
+    lineCount: 7
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
@@ -3809,6 +3741,76 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2101728995791149842, guid: 9ac48f5bd365ad941a7c3fa37540fa33, type: 3}
   m_PrefabInstance: {fileID: 1623619256}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1714798195
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a81bcacc415a1f743bfdf703afc52027, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  rotation:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 360
+  skyIntensityMode:
+    m_OverrideState: 0
+    m_Value: 0
+  exposure:
+    m_OverrideState: 0
+    m_Value: 10
+  multiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+  upperHemisphereLuxValue:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+  upperHemisphereLuxColor:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 0, z: 0}
+  desiredLuxValue:
+    m_OverrideState: 0
+    m_Value: 20000
+  updateMode:
+    m_OverrideState: 0
+    m_Value: 0
+  updatePeriod:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  includeSunInBaking:
+    m_OverrideState: 0
+    m_Value: 0
+  top:
+    m_OverrideState: 0
+    m_Value: {r: 0.079863995, g: 0.13676903, b: 0.29799998, a: 1}
+    hdr: 1
+    showAlpha: 0
+    showEyeDropper: 1
+  middle:
+    m_OverrideState: 0
+    m_Value: {r: 0.48026317, g: 0.48026317, b: 0.5, a: 1}
+    hdr: 1
+    showAlpha: 0
+    showEyeDropper: 1
+  bottom:
+    m_OverrideState: 0
+    m_Value: {r: 0.29799998, g: 0.16491261, b: 0.0839029, a: 1}
+    hdr: 1
+    showAlpha: 0
+    showEyeDropper: 1
+  gradientDiffusion:
+    m_OverrideState: 0
+    m_Value: 4
 --- !u!1 &1728193971
 GameObject:
   m_ObjectHideFlags: 1
@@ -3840,7 +3842,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: bcce1d882ad78594e96df95e83512585, type: 2}
   m_StaticLightingSkyUniqueID: 3
-  m_SkySettings: {fileID: 365151035}
+  m_SkySettings: {fileID: 1714798195}
   m_SkySettingsFromProfile: {fileID: -213621468369542312, guid: bcce1d882ad78594e96df95e83512585, type: 2}
 --- !u!4 &1728193973
 Transform:
@@ -3917,7 +3919,7 @@ MonoBehaviour:
     Using a ribbed knit for the threadmap
 
     A thicker knit that
-    has a higher Ambient Occlusiona and Normal strength
+    has a higher Ambient Occlusion and Normal strength
 
 '
   m_isRightToLeft: 0
@@ -3993,7 +3995,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -2.2390704}
   m_textInfo:
     textComponent: {fileID: 2006083193}
-    characterCount: 115
+    characterCount: 114
     spriteCount: 0
     spaceCount: 20
     wordCount: 20
@@ -4179,7 +4181,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Cotton
 
-    Using a jersey knit threadmap typically used for shirts.'
+    This material uses a jersey knit threadmap typically used
+    for shirts.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4253,10 +4256,10 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -2.2390704}
   m_textInfo:
     textComponent: {fileID: 2041204706}
-    characterCount: 63
+    characterCount: 76
     spriteCount: 0
-    spaceCount: 9
-    wordCount: 10
+    spaceCount: 11
+    wordCount: 12
     linkCount: 0
     lineCount: 3
     pageCount: 1
