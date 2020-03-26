@@ -1,38 +1,37 @@
-﻿using UnityEditor.ShaderGraph;
+﻿using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
-    static class PreviewTargetResources
+    sealed class PreviewTarget : Target
     {
-        static KeywordDescriptor s_PreviewKeyword = new KeywordDescriptor()
+        public PreviewTarget()
         {
-            displayName = "Preview",
-            referenceName = "SHADERGRAPH_PREVIEW",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
+            displayName = "Preview";
+            isHidden = true;
+        }
 
-        static StructDescriptor s_PreviewVaryings = new StructDescriptor()
+        public override void Setup(ref TargetSetupContext context)
         {
-            name = "Varyings",
-            packFields = true,
-            fields = new[]
-            {
-                StructFields.Varyings.positionCS,
-                StructFields.Varyings.positionWS,
-                StructFields.Varyings.normalWS,
-                StructFields.Varyings.tangentWS,
-                StructFields.Varyings.texCoord0,
-                StructFields.Varyings.texCoord1,
-                StructFields.Varyings.texCoord2,
-                StructFields.Varyings.texCoord3,
-                StructFields.Varyings.color,
-                StructFields.Varyings.viewDirectionWS,
-                StructFields.Varyings.screenPosition,
-                StructFields.Varyings.instanceID,
-                StructFields.Varyings.cullFace,
-            }
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7464b9fcde08e5645a16b9b8ae1e573c")); // PreviewTarget
+            context.AddSubShader(s_SubShader);
+        }
+
+        public override bool IsValid(IMasterNode masterNode)
+        {
+            return false;
+        }
+
+        public override bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        {
+            return currentPipeline != null;
+        }
+
+        static SubShaderDescriptor s_SubShader = new SubShaderDescriptor()
+        {
+            renderQueueOverride = "Geometry",
+            renderTypeOverride = "Opaque",
+            generatesPreview = true,
+            passes = new PassCollection { s_PreviewPass },
         };
 
         static PassDescriptor s_PreviewPass = new PassDescriptor()
@@ -40,6 +39,10 @@ namespace UnityEditor.ShaderGraph
             // Definition
             referenceName = "SHADERPASS_PREVIEW",
             useInPreview = true,
+
+            // Templates
+            passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+            sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
             // Collections
             structs = new StructCollection
@@ -78,12 +81,35 @@ namespace UnityEditor.ShaderGraph
             }
         };
 
-        public static SubShaderDescriptor PreviewSubShader = new SubShaderDescriptor()
+        static StructDescriptor s_PreviewVaryings = new StructDescriptor()
         {
-            renderQueueOverride = "Geometry",
-            renderTypeOverride = "Opaque",
-            generatesPreview = true,
-            passes = new PassCollection { s_PreviewPass },
+            name = "Varyings",
+            packFields = true,
+            fields = new[]
+            {
+                StructFields.Varyings.positionCS,
+                StructFields.Varyings.positionWS,
+                StructFields.Varyings.normalWS,
+                StructFields.Varyings.tangentWS,
+                StructFields.Varyings.texCoord0,
+                StructFields.Varyings.texCoord1,
+                StructFields.Varyings.texCoord2,
+                StructFields.Varyings.texCoord3,
+                StructFields.Varyings.color,
+                StructFields.Varyings.viewDirectionWS,
+                StructFields.Varyings.screenPosition,
+                StructFields.Varyings.instanceID,
+                StructFields.Varyings.cullFace,
+            }
+        };
+
+        static KeywordDescriptor s_PreviewKeyword = new KeywordDescriptor()
+        {
+            displayName = "Preview",
+            referenceName = "SHADERGRAPH_PREVIEW",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
         };
     }
 }

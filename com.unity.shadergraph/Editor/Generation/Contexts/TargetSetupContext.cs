@@ -6,11 +6,12 @@ namespace UnityEditor.ShaderGraph
     internal class TargetSetupContext
     {
         public IMasterNode masterNode { get; private set; }
-        public SubShaderDescriptor descriptor { get; private set; }
+        public List<SubShaderDescriptor> subShaders { get; private set; }
         public List<string> assetDependencyPaths { get; private set; }
 
         public TargetSetupContext()
         {
+            subShaders = new List<SubShaderDescriptor>();
             assetDependencyPaths = new List<string>();
         }
 
@@ -19,9 +20,9 @@ namespace UnityEditor.ShaderGraph
             this.masterNode = masterNode;
         }
 
-        public void SetupSubShader(SubShaderDescriptor descriptor)
+        public void AddSubShader(SubShaderDescriptor subShader)
         {
-            this.descriptor = descriptor;
+            subShaders.Add(subShader);
         }
 
         public void AddAssetDependencyPath(string path)

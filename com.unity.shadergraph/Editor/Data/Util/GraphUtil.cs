@@ -352,13 +352,13 @@ namespace UnityEditor.ShaderGraph
 
         public static string CurrentPipelinePreferredShaderGUI(IMasterNode masterNode)
         {
-            foreach (var implementation in (masterNode as AbstractMaterialNode).owner.validImplementations)
+            foreach (var target in (masterNode as AbstractMaterialNode).owner.validTargets)
             {
-                if (implementation.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
+                if (target.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
                 {
-                    var context = implementation.GetSubShaderDescriptorFromMasterNode(masterNode);
-                    if (context != null)
-                        return context.Value.customEditorOverride;
+                    var defaultShaderGUI = target.defaultShaderGUI;
+                    if (!string.IsNullOrEmpty(defaultShaderGUI))
+                        return defaultShaderGUI;
                 }
             }
 

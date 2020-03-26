@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
 
         GraphData m_GraphData;
         AbstractMaterialNode m_OutputNode;
-        ITargetImplementation[] m_TargetImplementations;
+        Target[] m_Targets;
         GenerationMode m_Mode;
         string m_Name;
 
@@ -47,11 +47,11 @@ namespace UnityEditor.ShaderGraph
         {
             if(m_OutputNode is IMasterNode masterNode)
             {
-                m_TargetImplementations = m_GraphData.validImplementations.ToArray();
+                m_Targets = m_GraphData.validTargets.ToArray();
             }
             else
             {
-                m_TargetImplementations = new ITargetImplementation[] { new DefaultPreviewTarget() };
+                m_Targets = new Target[] { new PreviewTarget() };
             }
         }
 
@@ -108,15 +108,19 @@ namespace UnityEditor.ShaderGraph
             {
                 GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
 
-                for(int i = 0; i < m_TargetImplementations.Length; i++)
+                for(int i = 0; i < m_Targets.Length; i++)
                 {
                     TargetSetupContext context = new TargetSetupContext();
                     context.SetMasterNode(m_OutputNode as IMasterNode);
 
                     // Instead of setup target, we can also just do get context
-                    m_TargetImplementations[i].SetupTarget(ref context);
+                    m_Targets[i].Setup(ref context);
                     GetAssetDependencyPaths(context);
-                    GenerateSubShader(i, context.descriptor);
+
+                    foreach(var subShader in context.subShaders)
+                    {
+                        GenerateSubShader(i, subShader);
+                    }
                 }
 
                 // Either grab the pipeline default for the active node or the user override
@@ -690,18 +694,10 @@ namespace UnityEditor.ShaderGraph
             // Finalize
 
             // Pass Template
-            string passTemplatePath;
-            if(!string.IsNullOrEmpty(pass.passTemplatePath))
-                passTemplatePath = pass.passTemplatePath;
-            else
-                passTemplatePath = m_TargetImplementations[targetIndex].passTemplatePath;
+            string passTemplatePath = pass.passTemplatePath;
 
             // Shared Templates
-            string sharedTemplateDirectory;
-            if(!string.IsNullOrEmpty(pass.sharedTemplateDirectory))
-                sharedTemplateDirectory = pass.sharedTemplateDirectory;
-            else
-                sharedTemplateDirectory = m_TargetImplementations[targetIndex].sharedTemplateDirectory;
+            string sharedTemplateDirectory = pass.sharedTemplateDirectory;
 
             if (!File.Exists(passTemplatePath))
                 return;
