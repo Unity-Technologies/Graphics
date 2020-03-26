@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Half fixed shuriken particle light that cast shadows (only the first one will be correct)
 - Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601) 
 - Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
+- Fix when rescale probe all direction below zero (1219246)
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
@@ -141,7 +142,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the Tint parameter to Sky Colored Fog.
 
 ### Fixed
-- Fix when rescale probe all direction below zero (1219246)
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
 - Sorting, undo, labels, layout in the Lighting Explorer.
 - Fixed sky settings and materials in Shader Graph Samples package
