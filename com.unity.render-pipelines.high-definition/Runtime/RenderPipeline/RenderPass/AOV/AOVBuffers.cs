@@ -15,22 +15,23 @@ namespace UnityEngine.Rendering.HighDefinition
         MotionVectors
     }
 
-
+    /// <summary>
+    /// Describes the type of custom pass buffer that will be exported with the AOV API.
+    /// </summary>
     public struct CustomPassAOVBuffers
     {
+        /// <summary> Specifies which output type to export.</summary>
         public enum OutputType
         {
+            /// <summary> The custom pass buffer will be exported.</summary>
             CustomPassBuffer,
+            /// <summary> The color buffer of the camera will be exported.</summary>
             Camera
         }
 
+        /// <summary> The injection point of the custom passes that will be exported. </summary>
         public CustomPassInjectionPoint injectionPoint;
+        /// <summary> Specifies which output type to export.</summary>
         public OutputType outputType;
-
-        public CustomPassAOVBuffers(CustomPassInjectionPoint ip, OutputType ot)
-        {
-            injectionPoint = ip;
-            outputType = ot;
-        }
     }
 }
