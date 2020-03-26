@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an "enable" toggle to the SSR volume component.
 - Added support of cookie baking and add support on Disc light.
 - Added XR setting to control camera jitter for temporal effects
+- Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
 
 ### Fixed
 - Fix Changelog
@@ -54,6 +55,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
 - Fixed cubemap thumbnail generation at project load time. 
+- Fixed an issue where default volume would not update when switching profile.
+- Fixed an issue where AO override would not override specular occlusion.
+- Fixed an issue where Volume inspector might not refresh correctly in some cases.
+- Half fixed shuriken particle light that cast shadows (only the first one will be correct)
+- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601) 
+- Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
+- Fix when rescale probe all direction below zero (1219246)
+- Fixed issue with resources being accessed before initialization process has been performed completely.
+- Fixed render texture with XR
+- Fixed sRGB mismatch with XR SDK
+- Fixed XR single-pass with Mock HMD plugin
+- Fixed XR culling with multiple cameras
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
@@ -65,6 +78,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
+- Hidden unsupported choice in emission in Materials
 
 ## [8.0.0] - 2020-05-25
 
