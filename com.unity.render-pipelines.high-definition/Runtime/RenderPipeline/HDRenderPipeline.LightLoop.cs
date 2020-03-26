@@ -241,6 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderSSRPassData
         {
             public RenderSSRParameters parameters;
+            public TextureHandle depthBuffer;
             public TextureHandle depthPyramid;
             public TextureHandle colorPyramid;
             public TextureHandle stencilBuffer;
@@ -254,6 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         HDCamera            hdCamera,
                                     TextureHandle   normalBuffer,
                                     TextureHandle   motionVectorsBuffer,
+                                    TextureHandle   depthBuffer,
                                     TextureHandle   depthPyramid,
                                     TextureHandle   stencilBuffer,
                                     TextureHandle   clearCoatMask)
@@ -282,7 +284,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
 
-                    passData.parameters = PrepareSSRParameters(hdCamera);
+                    passData.parameters = PrepareSSRParameters(hdCamera, true);
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.depthPyramid = builder.ReadTexture(depthPyramid);
                     passData.colorPyramid = builder.ReadTexture(colorPyramid);
                     passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
@@ -305,6 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var res = context.resources;
                         RenderSSR(data.parameters,
+                                    res.GetTexture(data.depthBuffer),
                                     res.GetTexture(data.depthPyramid),
                                     res.GetTexture(data.hitPointsTexture),
                                     res.GetTexture(data.stencilBuffer),
