@@ -140,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.SceneSelection,
+                renderStates = PBRRenderStates.SceneSelection,
                 pragmas = CorePragmas.InstancedRenderingLayerEditorSync,
                 defines = CoreDefines.SceneSelection,
                 keywords = PBRKeywords.LodFadeCrossfade,
@@ -294,7 +294,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.ZWrite(ZWrite.On) },
                 { RenderState.ColorMask("ColorMask 0") },
             };
-            
+
+            public static RenderStateCollection SceneSelection = new RenderStateCollection
+            {
+                { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+                { RenderState.ZWrite(ZWrite.On), new FieldCondition(Fields.SurfaceOpaque, true) },
+                { RenderState.ZWrite(ZWrite.Off), new FieldCondition(Fields.SurfaceTransparent, true) },
+                { RenderState.ColorMask("ColorMask 0") },
+            };
+                
             public static RenderStateCollection DepthOnly = new RenderStateCollection
             {
                 { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },

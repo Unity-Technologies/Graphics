@@ -92,69 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 #endregion
 
-#region Lit
-        public static IncludeCollection LitCommon = new IncludeCollection
-        {
-            { CorePregraph },
-            { kNormalSurfaceGradient, IncludeLocation.Pregraph },
-            { kLit, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kDecalUtilities, IncludeLocation.Pregraph },
-            { kLitDecalData, IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-        };
-        public static IncludeCollection LitGBuffer = new IncludeCollection
-        {
-            { LitCommon },
-            { kPassGBuffer, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection LitMeta = new IncludeCollection
-        {
-            { LitCommon },
-            { kPassLightTransport, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection LitDepthOnly = new IncludeCollection
-        {
-            { LitCommon },
-            { kPassDepthOnly, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection RayTracingPrepass = new IncludeCollection
-        {
-            { LitCommon },
-            { kPassConstant, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection LitMotionVectors = new IncludeCollection
-        {
-            { LitCommon },
-            { kPassMotionVectors, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection LitForward = new IncludeCollection
-        {
-            { CorePregraph },
-            { kNormalSurfaceGradient, IncludeLocation.Pregraph },
-            { kLighting, IncludeLocation.Pregraph },
-            { kLightLoopDef, IncludeLocation.Pregraph },
-            { kLit, IncludeLocation.Pregraph },
-            { kLightLoop, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kDecalUtilities, IncludeLocation.Pregraph },
-            { kLitDecalData, IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { kPassForward, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection LitDistortion = new IncludeCollection
-        {
-            { LitCommon },
-            { kDisortionVectors, IncludeLocation.Postgraph },
-        };
-#endregion
-
 #region Eye
         public static IncludeCollection EyeCommon = new IncludeCollection
         {

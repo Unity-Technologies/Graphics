@@ -59,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { typeof(PBRMasterNode), typeof(PBRSubTarget) },
             { typeof(UnlitMasterNode), typeof(UnlitSubTarget) },
+            { typeof(HDLitMasterNode), typeof(HDLitSubTarget) },
             { typeof(HDUnlitMasterNode), typeof(HDUnlitSubTarget) },
         };
     }
@@ -298,20 +299,95 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Cull(Cull.Off) },
         };
 
-        public static RenderStateCollection SceneSelection = new RenderStateCollection
-        {
-            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.ZWrite(ZWrite.On), new FieldCondition(Fields.SurfaceOpaque, true) },
-            { RenderState.ZWrite(ZWrite.Off), new FieldCondition(Fields.SurfaceTransparent, true) },
-            { RenderState.ColorMask("ColorMask 0") },
-        };
-
         public static RenderStateCollection ShadowCaster = new RenderStateCollection
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
             { RenderState.ZClip(Uniforms.zClip) },
             { RenderState.ColorMask("ColorMask 0") },
+        };
+
+        public static RenderStateCollection BlendShadowCaster = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.ZClip(Uniforms.zClip) },
+            { RenderState.ColorMask("ColorMask 0") },
+        };
+
+        public static RenderStateCollection SceneSelection = new RenderStateCollection
+        {
+            { RenderState.ColorMask("ColorMask 0") },
+        };
+
+        public static RenderStateCollection DepthOnly = new RenderStateCollection
+        {
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = Uniforms.stencilWriteMaskDepth,
+                Ref = Uniforms.stencilRefDepth,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
+
+        public static RenderStateCollection MotionVectors = new RenderStateCollection
+        {
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = Uniforms.stencilWriteMaskMV,
+                Ref = Uniforms.stencilRefMV,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
+
+        public static RenderStateCollection TransparentBackface = new RenderStateCollection
+        {
+            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
+            { RenderState.Cull(Cull.Front) },
+            { RenderState.ZWrite(Uniforms.zWrite) },
+            { RenderState.ZTest(Uniforms.zTestTransparent) },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
+        };
+
+        public static RenderStateCollection TransparentDepthPrePostPass = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.ColorMask("ColorMask 0") },
+        };
+
+        public static RenderStateCollection ForwardColorMask = new RenderStateCollection
+        {
+            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
+            { RenderState.Cull(Uniforms.cullModeForward) },
+            { RenderState.ZWrite(Uniforms.zWrite) },
+            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque), new FieldCondition[] {
+                new FieldCondition(Fields.SurfaceOpaque, true),
+                new FieldCondition(Fields.AlphaTest, false)
+            } },
+            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque), new FieldCondition[] {
+                new FieldCondition(Fields.SurfaceOpaque, false),
+            } },
+            { RenderState.ZTest(ZTest.Equal), new FieldCondition[] {
+                new FieldCondition(Fields.SurfaceOpaque, true),
+                new FieldCondition(Fields.AlphaTest, true)
+            } },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = Uniforms.stencilWriteMask,
+                Ref = Uniforms.stencilRef,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
         };
     }
 #endregion
@@ -363,6 +439,51 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             #endif
         };
 
+        public static PragmaCollection DotsInstancedInV1AndV2 = new PragmaCollection
+        {
+            { Basic },
+            { Pragma.MultiCompileInstancing },
+            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
+            #if ENABLE_HYBRID_RENDERER_V2
+            { Pragma.DOTSInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
+            #else
+            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
+            {
+                new FieldCondition(HDFields.DotsInstancing, false),
+                new FieldCondition(HDFields.DotsProperties, false),
+            } },
+            #endif
+        };
+
+        public static PragmaCollection DotsInstancedInV1AndV2EditorSync = new PragmaCollection
+        {
+            { Basic },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.EditorSyncCompilation },
+            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
+            #if ENABLE_HYBRID_RENDERER_V2
+            { Pragma.DOTSInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
+            #else
+            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
+            {
+                new FieldCondition(HDFields.DotsInstancing, false),
+                new FieldCondition(HDFields.DotsProperties, false),
+            } },
+            #endif
+        };
+
         public static PragmaCollection RaytracingBasic = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target50) },
@@ -401,6 +522,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { CoreKeywordDescriptors.DebugDisplay },
         };
+
+        public static KeywordCollection Forward = new KeywordCollection
+        {
+            { HDBase },
+            { CoreKeywordDescriptors.DebugDisplay },
+            { Lightmaps },
+            { CoreKeywordDescriptors.ShadowsShadowmask },
+            { CoreKeywordDescriptors.Shadow },
+            { CoreKeywordDescriptors.Decals },
+            { CoreKeywordDescriptors.LightList, new FieldCondition(Fields.SurfaceOpaque, true) },
+        };
+
+        public static KeywordCollection RaytracingIndirect = new KeywordCollection
+        {
+            { HDBase },
+            { CoreKeywordDescriptors.DiffuseLightingOnly },
+            { Lightmaps },
+        };
+
+        public static KeywordCollection RaytracingGBufferForward = new KeywordCollection
+        {
+            { HDBase },
+            { Lightmaps },
+        };
     }
 #endregion
 
@@ -415,6 +560,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection ShaderGraphRaytracingHigh = new DefineCollection
         {
             { RayTracingNode.GetRayTracingKeyword(), 0 },
+        };
+
+        public static DefineCollection TransparentDepthPrepass = new DefineCollection
+        {
+            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { CoreKeywordDescriptors.WriteNormalBufferDefine, 1, new FieldCondition(HDFields.DisableSSRTransparent, false) },
         };
 
         public static DefineCollection Forward = new DefineCollection

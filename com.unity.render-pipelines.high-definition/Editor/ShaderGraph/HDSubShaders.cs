@@ -5,28 +5,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class HDSubShaders
     {
-        public static SubShaderDescriptor HDLit = new SubShaderDescriptor()
-        {
-            pipelineTag = HDRenderPipeline.k_ShaderTagName,
-            generatesPreview = true,
-            passes = new PassCollection
-            {
-                { HDPasses.HDLit.ShadowCaster },
-                { HDPasses.HDLit.META },
-                { HDPasses.HDLit.SceneSelection },
-                { HDPasses.HDLit.DepthOnly },
-                { HDPasses.HDLit.GBuffer },
-                { HDPasses.HDLit.MotionVectors },
-                { HDPasses.HDLit.DistortionVectors, new FieldCondition(HDFields.TransparentDistortion, true) },
-                { HDPasses.HDLit.TransparentBackface, new FieldCondition(HDFields.TransparentBackFace, true) },
-                { HDPasses.HDLit.TransparentDepthPrepass, new FieldCondition(HDFields.TransparentDepthPrePass, true) },
-                { HDPasses.HDLit.Forward },
-                { HDPasses.HDLit.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
-                { HDPasses.HDLit.RayTracingPrepass, new FieldCondition(HDFields.RayTracing, true) },
-            },
-            // customEditorOverride = "Rendering.HighDefinition.HDLitGUI",
-        };
-
         public static SubShaderDescriptor Eye = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
@@ -122,21 +100,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.FabricRaytracing.Forward, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.FabricRaytracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.FabricRaytracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
-            },
-        };
-
-        public static SubShaderDescriptor HDLitRaytracing = new SubShaderDescriptor()
-        {
-            pipelineTag = HDRenderPipeline.k_ShaderTagName,
-            generatesPreview = false,
-            passes = new PassCollection
-            {
-                { HDPasses.HDLitRaytracing.Indirect, new FieldCondition(Fields.IsPreview, false) },
-                { HDPasses.HDLitRaytracing.Visibility, new FieldCondition(Fields.IsPreview, false) },
-                { HDPasses.HDLitRaytracing.Forward, new FieldCondition(Fields.IsPreview, false) },
-                { HDPasses.HDLitRaytracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
-                { HDPasses.HDLitRaytracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
-                { HDPasses.HDLitRaytracing.PathTracing, new FieldCondition(Fields.IsPreview, false) },
             },
         };
     }

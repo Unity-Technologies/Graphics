@@ -111,7 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.SceneSelection,
+                renderStates = UnlitRenderStates.SceneSelection,
                 pragmas = CorePragmas.DotsInstancedInV2OnlyEditorSync,
                 defines = CoreDefines.SceneSelection,
                 includes = UnlitIncludes.DepthOnly,
@@ -227,6 +227,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
                 { RenderState.ZWrite(ZWrite.On) },
+                { RenderState.ColorMask("ColorMask 0") },
+            };
+
+            public static RenderStateCollection SceneSelection = new RenderStateCollection
+            {
+                { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+                { RenderState.ZWrite(ZWrite.On), new FieldCondition(Fields.SurfaceOpaque, true) },
+                { RenderState.ZWrite(ZWrite.Off), new FieldCondition(Fields.SurfaceTransparent, true) },
                 { RenderState.ColorMask("ColorMask 0") },
             };
 
