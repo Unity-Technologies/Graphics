@@ -87,5 +87,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { HDKeywords.Descriptors.Shadow, 0 },
         };
+        public static DefineCollection HairRaytracingForwardIndirect = new DefineCollection
+        {
+            { HDKeywords.Descriptors.Shadow, 0 },
+            { HDKeywords.Descriptors.HasLightloop, 1 },
+        };
+
+        public static DefineCollection HairRaytracingGBuffer = new DefineCollection
+        {
+            { HDKeywords.Descriptors.Shadow, 0 },
+        };
     }
 }

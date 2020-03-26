@@ -43,6 +43,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     return HDSubShaders.HDUnlitRaytracing;
                 case StackLitMasterNode _:
                     return HDSubShaders.StackLitRaytracing;
+                case HairMasterNode _:
+                    return HDSubShaders.HairRaytracing;
                 default:
                     return null;
             }
