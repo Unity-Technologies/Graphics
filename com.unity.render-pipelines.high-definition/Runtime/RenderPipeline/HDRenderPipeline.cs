@@ -2045,7 +2045,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, m_CustomPassDepthBuffer.Value);
             }
 
-            RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering);
+            RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering, aovRequest, aovCustomPassBuffers);
 
             RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, false);
 
@@ -2139,14 +2139,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SharedRTManager.BindNormalBuffer(cmd);
 
             // After Depth and Normals/roughness including decals
-            bool depthBufferModified = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
+            bool depthBufferModified = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal, m_CustomPassColorBuffer, aovCustomPassBuffers);
 
             // If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth. 
             if (depthBufferModified)
                 m_IsDepthBufferCopyValid = false;
-
-            // Push the custom pass buffer, in case it was requested in the AOVs
-            aovRequest.PushCustomPassTexture(cmd, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal, m_CameraColorBuffer, m_CustomPassColorBuffer, aovCustomPassBuffers);
 
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
             GenerateDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid);
@@ -2373,10 +2370,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // To allow users to fetch the current color buffer, we temporarily bind the camera color buffer
                 cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, m_CameraColorBuffer);
-                RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforePreRefraction);
-
-                // Push the custom pass buffer, in case it was requested in the AOVs
-                aovRequest.PushCustomPassTexture(cmd, CustomPassInjectionPoint.BeforePreRefraction, m_CameraColorBuffer, m_CustomPassColorBuffer, aovCustomPassBuffers);
+                RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforePreRefraction, aovRequest, aovCustomPassBuffers);
 
                 // Render pre refraction objects
                 RenderForwardTransparent(cullingResults, hdCamera, true, renderContext, cmd);
@@ -2397,10 +2391,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // We don't have access to the color pyramid with transparent if rough refraction is disabled
-                RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeTransparent);
-
-                // Push the custom pass texture, if it was requested in the AOVs
-                aovRequest.PushCustomPassTexture(cmd, CustomPassInjectionPoint.BeforeTransparent, m_CameraColorBuffer, m_CustomPassColorBuffer, aovCustomPassBuffers);
+                RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovCustomPassBuffers);
 
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForwardTransparent(cullingResults, hdCamera, false, renderContext, cmd);
@@ -2459,19 +2450,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // At this point, m_CameraColorBuffer has been filled by either debug views are regular rendering so we can push it here.
             PushColorPickerDebugTexture(cmd, hdCamera, m_CameraColorBuffer);
 
-            RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess);
+            RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovCustomPassBuffers);
 
-            // Push the camera and custom pass textures, in case they were requested in the AOVs
             aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
-            aovRequest.PushCustomPassTexture(cmd, CustomPassInjectionPoint.BeforePostProcess, m_CameraColorBuffer, m_CustomPassColorBuffer, aovCustomPassBuffers);
 
             RenderTargetIdentifier postProcessDest = HDUtils.PostProcessIsFinalPass(hdCamera) ? target.id : m_IntermediateAfterPostProcessBuffer;
             RenderPostProcess(cullingResults, hdCamera, postProcessDest, renderContext, cmd);
 
-            RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess);
-
-            // Push the custom pass texture, in case it was requested in the AOVs
-            aovRequest.PushCustomPassTexture(cmd, CustomPassInjectionPoint.AfterPostProcess, m_CameraColorBuffer, m_CustomPassColorBuffer, aovCustomPassBuffers);
+            RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovCustomPassBuffers);
 
             // Copy and rescale depth buffer for XR devices
             if (hdCamera.xr.enabled && hdCamera.xr.copyDepth)
@@ -3693,7 +3679,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        bool RenderCustomPass(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResults, CustomPassInjectionPoint injectionPoint)
+        bool RenderCustomPass(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResults, CustomPassInjectionPoint injectionPoint, AOVRequestData aovRequest, List<RTHandle> aovCustomPassBuffers)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 return false;
@@ -3714,6 +3700,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 };
                 executed |= customPass.Execute(context, cmd, hdCamera, cullingResults, m_SharedRTManager, customPassTargets);
             }
+
+            // Push the custom pass buffer, in case it was requested in the AOVs
+            aovRequest.PushCustomPassTexture(cmd, injectionPoint, m_CameraColorBuffer, m_CustomPassColorBuffer, aovCustomPassBuffers);
 
             return executed;
         }
