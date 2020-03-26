@@ -172,7 +172,7 @@ all_package_ci_{{ editor.version }}:
 {% for platform in platforms %}
 {% for package in packages %}
     - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_{{ editor.version }}
-    - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_{{ editor.version }}_dependencies
+    #- .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_{{ editor.version }}_dependencies
 {% endfor %}
 {% endfor %}
 {% endfor %}
