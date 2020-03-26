@@ -200,8 +200,28 @@ namespace UnityEditor.Rendering.LookDev
             remove => OnUpdateRequestedInternal -= value;
         }
 
+        StyleSheet styleSheet = null;
+        StyleSheet styleSheetLight = null;
+
         void OnEnable()
         {
+            //Stylesheet             
+            // Try to load stylesheet. Timing can be odd while upgrading packages (case 1219692).
+            // In this case, it will be fixed in OnGUI. Though it can spawn error while reimporting assets.
+            // Waiting for filter on stylesheet (case 1228706) to remove last error.
+            if (styleSheet == null || styleSheet.Equals(null))
+            {
+                styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
+                if (styleSheet != null && !styleSheet.Equals(null))
+                    rootVisualElement.styleSheets.Add(styleSheet);
+            }
+            if (!EditorGUIUtility.isProSkin && styleSheetLight != null && !styleSheetLight.Equals(null))
+            {
+                styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
+                if (styleSheetLight != null && !styleSheetLight.Equals(null))
+                    rootVisualElement.styleSheets.Add(styleSheetLight);
+            }
+
             //Call the open function to configure LookDev
             // in case the window where open when last editor session finished.
             // (Else it will open at start and has nothing to display).
@@ -212,15 +232,6 @@ namespace UnityEditor.Rendering.LookDev
 
             // /!\ be sure to have a minSize that will allow a non negative sized viewport even with side panel open
             this.minSize = new Vector2(600, 400);
-
-            rootVisualElement.styleSheets.Add(
-                AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss));
-
-            if (!EditorGUIUtility.isProSkin)
-            {
-                rootVisualElement.styleSheets.Add(
-                    AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload));
-            }
 
             CreateToolbar();
 
@@ -458,6 +469,9 @@ namespace UnityEditor.Rendering.LookDev
         Vector2 m_LastSecondViewSize = new Vector2();
         void IViewDisplayer.SetTexture(ViewCompositionIndex index, Texture texture)
         {
+            if (texture == null)
+                return;
+
             bool updated = false;
             switch (index)
             {
@@ -589,6 +603,62 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
-        void OnGUI() => OnUpdateRequestedInternal?.Invoke();
+        void OnGUI()
+        {
+            //Stylesheet             
+            // [case 1219692] if LookDev is open while reimporting CoreRP package,
+            // stylesheet can be null. In this case, we can have a null stylesheet
+            // registered as it got destroyed. Reloading it. As we cannot just 
+            // remove a null entry, we must filter and reconstruct the while list.
+            if (styleSheet == null || styleSheet.Equals(null)
+                || (!EditorGUIUtility.isProSkin && (styleSheetLight == null || styleSheetLight.Equals(null))))
+            {
+                // While (case 1228706) is still on going, we sill close and reopen the look dev.
+                // This will prevent spawning error at frame.
+                LookDev.Close();
+                LookDev.Open();
+                return;
+
+                // Following lines is the correct fix if UIElement filter garbage collected Stylesheet.
+
+                //System.Collections.Generic.List<StyleSheet> usedStyleSheets = new System.Collections.Generic.List<StyleSheet>();
+                //int currentCount = rootVisualElement.styleSheets.count;
+                //for (int i = 0; i < currentCount; ++i)
+                //{
+                //    StyleSheet sheet = rootVisualElement.styleSheets[i];
+                //    if (sheet != null && !sheet.Equals(null))
+                //        usedStyleSheets.Add(sheet);
+                //}
+                //rootVisualElement.styleSheets.Clear();
+                //foreach (StyleSheet sheet in usedStyleSheets)
+                //    rootVisualElement.styleSheets.Add(sheet);
+
+                //styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
+                //if (styleSheet != null && !styleSheet.Equals(null))
+                //{
+                //    rootVisualElement.styleSheets.Add(styleSheet);
+                //    if (!EditorGUIUtility.isProSkin)
+                //    {
+                //        rootVisualElement.styleSheets.Add(
+                //            AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload));
+                //    }
+                //}
+
+                //if (styleSheet == null || styleSheet.Equals(null))
+                //{
+                //    styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
+                //    if (styleSheet != null && !styleSheet.Equals(null))
+                //        rootVisualElement.styleSheets.Add(styleSheet);
+                //}
+                //if (!EditorGUIUtility.isProSkin && styleSheetLight != null && !styleSheetLight.Equals(null))
+                //{
+                //    styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
+                //    if (styleSheetLight != null && !styleSheetLight.Equals(null))
+                //        rootVisualElement.styleSheets.Add(styleSheetLight);
+                //}
+            }
+
+            OnUpdateRequestedInternal?.Invoke();
+        }
     }
 }
