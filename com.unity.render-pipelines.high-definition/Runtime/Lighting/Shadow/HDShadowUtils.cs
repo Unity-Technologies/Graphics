@@ -13,13 +13,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static Plane[] s_CachedPlanes = new Plane[6];
 
-        static float GetPunctualFilterWidthInTexels()
+        static float GetPunctualFilterWidthInTexels(HDShadowFilteringQuality quality)
         {
-            var hdAsset = HDRenderPipeline.currentAsset;
-            if (hdAsset == null)
-                return 1;
-
-            switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
+            switch (quality)
             {
                 // Warning: these values have to match the algorithms used for shadow filtering (in HDShadowAlgorithm.hlsl)
                 case HDShadowFilteringQuality.Low:
@@ -31,16 +27,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static void ExtractPointLightData(VisibleLight visibleLight, Vector2 viewportSize, float nearPlane, float normalBiasMax, uint faceIndex, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
+        public static void ExtractPointLightData(VisibleLight visibleLight, Vector2 viewportSize, float nearPlane, float normalBiasMax, uint faceIndex, HDShadowFilteringQuality filteringQuality,
+                                                 out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
-            float guardAngle = CalcGuardAnglePerspective(90.0f, viewportSize.x, GetPunctualFilterWidthInTexels(), normalBiasMax, 79.0f);
+            float guardAngle = CalcGuardAnglePerspective(90.0f, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 79.0f);
             ExtractPointLightMatrix(visibleLight, faceIndex, nearPlane, guardAngle, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
         }
 
         // TODO: box spot and pyramid spots with non 1 aspect ratios shadow are incorrectly culled, see when scriptable culling will be here
-        public static void ExtractSpotLightData(SpotLightShape shape, float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
+        public static void ExtractSpotLightData(SpotLightShape shape, float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality,
+                                                out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
@@ -48,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (shape != SpotLightShape.Pyramid)
                 aspectRatio = 1.0f;
 
-            float guardAngle = CalcGuardAnglePerspective(spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(), normalBiasMax, 180.0f - spotAngle);
+            float guardAngle = CalcGuardAnglePerspective(spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 180.0f - spotAngle);
             ExtractSpotLightMatrix(visibleLight, spotAngle, nearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
 
             if (shape == SpotLightShape.Box)
@@ -88,13 +86,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Currently area light shadows are not supported
-        public static void ExtractRectangleAreaLightData(VisibleLight visibleLight, Vector3 shadowPosition, float areaLightShadowCone, float shadowNearPlane, Vector2 shapeSize, Vector2 viewportSize, float normalBiasMax, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
+        public static void ExtractRectangleAreaLightData(VisibleLight visibleLight, Vector3 shadowPosition, float areaLightShadowCone, float shadowNearPlane, Vector2 shapeSize, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality,
+                                                         out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
             float aspectRatio = shapeSize.x / shapeSize.y;
             float spotAngle = areaLightShadowCone;
             visibleLight.spotAngle = spotAngle;
-            float guardAngle = CalcGuardAnglePerspective(visibleLight.spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(), normalBiasMax, 180.0f - visibleLight.spotAngle);
+            float guardAngle = CalcGuardAnglePerspective(visibleLight.spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 180.0f - visibleLight.spotAngle);
 
             ExtractSpotLightMatrix(visibleLight, visibleLight.spotAngle, shadowNearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
         }
@@ -251,16 +250,19 @@ namespace UnityEngine.Rendering.HighDefinition
             // get lightDir
             lightDir = vl.light.transform.forward;
             // calculate view
-            Matrix4x4 scaleMatrix = Matrix4x4.identity;
-            scaleMatrix.m22 = -1.0f;
-            view = scaleMatrix * vl.localToWorldMatrix.inverse;
+            view = vl.localToWorldMatrix.inverse;
+            view.m20 *= -1;
+            view.m21 *= -1;
+            view.m22 *= -1;
+            view.m23 *= -1;
+
             // calculate projection
             proj = ExtractSpotLightProjectionMatrix(vl.range, spotAngle, nearPlane, aspectRatio, guardAngle);
             // and the compound (deviceProj will potentially inverse-Z)
             deviceProj = GL.GetGPUProjectionMatrix(proj, false);
             proj = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
-            return deviceProj * view;
+            return  HDUtils.MultiplyPerspectiveMatrix(deviceProj, view);
         }
 
         static Matrix4x4 ExtractPointLightMatrix(VisibleLight vl, uint faceIdx, float nearPlane, float guardAngle, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
@@ -287,7 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
 
             Matrix4x4 devProjView = HDUtils.MultiplyPerspectiveMatrix(deviceProj, view);
-            // We can avoid computing proj * view for frustum planes, if device has reversed Z we flip the culling planes
+            // We can avoid computing proj * view for frustum planes, if device has reversed Z we flip the culling planes as we should have computed them with proj
             GeometryUtility.CalculateFrustumPlanes(devProjView, s_CachedPlanes);
             if (SystemInfo.usesReversedZBuffer)
             {
