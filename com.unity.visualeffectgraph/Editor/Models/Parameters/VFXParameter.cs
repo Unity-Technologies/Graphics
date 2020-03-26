@@ -152,29 +152,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public bool hasRange
-        {
-            get { return canHaveValueFilter && m_Min != null && m_Min.type != null && m_Max != null && m_Max.type != null; }
-
-            set
-            {
-                if (value != hasRange)
-                {
-                    if (value)
-                    {
-                        m_Min = new VFXSerializableObject(type);
-                        m_Max = new VFXSerializableObject(type);
-                    }
-                    else
-                    {
-                        m_Min = null;
-                        m_Max = null;
-                    }
-                    Invalidate(InvalidationCause.kUIChanged);
-                }
-            }
-        }
-
         [SerializeField]
         string m_Tooltip;
 

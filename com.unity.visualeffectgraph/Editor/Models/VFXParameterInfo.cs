@@ -26,6 +26,7 @@ namespace UnityEditor.VFX
             max = Mathf.Infinity;
             descendantCount = 0;
             sheetType = null;
+            enumValues = null;
         }
 
         public string name;
@@ -39,6 +40,15 @@ namespace UnityEditor.VFX
 
         public float min;
         public float max;
+
+        [Serializable]
+        public struct EnumValue
+        {
+            public string name;
+            public float value;
+        }
+
+        public List<EnumValue> enumValues;
 
         public int descendantCount;
 
@@ -85,12 +95,16 @@ namespace UnityEditor.VFX
                 {
                     paramInfo.sheetType = rootFieldName;
                     paramInfo.path = paramInfo.name;
-                    if (parameter.hasRange)
+                    if (parameter.valueFilter == ValueFilter.Range)
                     {
                         float min = (float)System.Convert.ChangeType(parameter.m_Min.Get(), typeof(float));
                         float max = (float)System.Convert.ChangeType(parameter.m_Max.Get(), typeof(float));
                         paramInfo.min = min;
                         paramInfo.max = max;
+                    }
+                    else if( parameter.valueFilter == ValueFilter.Enum)
+                    {
+                        paramInfo.enumValues = parameter.m_EnumValues.Select(t => new VFXParameterInfo.EnumValue() { name = t.name, value = (float)VFXConverter.ConvertTo(t.value.Get(),typeof(float))}).ToList();
                     }
                     paramInfo.defaultValue = new VFXSerializableObject(parameter.type, parameter.value);
 

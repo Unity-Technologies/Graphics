@@ -197,6 +197,29 @@ namespace UnityEditor.VFX
                     else
                         EditorGUI.IntSlider(rect, valueProperty, (int)parameter.min, (int)parameter.max, nameContent);
                 }
+                else if( parameter.enumValues != null && parameter.enumValues.Count > 0)
+                {
+                    if (valueProperty.propertyType == SerializedPropertyType.Float)
+                    {
+                        float currentValue = valueProperty.floatValue;
+                        int selectedIndex = parameter.enumValues.FindIndex(t => currentValue == t.value);
+                        int newIndex = EditorGUI.Popup(rect, nameContent,selectedIndex,parameter.enumValues.Select(t=>t.name).ToArray());
+                        if( newIndex != selectedIndex)
+                        {
+                            valueProperty.floatValue = parameter.enumValues[newIndex].value;
+                        }
+                    }
+                    else
+                    {
+                        int currentValue = valueProperty.intValue;
+                        int selectedIndex = parameter.enumValues.FindIndex(t => currentValue == t.value);
+                        int newIndex = EditorGUI.Popup(rect, nameContent, selectedIndex, parameter.enumValues.Select(t => t.name).ToArray());
+                        if (newIndex != selectedIndex)
+                        {
+                            valueProperty.intValue = (int)parameter.enumValues[newIndex].value;
+                        }
+                    }
+                }
                 else if (parameter.realType == typeof(Color).Name)
                 {
                     Vector4 vVal = valueProperty.vector4Value;
