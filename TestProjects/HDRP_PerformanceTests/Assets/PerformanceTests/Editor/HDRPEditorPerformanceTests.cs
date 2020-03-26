@@ -28,7 +28,9 @@ public class HDRPEditorPerformanceTests : EditorPerformanceTests
         if (testScenesAsset == null)
             yield break;
 
-        // testName is hardcoded for now
+        // testName is used to filter results in grafana, right now we already have the scene tag
+        // system which is easier to use than a list of tags in code. Thus we hardcode it for now,
+        // If we need more filtering one day we can use this.
         foreach (var (scene, asset) in testScenesAsset.buildTestSuite.GetTestList())
             yield return new BuildTestDescription{ assetData = asset, sceneData = scene, testName = "MainTest" };
     }

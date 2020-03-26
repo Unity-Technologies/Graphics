@@ -1,6 +1,9 @@
 # Graphics Performance Test Framework
 
-TODO
+This package will allow you to measure and report performance markers for your graphic package. It's build on top of the [performance test package](https://docs.unity3d.com/Packages/com.unity.test-framework.performance@2.0/manual/index.html) and contains utility functions to measure frame timings, memory usage, build performance and static shader analysis data (VGPR, SGPR, Occupancy, etc.).  
+You'll also learn how to automate performance testing using yamato and create beautiful graphs to visualize your performance data using grafana.
+
+![Grafana HDRP](Images/Grafana-HDRP.png)
 
 ## How to install ?
 
