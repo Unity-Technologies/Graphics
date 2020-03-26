@@ -849,11 +849,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.SpecularOcclusionCustom,              specularOcclusionMode == SpecularOcclusionMode.Custom),
 
                 // Misc
-                new ConditionalField(Fields.AlphaTest,                              alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
-                new ConditionalField(HDFields.AlphaTestShadow,                      alphaTest.isOn && alphaTestShadow.isOn &&
-                                                                                        pass.pixelPorts.Contains(AlphaClipThresholdShadowSlotId)),
-                new ConditionalField(HDFields.AlphaTestPrepass,                     alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdDepthPrepassSlotId)),
-                new ConditionalField(HDFields.AlphaTestPostpass,                    alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdDepthPostpassSlotId)),
+                // We always generate the keyword ALPHATEST_ON
+                new ConditionalField(Fields.AlphaTest,                              alphaTest.isOn && (pass.pixelPorts.Contains(AlphaClipThresholdSlotId) || pass.pixelPorts.Contains(AlphaClipThresholdSlotId) ||
+                                                                                        pass.pixelPorts.Contains(AlphaClipThresholdDepthPrepassSlotId) || pass.pixelPorts.Contains(AlphaClipThresholdDepthPostpassSlotId))),
+                // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
+                // Do alpha test only if we aren't using the TestShadow one
+                new ConditionalField(HDFields.DoAlphaTest,                          alphaTest.isOn && (pass.pixelPorts.Contains(AlphaClipThresholdSlotId) &&
+                                                                                        !(alphaTestShadow.isOn && pass.pixelPorts.Contains(AlphaClipThresholdShadowSlotId)))),
+                new ConditionalField(HDFields.DoAlphaTestShadow,                    alphaTest.isOn && alphaTestShadow.isOn && pass.pixelPorts.Contains(AlphaClipThresholdShadowSlotId)),
+                new ConditionalField(HDFields.DoAlphaTestPrepass,                   alphaTest.isOn && alphaTestDepthPrepass.isOn && pass.pixelPorts.Contains(AlphaClipThresholdDepthPrepassSlotId)),
+                new ConditionalField(HDFields.DoAlphaTestPostpass,                  alphaTest.isOn && alphaTestDepthPostpass.isOn && pass.pixelPorts.Contains(AlphaClipThresholdDepthPostpassSlotId)),
                 new ConditionalField(HDFields.AlphaFog,                             surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
                 new ConditionalField(HDFields.BlendPreserveSpecular,                surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
                 new ConditionalField(HDFields.TransparentWritesMotionVec,           surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
