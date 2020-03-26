@@ -35,14 +35,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev EnvironmentLibrary tab when asset is deleted
 - Fix LookDev used Cubemap when asset is deleted
 - Fixed the definition of `rcp()` for GLES2.
-<<<<<<< HEAD
 - Fix LookDev issue when adding a GameObject containing a Volume into the LookDev's view.
 - Fixed duplicated entry for com.unity.modules.xr in the runtime asmdef file
 - Fixed the texture curve being destroyed from another thread than main (case 1211754)
 - Fixed unreachable code in TextureXR.useTexArray
-=======
 - Fixed copy/pasting of Volume Components when loading a new scene
->>>>>>> 70f887c8f7... Fixed volume components lifespan in the clipboard (#5869)
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.

@@ -11,7 +11,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class HairSettingsView : VisualElement
+    class HairSettingsView : MasterNodeSettingsView
     {
         HairMasterNode m_Node;
 
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
-        public HairSettingsView(HairMasterNode node)
+        public HairSettingsView(HairMasterNode node) : base(node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
@@ -266,6 +266,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             });
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeSurfaceType(ChangeEvent<Enum> evt)

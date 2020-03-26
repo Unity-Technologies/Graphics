@@ -120,7 +120,7 @@ namespace UnityEditor.VFX.Test
                 var fieldName = VisualEffectSerializationUtility.GetTypeField(VFXExpression.TypeToType(VFXValueType.Int32)) + ".m_Array";
                 var vfxField = propertySheet.FindPropertyRelative(fieldName);
 
-                for(int i = 0; i < vfxField.arraySize; ++i)
+                for (int i = 0; i < vfxField.arraySize; ++i)
                 {
                     var itField = vfxField.GetArrayElementAtIndex(i);
                     var name = itField.FindPropertyRelative("m_Name").stringValue;

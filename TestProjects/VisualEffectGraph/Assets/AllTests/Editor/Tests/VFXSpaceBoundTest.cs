@@ -16,7 +16,6 @@ namespace UnityEditor.VFX.Test
 {
     public class VFXSpaceBoundTest
     {
-
         [TearDown]
         public void CleanUp()
         {
