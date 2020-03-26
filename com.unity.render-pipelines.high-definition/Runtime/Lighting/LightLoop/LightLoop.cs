@@ -38,10 +38,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var matrix = value.localToWorldMatrix;
             VisibleLightAxisAndPosition output;
-            output.Position = matrix.GetColumn(3);
-            output.Forward  = matrix.GetColumn(2);
-            output.Up       = matrix.GetColumn(1);
-            output.Right    = matrix.GetColumn(0);
+            output.Position = value.localToWorldMatrix.GetColumn(3);
+            output.Forward  = value.localToWorldMatrix.GetColumn(2);
+            output.Up       = value.localToWorldMatrix.GetColumn(1);
+            output.Right    = value.localToWorldMatrix.GetColumn(0);
             return output;
         }
     }
@@ -2175,11 +2175,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Reserve shadow map resolutions and check if light needs to render shadows
                 if (additionalData.WillRenderShadowMap())
                 {
-                    additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light.screenRect);
+                    additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light.screenRect, lightType);
                 }
 
                 // Reserve the cookie resolution in the 2D atlas
-                ReserveCookieAtlasTexture(additionalData, light.light);
+                ReserveCookieAtlasTexture(additionalData, light.light, lightType);
 
                 if (hasDebugLightFilter
                     && !debugLightFilter.IsEnabledFor(processedData.gpuLightType, additionalData.spotLightShape))
@@ -2640,7 +2640,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_enableBakeShadowMask;
         }
 
-        internal void ReserveCookieAtlasTexture(HDAdditionalLightData hdLightData, Light light)
+        internal void ReserveCookieAtlasTexture(HDAdditionalLightData hdLightData, Light light, HDLightType lightType)
         {
             // Note: light component can be null if a Light is used for shuriken particle lighting.
             switch (hdLightData.ComputeLightType(light))

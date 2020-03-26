@@ -1589,9 +1589,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        int GetShadowRequestCount(HDShadowSettings shadowSettings)
+        int GetShadowRequestCount(HDShadowSettings shadowSettings, HDLightType lightType)
         {
-            HDLightType lightType = type;
             return lightType == HDLightType.Point
                 ? 6
                 : lightType == HDLightType.Directional
@@ -1690,7 +1689,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDShadowInitParameters initParameters, Rect screenRect)
+        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDShadowInitParameters initParameters, Rect screenRect, HDLightType lightType)
         {
             if (!m_WillRenderShadowMap)
                 return;
@@ -1708,11 +1707,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            HDLightType lightType = type;
             ShadowMapType shadowType = GetShadowMapType(lightType);
 
             // Reserve wanted resolution in the shadow atlas
-            int resolution = GetResolutionFromSettings(shadowMapType, initParameters);
+            int resolution = GetResolutionFromSettings(shadowType, initParameters);
             Vector2 viewportSize = new Vector2(resolution, resolution);
 
             bool viewPortRescaling = false;
@@ -1749,7 +1747,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightType == HDLightType.Directional)
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, shadowSettings.cascadeShadowSplitCount.value);
 
-            int count = GetShadowRequestCount(shadowSettings);
+            int count = GetShadowRequestCount(shadowSettings, lightType);
             bool needsCachedSlotsInAtlas = shadowsAreCached && !(ShadowIsUpdatedEveryFrame() || lightType == HDLightType.Directional);
 
             for (int index = 0; index < count; index++)
@@ -1821,7 +1819,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDLightType lightType = type;
             ShadowMapType shadowType = GetShadowMapType(lightType);
 
-            int count = GetShadowRequestCount(shadowSettings);
+            int count = GetShadowRequestCount(shadowSettings, lightType);
             bool shadowIsCached = !ShouldRenderShadows() && !lightingDebugSettings.clearShadowAtlas;
             bool isUpdatedEveryFrame = ShadowIsUpdatedEveryFrame();
 

@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (light == null || !light.enabled) continue;
 
                     // Reserve space in the cookie atlas
-                    m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light);
+                    m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light, currentLight.type);
 
                     float lightRange = light.range;
                     m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
