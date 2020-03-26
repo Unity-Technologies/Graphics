@@ -1,0 +1,82 @@
+MasterPreviewView {
+    flex-direction: column;
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    background-color: rgb(79, 79, 79);
+    justify-content: flex-start;
+    border-radius: 6px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-color: rgb(25,25,25);
+}
+
+MasterPreviewView > #top {
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: rgb(64, 64, 64);
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+MasterPreviewView > #top > #title {
+    font-size: 12px;
+    color: rgb(180, 180, 180);
+    padding-top: 1px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+MasterPreviewView > #top > #collapse-container {
+    align-self : center;
+    width : 12px;
+}
+
+MasterPreviewView > #top > #collapse-container > #icon{
+    align-self: center;
+    background-image : resource("GraphView/Nodes/NodeChevronDown");
+    width: 12px;
+    height: 12px;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+MasterPreviewView > #top > #collapse-container > #icon.collapsed {
+    align-self: center;
+    background-image : resource("GraphView/Nodes/NodeChevronLeft");
+    width: 12px;
+    height: 12px;
+}
+
+MasterPreviewView > #top > #collapse-container > #icon.expanded {
+    align-self: center;
+    background-image : resource("GraphView/Nodes/NodeChevronDown");
+    width: 12px;
+    height: 12px;
+}
+
+MasterPreviewView > #middle {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+MasterPreviewView > #middle > #preview {
+    flex-grow: 1;
+    width: 200px;
+    height: 200px;
+}
+
+MasterPreviewView.collapsed{
+    background-color: rgb(206, 53, 185);
+}
+
+MasterPreviewView.expanded{
+    background-color: rgb(206, 53, 185);
+}
