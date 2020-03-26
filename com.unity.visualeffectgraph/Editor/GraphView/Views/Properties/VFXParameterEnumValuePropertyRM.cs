@@ -33,7 +33,19 @@ namespace UnityEditor.VFX.UI
 
             bool IPropertyRMProvider.expandableIfShowsEverything => false;
 
-            object IPropertyRMProvider.value { get => m_Owner.m_Value.value.Get(); set => m_Owner.m_Value.value.Set(value); }
+            object IPropertyRMProvider.value
+            {
+                get => ((VFXParameter.EnumValue)m_Owner.m_Provider.value).value.Get();
+
+                set
+                {
+                    var val = (VFXParameter.EnumValue)m_Owner.m_Provider.value;
+
+                    val.value.Set(value);
+
+                    m_Owner.m_Provider.value = val;
+                }
+            }
 
             bool IPropertyRMProvider.spaceableAndMasterOfSpace => false;
 
@@ -90,7 +102,7 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI(bool force)
         {
             m_NameField.value = ((VFXParameter.EnumValue)m_Provider.value).name;
-            m_ValueProperty.UpdateGUI(force);
+            m_ValueProperty.Update();
         }
 
         protected override void UpdateEnabled()
@@ -115,6 +127,11 @@ namespace UnityEditor.VFX.UI
         protected override VFXParameterEnumValuePropertyRM CreateField(IPropertyRMProvider provider)
         {
             return new VFXParameterEnumValuePropertyRM(provider,18);
+        }
+
+        protected override VFXParameter.EnumValue CreateItem()
+        {
+            return new VFXParameter.EnumValue() { name = "New item", value = new VFXSerializableObject(m_Provider.portType,VFXConverter.ConvertTo(m_List.itemCount,m_Provider.portType))};
         }
     }
 }

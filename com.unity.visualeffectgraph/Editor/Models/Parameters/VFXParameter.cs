@@ -77,7 +77,7 @@ namespace UnityEditor.VFX
                         case ValueFilter.Enum:
                             m_EnumValues = new List<EnumValue>();
                             m_EnumValues.Add(new EnumValue() { name = "Zero", value = new VFXSerializableObject(type, VFXConverter.ConvertTo(0, type)) });
-                            m_EnumValues.Add(new EnumValue() { name = "Zero", value = new VFXSerializableObject(type, VFXConverter.ConvertTo(1, type)) });
+                            m_EnumValues.Add(new EnumValue() { name = "One", value = new VFXSerializableObject(type, VFXConverter.ConvertTo(1, type)) });
                             m_Max = m_Min = null;
                             break;
                     }

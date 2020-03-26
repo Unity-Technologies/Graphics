@@ -19,11 +19,47 @@ namespace UnityEditor.VFX.UI
         public ListPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             AddToClassList("ListPropertyRM");
-            m_List = new VFXReorderableList();
+            m_List = new ReorderableList(this);
             Add(m_List);
         }
 
-        VFXReorderableList m_List;
+
+        protected class ReorderableList : VFXReorderableList
+        {
+            ListPropertyRM<T, U> m_List;
+
+            public ReorderableList(ListPropertyRM<T, U> list)
+            {
+                m_List = list;
+            }
+            public override void OnAdd()
+            {
+                m_List.OnAdd();
+            }
+
+            public override void OnRemove(int index)
+            {
+                m_List.OnRemove(index);
+            }
+        }
+
+        void OnAdd()
+        {
+            T value = CreateItem();
+
+            ((List<T>)m_Provider.value).Add(value);
+            NotifyValueChanged();
+            Update();
+        }
+
+        void OnRemove(int index)
+        {
+            ((List<T>)m_Provider.value).RemoveAt(index);
+            NotifyValueChanged();
+            Update();
+        }
+
+        protected ReorderableList m_List;
 
         public override float GetPreferredControlWidth()
         {
@@ -39,7 +75,7 @@ namespace UnityEditor.VFX.UI
             }
             while (m_List.itemCount < itemCount)
             {
-                m_List.AddItem(CreateNewItem(m_List.itemCount));
+                m_List.AddItem(CreateNewField(m_List.itemCount));
             }
             while (m_List.itemCount > itemCount)
             {
@@ -106,7 +142,9 @@ namespace UnityEditor.VFX.UI
 
         protected abstract U CreateField(IPropertyRMProvider provider);
 
-        protected U CreateNewItem(int index)
+        protected abstract T CreateItem();
+
+        protected U CreateNewField(int index)
         {
             U item = CreateField(new ItemProvider(this, index));
 
