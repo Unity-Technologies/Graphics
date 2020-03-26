@@ -421,10 +421,6 @@ namespace UnityEditor
                 material.DisableKeyword("_ALPHATEST_ON");
             }
 
-            var queueOffset = 0; // queueOffsetRange;
-            if(material.HasProperty("_QueueOffset"))
-                queueOffset = (int) material.GetFloat("_QueueOffset");
-
             if (material.HasProperty("_Surface"))
             {
                 SurfaceType surfaceType = (SurfaceType) material.GetFloat("_Surface");
@@ -441,7 +437,7 @@ namespace UnityEditor
                         material.SetOverrideTag("RenderType", "Opaque");
                     }
 
-                    material.renderQueue += queueOffset;
+                    material.renderQueue += material.HasProperty("_QueueOffset") ? (int) material.GetFloat("_QueueOffset") : 0;
                     material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.One);
                     material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.Zero);
                     material.SetInt("_ZWrite", 1);
@@ -482,7 +478,7 @@ namespace UnityEditor
                     // General Transparent Material Settings
                     material.SetOverrideTag("RenderType", "Transparent");
                     material.SetInt("_ZWrite", 0);
-                    material.renderQueue = queue + queueOffset;
+                    material.renderQueue += material.HasProperty("_QueueOffset") ? (int) material.GetFloat("_QueueOffset") : 0;
                     material.SetShaderPassEnabled("ShadowCaster", false);
                 }
             }
