@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Describes the type of custom pass buffer that will be exported with the AOV API.
     /// </summary>
-    public struct CustomPassAOVBuffers
+    public class CustomPassAOVBuffers
     {
         /// <summary> Specifies which output type to export.</summary>
         public enum OutputType
@@ -30,8 +30,19 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary> The injection point of the custom passes that will be exported. </summary>
-        public CustomPassInjectionPoint injectionPoint;
+        public CustomPassInjectionPoint injectionPoint = CustomPassInjectionPoint.BeforeRendering;
         /// <summary> Specifies which output type to export.</summary>
-        public OutputType outputType;
+        public OutputType outputType = OutputType.CustomPassBuffer;
+
+        /// <summary>
+        /// Constructor for CustomPassAOVBuffers
+        /// </summary>
+        /// <param name="injectionPoint"> The injection point of the custom passes that will be exported. </param>
+        /// <param name="outputType"> The buffer type to export at the scpecified injection point. </param>
+        public CustomPassAOVBuffers(CustomPassInjectionPoint injectionPoint, OutputType outputType)
+        {
+            this.injectionPoint = injectionPoint;
+            this.outputType = outputType;
+        }
     }
 }
