@@ -43,7 +43,7 @@ VFXMain_Win_DX11_Standalone_2020.1:
     dependencies:
       -  path: .yamato/z_editor.yml#editor:priming:2020.1:windows
          rerun: on-new-revision
-      -  path: .yamato/upm-ci-vfxmain-win-dx11.yml#Build_VFXMain_Win_DX11_Player_2020.1
+      -  path: .yamato/vfxmain/vfxmain-win-dx11.yml#Build_VFXMain_Win_DX11_Player_2020.1
          rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/VisualEffectGraph/utr

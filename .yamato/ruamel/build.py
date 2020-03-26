@@ -1,7 +1,8 @@
 import ruamel
 from models import project_all as pa
 from models import project_test as pt
-import sys
+from models.helpers.namer import file_path, file_path_all
+import sys, glob
 
 # TODO generate job names/ids
 
@@ -28,8 +29,8 @@ def create_yml_jobs(metafile):
                     yml[job_id_standalone_build] = pt.project_standalone_build(project, editor, platform, api)
                 
             # store yml per [project]-[platform]-[api]
-            yml_file = f'{project["name"]}/upm-ci-{project["name"]}-{platform["name"]}-{api["name"]}.yml'.lower()
-            with open(f'.yamato/{yml_file}'.lower(), 'w') as f:
+            yml_file= file_path(project["name"], platform["name"], api["name"])
+            with open(yml_file, 'w') as f:
                 yaml.dump(yml, f) 
 
 
@@ -47,8 +48,8 @@ def create_yml_all(metafile):
         yml[job_id] = pa.project_all(project_name, editor, dependencies_in_all)
     
 
-    yml_file = f'{project_name}/upm-ci-{project_name}-all.yml'.lower()
-    with open(f'.yamato/{yml_file}'.lower(), 'w') as f:
+    yml_file = file_path_all(project_name)
+    with open(yml_file, 'w') as f:
         yaml.dump(yml, f) 
 
 
@@ -61,10 +62,16 @@ if __name__== "__main__":
     yaml.indent(offset=2, mapping=4, sequence=5)
     
     # create yml for each specified project (universal, shadergraph, vfx_lwrp, ...)
-    project_names = sys.argv[1:]
-    for project in project_names:
+    args = sys.argv
+    if 'all' in args:
+        project_config_files = glob.glob('config/*.metafile')
+    else:
+        project_config_files = [f'config/{project}.metafile' for project in args[1:]]
+
+    print(f'Running: {project_config_files}')
+    for project in project_config_files:
         
-        with open(f'config/upm-ci-{project}.metafile') as f:
+        with open(project) as f:
             metafile = yaml.load(f)
         
         create_yml_jobs(metafile) # create jobs for testplatforms

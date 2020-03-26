@@ -7,5 +7,5 @@ All_HDRP_Standalone_2020.1:
     commands:
       -  dir
     dependencies:
-      -  path: .yamato/hdrp_standalone/upm-ci-hdrp_standalone-win-dx11.yml#HDRP_Standalone_Win_DX11_Standalone_2020.1
+      -  path: .yamato/hdrp_standalone/hdrp_standalone-win-dx11.yml#HDRP_Standalone_Win_DX11_Standalone_2020.1
          rerun: on-new-revision

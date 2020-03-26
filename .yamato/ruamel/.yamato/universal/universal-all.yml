@@ -1,0 +1,21 @@
+All_Universal_2020.1:
+    name: All Universal CI - 2020.1
+    agent:
+        flavor: b1.small
+        type: Unity::VM
+        image: cds-ops/ubuntu-18.04-agent:stable
+    commands:
+      -  dir
+    dependencies:
+      -  path: .yamato/universal/universal-win-dx11.yml#Universal_Win_DX11_Standalone_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal/universal-win-dx11.yml#Universal_Win_DX11_editmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal/universal-win-dx11.yml#Universal_Win_DX11_playmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal/universal-osx-metal.yml#Universal_OSX_Metal_Standalone_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal/universal-osx-metal.yml#Universal_OSX_Metal_playmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_2020.1
+         rerun: on-new-revision

@@ -7,7 +7,7 @@ All_HDRP_2020.1:
     commands:
       -  dir
     dependencies:
-      -  path: .yamato/hdrp/upm-ci-hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_2020.1
+      -  path: .yamato/hdrp/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_2020.1
          rerun: on-new-revision
-      -  path: .yamato/hdrp/upm-ci-hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_2020.1
+      -  path: .yamato/hdrp/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_2020.1
          rerun: on-new-revision

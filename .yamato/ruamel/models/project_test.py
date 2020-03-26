@@ -2,6 +2,7 @@ from ruamel import yaml
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ruamel.yaml.scalarstring import PlainScalarString as pss
 from .commands import cmd_mapper as cm
+from .helpers.namer import file_path
 
 def _job(project_name, test_platform_name, editor, platform, api, cmd):
 
@@ -62,14 +63,14 @@ def project_standalone(project, editor, platform, api):
     job = _job(project["name"], 'standalone', editor, platform, api, cmd(project, platform, api))
 
     if platform["standalone_split"]:
-
-        yml_file = f'upm-ci-{project["name"]}-{platform["name"]}-{api["name"]}.yml'.lower()
+        
+        yml_file= file_path(project["name"], platform["name"], api["name"])
         job_id_build = f'Build_{project["name"]}_{platform["name"]}_{api["name"]}_Player_{editor["version"]}'
         
         job['skip_checkout'] = True
         job['dependencies'].append(
             {
-                'path' : f'.yamato/{yml_file}#{job_id_build}',
+                'path' : f'{yml_file}#{job_id_build}',
                 'rerun' : f'{editor["rerun_strategy"]}'
             }
         )

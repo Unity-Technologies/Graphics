@@ -43,7 +43,7 @@ Universal_OSX_OpenGLCore_Standalone_2020.1:
     dependencies:
       -  path: .yamato/z_editor.yml#editor:priming:2020.1:macos
          rerun: on-new-revision
-      -  path: .yamato/upm-ci-universal-osx-openglcore.yml#Build_Universal_OSX_OpenGLCore_Player_2020.1
+      -  path: .yamato/universal/universal-osx-openglcore.yml#Build_Universal_OSX_OpenGLCore_Player_2020.1
          rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr

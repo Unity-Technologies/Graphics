@@ -43,7 +43,7 @@ Universal_Stereo_Win__Standalone_2020.1:
     dependencies:
       -  path: .yamato/z_editor.yml#editor:priming:2020.1:windows
          rerun: on-new-revision
-      -  path: .yamato/upm-ci-universal_stereo-win-.yml#Build_Universal_Stereo_Win__Player_2020.1
+      -  path: .yamato/universal_stereo/universal_stereo-win-.yml#Build_Universal_Stereo_Win__Player_2020.1
          rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr

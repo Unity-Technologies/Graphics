@@ -1,0 +1,15 @@
+All_ShaderGraph_Stereo_2020.1:
+    name: All ShaderGraph_Stereo CI - 2020.1
+    agent:
+        flavor: b1.small
+        type: Unity::VM
+        image: cds-ops/ubuntu-18.04-agent:stable
+    commands:
+      -  dir
+    dependencies:
+      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-win-.yml#ShaderGraph_Stereo_Win__Standalone_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-win-.yml#ShaderGraph_Stereo_Win__editmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-win-.yml#ShaderGraph_Stereo_Win__playmode_2020.1
+         rerun: on-new-revision

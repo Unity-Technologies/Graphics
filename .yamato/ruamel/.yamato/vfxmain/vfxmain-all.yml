@@ -7,9 +7,9 @@ All_VFXMain_2020.1:
     commands:
       -  dir
     dependencies:
-      -  path: .yamato/vfxmain/upm-ci-vfxmain-win-dx11.yml#VFXMain_Win_DX11_Standalone_2020.1
+      -  path: .yamato/vfxmain/vfxmain-win-dx11.yml#VFXMain_Win_DX11_Standalone_2020.1
          rerun: on-new-revision
-      -  path: .yamato/vfxmain/upm-ci-vfxmain-win-dx11.yml#VFXMain_Win_DX11_editmode_2020.1
+      -  path: .yamato/vfxmain/vfxmain-win-dx11.yml#VFXMain_Win_DX11_editmode_2020.1
          rerun: on-new-revision
-      -  path: .yamato/vfxmain/upm-ci-vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_2020.1
+      -  path: .yamato/vfxmain/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_2020.1
          rerun: on-new-revision

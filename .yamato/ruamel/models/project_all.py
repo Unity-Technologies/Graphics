@@ -1,6 +1,7 @@
 from ruamel import yaml
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ruamel.yaml.scalarstring import PlainScalarString as pss
+from .helpers.namer import file_path
 
 
 def _dependencies(project_name, editor, dependencies_in_all):
@@ -9,12 +10,12 @@ def _dependencies(project_name, editor, dependencies_in_all):
     for d in dependencies_in_all:
         for test_platform_name in d["test_platform_names"]:
             
-            file_name = f'upm-ci-{project_name}-{d["platform_name"]}-{d["api_name"]}.yml'.lower()
+            file_name= file_path(project_name, d["platform_name"], d["api_name"])
             job_id = f'{project_name}_{d["platform_name"]}_{d["api_name"]}_{test_platform_name}_{editor["version"]}'
 
             dependencies.append(
                 {
-                    'path' : f'.yamato/{project_name.lower()}/{file_name}#{job_id}',
+                    'path' : f'{file_name}#{job_id}',
                     'rerun' : editor["rerun_strategy"]
                 }
             )
