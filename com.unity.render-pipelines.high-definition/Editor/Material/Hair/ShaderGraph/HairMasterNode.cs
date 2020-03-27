@@ -839,7 +839,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                        !pass.Equals(HDPasses.Hair.MotionVectors)),
+                                                                                        !pass.Equals(HDHairSubTarget.HairPasses.MotionVectors)),
                 // Material
                 new ConditionalField(HDFields.KajiyaKay,                            materialType == MaterialType.KajiyaKay),
 

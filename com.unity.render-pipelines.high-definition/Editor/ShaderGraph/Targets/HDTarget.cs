@@ -61,6 +61,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { typeof(UnlitMasterNode), typeof(UnlitSubTarget) },
             { typeof(HDLitMasterNode), typeof(HDLitSubTarget) },
             { typeof(HDUnlitMasterNode), typeof(HDUnlitSubTarget) },
+            { typeof(EyeMasterNode), typeof(HDEyeSubTarget) },
+            { typeof(FabricMasterNode), typeof(HDFabricSubTarget) },
+            { typeof(HairMasterNode), typeof(HDHairSubTarget) },
             { typeof(DecalMasterNode), typeof(HDDecalSubTarget) },
         };
     }
@@ -365,6 +368,31 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.ColorMask("ColorMask 0") },
         };
 
+        public static RenderStateCollection Forward = new RenderStateCollection
+        {
+            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
+            { RenderState.Cull(Uniforms.cullModeForward) },
+            { RenderState.ZWrite(Uniforms.zWrite) },
+            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque), new FieldCondition[] {
+                new FieldCondition(Fields.SurfaceOpaque, true),
+                new FieldCondition(Fields.AlphaTest, false)
+            } },
+            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque), new FieldCondition[] {
+                new FieldCondition(Fields.SurfaceOpaque, false),
+            } },
+            { RenderState.ZTest(ZTest.Equal), new FieldCondition[] {
+                new FieldCondition(Fields.SurfaceOpaque, true),
+                new FieldCondition(Fields.AlphaTest, true)
+            } },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = Uniforms.stencilWriteMask,
+                Ref = Uniforms.stencilRef,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
+
         public static RenderStateCollection ForwardColorMask = new RenderStateCollection
         {
             { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
@@ -524,6 +552,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.DebugDisplay },
         };
 
+        public static KeywordCollection DepthMotionVectorsNoNormal = new KeywordCollection
+        {
+            { HDBase },
+            { CoreKeywordDescriptors.WriteMsaaDepth },
+        };
+
         public static KeywordCollection Forward = new KeywordCollection
         {
             { HDBase },
@@ -556,6 +590,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection SceneSelection = new DefineCollection
         {
             { CoreKeywordDescriptors.SceneSelectionPass, 1 },
+        };
+
+        public static DefineCollection DepthMotionVectors = new DefineCollection
+        {
+            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { CoreKeywordDescriptors.WriteNormalBuffer, 1 },
         };
 
         public static DefineCollection ShaderGraphRaytracingHigh = new DefineCollection
