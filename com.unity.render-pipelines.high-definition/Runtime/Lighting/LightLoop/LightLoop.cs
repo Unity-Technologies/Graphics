@@ -38,10 +38,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var matrix = value.localToWorldMatrix;
             VisibleLightAxisAndPosition output;
-            output.Position = value.localToWorldMatrix.GetColumn(3);
-            output.Forward  = value.localToWorldMatrix.GetColumn(2);
-            output.Up       = value.localToWorldMatrix.GetColumn(1);
-            output.Right    = value.localToWorldMatrix.GetColumn(0);
+            output.Position = matrix.GetColumn(3);
+            output.Forward  = matrix.GetColumn(2);
+            output.Up       = matrix.GetColumn(1);
+            output.Right    = matrix.GetColumn(0);
             return output;
         }
     }
