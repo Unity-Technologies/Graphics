@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
 - Hidden unsupported choice in emission in Materials
+- All custom pass volumes are now executed for one injection point instead of the first one.
 
 ## [8.0.0] - 2020-05-25
 
