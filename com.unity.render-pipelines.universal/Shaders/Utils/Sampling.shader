@@ -94,7 +94,7 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
             #pragma vertex Vertex
             #pragma fragment FragFetch
 
-            UNITY_DECLARE_FRAMEBUFFER_INPUT(0, HALF);
+            UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(0);
 
 
             half4 FragFetch(Varyings input) : SV_Target

@@ -207,25 +207,21 @@
 
 #else
 
-//Should be implemented properly per-platform
-#define TEXTURE2D_FLOAT_MS(textureName) Texture2DMS<float4> textureName
-#define TEXTURE2D_HALF_MS(textureName) Texture2DMS<half4> textureName
-#define TEXTURE2D_INT_MS(textureName) Texture2DMS<int4> textureName
-#define TEXTURE2D_UINT_MS(textureName) Texture2DMS<uint4> textureName
-
 // Renderpass inputs: General fallback paths
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT(idx, type) TEXTURE2D_##type##(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(idx) TEXTURE2D_FLOAT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(idx) TEXTURE2D_HALF(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_INT(idx) TEXTURE2D_INT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_UINT(idx) TEXTURE2D_UINT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+
 #define UNITY_READ_FRAMEBUFFER_INPUT(idx, v2fvertexname) _UnityFBInput##idx.Load(uint3(v2fvertexname.xy, 0))
-#define UNITY_READ_FRAMEBUFFER_SCREENSPACE_INPUT(idx, v2fvertexname) _UnityFBInput##idx.Load(uint3(v2fvertexname.xy * _UnityFBInput##idx##_TexelSize.zw, 0))
 
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_MS(idx, type) TEXTURE2D_##type##_MS(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-#define UNITY_READ_FRAMEBUFFER_INPUT_MS(idx, sampleIdx, v2fvertexname) LOAD_TEXTURE2D_MSAA(_UnityFBInput##idx, v2fvertexname.xy, sampleIdx)
-#define UNITY_READ_FRAMEBUFFER_SCREENSPACE_INPUT_MS(idx, sampleIdx, v2fvertexname) LOAD_TEXTURE2D_MSAA(_UnityFBInput##idx, v2fvertexname.xy * _UnityFBInput##idx##_TexelSize.zw, sampleIdx)
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT_MS(idx) Texture2DMS<float4> _UnityFBInput##idx; float4 _UnityFBInput##idx##_TexelSize
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF_MS(idx) Texture2DMS<float4> _UnityFBInput##idx; float4 _UnityFBInput##idx##_TexelSize
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_INT_MS(idx) Texture2DMS<int4> _UnityFBInput##idx; float4 _UnityFBInput##idx##_TexelSize
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_UINT_MS(idx) Texture2DMS<uint4> _UnityFBInput##idx; float4 _UnityFBInput##idx##_TexelSize
 
-#undef TEXTURE2D_FLOAT_MS
-#undef TEXTURE2D_HALF_MS
-#undef TEXTURE2D_INT_MS
-#undef TEXTURE2D_UINT_MS
+#define UNITY_READ_FRAMEBUFFER_INPUT_MS(idx, sampleIdx, v2fvertexname) _UnityFBInput##idx.Load(uint2(v2fvertexname.xy), sampleIdx)
+
 
 #endif
 

@@ -64,15 +64,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             // The blit will be reworked for stereo along the XRSDK work.
             Material blitMaterial = (cameraData.isStereoEnabled) ? null : m_BlitMaterial;
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
-            if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
-            {
-                // This set render target is necessary so we change the LOAD state to DontCare.
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
-                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,     // color
-                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                cmd.Blit(m_Source.Identifier(), cameraTarget, blitMaterial);
-            }
-            else
+//            if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
+//            {
+//                // This set render target is necessary so we change the LOAD state to DontCare.
+//                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+//                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,     // color
+//                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
+//                cmd.Blit(m_Source.Identifier(), cameraTarget, blitMaterial);
+//            }
+//            else
             {
                 // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
                 // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.

@@ -80,10 +80,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         return output;
     }
 
-    UNITY_DECLARE_FRAMEBUFFER_INPUT(0, HALF);
-    UNITY_DECLARE_FRAMEBUFFER_INPUT(1, HALF);
-    UNITY_DECLARE_FRAMEBUFFER_INPUT(2, HALF);
-    UNITY_DECLARE_FRAMEBUFFER_INPUT(3, FLOAT);
+    UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(0);
+    UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(1);
+    UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(2);
+    UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
 
     float4x4 _ScreenToWorld;
 
@@ -103,10 +103,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         UNITY_SETUP_INSTANCE_ID(input);
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-        float d        = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
         half4 gbuffer0 = UNITY_READ_FRAMEBUFFER_INPUT(0, input.positionCS.xy);
         half4 gbuffer1 = UNITY_READ_FRAMEBUFFER_INPUT(1, input.positionCS.xy);
         half4 gbuffer2 = UNITY_READ_FRAMEBUFFER_INPUT(2, input.positionCS.xy);
+        float d        = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
 
         #if XR_MODE
             #if UNITY_REVERSED_Z

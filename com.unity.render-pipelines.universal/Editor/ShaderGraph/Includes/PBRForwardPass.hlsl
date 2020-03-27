@@ -1,9 +1,9 @@
 ﻿void BuildInputData(Varyings input, float3 normal, out InputData inputData)
 {
     inputData.positionWS = input.positionWS;
-#ifdef _NORMALMAP
-
     inputData.positionCS = input.positionCS;
+
+#ifdef _NORMALMAP
 
 #if _NORMAL_DROPOFF_TS
 	// IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.

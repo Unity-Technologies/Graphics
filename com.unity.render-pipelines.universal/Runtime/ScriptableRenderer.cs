@@ -73,7 +73,6 @@ namespace UnityEngine.Rendering.Universal
             // for now using cmd.SetViewProjecionMatrices
             //SetViewAndProjectionMatrices(cmd, viewMatrix, cameraData.GetDeviceProjectionMatrix(), setInverseMatrices);
             cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-
             // unity_MatrixInvVP is not set by cmd.SetViewProjectionMatrices, we set it here
             Matrix4x4 viewAndProjectionMatrix = projectionMatrix * viewMatrix;
             Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
@@ -243,6 +242,7 @@ namespace UnityEngine.Rendering.Universal
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_NativeRenderPass = "Native RenderPass";
         const string k_RenderPass = "ScriptableRenderPass";
+        private const string k_ConfigureNativeRenderPass = "Configure Native RenderPass";
         const string k_ReleaseResourcesTag = "Release Resources";
 
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
@@ -584,7 +584,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (endIndex == 0 || blockRanges[blockIndex] == endIndex)
                     return;
-
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
                 //The old path
                 if (!renderPass.useNativeRenderPass || renderingData.cameraData.camera.cameraType != CameraType.Game)
@@ -610,7 +609,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // Run through all ScriptableRenderPasses once to get all the attachments at the beginning of the block
                         // TODO: add some validation here (compare with previous/next rp descriptors)
-                        CommandBuffer cmd = CommandBufferPool.Get(k_RenderPass);
+                        CommandBuffer cmd = CommandBufferPool.Get(k_ConfigureNativeRenderPass);
                         for (int rpIdx = blockRanges[blockIndex]; rpIdx < endIndex; ++rpIdx)
                         {
                             var rp = m_ActiveRenderPassQueue[rpIdx];
@@ -618,8 +617,6 @@ namespace UnityEngine.Rendering.Universal
                                 continue;
 
                             rp.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
-                            context.ExecuteCommandBuffer(cmd);
-                            cmd.Clear();
 
                             for (int i = 0; i < rp.colorAttachmentDescriptors.Length; i++)
                             {
@@ -639,9 +636,15 @@ namespace UnityEngine.Rendering.Universal
                             if (rp.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None && depthAttachmentIdx == -1)
                             {
                                 attachmentSet.Add(rp.depthAttachmentDescriptor);
-                                depthAttachmentIdx = attachmentSet.Count - 1; //This might be bad, but leaving for the time being
+                                for (int i = 0; i < attachmentSet.Count; i++)
+                                {
+                                    if (rp.depthAttachmentDescriptor == attachmentSet.ElementAt(i))
+                                        depthAttachmentIdx = i;
+                                }
                             }
                         }
+
+                        context.ExecuteCommandBuffer(cmd);
                         CommandBufferPool.Release(cmd);
                     }
 
@@ -903,7 +906,6 @@ namespace UnityEngine.Rendering.Universal
                 context.StartMultiEye(camera, eyeIndex);
                 XRUtils.DrawOcclusionMesh(cmd, camera);
             }
-
             renderPass.Execute(context, ref renderingData);
         }
 
@@ -925,6 +927,7 @@ namespace UnityEngine.Rendering.Universal
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+
             renderPass.Execute(context, ref renderingData);
 
         }
