@@ -214,9 +214,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public delegate void SelectionChanged(List<ISelectable> selection); 
+        public delegate void SelectionChanged(List<ISelectable> selection);
         public SelectionChanged OnSelectionChange;
-
         public override void AddToSelection(ISelectable selectable)
         {
             base.AddToSelection(selectable);

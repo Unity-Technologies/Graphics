@@ -15,64 +15,16 @@ using UnityEditorInternal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class BlackboardFieldView : VisualElement, IInspectable
+    class BlackboardFieldView : BlackboardField, IInspectable
     {
-        readonly BlackboardField m_BlackboardField;
         readonly GraphData m_Graph;
         public GraphData graph => m_Graph;
 
         ShaderInput m_Input;
 
         [Inspectable("Shader Input", null)]
-        public ShaderInput shaderInput
-        {
-            get { return m_Input; }
-            set
-            {
-                var property = m_Input as AbstractShaderProperty;
-                if(property == null)
-                    return;
+        public ShaderInput shaderInput => m_Input;
 
-                switch(property)
-                {
-                    case Vector1ShaderProperty vector1Property:
-                        vector1Property = (Vector1ShaderProperty)value;
-                        break;
-                    case Vector2ShaderProperty vector2Property:
-                        break;
-                    case Vector3ShaderProperty vector3Property:
-                        break;
-                    case Vector4ShaderProperty vector4Property:
-                        break;
-                    case ColorShaderProperty colorProperty:
-                        break;
-                    case Texture2DShaderProperty texture2DProperty:
-                        break;
-                    case Texture2DArrayShaderProperty texture2DArrayProperty:
-                        break;
-                    case Texture3DShaderProperty texture3DProperty:
-                        break;
-                    case CubemapShaderProperty cubemapProperty:
-                        break;
-                    case BooleanShaderProperty booleanProperty:
-                        break;
-                    case Matrix2ShaderProperty matrix2Property:
-                        break;
-                    case Matrix3ShaderProperty matrix3Property:
-                        break;
-                    case Matrix4ShaderProperty matrix4Property:
-                        break;
-                    case SamplerStateShaderProperty samplerStateProperty:
-                        break;
-                    case GradientShaderProperty gradientProperty:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-
-                this.MarkDirtyRepaint();
-            }
-        }
         static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
 
         // Common
@@ -112,11 +64,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        // Keyword
-        private ReorderableList m_ReorderableList;
-        private IMGUIContainer m_Container;
-        private int m_SelectedIndex;
-
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
         private Action m_propertyViewUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
@@ -137,10 +84,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public BlackboardFieldView(BlackboardField blackboardField, GraphData graph, ShaderInput input)
+        public BlackboardFieldView(GraphData graph, ShaderInput input, Texture icon, string text, string typeText) : base(icon, text, typeText)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
-            m_BlackboardField = blackboardField;
             m_Graph = graph;
             m_Input = input;
         }
@@ -190,7 +136,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
                 this.m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
             }
-
         }
 
         public PropertyInfo[] GetPropertyInfo()
@@ -201,7 +146,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ChangeExposedField(bool newValue)
         {
             m_Input.generatePropertyBlock = newValue;
-            m_BlackboardField.icon = m_Input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+            icon = m_Input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
         }
 
         void ChangeReferenceNameField(string newValue)
@@ -283,7 +228,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             this.MarkDirtyRepaint();
         }
-
 #endregion
     }
 }

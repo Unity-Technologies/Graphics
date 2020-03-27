@@ -55,6 +55,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_BlackboardProvider; }
         }
 
+        bool m_updateInspectorNextFrame { get; set; }
+
         const string k_UserViewSettings = "UnityEditor.ShaderGraph.ToggleSettings";
         UserViewSettings m_UserViewSettings;
 
@@ -209,6 +211,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     GUILayout.Space(6);
 
                     m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Inspector", EditorStyles.toolbarButton);
+
+                    GUILayout.Space(6);
+
                     m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
                     if (EditorGUI.EndChangeCheck())
                     {
@@ -243,6 +248,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
 
                 CreateMasterPreview();
+                CreateInspector();
 
                 UpdateSubWindowsVisibility();
 
@@ -296,6 +302,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_BlackboardProvider.blackboard.style.display = DisplayStyle.Flex;
             else
                 m_BlackboardProvider.blackboard.style.display = DisplayStyle.None;
+
+            m_InspectorView.visible = m_UserViewSettings.isInspectorVisible;
         }
 
         Action<Group, string> m_GraphViewGroupTitleChanged;
@@ -326,6 +334,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
             m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
+        }
+
+        void CreateInspector()
+        {
+            m_InspectorView = new InspectorView(m_Graph, graphView);
+            m_InspectorView.visible = m_UserViewSettings.isInspectorVisible;
+            m_GraphView.OnSelectionChange += m_InspectorView.UpdateSelection;
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -551,7 +566,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         HashSet<IShaderNodeView> m_NodeViewHashSet = new HashSet<IShaderNodeView>();
         HashSet<ShaderGroup> m_GroupHashSet = new HashSet<ShaderGroup>();
 
-        public void HandleGraphChanges()
+        public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
             UnregisterGraphViewCallbacks();
 
@@ -564,7 +579,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
-            m_BlackboardProvider.HandleGraphChanges();
+            m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
+
+            if (m_updateInspectorNextFrame)
+            {
+                m_updateInspectorNextFrame = false;
+                m_InspectorView.UpdateSelection(m_GraphView.selection);
+            }
+
+            if (wasUndoRedoPerformed)
+                m_updateInspectorNextFrame = true;
+
             m_GroupHashSet.Clear();
 
             foreach (var node in m_Graph.removedNodes)

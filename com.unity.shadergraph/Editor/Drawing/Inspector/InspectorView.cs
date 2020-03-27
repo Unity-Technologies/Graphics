@@ -35,6 +35,17 @@ namespace Drawing.Inspector
             // Register property drawer types here
             RegisterPropertyDrawer(typeof(BoolPropertyDrawer));
             RegisterPropertyDrawer(typeof(EnumPropertyDrawer));
+            RegisterPropertyDrawer(typeof(TextPropertyDrawer));
+            RegisterPropertyDrawer(typeof(Vector2PropertyDrawer));
+            RegisterPropertyDrawer(typeof(Vector3PropertyDrawer));
+            RegisterPropertyDrawer(typeof(Vector4PropertyDrawer));
+            RegisterPropertyDrawer(typeof(MatrixPropertyDrawer));
+            RegisterPropertyDrawer(typeof(ColorPropertyDrawer));
+            RegisterPropertyDrawer(typeof(GradientPropertyDrawer));
+            RegisterPropertyDrawer(typeof(Texture2DPropertyDrawer));
+            RegisterPropertyDrawer(typeof(Texture2DArrayPropertyDrawer));
+            RegisterPropertyDrawer(typeof(Texture3DPropertyDrawer));
+            RegisterPropertyDrawer(typeof(CubemapPropertyDrawer));
             RegisterPropertyDrawer(typeof(ShaderInputPropertyDrawer));
         }
 
@@ -89,10 +100,7 @@ namespace Drawing.Inspector
             for (int i = 0; i < m_ContentContainer.childCount; ++i)
             {
                 var child = m_ContentContainer.Children().ElementAt(i);
-                if (child is PropertySheet)
-                {
-                    m_ContentContainer.Remove(child);
-                }
+                m_ContentContainer.Remove(child);
             }
 
             if(selectedObjects.Count == 0)
