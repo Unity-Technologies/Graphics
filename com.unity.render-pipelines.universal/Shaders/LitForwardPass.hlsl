@@ -140,12 +140,7 @@ inline float4 EncodeFloatRGBA( float v ) {
 }
 
 // Used in Standard (Physically Based) shader
-#ifdef RENDER_WITH_MODE_TEST
-int
-#else
-float4
-#endif
-LitPassFragment(Varyings input) : SV_Target
+float4 LitPassFragment(Varyings input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
