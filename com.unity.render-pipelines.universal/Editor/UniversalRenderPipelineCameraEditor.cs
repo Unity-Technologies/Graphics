@@ -104,23 +104,11 @@ namespace UnityEditor.Rendering.Universal
                 //new GUIContent("Temporal Anti-aliasing (TAA)")
             };
             public static int[] antialiasingValues = { 0, 1, 2/*, 3*/ };
-
-            // Beautified anti-aliasing quality names
-            public static GUIContent[] antialiasingQualityOptions =
-            {
-                new GUIContent("Low"),
-                new GUIContent("Medium"),
-                new GUIContent("High")
-            };
-            public static int[] antialiasingQualityValues = { 0, 1, 2 };
-
-        };
+        }
 
         ReorderableList m_LayerList;
 
         public Camera camera { get { return target as Camera; } }
-        public IEnumerable<Camera> cameras { get { return targets as  Camera[]; } }
-
         static List<Camera> k_Cameras;
 
         List<Camera> validCameras = new List<Camera>();
@@ -143,8 +131,7 @@ namespace UnityEditor.Rendering.Universal
         static readonly int[] s_RenderingPathValues = {0};
 
         UniversalRenderPipelineAsset m_UniversalRenderPipeline;
-        //UniversalAdditionalCameraData m_AdditionalCameraData;
-        Dictionary<UnityEngine.Object, UniversalAdditionalCameraData> m_AdditionalCameraDatas = new Dictionary<Object, UniversalAdditionalCameraData>();
+        Dictionary<Object, UniversalAdditionalCameraData> m_AdditionalCameraDatas = new Dictionary<Object, UniversalAdditionalCameraData>();
         SerializedObject m_AdditionalCameraDataSO;
 
         readonly AnimBool m_ShowBGColorAnim = new AnimBool();
@@ -627,32 +614,34 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawPostProcessingOverlay()
         {
-            bool hasChanged = false;
-            bool selectedRenderPostProcessing;
+            EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
 
-            if (m_AdditionalCameraDataSO == null)
-            {
-                selectedRenderPostProcessing = false;
-            }
-            else
-            {
-                //m_AdditionalCameraDataSO.Update();
-                selectedRenderPostProcessing = m_AdditionalCameraDataRenderPostProcessing.boolValue;
-            }
-
-            hasChanged |= DrawToggle(m_AdditionalCameraDataRenderPostProcessing, ref selectedRenderPostProcessing, Styles.renderPostProcessing);
-
-            if (hasChanged)
-            {
-                // if (m_AdditionalCameraDataSO == null)
-                // {
-                //     m_AdditionalCameraData = Undo.AddComponent<UniversalAdditionalCameraData>(camera.gameObject);
-                //     init(m_AdditionalCameraData);
-                // }
-
-                m_AdditionalCameraDataRenderPostProcessing.boolValue = selectedRenderPostProcessing;
-                m_AdditionalCameraDataSO.ApplyModifiedProperties();
-            }
+            // bool hasChanged = false;
+            // bool selectedRenderPostProcessing;
+            //
+            // if (m_AdditionalCameraDataSO == null)
+            // {
+            //     selectedRenderPostProcessing = false;
+            // }
+            // else
+            // {
+            //     //m_AdditionalCameraDataSO.Update();
+            //     selectedRenderPostProcessing = m_AdditionalCameraDataRenderPostProcessing.boolValue;
+            // }
+            //
+            // hasChanged |= DrawToggle(m_AdditionalCameraDataRenderPostProcessing, ref selectedRenderPostProcessing, Styles.renderPostProcessing);
+            //
+            // if (hasChanged)
+            // {
+            //     // if (m_AdditionalCameraDataSO == null)
+            //     // {
+            //     //     m_AdditionalCameraData = Undo.AddComponent<UniversalAdditionalCameraData>(camera.gameObject);
+            //     //     init(m_AdditionalCameraData);
+            //     // }
+            //
+            //     m_AdditionalCameraDataRenderPostProcessing.boolValue = selectedRenderPostProcessing;
+            //     m_AdditionalCameraDataSO.ApplyModifiedProperties();
+            // }
         }
 
         void DrawOutputSettings()
@@ -806,20 +795,26 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawRenderer()
         {
-            int selectedRendererOption;
-            if (m_AdditionalCameraDataSO == null)
-            {
-                selectedRendererOption = -1;
-            }
-            else
-            {
-                //m_AdditionalCameraDataSO.Update();
-                selectedRendererOption = m_AdditionalCameraDataRendererProp.intValue;
-            }
+            // MTT look at this shajt!
+            // int selectedRendererOption;
+            // if (m_AdditionalCameraDataSO == null)
+            // {
+            //     selectedRendererOption = -1;
+            // }
+            // else
+            // {
+            //     //m_AdditionalCameraDataSO.Update();
+            //     selectedRendererOption = m_AdditionalCameraDataRendererProp.intValue;
+            // }
+
+            int selectedRendererOption = m_AdditionalCameraDataRendererProp.intValue;
 
             EditorGUI.BeginChangeCheck();
-
+            // MTT if targets are different we need to show mixed values.
+            //EditorGUI.showMixedValue = true;
             int selectedRenderer = EditorGUILayout.IntPopup(Styles.rendererType, selectedRendererOption, m_UniversalRenderPipeline.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
+
+
             if (!m_UniversalRenderPipeline.ValidateRendererDataList())
             {
                 EditorGUILayout.HelpBox(Styles.noRendererError, MessageType.Error);
