@@ -39,6 +39,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            ConfigureTarget(UniversalRenderTextureType.ColorBuffer, UniversalRenderTextureType.DepthBuffer);
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {

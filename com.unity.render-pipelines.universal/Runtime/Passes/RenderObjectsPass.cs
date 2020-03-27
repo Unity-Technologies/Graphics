@@ -70,6 +70,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         }
 
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            ConfigureTarget(UniversalRenderTextureType.ColorBuffer, UniversalRenderTextureType.DepthBuffer);
+        }
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             SortingCriteria sortingCriteria = (renderQueueType == RenderQueueType.Transparent)

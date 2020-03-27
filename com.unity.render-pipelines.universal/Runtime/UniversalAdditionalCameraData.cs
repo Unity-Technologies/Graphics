@@ -93,6 +93,12 @@ namespace UnityEngine.Rendering.Universal
 
             return cameraData;
         }
+
+        public static ScriptableRenderer GetRenderer(this Camera camera)
+        {
+            var cameraData = camera.GetUniversalAdditionalCameraData();
+            return cameraData.scriptableRenderer;
+        }
     }
 
     static class CameraTypeUtility

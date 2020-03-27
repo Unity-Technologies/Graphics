@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.UIElements;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -65,16 +66,16 @@ namespace UnityEngine.Rendering.Universal
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
-        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
-        RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+        RenderTargetIdentifier[] m_ColorAttachments;
+        RenderTargetIdentifier m_DepthAttachment;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
-            m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_ColorAttachments = new RenderTargetIdentifier[]{ScriptableRenderer.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
+            m_DepthAttachment = ScriptableRenderer.None;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -82,6 +83,14 @@ namespace UnityEngine.Rendering.Universal
             eyeIndex = 0;
         }
 
+        public void ConfigureTarget(UniversalRenderTextureType colorType, UniversalRenderTextureType depthType = UniversalRenderTextureType.None)
+        {
+            var renderer = ScriptableRenderer.current;
+            var colorBuffer = renderer.GetRenderTexture(colorType);
+            var depthBuffer = renderer.GetRenderTexture(depthType);
+            ConfigureTarget(colorBuffer, depthBuffer); 
+        }
+        
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.

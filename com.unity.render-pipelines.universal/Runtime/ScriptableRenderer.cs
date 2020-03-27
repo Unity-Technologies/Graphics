@@ -6,6 +6,29 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// Temporary render textures produced during camera's rendering.
+    public enum UniversalRenderTextureType
+    {
+        // CameraTarget can be either the intermediate color buffer, the camera render texture or swap chaing
+        CameraTarget = -1, 
+        
+        // None means don't bind a texture, can be used for transient attachment or to bind depth buffer
+        None = 0, 
+        
+        // Current active attachment setup
+        CurrentActive = 1, 
+        
+        // Camera Intermediate color texture, _CameraColorTexture
+        ColorBuffer = 2, 
+        
+        // Camera Intermediate depth texture, _CameraDepthAttachment 
+        DepthBuffer = 3,
+        
+        // Camera readable depth texture, either output from depth pre-pass or copy depth
+        // _CameraDepthTexture
+        DepthTexture = 4,
+    }
+    
     /// <summary>
     ///  Class <c>ScriptableRenderer</c> implements a rendering strategy. It describes how culling and lighting works and
     /// the effects supported.
@@ -41,7 +64,10 @@ namespace UnityEngine.Rendering.Universal
         /// <c>current</c> is null outside rendering scope.
         /// Similar to https://docs.unity3d.com/ScriptReference/Camera-current.html
         /// </summary>
-        internal static ScriptableRenderer current = null;
+        public static ScriptableRenderer current = null;
+        
+        internal static readonly RenderTargetIdentifier CameraTarget = new RenderTargetIdentifier(-1);
+        internal static readonly RenderTargetIdentifier None = new RenderTargetIdentifier(0);
 
         /// <summary>
         /// Set camera matrices. This method will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to camera matrices.
@@ -243,7 +269,7 @@ namespace UnityEngine.Rendering.Universal
             new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0},      // m_TrimmedColorAttachmentCopies[7] is an array of 7 RenderTargetIdentifiers
             new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 },  // m_TrimmedColorAttachmentCopies[8] is an array of 8 RenderTargetIdentifiers
         };
-
+        
         internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
             RenderTargetIdentifier depthAttachment)
         {
@@ -277,6 +303,37 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
+        public RenderTargetIdentifier GetRenderTexture(UniversalRenderTextureType type)
+        {
+            switch (type)
+            {
+                case UniversalRenderTextureType.ColorBuffer:
+                    return cameraColorTarget;
+
+                case UniversalRenderTextureType.DepthBuffer:
+                {
+                    // depth buffer
+                    if (current.cameraDepth.Equals(new RenderTargetIdentifier((int) UniversalRenderTextureType.None)))
+                        return cameraColorTarget;
+                    // depth texture
+                    else
+                        return cameraDepth;
+                }
+
+                case UniversalRenderTextureType.CurrentActive:
+                    return m_ActiveColorAttachments[0];
+                
+                case UniversalRenderTextureType.None:
+                    return None;
+                
+                case UniversalRenderTextureType.CameraTarget:
+                    return CameraTarget;
+                
+                default:
+                    return new RenderTargetIdentifier((int)type);
+            }
+        }
+        
         /// <summary>
         /// Configures the camera target.
         /// </summary>
@@ -511,11 +568,14 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Clear(CameraRenderType cameraType)
         {
-            m_ActiveColorAttachments[0] = BuiltinRenderTextureType.CameraTarget;
+            var colorBuffer = CameraTarget;
+            var depthBuffer = None;
+            
+            m_ActiveColorAttachments[0] = colorBuffer;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
                 m_ActiveColorAttachments[i] = 0;
 
-            m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_ActiveDepthAttachment = depthBuffer;
 
             m_InsideStereoRenderBlock = false;
 
@@ -524,8 +584,8 @@ namespace UnityEngine.Rendering.Universal
 
             m_ActiveRenderPassQueue.Clear();
 
-            m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
-            m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
+            m_CameraColorTarget = colorBuffer;
+            m_CameraDepthTarget = depthBuffer;
         }
 
         void ExecuteBlock(int blockIndex, NativeArray<int> blockRanges,
@@ -554,8 +614,31 @@ namespace UnityEngine.Rendering.Universal
 
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
+            var currentActiveTarget = current.GetRenderTexture(UniversalRenderTextureType.CurrentActive);
+            
+            // Currently in non-MRT case, color attachment can actually be a depth attachment.
+
+            RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
+            RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
+
+            // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
+            // which might be backbuffer or the framebuffer render textures.
+            if (!renderPass.overrideCameraTarget)
+            {
+                passColorAttachment = m_CameraColorTarget;
+                passDepthAttachment = m_CameraDepthTarget;
+            }
+
             // We use a different code path for MRT since it calls a different version of API SetRenderTarget
-            if (RenderingUtils.IsMRT(renderPass.colorAttachments))
+            if (passColorAttachment == currentActiveTarget)
+            {
+                // do nothing, leave current render target attachments
+            }
+            else if (passColorAttachment == None && passDepthAttachment == None)
+            {
+                // do nothing
+            }
+            else if (RenderingUtils.IsMRT(renderPass.colorAttachments))
             {
                 // In the MRT path we assume that all color attachments are REAL color attachments,
                 // and that the depth attachment is a REAL depth attachment too.
@@ -658,19 +741,6 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                // Currently in non-MRT case, color attachment can actually be a depth attachment.
-
-                RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
-                RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
-
-                // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
-                // which might be backbuffer or the framebuffer render textures.
-                if (!renderPass.overrideCameraTarget)
-                {
-                    passColorAttachment = m_CameraColorTarget;
-                    passDepthAttachment = m_CameraDepthTarget;
-                }
-
                 ClearFlag finalClearFlag = ClearFlag.None;
                 Color finalClearColor;
 
@@ -781,6 +851,9 @@ namespace UnityEngine.Rendering.Universal
             Color clearColor,
             TextureDimension dimension)
         {
+            if (colorAttachment == None)
+                Debug.Log("None");
+            
             if (dimension == TextureDimension.Tex2DArray)
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
             else
@@ -799,7 +872,7 @@ namespace UnityEngine.Rendering.Universal
             Color clearColor,
             TextureDimension dimension)
         {
-            if (depthAttachment == BuiltinRenderTextureType.CameraTarget)
+            if (depthAttachment == CameraTarget || depthAttachment == None)
             {
                 SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor,
                     dimension);
