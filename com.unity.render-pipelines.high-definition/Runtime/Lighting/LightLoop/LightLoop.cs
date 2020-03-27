@@ -3213,7 +3213,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.screenSpaceAABBShader = buildScreenAABBShader;
             parameters.screenSpaceAABBShader.shaderKeywords = null;
             if (isProjectionOblique)
-            { 
+            {
                 parameters.screenSpaceAABBShader.EnableKeyword("USE_OBLIQUE_MODE");
             }
             parameters.screenSpaceAABBKernel = s_GenAABBKernel;
@@ -3330,6 +3330,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static void ClearLightListsProbeVolumes(
+            in BuildGPULightListParameters parameters,
+            in BuildGPULightListResources resources,
+            CommandBuffer cmd)
+        {
+            if(parameters.probeVolumesClearLightLists && !parameters.probeVolumesRunLightList)
+            {
+                // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
+                // to changes to the inner workings of the lists.
+                // Also, we clear all the lists and to be resilient to changes in pipeline.
+                ClearLightList(parameters, cmd, resources.tileAndClusterData.probeVolumesBigTileLightList);
+                // ClearLightList(hdCamera, cmd, resources.tileAndClusterData.probeVolumesLightList);
+                ClearLightList(parameters, cmd, resources.tileAndClusterData.probeVolumesPerVoxelOffset);
+
+                // No need to clear it anymore until we start and stop running light list building.
+                resources.tileAndClusterData.probeVolumesListsAreClear = true;
+            }
+            else if(parameters.probeVolumesRunLightList)
+            {
+                resources.tileAndClusterData.probeVolumesListsAreClear = false;
+            }
+        }
+
         void BuildGPULightListProbeVolumesCommon(HDCamera hdCamera, CommandBuffer cmd)
         {
             // Custom probe volume only light list is only needed if we are evaluating probe volumes early, in the GBuffer phase.
@@ -3352,23 +3375,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     isGBufferNeeded: false
                 );
 
-                if(parameters.probeVolumesClearLightLists && !parameters.probeVolumesRunLightList)
-                {
-                    // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
-                    // to changes to the inner workings of the lists.
-                    // Also, we clear all the lists and to be resilient to changes in pipeline.
-                    ClearLightList(parameters, cmd, resources.tileAndClusterData.probeVolumesBigTileLightList);
-                    // ClearLightList(hdCamera, cmd, resources.tileAndClusterData.probeVolumesLightList);
-                    ClearLightList(parameters, cmd, resources.tileAndClusterData.probeVolumesPerVoxelOffset);
-
-                    // No need to clear it anymore until we start and stop running light list building.
-                    m_TileAndClusterData.probeVolumesListsAreClear = true;
-                }
-                else if(parameters.probeVolumesRunLightList)
-                {
-                    m_TileAndClusterData.probeVolumesListsAreClear = false;
-                }
-
+                ClearLightListsProbeVolumes(parameters, resources, cmd);
                 GenerateProbeVolumesScreenSpaceAABBs(parameters, resources, cmd, m_ProbeVolumeList);
                 ProbeVolumesBigTilePrepass(parameters, resources, cmd, m_ProbeVolumeList);
                 ProbeVolumesVoxelLightListGeneration(parameters, resources, cmd, m_ProbeVolumeList);
@@ -3445,9 +3452,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 var tileAndCluster = resources.tileAndClusterData;
 
                 // clear atomic offset index
-                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, tileAndCluster.probeVolumesGlobalLightListAtomic);
-                cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
+                cmd.SetComputeBufferParam(parameters.clearClusterAtomicIndexShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, tileAndCluster.probeVolumesGlobalLightListAtomic);
+                cmd.DispatchCompute(parameters.clearClusterAtomicIndexShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
 
+                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, tileAndCluster.probeVolumesGlobalLightListAtomic);
                 cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iNrVisibLights, probeVolumesCount);
                 cmd.SetComputeMatrixArrayParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
@@ -3480,8 +3488,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs._LightVolumeData, tileAndCluster.probeVolumesLightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs.g_data, tileAndCluster.probeVolumesConvexBoundsBuffer);
 
-                // // The standard light loop is
-                // cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs._ProbeVolumeIndexShift, 0); // HACK: Fixme?
+                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs._ProbeVolumeIndexShift, 0); // HACK: Fixme?
 
                 cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, parameters.numTilesClusterX, parameters.numTilesClusterY, parameters.viewCount);
             }

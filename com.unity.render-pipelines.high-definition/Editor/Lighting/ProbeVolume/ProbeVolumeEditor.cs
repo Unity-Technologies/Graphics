@@ -14,7 +14,6 @@ namespace UnityEditor.Rendering.HighDefinition
         internal const EditMode.SceneViewEditMode k_EditShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
         internal const EditMode.SceneViewEditMode k_EditBlend = EditMode.SceneViewEditMode.GridBox;
 
-        const int k_MaxDisplayedBox = 10;
         static Dictionary<ProbeVolume, HierarchicalBox> shapeBoxes = new Dictionary<ProbeVolume, HierarchicalBox>();
         internal static Dictionary<ProbeVolume, HierarchicalBox> blendBoxes = new Dictionary<ProbeVolume, HierarchicalBox>();
 
@@ -26,8 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             shapeBoxes.Clear();
             blendBoxes.Clear();
-            int max = Mathf.Min(targets.Length, k_MaxDisplayedBox);
-            for (int i = 0; i < max; ++i)
+            for (int i = 0; i < targets.Length; ++i)
             {
                 var shapeBox = shapeBoxes[targets[i] as ProbeVolume] = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.Styles.k_BaseHandlesColor);
                 shapeBox.monoHandle = false;
@@ -76,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new Handles.DrawingScope(Matrix4x4.TRS(probeVolume.transform.position, probeVolume.transform.rotation, Vector3.one)))
             {
                 // Blend box
-                HierarchicalBox blendBox = blendBoxes[probeVolume];
+                if (!blendBoxes.TryGetValue(probeVolume, out HierarchicalBox blendBox)) { return; }
                 blendBox.center = CenterBlendLocalPosition(probeVolume);
                 blendBox.size = BlendSize(probeVolume);
                 Color baseColor = probeVolume.parameters.debugColor;
@@ -85,7 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 blendBox.DrawHull(EditMode.editMode == k_EditBlend);
 
                 // Bounding box.
-                HierarchicalBox shapeBox = shapeBoxes[probeVolume];
+                if (!shapeBoxes.TryGetValue(probeVolume, out HierarchicalBox shapeBox)) { return; }
                 shapeBox.center = Vector3.zero;
                 shapeBox.size = probeVolume.parameters.size;
                 shapeBox.DrawHull(EditMode.editMode == k_EditShape);
@@ -99,8 +97,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (Event.current.type == EventType.Layout)
                 probeVolume.DrawSelectedProbes();
 
-            HierarchicalBox shapeBox = shapeBoxes[probeVolume];
-            HierarchicalBox blendBox = blendBoxes[probeVolume];
+            if (!blendBoxes.TryGetValue(probeVolume, out HierarchicalBox blendBox)) { return; }
+            if (!shapeBoxes.TryGetValue(probeVolume, out HierarchicalBox shapeBox)) { return; }
 
             switch (EditMode.editMode)
             {
