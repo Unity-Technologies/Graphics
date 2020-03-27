@@ -6,8 +6,9 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyRenderer.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
 
-CBUFFER_START(UnityPhysicallyBasedSky)
+GLOBAL_CBUFFER_START(UnityPhysicallyBasedSky, UNITY_PHYSICALLY_BASED_SKY_CBUFFER_REGISTER)
     // All the distance-related entries use SI units (meter, 1/meter, etc).
     float  _PlanetaryRadius;
     float  _RcpPlanetaryRadius;

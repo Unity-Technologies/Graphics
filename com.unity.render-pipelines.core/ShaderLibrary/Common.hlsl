@@ -185,6 +185,17 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 
 // ----------------------------------------------------------------------------
+// Macros that override the register local for constnat buffers (for ray tracing mainly)
+// ----------------------------------------------------------------------------
+#if (SHADER_STAGE_RAY_TRACING && UNITY_RAY_TRACING_GLOBAL_RESOURCES)
+    #define GLOBAL_RESOURCE(type, name, reg) type name : register(reg, space1);
+    #define GLOBAL_CBUFFER_START(name, reg) cbuffer name : register(reg, space1) {
+#else
+    #define GLOBAL_RESOURCE(type, name, reg) type name;
+    #define GLOBAL_CBUFFER_START(name, reg) CBUFFER_START(name)
+#endif
+
+// ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
 // ----------------------------------------------------------------------------
 

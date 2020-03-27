@@ -429,6 +429,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Misc
                 new ConditionalField(Fields.AlphaTest,                      alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
+                new ConditionalField(HDFields.DoAlphaTest,                  alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
                 new ConditionalField(HDFields.AlphaFog,                     surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
                 new ConditionalField(Fields.VelocityPrecomputed,            addPrecomputedVelocity.isOn),
                 new ConditionalField(HDFields.EnableShadowMatte,            enableShadowMatte.isOn),
