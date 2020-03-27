@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
 - All custom pass volumes are now executed for one injection point instead of the first one.
+- Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
 
 ## [7.3.0] - 2020-03-11
 
