@@ -26,6 +26,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 526f56bddea1ec94abca08e368cb7006, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleVTStack_50FF769D_Texture_5:
+        m_Texture: {fileID: 2800000, guid: 526f56bddea1ec94abca08e368cb7006, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TexStack50FF769D_50FF769D_Texture_5:
         m_Texture: {fileID: 2800000, guid: 526f56bddea1ec94abca08e368cb7006, type: 3}
         m_Scale: {x: 1, y: 1}

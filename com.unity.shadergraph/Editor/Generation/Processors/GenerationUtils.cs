@@ -282,6 +282,7 @@ namespace UnityEditor.ShaderGraph
                     NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts, keywordCollector.permutations[i]);
                     NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts, keywordCollector.permutations[i]);
 
+                    // This will ensure we only need screenpos for permutations that need vt feedback for more than one sample
                     bool vtFeedbackRequiresScreenPos = VirtualTexturingFeedbackUtils.CountFeedbackVariables(localPixelNodes) > 0;
 
                     // Track each vertex node in this permutation
@@ -782,7 +783,8 @@ namespace UnityEditor.ShaderGraph
                 {
                     VirtualTexturingFeedbackUtils.GenerateVirtualTextureFeedback(nodes,
                         keywordPermutationsPerNode,
-                        surfaceDescriptionFunction);
+                        surfaceDescriptionFunction,
+                        shaderKeywords);
                 }
 
                 surfaceDescriptionFunction.AppendLine("return surface;");

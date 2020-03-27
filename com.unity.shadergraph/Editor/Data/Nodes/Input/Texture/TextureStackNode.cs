@@ -923,16 +923,32 @@ namespace UnityEditor.ShaderGraph
         public static void GenerateVirtualTextureFeedback(
             List<AbstractMaterialNode> downstreamNodesIncludingRoot,
             List<int>[] keywordPermutationsPerNode,
-            ShaderStringBuilder surfaceDescriptionFunction)
+            ShaderStringBuilder surfaceDescriptionFunction,
+            KeywordCollector shaderKeywords)
         {
-            using (var feedbackVariables = PooledList<string>.Get())
+            // A note on how we handle vt feedback in combination with keywords:
+            // We essentially generate a fully separate feedback path for each permutation of keywords
+            // so per permutation we gather variables contribution to feedback and we generate
+            // feedback gathering for each permutation individually.
+
+            var feedbackVariablesPerPermutation = PooledList<PooledList<string>>.Get();
+            try
             {
+                for ( int i=0;i< shaderKeywords.permutations.Count; i++)
+                {
+                    feedbackVariablesPerPermutation.Add(PooledList<string>.Get());
+                }
+
+                int index = 0; //for keywordPermutationsPerNode
                 foreach (var node in downstreamNodesIncludingRoot)
                 {
                     if (node is SampleTextureStackNode stNode)
                     {
                         if (stNode.noFeedback) continue;
-                        feedbackVariables.Add(stNode.GetFeedbackVariableName());
+                        foreach (int perm in keywordPermutationsPerNode[index])
+                        {
+                            feedbackVariablesPerPermutation[perm].Add(stNode.GetFeedbackVariableName());
+                        }
                     }
 
                     if (node is SubGraphNode sgNode)
@@ -940,33 +956,61 @@ namespace UnityEditor.ShaderGraph
                         if (sgNode.asset == null) continue;
                         foreach (var feedbackSlot in sgNode.asset.vtFeedbackVariables)
                         {
-                            feedbackVariables.Add(node.GetVariableNameForNode() + "_" + feedbackSlot);
+                            foreach (int perm in keywordPermutationsPerNode[index])
+                            {
+                                feedbackVariablesPerPermutation[perm].Add(node.GetVariableNameForNode() + "_" + feedbackSlot);
+                            }
                         }
                     }
+
+                    index++;
                 }
 
-                if (feedbackVariables.Count == 1)
+                index = 0;
+                foreach (var feedbackVariables in feedbackVariablesPerPermutation)
                 {
-                    string feedBackCode = $"surface.VTPackedFeedback = GetPackedVTFeedback({feedbackVariables[0]});";
-                    surfaceDescriptionFunction.AppendLine(feedBackCode);
-                }
-                else if (feedbackVariables.Count > 1)
-                {
-                    string arrayName = $"VTFeedback_array";
-                    surfaceDescriptionFunction.AppendLine($"float4 {arrayName}[{feedbackVariables.Count}];");
+                    surfaceDescriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationConditional(index));
 
-                    int arrayIndex = 0;
-                    foreach (var variable in feedbackVariables)
+                    if (feedbackVariables.Count == 0)
                     {
-                        string code = $"{arrayName}[{arrayIndex}] = {variable};";
-                        surfaceDescriptionFunction.AppendLine(code);
-                        arrayIndex++;
+                        string feedBackCode = $"surface.VTPackedFeedback = float4(1.0f,1.0f,1.0f,.0f);";
+                        surfaceDescriptionFunction.AppendLine(feedBackCode);
+                    }
+                    else if (feedbackVariables.Count == 1)
+                    {
+                        string feedBackCode = $"surface.VTPackedFeedback = GetPackedVTFeedback({feedbackVariables[0]});";
+                        surfaceDescriptionFunction.AppendLine(feedBackCode);
+                    }
+                    else if (feedbackVariables.Count > 1)
+                    {
+                        string arrayName = $"VTFeedback_array";
+                        surfaceDescriptionFunction.AppendLine($"float4 {arrayName}[{feedbackVariables.Count}];");
+
+                        int arrayIndex = 0;
+                        foreach (var variable in feedbackVariables)
+                        {
+                            string code = $"{arrayName}[{arrayIndex}] = {variable};";
+                            surfaceDescriptionFunction.AppendLine(code);
+                            arrayIndex++;
+                        }
+
+                        string feedBackCode = $"surface.{FeedbackSurfaceDescriptionVariableName} = GetPackedVTFeedback({arrayName}[ (IN.{ShaderGeneratorNames.ScreenPosition}.x  + _FrameCount )% (uint){feedbackVariables.Count}]);";
+
+                        surfaceDescriptionFunction.AppendLine(feedBackCode);
                     }
 
-                    string feedBackCode = $"surface.{FeedbackSurfaceDescriptionVariableName} = GetPackedVTFeedback({arrayName}[ (IN.{ShaderGeneratorNames.ScreenPosition}.x  + _FrameCount )% (uint){feedbackVariables.Count}]);";
+                    surfaceDescriptionFunction.AppendLine("#endif");
 
-                    surfaceDescriptionFunction.AppendLine(feedBackCode);
+                    index++;
                 }
+            }
+            finally
+            {
+                foreach (var list in feedbackVariablesPerPermutation)
+                {
+                    list.Dispose();
+                }
+                feedbackVariablesPerPermutation.Dispose();
             }
         }
 
