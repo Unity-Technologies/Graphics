@@ -600,6 +600,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - All custom pass volumes are now executed for one injection point instead of the first one.
 - Hidden unsupported choice in emission in Materials
 - Temporal Anti aliasing improvements.
+- Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
 
 ## [7.1.1] - 2019-09-05
 
