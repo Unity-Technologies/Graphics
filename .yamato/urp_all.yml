@@ -1,0 +1,26 @@
+editors:
+  - version: trunk
+  - version: fast-trunk
+  - version: CUSTOM-REVISION
+projects:
+  - name: URP_2D
+    folder: UniversalGraphicsTest_2D
+  - name: URP_Foundation
+    folder: UniversalGraphicsTest_Foundation
+  - name: URP_Lighting
+    folder: UniversalGraphicsTest_Lighting
+  - name: URP_PostPro
+    folder: UniversalGraphicsTest_PostPro
+  - name: URP_Terrain
+    folder: UniversalGraphicsTest_Terrain
+
+---
+{% for editor in editors %}
+urp_all_ci_{{ editor.version }}:
+  name: Run all URP - {{ editor.version }}
+  dependencies:
+
+{% for project in projects %}
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_{{ editor.version }}
+{% endfor %}
+{% endfor %}
