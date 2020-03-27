@@ -99,6 +99,7 @@ The version number for this package has increased due to a version update of a r
 - Fix yamato error : check vfx manager on domain reload instead of vfx import.
 - Filter out unrelevant events from event desc while compiling
 - Missing Packing.hlsl include while using an unlit shadergraph.
+- Remove some shader warnings
 
 ## [7.1.1] - 2019-09-05
 ### Added
