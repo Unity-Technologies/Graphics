@@ -27,7 +27,7 @@ float4 frag(ps_input i) : SV_TARGET
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
-	float alpha = VFXGetFragmentColor(i);
+	float alpha = VFXGetFragmentColor(i).a;
 	VFXClipFragmentColor(alpha,i);
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 	return float4(_ObjectId, _PassValue, 1.0, 1.0);
