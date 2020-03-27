@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
             context.SetDefaultShaderGUI("Rendering.HighDefinition.HairGUI");
             context.AddSubShader(SubShaders.Hair);
+            context.AddSubShader(SubShaders.HairRaytracing);
         }
 
 #region SubShaders
@@ -38,6 +39,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { HairPasses.TransparentDepthPrepass, new FieldCondition(HDFields.TransparentDepthPrePass, true) },
                     { HairPasses.ForwardOnly },
                     { HairPasses.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
+                },
+            };
+
+            public static SubShaderDescriptor HairRaytracing = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                generatesPreview = false,
+                passes = new PassCollection
+                {
+                    { HairPasses.RaytracingIndirect, new FieldCondition(Fields.IsPreview, false) },
+                    { HairPasses.RaytracingVisibility, new FieldCondition(Fields.IsPreview, false) },
+                    { HairPasses.RaytracingForward, new FieldCondition(Fields.IsPreview, false) },
+                    { HairPasses.RaytracingGBuffer, new FieldCondition(Fields.IsPreview, false) },
+                    { HairPasses.RaytracingSubSurface, new FieldCondition(Fields.IsPreview, false) },
                 },
             };
         }
@@ -281,6 +296,135 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 keywords = CoreKeywords.HDBase,
                 includes = HairIncludes.DepthOnly,
             };
+
+            public static PassDescriptor RaytracingIndirect = new PassDescriptor()
+            {
+                // Definition
+                displayName = "IndirectDXR",
+                referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
+                lightMode = "IndirectDXR",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = passTemplatePath,
+                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // Port Mask
+                vertexPorts = HairPortMasks.Vertex,
+                pixelPorts = HairPortMasks.FragmentForward,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = HairDefines.RaytracingForwardIndirect,
+                keywords = CoreKeywords.RaytracingIndirect,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingIndirect },
+            };
+
+            public static PassDescriptor RaytracingVisibility = new PassDescriptor()
+            {
+                // Definition
+                displayName = "VisibilityDXR",
+                referenceName = "SHADERPASS_RAYTRACING_VISIBILITY",
+                lightMode = "VisibilityDXR",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = passTemplatePath,
+                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // Port Mask
+                vertexPorts = HairPortMasks.Vertex,
+                pixelPorts = HairPortMasks.FragmentForward,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                keywords = CoreKeywords.HDBase,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingVisibility },
+            };
+
+            public static PassDescriptor RaytracingForward = new PassDescriptor()
+            {
+                // Definition
+                displayName = "ForwardDXR",
+                referenceName = "SHADERPASS_RAYTRACING_FORWARD",
+                lightMode = "ForwardDXR",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = passTemplatePath,
+                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // Port Mask
+                vertexPorts = HairPortMasks.Vertex,
+                pixelPorts = HairPortMasks.FragmentForward,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = HairDefines.RaytracingForwardIndirect,
+                keywords = CoreKeywords.RaytracingGBufferForward,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingForward },
+            };
+
+            public static PassDescriptor RaytracingGBuffer = new PassDescriptor()
+            {
+                // Definition
+                displayName = "GBufferDXR",
+                referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
+                lightMode = "GBufferDXR",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = passTemplatePath,
+                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // Port Mask
+                vertexPorts = HairPortMasks.Vertex,
+                pixelPorts = HairPortMasks.FragmentForward,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = HairDefines.RaytracingGBuffer,
+                keywords = CoreKeywords.RaytracingGBufferForward,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RayTracingGBuffer },
+            };
+
+            public static PassDescriptor RaytracingSubSurface = new PassDescriptor()
+            {
+                //Definition
+                displayName = "SubSurfaceDXR",
+                referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
+                lightMode = "SubSurfaceDXR",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = passTemplatePath,
+                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // Port Mask
+                vertexPorts = HairPortMasks.Vertex,
+                pixelPorts = HairPortMasks.FragmentForward,
+
+                //Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = HairDefines.RaytracingGBuffer,
+                keywords = CoreKeywords.RaytracingGBufferForward,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingSubSurface },
+            };
         }
 #endregion
 
@@ -436,16 +580,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 #endregion
 
+#region Defines
+        static class HairDefines
+        {
+            public static DefineCollection RaytracingForwardIndirect = new DefineCollection
+            {
+                { CoreKeywordDescriptors.Shadow, 0 },
+                { CoreKeywordDescriptors.HasLightloop, 1 },
+            };
+
+            public static DefineCollection RaytracingGBuffer = new DefineCollection
+            {
+                { CoreKeywordDescriptors.Shadow, 0 },
+            };
+        }
+#endregion
+
 #region Includes
         static class HairIncludes
         {
-            const string kHair = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl";
-            
             public static IncludeCollection Common = new IncludeCollection
             {
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
-                { kHair, IncludeLocation.Pregraph },
+                { CoreIncludes.kHair, IncludeLocation.Pregraph },
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
                 { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
@@ -475,7 +633,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
                 { CoreIncludes.kLighting, IncludeLocation.Pregraph },
                 { CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph },
-                { kHair, IncludeLocation.Pregraph },
+                { CoreIncludes.kHair, IncludeLocation.Pregraph },
                 { CoreIncludes.kLightLoop, IncludeLocation.Pregraph },
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },

@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
             context.SetDefaultShaderGUI("Rendering.HighDefinition.StackLitGUI");
             context.AddSubShader(SubShaders.StackLit);
+            context.AddSubShader(SubShaders.StackLitRaytracing);
         }
 
 #region SubShaders
@@ -36,6 +37,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { StackLitPasses.MotionVectors },
                     { StackLitPasses.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
                     { StackLitPasses.ForwardOnly },
+                },
+            };
+
+            public static SubShaderDescriptor StackLitRaytracing = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                generatesPreview = false,
+                passes = new PassCollection
+                {
+                    { StackLitPasses.RaytracingIndirect, new FieldCondition(Fields.IsPreview, false) },
+                    { StackLitPasses.RaytracingVisibility, new FieldCondition(Fields.IsPreview, false) },
+                    { StackLitPasses.RaytracingForward, new FieldCondition(Fields.IsPreview, false) },
+                    { StackLitPasses.RaytracingGBuffer, new FieldCondition(Fields.IsPreview, false) },
+                    { StackLitPasses.RaytracingSubSurface, new FieldCondition(Fields.IsPreview, false) },
                 },
             };
         }
@@ -232,6 +247,135 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 keywords = CoreKeywords.Forward,
                 includes = StackLitIncludes.ForwardOnly,
             };
+
+            public static PassDescriptor RaytracingIndirect = new PassDescriptor()
+            {
+                // Definition
+                displayName = "IndirectDXR",
+                referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
+                lightMode = "IndirectDXR",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = passTemplatePath,
+                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // Port Mask
+                vertexPorts = StackLitPortMasks.Vertex,
+                pixelPorts = StackLitPortMasks.FragmentForward,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = StackLitDefines.RaytracingForwardIndirect,
+                keywords = CoreKeywords.RaytracingIndirect,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingIndirect },
+            };
+
+            public static PassDescriptor RaytracingVisibility = new PassDescriptor()
+            {
+                // Definition
+                displayName = "VisibilityDXR",
+                referenceName = "SHADERPASS_RAYTRACING_VISIBILITY",
+                lightMode = "VisibilityDXR",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = passTemplatePath,
+                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // Port Mask
+                vertexPorts = StackLitPortMasks.Vertex,
+                pixelPorts = StackLitPortMasks.FragmentForward,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                keywords = CoreKeywords.HDBase,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingVisibility },
+            };
+
+            public static PassDescriptor RaytracingForward = new PassDescriptor()
+            {
+                // Definition
+                displayName = "ForwardDXR",
+                referenceName = "SHADERPASS_RAYTRACING_FORWARD",
+                lightMode = "ForwardDXR",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = passTemplatePath,
+                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // Port Mask
+                vertexPorts = StackLitPortMasks.Vertex,
+                pixelPorts = StackLitPortMasks.FragmentForward,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = StackLitDefines.RaytracingForwardIndirect,
+                keywords = CoreKeywords.RaytracingGBufferForward,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingForward },
+            };
+
+            public static PassDescriptor RaytracingGBuffer = new PassDescriptor()
+            {
+                // Definition
+                displayName = "GBufferDXR",
+                referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
+                lightMode = "GBufferDXR",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = passTemplatePath,
+                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // Port Mask
+                vertexPorts = StackLitPortMasks.Vertex,
+                pixelPorts = StackLitPortMasks.FragmentForward,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = StackLitDefines.RaytracingGBuffer,
+                keywords = CoreKeywords.RaytracingGBufferForward,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RayTracingGBuffer },
+            };
+
+            public static PassDescriptor RaytracingSubSurface = new PassDescriptor()
+            {
+                //Definition
+                displayName = "SubSurfaceDXR",
+                referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
+                lightMode = "SubSurfaceDXR",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = passTemplatePath,
+                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                //Port mask
+                vertexPorts = StackLitPortMasks.Vertex,
+                pixelPorts = StackLitPortMasks.FragmentForward,
+
+                //Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = StackLitDefines.RaytracingGBuffer,
+                keywords = CoreKeywords.RaytracingGBufferForward,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingSubSurface },
+            };
         }
 #endregion
 
@@ -405,6 +549,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 #endregion
 
+#region Defines
+        static class StackLitDefines
+        {
+            public static DefineCollection RaytracingForwardIndirect = new DefineCollection
+            {
+                { CoreKeywordDescriptors.Shadow, 0 },
+                { CoreKeywordDescriptors.HasLightloop, 1 },
+            };
+
+            public static DefineCollection RaytracingGBuffer = new DefineCollection
+            {
+                { CoreKeywordDescriptors.Shadow, 0 },
+            };
+        }
+#endregion
+
 #region Pragmas
         static class StackLitPragmas
         {
@@ -437,7 +597,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static class StackLitIncludes
         {
             const string kSpecularOcclusionDef = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl";
-            const string kStackLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl";
             const string kStackLitDecalData = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl";
 
             public static IncludeCollection Common = new IncludeCollection
@@ -445,7 +604,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { kSpecularOcclusionDef, IncludeLocation.Pregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
-                { kStackLit, IncludeLocation.Pregraph },
+                { CoreIncludes.kStackLit, IncludeLocation.Pregraph },
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
                 { kStackLitDecalData, IncludeLocation.Pregraph },
@@ -483,7 +642,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
                 { CoreIncludes.kLighting, IncludeLocation.Pregraph },
                 { CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph },
-                { kStackLit, IncludeLocation.Pregraph },
+                { CoreIncludes.kStackLit, IncludeLocation.Pregraph },
                 { CoreIncludes.kLightLoop, IncludeLocation.Pregraph },
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
