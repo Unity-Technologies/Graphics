@@ -86,6 +86,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where shaders fail to compile due to `#pragma target` generation when your system locale uses commas instead of periods.
 - Fixed a compilation error when using Hybrid Renderer due to incorrect positioning of macros.
 - Fixed a bug with the `Transform` node where converting from `Absolute World` space in a sub graph causes invalid subscript errors. [1190813](https://issuetracker.unity3d.com/issues/shadergraph-invalid-subscript-errors-are-thrown-when-connecting-a-subgraph-with-transform-node-with-unlit-master-node)
+- Fixed an issue where Blackboard properties would not duplicate with `Precision` or `Hybrid Instancing` options. 
+- Fixed an issue where `Texture` properties on the Blackboard would not duplicate with the same `Mode` settings. 
+- Fixed an issue where `Keywords` on the Blackboard would not duplicate with the same `Default` value.
 
 ## [7.1.1] - 2019-09-05
 ### Added
