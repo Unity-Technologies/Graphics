@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // OverrideMask
-            newFrameSettingsOverrideMask.mask = new BitArray128();
+            newFrameSettingsOverrideMask.ResetMask();
             Array values = Enum.GetValues(typeof(ObsoleteFrameSettingsOverrides));
             foreach (ObsoleteFrameSettingsOverrides val in values)
             {
@@ -209,97 +209,97 @@ namespace UnityEngine.Rendering.HighDefinition
                     switch(val)
                     {
                         case ObsoleteFrameSettingsOverrides.Shadow:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ShadowMaps] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.ShadowMaps, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.ContactShadow:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ContactShadows] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.ContactShadows, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.ShadowMask:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.Shadowmask] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.Shadowmask, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.SSR:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.SSR] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.SSR, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.SSAO:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.SSAO] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.SSAO, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.SubsurfaceScattering:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.SubsurfaceScattering] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.SubsurfaceScattering, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.Transmission:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.Transmission] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.Transmission, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.AtmosphericScaterring:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.AtmosphericScattering] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.AtmosphericScattering, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.Volumetrics:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.Volumetrics] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.Volumetrics, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.ReprojectionForVolumetrics:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ReprojectionForVolumetrics] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.ReprojectionForVolumetrics, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.LightLayers:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.LightLayers] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.LightLayers, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.ShaderLitMode:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.LitShaderMode] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.LitShaderMode, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.DepthPrepassWithDeferredRendering:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.DepthPrepassWithDeferredRendering] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.DepthPrepassWithDeferredRendering, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.TransparentPrepass:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.TransparentPrepass] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.TransparentPrepass, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.MotionVectors:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.MotionVectors] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.MotionVectors, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.ObjectMotionVectors:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ObjectMotionVectors] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.ObjectMotionVectors, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.Decals:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.Decals] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.Decals, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.RoughRefraction:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.Refraction] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.Refraction, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.TransparentPostpass:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.TransparentPostpass] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.TransparentPostpass, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.Distortion:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.Distortion] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.Distortion, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.Postprocess:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.Postprocess] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.Postprocess, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.OpaqueObjects:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.OpaqueObjects] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.OpaqueObjects, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.TransparentObjects:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.TransparentObjects] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.TransparentObjects, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.MSAA:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.MSAA] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.MSAA, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.ExposureControl:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ExposureControl] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.ExposureControl, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.AsyncCompute:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.AsyncCompute] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.AsyncCompute, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.LightListAsync:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.LightListAsync] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.LightListAsync, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.SSRAsync:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.SSRAsync] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.SSRAsync, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.SSAOAsync:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.SSAOAsync] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.SSAOAsync, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.ContactShadowsAsync:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ContactShadowsAsync] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.ContactShadowsAsync, true);
                             break;
                         case ObsoleteFrameSettingsOverrides.VolumeVoxelizationsAsync:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.VolumeVoxelizationsAsync] = true;
+                            newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.VolumeVoxelizationsAsync, true);
                             break;
                         default:
                             throw new ArgumentException("Unknown ObsoleteFrameSettingsOverride, was " + val);
@@ -317,22 +317,22 @@ namespace UnityEngine.Rendering.HighDefinition
                         switch (val)
                         {
                             case ObsoleteLightLoopSettingsOverrides.TileAndCluster:
-                                newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.DeferredTile] = true;
+                                newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.DeferredTile, true);
                                 break;
                             case ObsoleteLightLoopSettingsOverrides.BigTilePrepass:
-                                newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.BigTilePrepass] = true;
+                                newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.BigTilePrepass, true);
                                 break;
                             case ObsoleteLightLoopSettingsOverrides.ComputeLightEvaluation:
-                                newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ComputeLightEvaluation] = true;
+                                newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.ComputeLightEvaluation, true);
                                 break;
                             case ObsoleteLightLoopSettingsOverrides.ComputeLightVariants:
-                                newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ComputeLightVariants] = true;
+                                newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.ComputeLightVariants, true);
                                 break;
                             case ObsoleteLightLoopSettingsOverrides.ComputeMaterialVariants:
-                                newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ComputeMaterialVariants] = true;
+                                newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.ComputeMaterialVariants, true);
                                 break;
                             case ObsoleteLightLoopSettingsOverrides.FptlForForwardOpaque:
-                                newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.FPTLForForwardOpaque] = true;
+                                newFrameSettingsOverrideMask.SetBitFor(FrameSettingsField.FPTLForForwardOpaque, true);
                                 break;
                             default:
                                 throw new ArgumentException("Unknown ObsoleteLightLoopSettingsOverrides");

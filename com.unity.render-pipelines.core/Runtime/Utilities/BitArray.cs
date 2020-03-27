@@ -41,6 +41,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <returns></returns>
         IBitArray BitNot();
+
+        /// <summary>
+        /// Affectation utility to deal with underneath type
+        /// </summary>
+        /// <param name="other">the IBitArray to copy content into this one. Must have same size.</param>
+        void AssignFrom(IBitArray other);
     }
 
     // /!\ Important for serialization:
@@ -163,6 +169,19 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <returns>Hashcode of the bit array.</returns>
         public override int GetHashCode() => 1768953197 + data.GetHashCode();
+
+        /// <summary>
+        /// Helper to convert from IBitArray 
+        /// </summary>
+        /// <param name="other">The IBitArray to copy data from</param>
+        /// <returns></returns>
+        public void AssignFrom(IBitArray other)
+        {
+            if (!(other.capacity == 8u))
+                throw new InvalidCastException();
+
+            data = ((BitArray8)other).data;
+        }
     }
 
     /// <summary>
@@ -282,6 +301,19 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <returns>Hashcode of the bit array.</returns>
         public override int GetHashCode() => 1768953197 + data.GetHashCode();
+        
+        /// <summary>
+        /// Helper to convert from IBitArray 
+        /// </summary>
+        /// <param name="other">The IBitArray to copy data from</param>
+        /// <returns></returns>
+        public void AssignFrom(IBitArray other)
+        {
+            if (!(other.capacity == 16u))
+                throw new InvalidCastException();
+
+            data = ((BitArray16)other).data;
+        }
     }
 
     /// <summary>
@@ -402,6 +434,19 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <returns>Hashcode of the bit array.</returns>
         public override int GetHashCode() => 1768953197 + data.GetHashCode();
+        
+        /// <summary>
+        /// Helper to convert from IBitArray 
+        /// </summary>
+        /// <param name="other">The IBitArray to copy data from</param>
+        /// <returns></returns>
+        public void AssignFrom(IBitArray other)
+        {
+            if (!(other.capacity == 32u))
+                throw new InvalidCastException();
+
+            data = ((BitArray32)other).data;
+        }
     }
 
     /// <summary>
@@ -521,6 +566,19 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <returns>Hashcode of the bit array.</returns>
         public override int GetHashCode() => 1768953197 + data.GetHashCode();
+
+        /// <summary>
+        /// Helper to convert from IBitArray 
+        /// </summary>
+        /// <param name="other">The IBitArray to copy data from</param>
+        /// <returns></returns>
+        public void AssignFrom(IBitArray other)
+        {
+            if (!(other.capacity == 64u))
+                throw new InvalidCastException();
+
+            data = ((BitArray64)other).data;
+        }
     }
 
     /// <summary>
@@ -656,6 +714,20 @@ namespace UnityEngine.Rendering
             hashCode = hashCode * -1521134295 + data1.GetHashCode();
             hashCode = hashCode * -1521134295 + data2.GetHashCode();
             return hashCode;
+        }
+        
+        /// <summary>
+        /// Helper to convert from IBitArray 
+        /// </summary>
+        /// <param name="other">The IBitArray to copy data from</param>
+        /// <returns></returns>
+        public void AssignFrom(IBitArray other)
+        {
+            if (!(other.capacity == 128u))
+                throw new InvalidCastException();
+
+            data1 = ((BitArray128)other).data1;
+            data2 = ((BitArray128)other).data2;
         }
     }
 
@@ -812,6 +884,22 @@ namespace UnityEngine.Rendering
             hashCode = hashCode * -1521134295 + data3.GetHashCode();
             hashCode = hashCode * -1521134295 + data4.GetHashCode();
             return hashCode;
+        }
+
+        /// <summary>
+        /// Helper to convert from IBitArray 
+        /// </summary>
+        /// <param name="other">The IBitArray to copy data from</param>
+        /// <returns></returns>
+        public void AssignFrom(IBitArray other)
+        {
+            if (!(other.capacity == 256u))
+                throw new InvalidCastException();
+
+            data1 = ((BitArray256)other).data1;
+            data2 = ((BitArray256)other).data2;
+            data3 = ((BitArray256)other).data3;
+            data4 = ((BitArray256)other).data4;
         }
     }
 

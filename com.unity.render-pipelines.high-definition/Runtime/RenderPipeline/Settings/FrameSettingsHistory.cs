@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (historyContainer.hasCustomFrameSettings)
             {
                 FrameSettings.Override(ref aggregatedFrameSettings, historyContainer.frameSettings, historyContainer.frameSettingsMask);
-                updatedComponent = history.customMask.mask != historyContainer.frameSettingsMask.mask;
+                updatedComponent = history.customMask != historyContainer.frameSettingsMask;
                 history.customMask = historyContainer.frameSettingsMask;
             }
             history.overridden = aggregatedFrameSettings;

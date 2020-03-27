@@ -321,8 +321,85 @@ namespace UnityEngine.Rendering.HighDefinition
     public struct FrameSettingsOverrideMask
     {
         /// <summary>Mask of overridden values.</summary>
+        [Obsolete("This will be removed in future version. Please use IsOverriding/SetOverriding instead.")]
         [SerializeField]
-        public BitArray128 mask;
+        public BitArray128 mask; //remove public for 9.x.x
+
+#pragma warning disable CS0618 // Type or member is obsolete      //remove for 9.x.x
+        internal IBitArray bitMask => mask;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        internal void ResetMask()
+#pragma warning disable CS0618 // Type or member is obsolete      //remove for 9.x.x
+            => mask = new BitArray128();
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        /// <summary>
+        /// <summary>Get stored overriding mask's data for this field.</summary>
+        /// </summary>
+        /// <param name="field">Requested field.</param>
+        /// <returns>True if the field is enabled.</returns>
+#pragma warning disable CS0618 // Type or member is obsolete      //remove for 9.x.x
+        public bool GetBitFor(FrameSettingsField field) => mask[(uint)field];
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        /// <summary>
+        /// <summary>Set stored overriding mask's data for this field.</summary>
+        /// </summary>
+        /// <param name="field">Requested field.</param>
+        /// <param name="value">State to set to the field.</param>
+#pragma warning disable CS0618 // Type or member is obsolete      //remove for 9.x.x
+        public void SetBitFor(FrameSettingsField field, bool value) => mask[(uint)field] = value;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+
+        /// <summary>
+        /// Equality operator.
+        /// </summary>
+        /// <param name="a">First FrameSettingsOverrideMask.</param>
+        /// <param name="b">Second FrameSettingsOverrideMask.</param>
+        /// <returns>True if both settings are equal.</returns>
+        public static bool operator ==(FrameSettingsOverrideMask a, FrameSettingsOverrideMask b)
+#pragma warning disable CS0618 // Type or member is obsolete      //remove for 9.x.x
+            => a.mask == b.mask;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        /// <summary>
+        /// Inequality operator.
+        /// </summary>
+        /// <param name="a">First FrameSettingsOverrideMask.</param>
+        /// <param name="b">Second FrameSettingsOverrideMask.</param>
+        /// <returns>True if settings are not equal.</returns>
+        public static bool operator !=(FrameSettingsOverrideMask a, FrameSettingsOverrideMask b)
+#pragma warning disable CS0618 // Type or member is obsolete      //remove for 9.x.x
+            => a.mask != b.mask;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+
+
+        /// <summary>
+        /// Equality operator.
+        /// </summary>
+        /// <param name="obj">FrameSettingsOverrideMask to compare to.</param>
+        /// <returns>True if both settings are equal.</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj is FrameSettingsOverrideMask overrideMask)
+#pragma warning disable CS0618 // Type or member is obsolete      //remove for 9.x.x
+                return mask == overrideMask.mask;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns the hash code of the FrameSettingsOverrideMask.
+        /// </summary>
+        /// <returns>Hash code of the FrameSettingsOverrideMask.</returns>
+        public override int GetHashCode()
+#pragma warning disable CS0618 // Type or member is obsolete      //remove for 9.x.x
+            => 1694694097 + mask.GetHashCode();
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     /// <summary>Per renderer and per frame settings.</summary>
@@ -606,22 +683,22 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static void Override(ref FrameSettings overriddenFrameSettings, FrameSettings overridingFrameSettings, FrameSettingsOverrideMask frameSettingsOverideMask)
         {
             //quick override of all booleans
-            overriddenFrameSettings.bitDatas = (overridingFrameSettings.bitDatas & frameSettingsOverideMask.mask) | (~frameSettingsOverideMask.mask & overriddenFrameSettings.bitDatas);
+            overriddenFrameSettings.bitDatas.AssignFrom(overridingFrameSettings.bitDatas.BitAnd(frameSettingsOverideMask.bitMask).BitOr(frameSettingsOverideMask.bitMask.BitNot().BitAnd(overriddenFrameSettings.bitDatas)));
 
             //other overrides
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.LODBias])
+            if (frameSettingsOverideMask.GetBitFor(FrameSettingsField.LODBias))
                 overriddenFrameSettings.lodBias = overridingFrameSettings.lodBias;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.LODBiasMode])
+            if (frameSettingsOverideMask.GetBitFor(FrameSettingsField.LODBiasMode))
                 overriddenFrameSettings.lodBiasMode = overridingFrameSettings.lodBiasMode;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.LODBiasQualityLevel])
+            if (frameSettingsOverideMask.GetBitFor(FrameSettingsField.LODBiasQualityLevel))
                 overriddenFrameSettings.lodBiasQualityLevel = overridingFrameSettings.lodBiasQualityLevel;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaximumLODLevel])
+            if (frameSettingsOverideMask.GetBitFor(FrameSettingsField.MaximumLODLevel))
                 overriddenFrameSettings.maximumLODLevel = overridingFrameSettings.maximumLODLevel;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaximumLODLevelMode])
+            if (frameSettingsOverideMask.GetBitFor(FrameSettingsField.MaximumLODLevelMode))
                 overriddenFrameSettings.maximumLODLevelMode = overridingFrameSettings.maximumLODLevelMode;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaximumLODLevelQualityLevel])
+            if (frameSettingsOverideMask.GetBitFor(FrameSettingsField.MaximumLODLevelQualityLevel))
                 overriddenFrameSettings.maximumLODLevelQualityLevel = overridingFrameSettings.maximumLODLevelQualityLevel;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaterialQualityLevel])
+            if (frameSettingsOverideMask.GetBitFor(FrameSettingsField.MaterialQualityLevel))
                 overriddenFrameSettings.materialQuality = overridingFrameSettings.materialQuality;
         }
 
