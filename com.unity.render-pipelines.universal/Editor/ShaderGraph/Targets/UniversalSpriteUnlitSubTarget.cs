@@ -41,6 +41,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 referenceName = "SHADERPASS_SPRITEUNLIT",
                 useInPreview = true,
 
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+
                 // Port Mask
                 vertexPorts = SpriteUnlitPortMasks.Vertex,
                 pixelPorts = SpriteUnlitPortMasks.Fragment,
