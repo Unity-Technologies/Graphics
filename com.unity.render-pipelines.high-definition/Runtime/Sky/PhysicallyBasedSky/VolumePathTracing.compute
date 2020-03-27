@@ -5,6 +5,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
@@ -494,8 +495,9 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
 
     // Our atmosphere, theoretically, extends to infinity but, numerically,
     // its density exponentially falls off to zero pretty quickly.
-    const float A = _AtmosphericRadius;
-    const float R = _PlanetaryRadius;
+    const float A    = _AtmosphericRadius;
+    const float R    = _PlanetaryRadius;
+    const float RRcp = _RcpPlanetaryRadius;
 
     // Reparametrize the ray.
     float r, rSq, rRcp, cosTheta;
@@ -523,6 +525,8 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
         atmosEntryExit.x  = 0;
     }
 
+    float tGround = IntersectSphere(R, cosTheta, r, rRcp).x; // Entry;
+
     float cosHor       = ComputeCosineOfHorizonAngle(rRcp);
     bool  aboveHorizon = (cosTheta >= cosHor);
 
@@ -532,9 +536,10 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
     }
     else // Intersect the planet
     {
-        ray.maxDist = IntersectSphere(R, cosTheta, r, rRcp).x; // Entry
-        assert(ray.maxDist > 0);
+        ray.maxDist = tGround;
     }
+
+    assert(ray.maxDist > 0);
 
     float pathContribution = 0;
     float frequencyPdf     = 1.0/3.0;
@@ -555,71 +560,122 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                                               _AerosolSeaLevelExtinction,
                                               _AerosolScaleHeight, _AerosolDensityFalloff).r;
 
-        float viewOpacity     = OpacityFromOpticalDepth(maxOptDepth);
-        float sampledOptDepth = ConvertCdfToOpticalDepth(rnd.x, viewOpacity);
+        bool  noGeometry     = aboveHorizon;
+        float viewOpacity    = OpacityFromOpticalDepth(maxOptDepth);
+        float sampledOpacity = rnd.x * (noGeometry ? viewOpacity : 1);
+        bool  volumeScatter  = noGeometry || (sampledOpacity < viewOpacity);
 
-        // Sample participating media.
-        float t = SampleSpherExpMedium(sampledOptDepth, r, rRcp, cosTheta, R,
-                                       float2(_AirSeaLevelExtinction[(uint)ray.frequency], _AerosolSeaLevelExtinction),
-                                       float2(_AirScaleHeight, _AerosolScaleHeight),
-                                       float2(_AirDensityFalloff, _AerosolDensityFalloff),
-                                       viewOpacity, ray.maxDist);
-
-        // Perform next event estimation.
-        float3 P = ray.origin + t * ray.direction; // TODO: 1-D
-        float3 D = ray.direction;                  // TODO: 1-D
-
-        ApplySphericalSymmetry(P, D, /* -> */ r, rSq, rRcp, cosTheta); // TODO: optimize me :-(
-
-        float airScaCoef = _AirSeaLevelScattering[(uint)ray.frequency]     * exp((R - r) * _AirDensityFalloff);
-        float airAttCoef = _AirSeaLevelExtinction[(uint)ray.frequency]     * exp((R - r) * _AirDensityFalloff);
-        float aerScaCoef = _AerosolSeaLevelScattering[(uint)ray.frequency] * exp((R - r) * _AerosolDensityFalloff);
-        float aerAttCoef = _AerosolSeaLevelExtinction                      * exp((R - r) * _AerosolDensityFalloff);
-        float totalAtt   = airAttCoef + aerAttCoef;
-
-        float airAlbedo = airScaCoef * rcp(totalAtt);
-        float aerAlbedo = aerScaCoef * rcp(totalAtt);
-
-
-        for (uint lightIndex = 0; lightIndex < _DirectionalLightCount; lightIndex++)
+        if (volumeScatter)
         {
-            DirectionalLightData light = _DirectionalLightDatas[lightIndex];
+            float sampledOptDepth = OpticalDepthFromOpacity(sampledOpacity);
 
-            // Use scalar or integer cores (more efficient).
-            bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+            // Sample participating media.
+            float t = SampleSpherExpMedium(sampledOptDepth, r, rRcp, cosTheta, R,
+                                           float2(_AirSeaLevelExtinction[(uint)ray.frequency], _AerosolSeaLevelExtinction),
+                                           float2(_AirScaleHeight, _AerosolScaleHeight),
+                                           float2(_AirDensityFalloff, _AerosolDensityFalloff),
+                                           viewOpacity, ray.maxDist);
 
-            if (!interactsWithSky) continue;
-
-            float3 L = -light.forward.xyz;
+            // Perform next event estimation.
+            float3 P = ray.origin + t * ray.direction; // TODO: 1-D
+            float3 D = ray.direction;                  // TODO: 1-D
+            float3 N = normalize(P);                   // TODO: 1-D
 
             ApplySphericalSymmetry(P, D, /* -> */ r, rSq, rRcp, cosTheta); // TODO: optimize me :-(
 
-            float LdotN  = dot(L, P) * rsqrt(dot(P, P)); // TODO: 1-D
-            float cosHor = ComputeCosineOfHorizonAngle(rRcp);
+            float airScaCoef = _AirSeaLevelScattering[(uint)ray.frequency]     * exp((R - r) * _AirDensityFalloff);
+            float airAttCoef = _AirSeaLevelExtinction[(uint)ray.frequency]     * exp((R - r) * _AirDensityFalloff);
+            float aerScaCoef = _AerosolSeaLevelScattering[(uint)ray.frequency] * exp((R - r) * _AerosolDensityFalloff);
+            float aerAttCoef = _AerosolSeaLevelExtinction                      * exp((R - r) * _AerosolDensityFalloff);
+            float totalAtt   = airAttCoef + aerAttCoef;
 
-            if (LdotN > cosHor) // Visible?
+            float airAlbedo = airScaCoef * rcp(totalAtt);
+            float aerAlbedo = aerScaCoef * rcp(totalAtt);
+
+            for (uint lightIndex = 0; lightIndex < _DirectionalLightCount; lightIndex++)
             {
-                float LdotD    = dot(L, D);
-                float airPhase = IsotropicPhaseFunction();
-                float aerPhase = CornetteShanksPhaseFunction(_AerosolAnisotropy, LdotD);
+                DirectionalLightData light = _DirectionalLightDatas[lightIndex];
 
-                float lightOptDepth = 0;
-                lightOptDepth += OptDepthSpherExpMedium(r, rRcp, LdotN, ray.maxDist, R,
-                                                        _AirSeaLevelExtinction[(uint)ray.frequency],
-                                                        _AirScaleHeight, _AirDensityFalloff).r;
-                lightOptDepth += OptDepthSpherExpMedium(r, rRcp, LdotN, ray.maxDist, R,
-                                                        _AerosolSeaLevelExtinction,
-                                                        _AerosolScaleHeight, _AerosolDensityFalloff).r;
+                // Use scalar or integer cores (more efficient).
+                bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
 
-                float lightTransm     = TransmittanceFromOpticalDepth(lightOptDepth);
-                float emittedRadiance = light.color.rgb[(uint)ray.frequency];
+                if (!interactsWithSky) continue;
 
-                pathContribution += viewOpacity * (airAlbedo * airPhase + aerAlbedo * aerPhase) * (lightTransm * emittedRadiance);
+                float3 L = -light.forward.xyz;
+
+                float NdotL  = dot(N, L); // TODO: 1-D
+                float cosHor = ComputeCosineOfHorizonAngle(rRcp);
+
+                if (NdotL > cosHor) // Shadow test
+                {
+                    float LdotD    = dot(L, D);
+                    float airPhase = IsotropicPhaseFunction();
+                    float aerPhase = CornetteShanksPhaseFunction(_AerosolAnisotropy, LdotD);
+
+                    float lightOptDepth = 0;
+                    lightOptDepth += OptDepthSpherExpMedium(r, NdotL, R,
+                                                            _AirSeaLevelExtinction[(uint)ray.frequency],
+                                                            _AirScaleHeight, _AirDensityFalloff).r;
+                    lightOptDepth += OptDepthSpherExpMedium(r, NdotL, R,
+                                                            _AerosolSeaLevelExtinction,
+                                                            _AerosolScaleHeight, _AerosolDensityFalloff).r;
+
+                    float lightTransm     = TransmittanceFromOpticalDepth(lightOptDepth);
+                    float emittedRadiance = light.color.rgb[(uint)ray.frequency];
+
+                    if (!noGeometry)
+                    {
+                        // We sample proportionally to 'viewOpacity', so it cancels out.
+                        viewOpacity = 1;
+                    }
+
+                    pathContribution += viewOpacity * (airAlbedo * airPhase + aerAlbedo * aerPhase) * (lightTransm * emittedRadiance);
+                }
+            }
+        }
+        else // Surface scattering
+        {
+            // Perform next event estimation.
+            float3 P = ray.origin + tGround * ray.direction; // TODO: 1-D
+            float3 D = ray.direction;                        // TODO: 1-D
+            float3 N = normalize(P);                         // TODO: 1-D
+
+            float groundAlbedo = _GroundAlbedo[(uint)ray.frequency];
+
+            for (uint lightIndex = 0; lightIndex < _DirectionalLightCount; lightIndex++)
+            {
+                DirectionalLightData light = _DirectionalLightDatas[lightIndex];
+
+                // Use scalar or integer cores (more efficient).
+                bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+
+                if (!interactsWithSky) continue;
+
+                float3 L = -light.forward.xyz;
+
+                float NdotL = saturate(dot(N, L)); // TODO: 1-D
+
+                if (NdotL > 0) // Shadow test
+                {
+                    float lightOptDepth = 0;
+                    lightOptDepth += OptDepthSpherExpMedium(R, NdotL, R,
+                                                            _AirSeaLevelExtinction[(uint)ray.frequency],
+                                                            _AirScaleHeight, _AirDensityFalloff).r;
+                    lightOptDepth += OptDepthSpherExpMedium(R, NdotL, R,
+                                                            _AerosolSeaLevelExtinction,
+                                                            _AerosolScaleHeight, _AerosolDensityFalloff).r;
+
+                    float lightTransm     = TransmittanceFromOpticalDepth(lightOptDepth);
+                    float emittedRadiance = light.color.rgb[(uint)ray.frequency];
+
+                    // We sample proportionally to 'viewOpacity', so it cancels out.
+                    pathContribution += Lambert() * groundAlbedo * (lightTransm * emittedRadiance) * NdotL;
+                }
             }
         }
     }
 
-    radiance[(uint)ray.frequency] += rcp(_NumPaths) * pathContribution / pathPdf;
+    radiance[(uint)ray.frequency] += pathContribution / pathPdf;
 
     return float3(radiance[0], radiance[1], radiance[2]);
 }
@@ -649,34 +705,34 @@ void main(uint2 groupCoordInDispatch  : SV_GroupID,
                                    GROUP_SIZE_1D, TILE_SIZE_1D, _BounceCount, _PassIndex,
                                    origin, outPositionSS);
 
-    // // Find the corresponding coordinate in the groupshared memory.
-    // uint outPositionGS = (outPositionSS.y % GROUP_SIZE_1D) * GROUP_SIZE_1D
-    //                    + (outPositionSS.x % GROUP_SIZE_1D);
+    // Find the corresponding coordinate in the groupshared memory.
+    uint outPositionGS = (outPositionSS.y % GROUP_SIZE_1D) * GROUP_SIZE_1D
+                       + (outPositionSS.x % GROUP_SIZE_1D);
 
-    // // Full clear.
-    // g_RadianceR[threadIndexInGroup] = 0;
-    // g_RadianceG[threadIndexInGroup] = 0;
-    // g_RadianceB[threadIndexInGroup] = 0;
-    // g_SampleCnt[threadIndexInGroup] = 0;
-    // // Partial fill.
-    // GroupMemoryBarrierWithGroupSync();
-    // InterlockedAdd(g_RadianceR[outPositionGS], round(radiance.r * 16384)); // Fixed-point
-    // InterlockedAdd(g_RadianceG[outPositionGS], round(radiance.g * 16384)); // Fixed-point
-    // InterlockedAdd(g_RadianceB[outPositionGS], round(radiance.b * 16384)); // Fixed-point
-    // InterlockedAdd(g_SampleCnt[outPositionGS], 1);
-    // // Full load.
-    // uint sampleCount;
-    // GroupMemoryBarrierWithGroupSync();
-    // radiance.r  = g_RadianceR[threadIndexInGroup] * rcp(16384);
-    // radiance.g  = g_RadianceG[threadIndexInGroup] * rcp(16384);
-    // radiance.b  = g_RadianceB[threadIndexInGroup] * rcp(16384);
-    // sampleCount = g_SampleCnt[threadIndexInGroup];
+    // Full clear.
+    g_RadianceR[threadIndexInGroup] = 0;
+    g_RadianceG[threadIndexInGroup] = 0;
+    g_RadianceB[threadIndexInGroup] = 0;
+    g_SampleCnt[threadIndexInGroup] = 0;
+    // Partial fill.
+    GroupMemoryBarrierWithGroupSync();
+    InterlockedAdd(g_RadianceR[outPositionGS], round(radiance.r * 16384)); // Fixed-point
+    InterlockedAdd(g_RadianceG[outPositionGS], round(radiance.g * 16384)); // Fixed-point
+    InterlockedAdd(g_RadianceB[outPositionGS], round(radiance.b * 16384)); // Fixed-point
+    InterlockedAdd(g_SampleCnt[outPositionGS], 1);
+    // Full load.
+    uint sampleCount;
+    GroupMemoryBarrierWithGroupSync();
+    radiance.r  = g_RadianceR[threadIndexInGroup] * rcp(16384);
+    radiance.g  = g_RadianceG[threadIndexInGroup] * rcp(16384);
+    radiance.b  = g_RadianceB[threadIndexInGroup] * rcp(16384);
+    sampleCount = g_SampleCnt[threadIndexInGroup];
 
     // // We store the sample count in the alpha channel.
-    // float3 oldRadiance    = _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].rgb;
-    // float  oldSampleCount = round(_ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].a);
-    // float  newSampleCount = oldSampleCount + sampleCount;
-    // float4 newValue       = float4((oldRadiance * oldSampleCount + radiance) * rcp(max(newSampleCount, 1)), newSampleCount);
-    // _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] = newValue;
-    _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] += float4(radiance, 1);
+    float3 oldRadiance    = _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].rgb * GetInversePreviousExposureMultiplier();
+    float  oldSampleCount = round(_ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].a);
+    float  newSampleCount = oldSampleCount + sampleCount;
+    float4 newValue       = float4((oldRadiance * oldSampleCount + radiance) * rcp(max(newSampleCount, 1)), newSampleCount);
+    newValue.rgb *= GetCurrentExposureMultiplier(); // Only the full-screen pass is pre-exposed
+    _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] = newValue;
 }
