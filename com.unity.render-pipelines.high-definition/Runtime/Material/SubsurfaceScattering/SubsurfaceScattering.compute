@@ -7,10 +7,16 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel SubsurfaceScatteringMQ SubsurfaceScattering=SubsurfaceScatteringMQ SSS_ENABLE_NEAR_FIELD=0
-#pragma kernel SubsurfaceScatteringHQ SubsurfaceScattering=SubsurfaceScatteringHQ SSS_ENABLE_NEAR_FIELD=1
-#pragma kernel SubsurfaceScatteringMQ_MSAA SubsurfaceScattering=SubsurfaceScatteringMQ_MSAA SSS_ENABLE_NEAR_FIELD=0 ENABLE_MSAA
-#pragma kernel SubsurfaceScatteringHQ_MSAA SubsurfaceScattering=SubsurfaceScatteringHQ_MSAA SSS_ENABLE_NEAR_FIELD=1 ENABLE_MSAA
+#pragma kernel SubsurfaceScattering
+
+#pragma multi_compile _ ENABLE_MSAA
+#pragma multi_compile _ SSS_ENABLE_NEAR_FIELD
+
+#ifdef SSS_ENABLE_NEAR_FIELD
+    #define SSS_ENABLE_NEAR_FIELD 1
+#else
+    #define SSS_ENABLE_NEAR_FIELD 0
+#endif
 
 // TODO: use sharp load hoisting on PS4.
 
