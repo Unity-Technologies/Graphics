@@ -90,11 +90,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0)
         {
-#if ENABLE_VR && ENABLE_VR_MODULE
-            if (xrPass.enabled)
-                return GL.GetGPUProjectionMatrix(xrPass.GetProjMatrix(viewIndex), IsCameraProjectionMatrixFlipped());
-#endif
-            return GL.GetGPUProjectionMatrix(m_ProjectionMatrix, IsCameraProjectionMatrixFlipped());
+            return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), IsCameraProjectionMatrixFlipped());
         }
 
         public Camera camera;
@@ -291,7 +287,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_VR_MODULE
             isCompatWithXRDimension &= (camera.targetTexture ? camera.targetTexture.dimension == UnityEngine.XR.XRSettings.deviceEyeTextureDimension : true);
 #endif
-            return isGameCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both) && isCompatWithXRDimension;
+            return isGameCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both) && (isCompatWithXRDimension || XRSystem.automatedTestRunning);
         }
 
         /// <summary>

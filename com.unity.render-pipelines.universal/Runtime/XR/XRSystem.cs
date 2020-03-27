@@ -1,14 +1,9 @@
-// XRSystem is where information about XR views and passes are read from 3 exclusive sources:
+// XRSystem is where information about XR views and passes are read from 2 exclusive sources:
 // - XRDisplaySubsystem from the XR SDK
-// - the 'legacy' C++ stereo rendering path and XRSettings
-// - custom XR layout (only internal for now)
+// - the test automated test framework
 
 using System;
 using System.Collections.Generic;
-
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-using System.Diagnostics;
-#endif
 
 #if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.XR;
@@ -16,18 +11,13 @@ using UnityEngine.XR;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public partial class XRSystem
+    internal partial class XRSystem
     {
         // Valid empty pass when a camera is not using XR
         internal readonly XRPass emptyPass = new XRPass();
 
         // Store active passes and avoid allocating memory every frames
         List<XRPass> framePasses = new List<XRPass>();
-
-        // XRTODO: expose and document public API for custom layout
-        internal delegate bool CustomLayout(XRLayout layout);
-        private static CustomLayout customLayout = null;
-        static internal void SetCustomLayout(CustomLayout cb) => customLayout = cb;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         // XR SDK display interface
@@ -45,12 +35,8 @@ namespace UnityEngine.Rendering.Universal
 
         // Used by test framework and to enable debug features
         internal static bool testModeEnabled { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
+        RenderTexture testRenderTexture = null;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-        internal static bool dumpDebugInfo = false;
-        internal static List<string> passDebugInfos = new List<string>(8);
-        internal static string ReadPassDebugInfo(int i) => passDebugInfos[i];
-#endif
         const string k_XRMirrorTag = "XR Mirror View";
         static ProfilingSampler _XRMirrorProfilingSampler = new ProfilingSampler(k_XRMirrorTag);
 
@@ -67,8 +53,11 @@ namespace UnityEngine.Rendering.Universal
         internal void InitializeXRSystemData(XRSystemData data)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            occlusionMeshMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrOcclusionMeshPS);
-            mirrorViewMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrMirrorViewPS);
+            if (data)
+            {
+                occlusionMeshMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrOcclusionMeshPS);
+                mirrorViewMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrMirrorViewPS);
+            }
 #endif
         }
 
@@ -155,11 +144,6 @@ namespace UnityEngine.Rendering.Universal
                 ReleaseFrame();
             }
 
-            if ((singlePassTestModeActive || automatedTestRunning) && testModeEnabled)
-                SetCustomLayout(LayoutSinglePassTestMode);
-            else
-                SetCustomLayout(null);
-
             if (camera == null)
                 return framePasses;
 
@@ -169,17 +153,12 @@ namespace UnityEngine.Rendering.Universal
             // Enable XR layout only for gameview camera
             bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
 
-            if (customLayout != null && customLayout(new XRLayout() { camera = camera, xrSystem = this }))
+            if (testModeEnabled && automatedTestRunning && LayoutSinglePassTestMode(ref cameraData, new XRLayout() { camera = camera, xrSystem = this }))
             {
-                // custom layout in used
+                // test layout in used
             }
             else if (xrEnabled && xrSupported)
             {
-                if (XRGraphics.renderViewportScale != 1.0f)
-                {
-                    Debug.LogWarning("RenderViewportScale has no effect with this render pipeline. Use dynamic resolution instead.");
-                }
-
                 if (xrSdkActive)
                 {
                     CreateLayoutFromXrSdk(camera, singlePassAllowed);
@@ -218,8 +197,6 @@ namespace UnityEngine.Rendering.Universal
                 AddPassToFrame(emptyPass);
             }
 
-            CaptureDebugInfo();
-
             return framePasses;
         }
 
@@ -232,6 +209,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             framePasses.Clear();
+
+            if (testRenderTexture)
+                testRenderTexture.Release();
         }
 
         bool RefreshXrSdk()
@@ -248,7 +228,6 @@ namespace UnityEngine.Rendering.Universal
                 display.disableLegacyRenderer = true;
 
                 // Refresh max views
-                // XRTODO: replace by dynamic render graph
                 TextureXR.maxViews = Math.Max(TextureXR.slices, GetMaxViews());
 
                 return display.running;
@@ -291,7 +270,6 @@ namespace UnityEngine.Rendering.Universal
                     AddPassToFrame(pass);
                     passCreateInfo.multipassId++;
                 }
-
 
                 if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Right)
                 {
@@ -343,6 +321,9 @@ namespace UnityEngine.Rendering.Universal
                 display.GetRenderPass(renderPassIndex, out var renderPass);
                 display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
+                // Disable legacy stereo culling path
+                cullingParams.cullingOptions &= ~CullingOptions.Stereo;
+
                 if (singlePassAllowed && CanUseSinglePass(renderPass))
                 {
                     var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial);
@@ -373,8 +354,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Cleanup()
         {
-            customLayout = null;
-
 #if ENABLE_VR && ENABLE_XR_MODULE
             CoreUtils.Destroy(occlusionMeshMaterial);
             CoreUtils.Destroy(mirrorViewMaterial);
@@ -398,10 +377,7 @@ namespace UnityEngine.Rendering.Universal
         internal void RenderMirrorView(CommandBuffer cmd, ref CameraData cameraData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (display == null || !display.running)
-                return;
-
-            if (!mirrorViewMaterial)
+            if (display == null || !display.running || !mirrorViewMaterial)
                 return;
 
             using (new ProfilingScope(cmd, _XRMirrorProfilingSampler))
@@ -420,13 +396,12 @@ namespace UnityEngine.Rendering.Universal
                         for (int i = 0; i < blitDesc.blitParamsCount; ++i)
                         {
                             blitDesc.GetBlitParameter(i, out var blitParam);
-            
+
                             Vector4 scaleBias = yflip ? new Vector4(blitParam.srcRect.width, -blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.height + blitParam.srcRect.y) :
                                                         new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
                             Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
-                            if(!blitParam.srcTex.sRGB)
-                                mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, 1);
+                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, blitParam.srcTex.sRGB ? 0 : 1);
                             mirrorViewMaterialProperty.SetTexture(XRShaderIDs._BlitTexture, blitParam.srcTex);
                             mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBias, scaleBias);
                             mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBiasRt, scaleBiasRT);
@@ -445,67 +420,62 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        void CaptureDebugInfo()
-        {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (dumpDebugInfo)
-            {
-                passDebugInfos.Clear();
-
-                for (int passIndex = 0; passIndex < framePasses.Count; passIndex++)
-                {
-                    var pass = framePasses[passIndex];
-                    for (int viewIndex = 0; viewIndex < pass.viewCount; viewIndex++)
-                    {
-                        var viewport = pass.GetViewport(viewIndex);
-                        passDebugInfos.Add(string.Format("    Pass {0} Cull {1} View {2} Slice {3} : {4} x {5}",
-                            pass.multipassId,
-                            pass.cullingPassId,
-                            viewIndex,
-                            pass.GetTextureArraySlice(viewIndex),
-                            viewport.width,
-                            viewport.height));
-                    }
-                }
-            }
-
-            while (passDebugInfos.Count < passDebugInfos.Capacity)
-                passDebugInfos.Add("inactive");
-#endif
-        }
-
-        bool LayoutSinglePassTestMode(XRLayout frameLayout)
+        bool LayoutSinglePassTestMode(ref CameraData cameraData, XRLayout frameLayout)
         {
             Camera camera = frameLayout.camera;
 
-            if (camera != null && camera.cameraType == CameraType.Game && camera.TryGetCullingParameters(false, out var cullingParams))
+            if (camera == null || camera.targetTexture == null || camera.cameraType != CameraType.Game)
+                return false;
+
+            if (camera.TryGetCullingParameters(false, out var cullingParams))
             {
                 cullingParams.stereoProjectionMatrix = camera.projectionMatrix;
                 cullingParams.stereoViewMatrix = camera.worldToCameraMatrix;
+
+                // Allocate temp target to render test scene with single-pass
+                // And copy the last view to the actual render texture used to compare image in test framework
+                {
+                    RenderTextureDescriptor rtDesc = cameraData.cameraTargetDescriptor;
+                    rtDesc.dimension = TextureDimension.Tex2DArray;
+                    rtDesc.volumeDepth = 2;
+
+                    testRenderTexture = new RenderTexture(rtDesc);
+                }
 
                 var passInfo = new XRPassCreateInfo
                 {
                     multipassId = 0,
                     cullingPassId = 0,
                     cullingParameters = cullingParams,
-                    renderTarget = camera.targetTexture,
+                    renderTarget = testRenderTexture,
+                    renderTargetIsRenderTexture = true,
                     customMirrorView = null
                 };
 
-                var viewInfo = new XRViewCreateInfo
+                var viewInfo2 = new XRViewCreateInfo
                 {
                     projMatrix = camera.projectionMatrix,
                     viewMatrix = camera.worldToCameraMatrix,
-                    viewport = camera.pixelRect,
+                    viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight),
                     textureArraySlice = -1
                 };
+
+                // Change the first view so that it's a different viewpoint and projection to detect more issues
+                var viewInfo1 = viewInfo2;
+                var planes = viewInfo1.projMatrix.decomposeProjection;
+                planes.left *= 0.44f;
+                planes.right *= 0.88f;
+                planes.top *= 0.11f;
+                planes.bottom *= 0.33f;
+                viewInfo1.projMatrix = Matrix4x4.Frustum(planes);
+                viewInfo1.viewMatrix *= Matrix4x4.Translate(new Vector3(.34f, 0.25f, -0.08f));
 
                 // single-pass 2x rendering
                 {
                     XRPass pass = frameLayout.CreatePass(passInfo);
 
-                    for (int viewIndex = 0; viewIndex < TextureXR.slices; viewIndex++)
-                        frameLayout.AddViewToPass(viewInfo, pass);
+                    frameLayout.AddViewToPass(viewInfo1, pass);
+                    frameLayout.AddViewToPass(viewInfo2, pass);
                 }
 
                 // valid layout

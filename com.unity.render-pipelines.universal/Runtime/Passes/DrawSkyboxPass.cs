@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.Universal
                 CommandBuffer cmd = CommandBufferPool.Get();
 
                 // Setup Legacy XR buffer states
-                if (renderingData.cameraData.xrPass.hasMultiXrView)
+                if (renderingData.cameraData.xrPass.singlePassEnabled)
                 {
                     // Setup legacy skybox stereo buffer
                     renderingData.cameraData.camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Left, renderingData.cameraData.xrPass.GetProjMatrix(0));
