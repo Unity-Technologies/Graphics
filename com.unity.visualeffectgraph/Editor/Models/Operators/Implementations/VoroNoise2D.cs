@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Noise")]
+    [Obsolete]
     class VoroNoise2D : VFXOperator
     {
         public class InputProperties

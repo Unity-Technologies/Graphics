@@ -2,24 +2,40 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Scalable Quality Level Parameter.
+    /// </summary>
     [Serializable]
     public sealed class ScalableSettingLevelParameter : IntParameter
     {
-        // We use 3 levels of quality for post processing
+        /// <summary>Number of quality levels.</summary>
         public const int LevelCount = 3;
+        /// <summary>Quality levels.</summary>
         public enum Level
         {
+            /// <summary>Low Quality.</summary>
             Low,
+            /// <summary>Medium Quality.</summary>
             Medium,
+            /// <summary>High Quality.</summary>
             High
         }
 
+        /// <summary>
+        /// Scalable Quality Level Parameter constructor.
+        /// </summary>
+        /// <param name="level">Initial quality level.</param>
+        /// <param name="useOverride">Use local override.</param>
+        /// <param name="overrideState">Override state.</param>
         public ScalableSettingLevelParameter(int level, bool useOverride, bool overrideState = false)
             : base(useOverride ? LevelCount : (int)level, overrideState)
         {
 
         }
 
+        /// <summary>
+        /// Level and Override.
+        /// </summary>
         public (int level, bool useOverride) levelAndOverride
         {
             get => value == LevelCount ? ((int)Level.Low, true) : (value, false);
@@ -31,12 +47,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    /// <summary>
+    /// Post Processing Quality Settings.
+    /// </summary>
     [Serializable]
     public sealed class GlobalPostProcessingQualitySettings
     {
         static int s_QualitySettingCount = ScalableSettingLevelParameter.LevelCount;
 
-        public GlobalPostProcessingQualitySettings()
+        internal GlobalPostProcessingQualitySettings()
         {
             /* Depth of Field */
             NearBlurSampleCount[(int)ScalableSettingLevelParameter.Level.Low] = 3;
@@ -83,28 +102,34 @@ namespace UnityEngine.Rendering.HighDefinition
             ChromaticAberrationMaxSamples[(int)ScalableSettingLevelParameter.Level.High] = 12;
         }
 
-        /// <summary>Default GlobalPostProcessingQualitySettings</summary>
-        [Obsolete("Since 2019.3, use GlobalPostProcessingQualitySettings.NewDefault() instead.")]
-        public static readonly GlobalPostProcessingQualitySettings @default = default;
-        /// <summary>Default GlobalPostProcessingQualitySettings</summary>
-        public static GlobalPostProcessingQualitySettings NewDefault() => new GlobalPostProcessingQualitySettings();
+        internal static GlobalPostProcessingQualitySettings NewDefault() => new GlobalPostProcessingQualitySettings();
 
         /*  Depth of field */
+        /// <summary>Depth of field near blur sample count for each quality level.</summary>
         public int[] NearBlurSampleCount                = new int[s_QualitySettingCount];
+        /// <summary>Depth of field near blur maximum radius for each quality level.</summary>
         public float[] NearBlurMaxRadius                = new float[s_QualitySettingCount];
+        /// <summary>Depth of field far blur sample count for each quality level.</summary>
         public int[] FarBlurSampleCount                 = new int[s_QualitySettingCount];
+        /// <summary>Depth of field far blur maximum radius for each quality level.</summary>
         public float[] FarBlurMaxRadius                 = new float[s_QualitySettingCount];
+        /// <summary>Depth of field resolution for each quality level.</summary>
         public DepthOfFieldResolution[] DoFResolution   = new DepthOfFieldResolution[s_QualitySettingCount];
+        /// <summary>Use Depth of field high quality filtering for each quality level.</summary>
         public bool[] DoFHighQualityFiltering           = new bool[s_QualitySettingCount];
 
         /* Motion Blur */
+        /// <summary>Motion Blur sample count for each quality level.</summary>
         public int[] MotionBlurSampleCount              = new int[s_QualitySettingCount];
 
         /* Bloom */
+        /// <summary>Bloom resolution for each quality level.</summary>
         public BloomResolution[] BloomRes               = new BloomResolution[s_QualitySettingCount];
+        /// <summary>Use bloom high quality filtering for each quality level.</summary>
         public bool[] BloomHighQualityFiltering         = new bool[s_QualitySettingCount];
 
         /* Chromatic Aberration */
+        /// <summary>Chromatic aberration maximum sample count for each quality level.</summary>
         public int[] ChromaticAberrationMaxSamples      = new int[s_QualitySettingCount];
     }
 }

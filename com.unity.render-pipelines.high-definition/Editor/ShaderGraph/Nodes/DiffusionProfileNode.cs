@@ -21,10 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Diffusion-Profile-Node"; }
-        }
+        public override string documentationURL => Documentation.GetPageLink("SGNode-Diffusion-Profile");
 
         [SerializeField, Obsolete("Use m_DiffusionProfileAsset instead.")]
         UnityEditor.ShaderGraph.Drawing.Controls.PopupList m_DiffusionProfile = new UnityEditor.ShaderGraph.Drawing.Controls.PopupList();
@@ -113,9 +110,9 @@ namespace UnityEditor.Rendering.HighDefinition
             sb.AppendLine(string.Format("float {0} = asfloat(uint({1}));", GetVariableNameForSlot(0), hash));
         }
 
-        public override void ValidateNode()
+        public override void Setup()
         {
-            base.ValidateNode();
+            base.Setup();
 
             var hdPipelineAsset = HDRenderPipeline.currentAsset;
 
@@ -124,7 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (diffusionProfile != null && !hdPipelineAsset.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
             {
-                // Debug.LogWarning($"Diffusion profile '{diffusionProfile.name}' is not referenced in the current HDRP asset");
+                //owner.AddSetupError(tempId, $"Diffusion profile '{diffusionProfile.name}' is not referenced in the current HDRP asset", ShaderCompilerMessageSeverity.Warning);
             }
         }
     }

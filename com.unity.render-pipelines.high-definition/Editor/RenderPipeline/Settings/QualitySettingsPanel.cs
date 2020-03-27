@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// Defines the provider of the quality settings panel for HDRP.
     /// </summary>
-    public class QualitySettingsPanel
+    class QualitySettingsPanel
     {
         static QualitySettingsPanelIMGUI s_IMGUIImpl = new QualitySettingsPanelIMGUI();
 
@@ -41,8 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 public const int HDRPAssetListMinHeight = 150;
                 public const int HDRPAssetListMaxHeight = 150;
 
-                public static readonly GUIContent hdrpAssetListTitle = new GUIContent("Active HDRP Assets");
                 public static readonly GUIContent @default = new GUIContent("default");
+                public const string hdrpSubtitleHelp = "HDRP Assets that are assigned either in Graphics settings or in any Quality Level will be listed here.";
             }
 
             static GUIContent s_CachedGUIContent = new GUIContent();
@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public void OnGUI(string searchContext)
             {
                 // Draw HDRP asset list
-                EditorGUILayout.LabelField(Styles.hdrpAssetListTitle, EditorStyles.largeLabel);
+                EditorGUILayout.LabelField(Styles.hdrpSubtitleHelp, EditorStyles.largeLabel, GUILayout.Height(22));
                 m_HDRPAssetListScrollView = EditorGUILayout.BeginScrollView(
                     m_HDRPAssetListScrollView,
                     GUILayout.MinHeight(Styles.HDRPAssetListMinHeight),

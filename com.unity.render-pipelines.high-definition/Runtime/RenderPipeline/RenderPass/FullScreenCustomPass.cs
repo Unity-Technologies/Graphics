@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// FullScreen Custom Pass
     /// </summary>
     [System.Serializable]
-    public class FullScreenCustomPass : CustomPass
+    class FullScreenCustomPass : CustomPass
     {
         // Fullscreen pass settings
         public Material         fullscreenPassMaterial;

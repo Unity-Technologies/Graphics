@@ -4,30 +4,76 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// A volume component that holds settings for the ambient occlusion.
+    /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
     public sealed class AmbientOcclusion : VolumeComponentWithQuality
     {
+        /// <summary>
+        /// Enable ray traced ambient occlusion.
+        /// </summary>
         public BoolParameter rayTracing = new BoolParameter(false);
 
+        /// <summary>
+        /// Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas.
+        /// </summary>
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 4f);
+        /// <summary>
+        /// Controls how much the ambient occlusion affects direct lighting.
+        /// </summary>
         public ClampedFloatParameter directLightingStrength = new ClampedFloatParameter(0f, 0f, 1f);
-
+        /// <summary>
+        /// Sampling radius. Bigger the radius, wider AO will be achieved, risking to lose fine details and increasing cost of the effect due to increasing cache misses.
+        /// </summary>
         public ClampedFloatParameter radius = new ClampedFloatParameter(2.0f, 0.25f, 5.0f);
+        /// <summary>
+        /// Whether the results are accumulated over time or not. This can get higher quality results at a cheaper cost, but it can lead to temporal artifacts such as ghosting.
+        /// </summary>
         public BoolParameter temporalAccumulation = new BoolParameter(true);
 
         // Temporal only parameters
+        /// <summary>
+        /// Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise.
+        /// </summary>
         public ClampedFloatParameter ghostingReduction = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         // Non-temporal only parameters
+        /// <summary>
+        /// Modify the non-temporal blur to change how sharp features are preserved. Lower values leads to blurrier/softer results, higher values gets a sharper result, but with the risk of noise.
+        /// </summary>
         public ClampedFloatParameter blurSharpness = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         // Ray tracing parameters
+        /// <summary>
+        /// Defines the layers that ray traced ambient occlusion should include.
+        /// </summary>
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
+
+        /// <summary>
+        /// Controls the length of ray traced ambient occlusion rays.
+        /// </summary>
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
+
+        /// <summary>
+        /// Number of samples for evaluating the effect.
+        /// </summary>
         public ClampedIntParameter sampleCount = new ClampedIntParameter(4, 1, 64);
+
+        /// <summary>
+        /// Defines if the ray traced ambient occlusion should be denoised.
+        /// </summary>
         public BoolParameter denoise = new BoolParameter(false);
+
+        /// <summary>
+        /// Controls the radius of the ray traced ambient occlusion denoiser.
+        /// </summary>
         public ClampedFloatParameter denoiserRadius = new ClampedFloatParameter(0.5f, 0.001f, 1.0f);
 
+        /// <summary>
+        /// Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction). Increasing the value can lead to detection
+        /// of finer details, but is not a guarantee of higher quality otherwise. Also note that increasing this value will lead to higher cost.
+        /// </summary>
         public int stepCount
         {
             get
@@ -40,6 +86,9 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_StepCount.value = value; }
         }
 
+        /// <summary>
+        /// If this option is set to true, the effect runs at full resolution. This will increases quality, but also decreases performance significantly.
+        /// </summary>
         public bool fullResolution
         {
             get
@@ -52,6 +101,11 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_FullResolution.value = value; }
         }
 
+        /// <summary>
+        /// This field imposes a maximum radius in pixels that will be considered. It is very important to keep this as tight as possible to preserve good performance.
+        /// Note that the pixel value specified for this field is the value used for 1080p when *not* running the effect at full resolution, it will be scaled accordingly
+        /// for other resolutions.
+        /// </summary>
         public int maximumRadiusInPixels
         {
             get
@@ -64,6 +118,9 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_MaximumRadiusInPixels.value = value; }
         }
 
+        /// <summary>
+        /// This upsample method preserves sharp edges better, however may result in visible aliasing and it is slightly more expensive.
+        /// </summary>
         public bool bilateralUpsample
         {
             get
@@ -76,6 +133,9 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_BilateralUpsample.value = value; }
         }
 
+        /// <summary>
+        /// Number of directions searched for occlusion at each each pixel when temporal accumulation is disabled.
+        /// </summary>
         public int directionCount
         {
             get
@@ -118,7 +178,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private RTHandle m_FinalHalfRes;
 
         private bool m_RunningFullRes = false;
-        private Vector4 m_HistoryInfo = new Vector4();
 
         readonly HDRaytracingAmbientOcclusion m_RaytracingAmbientOcclusion = new HDRaytracingAmbientOcclusion();
 
@@ -154,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.AllocateAmbientOcclusionHistoryBuffer(scaleFactor);
         }
 
-        public AmbientOcclusionSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
+        internal AmbientOcclusionSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             m_Settings = hdAsset.currentPlatformRenderPipelineSettings;
             m_Resources = defaultResources;
@@ -165,9 +224,9 @@ namespace UnityEngine.Rendering.HighDefinition
             AllocRT(0.5f);
         }
 
-        public void Cleanup()
+        internal void Cleanup()
         {
-            if (HDRenderPipeline.AggreateRayTracingSupport(m_Settings))
+            if (HDRenderPipeline.GatherRayTracingSupport(m_Settings))
             {
                 m_RaytracingAmbientOcclusion.Release();
             }
@@ -175,14 +234,14 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseRT();
         }
 
-        public void InitRaytracing(HDRenderPipeline renderPipeline)
+        internal void InitRaytracing(HDRenderPipeline renderPipeline)
         {
             m_RaytracingAmbientOcclusion.Init(renderPipeline);
         }
 
-        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
+        internal bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
-        public void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, int frameCount)
+        internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, int frameCount)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -207,10 +266,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ComputeShader    gtaoCS;
             public int              gtaoKernel;
-            public ComputeShader    denoiseAOCS;
+            public ComputeShader    spatialDenoiseAOCS;
             public int              denoiseKernelSpatial;
-
+            public ComputeShader    temporalDenoiseAOCS;
             public int              denoiseKernelTemporal;
+            public ComputeShader    copyHistoryAOCS;
             public int              denoiseKernelCopyHistory;
             public ComputeShader    upsampleAndBlurAOCS;
             public int              upsampleAndBlurKernel;
@@ -237,7 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, RTHandleProperties rtHandleProperties, int frameCount)
+        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, RTHandleProperties rtHandleProperties, Vector2 historySize, int frameCount)
         {
             var parameters = new RenderAOParameters();
 
@@ -288,8 +348,8 @@ namespace UnityEngine.Rendering.HighDefinition
             
 
             parameters.aoParams2 = new Vector4(
-                m_HistoryInfo.x,
-                m_HistoryInfo.y,
+                historySize.x,
+                historySize.y,
                 1.0f / (settings.stepCount + 1.0f),
                 radInPixels
             );
@@ -331,38 +391,43 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.bilateralUpsample = settings.bilateralUpsample;
             parameters.gtaoCS = m_Resources.shaders.GTAOCS;
+            parameters.gtaoCS.shaderKeywords = null;
             parameters.temporalAccumulation = settings.temporalAccumulation.value;
 
             if (parameters.temporalAccumulation)
             {
-                if (parameters.fullResolution)
-                {
-                    parameters.gtaoKernel = parameters.gtaoCS.FindKernel("GTAOMain_FullRes_Temporal");
-                }
-                else
-                {
-                    parameters.gtaoKernel = parameters.gtaoCS.FindKernel("GTAOMain_HalfRes_Temporal");
-                }
+                parameters.gtaoCS.EnableKeyword("TEMPORAL");
+            }
+            if(parameters.fullResolution)
+            {
+                parameters.gtaoCS.EnableKeyword("FULL_RES");
             }
             else
             {
-                if (parameters.fullResolution)
-                {
-                    parameters.gtaoKernel = parameters.gtaoCS.FindKernel("GTAOMain_FullRes");
-                }
-                else
-                {
-                    parameters.gtaoKernel = parameters.gtaoCS.FindKernel("GTAOMain_HalfRes");
-                }
+                parameters.gtaoCS.EnableKeyword("HALF_RES");
             }
+
+            parameters.gtaoKernel = parameters.gtaoCS.FindKernel("GTAOMain");
 
             parameters.upsampleAndBlurAOCS = m_Resources.shaders.GTAOBlurAndUpsample;
 
-            parameters.denoiseAOCS = m_Resources.shaders.GTAODenoiseCS;
-            parameters.denoiseKernelSpatial = parameters.denoiseAOCS.FindKernel(parameters.temporalAccumulation ? "GTAODenoise_Spatial_To_Temporal" : "GTAODenoise_Spatial");
+            parameters.spatialDenoiseAOCS = m_Resources.shaders.GTAOSpatialDenoiseCS;
+            parameters.spatialDenoiseAOCS.shaderKeywords = null;
+            if (parameters.temporalAccumulation)
+                parameters.spatialDenoiseAOCS.EnableKeyword("TO_TEMPORAL");
+            parameters.denoiseKernelSpatial = parameters.spatialDenoiseAOCS.FindKernel("SpatialDenoise");
 
-            parameters.denoiseKernelTemporal = parameters.denoiseAOCS.FindKernel(parameters.fullResolution ? "GTAODenoise_Temporal_FullRes" : "GTAODenoise_Temporal");
-            parameters.denoiseKernelCopyHistory = parameters.denoiseAOCS.FindKernel("GTAODenoise_CopyHistory");
+            parameters.temporalDenoiseAOCS = m_Resources.shaders.GTAOTemporalDenoiseCS;
+            parameters.temporalDenoiseAOCS.shaderKeywords = null;
+            if (parameters.fullResolution)
+                parameters.temporalDenoiseAOCS.EnableKeyword("FULL_RES");
+            else
+                parameters.temporalDenoiseAOCS.EnableKeyword("HALF_RES");
+
+            parameters.denoiseKernelTemporal = parameters.temporalDenoiseAOCS.FindKernel("TemporalDenoise");
+
+            parameters.copyHistoryAOCS = m_Resources.shaders.GTAOCopyHistoryCS;
+            parameters.denoiseKernelCopyHistory = parameters.copyHistoryAOCS.FindKernel("GTAODenoise_CopyHistory");
 
             parameters.upsampleAndBlurKernel = parameters.upsampleAndBlurAOCS.FindKernel("BlurUpsample");
             parameters.upsampleAOKernel = parameters.upsampleAndBlurAOCS.FindKernel(settings.bilateralUpsample ? "BilateralUpsampling" : "BoxUpsampling");
@@ -418,12 +483,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.temporalAccumulation || parameters.fullResolution)
             {
-                var blurCS = parameters.denoiseAOCS;
-                cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams1, parameters.aoParams1);
-                cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams2, parameters.aoParams2);
-                cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams3, parameters.aoParams3);
-                cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams4, parameters.aoParams4);
-                cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
+                var blurCS = parameters.spatialDenoiseAOCS;
+                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOParams1, parameters.aoParams1);
+                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOParams2, parameters.aoParams2);
+                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOParams3, parameters.aoParams3);
+                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOParams4, parameters.aoParams4);
+                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
 
                 // Spatial
                 cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._AOPackedData, packedDataTex);
@@ -443,18 +508,26 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (!parameters.historyReady)
                 {
-                    cmd.SetComputeTextureParam(parameters.denoiseAOCS, parameters.denoiseKernelCopyHistory, HDShaderIDs._InputTexture, packedDataTex);
-                    cmd.SetComputeTextureParam(parameters.denoiseAOCS, parameters.denoiseKernelCopyHistory, HDShaderIDs._OutputTexture, packedHistoryTex);
-                    cmd.DispatchCompute(parameters.denoiseAOCS, parameters.denoiseKernelCopyHistory, threadGroupX, threadGroupY, parameters.viewCount);
+                    cmd.SetComputeTextureParam(parameters.copyHistoryAOCS, parameters.denoiseKernelCopyHistory, HDShaderIDs._InputTexture, packedDataTex);
+                    cmd.SetComputeTextureParam(parameters.copyHistoryAOCS, parameters.denoiseKernelCopyHistory, HDShaderIDs._OutputTexture, packedHistoryTex);
+                    cmd.DispatchCompute(parameters.copyHistoryAOCS, parameters.denoiseKernelCopyHistory, threadGroupX, threadGroupY, parameters.viewCount);
                 }
 
+                var blurCS = parameters.temporalDenoiseAOCS;
+                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOParams1, parameters.aoParams1);
+                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOParams2, parameters.aoParams2);
+                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOParams3, parameters.aoParams3);
+                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOParams4, parameters.aoParams4);
+                cmd.SetComputeVectorParam(blurCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
+
+
                 // Temporal
-                cmd.SetComputeTextureParam(parameters.denoiseAOCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOPackedData, packedDataTex);
-                cmd.SetComputeTextureParam(parameters.denoiseAOCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOPackedBlurred, packedDataBlurredTex);
-                cmd.SetComputeTextureParam(parameters.denoiseAOCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOPackedHistory, packedHistoryTex);
-                cmd.SetComputeTextureParam(parameters.denoiseAOCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOOutputHistory, packedHistoryOutputTex);
-                cmd.SetComputeTextureParam(parameters.denoiseAOCS, parameters.denoiseKernelTemporal, HDShaderIDs._OcclusionTexture, aoOutputTex);
-                cmd.DispatchCompute(parameters.denoiseAOCS, parameters.denoiseKernelTemporal, threadGroupX, threadGroupY, parameters.viewCount);
+                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOPackedData, packedDataTex);
+                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOPackedBlurred, packedDataBlurredTex);
+                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOPackedHistory, packedHistoryTex);
+                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOOutputHistory, packedHistoryOutputTex);
+                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._OcclusionTexture, aoOutputTex);
+                cmd.DispatchCompute(blurCS, parameters.denoiseKernelTemporal, threadGroupX, threadGroupY, parameters.viewCount);
             }
         }
 
@@ -494,7 +567,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void Dispatch(CommandBuffer cmd, HDCamera camera, int frameCount)
+        internal void Dispatch(CommandBuffer cmd, HDCamera camera, int frameCount)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(camera, settings))
@@ -506,7 +579,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     var currentHistory = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
                     var historyOutput = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
 
-                    var aoParameters = PrepareRenderAOParameters(camera, RTHandles.rtHandleProperties, frameCount);
+                    Vector2 historySize = new Vector2(currentHistory.referenceSize.x * currentHistory.scaleFactor.x,
+                                                      currentHistory.referenceSize.y * currentHistory.scaleFactor.y);
+                    var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
+
+                    var aoParameters = PrepareRenderAOParameters(camera, RTHandles.rtHandleProperties, historySize * rtScaleForHistory, frameCount);
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HorizonSSAO)))
                     {
                         RenderAO(aoParameters, m_PackedDataTex, m_Resources, cmd);
@@ -516,7 +593,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var output = m_RunningFullRes ? m_AmbientOcclusionTex : m_FinalHalfRes;
                         DenoiseAO(aoParameters, m_PackedDataTex, m_PackedDataBlurred, currentHistory, historyOutput, output, cmd);
-                        m_HistoryInfo = aoParameters.aoBufferInfo;
                     }
 
                     if (!m_RunningFullRes)
@@ -530,7 +606,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void PushGlobalParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal void PushGlobalParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(hdCamera, settings))
@@ -539,7 +615,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
         }
 
-        public void PostDispatchWork(CommandBuffer cmd, HDCamera camera)
+        internal void PostDispatchWork(CommandBuffer cmd, HDCamera camera)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             var aoTexture = IsActive(camera, settings) ? m_AmbientOcclusionTex : TextureXR.GetBlackTexture();

@@ -1,6 +1,6 @@
 # The Visual Effect Graph window
 
-The Visual Effect Graph window is the main window for Visual Effect Graph. This is where you can edit Visual Effect Graph Assets, and Subgraph Assets. The window displays a workspace that consists of the Systems, Contexts, and Operators that a  [Visual Effect Graph Asset](VisualEffectGraphAsset.md) contains. 
+The Visual Effect Graph window is the main window for Visual Effect Graph. This is where you can edit Visual Effect Graph Assets, and Subgraph Assets. The window displays a workspace that consists of the Systems, Contexts, and Operators that a  [Visual Effect Graph Asset](VisualEffectGraphAsset.md) contains.
 
 ![VisualEffectGraph-Window](Images/VisualEffectGraph-Window.png)
 
@@ -12,7 +12,7 @@ To open the Visual Effect Graph window, you can use any of the following methods
 * In the Inspector for a [Visual Effect component](VisualEffectComponent.md#the-visual-effect-inspector), click the **Edit** button next to the **Asset Template** property. This connects the Asset assigned to **Asset Template** to the window.
 * In the menu, select **Window > Visual Effects > Visual Effect Graph**. This opens an empty Visual Effect Graph window so you need to open a Visual Effect Graph Asset to use the editor.
 
- ## The Visual Effect Graph window layout
+## The Visual Effect Graph window layout
 
 Inside the Visual Effect Graph window, there are multiple zones and panels.
 
@@ -120,4 +120,3 @@ You can manipulate graph elements in the workspace :
 #### Resizing elements
 
 Some elements, such as Sticky Notes, support resizing. To do this, click on any edge or corner, drag until you reach the desired element size, and release the mouse button.
-

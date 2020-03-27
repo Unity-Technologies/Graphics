@@ -4,6 +4,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial struct DensityVolumeArtistParameters
     {
+        /// <summary>Obsolete, do not use.</summary>
         [Obsolete("Never worked correctly due to having engine working in percent. Will be removed soon.")]
         public bool advancedFade => true;
 
@@ -31,9 +32,6 @@ namespace UnityEngine.Rendering.HighDefinition
             First,
             ScaleIndependent,
             FixUniformBlendDistanceToBeMetric,
-            // Add new version here and they will automatically be the Current one
-            Max,
-            Current = Max - 1
         }
 
         static readonly MigrationDescription<Version, DensityVolume> k_Migration = MigrationDescription.New(
@@ -49,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
         );
 
         [SerializeField]
-        Version m_Version;
+        Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
         void Awake() => k_Migration.Migrate(this);
