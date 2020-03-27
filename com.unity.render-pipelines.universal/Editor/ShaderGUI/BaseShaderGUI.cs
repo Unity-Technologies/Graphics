@@ -447,7 +447,6 @@ namespace UnityEditor
                 else
                 {
                     BlendMode blendMode = (BlendMode) material.GetFloat("_Blend");
-                    var queue = (int) UnityEngine.Rendering.RenderQueue.Transparent;
 
                     // Specific Transparent Mode Settings
                     switch (blendMode)
