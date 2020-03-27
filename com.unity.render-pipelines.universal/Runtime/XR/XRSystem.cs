@@ -53,8 +53,11 @@ namespace UnityEngine.Rendering.Universal
         internal void InitializeXRSystemData(XRSystemData data)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            occlusionMeshMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrOcclusionMeshPS);
-            mirrorViewMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrMirrorViewPS);
+            if (data)
+            {
+                occlusionMeshMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrOcclusionMeshPS);
+                mirrorViewMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrMirrorViewPS);
+            }
 #endif
         }
 
