@@ -705,7 +705,7 @@ namespace UnityEngine.Rendering.Universal
                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
                 {
                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, passAttachmentDimension);
-                    if (cameraData.xrPass.viewCount > 1 && cameraData.xrPass.enabled)
+                    if (cameraData.xrPass.singlePassEnabled && cameraData.xrPass.enabled)
                     {
                         // SetRenderTarget might alter the internal device state(winding order).
                         // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
@@ -729,7 +729,7 @@ namespace UnityEngine.Rendering.Universal
             if (!cameraData.xrPass.enabled)
                 return;
 
-            if (cameraData.xrPass.hasMultiXrView)
+            if (cameraData.xrPass.singlePassEnabled)
             {
                 cameraData.xrPass.StartSinglePass(cmd, context);
             }
@@ -744,7 +744,7 @@ namespace UnityEngine.Rendering.Universal
             if (!cameraData.xrPass.enabled)
                 return;
 
-            if (cameraData.xrPass.hasMultiXrView)
+            if (cameraData.xrPass.singlePassEnabled)
             {
                 cameraData.xrPass.StopSinglePass(cmd, context);
             }
@@ -781,9 +781,9 @@ namespace UnityEngine.Rendering.Universal
             TextureDimension dimension)
         {
             if (dimension == TextureDimension.Tex2DArray)
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
-            else
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
+                colorAttachment = new RenderTargetIdentifier(colorAttachment, 0, CubemapFace.Unknown, -1);
+
+            CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
 
         static void SetRenderTarget(
@@ -806,10 +806,12 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 if (dimension == TextureDimension.Tex2DArray)
-                    CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment,
-                        clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
-                else
-                    CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
+                {
+                    colorAttachment = new RenderTargetIdentifier(colorAttachment, 0, CubemapFace.Unknown, -1);
+                    depthAttachment = new RenderTargetIdentifier(depthAttachment, 0, CubemapFace.Unknown, -1);
+                }
+                
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
                         depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
             }
         }

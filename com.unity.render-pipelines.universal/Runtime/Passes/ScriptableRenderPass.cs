@@ -302,9 +302,9 @@ namespace UnityEngine.Rendering.Universal
             TextureDimension dimension)
         {
             if (dimension == TextureDimension.Tex2DArray)
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
-            else
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
+                colorAttachment = new RenderTargetIdentifier(colorAttachment, 0, CubemapFace.Unknown, -1);
+
+            CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
     }
 }

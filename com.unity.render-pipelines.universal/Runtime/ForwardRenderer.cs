@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 #if ENABLE_VR && ENABLE_VR_MODULE
-            if(cameraData.xrPass.enabled)
+            if (cameraData.xrPass.enabled)
             {
                 cameraTargetDescriptor = cameraData.xrPass.renderTargetDesc;
                 // In case of HDR, assign camera target hdr format to descriptor. This descriptor is later being used to create intermediate texture
@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.Universal
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 bool createTextures = intermediateRenderTexture;
 
-                // XRTODO: intermediate texture dimension could be differrent from camera target texture dimension.
+                // XRTODO: intermediate texture dimension could be different from camera target texture dimension.
                 // Upgrade the logic here to handle multipass render to texture array case and spi render to N texture 2d case
                 if (createTextures)
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture);

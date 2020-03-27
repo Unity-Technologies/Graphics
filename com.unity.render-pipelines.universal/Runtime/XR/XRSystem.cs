@@ -11,7 +11,7 @@ using UnityEngine.XR;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public partial class XRSystem
+    internal partial class XRSystem
     {
         // Valid empty pass when a camera is not using XR
         internal readonly XRPass emptyPass = new XRPass();
@@ -318,6 +318,9 @@ namespace UnityEngine.Rendering.Universal
                 display.GetRenderPass(renderPassIndex, out var renderPass);
                 display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
+                // Disable legacy stereo culling path
+                cullingParams.cullingOptions &= ~CullingOptions.Stereo;
+
                 if (singlePassAllowed && CanUseSinglePass(renderPass))
                 {
                     var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial);
@@ -390,7 +393,7 @@ namespace UnityEngine.Rendering.Universal
                         for (int i = 0; i < blitDesc.blitParamsCount; ++i)
                         {
                             blitDesc.GetBlitParameter(i, out var blitParam);
-            
+
                             Vector4 scaleBias = yflip ? new Vector4(blitParam.srcRect.width, -blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.height + blitParam.srcRect.y) :
                                                         new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
                             Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);

@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
 
         const string k_RenderCameraTag = "Render Camera";
         static ProfilingSampler _CameraProfilingSampler = new ProfilingSampler(k_RenderCameraTag);
-        public static XRSystem m_XRSystem = new XRSystem();
+        internal static XRSystem m_XRSystem = new XRSystem();
 
         public static float maxShadowBias
         {

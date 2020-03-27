@@ -86,7 +86,6 @@ namespace UnityEngine.Rendering.Universal
         internal bool enabled      { get => views.Count > 0; }
         internal bool xrSdkEnabled { get; private set; }
         internal bool copyDepth    { get; private set; }
-        internal bool hasMultiXrView { get => views.Count > 1; }
 
         internal int multipassId    { get; private set; }
         internal int cullingPassId  { get; private set; }
@@ -314,18 +313,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal void UpdateGPUViewAndProjectionMatricies(CommandBuffer cmd, ref CameraData cameraData, bool isRenderToTexture)
         {
-            // if contains only 1 view, setup view proj
-            if (!cameraData.xrPass.hasMultiXrView)
-            {
-                Matrix4x4 projectionMatrix = GL.GetGPUProjectionMatrix(cameraData.xrPass.GetProjMatrix(0), isRenderToTexture);
-                RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.xrPass.GetViewMatrix(0), projectionMatrix, true);
-            }
-            // else, set up multi view proj to stereo buffer as well as non stereo buffer
-            else
-            {
-                Matrix4x4 projectionMatrix = GL.GetGPUProjectionMatrix(cameraData.xrPass.GetProjMatrix(0), isRenderToTexture);
-                RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.xrPass.GetViewMatrix(0), projectionMatrix, true);
+            Matrix4x4 projectionMatrix = GL.GetGPUProjectionMatrix(cameraData.xrPass.GetProjMatrix(0), isRenderToTexture);
+            RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.xrPass.GetViewMatrix(0), projectionMatrix, true);
 
+            if (cameraData.xrPass.singlePassEnabled)
+            {
                 Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
                 Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];
                 for (int i = 0; i < 2; i++)

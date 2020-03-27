@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-                    int depthSlice = cameraData.xrPass.hasMultiXrView ? -1 : cameraData.xrPass.GetTextureArraySlice(0); // Should be multipass eye id here?
+                    int depthSlice = cameraData.xrPass.singlePassEnabled ? -1 : cameraData.xrPass.GetTextureArraySlice(0); // XRTODO: Should be multipass eye id here?
                     blitTarget = new RenderTargetIdentifier(cameraData.xrPass.renderTarget, 0, CubemapFace.Unknown, depthSlice);
                 }
 

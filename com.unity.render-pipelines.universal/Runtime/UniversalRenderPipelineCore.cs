@@ -90,11 +90,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0)
         {
-#if ENABLE_VR && ENABLE_VR_MODULE
-            if (xrPass.enabled)
-                return GL.GetGPUProjectionMatrix(xrPass.GetProjMatrix(viewIndex), IsCameraProjectionMatrixFlipped());
-#endif
-            return GL.GetGPUProjectionMatrix(m_ProjectionMatrix, IsCameraProjectionMatrixFlipped());
+            return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), IsCameraProjectionMatrixFlipped());
         }
 
         public Camera camera;
