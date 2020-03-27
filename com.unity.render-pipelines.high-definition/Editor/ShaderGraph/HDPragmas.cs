@@ -135,5 +135,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Raytracing("test") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
         };
+
+        public static PragmaCollection BasicForRaytracing = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.Vertex("Vert") },
+            { Pragma.Fragment("Frag") },
+            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
+        };
     }
 }

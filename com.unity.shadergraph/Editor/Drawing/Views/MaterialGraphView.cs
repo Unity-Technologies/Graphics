@@ -107,6 +107,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
 
+                evt.menu.AppendAction("Select/Unused Nodes", SelectUnusedNodes);
+
                 InitializeViewSubMenu(evt);
                 InitializePrecisionSubMenu(evt);
 
@@ -148,6 +150,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
             evt.menu.AppendSeparator();
+            if (evt.target is StickyNote)
+            {
+                evt.menu.AppendAction("Select/Unused Nodes", SelectUnusedNodes);
+                evt.menu.AppendSeparator();
+            }
+
             // This needs to work on nodes, groups and properties
             if ((evt.target is Node) || (evt.target is StickyNote))
             {
@@ -197,6 +205,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (evt.target is ShaderGroup shaderGroup)
             {
+                evt.menu.AppendAction("Select/Unused Nodes", SelectUnusedNodes);
+                evt.menu.AppendSeparator();
                 if (!selection.Contains(shaderGroup))
                 {
                     selection.Add(shaderGroup);
@@ -214,7 +224,52 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private void RemoveNodesInsideGroup(DropdownMenuAction action, GroupData data)
+        void SelectUnusedNodes(DropdownMenuAction action)
+        {
+            graph.owner.RegisterCompleteObjectUndo("Select Unused Nodes");
+            ClearSelection();
+
+            List<AbstractMaterialNode> endNodes = new List<AbstractMaterialNode>();
+            if (!graph.isSubGraph)
+            {
+                var nodeView = graph.GetNodes<IMasterNode>();
+                foreach (IMasterNode masterNode in nodeView)
+                {
+                    endNodes.Add(masterNode as AbstractMaterialNode);
+                }
+            }
+            else
+            {
+                var nodes = graph.GetNodes<SubGraphOutputNode>();
+                foreach (var node in nodes)
+                {
+                    endNodes.Add(node);
+                }
+            }
+
+            var nodesConnectedToAMasterNode = new List<AbstractMaterialNode>();
+
+            // Get the list of nodes from Master nodes or SubGraphOutputNode
+            foreach (var abs in endNodes)
+            {
+                NodeUtils.DepthFirstCollectNodesFromNode(nodesConnectedToAMasterNode, abs);
+            }
+
+            selection.Clear();
+            // Get all nodes and then compare with the master nodes list
+            var nodesConnectedHash = new HashSet<AbstractMaterialNode>(nodesConnectedToAMasterNode);
+            var allNodes = nodes.ToList().OfType<IShaderNodeView>();
+            foreach (IShaderNodeView materialNodeView in allNodes)
+            {
+                if (!nodesConnectedHash.Contains(materialNodeView.node))
+                {
+                    var nd = materialNodeView as GraphElement;
+                    AddToSelection(nd);
+                }
+            }
+        }
+
+        void RemoveNodesInsideGroup(DropdownMenuAction action, GroupData data)
         {
             graph.owner.RegisterCompleteObjectUndo("Delete Group and Contents");
             var groupItems = graph.GetItemsInGroup(data);
@@ -1072,7 +1127,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Add new elements to selection
                     graphView.ClearSelection();
                     graphView.graphElements.ForEach(element =>
-                        {
+                    {
                             if (element is Edge edge && remappedEdges.Contains(edge.userData as IEdge))
                                 graphView.AddToSelection(edge);
 

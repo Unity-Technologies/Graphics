@@ -1405,17 +1405,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RegisterDecalsDebug()
         {
-            m_DebugDecalsAffectingTransparentItems = new DebugUI.Widget[]
+            var decalAffectingTransparent = new DebugUI.Container()
             {
-                new DebugUI.BoolField { displayName = "Display Atlas", getter = () => data.decalsDebugSettings.displayAtlas, setter = value => data.decalsDebugSettings.displayAtlas = value},
-                new DebugUI.UIntField { displayName = "Mip Level", getter = () => data.decalsDebugSettings.mipLevel, setter = value => data.decalsDebugSettings.mipLevel = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetDecalAtlasMipCount() }
+                displayName = "Decals Affecting Transparent Objects",
+                children =
+                {
+                    new DebugUI.BoolField { displayName = "Display Atlas", getter = () => data.decalsDebugSettings.displayAtlas, setter = value => data.decalsDebugSettings.displayAtlas = value},
+                    new DebugUI.UIntField { displayName = "Mip Level", getter = () => data.decalsDebugSettings.mipLevel, setter = value => data.decalsDebugSettings.mipLevel = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetDecalAtlasMipCount() }
+                }
             };
 
+            m_DebugDecalsAffectingTransparentItems = new DebugUI.Widget[] { decalAffectingTransparent };
             var panel = DebugManager.instance.GetPanel(k_PanelDecals, true);
-            var decalAffectingTransparent = new DebugUI.Container() { displayName = "Decals Affecting Transparent Objects" };
-            decalAffectingTransparent.children.Add(m_DebugDecalsAffectingTransparentItems);
-
-            panel.children.Add(decalAffectingTransparent);
+            panel.children.Add(m_DebugDecalsAffectingTransparentItems);
         }
 
         internal void RegisterDebug()
