@@ -262,7 +262,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (requiresDepthPrepass)
             {
-                m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthTexture);
+                m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthAttachment);
                 EnqueuePass(m_DepthPrepass);
             }
 
@@ -431,13 +431,6 @@ namespace UnityEngine.Rendering.Universal
 
         void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
-            if (hasDepthPrepass)
-            {
-                m_CopyDepthPass0.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques - 1;
-                m_CopyDepthPass0.Setup(m_CameraDepthTexture, m_CameraDepthAttachment);
-                EnqueuePass(m_CopyDepthPass0);
-            }
-
             RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[k_GBufferSlicesCount + 1];
             for (int gbufferIndex = 0; gbufferIndex < k_GBufferSlicesCount; ++gbufferIndex)
                 gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
@@ -445,13 +438,9 @@ namespace UnityEngine.Rendering.Universal
             m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, hasDepthPrepass);
             EnqueuePass(m_GBufferPass);
 
-            if (!hasDepthPrepass)
-            {
-                //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
-                m_CopyDepthPass0.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques + 1;
-                m_CopyDepthPass0.Setup(m_CameraDepthAttachment, m_CameraDepthTexture);
-                EnqueuePass(m_CopyDepthPass0);
-            }
+            //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
+            m_CopyDepthPass0.Setup(m_CameraDepthAttachment, m_CameraDepthTexture);
+            EnqueuePass(m_CopyDepthPass0);
 
             m_DeferredLights.Setup(ref renderingData, applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null, m_CameraDepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_CameraDepthAttachment, gbufferColorAttachments);
             // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
