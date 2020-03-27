@@ -186,6 +186,9 @@ MonoBehaviour:
     m_Value: 1
     min: 0
     max: 20
+  cameraMotionBlur:
+    m_OverrideState: 0
+    m_Value: 1
   m_SampleCount:
     m_OverrideState: 0
     m_Value: 8
@@ -294,25 +297,25 @@ MonoBehaviour:
     m_Value: 0
   top:
     m_OverrideState: 1
-    m_Value: {r: 0.079863995, g: 0.13676903, b: 0.29799998, a: 1}
+    m_Value: {r: 0.22322798, g: 0.2581829, b: 0.4341537, a: 1}
     hdr: 1
     showAlpha: 0
     showEyeDropper: 1
   middle:
     m_OverrideState: 1
-    m_Value: {r: 0.48026317, g: 0.48026317, b: 0.5, a: 1}
+    m_Value: {r: 0.2767907, g: 0.32292244, b: 0.541, a: 1}
     hdr: 1
     showAlpha: 0
     showEyeDropper: 1
   bottom:
     m_OverrideState: 1
-    m_Value: {r: 0.29799998, g: 0.16491261, b: 0.0839029, a: 1}
+    m_Value: {r: 0.6273585, g: 0.6739387, b: 1, a: 1}
     hdr: 1
     showAlpha: 0
     showEyeDropper: 1
   gradientDiffusion:
     m_OverrideState: 1
-    m_Value: 4
+    m_Value: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -572,6 +575,9 @@ MonoBehaviour:
     m_Value:
     - {fileID: 11400000, guid: ad180cf900c4ef141be2b350f09ffa5b, type: 2}
     - {fileID: 11400000, guid: fcd70d05840926746a3daff4f0a00e1a, type: 2}
+    - {fileID: 11400000, guid: 92119388ece825647ba5039062efc187, type: 2}
+    - {fileID: 11400000, guid: 7906daf99f11c624a9d2c8fa0eed731c, type: 2}
+    - {fileID: 11400000, guid: 2efa14a049ef1fc49bcf18c90ebcab30, type: 2}
 --- !u!114 &5969154729827946099
 MonoBehaviour:
   m_ObjectHideFlags: 3
