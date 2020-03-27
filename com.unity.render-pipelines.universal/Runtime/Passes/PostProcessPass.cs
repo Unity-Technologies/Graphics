@@ -230,14 +230,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool RequireSRGBConversionBlitToBackBuffer(CameraData cameraData)
         {
-            bool requiresSRGBConversion = Display.main.requiresSrgbBlitToBackbuffer && m_EnableSRGBConversionIfNeeded;
+            bool requiresSRGBConversion = Display.main.requiresSrgbBlitToBackbuffer;
             // For stereo case, eye texture always want color data in sRGB space.
             // If eye texture color format is linear, we do explicit sRGB convertion
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.isStereoEnabled)
                 requiresSRGBConversion = !cameraData.xrPass.renderTargetDesc.sRGB;
 #endif
-            return requiresSRGBConversion;
+            return requiresSRGBConversion && m_EnableSRGBConversionIfNeeded;
         }
 
         internal void PostFXBlit(CommandBuffer cmd,

@@ -300,8 +300,11 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var destination = dontResolvePostProcessingToCameraTarget ? m_AfterPostProcessColor : RenderTargetHandle.CameraTarget;
 
+                    bool cameraColorAttachmentIsRenderTexture = m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget;
+                    if (cameraData.xrPass.enabled)
+                        cameraColorAttachmentIsRenderTexture = m_ActiveCameraColorAttachment.Identifier() != cameraData.xrPass.renderTarget;
                     // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
-                    bool doSRGBConvertion = !(dontResolvePostProcessingToCameraTarget || (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget));
+                    bool doSRGBConvertion = !(dontResolvePostProcessingToCameraTarget || cameraColorAttachmentIsRenderTexture);
                     m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, m_ColorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
                     Debug.Assert(applyPostProcessing || doSRGBConvertion, "This will do unnecessary blit!");
                     EnqueuePass(m_PostProcessPass);
