@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.SetDefaultShaderGUI("Rendering.HighDefinition.FabricGUI");
             context.AddSubShader(SubShaders.Fabric);
             context.AddSubShader(SubShaders.FabricRaytracing);
         }
@@ -36,7 +37,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { FabricPasses.MotionVectors },
                     { FabricPasses.ForwardOnly },
                 },
-                // customEditorOverride = "Rendering.HighDefinition.FabricGUI",
             };
 
             public static SubShaderDescriptor FabricRaytracing = new SubShaderDescriptor()

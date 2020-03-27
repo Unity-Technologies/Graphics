@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         public IMasterNode masterNode { get; private set; }
         public List<SubShaderDescriptor> subShaders { get; private set; }
         public List<string> assetDependencyPaths { get; private set; }
+        public string defaultShaderGUI { get; private set; }
 
         public TargetSetupContext()
         {
@@ -28,6 +29,11 @@ namespace UnityEditor.ShaderGraph
         public void AddAssetDependencyPath(string path)
         {
             assetDependencyPaths.Add(path);
+        }
+
+        public void SetDefaultShaderGUI(string defaultShaderGUI)
+        {
+            this.defaultShaderGUI = defaultShaderGUI;
         }
     }
 }

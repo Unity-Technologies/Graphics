@@ -121,16 +121,24 @@ namespace UnityEditor.ShaderGraph
                     {
                         GenerateSubShader(i, subShader);
                     }
-                }
 
-                // Either grab the pipeline default for the active node or the user override
-                if (m_OutputNode is ICanChangeShaderGUI canChangeShaderGui)
-                {
-                    string customEditor = GenerationUtils.FinalCustomEditorString(canChangeShaderGui);
-
-                    if (customEditor != null)
+                    // Either grab the Target default shader GUI or the user override
+                    if (m_OutputNode is ICanChangeShaderGUI canChangeShaderGui)
                     {
-                        m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
+                        string customEditor = string.Empty;
+                        if(canChangeShaderGui.OverrideEnabled)
+                        {
+                            customEditor = GenerationUtils.FinalCustomEditorString(canChangeShaderGui);
+                        }
+                        else
+                        {
+                            customEditor = context.defaultShaderGUI;
+                        }
+                        
+                        if (customEditor != null)
+                        {
+                            m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
+                        }
                     }
                 }
 

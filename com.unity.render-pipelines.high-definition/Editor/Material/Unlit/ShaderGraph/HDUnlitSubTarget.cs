@@ -20,6 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.SetDefaultShaderGUI("Rendering.HighDefinition.HDUnlitGUI");
             context.AddSubShader(SubShaders.Unlit);
             context.AddSubShader(SubShaders.UnlitRaytracing);
         }
@@ -41,7 +42,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { UnlitPasses.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
                     { UnlitPasses.ForwardOnly },
                 },
-                // customEditorOverride = "Rendering.HighDefinition.HDUnlitGUI",
             };
 
             public static SubShaderDescriptor UnlitRaytracing = new SubShaderDescriptor()

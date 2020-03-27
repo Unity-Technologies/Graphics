@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.SetDefaultShaderGUI("Rendering.HighDefinition.StackLitGUI");
             context.AddSubShader(SubShaders.StackLit);
         }
 
@@ -36,7 +37,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { StackLitPasses.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
                     { StackLitPasses.ForwardOnly },
                 },
-                // customEditorOverride = "Rendering.HighDefinition.StackLitGUI",
             };
         }
 #endregion

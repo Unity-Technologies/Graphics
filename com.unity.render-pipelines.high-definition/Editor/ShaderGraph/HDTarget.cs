@@ -16,7 +16,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public HDTarget()
         {
             displayName = "HDRP";
-            defaultShaderGUI = null; // TODO: How?
             m_SubTargets = TargetUtils.GetSubTargetsOfType<HDTarget>();
         }
 

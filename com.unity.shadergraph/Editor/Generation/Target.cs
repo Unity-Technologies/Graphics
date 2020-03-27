@@ -6,7 +6,6 @@ namespace UnityEditor.ShaderGraph
     internal abstract class Target
     {
         public string displayName { get; set; }
-        public string defaultShaderGUI { get; set; }
         public bool isHidden { get; set; }
         public abstract void Setup(ref TargetSetupContext context);
         public abstract bool IsValid(IMasterNode masterNode);

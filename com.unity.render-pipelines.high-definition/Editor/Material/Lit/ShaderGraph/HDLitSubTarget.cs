@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.SetDefaultShaderGUI("Rendering.HighDefinition.HDLitGUI");
             context.AddSubShader(SubShaders.Lit);
             context.AddSubShader(SubShaders.LitRaytracing);
         }
@@ -42,7 +43,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { LitPasses.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
                     { LitPasses.RayTracingPrepass, new FieldCondition(HDFields.RayTracing, true) },
                 },
-                // customEditorOverride = "Rendering.HighDefinition.HDLitGUI",
             };
 
             public static SubShaderDescriptor LitRaytracing = new SubShaderDescriptor()

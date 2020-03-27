@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.SetDefaultShaderGUI("Rendering.HighDefinition.UnlitUI");
             context.AddSubShader(SubShaders.Unlit);
         }
 
@@ -36,7 +37,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { UnlitPasses.MotionVectors, new FieldCondition(Fields.SurfaceOpaque, true) },
                     { UnlitPasses.ForwardOnly },
                 },
-                // customEditorOverride = "Rendering.HighDefinition.UnlitUI",
             };
         }
 #endregion

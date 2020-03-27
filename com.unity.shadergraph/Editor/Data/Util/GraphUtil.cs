@@ -356,7 +356,11 @@ namespace UnityEditor.ShaderGraph
             {
                 if (target.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
                 {
-                    var defaultShaderGUI = target.defaultShaderGUI;
+                    var context = new TargetSetupContext();
+                    context.SetMasterNode(masterNode);
+                    target.Setup(ref context);
+
+                    var defaultShaderGUI = context.defaultShaderGUI;
                     if (!string.IsNullOrEmpty(defaultShaderGUI))
                         return defaultShaderGUI;
                 }
@@ -364,6 +368,5 @@ namespace UnityEditor.ShaderGraph
 
             return null;
         }
-
     }
 }

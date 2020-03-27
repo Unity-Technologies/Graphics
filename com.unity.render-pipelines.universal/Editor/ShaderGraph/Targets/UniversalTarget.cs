@@ -17,7 +17,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public UniversalTarget()
         {
             displayName = "Universal";
-            defaultShaderGUI = null; // TODO: How?
             m_SubTargets = TargetUtils.GetSubTargetsOfType<UniversalTarget>();
         }
 

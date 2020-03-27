@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.SetDefaultShaderGUI("Rendering.HighDefinition.HDPBRLitGUI");
             context.AddSubShader(SubShaders.PBR);
         }
 
@@ -37,7 +38,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { PBRPasses.MotionVectors, new FieldCondition(Fields.SurfaceOpaque, true) },
                     { PBRPasses.Forward },
                 },
-                // customEditorOverride = "Rendering.HighDefinition.HDPBRLitGUI",
             };
         }
 #endregion

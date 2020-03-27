@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.SetDefaultShaderGUI("Rendering.HighDefinition.DecalGUI");
             context.AddSubShader(SubShaders.Decal);
         }
 
@@ -36,7 +37,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { DecalPasses.MeshEmissive, new FieldCondition(HDFields.AffectsEmission, true) },
                     { DecalPasses.Preview, new FieldCondition(Fields.IsPreview, true) },
                 },
-                // customEditorOverride = "Rendering.HighDefinition.DecalGUI",
             };
         }
 #endregion

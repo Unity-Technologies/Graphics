@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.SetDefaultShaderGUI("Rendering.HighDefinition.HairGUI");
             context.AddSubShader(SubShaders.Hair);
         }
 
@@ -38,7 +39,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { HairPasses.ForwardOnly },
                     { HairPasses.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
                 },
-                // customEditorOverride = "Rendering.HighDefinition.HairGUI",
             };
         }
 #endregion

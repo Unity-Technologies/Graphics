@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.SetDefaultShaderGUI("Rendering.HighDefinition.EyeGUI");
             context.AddSubShader(SubShaders.Eye);
         }
 
@@ -35,7 +36,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { EyePasses.MotionVectors },
                     { EyePasses.ForwardOnly },
                 },
-                // customEditorOverride = "Rendering.HighDefinition.EyeGUI",
             };
         }
 #endregion
