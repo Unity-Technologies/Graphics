@@ -18,7 +18,7 @@ platforms:
     components:
       - editor
       - il2cpp
-  -name: Win_UWP
+  - name: UWP
     os: windows
     type: Unity::VM::GPU
     image: cds-ops/win10-uwp-support:stable
@@ -190,7 +190,7 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
 {% endfor %}
 {% endfor %}
 
-{% if platform.name == "UWP" %}
+{% elsif platform.name == "UWP" %}
 
 {% for testplatform in testplatforms %}
 {% for win_api in win_apis %}
@@ -224,7 +224,7 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     - path: .yamato/upm-ci-universal.yml#Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}
       rerun: {{ editor.rerun_strategy }}
   
-Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
+Build_{{ project.name }}_UWP_{{ win_api.name }}_Player_{{ editor.version }}:
   name : Build {{ project.name }} on Win_{{ win_api.name }}_Player on version {{ editor.version }}
   agent:
     flavor: b1.xlarge
