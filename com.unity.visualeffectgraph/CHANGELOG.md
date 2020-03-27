@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Handle correctly direction, position & vector types in AppendVector operator [Case 1111867](https://issuetracker.unity3d.com/product/unity/issues/guid/1111867/)
 - Fix space issues with blocks and operators taking a camera as input
 - Generated shaderName are now consistent with displayed system names
+- Remove some shader warnings
 
 ## [7.1.1] - 2019-09-05
 ### Added
