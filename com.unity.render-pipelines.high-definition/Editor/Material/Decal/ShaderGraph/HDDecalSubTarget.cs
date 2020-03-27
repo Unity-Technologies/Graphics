@@ -138,7 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 //Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = HDRequiredFields.DecalMesh,
+                requiredFields = DecalRequiredFields.Mesh,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
@@ -165,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 //Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = HDRequiredFields.DecalMesh,
+                requiredFields = DecalRequiredFields.Mesh,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 //Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = HDRequiredFields.DecalMesh,
+                requiredFields = DecalRequiredFields.Mesh,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 //Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = HDRequiredFields.DecalMesh,
+                requiredFields = DecalRequiredFields.Mesh,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Render state overrides
@@ -260,6 +260,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 DecalMasterNode.SmoothnessSlotId,
                 DecalMasterNode.MAOSOpacitySlotId,
                 DecalMasterNode.EmissionSlotId,
+            };
+        }
+#endregion
+
+#region RequiredFields
+        static class DecalRequiredFields
+        {
+            public static FieldCollection Mesh = new FieldCollection()
+            {
+                HDStructFields.AttributesMesh.normalOS,
+                HDStructFields.AttributesMesh.tangentOS,
+                HDStructFields.AttributesMesh.uv0,
+                HDStructFields.FragInputs.tangentToWorld,
+                HDStructFields.FragInputs.positionRWS,
+                HDStructFields.FragInputs.texCoord0,
             };
         }
 #endregion
@@ -443,14 +458,35 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region Defines
         static class DecalDefines
         {
+            static class Descriptors
+            {
+                public static KeywordDescriptor Decals3RT = new KeywordDescriptor()
+                {
+                    displayName = "Decals 3RT",
+                    referenceName = "DECALS_3RT",
+                    type = KeywordType.Boolean,
+                    definition = KeywordDefinition.ShaderFeature,
+                    scope = KeywordScope.Global,
+                };
+
+                public static KeywordDescriptor Decals4RT = new KeywordDescriptor()
+                {
+                    displayName = "Decals 4RT",
+                    referenceName = "DECALS_4RT",
+                    type = KeywordType.Boolean,
+                    definition = KeywordDefinition.ShaderFeature,
+                    scope = KeywordScope.Global,
+                };
+            }
+
             public static DefineCollection _3RT = new DefineCollection
             {
-                { HDKeywords.Descriptors.Decals3RT, 1 },
+                { Descriptors.Decals3RT, 1 },
             };
 
             public static DefineCollection _4RT = new DefineCollection
             {
-                { HDKeywords.Descriptors.Decals4RT, 1 },
+                { Descriptors.Decals4RT, 1 },
             };
         }
 #endregion

@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 structs = CoreStructCollections.Default,
-                requiredFields = new FieldCollection(){ HDRequiredFields.Meta, HDFields.SubShader.Unlit },
+                requiredFields = new FieldCollection(){ CoreRequiredFields.Meta, HDFields.SubShader.Unlit },
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.Meta,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
@@ -185,7 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 structs = CoreStructCollections.Default,
-                requiredFields = new FieldCollection(){ HDRequiredFields.PositionRWS, HDFields.SubShader.Unlit },
+                requiredFields = new FieldCollection(){ CoreRequiredFields.PositionRWS, HDFields.SubShader.Unlit },
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = UnlitRenderStates.MotionVectors,
                 pragmas = CorePragmas.DotsInstancedInV2Only,

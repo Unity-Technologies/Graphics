@@ -419,13 +419,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static DefineCollection RaytracingForwardIndirect = new DefineCollection
             {
-                { HDKeywords.Descriptors.Shadow, 0 },
-                { HDKeywords.Descriptors.HasLightloop, 1 },
+                { CoreKeywordDescriptors.Shadow, 0 },
+                { CoreKeywordDescriptors.HasLightloop, 1 },
             };
 
             public static DefineCollection RaytracingGBuffer = new DefineCollection
             {
-                { HDKeywords.Descriptors.Shadow, 0 },
+                { CoreKeywordDescriptors.Shadow, 0 },
             };
         }
 #endregion

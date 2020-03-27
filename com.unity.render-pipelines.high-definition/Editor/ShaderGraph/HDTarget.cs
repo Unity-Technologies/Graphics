@@ -1008,24 +1008,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Local,
         };
 
-        public static KeywordDescriptor Decals3RT = new KeywordDescriptor()
-        {
-            displayName = "Decals 3RT",
-            referenceName = "DECALS_3RT",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Global,
-        };
-
-        public static KeywordDescriptor Decals4RT = new KeywordDescriptor()
-        {
-            displayName = "Decals 4RT",
-            referenceName = "DECALS_4RT",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Global,
-        };
-
         public static KeywordDescriptor SkipRasterizedShadows = new KeywordDescriptor()
         {
             displayName = "Skip Rasterized Shadows",
