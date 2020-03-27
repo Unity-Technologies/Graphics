@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sRGB mismatch with XR SDK
 - Fixed XR single-pass with Mock HMD plugin
 - Fixed XR culling with multiple cameras
+- Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
