@@ -4518,6 +4518,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 afterPostProcessTexture: GetAfterPostProcessOffScreenBuffer(),
                 finalRT: destination,
                 depthBuffer: m_SharedRTManager.GetDepthStencilBuffer(),
+                depthMipChain: m_SharedRTManager.GetDepthTexture(),
                 flipY: parameters.flipYInPostProcess
             );
         }

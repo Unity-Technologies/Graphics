@@ -307,8 +307,13 @@ void ToggleBit(inout uint data, uint offset)
 
 TEMPLATE_3_REAL(Avg3, a, b, c, return (a + b + c) * 0.33333333)
 
+// Important! Quad functions only valid in pixel shaders!
+    float2 GetQuadOffset(int2 screenPos)
+    {
+        return float2(float(screenPos.x & 1) * 2.0 - 1.0, float(screenPos.y & 1) * 2.0 - 1.0);
+    }
+
 #ifndef INTRINSIC_QUAD_SHUFFLE
-    // Important! Only valid in pixel shaders!
     float QuadReadAcrossX(float value, int2 screenPos)
     {
         return value - (ddx_fine(value) * (float(screenPos.x & 1) * 2.0 - 1.0));
@@ -323,11 +328,41 @@ TEMPLATE_3_REAL(Avg3, a, b, c, return (a + b + c) * 0.33333333)
     {
         float dX = ddx_fine(value);
         float dY = ddy_fine(value);
-        float2 quadDir = float2(float(screenPos.x & 1) * 2.0 - 1.0, float(screenPos.y & 1) * 2.0 - 1.0);
+        float2 quadDir = GetQuadOffset(screenPos);
         float X = value - (dX * quadDir.x);
         return X - (ddy_fine(value) * quadDir.y);
     }
 #endif
+
+    float3 QuadReadFloat3AcrossX(float3 val, int2 positionSS)
+    {
+        return float3(QuadReadAcrossX(val.x, positionSS), QuadReadAcrossX(val.y, positionSS), QuadReadAcrossX(val.z, positionSS));
+    }
+
+    float4 QuadReadFloat4AcrossX(float4 val, int2 positionSS)
+    {
+        return float4(QuadReadAcrossX(val.x, positionSS), QuadReadAcrossX(val.y, positionSS), QuadReadAcrossX(val.z, positionSS), QuadReadAcrossX(val.w, positionSS));
+    }
+
+    float3 QuadReadFloat3AcrossY(float3 val, int2 positionSS)
+    {
+        return float3(QuadReadAcrossY(val.x, positionSS), QuadReadAcrossY(val.y, positionSS), QuadReadAcrossY(val.z, positionSS));
+    }
+
+    float4 QuadReadFloat4AcrossY(float4 val, int2 positionSS)
+    {
+        return float4(QuadReadAcrossY(val.x, positionSS), QuadReadAcrossY(val.y, positionSS), QuadReadAcrossY(val.z, positionSS), QuadReadAcrossY(val.w, positionSS));
+    }
+
+    float3 QuadReadFloat3AcrossDiagonal(float3 val, int2 positionSS)
+    {
+        return float3(QuadReadAcrossDiagonal(val.x, positionSS), QuadReadAcrossDiagonal(val.y, positionSS), QuadReadAcrossDiagonal(val.z, positionSS));
+    }
+
+    float4 QuadReadFloat4AcrossDiagonal(float4 val, int2 positionSS)
+    {
+        return float4(QuadReadAcrossDiagonal(val.x, positionSS), QuadReadAcrossDiagonal(val.y, positionSS), QuadReadAcrossDiagonal(val.z, positionSS), QuadReadAcrossDiagonal(val.w, positionSS));
+    }
 
 TEMPLATE_SWAP(Swap) // Define a Swap(a, b) function for all types
 
