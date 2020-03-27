@@ -92,6 +92,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added API to enable proper recording of path traced scenes (with the Unity recorder or other tools).
 - Added support for fog in Recursive rendering, ray traced reflections and ray traced indirect diffuse.
 - Added an alpha blend option for recursive rendering
+- Added support for stack lit for ray tracing effects.
+- Added support for hair for ray tracing effects.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
