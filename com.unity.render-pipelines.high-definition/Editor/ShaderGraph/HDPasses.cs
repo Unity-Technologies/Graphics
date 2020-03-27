@@ -831,7 +831,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.RayTracingPrepass,
-                pragmas = HDPragmas.BasicForRaytracing,
+                pragmas = HDPragmas.Basic,
                 defines = HDDefines.ShaderGraphRaytracingHigh,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.RayTracingPrepass,
