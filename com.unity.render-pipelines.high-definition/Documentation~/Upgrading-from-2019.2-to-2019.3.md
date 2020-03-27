@@ -2,6 +2,24 @@
 
 In the High Definition Render Pipeline (HDRP), some features work differently between major versions of Unity. This document helps you upgrade HDRP from Unity 2019.2 to 2019.3.
 
+## New Scene
+
+New Scene system in HDRP rely on a prefab in your project. It also depend on default settings set for the Volumes. If you already have configured one with the Wizard, you need to update it regarding the **Default Volume Profile Asset** (in **Edit > Project Settings > HDRP Default Settings**).
+
+If you use default prefab (the one created by the wizard) and rely on default **Default Volume Profile Asset**, then your prefab will not be sync anymore with the default volume profile and you must update it.
+
+The easiest way is to ask the Wizard to recreate a new one:
+
+1. Open the Wizard (**Window > Render Pipeline > HD Render Pipeline Wizard**)
+2. Remove the prefab set in **Default Scene Prefab**.
+3. [*Optional*] Keep a copy of your previous prefab if it have been customized to not lost your version. To do so, just rename the prefab. It will prevent to be overridden.
+4. Look at the **Configuration Checking** below for the line **Default Scene Prefab** and click on the **Fix** button.
+5. [*Optional*] Report your custom change in the new created prefab.
+
+Then repeat this for **Default DXR Scene Prefab** if you were also using DXR.
+
+New Scene system in HDRP rely on a prefab in your project. If you have already configured one with the Wizard, you need to update it.
+
 <a name="ProceduralSky"></a>
 
 ## Procedural Sky
@@ -39,6 +57,14 @@ From Unity 2019.3, the available Light types are Directional, Point, Spot, and A
 ## Area Lights
 
 Before Unity 2019.3, HDRP synchronized the width and height of an area [Light](Light-Component.html)'s **Emissive Mesh** with the [localScale](https://docs.unity3d.com/ScriptReference/Transform-localScale.html) of its Transform. From Unity 2019.3, HDRP uses the [lossyScale](https://docs.unity3d.com/ScriptReference/Transform-lossyScale.html) to make the **Emissive Mesh** account for the scale of the parent Transforms. This means that you must resize every area Light in your Unity Project according to the scale of its parent.
+
+## Cookie textures (Spot, Area and Directional lights) and Planar Reflection Probes
+
+Before Unity 2019.3, we stored cookies of Spot, Area and directional lights and planars into texture arrays. Due to the usage of these arrays, we were limited to use the same size for every element in one array. For cookie textures, a convertion code ensured that if a texture size wasn't exatcly the same as the size of the texture array (defined in the HDRP asset), then it was scaled to fit the size of the array.  
+Now that we're using an atlas we don't have this limitation anymore. It means that the cookie size you were using might differ now that we use the real size of the texture and could result in more sharp / pixelated cokies if your texture were too big or too small. If you encounter this kind of issue, we recommend fixing the images directly.
+For Planar Reflection Probes it also means that you can use different resolution per probe.
+
+You may also encounter this error in the console: `No more space in the 2D Cookie Texture Atlas. To solve this issue, increase the resolution of the cookie atlas in the HDRP settings.` This means that there is no space left in the Cookie atlas because there are too many of them in the view or the cookie textures are too big. To solve this issue you can either lower the resolution of the cookie textures or increase the atlas resolution in the HDRP settings.
 
 ## Max Smoothness, Emission Radius, Bake Shadows Radius and Bake Shadows Angle 
 
@@ -85,6 +111,15 @@ To do this, Unity opens a prompt when you begin the upgrade, asking if you want 
 
 ## Missing Script for GameObject SceneIDMap
 
-For scene with baked probes authored prior to 2019.3, you may ran into a warning concerning a missing script for a GameObject named SceneIDMap when entering play mode.
-To fix it, you can load the scene in the editor and click on "Edit/Render Pipeline/Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes".
+When you enter Play Mode in a Scene with baked Probes authored prior to 2019.3, you may encounter a warning about a missing Script for a GameObject named **SceneIDMap**.
+To fix this, load the Scene in the Unity Editor and select **Edit > Render Pipeline > Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes**.
 
+## Light Intensity and Sky Exposure versus HDRP Default Settings.
+
+By default, HDRP uses physically correct intensities for Lights. Because of this, the exposure of the default HDRI sky present in HDRP is set to **11** to match a Directional Light intensity of **10000**. For reference, you can find similar values in the template Project.
+When the HDRP Wizard has been set up correctly, if you create a new Scene, Unity automatically creates GameObjects with the correct intensities so that everything is coherent. However, if the HDRP Wizard is not set up correctly, or if you create Directional Lights from scratch, the intensity is not physically correct. The consequence is that the Light does not match the default sky exposure and thus, any GameObject in the Scene looks black because of the automatic exposure compensating for the overly bright sky.
+To avoid this, make sure that you use coherent values for light intensity compared to the current sky exposure.
+
+## Iridescence color space
+
+Previously, HDRP used the wrong color space to calculate iridescence. From 2019.3, HDRP uses the correct color space. This results in a more vibrant / saturated color when you use the iridescence effect.

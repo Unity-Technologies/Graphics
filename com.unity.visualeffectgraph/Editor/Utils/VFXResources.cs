@@ -37,7 +37,6 @@ namespace UnityEditor.VFX
 
         private static void Initialize()
         {
-
             string[] guids = AssetDatabase.FindAssets("t:VFXResources");
 
 
@@ -48,7 +47,6 @@ namespace UnityEditor.VFX
 
             if (asset == null)
             {
-                Debug.LogWarning("Could not find " + defaultFileName + ", creating...");
                 VFXResources newAsset = CreateInstance<VFXResources>();
 
                 newAsset.particleTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultParticle.tga");

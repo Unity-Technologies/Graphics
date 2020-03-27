@@ -64,8 +64,8 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputPropertiesCommon
         {
-            [Tooltip("Outputs the particle position projected on the depth buffer of the selected Camera.")]
-            public Vector3 position = Vector3.zero;
+            [Tooltip("Outputs the position projected on the depth buffer of the selected Camera in world space.")]
+            public Position position = Vector3.zero;
         }
 
         public class OutputPropertiesCull
@@ -127,9 +127,13 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        {
+            return VFXCoordinateSpace.World;
+        }
+
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-
             // Offset to compensate for the numerous custom camera generated expressions
             _customCameraOffset = 0;
 
@@ -142,7 +146,8 @@ namespace UnityEditor.VFX.Operator
 
             // Camera expressions
             var expressions = Block.CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this), camera);
-            Block.CameraMatricesExpressions camMatrices = Block.CameraHelper.GetMatricesExpressions(expressions);
+            // camera matrix is already in world even in custom mode due to GetOutputSpaceFromSlot returning world space
+            Block.CameraMatricesExpressions camMatrices = Block.CameraHelper.GetMatricesExpressions(expressions, VFXCoordinateSpace.World, VFXCoordinateSpace.World);
 
             var Camera_depthBuffer = expressions.First(e => e.name == "Camera_depthBuffer").exp;
             var CamPixDim = expressions.First(e => e.name == "Camera_pixelDimensions").exp;
@@ -226,7 +231,7 @@ namespace UnityEditor.VFX.Operator
             VFXExpression clipPos = new VFXExpressionCombine(projpos.x, projpos.y,
                 depth * zMultiplier * VFXValue.Constant(2f) - VFXValue.Constant(1f),
                 VFXValue.Constant(1f)
-                );
+            );
 
             VFXExpression clipToVFX = new VFXExpressionTransformMatrix(camMatrices.ViewToVFX.exp, camMatrices.ClipToView.exp);
             VFXExpression vfxPos = new VFXExpressionTransformVector4(clipToVFX, clipPos);
@@ -242,7 +247,7 @@ namespace UnityEditor.VFX.Operator
                 color = new VFXExpressionCombine(tempColor.x, tempColor.y, tempColor.z, VFXValue.Constant(1.0f));
             }
 
-            // Add expressions in the right output order 
+            // Add expressions in the right output order
             outputs.Add(position);
 
             if (inheritSceneColor)
@@ -252,7 +257,6 @@ namespace UnityEditor.VFX.Operator
                 outputs.Add(isAlive);
 
             return outputs.ToArray();
-
         }
     }
 }

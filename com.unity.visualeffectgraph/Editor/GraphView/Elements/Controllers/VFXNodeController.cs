@@ -166,7 +166,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var edge in inputEdges)
             {
-                edge.output.sourceNode.OnEdgeFromOutputGoingToBeRemoved(edge.output,edge.input);
+                edge.output.sourceNode.OnEdgeFromOutputGoingToBeRemoved(edge.output, edge.input);
             }
         }
 
@@ -174,7 +174,7 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public virtual void OnEdgeFromOutputGoingToBeRemoved(VFXDataAnchorController myOutput,VFXDataAnchorController otherInput)
+        public virtual void OnEdgeFromOutputGoingToBeRemoved(VFXDataAnchorController myOutput, VFXDataAnchorController otherInput)
         {
         }
 
@@ -258,6 +258,9 @@ namespace UnityEditor.VFX.UI
                     m_GizmoableAnchors.Add(controller);
                 }
             }
+
+            if (!m_GizmoableAnchors.Contains(m_GizmoedAnchor))
+                m_GizmoedAnchor = null;
 
             if (m_GizmoedAnchor == null)
             {

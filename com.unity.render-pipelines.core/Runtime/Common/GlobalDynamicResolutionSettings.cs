@@ -34,15 +34,16 @@ namespace UnityEngine.Rendering
         /// Lanczos upscaling filter.
         /// </summary>
         Lanczos,
+        /// <summary>
+        /// Contrast Adaptive Sharpening upscaling filter.
+        /// </summary>
+        ContrastAdaptiveSharpen,
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>
     [Serializable]
     public struct GlobalDynamicResolutionSettings
     {
-        /// <summary>Default GlobalDynamicResolutionSettings</summary>
-        [Obsolete("Since 2019.3, use GlobalDynamicResolutionSettings.NewDefault() instead.")]
-        public static readonly GlobalDynamicResolutionSettings @default = default;
         /// <summary>Default GlobalDynamicResolutionSettings</summary>
         /// <returns></returns>
         public static GlobalDynamicResolutionSettings NewDefault() => new GlobalDynamicResolutionSettings()

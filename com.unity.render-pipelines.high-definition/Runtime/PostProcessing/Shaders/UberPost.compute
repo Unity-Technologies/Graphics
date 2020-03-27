@@ -7,14 +7,14 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel KMain_Variant0 MAIN=KMain_Variant0 VARIANT=0
-#pragma kernel KMain_Variant1 MAIN=KMain_Variant1 VARIANT=1
-#pragma kernel KMain_Variant2 MAIN=KMain_Variant2 VARIANT=2
-#pragma kernel KMain_Variant3 MAIN=KMain_Variant3 VARIANT=3
-#pragma kernel KMain_Variant4 MAIN=KMain_Variant4 VARIANT=4
-#pragma kernel KMain_Variant5 MAIN=KMain_Variant5 VARIANT=5
-#pragma kernel KMain_Variant6 MAIN=KMain_Variant6 VARIANT=6
-#pragma kernel KMain_Variant7 MAIN=KMain_Variant7 VARIANT=7
+#pragma kernel Uber
+
+#pragma multi_compile _ CHROMATIC_ABERRATION
+#pragma multi_compile _ VIGNETTE
+#pragma multi_compile _ LENS_DISTORTION
+#pragma multi_compile _ ENABLE_ALPHA
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_BloomTexture);
@@ -23,7 +23,7 @@ TEXTURE2D(_ChromaSpectralLut);
 TEXTURE3D(_LogLut3D);
 TEXTURE2D(_VignetteMask);
 
-RW_TEXTURE2D_X(float3, _OutputTexture);
+RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 SAMPLER(sampler_LinearClamp);
 SAMPLER(sampler_ChromaSpectralLut);
@@ -37,7 +37,7 @@ CBUFFER_START(cb0)
     float4 _VignetteColor;
     float4 _DistortionParams1;
     float4 _DistortionParams2;
-    float4 _LogLut3D_Params;        // x: 1 / lut_size, y: lut_size - 1, z: postexposure, w: enabled
+    float4 _LogLut3D_Params;        // x: 1 / lut_size, y: lut_size - 1, z: postexposure, w: unused
     float4 _BloomParams;
     float4 _BloomThreshold;
     float4 _BloomTint;
@@ -66,7 +66,6 @@ CBUFFER_END
 #define VignetteOpacity         _VignetteColor.w
 
 #define PostExposure            _LogLut3D_Params.z
-#define GradingEnabled          _LogLut3D_Params.w
 
 #define BloomTint               _BloomTint.xyz
 #define BloomIntensity          _BloomParams.x
@@ -82,25 +81,24 @@ float2 DistortUV(float2 uv)
 {
     // Lens distortion
     // Note: this variant should never be set with XR
-    if (VARIANT & UBERPOSTFEATUREFLAGS_LENS_DISTORTION)
-    {
-        uv = (uv - 0.5) * DistScale + 0.5;
-        float2 ruv = DistAxis * (uv - 0.5 - DistCenter);
-        float ru = length(float2(ruv));
+#ifdef LENS_DISTORTION
+    uv = (uv - 0.5) * DistScale + 0.5;
+    float2 ruv = DistAxis * (uv - 0.5 - DistCenter);
+    float ru = length(float2(ruv));
 
-        UNITY_BRANCH
-        if (DistIntensity > 0.0)
-        {
-            float wu = ru * DistTheta;
-            ru = tan(wu) * (rcp(ru * DistSigma));
-            uv = uv + ruv * (ru - 1.0);
-        }
-        else
-        {
-            ru = rcp(ru) * DistTheta * atan(ru * DistSigma);
-            uv = uv + ruv * (ru - 1.0);
-        }
+    UNITY_BRANCH
+    if (DistIntensity > 0.0)
+    {
+        float wu = ru * DistTheta;
+        ru = tan(wu) * (rcp(ru * DistSigma));
+        uv = uv + ruv * (ru - 1.0);
     }
+    else
+    {
+        ru = rcp(ru) * DistTheta * atan(ru * DistSigma);
+        uv = uv + ruv * (ru - 1.0);
+    }
+#endif
 
     return uv;
 }
@@ -108,44 +106,48 @@ float2 DistortUV(float2 uv)
 #define GROUP_SIZE 8
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
+void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC;
     float2 uvDistorted = DistortUV(uv);
-    float3 color = 0.0;
+    CTYPE color = 0.0;
+    CTYPE inputColor = 0.0;
 
     // Chromatic aberration    
     // Inspired by the method described in "Rendering Inside" [Playdead 2016]
     // https://twitter.com/pixelmager/status/717019757766123520
-    if (VARIANT & UBERPOSTFEATUREFLAGS_CHROMATIC_ABERRATION)
+#ifdef CHROMATIC_ABERRATION
+    float2 coords = 2.0 * uv - 1.0;
+    float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
+    float2 diff = end - uv;
+    int samples = clamp(int(length(_ScreenSize.xy * diff / 2.0)), 3, ChromaMaxSamples);
+    float2 delta = diff / samples;
+    float2 pos = uv;
+    float3 sum = 0.0, filterSum = 0.0;
+
+    for (int i = 0; i < samples; i++)
     {
-        float2 coords = 2.0 * uv - 1.0;
-        float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
-        float2 diff = end - uv;
-        int samples = clamp(int(length(_ScreenSize.xy * diff / 2.0)), 3, ChromaMaxSamples);
-        float2 delta = diff / samples;
-        float2 pos = uv;
-        float3 sum = 0.0, filterSum = 0.0;
+        float t = (i + 0.5) / samples;
+        float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(DistortUV(pos)), 0.0).xyz;
+        float3 filter = SAMPLE_TEXTURE2D_LOD(_ChromaSpectralLut, sampler_ChromaSpectralLut, float2(t, 0.0), 0).xyz;
 
-        for (int i = 0; i < samples; i++)
-        {
-            float t = (i + 0.5) / samples;
-            float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(DistortUV(pos)), 0.0).xyz;
-            float3 filter = SAMPLE_TEXTURE2D_LOD(_ChromaSpectralLut, sampler_ChromaSpectralLut, float2(t, 0.0), 0).xyz;
-
-            sum += s * filter;
-            filterSum += filter;
-            pos += delta;
-        }
-
-        color = sum / filterSum;
+        sum += s * filter;
+        filterSum += filter;
+        pos += delta;
     }
-    else
-    {
-        color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
-    }
+
+    color.xyz = sum / filterSum;
+#ifdef ENABLE_ALPHA
+    inputColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0);
+    color.w = inputColor.w;
+#endif
+
+#else
+    color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).CTYPE_SWIZZLE;
+    inputColor = color;
+#endif
 
     // Bloom
     UNITY_BRANCH
@@ -157,8 +159,8 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         float3 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_BloomTexture, sampler_LinearClamp), uvDistorted * _RTHandleScale.xy, _BloomBicubicParams, _RTHandleScale.xy, unity_StereoEyeIndex).xyz;
         #endif
 
-        float3 thresholdedColor = QuadraticThreshold(color, _BloomThreshold.x, _BloomThreshold.yzw);
-        color = lerp(color, (color - thresholdedColor) + (bloom * BloomTint), BloomIntensity);
+        float3 thresholdedColor = QuadraticThreshold(color.xyz, _BloomThreshold.x, _BloomThreshold.yzw);
+        color.xyz = lerp(color.xyz, (color.xyz - thresholdedColor) + (bloom * BloomTint), BloomIntensity);
 
         UNITY_BRANCH
         if (DirtEnabled)
@@ -167,30 +169,31 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
             // considering we use a cover-style scale on the dirt texture the difference isn't massive
             // so we chose to save a few ALUs here instead in case lens distortion is active
             float3 dirt = SAMPLE_TEXTURE2D_LOD(_BloomDirtTexture, sampler_LinearClamp, uvDistorted * DirtScale + DirtOffset, 0.0).xyz;
-            color += bloom * dirt * DirtIntensity;
+            color.xyz += bloom * dirt * DirtIntensity;
         }
     }
 
     // Vignette
-    if (VARIANT & UBERPOSTFEATUREFLAGS_VIGNETTE)
+#ifdef VIGNETTE
+
+    UNITY_BRANCH
+    if (VignetteMode == 0u) // Procedural
     {
-        UNITY_BRANCH
-        if (VignetteMode == 0u) // Procedural
-        {
-            float2 d = abs(uvDistorted - VignetteCenter) * VignetteIntensity;
-            d.x *= lerp(1.0, _ScreenSize.x / _ScreenSize.y, VignetteRounded);
-            d = pow(saturate(d), VignetteRoundness);
-            float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);
-            color *= lerp(VignetteColor, (1.0).xxx, vfactor);
-        }
-        else // Masked
-        {
-            float vfactor = SAMPLE_TEXTURE2D_LOD(_VignetteMask, sampler_VignetteMask, uvDistorted, 0).w;
-            vfactor = FastSRGBToLinear(vfactor);
-            float3 newColor = color * lerp(VignetteColor, (1.0).xxx, vfactor);
-            color = lerp(color, newColor, VignetteOpacity);
-        }
+        float2 d = abs(uvDistorted - VignetteCenter) * VignetteIntensity;
+        d.x *= lerp(1.0, _ScreenSize.x / _ScreenSize.y, VignetteRounded);
+        d = pow(saturate(d), VignetteRoundness);
+        float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);
+        color.xyz *= lerp(VignetteColor, (1.0).xxx, vfactor);
     }
+    else // Masked
+    {
+        float vfactor = SAMPLE_TEXTURE2D_LOD(_VignetteMask, sampler_VignetteMask, uvDistorted, 0).w;
+        vfactor = FastSRGBToLinear(vfactor);
+        float3 newColor = color.xyz * lerp(VignetteColor, (1.0).xxx, vfactor);
+        color.xyz = lerp(color.xyz, newColor, VignetteOpacity);
+    }
+
+#endif
 
     // Grading, tonemapping
     // The branch is only used for frame settings & exr log export - else grading is always enabled
@@ -198,19 +201,25 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (OutputLogEnabled)
     {
         // Output in log space for debug & exr export (external grading)
-        color = saturate(LinearToLogC(color));
+        color.xyz = saturate(LinearToLogC(color.xyz));
     }
-    else if (GradingEnabled)
+    else
     {
         // Artist request to fine tune exposure in post without affecting bloom, dof etc
-        color *= PostExposure;
+        color.xyz *= PostExposure;
 
         // Move from linear to LogC
-        float3 colorLutSpace = saturate(LinearToLogC(color));
+        float3 colorLutSpace = saturate(LinearToLogC(color.xyz));
 
         // Color lookup in the LogC lut
-        color = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
+        color.xyz = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
     }
+
+    // Alpha mask
+#ifdef ENABLE_ALPHA
+        // Post processing is not applied on pixels with zero alpha
+        color.xyz = lerp(inputColor.xyz, color.xyz, inputColor.a);
+#endif
 
     // Done
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = color;

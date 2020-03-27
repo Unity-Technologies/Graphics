@@ -7,14 +7,14 @@ The Visual Effect Component creates an instance of a Visual Effect in the scene,
 
 ## How to create a Visual Effect
 
-In order to create a Visual Effect, you can manually add the component via the Add Component Menu in the Inspector or in the menu : Component / Effects / Visual Effect. 
+In order to create a Visual Effect, you can manually add the component via the Add Component Menu in the Inspector or in the menu : Component / Effects / Visual Effect.
 
 You can also create a complete Game Object holding a Visual Effect Component by using the GameObject menu under the Category Visual Effects and Selecting Visual Effect.
 
 Finally, When you drag a Visual Effect Graph Asset from the project view to the scene view or hierarchy view. It will create automatically a child Game Object with Visual Effect Component:
 
-* When dropped in the Scene View : At center of screen in front of the camera, 
-* When dropped in the Hierarchy under no Parent Game Object : At  the origin of the world 
+* When dropped in the Scene View : At center of screen in front of the camera,
+* When dropped in the Hierarchy under no Parent Game Object : At  the origin of the world
 * When dropped in the Hierarchy under a Parent Game Object : At the parent's transform
 
 ## The Visual Effect Inspector
@@ -57,7 +57,18 @@ The Play Controls window displays UI Elements that enable control over the curre
 
 ![](Images/PlayControls.png)
 
-The play Controls Window 
+The play Controls Window displays the following controls:
+
+* Stop (Button) : Resets the effect and set its state to paused.
+* Play / Pause (Button) : Toggles the paused state of the effect.
+* Step (Button) : Pauses the effect and simulates one frame.
+* Restart (Button) : Un-pauses the effect, resets it, and sends the default Play Event.
+* Rate (Int Slider) : Sets the play rate of the effect (in percent)
+* Set (Popup) : Sets a custom play rate of the effect from the menu.
+* Show Bounds (Toggle) : Toggles visibility of the bounds of the effect
+* Show Event Tester (Toggle) : Shows Event Tester Utility Window
+* Play() and Stop() Buttons : Sends the default OnPlay and OnStop event to the component.
+* (Optional) Gizmos (Popup) : Toggles the visibility of property gizmos.
 
 ## Editing Properties with Gizmos
 

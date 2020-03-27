@@ -79,7 +79,7 @@ float3x3 GetVFXToViewRotMatrix()                            { return mul(VFXGetW
 float3 GetViewVFXPosition()                                 { return mul(VFXGetWorldToObjectMatrix(),float4(VFXGetViewWorldPosition(),1.0f)).xyz; }
 #endif
 
-#define VFX_SAMPLER(name) GetVFXSampler(##name,sampler##name)
+#define VFX_SAMPLER(name) GetVFXSampler(name,sampler##name)
 
 float4 SampleTexture(VFXSampler2D s,float2 coords,float level = 0.0f)
 {
@@ -426,8 +426,8 @@ float3x3 GetEulerMatrix(float3 angles)
 
 float4x4 GetTRSMatrix(float3 pos, float3 angles, float3 scale)
 {
-	float3x3 rotAndScale = GetEulerMatrix(radians(angles));
-	rotAndScale = mul(rotAndScale,GetScaleMatrix(scale));
+    float3x3 rotAndScale = GetEulerMatrix(radians(angles));
+    rotAndScale = mul(rotAndScale,GetScaleMatrix(scale));
     return float4x4(
         float4(rotAndScale[0],pos.x),
         float4(rotAndScale[1],pos.y),
@@ -526,7 +526,7 @@ VFXUVData GetUVData(float2 flipBookSize, float2 invFlipBookSize, float2 uv, floa
     data.uvs.zw = GetSubUV(frameIndex + 1, uv, flipBookSize, invFlipBookSize);
     data.blend = frameBlend;
 #endif
-	
+
     return data;
 }
 

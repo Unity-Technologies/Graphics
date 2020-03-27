@@ -5,40 +5,69 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Resolution of the sky reflection cubemap.
+    /// </summary>
     [Serializable]
     public enum SkyResolution
     {
+        /// <summary>128x128 per face.</summary>
         SkyResolution128 = 128,
+        /// <summary>256x256 per face.</summary>
         SkyResolution256 = 256,
+        /// <summary>512x512 per face.</summary>
         SkyResolution512 = 512,
+        /// <summary>1024x1024 per face.</summary>
         SkyResolution1024 = 1024,
+        /// <summary>2048x2048 per face.</summary>
         SkyResolution2048 = 2048,
+        /// <summary>4096x4096 per face.</summary>
         SkyResolution4096 = 4096
     }
 
+    /// <summary>
+    /// Environment lighting update mode.
+    /// </summary>
     public enum EnvironmentUpdateMode
     {
+        /// <summary>Environment lighting is updated when the sky has changed.</summary>
         OnChanged = 0,
+        /// <summary>Environment lighting is updated on demand.</summary>
         OnDemand,
+        /// <summary>Environment lighting is updated in real time.</summary>
         Realtime
     }
 
+    /// <summary>
+    /// Parameters passed to sky rendering functions.
+    /// </summary>
     public class BuiltinSkyParameters
     {
+        /// <summary>Camera used for rendering.</summary>
         public HDCamera                 hdCamera;
+        /// <summary>Matrix mapping pixel coordinate to view direction.</summary>
         public Matrix4x4                pixelCoordToViewDirMatrix;
+        /// <summary>World space camera position.</summary>
         public Vector3                  worldSpaceCameraPos;
+        /// <summary>Camera view matrix.</summary>
         public Matrix4x4                viewMatrix;
+        /// <summary>Screen size: Width, height, inverse width, inverse height.</summary>
         public Vector4                  screenSize;
+        /// <summary>Command buffer used for rendering.</summary>
         public CommandBuffer            commandBuffer;
+        /// <summary>Current sun light.</summary>
         public Light                    sunLight;
+        /// <summary>Color buffer used for rendering.</summary>
         public RTHandle                 colorBuffer;
+        /// <summary>Depth buffer used for rendering.</summary>
         public RTHandle                 depthBuffer;
+        /// <summary>Current frame index.</summary>
         public int                      frameIndex;
+        /// <summary>Current sky settings.</summary>
         public SkySettings              skySettings;
-
-        public DebugDisplaySettings debugSettings;
-
+        /// <summary>Current debug dsplay settings.</summary>
+        public DebugDisplaySettings     debugSettings;
+        /// <summary>Null color buffer render target identifier.</summary>
         public static RenderTargetIdentifier nullRT = -1;
     }
 
@@ -46,18 +75,14 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public Type                 type;
         public SkyRenderingContext  renderingContext;
-        public int                  lastFrameUsed;
         public int                  hash;
         public int                  refCount;
 
         public void Reset()
         {
             // We keep around the renderer and the rendering context to avoid useless allocation if they get reused.
-            lastFrameUsed = 0;
             hash = 0;
             refCount = 0;
-            if (renderingContext != null)
-                renderingContext.ClearAmbientProbe();
         }
 
         public void Cleanup()
@@ -81,6 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SphericalHarmonicsL2    m_BlackAmbientProbe = new SphericalHarmonicsL2();
 
         bool                    m_UpdateRequired = false;
+        bool                    m_StaticSkyUpdateRequired = false;
         int                     m_Resolution;
 
         // Sky used for static lighting. It will be used for ambient lighting if Ambient Mode is set to Static (even when realtime GI is enabled)
@@ -101,6 +127,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Only show the procedural sky upgrade message once
         static bool         logOnce = true;
+
+        // This boolean here is only to track the first frame after a domain reload or creation.
+        bool m_RequireWaitForAsyncReadBackRequest = true;
 
         MaterialPropertyBlock m_OpaqueAtmScatteringBlock;
 
@@ -124,8 +153,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // 2 by default: Static sky + one dynamic. Will grow if needed.
         DynamicArray<CachedSkyContext> m_CachedSkyContexts = new DynamicArray<CachedSkyContext>(2);
-
-        int m_CurrentFrameIndex = -1;
 
         public SkyManager()
         {
@@ -307,6 +334,9 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < m_CachedSkyContexts.size; ++i)
                 m_CachedSkyContexts[i].Cleanup();
 
+            m_StaticLightingSky.Cleanup();
+            lightingOverrideVolumeStack.Dispose();
+
 #if UNITY_EDITOR
             CoreUtils.Destroy(m_DefaultPreviewSky);
 #endif
@@ -327,7 +357,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
             {
                 ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
-                context.lastFrameUsed = m_CurrentFrameIndex;
                 return context.renderingContext.ambientProbe;
             }
             else
@@ -341,7 +370,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
             {
                 ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
-                context.lastFrameUsed = m_CurrentFrameIndex;
                 return context.renderingContext.skyboxCubemapRT;
             }
             else
@@ -355,7 +383,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
         {
                 ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
-                context.lastFrameUsed = m_CurrentFrameIndex;
                 return context.renderingContext.skyboxBSDFCubemapArray;
             }
             else
@@ -369,46 +396,49 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetReflectionTexture(hdCamera.lightingSky);
         }
 
-        internal void SetupAmbientProbe(HDCamera hdCamera)
+        // Return the value of the ambient probe
+        internal SphericalHarmonicsL2 GetAmbientProbe(HDCamera hdCamera)
         {
             // If a camera just returns from being disabled, sky is not setup yet for it.
             if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
             {
-                RenderSettings.ambientMode = AmbientMode.Custom;
-                RenderSettings.ambientProbe = m_BlackAmbientProbe;
+                return m_BlackAmbientProbe;
+            }
+
+            if (hdCamera.skyAmbientMode == SkyAmbientMode.Static)
+            {
+                return GetAmbientProbe(m_StaticLightingSky);
+            }
+
+            return GetAmbientProbe(hdCamera.lightingSky);
+        }
+
+        internal void SetupAmbientProbe(HDCamera hdCamera)
+        {
+            // Working around GI current system
+            // When using baked lighting, setting up the ambient probe should be sufficient => We only need to update RenderSettings.ambientProbe with either the static or visual sky ambient probe (computed from GPU)
+            // When using real time GI. Enlighten will pull sky information from Skybox material. So in order for dynamic GI to work, we update the skybox material texture and then set the ambient mode to SkyBox
+            // Problem: We can't check at runtime if realtime GI is enabled so we need to take extra care (see useRealtimeGI usage below)
+
+            // Order is important!
+            RenderSettings.ambientMode = AmbientMode.Custom; // Needed to specify ourselves the ambient probe (this will update internal ambient probe data passed to shaders)
+            RenderSettings.ambientProbe = GetAmbientProbe(hdCamera);
+
+            // If a camera just returns from being disabled, sky is not setup yet for it.
+            if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
+            {
                 return;
             }
 
+            // Workaround in the editor:
+            // When in the editor, if we use baked lighting, we need to setup the skybox material with the static lighting texture otherwise when baking, the dynamic texture will be used
             bool useRealtimeGI = true;
 #if UNITY_EDITOR
 #pragma warning disable 618
             useRealtimeGI = UnityEditor.Lightmapping.realtimeGI;
 #pragma warning restore 618
 #endif
-            // Working around GI current system
-            // When using baked lighting, setting up the ambient probe should be sufficient => We only need to update RenderSettings.ambientProbe with either the static or visual sky ambient probe (computed from GPU)
-            // When using real time GI. Enlighten will pull sky information from Skybox material. So in order for dynamic GI to work, we update the skybox material texture and then set the ambient mode to SkyBox
-            // Problem: We can't check at runtime if realtime GI is enabled so we need to take extra care (see useRealtimeGI usage below)
-            RenderSettings.ambientMode = AmbientMode.Custom; // Needed to specify ourselves the ambient probe (this will update internal ambient probe data passed to shaders)
-            if (hdCamera.skyAmbientMode == SkyAmbientMode.Static)
-            {
-                RenderSettings.ambientProbe = GetAmbientProbe(m_StaticLightingSky);
-                m_StandardSkyboxMaterial.SetTexture("_Tex", GetSkyCubemap(m_StaticLightingSky));
-            }
-            else
-            {
-                RenderSettings.ambientProbe = GetAmbientProbe(hdCamera.lightingSky);
-                // Workaround in the editor:
-                // When in the editor, if we use baked lighting, we need to setup the skybox material with the static lighting texture otherwise when baking, the dynamic texture will be used
-                if (useRealtimeGI)
-                {
-                    m_StandardSkyboxMaterial.SetTexture("_Tex", GetSkyCubemap(hdCamera.lightingSky));
-                }
-                else
-                {
-                    m_StandardSkyboxMaterial.SetTexture("_Tex", GetSkyCubemap(m_StaticLightingSky));
-                }
-            }
+            m_StandardSkyboxMaterial.SetTexture("_Tex", GetSkyCubemap((hdCamera.skyAmbientMode != SkyAmbientMode.Static && useRealtimeGI) ? hdCamera.lightingSky : m_StaticLightingSky));
 
             // This is only needed if we use realtime GI otherwise enlighten won't get the right sky information
             RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
@@ -437,28 +467,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSkyToCubemap(SkyUpdateContext skyContext)
         {
-            var renderingContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId].renderingContext;
-            var renderer = skyContext.skyRenderer;
-
-            for (int i = 0; i < 6; ++i)
+            using (new ProfilingScope(m_BuiltinParameters.commandBuffer, ProfilingSampler.Get(HDProfileId.RenderSkyToCubemap)))
             {
-                m_BuiltinParameters.pixelCoordToViewDirMatrix = m_facePixelCoordToViewDirMatrices[i];
-                m_BuiltinParameters.viewMatrix = m_CameraRelativeViewMatrices[i];
-                m_BuiltinParameters.colorBuffer = renderingContext.skyboxCubemapRT;
-                m_BuiltinParameters.depthBuffer = null;
+                var renderingContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId].renderingContext;
+                var renderer = skyContext.skyRenderer;
 
-                CoreUtils.SetRenderTarget(m_BuiltinParameters.commandBuffer, renderingContext.skyboxCubemapRT, ClearFlag.None, 0, (CubemapFace)i);
-                renderer.RenderSky(m_BuiltinParameters, true, skyContext.skySettings.includeSunInBaking.value);
+                for (int i = 0; i < 6; ++i)
+                {
+                    m_BuiltinParameters.pixelCoordToViewDirMatrix = m_facePixelCoordToViewDirMatrices[i];
+                    m_BuiltinParameters.viewMatrix = m_CameraRelativeViewMatrices[i];
+                    m_BuiltinParameters.colorBuffer = renderingContext.skyboxCubemapRT;
+                    m_BuiltinParameters.depthBuffer = null;
+
+                    CoreUtils.SetRenderTarget(m_BuiltinParameters.commandBuffer, renderingContext.skyboxCubemapRT, ClearFlag.None, 0, (CubemapFace)i);
+                    renderer.RenderSky(m_BuiltinParameters, true, skyContext.skySettings.includeSunInBaking.value);
+                }
+
+                // Generate mipmap for our cubemap
+                Debug.Assert(renderingContext.skyboxCubemapRT.rt.autoGenerateMips == false);
+                m_BuiltinParameters.commandBuffer.GenerateMips(renderingContext.skyboxCubemapRT);
             }
-
-            // Generate mipmap for our cubemap
-            Debug.Assert(renderingContext.skyboxCubemapRT.rt.autoGenerateMips == false);
-            m_BuiltinParameters.commandBuffer.GenerateMips(renderingContext.skyboxCubemapRT);
         }
 
         void RenderCubemapGGXConvolution(SkyUpdateContext skyContext)
         {
-            using (new ProfilingSample(m_BuiltinParameters.commandBuffer, "Update Env: GGX Convolution"))
+            using (new ProfilingScope(m_BuiltinParameters.commandBuffer, ProfilingSampler.Get(HDProfileId.UpdateSkyEnvironmentConvolution)))
             {
                 var renderingContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId].renderingContext;
                 var renderer = skyContext.skyRenderer;
@@ -501,7 +534,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        void AllocateNewRenderingContext(SkyUpdateContext skyContext, int slot, int newHash, bool supportConvolution, in SphericalHarmonicsL2 previousAmbientProbe)
+        void AllocateNewRenderingContext(SkyUpdateContext skyContext, int slot, int newHash, bool supportConvolution, in SphericalHarmonicsL2 previousAmbientProbe, string name)
         {
             Debug.Assert(m_CachedSkyContexts[slot].hash == 0);
             ref var context = ref m_CachedSkyContexts[slot];
@@ -516,16 +549,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             if (context.renderingContext == null)
-                context.renderingContext = new SkyRenderingContext(m_Resolution, m_IBLFilterArray.Length, supportConvolution, previousAmbientProbe);
-            else
-                context.renderingContext.UpdateAmbientProbe(previousAmbientProbe);
+                context.renderingContext = new SkyRenderingContext(m_Resolution, m_IBLFilterArray.Length, supportConvolution, previousAmbientProbe, name);
+
             skyContext.cachedSkyRenderingContextId = slot;
         }
 
         // Returns whether or not the data should be updated
-        bool AcquireSkyRenderingContext(SkyUpdateContext updateContext, int newHash)
+        bool AcquireSkyRenderingContext(SkyUpdateContext updateContext, int newHash, string name = "", bool supportConvolution = true)
         {
-            bool supportConvolution = true; // TODO: See how we can avoid allocating associated RT for static sky (issue is when the same sky is used for both static and lighting sky)
             SphericalHarmonicsL2 cachedAmbientProbe = new SphericalHarmonicsL2();
             // Release the old context if needed.
             if (IsCachedContextValid(updateContext))
@@ -544,7 +575,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     // If the hash hasn't changed, keep it.
-                    cachedContext.lastFrameUsed = m_CurrentFrameIndex;
                     return false;
                 }
             }
@@ -557,7 +587,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_CachedSkyContexts[i].hash == newHash)
                 {
                     m_CachedSkyContexts[i].refCount++;
-                    m_CachedSkyContexts[i].lastFrameUsed = m_CurrentFrameIndex;
                     updateContext.cachedSkyRenderingContextId = i;
                     updateContext.skyParametersHash = newHash;
                     return false;
@@ -568,24 +597,40 @@ namespace UnityEngine.Rendering.HighDefinition
                     firstFreeContext = i;
             }
 
+            if (name == "")
+                name = "SkyboxCubemap";
+
             if (firstFreeContext != -1)
             {
-                AllocateNewRenderingContext(updateContext, firstFreeContext, newHash, supportConvolution, cachedAmbientProbe);
+                AllocateNewRenderingContext(updateContext, firstFreeContext, newHash, supportConvolution, cachedAmbientProbe, name);
             }
             else
             {
                 int newContextId = m_CachedSkyContexts.Add(new CachedSkyContext());
-                AllocateNewRenderingContext(updateContext, newContextId, newHash, supportConvolution, cachedAmbientProbe);
+                AllocateNewRenderingContext(updateContext, newContextId, newHash, supportConvolution, cachedAmbientProbe, name);
             }
 
             return true;
         }
 
-        void ReleaseCachedContext(int id)
+        internal void ReleaseCachedContext(int id)
         {
+            if (id == -1)
+                return;
+
             ref var cachedContext = ref m_CachedSkyContexts[id];
+
+            // This can happen if 2 cameras use the same context and release it in the same frame.
+            // The first release the context but the next one will still have this id.
+            if (cachedContext.refCount == 0)
+            {
+                Debug.Assert(cachedContext.renderingContext == null); // Context should already have been cleaned up.
+                return;
+            }
+
             cachedContext.refCount--;
-            Debug.Assert(cachedContext.refCount >= 0);
+            if (cachedContext.refCount == 0)
+                cachedContext.Reset();
         }
 
         bool IsCachedContextValid(SkyUpdateContext skyContext)
@@ -598,24 +643,21 @@ namespace UnityEngine.Rendering.HighDefinition
             return id != -1 && (skyContext.skySettings.GetSkyRendererType() == m_CachedSkyContexts[id].type) && (m_CachedSkyContexts[id].hash != 0);
         }
 
-        void CleanupUnusedCachedContexts()
-        {
-            for (int i = 0; i < m_CachedSkyContexts.size; ++i)
-            {
-                ref var context = ref m_CachedSkyContexts[i];
-                if (context.refCount == 0 && (m_CurrentFrameIndex - context.lastFrameUsed > 30))
-                {
-                    context.Cleanup();
-                }
-            }
-        }
-
-        int ComputeSkyHash(SkyUpdateContext skyContext, Light sunLight, SkyAmbientMode ambientMode)
+        int ComputeSkyHash(HDCamera camera, SkyUpdateContext skyContext, Light sunLight, SkyAmbientMode ambientMode, bool staticSky = false)
         {
             int sunHash = 0;
             if (sunLight != null)
                 sunHash = GetSunLightHashCode(sunLight);
-            int skyHash = sunHash * 23 + skyContext.skySettings.GetHashCode();
+
+            // For planar reflections we want to use the parent position for hash.
+            Camera cameraForHash = camera.camera;
+            if (camera.camera.cameraType == CameraType.Reflection && camera.parentCamera != null)
+            {
+                cameraForHash = camera.parentCamera;
+            }
+
+            int skyHash = sunHash * 23 + skyContext.skySettings.GetHashCode(cameraForHash);
+            skyHash = skyHash * 23 + (staticSky ? 1 : 0);
             skyHash = skyHash * 23 + (ambientMode == SkyAmbientMode.Static ? 1 : 0);
             return skyHash;
         }
@@ -625,28 +667,53 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UpdateRequired = true;
         }
 
-        public void UpdateEnvironment(HDCamera hdCamera, SkyUpdateContext skyContext, Light sunLight, bool updateRequired, bool updateAmbientProbe, SkyAmbientMode ambientMode, int frameIndex, CommandBuffer cmd)
+        internal void RequestStaticEnvironmentUpdate()
+        {
+            m_StaticSkyUpdateRequired = true;
+            m_RequireWaitForAsyncReadBackRequest = true;
+        }
+
+        public void UpdateEnvironment(  HDCamera                hdCamera,
+                                        ScriptableRenderContext renderContext,
+                                        SkyUpdateContext        skyContext,
+                                        Light                   sunLight,
+                                        bool                    updateRequired,
+                                        bool                    updateAmbientProbe,
+                                        bool                    staticSky,
+                                        SkyAmbientMode          ambientMode,
+                                        int                     frameIndex,
+                                        CommandBuffer           cmd)
         {
             if (skyContext.IsValid())
             {
-                skyContext.currentUpdateTime += Time.deltaTime;
+                skyContext.currentUpdateTime += Time.deltaTime; // Consider using HDRenderPipeline.GetTime().
 
                 m_BuiltinParameters.hdCamera = hdCamera;
                 m_BuiltinParameters.commandBuffer = cmd;
                 m_BuiltinParameters.sunLight = sunLight;
                 m_BuiltinParameters.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                m_BuiltinParameters.worldSpaceCameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
+                Vector3 worldSpaceCameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
+                // For planar reflections we use the parent camera position for all the runtime computations.
+                // This is to avoid cases in which the probe camera is below ground and the parent is not, leading to
+                // in case of PBR sky to a black sky. All other parameters are left as is.
+                // This can introduce inaccuracies, but they should be acceptable if the distance parent camera - probe camera is
+                // small. 
+                if (hdCamera.camera.cameraType == CameraType.Reflection && hdCamera.parentCamera != null)
+                {
+                    worldSpaceCameraPos = hdCamera.parentCamera.transform.position;
+                }
+                m_BuiltinParameters.worldSpaceCameraPos = worldSpaceCameraPos;
                 m_BuiltinParameters.viewMatrix = hdCamera.mainViewConstants.viewMatrix;
                 m_BuiltinParameters.screenSize = m_CubemapScreenSize;
                 m_BuiltinParameters.debugSettings = null; // We don't want any debug when updating the environment.
                 m_BuiltinParameters.frameIndex = frameIndex;
                 m_BuiltinParameters.skySettings = skyContext.skySettings;
 
-                int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode);
+                int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode, staticSky);
                 bool forceUpdate = updateRequired;
 
                 // Acquire the rendering context, if the context was invalid or the hash has changed, this will request for an update.
-                forceUpdate |= AcquireSkyRenderingContext(skyContext, skyHash);
+                forceUpdate |= AcquireSkyRenderingContext(skyContext, skyHash, staticSky ? "SkyboxCubemap_Static" : "SkyboxCubemap", !staticSky);
 
                 ref CachedSkyContext cachedContext = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
                 var renderingContext = cachedContext.renderingContext;
@@ -658,30 +725,42 @@ namespace UnityEngine.Rendering.HighDefinition
                     (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
                     (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
                 {
-                    using (new ProfilingSample(cmd, "Sky Environment Pass"))
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyEnvironment)))
                     {
-                        using (new ProfilingSample(cmd, "Update Env: Generate Lighting Cubemap"))
-                        {
-                            RenderSkyToCubemap(skyContext);
+                        RenderSkyToCubemap(skyContext);
 
-                            if (updateAmbientProbe)
+                        if (updateAmbientProbe)
+                        {
+                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
                             {
-                                using (new ProfilingSample(cmd, "Update Ambient Probe"))
+                                cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
+                                cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
+                                cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
+                                cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
+
+                                // When the profiler is enabled, we don't want to submit the render context because
+                                // it will break all the profiling sample Begin() calls issued previously, which leads
+                                // to profiling sample mismatch errors in the console.
+                                if (!UnityEngine.Profiling.Profiler.enabled)
                                 {
-                                    cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
-                                    cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
-                                    cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
-                                    cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
+                                    // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
+                                    // otherwise ambient probe isn't correct for one frame.
+                                    if (m_RequireWaitForAsyncReadBackRequest)
+                                    {
+                                        cmd.WaitAllAsyncReadbackRequests();
+                                        renderContext.ExecuteCommandBuffer(cmd);
+                                        CommandBufferPool.Release(cmd);
+                                        renderContext.Submit();
+                                        cmd = CommandBufferPool.Get();
+                                        m_RequireWaitForAsyncReadBackRequest = false;
+                                    }
                                 }
                             }
                         }
 
                         if (renderingContext.supportsConvolution)
                         {
-                            using (new ProfilingSample(cmd, "Update Env: Convolve Lighting Cubemap"))
-                            {
-                                RenderCubemapGGXConvolution(skyContext);
-                            }
+                            RenderCubemapGGXConvolution(skyContext);
                         }
 
                         skyContext.skyParametersHash = skyHash;
@@ -690,7 +769,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                         // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
                         // Changing the hash of the rendertarget allow to say that GI is dirty
-                        renderingContext.skyboxCubemapRT.rt.imageContentsHash = new Hash128((uint)skyContext.skySettings.GetHashCode(), 0, 0, 0);
+                        renderingContext.skyboxCubemapRT.rt.imageContentsHash = new Hash128((uint)skyContext.skySettings.GetHashCode(hdCamera.camera), 0, 0, 0);
 #endif
                     }
                 }
@@ -705,26 +784,28 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void UpdateEnvironment(HDCamera hdCamera, Light sunLight, int frameIndex, CommandBuffer cmd)
+        public void UpdateEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, Light sunLight, int frameIndex, CommandBuffer cmd)
         {
-            m_CurrentFrameIndex = frameIndex;
+            SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
-            CleanupUnusedCachedContexts();
-
-            SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
-
-            UpdateEnvironment(hdCamera, hdCamera.lightingSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, ambientMode, frameIndex, cmd);
+            UpdateEnvironment(hdCamera, renderContext, hdCamera.lightingSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, false, ambientMode, frameIndex, cmd);
 
             // Preview camera will have a different sun, therefore the hash for the static lighting sky will change and force a recomputation
             // because we only maintain one static sky. Since we don't care that the static lighting may be a bit different in the preview we never recompute
             // and we use the one from the main camera.
-            if (ambientMode == SkyAmbientMode.Static && hdCamera.camera.cameraType != CameraType.Preview)
+            bool forceStaticUpdate = false;
+#if UNITY_EDITOR
+            // In the editor, we might need the static sky ready for baking lightmaps/lightprobes regardless of the current ambient mode so we force it to update in this case.
+            forceStaticUpdate = true;
+#endif
+            if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
             {
                 StaticLightingSky staticLightingSky = GetStaticLightingSky();
                 if (staticLightingSky != null)
                 {
                     m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
-                    UpdateEnvironment(hdCamera, m_StaticLightingSky, sunLight, false, true, ambientMode, frameIndex, cmd);
+                    UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
+                    m_StaticSkyUpdateRequired = false;
                 }
             }
 
@@ -732,8 +813,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var reflectionTexture = GetReflectionTexture(hdCamera.lightingSky);
             cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, reflectionTexture);
-            float mipCount = Mathf.Clamp(Mathf.Log((float)reflectionTexture.width, 2.0f) + 1, 0.0f, 6.0f);
-            cmd.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
 
             if (IsLightingSkyValid(hdCamera))
             {
@@ -775,8 +854,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                         frameIndex,
                                         cmd);
 
-                SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
-                int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode);
+                SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
+                int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode);
                 AcquireSkyRenderingContext(skyContext, skyHash);
                 skyContext.skyRenderer.DoUpdate(m_BuiltinParameters);
                 if (depthBuffer != BuiltinSkyParameters.nullRT && normalBuffer != BuiltinSkyParameters.nullRT)
@@ -796,7 +875,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var skyContext = hdCamera.visualSky;
             if (skyContext.IsValid() && hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky)
             {
-                using (new ProfilingSample(cmd, "Sky Pass"))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderSky)))
                 {
                     UpdateBuiltinParameters(skyContext,
                                          hdCamera,
@@ -807,8 +886,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                          frameIndex,
                                          cmd);
 
-                    SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
-                    int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode);
+                    SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
+                    int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode);
                     AcquireSkyRenderingContext(skyContext, skyHash);
 
                     skyContext.skyRenderer.DoUpdate(m_BuiltinParameters);
@@ -839,7 +918,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                       RTHandle depthBuffer,
                                                       Matrix4x4 pixelCoordToViewDirWS, bool isMSAA)
         {
-            using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
+            using (new ProfilingScope(m_BuiltinParameters.commandBuffer, ProfilingSampler.Get(HDProfileId.OpaqueAtmosphericScattering)))
             {
                 m_OpaqueAtmScatteringBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, pixelCoordToViewDirWS);
                 if (isMSAA)

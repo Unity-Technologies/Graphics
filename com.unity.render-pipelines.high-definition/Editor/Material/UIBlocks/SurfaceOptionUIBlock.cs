@@ -59,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent zWriteEnableText = new GUIContent("Depth Write", "When enabled, transparent objects write to the depth buffer.");
             public static GUIContent transparentZTestText = new GUIContent("Depth Test", "Set the comparison function to use during the Z Testing.");
+            public static GUIContent rayTracingText = new GUIContent("Ray Tracing (Preview)", "If this option is enabled and recursive rendering is active, the object will be rendered using ray tracing.");
 
             public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Sets the sort priority (from -100 to 100) of transparent meshes using this Material. HDRP uses this value to calculate the sorting order of all transparent meshes on screen.");
             public static GUIContent enableTransparentFogText = new GUIContent("Receive fog", "When enabled, this Material can receive fog.");
@@ -165,6 +166,8 @@ namespace UnityEditor.Rendering.HighDefinition
         // SSR
         MaterialProperty receivesSSR = null;
         const string kReceivesSSR = "_ReceivesSSR";
+        MaterialProperty receivesSSRTransparent = null;
+        const string kReceivesSSRTransparent = "_ReceivesSSRTransparent";
 
         MaterialProperty displacementMode = null;
         const string kDisplacementMode = "_DisplacementMode";
@@ -204,10 +207,11 @@ namespace UnityEditor.Rendering.HighDefinition
         protected MaterialProperty refractionModel = null;
         protected const string kRefractionModel = "_RefractionModel";
 
-        MaterialProperty zWrite = null;
+        MaterialProperty transparentZWrite = null;
         MaterialProperty stencilRef = null;
         MaterialProperty zTest = null;
         MaterialProperty transparentCullMode = null;
+        MaterialProperty rayTracing = null;
 
         SurfaceType defaultSurfaceType { get { return SurfaceType.Opaque; } }
 
@@ -336,12 +340,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // SSR
             if ((m_Features & Features.ReceiveSSR) != 0)
+            {
                 receivesSSR = FindProperty(kReceivesSSR);
+                receivesSSRTransparent = FindProperty(kReceivesSSRTransparent);
+            }
 
-            zWrite = FindProperty(kZWrite);
+            transparentZWrite = FindProperty(kTransparentZWrite);
             stencilRef = FindProperty(kStencilRef);
             zTest = FindProperty(kZTestTransparent);
             transparentCullMode = FindProperty(kTransparentCullMode);
+            rayTracing = FindProperty(kRayTracing);
 
             refractionModel = FindProperty(kRefractionModel);
         }
@@ -378,17 +386,21 @@ namespace UnityEditor.Rendering.HighDefinition
             if (alphaCutoffEnable != null && alphaCutoffEnable.floatValue == 1.0f)
             {
                 EditorGUI.indentLevel++;
-                if ((m_Features & Features.AlphaCutoffThreshold) != 0)
+
+                if (alphaCutoff != null)
                     materialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText);
 
-                if (useShadowThreshold != null)
-                    materialEditor.ShaderProperty(useShadowThreshold, Styles.useShadowThresholdText);
-
-                if (alphaCutoffShadow != null && useShadowThreshold != null && useShadowThreshold.floatValue == 1.0f && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
+                if ((m_Features & Features.AlphaCutoffThreshold) != 0)
                 {
-                    EditorGUI.indentLevel++;
-                    materialEditor.ShaderProperty(alphaCutoffShadow, Styles.alphaCutoffShadowText);
-                    EditorGUI.indentLevel--;
+                    if (useShadowThreshold != null)
+                        materialEditor.ShaderProperty(useShadowThreshold, Styles.useShadowThresholdText);
+
+                    if (alphaCutoffShadow != null && useShadowThreshold != null && useShadowThreshold.floatValue == 1.0f && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
+                    {
+                        EditorGUI.indentLevel++;
+                        materialEditor.ShaderProperty(alphaCutoffShadow, Styles.alphaCutoffShadowText);
+                        EditorGUI.indentLevel--;
+                    }
                 }
 
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
@@ -488,8 +500,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (transparentWritingMotionVec != null)
                     materialEditor.ShaderProperty(transparentWritingMotionVec, Styles.transparentWritingMotionVecText);
 
-                if (zWrite != null)
-                    materialEditor.ShaderProperty(zWrite, Styles.zWriteEnableText);
+                if (transparentZWrite != null)
+                    materialEditor.ShaderProperty(transparentZWrite, Styles.zWriteEnableText);
 
                 if (zTest != null)
                     materialEditor.ShaderProperty(zTest, Styles.transparentZTestText);
@@ -523,6 +535,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // TODO: does not work with multi-selection
             Material material = materialEditor.target as Material;
+
+            // We only display the ray tracing option if the asset supports it (and the attributes exists in this shader)
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported && rayTracing != null)
+                materialEditor.ShaderProperty(rayTracing, Styles.rayTracingText);
 
             var mode = (SurfaceType)surfaceType.floatValue;
             var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
@@ -570,7 +586,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (newMode == SurfaceType.Transparent)
             {
-                if (stencilRef != null && ((int)stencilRef.floatValue & (int)StencilLightingUsage.SplitLighting) != 0)
+                if (stencilRef != null && ((int)stencilRef.floatValue & (int)StencilUsage.SubsurfaceScattering) != 0)
                     EditorGUILayout.HelpBox(Styles.transparentSSSErrorMessage, MessageType.Error);
             }
 
@@ -639,12 +655,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.AfterPostProcessing);
             }
 
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
-            {
-                m_RenderingPassNames.Add("Raytracing");
-                m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.Raytracing);
-            }
-
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
         }
 
@@ -673,12 +683,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_RenderingPassNames.Add("After post-process");
                 m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.AfterPostProcessing);
-            }
-
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
-            {
-                m_RenderingPassNames.Add("Raytracing");
-                m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.Raytracing);
             }
 
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
@@ -713,7 +717,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (receivesSSR != null)
             {
-                materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
+                // Based on the surface type, display the right recieveSSR option
+                if (surfaceTypeValue == SurfaceType.Transparent)
+                    materialEditor.ShaderProperty(receivesSSRTransparent, Styles.receivesSSRText);
+                else
+                    materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
             }
 
             if (enableGeometricSpecularAA != null)

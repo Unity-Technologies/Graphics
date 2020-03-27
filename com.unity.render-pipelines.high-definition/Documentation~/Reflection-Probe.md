@@ -72,7 +72,7 @@ The following properties control extra behavior options for fine-tuning the beha
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| **Light Layer** | This Reflection Probe only uses Lights on the corresponding Light Layer to capture its view of the Scene. Navigate to your Project’s **HDRP Asset > Render Pipeline Supported Features** and enable **Light Layers** to use this property. |
+| **Light Layer** | A mask that allows you to choose which Light Layers this Reflection Probe affects. This Reflection Probe only affects Mesh Renderers with a matching **Rendering Layer Mask**.<br/>Navigate to your Project’s **HDRP Asset > Render Pipeline Supported Features** and enable **Light Layers** to use this property. |
 | **Multiplier**  | A multiplier for the RenderTexture the Reflection Probe captures. The Reflection Probe applies this multiplier when Reflective Materials query the RenderTexture. |
 | **Weight**      | The overall weight of this Reflection Probe’s contribution to the reflective effect of Materials. When Reflection Probe’s blend together, the weight of each Probe determines their contribution to a reflective Material in the blend area. |
 | **Range Compression Factor**      | The result of the rendering of the probe will be divided by this factor. When the probe is read, this factor is undone as the probe data is read. This is especially useful to deal with very bright or dark objects in the reflections that will otherwise be saturated. |

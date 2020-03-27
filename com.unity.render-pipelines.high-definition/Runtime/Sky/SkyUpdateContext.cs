@@ -37,6 +37,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public void Cleanup()
+        {
+            if (skyRenderer != null)
+            {
+                skyRenderer.Cleanup();
+            }
+
+            HDRenderPipeline hdrp = HDRenderPipeline.currentPipeline;
+            if (hdrp != null)
+                hdrp.skyManager.ReleaseCachedContext(cachedSkyRenderingContextId);
+        }
+
         public bool IsValid()
         {
             // We need to check m_SkySettings because it can be "nulled" when destroying the volume containing the settings (as it's a ScriptableObject) without the context knowing about it.

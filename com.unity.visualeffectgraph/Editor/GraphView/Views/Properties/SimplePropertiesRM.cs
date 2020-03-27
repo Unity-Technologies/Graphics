@@ -23,9 +23,9 @@ namespace UnityEditor.VFX.UI
         public override float GetPreferredControlWidth()
         {
             int min = 120;
-            foreach(var str in Enum.GetNames(provider.portType))
+            foreach (var str in Enum.GetNames(provider.portType))
             {
-                Vector2 size = m_Field.Q<TextElement>().MeasureTextSize(str,0, VisualElement.MeasureMode.Undefined,0, VisualElement.MeasureMode.Undefined);
+                Vector2 size = m_Field.Q<TextElement>().MeasureTextSize(str, 0, VisualElement.MeasureMode.Undefined, 0, VisualElement.MeasureMode.Undefined);
 
                 size.x += 60;
                 if (min < size.x)
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.UI
             if (min > 200)
                 min = 200;
 
-            
+
             return min;
         }
 
@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 180;
+            return 224;
         }
     }
 
@@ -60,6 +60,7 @@ namespace UnityEditor.VFX.UI
     {
         public Matrix4x4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
+            m_FieldParent.style.flexDirection = FlexDirection.Row;
         }
 
         public override float GetPreferredControlWidth()
@@ -76,7 +77,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 100;
+            return 120;
         }
     }
 

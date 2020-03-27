@@ -2,26 +2,26 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    // RenderRenderPipelineSettings represent settings that are immutable at runtime.
-    // There is a dedicated RenderRenderPipelineSettings for each platform
-
+    /// <summary>
+    /// Global Decal Settings.
+    /// </summary>
     [Serializable]
     public struct GlobalDecalSettings
     {
-        /// <summary>Default GlobalDecalSettings</summary>
-        [Obsolete("Since 2019.3, use GlobalDecalSettings.NewDefault() instead.")]
-        public static readonly GlobalDecalSettings @default = default;
-        /// <summary>Default GlobalDecalSettings</summary>
-        public static GlobalDecalSettings NewDefault() => new GlobalDecalSettings()
+        internal static GlobalDecalSettings NewDefault() => new GlobalDecalSettings()
         {
             drawDistance = 1000,
             atlasWidth = 4096,
             atlasHeight = 4096
         };
 
+        /// <summary>Maximum draw distance.</summary>
         public int drawDistance;
+        /// <summary>Decal atlas width in pixels.</summary>
         public int atlasWidth;
+        /// <summary>Decal atlas height in pixels.</summary>
         public int atlasHeight;
+        /// <summary>Enables per channel mask.</summary>
         public bool perChannelMask;
     }
 }

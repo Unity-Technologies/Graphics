@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
     /// Unity Monobehavior that manages the execution of custom passes.
-    /// It provides 
+    /// It provides
     /// </summary>
     [ExecuteAlways]
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Custom-Pass" + Documentation.endURL)]
@@ -26,10 +26,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public float fadeRadius;
 
         /// <summary>
+        /// The volume priority, used to determine the execution order when there is multiple volumes with the same injection point.
+        /// </summary>
+        [Tooltip("Sets the Volume priority in the stack. A higher value means higher priority. You can use negative values.")]
+        public float priority;
+
+        /// <summary>
         /// List of custom passes to execute
         /// </summary>
-        /// <typeparam name="CustomPass"></typeparam>
-        /// <returns></returns>
         [SerializeReference]
         public List<CustomPass> customPasses = new List<CustomPass>();
 
@@ -39,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public CustomPassInjectionPoint injectionPoint = CustomPassInjectionPoint.BeforeTransparent;
 
         /// <summary>
-        /// Fade value between 0 and 1. it represent how close you camera is from the collider of the custom pass.  
+        /// Fade value between 0 and 1. it represent how close you camera is from the collider of the custom pass.
         /// 0 when the camera is outside the volume + fade radius and 1 when it is inside the collider.
         /// </summary>
         /// <value>The fade value that should be applied to the custom pass effect</value>
@@ -73,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDisable() => UnRegister(this);
 
-        void OnDestroy() => Cleanup();
+        void OnDestroy() => CleanupPasses();
 
         internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
         {
@@ -87,12 +91,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var pass in customPasses)
             {
-                if (pass != null && pass.enabled)
-                    using (new ProfilingSample(cmd, pass.name))
-                    {
-                        pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
-                        executed = true;
-                    }
+                if (pass != null && pass.WillBeExecuted(hdCamera))
+                {
+                    pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
+                    executed = true;
+                }
+            }
+
+            return executed;
+        }
+
+        internal bool WillExecuteInjectionPoint(HDCamera hdCamera)
+        {
+            bool executed = false;
+
+            // We never execute volume if the layer is not within the culling layers of the camera
+            if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
+                return false;
+
+            foreach (var pass in customPasses)
+            {
+                if (pass != null && pass.WillBeExecuted(hdCamera))
+                    executed = true;
             }
 
             return executed;
@@ -142,21 +162,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!collider || !collider.enabled)
                         continue;
-                    
+
                     // We don't support concave colliders
                     if (collider is MeshCollider m && !m.convex)
                         continue;
 
                     var closestPoint = collider.ClosestPoint(triggerPos);
                     var d = (closestPoint - triggerPos).sqrMagnitude;
-                    
+
                     minSqrDistance = Mathf.Min(minSqrDistance, d);
 
                     // Update the list of overlapping colliders
                     if (d <= sqrFadeRadius)
                         volume.m_OverlappingColliders.Add(collider);
                 }
-                
+
                 // update the fade value:
                 volume.fadeValue = 1.0f - Mathf.Clamp01(Mathf.Sqrt(minSqrDistance / sqrFadeRadius));
 
@@ -174,11 +194,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     return extent;
                 }
 
-                if (v1.isGlobal && v2.isGlobal) return 0;
-                if (v1.isGlobal) return 1;
-                if (v2.isGlobal) return -1;
-                
-                return GetVolumeExtent(v1).CompareTo(GetVolumeExtent(v2));
+                // Sort by priority and then by volume extent
+                if (v1.priority == v2.priority)
+                {
+                    if (v1.isGlobal && v2.isGlobal) return 0;
+                    if (v1.isGlobal) return 1;
+                    if (v2.isGlobal) return -1;
+
+                    return GetVolumeExtent(v1).CompareTo(GetVolumeExtent(v2));
+                }
+                else
+                {
+                    return v2.priority.CompareTo(v1.priority);
+                }
             });
         }
 
@@ -204,10 +232,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // By default we don't want the culling to return any objects
             cullingParameters.cullingMask = 0;
-            cullingParameters.cullingOptions &= CullingOptions.Stereo; // We just keep stereo if enabled and clear the other flags
+            cullingParameters.cullingOptions = CullingOptions.None;
 
-            foreach (var injectionPoint in injectionPoints)
-                GetActivePassVolume(injectionPoint)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
+            foreach (var volume in m_OverlappingPassVolumes)
+                volume?.AggregateCullingParameters(ref cullingParameters, hdCamera);
 
             // If we don't have anything to cull or the pass is asking for the same culling layers than the camera, we don't have to re-do the culling
             if (cullingParameters.cullingMask != 0 && (cullingParameters.cullingMask & hdCamera.camera.cullingMask) != cullingParameters.cullingMask)
@@ -223,13 +251,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 pass.CleanupPasses();
             }
         }
-        
+
+        /// <summary>
+        /// Gets the currently active Custom Pass Volume for a given injection point.
+        /// Note this function returns only the first active volume, not the others that will be executed.
+        /// </summary>
+        /// <param name="injectionPoint">The injection point to get the currently active Custom Pass Volume for.</param>
+        /// <returns>Returns the Custom Pass Volume instance associated with the injection point.</returns>
+        [Obsolete("In order to support multiple custom pass volume per injection points, please use GetActivePassVolumes.")]
         public static CustomPassVolume GetActivePassVolume(CustomPassInjectionPoint injectionPoint)
         {
+            var volumes = new List<CustomPassVolume>();
+            GetActivePassVolumes(injectionPoint, volumes);
+            return volumes.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Gets the currently active Custom Pass Volume for a given injection point.
+        /// </summary>
+        /// <param name="injectionPoint">The injection point to get the currently active Custom Pass Volume for.</param>
+        /// <param name="volumes">The list of custom pass volumes to popuplate with the active volumes.</param>
+        public static void GetActivePassVolumes(CustomPassInjectionPoint injectionPoint, List<CustomPassVolume> volumes)
+        {
+            volumes.Clear();
             foreach (var volume in m_OverlappingPassVolumes)
                 if (volume.injectionPoint == injectionPoint)
-                    return volume;
-            return null;
+                    volumes.Add(volume);
         }
 
         /// <summary>

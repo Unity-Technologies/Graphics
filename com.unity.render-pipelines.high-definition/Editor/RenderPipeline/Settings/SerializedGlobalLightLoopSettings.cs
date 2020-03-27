@@ -7,15 +7,15 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public SerializedProperty root;
 
-        public SerializedProperty cookieSize;
-        public SerializedProperty cookieTexArraySize;
+        public SerializedProperty cookieAtlasSize;
+        public SerializedProperty cookieFormat;
+        public SerializedProperty cookieAtlasLastValidMip;
         public SerializedProperty pointCookieSize;
         public SerializedProperty cubeCookieTexArraySize;
         public SerializedProperty reflectionProbeCacheSize;
         public SerializedProperty reflectionCubemapSize;
         public SerializedProperty reflectionCacheCompressed;
-        public SerializedProperty planarReflectionProbeCacheSize;
-        public SerializedProperty planarReflectionCubemapSize;
+        public SerializedProperty planarReflectionAtlasSize;
         public SerializedProperty planarReflectionCacheCompressed;
         public SerializedProperty skyReflectionSize;
         public SerializedProperty skyLightingOverrideLayerMask;
@@ -25,13 +25,15 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maxAreaLightsOnScreen; 
         public SerializedProperty maxEnvLightsOnScreen;
         public SerializedProperty maxDecalsOnScreen;
+        public SerializedProperty maxPlanarReflectionOnScreen;
 
         public SerializedGlobalLightLoopSettings(SerializedProperty root)
         {
             this.root = root;
 
-            cookieSize = root.Find((GlobalLightLoopSettings s) => s.cookieSize);
-            cookieTexArraySize = root.Find((GlobalLightLoopSettings s) => s.cookieTexArraySize);
+            cookieAtlasSize = root.Find((GlobalLightLoopSettings s) => s.cookieAtlasSize);
+            cookieFormat = root.Find((GlobalLightLoopSettings s) => s.cookieFormat);
+            cookieAtlasLastValidMip = root.Find((GlobalLightLoopSettings s) => s.cookieAtlasLastValidMip);
             pointCookieSize = root.Find((GlobalLightLoopSettings s) => s.pointCookieSize);
             cubeCookieTexArraySize = root.Find((GlobalLightLoopSettings s) => s.cubeCookieTexArraySize);
 
@@ -39,8 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
             reflectionCubemapSize = root.Find((GlobalLightLoopSettings s) => s.reflectionCubemapSize);
             reflectionCacheCompressed = root.Find((GlobalLightLoopSettings s) => s.reflectionCacheCompressed);
 
-            planarReflectionProbeCacheSize = root.Find((GlobalLightLoopSettings s) => s.planarReflectionProbeCacheSize);
-            planarReflectionCubemapSize = root.Find((GlobalLightLoopSettings s) => s.planarReflectionTextureSize);
+            planarReflectionAtlasSize = root.Find((GlobalLightLoopSettings s) => s.planarReflectionAtlasSize);
             planarReflectionCacheCompressed = root.Find((GlobalLightLoopSettings s) => s.planarReflectionCacheCompressed);
 
             skyReflectionSize = root.Find((GlobalLightLoopSettings s) => s.skyReflectionSize);
@@ -52,6 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             maxAreaLightsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxAreaLightsOnScreen);
             maxEnvLightsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxEnvLightsOnScreen);
             maxDecalsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxDecalsOnScreen);
+            maxPlanarReflectionOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxPlanarReflectionOnScreen);
         }
     }
 }

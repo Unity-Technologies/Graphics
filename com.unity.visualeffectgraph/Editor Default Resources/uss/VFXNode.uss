@@ -3,12 +3,12 @@
     border-color: rgba(35,35,35,0.8);
 }
 
-#collapse-button >#icon 
+#collapse-button >#icon
 {
 
     visibility: visible;
 }
-   
+
 
 #divider.horizontal {
     height: 0.01px;
@@ -37,7 +37,8 @@
 
 .VFXNodeUI.node #node-border > #title > #title-label
 {
-    flex:1 0 auto;
+    flex:1 1 auto;
+    overflow:hidden;
 }
 
 

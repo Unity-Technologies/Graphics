@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace UnityEditor.Rendering.LookDev
 {
@@ -84,8 +86,27 @@ namespace UnityEditor.Rendering.LookDev
         [SerializeField]
         bool m_CameraSynced = true;
 
+        EnvironmentLibrary m_EnvironmentLibrary;
+
         /// <summary>The currently used Environment</summary>
-        public EnvironmentLibrary environmentLibrary { get; private set; }
+        public EnvironmentLibrary environmentLibrary
+        {
+            get
+            {
+                //check if asset deleted by user
+                if (m_EnvironmentLibrary != null && AssetDatabase.Contains(m_EnvironmentLibrary))
+                    return m_EnvironmentLibrary;
+
+                if (!String.IsNullOrEmpty(m_EnvironmentLibraryGUID))
+                {
+                    //user deleted the EnvironmentLibrary asset
+                    m_EnvironmentLibraryGUID = ""; //Empty GUID
+                    LookDev.currentEnvironmentDisplayer.Repaint();
+                }
+                return null;
+            }
+            private set => m_EnvironmentLibrary = value;
+        }
 
         /// <summary>The currently used layout</summary>
         [field: SerializeField]
@@ -116,6 +137,36 @@ namespace UnityEditor.Rendering.LookDev
             new ViewContext(),
             new ViewContext()
         };
+
+        /// <summary>
+        /// Helper class to iterate on views
+        /// </summary>
+        public struct ViewIterator : IEnumerable<ViewContext>
+        {
+            ViewContext[] m_Views;
+            internal ViewIterator(ViewContext[] views)
+                => m_Views = views;
+
+            /// <summary>
+            /// Helper function to enumerates on ViewContexts
+            /// </summary>
+            /// <returns>Enumerator on ViewContext</returns>
+            IEnumerator IEnumerable.GetEnumerator()
+                => m_Views.GetEnumerator();
+
+            /// <summary>
+            /// Helper function to enumerates on ViewContexts
+            /// </summary>
+            /// <returns>Enumerator on ViewContext</returns>
+            IEnumerator<ViewContext> IEnumerable<ViewContext>.GetEnumerator()
+                => ((IEnumerable<ViewContext>)m_Views).GetEnumerator();
+        }
+
+        /// <summary>
+        /// Helper function to get ViewIterator on ViewContexts
+        /// </summary>
+        public ViewIterator viewContexts
+            => new ViewIterator(m_Views);
 
         /// <summary>
         /// Get datas relative to a view
@@ -205,6 +256,14 @@ namespace UnityEditor.Rendering.LookDev
                 disposedValue = true;
             }
         }
+
+        internal bool HasLibraryAssetChanged(EnvironmentLibrary environmentLibrary)
+        {
+            if (environmentLibrary == null)
+                return !String.IsNullOrEmpty(m_EnvironmentLibraryGUID);
+
+            return m_EnvironmentLibraryGUID != AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(environmentLibrary));
+        }
     }
 
     /// <summary>
@@ -246,13 +305,13 @@ namespace UnityEditor.Rendering.LookDev
 
         //Environment asset, sub-asset (under a library) or cubemap
         [SerializeField]
-        string environmentGUID = ""; //Empty GUID
+        string m_EnvironmentGUID = ""; //Empty GUID
 
         /// <summary>
         /// Check if an Environment is registered for this view.
         /// The result will be accurate even if the Environment have not been reloaded yet.
         /// </summary>
-        public bool hasEnvironment => !String.IsNullOrEmpty(environmentGUID);
+        public bool hasEnvironment => !String.IsNullOrEmpty(m_EnvironmentGUID);
 
         /// <summary>The currently used Environment</summary>
         public Environment environment { get; private set; }
@@ -292,7 +351,7 @@ namespace UnityEditor.Rendering.LookDev
         /// </param>
         public void UpdateEnvironment(UnityEngine.Object environmentOrCubemapAsset)
         {
-            environmentGUID = "";
+            m_EnvironmentGUID = "";
             environment = null;
             if (environmentOrCubemapAsset == null || environmentOrCubemapAsset.Equals(null))
                 return;
@@ -304,15 +363,12 @@ namespace UnityEditor.Rendering.LookDev
             string GUID;
             long localIDInFile;
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(environmentOrCubemapAsset, out GUID, out localIDInFile);
-            environmentGUID = $"{GUID},{localIDInFile}";
+            m_EnvironmentGUID = $"{GUID},{localIDInFile}";
 
             if (environmentOrCubemapAsset is Environment)
                 environment = environmentOrCubemapAsset as Environment;
             else //Cubemap
-            {
-                environment = new Environment();
-                environment.cubemap = environmentOrCubemapAsset as Cubemap;
-            }
+                environment = Environment.GetTemporaryEnvironmentForCubemap(environmentOrCubemapAsset as Cubemap);
         }
 
         void LoadEnvironmentFromGUID()
@@ -320,7 +376,7 @@ namespace UnityEditor.Rendering.LookDev
             environment = null;
 
             GUID storedGUID;
-            string[] GUIDAndLocalIDInFile = environmentGUID.Split(new[] { ',' });
+            string[] GUIDAndLocalIDInFile = m_EnvironmentGUID.Split(new[] { ',' });
             GUID.TryParse(GUIDAndLocalIDInFile[0], out storedGUID);
             if (storedGUID.Empty())
                 return;
@@ -349,8 +405,7 @@ namespace UnityEditor.Rendering.LookDev
             else if (savedType == typeof(Cubemap))
             {
                 Cubemap cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
-                environment = new Environment();
-                environment.cubemap = cubemap;
+                environment = Environment.GetTemporaryEnvironmentForCubemap(cubemap);
             }
         }
 

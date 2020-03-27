@@ -19,11 +19,137 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ScriptableRendererFeature"/>
     /// <seealso cref="ScriptableRenderPass"/>
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderer
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderer : IDisposable
     {
-        void SetShaderTimeValues(float time, float deltaTime, float smoothDeltaTime, CommandBuffer cmd = null)
+        /// <summary>
+        /// Configures the supported features for this renderer. When creating custom renderers
+        /// for Universal Render Pipeline you can choose to opt-in or out for specific features.
+        /// </summary>
+        public class RenderingFeatures
         {
-            // We make these parameters to mirror those described in `https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
+            /// <summary>
+            /// This setting controls if the camera editor should display the camera stack category.
+            /// Renderers that don't support camera stacking will only render camera of type CameraRenderType.Base
+            /// <see cref="CameraRenderType"/>
+            /// <seealso cref="UniversalAdditionalCameraData.cameraStack"/>
+            /// </summary>
+            public bool cameraStacking { get; set; } = false;
+        }
+
+        /// <summary>
+        /// The renderer we are currently rendering with, for low-level render control only.
+        /// <c>current</c> is null outside rendering scope.
+        /// Similar to https://docs.unity3d.com/ScriptReference/Camera-current.html
+        /// </summary>
+        internal static ScriptableRenderer current = null;
+
+        /// <summary>
+        /// Set camera matrices. This method will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to camera matrices.
+        /// Additionally this will also set <c>unity_CameraProjection</c> and <c>unity_CameraProjection</c>.
+        /// If <c>setInverseMatrices</c> is set to true this function will also set <c>UNITY_MATRIX_I_V</c> and <c>UNITY_MATRIX_I_VP</c>.
+        /// This function has no effect when rendering in stereo. When in stereo rendering you cannot override camera matrices.
+        /// If you need to set general purpose view and projection matrices call <see cref="SetViewAndProjectionMatrices(CommandBuffer, Matrix4x4, Matrix4x4, bool)"/> instead.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
+        /// <param name="cameraData">CameraData containing camera matrices information.</param>
+        /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
+        public static void SetCameraMatrices(CommandBuffer cmd, ref CameraData cameraData, bool setInverseMatrices)
+        {
+            // We cannot override camera matrices in VR. They are set using context.SetupCameraProperties until XR Pure SDK lands.
+            if (cameraData.isStereoEnabled)
+                return;
+
+            Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
+            Matrix4x4 projectionMatrix = cameraData.GetProjectionMatrix();
+
+            // TODO: Investigate why SetViewAndProjectionMatrices is causing y-flip / winding order issue
+            // for now using cmd.SetViewProjecionMatrices
+            //SetViewAndProjectionMatrices(cmd, viewMatrix, cameraData.GetDeviceProjectionMatrix(), setInverseMatrices);
+            cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+
+            // unity_MatrixInvVP is not set by cmd.SetViewProjectionMatrices, we set it here
+            Matrix4x4 viewAndProjectionMatrix = projectionMatrix * viewMatrix;
+            Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
+            cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
+
+            cmd.SetGlobalMatrix(ShaderPropertyId.worldToCameraMatrix, viewMatrix);
+
+            if (setInverseMatrices)
+            {
+                Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, inverseViewMatrix);
+            }
+
+            // TODO: missing unity_CameraWorldClipPlanes[6], currently set by context.SetupCameraProperties
+        }
+
+        /// <summary>
+        /// Set camera and screen shader variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
+        /// <param name="cameraData">CameraData containing camera matrices information.</param>
+        void SetPerCameraShaderVariables(CommandBuffer cmd, ref CameraData cameraData)
+        {
+            Camera camera = cameraData.camera;
+
+            Rect pixelRect = cameraData.pixelRect;
+            float scaledCameraWidth = (float)pixelRect.width * cameraData.renderScale;
+            float scaledCameraHeight = (float)pixelRect.height * cameraData.renderScale;
+            float cameraWidth = (float)pixelRect.width;
+            float cameraHeight = (float)pixelRect.height;
+
+            float near = camera.nearClipPlane;
+            float far = camera.farClipPlane;
+            float invNear = Mathf.Approximately(near, 0.0f) ? 0.0f : 1.0f / near;
+            float invFar = Mathf.Approximately(far, 0.0f) ? 0.0f : 1.0f / far;
+            float isOrthographic = camera.orthographic ? 1.0f : 0.0f;
+
+            // From http://www.humus.name/temp/Linearize%20depth.txt
+            // But as depth component textures on OpenGL always return in 0..1 range (as in D3D), we have to use
+            // the same constants for both D3D and OpenGL here.
+            // OpenGL would be this:
+            // zc0 = (1.0 - far / near) / 2.0;
+            // zc1 = (1.0 + far / near) / 2.0;
+            // D3D is this:
+            float zc0 = 1.0f - far * invNear;
+            float zc1 = far * invNear;
+
+            Vector4 zBufferParams = new Vector4(zc0, zc1, zc0 * invFar, zc1 * invFar);
+
+            if (SystemInfo.usesReversedZBuffer)
+            {
+                zBufferParams.y += zBufferParams.x;
+                zBufferParams.x = -zBufferParams.x;
+                zBufferParams.w += zBufferParams.z;
+                zBufferParams.z = -zBufferParams.z;
+            }
+
+            // Projection flip sign logic is very deep in GfxDevice::SetInvertProjectionMatrix
+            // For now we don't deal with _ProjectionParams.x and let SetupCameraProperties handle it.
+            // We need to enable this when we remove SetupCameraProperties
+            // float projectionFlipSign = ???
+            // Vector4 projectionParams = new Vector4(projectionFlipSign, near, far, 1.0f * invFar);
+            // cmd.SetGlobalVector(ShaderPropertyId.projectionParams, projectionParams);
+
+            Vector4 orthoParams = new Vector4(camera.orthographicSize * cameraData.aspectRatio, camera.orthographicSize, 0.0f, isOrthographic);
+
+            // Camera and Screen variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
+            cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, camera.transform.position);
+            cmd.SetGlobalVector(ShaderPropertyId.screenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+            cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
+            cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
+            cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
+        }
+
+        /// <summary>
+        /// Set shader time variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
+        /// <param name="time">Time.</param>
+        /// <param name="deltaTime">Delta time.</param>
+        /// <param name="smoothDeltaTime">Smooth delta time.</param>
+        void SetShaderTimeValues(CommandBuffer cmd, float time, float deltaTime, float smoothDeltaTime)
+        {
             float timeEights = time / 8f;
             float timeFourth = time / 4f;
             float timeHalf = time / 2f;
@@ -34,23 +160,12 @@ namespace UnityEngine.Rendering.Universal
             Vector4 cosTimeVector = new Vector4(Mathf.Cos(timeEights), Mathf.Cos(timeFourth), Mathf.Cos(timeHalf), Mathf.Cos(time));
             Vector4 deltaTimeVector = new Vector4(deltaTime, 1f / deltaTime, smoothDeltaTime, 1f / smoothDeltaTime);
             Vector4 timeParametersVector = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
-
-            if (cmd == null)
-            {
-                Shader.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._Time, timeVector);
-                Shader.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
-                Shader.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
-                Shader.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
-                Shader.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._TimeParameters, timeParametersVector);
-            }
-            else
-            {
-                cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._Time, timeVector);
-                cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
-                cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
-                cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
-                cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._TimeParameters, timeParametersVector);
-            }
+    
+            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._Time, timeVector);
+            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
+            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
+            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
+            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._TimeParameters, timeParametersVector);        
         }
 
         public RenderTargetIdentifier cameraColorTarget
@@ -72,6 +187,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_ActiveRenderPassQueue;
         }
+
+        /// <summary>
+        /// Supported rendering features by this renderer.
+        /// <see cref="SupportedRenderingFeatures"/>
+        /// </summary>
+        public RenderingFeatures supportedRenderingFeatures { get; set; } = new RenderingFeatures();
 
         static class RenderPassBlock
         {
@@ -98,7 +219,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
         bool m_XRRenderTargetNeedsClear = false;
 
-        const string k_SetCameraRenderStateTag = "Clear Render State";
+        const string k_SetCameraRenderStateTag = "Set Camera Data";
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_ReleaseResourcesTag = "Release Resources";
 
@@ -143,7 +264,17 @@ namespace UnityEngine.Rendering.Universal
                 feature.Create();
                 m_RendererFeatures.Add(feature);
             }
-            Clear();
+            Clear(CameraRenderType.Base);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
         }
 
         /// <summary>
@@ -189,17 +320,10 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Called upon finishing camera rendering. You can release any resources created on setup here.
+        /// Called upon finishing rendering the camera stack. You can release any resources created by the renderer here.
         /// </summary>
         /// <param name="cmd"></param>
         public virtual void FinishRendering(CommandBuffer cmd)
-        {
-        }
-
-        /// <summary>
-        /// Called when the render pipeline gets destroyed on quit or domain reload.
-        /// </summary>
-        public virtual void Cleanup()
         {
         }
 
@@ -210,19 +334,14 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            Camera camera = renderingData.cameraData.camera;
+            ref CameraData cameraData = ref renderingData.cameraData;
+            Camera camera = cameraData.camera;
+            bool stereoEnabled = cameraData.isStereoEnabled;
+
             CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraRenderStateTag);
 
-            // Initialize Camera Render State
-            SetCameraRenderState(cmd, ref renderingData.cameraData);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-            
-            // Sort the render pass queue
-            SortStable(m_ActiveRenderPassQueue);
-
             // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
-            // For now we set the time variables per camera, as we plan to remove `SetupCamearProperties`.
+            // For now we set the time variables per camera, as we plan to remove `SetupCameraProperties`.
             // Setting the time per frame would take API changes to pass the variable to each camera render.
             // Once `SetupCameraProperties` is gone, the variable should be set higher in the call-stack.
 #if UNITY_EDITOR
@@ -232,8 +351,17 @@ namespace UnityEngine.Rendering.Universal
 #endif
             float deltaTime = Time.deltaTime;
             float smoothDeltaTime = Time.smoothDeltaTime;
-            SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
-
+            
+            // Initialize Camera Render State
+            ClearRenderingState(cmd);
+            SetPerCameraShaderVariables(cmd, ref cameraData);
+            SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            
+            // Sort the render pass queue
+            SortStable(m_ActiveRenderPassQueue);
+            
             // Upper limits for each block. Each block will contains render passes with events below the limit.
             NativeArray<RenderPassEvent> blockEventLimits = new NativeArray<RenderPassEvent>(k_RenderPassBlockCount, Allocator.Temp);
             blockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.BeforeRenderingPrepasses;
@@ -257,32 +385,31 @@ namespace UnityEngine.Rendering.Universal
 
            for (int eyeIndex = 0; eyeIndex < renderingData.cameraData.numberOfXRPasses; ++eyeIndex)
            {
-            /// Configure shader variables and other unity properties that are required for rendering.
-            /// * Setup Camera RenderTarget and Viewport
-            /// * VR Camera Setup and SINGLE_PASS_STEREO props
-            /// * Setup camera view, projection and their inverse matrices.
-            /// * Setup properties: _WorldSpaceCameraPos, _ProjectionParams, _ScreenParams, _ZBufferParams, unity_OrthoParams
-            /// * Setup camera world clip planes properties
-            /// * Setup HDR keyword
-            /// * Setup global time properties (_Time, _SinTime, _CosTime)
-            bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
+            // This is still required because of the following reasons:
+            // - XR Camera Matrices. This condition should be lifted when Pure XR SDK lands.
+            // - Camera billboard properties.
+            // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
+            // - _ProjectionParams.x logic is deep inside GfxDevice
+            // NOTE: The only reason we have to call this here and not at the beginning (before shadows)
+            // is because this need to be called for each eye in multi pass VR.
+            // The side effect is that this will override some shader properties we already setup and we will have to
+            // reset them.
             context.SetupCameraProperties(camera, stereoEnabled, eyeIndex);
+            SetCameraMatrices(cmd, ref cameraData, true);
 
-            // Override time values from when `SetupCameraProperties` were called.
-            // They might be a frame behind.
-            // We can remove this after removing `SetupCameraProperties` as the values should be per frame, and not per camera.
-            SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
+            // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
+            SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
+
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            //Triggers dispatch per camera, all global parameters should have been setup at this stage.
+            VFX.VFXManager.ProcessCameraCommand(camera, cmd);
+#endif
+
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
 
             if (stereoEnabled)
                 BeginXRRendering(context, camera, eyeIndex);
-
-#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-            var localCmd = CommandBufferPool.Get(string.Empty);
-            //Triggers dispatch per camera, all global parameters should have been setup at this stage.
-            VFX.VFXManager.ProcessCameraCommand(camera, localCmd);
-            context.ExecuteCommandBuffer(localCmd);
-            CommandBufferPool.Release(localCmd);
-#endif
 
             // In the opaque and transparent blocks the main rendering executes.
 
@@ -299,12 +426,12 @@ namespace UnityEngine.Rendering.Universal
             ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData, eyeIndex);
 
             if (stereoEnabled)
-                EndXRRendering(context, camera, renderingData, eyeIndex);
+                EndXRRendering(context, renderingData, eyeIndex);
+            }
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
-           }
-            //if (renderingData.resolveFinalTarget)
-                InternalFinishRendering(context);
+
+            InternalFinishRendering(context, cameraData.resolveFinalTarget);
             blockRanges.Dispose();
             CommandBufferPool.Release(cmd);
         }
@@ -323,8 +450,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cameraClearFlags">Camera clear flags.</param>
         /// <returns>A clear flag that tells if color and/or depth should be cleared.</returns>
-        protected static ClearFlag GetCameraClearFlag(CameraClearFlags cameraClearFlags)
+        protected static ClearFlag GetCameraClearFlag(ref CameraData cameraData)
         {
+            var cameraClearFlags = cameraData.camera.clearFlags;
+
 #if UNITY_EDITOR
             // We need public API to tell if FrameDebugger is active and enabled. In that case
             // we want to force a clear to see properly the drawcall stepping.
@@ -351,6 +480,11 @@ namespace UnityEngine.Rendering.Universal
             // RenderBufferLoadAction.DontCare in Vulkan/Metal behaves as DontCare load action
             // RenderBufferLoadAction.DontCare in GLES behaves as glInvalidateBuffer
 
+            // Overlay cameras composite on top of previous ones. They don't clear color.
+            // For overlay cameras we check if depth should be cleared on not.
+            if (cameraData.renderType == CameraRenderType.Overlay)
+                return (cameraData.clearDepth) ? ClearFlag.Depth : ClearFlag.None;
+
             // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
             if (Application.isMobilePlatform)
                 return ClearFlag.All;
@@ -362,9 +496,7 @@ namespace UnityEngine.Rendering.Universal
             return ClearFlag.All;
         }
 
-        // Initialize Camera Render State
-        // Place all per-camera rendering logic that is generic for all types of renderers here.
-        void SetCameraRenderState(CommandBuffer cmd, ref CameraData cameraData)
+        void ClearRenderingState(CommandBuffer cmd)
         {
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
@@ -374,27 +506,26 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
-
-            // Required by VolumeSystem / PostProcessing.
-            VolumeManager.instance.Update(cameraData.volumeTrigger, cameraData.volumeLayerMask);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
         }
 
-        internal void Clear()
+        internal void Clear(CameraRenderType cameraType)
         {
-            m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
-            m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
-
             m_ActiveColorAttachments[0] = BuiltinRenderTextureType.CameraTarget;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
                 m_ActiveColorAttachments[i] = 0;
 
             m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
 
-            m_InsideStereoRenderBlock = false;      
-            m_FirstTimeCameraColorTargetIsBound = true;
+            m_InsideStereoRenderBlock = false;
+
+            m_FirstTimeCameraColorTargetIsBound = cameraType == CameraRenderType.Base;
             m_FirstTimeCameraDepthTargetIsBound = true;
-            
+
             m_ActiveRenderPassQueue.Clear();
+
+            m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
+            m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
         }
 
         void ExecuteBlock(int blockIndex, NativeArray<int> blockRanges,
@@ -421,7 +552,7 @@ namespace UnityEngine.Rendering.Universal
             renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
             renderPass.eyeIndex = eyeIndex;
 
-            ClearFlag cameraClearFlag = GetCameraClearFlag(camera.clearFlags);
+            ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
             // We use a different code path for MRT since it calls a different version of API SetRenderTarget
             if (RenderingUtils.IsMRT(renderPass.colorAttachments))
@@ -547,11 +678,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
 
-                    // Overlay cameras composite on top of previous ones. They don't clear.
-                    // MTT: Commented due to not implemented yet
-                    //                if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
-                    //                    clearFlag = ClearFlag.None;
-
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
                     finalClearColor = CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
                     firstTimeStereo = true;
@@ -618,10 +744,11 @@ namespace UnityEngine.Rendering.Universal
             m_XRRenderTargetNeedsClear = true;
         }
 
-        void EndXRRendering(ScriptableRenderContext context, Camera camera, RenderingData renderingData, int eyeIndex)
+        void EndXRRendering(ScriptableRenderContext context, in RenderingData renderingData, int eyeIndex)
         {
+            Camera camera = renderingData.cameraData.camera;
             context.StopMultiEye(camera);
-            bool isLastPass = eyeIndex == renderingData.cameraData.numberOfXRPasses - 1;
+            bool isLastPass = renderingData.cameraData.resolveFinalTarget && (eyeIndex == renderingData.cameraData.numberOfXRPasses - 1);
             context.StereoEndRender(camera, eyeIndex, isLastPass);
             m_InsideStereoRenderBlock = false;
         }
@@ -634,7 +761,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ActiveDepthAttachment = depthAttachment;
 
-            RenderBufferLoadAction colorLoadAction = clearFlag != ClearFlag.None ?
+            RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 ?
@@ -726,15 +853,21 @@ namespace UnityEngine.Rendering.Universal
             blockRanges[currRangeIndex] = m_ActiveRenderPassQueue.Count;
         }
 
-        void InternalFinishRendering(ScriptableRenderContext context)
+        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_ReleaseResourcesTag);
 
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
 
-            FinishRendering(cmd);
-            Clear();
+            // Happens when rendering the last camera in the camera stack.
+            if (resolveFinalTarget)
+            {
+                for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+                    m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(cmd);
+
+                FinishRendering(cmd);
+            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
