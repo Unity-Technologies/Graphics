@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UI
 
             string IPropertyRMProvider.name => "";
 
-            VFXPropertyAttribute[] IPropertyRMProvider.attributes => null;
+            VFXPropertyAttributes IPropertyRMProvider.attributes => new VFXPropertyAttributes();
 
             object[] IPropertyRMProvider.customAttributes => null;
 

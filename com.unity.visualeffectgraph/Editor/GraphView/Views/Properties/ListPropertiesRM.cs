@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.UI
 
             string IPropertyRMProvider.name => m_Index.ToString();
 
-            VFXPropertyAttribute[] IPropertyRMProvider.attributes => null;
+            VFXPropertyAttributes IPropertyRMProvider.attributes => new VFXPropertyAttributes();
 
             object[] IPropertyRMProvider.customAttributes => null;
 
