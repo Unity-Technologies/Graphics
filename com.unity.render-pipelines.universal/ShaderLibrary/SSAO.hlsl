@@ -15,18 +15,18 @@ SAMPLER(sampler_BaseMap);
 SAMPLER(sampler_ScreenSpaceAmbientOcclusionTexture);
 
 // SSAO Settings
-int _SSAO_Samples;
-half _SSAO_Intensity;
-half _SSAO_Radius;
-float _SSAO_DownScale;
+int _SampleCount;
+half _Intensity;
+half _Radius;
+float _DownScale;
 
 #define SAMPLE_BASEMAP(uv)  SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
-#define INTENSITY _SSAO_Intensity
-#define RADIUS _SSAO_Radius
-#define DOWNSAMPLE _SSAO_DownScale
+#define INTENSITY _Intensity
+#define RADIUS _Radius
+#define DOWNSAMPLE _DownScale
 
 #if !defined(SHADER_API_GLES)
-    #define SAMPLE_COUNT _SSAO_Samples
+    #define SAMPLE_COUNT _SampleCount
 #else
     // GLES2: In many cases, dynamic looping is not supported.
     #define SAMPLE_COUNT 3
@@ -298,7 +298,11 @@ float4 SSAO(Varyings input) : SV_Target
     // Apply contrast
     ao = PositivePow(ao * INTENSITY / SAMPLE_COUNT, kContrast);
 
-    return PackAONormal(ao, norm_o);
+    #if defined(_BLUR_ENABLED)
+        return PackAONormal(ao, norm_o);
+    #else
+        return float4(1.0 - ao, 0.0, 0.0, 0.0);
+    #endif
 }
 
 // Geometry-aware separable bilateral filter
@@ -388,7 +392,7 @@ float4 FragBlur(Varyings input) : SV_Target
 
 
 // Geometry-aware bilateral filter (single pass/small kernel)
-half BlurSmall(TEXTURE2D_PARAM(tex, samp), float2 uv, float2 delta)
+half BlurSmall(TEXTURE2D_X_PARAM(tex, samp), float2 uv, float2 delta)
 {
     half4 p0 = SAMPLE_TEXTURE2D_X(tex, samp, UnityStereoTransformScreenSpaceTex(uv                             ));
     half4 p1 = SAMPLE_TEXTURE2D_X(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2(-delta.x, -delta.y)));
@@ -421,7 +425,7 @@ float4 FragComposition(Varyings input) : SV_Target
     float2 uv = input.uv;
 
     float2 delta = (GetScreenParams().zw - 1.0) / DOWNSAMPLE;
-    half ao = BlurSmall(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), uv, delta);
+    half ao = BlurSmall(TEXTURE2D_X_ARGS(_BaseMap, sampler_BaseMap), uv, delta);
 
     return EncodeAO(1.0 - ao);
 }
@@ -436,7 +440,7 @@ float4 FragComposition(Varyings input) : SV_Target
     CompositionOutput FragCompositionGBuffer(Varyings i)
     {
         float2 delta = (GetScreenParams().zw - 1.0) / DOWNSAMPLE;
-        half ao = BlurSmall(TEXTURE2D_ARGS(_ScreenSpaceAmbientOcclusionTexture, sampler_ScreenSpaceAmbientOcclusionTexture), i.uv.xy, delta);
+        half ao = BlurSmall(TEXTURE2D_X_ARGS(_ScreenSpaceAmbientOcclusionTexture, sampler_ScreenSpaceAmbientOcclusionTexture), i.uv.xy, delta);
 
         CompositionOutput o;
         o.gbuffer0 = half4(0.0, 0.0, 0.0, ao);

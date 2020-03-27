@@ -14,6 +14,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
     private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;
 
     // Constants
+    private const string BLUR_ENABLED_KEYWORD                 = "_BLUR_ENABLED";
     private const string NORMAL_RECONSTRUCTION_LOW_KEYWORD    = "_RECONSTRUCT_NORMAL_LOW";
     private const string NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD = "_RECONSTRUCT_NORMAL_MEDIUM";
     private const string NORMAL_RECONSTRUCTION_HIGH_KEYWORD   = "_RECONSTRUCT_NORMAL_HIGH";
@@ -41,6 +42,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         //public DepthSource DepthSource      = DepthSource.Depth;
         public QualityOptions NormalQuality = QualityOptions.Medium;
         public bool DownScale               = false;
+        public bool Blur                    = true;
         public float Intensity              = 0.0f;
         public float Radius                 = 0.05f;
         public int SampleCount              = 10;
@@ -102,14 +104,19 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         // Private Variables
         private Settings m_FeatureSettings;
         private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("SSAO.Execute()");
-        private RenderTargetHandle m_RenderTargetHandle;
+        private RenderTargetHandle m_SSAOTextureHandle;
         private RenderTextureDescriptor m_Descriptor;
 
         // Constants
         private const string SSAO_TEXTURE_NAME = "_ScreenSpaceAmbientOcclusionTexture";
         private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
-        private static readonly int s_BlurTexture1ID = Shader.PropertyToID("_SSAOBlurTexture1");
-        private static readonly int s_BlurTexture2ID = Shader.PropertyToID("_SSAOBlurTexture2");
+        private static readonly int s_BlurTexture1ID = Shader.PropertyToID("_SSAO_BlurTexture1");
+        private static readonly int s_BlurTexture2ID = Shader.PropertyToID("_SSAO_BlurTexture2");
+        private static readonly int s_DownScaleID = Shader.PropertyToID("_DownScale");
+        private static readonly int s_IntensityID = Shader.PropertyToID("_Intensity");
+        private static readonly int s_RadiusID = Shader.PropertyToID("_Radius");
+        private static readonly int s_SampleCountID = Shader.PropertyToID("_SampleCount");
+
 
         // Enums
         private enum ShaderPass
@@ -129,7 +136,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
 
         public ScreenSpaceAmbientOcclusionPass()
         {
-            m_RenderTargetHandle.Init(SSAO_TEXTURE_NAME);
+            m_SSAOTextureHandle.Init(SSAO_TEXTURE_NAME);
             m_FeatureSettings = new Settings();
         }
 
@@ -142,6 +149,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 //m_FeatureSettings.DepthSource = volume.DepthSource.value;
                 m_FeatureSettings.NormalQuality = volume.NormalQuality.value;
                 m_FeatureSettings.DownScale = volume.DownScale.value;
+                m_FeatureSettings.Blur = volume.Blur.value;
                 m_FeatureSettings.Intensity = volume.Intensity.value;
                 m_FeatureSettings.Radius = volume.Radius.value;
                 m_FeatureSettings.SampleCount = volume.SampleCount.value;
@@ -151,6 +159,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 //m_FeatureSettings.DepthSource = featureSettings.DepthSource;
                 m_FeatureSettings.NormalQuality = featureSettings.NormalQuality;
                 m_FeatureSettings.DownScale = featureSettings.DownScale;
+                m_FeatureSettings.Blur = featureSettings.Blur;
                 m_FeatureSettings.Intensity = featureSettings.Intensity;
                 m_FeatureSettings.Radius = featureSettings.Radius;
                 m_FeatureSettings.SampleCount = featureSettings.SampleCount;
@@ -166,26 +175,30 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             FilterMode filterMode = m_FeatureSettings.DownScale ? FilterMode.Bilinear : FilterMode.Point;
 
             // Material settings
-            material.SetFloat("_SSAO_DownScale", 1.0f / downScaleDivider);
-            material.SetFloat("_SSAO_Intensity", m_FeatureSettings.Intensity);
-            material.SetFloat("_SSAO_Radius", m_FeatureSettings.Radius);
-            material.SetInt("_SSAO_Samples", m_FeatureSettings.SampleCount);
+            material.SetFloat(s_DownScaleID, 1.0f / downScaleDivider);
+            material.SetFloat(s_IntensityID, m_FeatureSettings.Intensity);
+            material.SetFloat(s_RadiusID, m_FeatureSettings.Radius);
+            material.SetInt(s_SampleCountID, m_FeatureSettings.SampleCount);
 
-            material.DisableKeyword(NORMAL_RECONSTRUCTION_LOW_KEYWORD);
-            material.DisableKeyword(NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD);
-            material.DisableKeyword(NORMAL_RECONSTRUCTION_HIGH_KEYWORD);
+            SetKeyword(BLUR_ENABLED_KEYWORD, m_FeatureSettings.Blur);
             //if (m_FeatureSettings.DepthSource == DepthSource.Depth)
             {
                 switch (m_FeatureSettings.NormalQuality)
                 {
                     case QualityOptions.Low:
-                        material.EnableKeyword(NORMAL_RECONSTRUCTION_LOW_KEYWORD);
+                        SetKeyword(NORMAL_RECONSTRUCTION_LOW_KEYWORD, true);
+                        SetKeyword(NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD, false);
+                        SetKeyword(NORMAL_RECONSTRUCTION_HIGH_KEYWORD, false);
                         break;
                     case QualityOptions.Medium:
-                        material.EnableKeyword(NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD);
+                        SetKeyword(NORMAL_RECONSTRUCTION_LOW_KEYWORD, false);
+                        SetKeyword(NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD, true);
+                        SetKeyword(NORMAL_RECONSTRUCTION_HIGH_KEYWORD, false);
                         break;
                     case QualityOptions.High:
-                        material.EnableKeyword(NORMAL_RECONSTRUCTION_HIGH_KEYWORD);
+                        SetKeyword(NORMAL_RECONSTRUCTION_LOW_KEYWORD, false);
+                        SetKeyword(NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD, false);
+                        SetKeyword(NORMAL_RECONSTRUCTION_HIGH_KEYWORD, true);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -201,12 +214,12 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             m_Descriptor.colorFormat = RenderTextureFormat.R8;
 
             var desc = GetStereoCompatibleDescriptor(cameraTextureDescriptor.width, cameraTextureDescriptor.height, GraphicsFormat.R8G8B8A8_UNorm);
-            cmd.GetTemporaryRT(m_RenderTargetHandle.id, m_Descriptor, FilterMode.Point);
+            cmd.GetTemporaryRT(m_SSAOTextureHandle.id, m_Descriptor, FilterMode.Point);
             cmd.GetTemporaryRT(s_BlurTexture1ID, desc, filterMode);
             cmd.GetTemporaryRT(s_BlurTexture2ID, desc, filterMode);
 
             // Configure targets and clear color
-            ConfigureTarget(m_RenderTargetHandle.id);
+            ConfigureTarget(m_SSAOTextureHandle.id);
             ConfigureClear(ClearFlag.None, Color.white);
         }
 
@@ -232,7 +245,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 //     case DepthSource.Depth:
                         ExecuteSSAO(
                             cmd,
-                            ref renderingData,
+                            m_FeatureSettings.Blur,
                             (int) ShaderPass.OcclusionDepth,
                             (int) ShaderPass.HorizontalBlurDepth,
                             (int) ShaderPass.VerticalBlurDepth,
@@ -242,7 +255,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 //     case DepthSource.DepthNormals:
                 //         ExecuteSSAO(
                 //             cmd,
-                //             ref renderingData,
+                //             m_FeatureSettings.Blur,
                 //             (int) ShaderPass.OcclusionDepthNormals,
                 //             (int) ShaderPass.HorizontalBlurDepthNormals,
                 //             (int) ShaderPass.VerticalBlurDepthNormals,
@@ -256,14 +269,21 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             CommandBufferPool.Release(cmd);
         }
 
-        private void ExecuteSSAO(CommandBuffer cmd, ref RenderingData renderingData, int occlusionPass, int horizonalBlurPass, int verticalPass, int finalPass)
+        private void ExecuteSSAO(CommandBuffer cmd, bool shouldBlur, int occlusionPass, int horizontalBlurPass, int verticalPass, int finalPass)
         {
+            if (!shouldBlur)
+            {
+                // Occlusion pass
+                cmd.Blit(s_BlurTexture1ID, m_SSAOTextureHandle.id, material, occlusionPass);
+                return;
+            }
+
             // Occlusion pass
             cmd.Blit(s_BlurTexture1ID, s_BlurTexture1ID, material, occlusionPass);
 
             // Horizontal Blur
             cmd.SetGlobalTexture(s_BaseMapID, s_BlurTexture1ID);
-            cmd.Blit(s_BlurTexture1ID, s_BlurTexture2ID, material, horizonalBlurPass);
+            cmd.Blit(s_BlurTexture1ID, s_BlurTexture2ID, material, horizontalBlurPass);
 
             // Vertical Blur
             cmd.SetGlobalTexture(s_BaseMapID, s_BlurTexture2ID);
@@ -271,7 +291,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
 
             // Final Composition
             cmd.SetGlobalTexture(s_BaseMapID, s_BlurTexture1ID);
-            cmd.Blit(s_BlurTexture1ID, m_RenderTargetHandle.id, material, finalPass);
+            cmd.Blit(s_BlurTexture1ID, m_SSAOTextureHandle.id, material, finalPass);
         }
 
         /// <inheritdoc/>
@@ -283,9 +303,21 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             }
 
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceAmbientOcclusion, false);
-            cmd.ReleaseTemporaryRT(m_RenderTargetHandle.id);
+            cmd.ReleaseTemporaryRT(m_SSAOTextureHandle.id);
             cmd.ReleaseTemporaryRT(s_BlurTexture1ID);
             cmd.ReleaseTemporaryRT(s_BlurTexture2ID);
+        }
+
+        private void SetKeyword(string keyword, bool state)
+        {
+            if (state)
+            {
+                material.EnableKeyword(keyword);
+            }
+            else
+            {
+                material.DisableKeyword(keyword);
+            }
         }
 
         RenderTextureDescriptor GetStereoCompatibleDescriptor(int width, int height, GraphicsFormat format, int depthBufferBits = 0)
