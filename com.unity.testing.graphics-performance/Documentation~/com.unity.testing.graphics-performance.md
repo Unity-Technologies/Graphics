@@ -61,6 +61,8 @@ Otherwise you can add the assembly definition files from the UI in Unity, you'll
 And for Editor, all above plus
 - Unity.GraphicTests.Performance.Editor
 
+Note that Core Runtime library is not required here, We added it for convenience and also because the example below wouldn't compile without it. 
+
 ### Setting up the Test Assets
 
 Nothing complicated here, start by creating both the **Performance Test Description** and **Static Analysis Tests** assets which are in the **Assets > Create > Testing** menu. Note that they need to be created inside a Resources folder so they can be loaded at runtime (thus the Resources folder in the hierarchy above).
