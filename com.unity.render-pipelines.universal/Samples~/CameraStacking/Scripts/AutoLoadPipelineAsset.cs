@@ -2,7 +2,7 @@
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace RendererFeatures
+namespace CameraStacking
 {
     [ExecuteAlways]
     public class AutoLoadPipelineAsset : MonoBehaviour

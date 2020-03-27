@@ -16,5 +16,17 @@
     "mobile",
     "render",
     "pipeline"
+  ],
+  "samples": [
+    {
+      "displayName": "CameraStacking",
+      "description": "Collection of samples showing how to use Camera Stacking",
+      "path": "Samples~/CameraStacking"
+    },
+    {
+      "displayName": "RendererFeatures",
+      "description": "Collection of samples showing how to use Renderer Features",
+      "path": "Samples~/RendererFeatures"
+    }
   ]
 }
