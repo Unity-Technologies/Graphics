@@ -934,8 +934,16 @@ namespace UnityEditor.ShaderGraph
             var feedbackVariablesPerPermutation = PooledList<PooledList<string>>.Get();
             try
             {
-                for ( int i=0;i< shaderKeywords.permutations.Count; i++)
+                if (shaderKeywords.permutations.Count >= 1)
                 {
+                    for (int i = 0; i < shaderKeywords.permutations.Count; i++)
+                    {
+                        feedbackVariablesPerPermutation.Add(PooledList<string>.Get());
+                    }
+                }
+                else
+                {
+                    // Create a dummy single permutation
                     feedbackVariablesPerPermutation.Add(PooledList<string>.Get());
                 }
 
@@ -945,20 +953,40 @@ namespace UnityEditor.ShaderGraph
                     if (node is SampleTextureStackNode stNode)
                     {
                         if (stNode.noFeedback) continue;
-                        foreach (int perm in keywordPermutationsPerNode[index])
+                        if (keywordPermutationsPerNode[index] == null)
                         {
-                            feedbackVariablesPerPermutation[perm].Add(stNode.GetFeedbackVariableName());
+                            Debug.Assert(shaderKeywords.permutations.Count == 1);//If there is more than one keywordPermutationsPerNode should be filled in
+                            feedbackVariablesPerPermutation[0].Add(stNode.GetFeedbackVariableName());
+                        }
+                        else
+                        {
+                            foreach (int perm in keywordPermutationsPerNode[index])
+                            {
+                                feedbackVariablesPerPermutation[perm].Add(stNode.GetFeedbackVariableName());
+                            }
                         }
                     }
 
                     if (node is SubGraphNode sgNode)
                     {
                         if (sgNode.asset == null) continue;
-                        foreach (var feedbackSlot in sgNode.asset.vtFeedbackVariables)
+                        if (keywordPermutationsPerNode[index] == null)
                         {
-                            foreach (int perm in keywordPermutationsPerNode[index])
+                            Debug.Assert(shaderKeywords.permutations.Count == 1);//If there is more than one keywordPermutationsPerNode should be filled in
+                            foreach (var feedbackSlot in sgNode.asset.vtFeedbackVariables)
                             {
-                                feedbackVariablesPerPermutation[perm].Add(node.GetVariableNameForNode() + "_" + feedbackSlot);
+
+                                feedbackVariablesPerPermutation[0].Add(node.GetVariableNameForNode() + "_" + feedbackSlot);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var feedbackSlot in sgNode.asset.vtFeedbackVariables)
+                            {
+                                foreach (int perm in keywordPermutationsPerNode[index])
+                                {
+                                    feedbackVariablesPerPermutation[perm].Add(node.GetVariableNameForNode() + "_" + feedbackSlot);
+                                }
                             }
                         }
                     }
@@ -969,7 +997,11 @@ namespace UnityEditor.ShaderGraph
                 index = 0;
                 foreach (var feedbackVariables in feedbackVariablesPerPermutation)
                 {
-                    surfaceDescriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationConditional(index));
+                    // If it's a dummy single always-on permutation don't put an ifdef around the code
+                    if (shaderKeywords.permutations.Count >= 1)
+                    {
+                        surfaceDescriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationConditional(index));
+                    }
 
                     if (feedbackVariables.Count == 0)
                     {
@@ -999,7 +1031,10 @@ namespace UnityEditor.ShaderGraph
                         surfaceDescriptionFunction.AppendLine(feedBackCode);
                     }
 
-                    surfaceDescriptionFunction.AppendLine("#endif");
+                    if (shaderKeywords.permutations.Count >= 1)
+                    {
+                        surfaceDescriptionFunction.AppendLine("#endif");
+                    }
 
                     index++;
                 }
