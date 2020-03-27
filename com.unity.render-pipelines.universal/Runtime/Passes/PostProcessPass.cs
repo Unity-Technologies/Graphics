@@ -114,6 +114,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ResetHistory = true;
         }
 
+        public void Cleanup() => m_Materials.Cleanup();
+
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
         {
             m_Descriptor = baseDescriptor;
@@ -213,6 +215,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             desc.height = height;
             desc.graphicsFormat = format;
             return desc;
+        }
+
+        bool RequireSRGBConversionBlitToBackBuffer(CameraData cameraData)
+        {
+            bool requiresSRGBConversion = Display.main.requiresSrgbBlitToBackbuffer;
+            // For stereo case, eye texture always want color data in sRGB space.
+            // If eye texture color format is linear, we do explicit sRGB convertion
+#if ENABLE_VR && ENABLE_VR_MODULE
+            if (cameraData.isStereoEnabled)
+                requiresSRGBConversion = !XRGraphics.eyeTextureDesc.sRGB;
+#endif
+            return requiresSRGBConversion;
         }
 
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
@@ -335,7 +349,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 SetupGrain(cameraData, m_Materials.uber);
                 SetupDithering(cameraData, m_Materials.uber);
 
-                if (Display.main.requiresSrgbBlitToBackbuffer && m_EnableSRGBConversionIfNeeded)
+                if (RequireSRGBConversionBlitToBackBuffer(cameraData) && m_EnableSRGBConversionIfNeeded)
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
                 // Done with Uber, blit it
@@ -1048,7 +1062,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             SetupGrain(cameraData, material);
             SetupDithering(cameraData, material);
 
-            if (Display.main.requiresSrgbBlitToBackbuffer && m_EnableSRGBConversionIfNeeded)
+            if (RequireSRGBConversionBlitToBackBuffer(cameraData) && m_EnableSRGBConversionIfNeeded)
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
@@ -1115,6 +1129,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 return CoreUtils.CreateEngineMaterial(shader);
+            }
+
+            internal void Cleanup()
+            {
+                CoreUtils.Destroy(stopNaN);
+                CoreUtils.Destroy(subpixelMorphologicalAntialiasing);
+                CoreUtils.Destroy(gaussianDepthOfField);
+                CoreUtils.Destroy(bokehDepthOfField);
+                CoreUtils.Destroy(cameraMotionBlur);
+                CoreUtils.Destroy(paniniProjection);
+                CoreUtils.Destroy(bloom);
+                CoreUtils.Destroy(uber);
+                CoreUtils.Destroy(finalPass);
             }
         }
 

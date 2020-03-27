@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
+    [HelpURL(Documentation.baseURL + Documentation.releaseVersion + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     partial class RenderPipelineResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
@@ -337,6 +337,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             [Reload("Runtime/RenderPipelineResources/defaultDiffusionProfile.asset")]
             public DiffusionProfileSettings defaultDiffusionProfile;
+            
+            //Area Light Emissive Meshes
+            [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
+            public Mesh emissiveCylinderMesh;
+            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.FBX")]
+            public Mesh emissiveQuadMesh;
         }
 
         public ShaderResources shaders;

@@ -30,6 +30,16 @@ namespace UnityEditor
             }
         }
 
+        static void CheckVFXManagerOnce()
+        { 
+            VFXManagerEditor.CheckVFXManager();
+            EditorApplication.update-= CheckVFXManagerOnce;
+        }
+
+        static VisualEffectAssetEditorUtility()
+        {
+            EditorApplication.update += CheckVFXManagerOnce;
+        }
 
         public const string templateAssetName = "Simple Particle System.vfx";
         public const string templateBlockSubgraphAssetName = "Default Subgraph Block.vfxblock";

@@ -6,6 +6,7 @@ using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -24,6 +25,22 @@ namespace UnityEditor.ShaderGraph
         public override PreviewMode previewMode
         {
             get { return PreviewMode.Preview3D; }
+        }
+
+        [SerializeField]
+        bool m_DOTSInstancing = false;
+
+        public ToggleData dotsInstancing
+        {
+            get { return new ToggleData(m_DOTSInstancing); }
+            set
+            {
+                if (m_DOTSInstancing == value.isOn)
+                    return;
+
+                m_DOTSInstancing = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
         }
 
         public abstract string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null);
@@ -121,6 +138,18 @@ namespace UnityEditor.ShaderGraph
                 {
                     if (mode != GenerationMode.Preview || subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
                         finalShader.AppendLines(subShader.GetSubshader(this, mode, sourceAssetDependencyPaths));
+                }
+
+                // Either grab the pipeline default for the active master node or the user override
+                ICanChangeShaderGUI canChangeShaderGui = this as ICanChangeShaderGUI;
+                if (canChangeShaderGui != null && canChangeShaderGui.OverrideEnabled)
+                {
+                    string customEditor = GenerationUtils.FinalCustomEditorString(canChangeShaderGui);
+
+                    if (customEditor != null)
+                    {
+                        finalShader.AppendLine("CustomEditor \"" + customEditor + "\"");
+                    }
                 }
 
                 finalShader.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");

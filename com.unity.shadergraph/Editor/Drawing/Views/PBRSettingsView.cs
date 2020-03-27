@@ -10,12 +10,12 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class PBRSettingsView : VisualElement
+    class PBRSettingsView : MasterNodeSettingsView
     {
         PBRMasterNode m_Node;
-        public PBRSettingsView(PBRMasterNode node)
+        public PBRSettingsView(AbstractMaterialNode node) : base(node)
         {
-            m_Node = node;
+            m_Node = node as PBRMasterNode;
 
             PropertySheet ps = new PropertySheet();
 
@@ -65,6 +65,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeWorkFlow(ChangeEvent<Enum> evt)
@@ -96,7 +97,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ChangeSpaceOfNormalDropOffMode(ChangeEvent<Enum> evt)
         {
-              if (Equals(m_Node.normalDropOffSpace, evt.newValue))
+            if (Equals(m_Node.normalDropOffSpace, evt.newValue))
                 return;
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Normal Space Drop-Off Mode Change");

@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace UnityEngine.Rendering.ShaderGraph
 {
     //Need to live in Runtime as Attribute of documentation is on Runtime classes \o/
-    class Documentation : DocumentationInfo
+    class Documentation
     {
         //This must be used like
         //[HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "some-page" + Documentation.endURL)]
@@ -13,6 +13,8 @@ namespace UnityEngine.Rendering.ShaderGraph
         internal const string baseURL = "https://docs.unity3d.com/Packages/com.unity.shadergraph@";
         internal const string subURL = "/manual/";
         internal const string endURL = ".html";
+
+        internal const string version = "7.4";
 
         internal static string GetPageLink(string pageName)
         {

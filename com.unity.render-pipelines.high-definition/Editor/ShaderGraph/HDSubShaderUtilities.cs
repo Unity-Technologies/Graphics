@@ -567,7 +567,7 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRPShaderStructs.VertexDescriptionInputs.dependencies
         };
 
-        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive)
+        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive, bool isLit = true, bool instancingFlag = true)
         {
             string templatePath = Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor/Material");
             string templateLocation = Path.Combine(Path.Combine(Path.Combine(templatePath, pass.MaterialName), "ShaderGraph"), pass.TemplateName);
@@ -751,17 +751,6 @@ namespace UnityEditor.Rendering.HighDefinition
             HDSubShaderUtilities.BuildRenderStatesFromPass(pass, blendCode, cullCode, zTestCode, zWriteCode, zClipCode, stencilCode, colorMaskCode);
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields.baseInstance);
-            int instancedCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
-
-            if (instancedCount > 0)
-            {
-                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                dotsInstancingCode.AppendLine("// Dots Instancing vars");
-                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                dotsInstancingCode.AppendLine("");
-
-                dotsInstancingCode.Append(sharedProperties.GetDotsInstancingPropertiesDeclaration(mode));
-            }
 
             // Get keyword declarations
             sharedKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
@@ -791,8 +780,38 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.VertexDescriptionInputs), activeFields, vertexGraphInputs, debugOutput);
 
             ShaderGenerator instancingOptions = new ShaderGenerator();
+
+            if (instancingFlag)
             {
+                int instancedCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
+                bool isDotsInstancing = masterNode is MasterNode node && node.dotsInstancing.isOn;
+
                 instancingOptions.AddShaderChunk("#pragma multi_compile_instancing", true);
+
+                if (isDotsInstancing)
+                {
+                    instancingOptions.AddShaderChunk("#define UNITY_DOTS_SHADER");
+                }
+
+                if (isLit)
+                {
+                    if (isDotsInstancing)
+                    {
+                        instancingOptions.AddShaderChunk("#pragma instancing_options nolightprobe");
+                        instancingOptions.AddShaderChunk("#pragma instancing_options nolodfade");
+                    }
+                    else
+                    {
+                        instancingOptions.AddShaderChunk("#pragma instancing_options renderinglayer");
+                    }
+                }
+
+                if (pass.ExtraInstancingOptions != null)
+                {
+                    foreach (var instancingOption in pass.ExtraInstancingOptions)
+                        instancingOptions.AddShaderChunk(instancingOption);
+                }
+
                 if (instancedCount > 0)
                 {
                     instancingOptions.AddShaderChunk("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
@@ -801,18 +820,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     instancingOptions.AddShaderChunk("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
                     instancingOptions.AddShaderChunk("#define UNITY_DOTS_INSTANCING_ENABLED");
                     instancingOptions.AddShaderChunk("#endif");
-                    instancingOptions.AddShaderChunk("#pragma instancing_options nolightprobe");
-                    instancingOptions.AddShaderChunk("#pragma instancing_options nolodfade");
-                }
-                else
-                {
-                    if (pass.ExtraInstancingOptions != null)
-                    {
-                        foreach (var instancingOption in pass.ExtraInstancingOptions)
-                            instancingOptions.AddShaderChunk(instancingOption);
-                    }
+
+                    dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
+                    dotsInstancingCode.AppendLine("// Dots Instancing vars");
+                    dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
+                    dotsInstancingCode.AppendLine("");
+
+                    dotsInstancingCode.Append(sharedProperties.GetDotsInstancingPropertiesDeclaration(mode));
                 }
             }
+
             ShaderGenerator shaderStages = new ShaderGenerator();
             {
                 if (pass.ShaderStages != null)
@@ -1013,6 +1030,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Comment set of define for Forward Opaque pass in HDRP
         public static List<string> s_ExtraDefinesForwardOpaque = new List<string>()
         {
+            "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
             "#pragma multi_compile _ DEBUG_DISPLAY",
             "#pragma multi_compile _ LIGHTMAP_ON",
             "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
@@ -1025,6 +1043,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static List<string> s_ExtraDefinesForwardTransparent = new List<string>()
         {
+            "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
             "#pragma multi_compile _ DEBUG_DISPLAY",
             "#pragma multi_compile _ LIGHTMAP_ON",
             "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
@@ -1038,6 +1057,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static List<string> s_ExtraDefinesForwardMaterialDepthOrMotion = new List<string>()
         {
+            "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
             "#define WRITE_NORMAL_BUFFER",
             "#pragma multi_compile _ WRITE_MSAA_DEPTH",
             HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
@@ -1045,6 +1065,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static List<string> s_ExtraDefinesDepthOrMotion = new List<string>()
         {
+            "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
             "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
             "#pragma multi_compile _ WRITE_MSAA_DEPTH",
             HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
@@ -1227,8 +1248,8 @@ namespace UnityEditor.Rendering.HighDefinition
             );
 
             // All these properties values will be patched with the material keyword update
-            collector.AddIntProperty("_StencilRef", stencilRef); 
-            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask); 
+            collector.AddIntProperty("_StencilRef", stencilRef);
+            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask);
             // Depth prepass
             collector.AddIntProperty("_StencilRefDepth", stencilRefDepth); // Nothing
             collector.AddIntProperty("_StencilWriteMaskDepth", stencilWriteMaskDepth); // StencilUsage.TraceReflectionRay
@@ -1239,8 +1260,8 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors);
             collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors);
             // Gbuffer
-            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); 
-            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); 
+            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer);
+            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer);
             collector.AddIntProperty("_ZTestGBuffer", 4);
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
@@ -1352,7 +1373,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque, bool needAfterPostProcess)
         {
             // We can't use RenderPipelineManager.currentPipeline here because this is called before HDRP is created by SG window
-            bool supportsRayTracing = HDRenderPipeline.GatherRayTracingSupport(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings);
+            bool supportsRayTracing = HDRenderPipeline.currentAsset && HDRenderPipeline.GatherRayTracingSupport(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings);
             var result = new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>();
             if (opaque)
             {

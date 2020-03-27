@@ -16,6 +16,7 @@ using Data.Util;
 using UnityEditor.ProjectWindowCallback;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
@@ -348,5 +349,6 @@ namespace UnityEditor.ShaderGraph
                 p.Start();
             }
         }
+
     }
 }

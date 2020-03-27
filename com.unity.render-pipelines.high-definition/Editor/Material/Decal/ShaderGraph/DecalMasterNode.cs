@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Serializable]
     [Title("Master", "Decal (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DecalMasterNode")]
-    class DecalMasterNode : MasterNode<IDecalSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class DecalMasterNode : MaterialMasterNode<IDecalSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string EmissionSlotName = "Emission";
         public const string EmissionDisplaySlotName = "Emission";
         public const int EmissionSlotId = 9;
-        
+
         public const string VertexNormalSlotName = "Vertex Normal";
          public const int VertexNormalSlotID = 10;
 
@@ -134,7 +134,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 AddSlot(new TangentMaterialSlot(VertexTangentSlotID, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(VertexTangentSlotID);
             }
-            
+
             // Albedo
             if (MaterialTypeUsesSlotMask(SlotMask.Albedo))
             {

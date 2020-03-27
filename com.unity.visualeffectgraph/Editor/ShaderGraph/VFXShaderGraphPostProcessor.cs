@@ -12,82 +12,102 @@ namespace UnityEditor.VFX
 {
     class VFXShaderGraphPostProcessor : AssetPostprocessor
     {
+        //If a given vfx has more than one shadergraph, during import, reimporting the vfx for the first imported shadergraph
+        // might cause the links to the second imported shadergraph to be lost.
+        [InitializeOnLoadMethod]
+        public static void DisableDependentDuringFirstImport()
+        {
+            disableImportDependentVFX = true;
+
+            EditorApplication.update += ReenableDependent;
+        }
+
+        static void ReenableDependent()
+        {
+            disableImportDependentVFX = false;
+
+            EditorApplication.update -= ReenableDependent;
+        }
+
+        public static bool disableImportDependentVFX { get; set; }
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             Profiler.BeginSample("VFXShaderGraphPostProcessor");
 
             try
-            { 
-                var modifiedShaderGraphs = new HashSet<ShaderGraphVfxAsset>();
+            {
 
-                foreach (var asset in importedAssets.Concat(deletedAssets))
+                if (!disableImportDependentVFX)
                 {
-                    if (asset.EndsWith(".shadergraph", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        var ass = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(asset);
-                        if( ass != null)
-                            modifiedShaderGraphs.Add(ass);
-                    }             
-                }
+                    var modifiedShaderGraphs = new HashSet<ShaderGraphVfxAsset>();
 
-                if (modifiedShaderGraphs.Count > 0)
-                {
-                    string[] guids = AssetDatabase.FindAssets("t:VisualEffectAsset");
-                    var assetsToReimport = new HashSet<VFXGraph>();
-
-                    foreach (var vfxPath in guids.Select(t => AssetDatabase.GUIDToAssetPath(t)))
+                    foreach (var asset in importedAssets.Concat(deletedAssets))
                     {
-                        var resource = VisualEffectResource.GetResourceAtPath(vfxPath);
-                        if (resource != null)
+                        if (asset.EndsWith(".shadergraph", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            VFXGraph graph = resource.GetOrCreateGraph();
+                            var ass = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(asset);
+                            if (ass != null)
+                                modifiedShaderGraphs.Add(ass);
+                        }
+                    }
 
-                            if (graph != null)
+                    if (modifiedShaderGraphs.Count > 0)
+                    {
+                        string[] guids = AssetDatabase.FindAssets("t:VisualEffectAsset");
+                        var assetsToReimport = new HashSet<VFXGraph>();
+
+                        foreach (var vfxPath in guids.Select(t => AssetDatabase.GUIDToAssetPath(t)))
+                        {
+                            var resource = VisualEffectResource.GetResourceAtPath(vfxPath);
+                            if (resource != null)
                             {
-                                if (graph.children.OfType<VFXShaderGraphParticleOutput>().Any(t => modifiedShaderGraphs.Contains(t.shaderGraph)))
-                                    assetsToReimport.Add(graph);
+                                VFXGraph graph = resource.GetOrCreateGraph();
+
+                                if (graph != null)
+                                {
+                                    if (graph.children.OfType<VFXShaderGraphParticleOutput>().Any(t => modifiedShaderGraphs.Contains(t.shaderGraph)))
+                                        assetsToReimport.Add(graph);
+                                }
                             }
                         }
-                    }
 
-                    foreach (var graph in assetsToReimport)
-                    {
-                        foreach (var sgOutput in graph.children.OfType<VFXShaderGraphParticleOutput>().Where(t => modifiedShaderGraphs.Contains(t.shaderGraph)))
+                        foreach (var graph in assetsToReimport)
                         {
-                            int instanceID = sgOutput.shaderGraph.GetInstanceID();
-
-                            // This is needed because the imported invalidate the object
-                            sgOutput.shaderGraph = EditorUtility.InstanceIDToObject(instanceID) as ShaderGraphVfxAsset;
-
-                            sgOutput.ResyncSlots(true);
-                        }
-
-                        graph.SetExpressionGraphDirty();
-                        graph.RecompileIfNeeded();
-                    }
-                }
-
-                // Update currently edited VFX mesh outputs if needed
-                var currentGraph = VFXViewWindow.currentWindow?.graphView?.controller?.graph;
-                if (currentGraph)
-                {
-                    var meshOutputs = currentGraph.children.OfType<VFXStaticMeshOutput>();
-                    if (meshOutputs.Any())
-                    {
-                        foreach (var asset in importedAssets.Concat(deletedAssets))
-                        {
-                            if (asset.EndsWith(".shadergraph", StringComparison.InvariantCultureIgnoreCase) || asset.EndsWith(".shader", StringComparison.InvariantCultureIgnoreCase))
+                            foreach (var sgOutput in graph.children.OfType<VFXShaderGraphParticleOutput>().Where(t => modifiedShaderGraphs.Contains(t.shaderGraph)))
                             {
-                                var shader = AssetDatabase.LoadAssetAtPath<Shader>(asset);
-                                foreach (var output in meshOutputs)
+                                int instanceID = sgOutput.shaderGraph.GetInstanceID();
+
+                                // This is needed because the imported invalidate the object
+                                sgOutput.shaderGraph = EditorUtility.InstanceIDToObject(instanceID) as ShaderGraphVfxAsset;
+
+                                sgOutput.ResyncSlots(true);
+                            }
+
+                            graph.SetExpressionGraphDirty();
+                            graph.RecompileIfNeeded();
+                        }
+                    }
+
+                    // Update currently edited VFX mesh outputs if needed
+                    var currentGraph = VFXViewWindow.currentWindow?.graphView?.controller?.graph;
+                    if (currentGraph)
+                    {
+                        var meshOutputs = currentGraph.children.OfType<VFXStaticMeshOutput>();
+                        if (meshOutputs.Any())
+                        {
+                            foreach (var asset in importedAssets.Concat(deletedAssets))
+                            {
+                                if (asset.EndsWith(".shadergraph", StringComparison.InvariantCultureIgnoreCase) || asset.EndsWith(".shader", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    output.RefreshShader(shader);
+                                    var shader = AssetDatabase.LoadAssetAtPath<Shader>(asset);
+                                    foreach (var output in meshOutputs)
+                                    {
+                                        output.RefreshShader(shader);
+                                    }
                                 }
                             }
                         }
                     }
-
-                    
                 }
             }
             finally
