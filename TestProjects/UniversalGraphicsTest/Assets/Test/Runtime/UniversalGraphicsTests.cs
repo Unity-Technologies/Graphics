@@ -6,6 +6,7 @@ using UnityEngine.TestTools;
 using UnityEngine.XR;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering.Universal;
 
 public class UniversalGraphicsTests
 {
@@ -30,6 +31,19 @@ public class UniversalGraphicsTests
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
+
+        if (XRSystem.testModeEnabled)
+        {
+            if (settings.xrCompatible)
+            {
+                XRSystem.automatedTestRunning = true;
+            }
+            else
+            {
+                // Skip incompatible XR tests
+                yield break;
+            }
+        }
 
         Scene scene = SceneManager.GetActiveScene();
 
@@ -102,6 +116,12 @@ public class UniversalGraphicsTests
     public void DumpImagesInEditor()
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
+    }
+
+    [TearDown]
+    public void ResetSystemState()
+    {
+        XRSystem.automatedTestRunning = false;
     }
 #endif
 }

@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_VR_MODULE
             isCompatWithXRDimension &= (camera.targetTexture ? camera.targetTexture.dimension == UnityEngine.XR.XRSettings.deviceEyeTextureDimension : true);
 #endif
-            return isGameCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both) && isCompatWithXRDimension;
+            return isGameCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both) && (isCompatWithXRDimension || XRSystem.automatedTestRunning);
         }
 
         /// <summary>

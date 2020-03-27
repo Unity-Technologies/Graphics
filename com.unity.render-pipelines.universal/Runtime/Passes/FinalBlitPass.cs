@@ -55,23 +55,23 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
-            if (requiresSRGBConversion)
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
-            else
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion, requiresSRGBConversion);
 
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
 
             if (cameraData.isStereoEnabled && cameraData.xrPass.enabled)
             {
                 RenderTargetIdentifier blitTarget;
-                if (!cameraData.xrPass.hasMultiXrView)
+
+                bool xrTestActive = XRSystem.automatedTestRunning && cameraData.camera.targetTexture;
+                if (xrTestActive)
                 {
-                    blitTarget = new RenderTargetIdentifier(cameraData.xrPass.renderTarget, 0, CubemapFace.Unknown, cameraData.xrPass.GetTextureArraySlice());
+                    blitTarget = new RenderTargetIdentifier(cameraData.camera.targetTexture);
                 }
                 else
                 {
-                    blitTarget = new RenderTargetIdentifier(cameraData.xrPass.renderTarget, 0, CubemapFace.Unknown, -1);
+                    int depthSlice = cameraData.xrPass.hasMultiXrView ? -1 : cameraData.xrPass.GetTextureArraySlice(0); // Should be multipass eye id here?
+                    blitTarget = new RenderTargetIdentifier(cameraData.xrPass.renderTarget, 0, CubemapFace.Unknown, depthSlice);
                 }
 
                 SetRenderTarget(
@@ -85,6 +85,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetViewport(cameraData.xrPass.GetViewport());
 
+                CoreUtils.SetKeyword(cmd, "BLIT_SINGLE_SLICE", xrTestActive);
+                if (xrTestActive)
+                    cmd.SetGlobalInt("_BlitTexArraySlice", 1);
+
                 // We f-flip if
                 // 1) we are bliting from render texture to back buffer(UV starts at bottom) and
                 // 2) renderTexture starts UV at top
@@ -95,6 +99,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderPropertyId.blitScaleBiasRt, scaleBiasRT);
 
                 cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
+
+                if (xrTestActive)
+                    cmd.DisableShaderKeyword("BLIT_SINGLE_SLICE");
             }
             else if (cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
             {

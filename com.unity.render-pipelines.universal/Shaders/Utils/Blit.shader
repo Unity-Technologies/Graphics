@@ -21,6 +21,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             #pragma fragment Fragment
             #pragma multi_compile _ _LINEAR_TO_SRGB_CONVERSION
             #pragma multi_compile _ _DRAW_PROCEDURE_QUAD_BLIT
+            #pragma multi_compile _ BLIT_SINGLE_SLICE
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #ifdef _LINEAR_TO_SRGB_CONVERSION
@@ -35,6 +36,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             };
             uniform float4 _BlitScaleBias;
             uniform float4 _BlitScaleBiasRt;
+            uniform int _BlitTexArraySlice;
 #else
             struct Attributes
             {
@@ -74,7 +76,13 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             half4 Fragment(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                
+
+#if defined(BLIT_SINGLE_SLICE)
+                half4 col = SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTex, sampler_BlitTex, input.uv, _BlitTexArraySlice, 0);
+#else
                 half4 col = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_BlitTex, input.uv);
+#endif
 
                 #ifdef _LINEAR_TO_SRGB_CONVERSION
                 col = LinearToSRGB(col);
