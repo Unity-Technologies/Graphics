@@ -61,10 +61,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { typeof(UnlitMasterNode), typeof(UnlitSubTarget) },
             { typeof(HDLitMasterNode), typeof(HDLitSubTarget) },
             { typeof(HDUnlitMasterNode), typeof(HDUnlitSubTarget) },
+            { typeof(DecalMasterNode), typeof(HDDecalSubTarget) },
             { typeof(EyeMasterNode), typeof(HDEyeSubTarget) },
             { typeof(FabricMasterNode), typeof(HDFabricSubTarget) },
             { typeof(HairMasterNode), typeof(HDHairSubTarget) },
-            { typeof(DecalMasterNode), typeof(HDDecalSubTarget) },
+            { typeof(StackLitMasterNode), typeof(HDStackLitSubTarget) },
         };
     }
 
