@@ -127,6 +127,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 customSampler = null;
                 textureReadList.Clear();
                 textureWriteList.Clear();
+                bufferReadList.Clear();
+                bufferWriteList.Clear();
                 usedRendererListList.Clear();
                 enableAsyncCompute = false;
 
