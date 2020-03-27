@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z.
-        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture. 
+        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
         /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
         /// </summary>
         /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
@@ -170,6 +170,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int screenParams = Shader.PropertyToID("_ScreenParams");
+        public static readonly int blitScaleBias     = Shader.PropertyToID("_BlitScaleBias");
+
         public static readonly int projectionParams = Shader.PropertyToID("_ProjectionParams");
         public static readonly int zBufferParams = Shader.PropertyToID("_ZBufferParams");
         public static readonly int orthoParams = Shader.PropertyToID("unity_OrthoParams");
@@ -179,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int viewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixVP");
 
         public static readonly int inverseViewMatrix = Shader.PropertyToID("unity_MatrixInvV");
-        // Undefined: 
+        // Undefined:
         // public static readonly int inverseProjectionMatrix = Shader.PropertyToID("unity_MatrixInvP");
         public static readonly int inverseViewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixInvVP");
 

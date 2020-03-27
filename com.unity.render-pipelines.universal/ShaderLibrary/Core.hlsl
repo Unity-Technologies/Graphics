@@ -14,13 +14,13 @@
 #endif
 #endif
 
-// Shader Quality Tiers in Universal. 
+// Shader Quality Tiers in Universal.
 // SRP doesn't use Graphics Settings Quality Tiers.
 // We should expose shader quality tiers in the pipeline asset.
 // Meanwhile, it's forced to be:
 // High Quality: Non-mobile platforms or shader explicit defined SHADER_HINT_NICE_QUALITY
 // Medium: Mobile aside from GLES2
-// Low: GLES2 
+// Low: GLES2
 #if SHADER_HINT_NICE_QUALITY
 #define SHADER_QUALITY_HIGH
 #elif defined(SHADER_API_GLES)
@@ -54,11 +54,11 @@ VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
     input.positionWS = TransformObjectToWorld(positionOS);
     input.positionVS = TransformWorldToView(input.positionWS);
     input.positionCS = TransformWorldToHClip(input.positionWS);
-    
+
     float4 ndc = input.positionCS * 0.5f;
     input.positionNDC.xy = float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w;
     input.positionNDC.zw = input.positionCS.zw;
-        
+
     return input;
 }
 
@@ -105,9 +105,19 @@ float3 GetCameraPositionWS()
     return _WorldSpaceCameraPos;
 }
 
-float4 GetScaledScreenParams()
+float4 GetDynamicResolutionScreenParams()
 {
-    return _ScaledScreenParams;
+    return _BlitScaleBias;
+}
+
+float4 GetScaledScreenParams(bool withDynamicResolution = true)
+{
+    return (withDynamicResolution) ? GetDynamicResolutionScreenParams() : _ScaledScreenParams;
+}
+
+float4 GetScreenParams(bool scaled = true, bool withDynamicResolution = true)
+{
+    return (scaled) ? GetScaledScreenParams() : _ScreenParams;
 }
 
 void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
@@ -124,12 +134,12 @@ half OutputAlpha(half outputAlpha)
 
 // A word on normalization of normals:
 // For better quality normals should be normalized before and after
-// interpolation. 
-// 1) In vertex, skinning or blend shapes might vary significantly the lenght of normal. 
+// interpolation.
+// 1) In vertex, skinning or blend shapes might vary significantly the lenght of normal.
 // 2) In fragment, because even outputting unit-length normals interpolation can make it non-unit.
-// 3) In fragment when using normal map, because mikktspace sets up non orthonormal basis. 
-// However we will try to balance performance vs quality here as also let users configure that as 
-// shader quality tiers. 
+// 3) In fragment when using normal map, because mikktspace sets up non orthonormal basis.
+// However we will try to balance performance vs quality here as also let users configure that as
+// shader quality tiers.
 // Low Quality Tier: Normalize either per-vertex or per-pixel depending if normalmap is sampled.
 // Medium Quality Tier: Always normalize per-vertex. Normalize per-pixel only if using normal map
 // High Quality Tier: Normalize in both vertex and pixel shaders.
@@ -143,7 +153,7 @@ real3 NormalizeNormalPerVertex(real3 normalWS)
 }
 
 real3 NormalizeNormalPerPixel(real3 normalWS)
-{ 
+{
 #if defined(SHADER_QUALITY_HIGH) || defined(_NORMALMAP)
     return normalize(normalWS);
 #else
@@ -222,7 +232,7 @@ half3 MixFog(real3 fragColor, real fogFactor)
     #define TEXTURE2D_X_FLOAT           TEXTURE2D_ARRAY_FLOAT
 
     #define LOAD_TEXTURE2D_X(textureName, unCoord2)                         LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, SLICE_ARRAY_INDEX)
-    #define LOAD_TEXTURE2D_X_LOD(textureName, unCoord2, lod)                LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, SLICE_ARRAY_INDEX, lod)    
+    #define LOAD_TEXTURE2D_X_LOD(textureName, unCoord2, lod)                LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, SLICE_ARRAY_INDEX, lod)
     #define SAMPLE_TEXTURE2D_X(textureName, samplerName, coord2)            SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, SLICE_ARRAY_INDEX)
     #define SAMPLE_TEXTURE2D_X_LOD(textureName, samplerName, coord2, lod)   SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, SLICE_ARRAY_INDEX, lod)
     #define GATHER_TEXTURE2D_X(textureName, samplerName, coord2)            GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, SLICE_ARRAY_INDEX)

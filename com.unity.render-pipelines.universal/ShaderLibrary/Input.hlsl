@@ -33,6 +33,7 @@ half4 _SubtractiveShadowColor;
 
 #define _InvCameraViewProj unity_MatrixInvVP
 float4 _ScaledScreenParams;
+float4 _BlitScaleBias;
 
 float4 _MainLightPosition;
 half4 _MainLightColor;

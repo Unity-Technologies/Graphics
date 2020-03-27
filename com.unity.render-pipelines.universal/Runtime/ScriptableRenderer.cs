@@ -139,6 +139,10 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
             cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
+
+            float dynamicCamWidth = scaledCameraWidth * ScalableBufferManager.widthScaleFactor;
+            float dynamicCamHeight = scaledCameraHeight * ScalableBufferManager.heightScaleFactor;
+            cmd.SetGlobalVector(ShaderPropertyId.blitScaleBias, new Vector4(dynamicCamWidth, dynamicCamHeight, 1.0f + 1.0f / dynamicCamWidth, 1.0f + 1.0f / dynamicCamHeight));
         }
 
         /// <summary>
@@ -160,12 +164,12 @@ namespace UnityEngine.Rendering.Universal
             Vector4 cosTimeVector = new Vector4(Mathf.Cos(timeEights), Mathf.Cos(timeFourth), Mathf.Cos(timeHalf), Mathf.Cos(time));
             Vector4 deltaTimeVector = new Vector4(deltaTime, 1f / deltaTime, smoothDeltaTime, 1f / smoothDeltaTime);
             Vector4 timeParametersVector = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
-    
+
             cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._Time, timeVector);
             cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
             cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
             cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._TimeParameters, timeParametersVector);        
+            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._TimeParameters, timeParametersVector);
         }
 
         public RenderTargetIdentifier cameraColorTarget
@@ -351,17 +355,17 @@ namespace UnityEngine.Rendering.Universal
 #endif
             float deltaTime = Time.deltaTime;
             float smoothDeltaTime = Time.smoothDeltaTime;
-            
+
             // Initialize Camera Render State
             ClearRenderingState(cmd);
             SetPerCameraShaderVariables(cmd, ref cameraData);
             SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
-            
+
             // Sort the render pass queue
             SortStable(m_ActiveRenderPassQueue);
-            
+
             // Upper limits for each block. Each block will contains render passes with events below the limit.
             NativeArray<RenderPassEvent> blockEventLimits = new NativeArray<RenderPassEvent>(k_RenderPassBlockCount, Allocator.Temp);
             blockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.BeforeRenderingPrepasses;
