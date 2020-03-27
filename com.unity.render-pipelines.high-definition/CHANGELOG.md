@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix black screen in XR when HDRP package is present but not used.
 - Fixed white flash happening with auto-exposure in some cases (case 1223774)
 - Fixed NaN which can appear with real time reflection and inf value
+- Fixed raytracing shader compilation on Metal
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
