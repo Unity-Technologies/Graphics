@@ -79,15 +79,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 scope = KeywordScope.Global,
             };
 
-            public static KeywordDescriptor DiffuseLightingOnly = new KeywordDescriptor()
-            {
-                displayName = "Diffuse Lighting Only",
-                referenceName = "DIFFUSE_LIGHTING_ONLY",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.MultiCompile,
-                scope = KeywordScope.Global,
-            };
-
             public static KeywordDescriptor LightLayers = new KeywordDescriptor()
             {
                 displayName = "Light Layers",
@@ -257,6 +248,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Descriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
         };
 
+        public static KeywordCollection HDBaseNoCrossFade = new KeywordCollection
+        {
+            { Descriptors.SurfaceTypeTransparent },
+            { Descriptors.BlendMode },
+            { Descriptors.DoubleSided, new FieldCondition(HDFields.SubShader.Unlit, false) },
+            { Descriptors.FogOnTransparent },
+            { Descriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
+        };
+
         public static KeywordCollection Lightmaps = new KeywordCollection
         {
             { Descriptors.Lightmap },
@@ -359,14 +359,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static KeywordCollection RaytracingIndirect = new KeywordCollection
         {
-            { HDBase },
-            { Descriptors.DiffuseLightingOnly },
+            { HDBaseNoCrossFade },
             { Lightmaps },
         };
 
         public static KeywordCollection RaytracingGBufferForward = new KeywordCollection
         {
-            { HDBase },
+            { HDBaseNoCrossFade },
             { Lightmaps },
         };
     }

@@ -94,6 +94,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an alpha blend option for recursive rendering
 - Added support for stack lit for ray tracing effects.
 - Added support for hair for ray tracing effects.
+- Added a ray tracing mode option in the HDRP asset that allows to override and shader stripping.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -601,6 +602,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hidden unsupported choice in emission in Materials
 - Temporal Anti aliasing improvements.
 - Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
+- Replaced the DIFFUSE_LIGHTING_ONLY multicompile by a uniform.
+- Removed the dynamic lightmap multicompile.
+- Remove the LOD cross fade multi compile for ray tracing.
 
 ## [7.1.1] - 2019-09-05
 

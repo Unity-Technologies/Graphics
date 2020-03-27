@@ -890,7 +890,6 @@ Shader "HDRP/LayeredLit"
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
             // multi compile that allows us to
-            #pragma multi_compile _ DIFFUSE_LIGHTING_ONLY
             #pragma multi_compile _ MULTI_BOUNCE_INDIRECT
 
             // We use the low shadow maps for raytracing
@@ -972,7 +971,6 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ DIFFUSE_LIGHTING_ONLY
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
 
@@ -1035,7 +1033,6 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ DIFFUSE_LIGHTING_ONLY
 
             #define SHADERPASS SHADERPASS_RAYTRACING_SUB_SURFACE
 

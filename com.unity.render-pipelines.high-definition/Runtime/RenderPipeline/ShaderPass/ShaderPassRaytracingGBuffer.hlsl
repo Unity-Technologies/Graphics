@@ -30,10 +30,11 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
     GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersectionGbuffer.cone, isVisible);
 
     // Sometimes, we only  want to use the diffuse when we compute the indirect diffuse
-    #ifdef DIFFUSE_LIGHTING_ONLY
-    builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
-    builtinData.backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
-    #endif
+    if (_RayTracingDiffuseLightingOnly)
+    {
+        builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+        builtinData.backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+    }
 
     // First we pack the data into the standard bsdf data
     StandardBSDFData standardLitData;
