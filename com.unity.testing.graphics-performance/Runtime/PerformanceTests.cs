@@ -109,10 +109,9 @@ public class PerformanceTests : IPrebuildSetup
 
             // There are too many items here so we only keep the one that have a minimun of weight
             if (currSize > minMemoryReportSize)
-            {
                 results.Add((name, currSize));
-                totalMemory += currSize;
-            }
+
+            totalMemory += currSize;
         }
 
         results.Sort((a, b) => b.size.CompareTo(a.size));
