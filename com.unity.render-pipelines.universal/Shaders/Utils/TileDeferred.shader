@@ -304,7 +304,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             HLSLPROGRAM
 
             #pragma multi_compile_fragment _LIT
-            #pragma multi_compile_fragment _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
             #pragma vertex Vertex
             #pragma fragment PunctualLightShading
@@ -338,7 +338,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             HLSLPROGRAM
 
             #pragma multi_compile_fragment _SIMPLELIT
-            #pragma multi_compile_fragment _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
             #pragma vertex Vertex
             #pragma fragment PunctualLightShading
