@@ -560,10 +560,10 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                                               _AerosolSeaLevelExtinction,
                                               _AerosolScaleHeight, _AerosolDensityFalloff).r;
 
-        bool  noGeometry     = aboveHorizon;
+        bool  geometryHit    = !aboveHorizon;
         float viewOpacity    = OpacityFromOpticalDepth(maxOptDepth);
-        float sampledOpacity = rnd.x * (noGeometry ? viewOpacity : 1);
-        bool  volumeScatter  = noGeometry || (sampledOpacity < viewOpacity);
+        float sampledOpacity = rnd.x * (geometryHit ? 1 : viewOpacity);
+        bool  volumeScatter  = (!geometryHit) || (sampledOpacity < viewOpacity);
 
         if (volumeScatter)
         {
@@ -608,10 +608,6 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
 
                 if (NdotL > cosHor) // Shadow test
                 {
-                    float LdotD    = dot(L, D);
-                    float airPhase = IsotropicPhaseFunction();
-                    float aerPhase = CornetteShanksPhaseFunction(_AerosolAnisotropy, LdotD);
-
                     float lightOptDepth = 0;
                     lightOptDepth += OptDepthSpherExpMedium(r, NdotL, R,
                                                             _AirSeaLevelExtinction[(uint)ray.frequency],
@@ -623,9 +619,14 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                     float lightTransm     = TransmittanceFromOpticalDepth(lightOptDepth);
                     float emittedRadiance = light.color.rgb[(uint)ray.frequency];
 
-                    if (!noGeometry)
+                    float LdotD    = dot(L, D);
+                    float airPhase = IsotropicPhaseFunction();
+                    float aerPhase = CornetteShanksPhaseFunction(_AerosolAnisotropy, LdotD);
+
+                    if (geometryHit)
                     {
-                        // We sample proportionally to 'viewOpacity', so it cancels out.
+                        // We select between volume and surface scattering events
+                        // based on opacity, so the opacity factor cancels out.
                         viewOpacity = 1;
                     }
 
@@ -653,9 +654,10 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
 
                 float3 L = -light.forward.xyz;
 
-                float NdotL = saturate(dot(N, L)); // TODO: 1-D
+                float NdotL  = saturate(dot(N, L)); // TODO: 1-D
+                float cosHor = 0;
 
-                if (NdotL > 0) // Shadow test
+                if (NdotL > cosHor) // Shadow test
                 {
                     float lightOptDepth = 0;
                     lightOptDepth += OptDepthSpherExpMedium(R, NdotL, R,
@@ -668,8 +670,15 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                     float lightTransm     = TransmittanceFromOpticalDepth(lightOptDepth);
                     float emittedRadiance = light.color.rgb[(uint)ray.frequency];
 
+                    if (geometryHit)
+                    {
+                        // We select between volume and surface scattering events
+                        // based on opacity, so the opacity factor cancels out.
+                        viewOpacity = 1;
+                    }
+
                     // We sample proportionally to 'viewOpacity', so it cancels out.
-                    pathContribution += Lambert() * groundAlbedo * (lightTransm * emittedRadiance) * NdotL;
+                    pathContribution += viewOpacity * (groundAlbedo * Lambert()) * (lightTransm * emittedRadiance) * NdotL;
                 }
             }
         }
