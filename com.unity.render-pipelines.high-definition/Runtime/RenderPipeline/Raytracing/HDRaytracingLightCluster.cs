@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ResizeLightDataBuffer(int numLights)
         {
-            // Release the previous buffer 
+            // Release the previous buffer
             if (m_LightDataGPUArray != null)
             {
                 // If it is not null and it has already the right size, we are pretty much done
@@ -697,7 +697,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
 
                 var envLightData = new EnvLightData();
-                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, m_RenderPipeline.m_CurrentDebugDisplaySettings, ref envLightData);
+                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData);
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.

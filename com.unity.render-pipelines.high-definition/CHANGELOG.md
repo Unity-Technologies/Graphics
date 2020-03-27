@@ -585,6 +585,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
 - Obsolete Utilities namespace was removed, instead use UnityEngine.Rendering (case 1204677)
 - Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
+- Further optimized PrepareLightsForGPU (3x faster with few shadows, 1.4x faster with a lot of shadows or equivalently cost reduced by 68% to 37%).
 
 ## [7.1.1] - 2019-09-05
 

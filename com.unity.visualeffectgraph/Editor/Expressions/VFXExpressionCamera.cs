@@ -146,6 +146,9 @@ namespace UnityEditor.VFX
 
     class VFXExpressionGetBufferFromMainCamera : VFXExpression
     {
+        public VFXExpressionGetBufferFromMainCamera() : this(VFXCameraBufferTypes.None)
+        {}
+
         public VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes bufferType) : base(VFXExpression.Flags.InvalidOnGPU)
         {
             m_BufferType = bufferType;
@@ -154,8 +157,14 @@ namespace UnityEditor.VFX
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.GetBufferFromMainCamera; }}
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents) { return VFXValue.Constant<Texture2DArray>(null); }
 
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var newExpression = (VFXExpressionGetBufferFromMainCamera)base.Reduce(reducedParents);
+            newExpression.m_BufferType = m_BufferType;
+            return newExpression;
+        }
+
         protected override int[] additionnalOperands { get { return new int[] { (int)m_BufferType }; } }
         private VFXCameraBufferTypes m_BufferType;
     }
-
 }

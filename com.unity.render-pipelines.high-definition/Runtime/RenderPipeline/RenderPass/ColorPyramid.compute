@@ -21,12 +21,11 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel KColorGaussian                       KERNEL_SIZE=8  MAIN_GAUSSIAN=KColorGaussian                                     DISABLE_TEXTURE2D_X_ARRAY
-#pragma kernel KColorDownsample                     KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsample                                 DISABLE_TEXTURE2D_X_ARRAY
-#pragma kernel KColorDownsampleCopyMip0             KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsampleCopyMip0             COPY_MIP_0  DISABLE_TEXTURE2D_X_ARRAY
-#pragma kernel KColorGaussian_Tex2DArray            KERNEL_SIZE=8  MAIN_GAUSSIAN=KColorGaussian_Tex2DArray
-#pragma kernel KColorDownsample_Tex2DArray          KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsample_Tex2DArray
-#pragma kernel KColorDownsampleCopyMip0_Tex2DArray  KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsampleCopyMip0_Tex2DArray  COPY_MIP_0
+#pragma kernel KColorGaussian                       KERNEL_SIZE=8  MAIN_GAUSSIAN=KColorGaussian
+#pragma kernel KColorDownsample                     KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsample
+
+#pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
+#pragma multi_compile _ COPY_MIP_0
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
