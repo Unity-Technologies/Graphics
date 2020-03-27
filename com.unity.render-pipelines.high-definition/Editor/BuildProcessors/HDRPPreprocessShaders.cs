@@ -299,7 +299,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            Debug.Log(shader + " -> " + shaderStripingWatch.Elapsed.TotalMilliseconds);
             shaderStripingWatch.Stop();
             shaderPreprocessed?.Invoke(shader, snippet, inputData.Count, shaderStripingWatch.Elapsed.TotalMilliseconds);
         }
