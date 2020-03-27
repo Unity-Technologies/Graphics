@@ -756,6 +756,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             m_TextureResources.Clear();
             m_RendererListResources.Clear();
+            m_ComputeBufferResources.Clear();
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (m_AllocatedTextures.Count != 0)
