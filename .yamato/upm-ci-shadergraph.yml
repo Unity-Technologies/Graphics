@@ -459,8 +459,6 @@ All_{{ project.name }}_{{ editor.version }}:
   
   {% elsif platform.name == "OSX_Metal"  and testplatform.name == "editmode" %}
   
-  {% elsif platform.name == "OSX_Metal" %}
-  #skip
   {% elsif platform.name == "Linux" %}
   #skip
   
