@@ -55,6 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_DefaultVolume.priority = float.MinValue;
                 s_DefaultVolume.sharedProfile = defaultVolumeProfile;
             }
+
             if (
                 // In case the asset was deleted or the reference removed
                 s_DefaultVolume.sharedProfile == null || s_DefaultVolume.sharedProfile.Equals(null)
@@ -65,7 +66,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 || !UnityEditor.AssetDatabase.Contains(s_DefaultVolume.sharedProfile)
 #endif
             )
+            {
                 s_DefaultVolume.sharedProfile = defaultVolumeProfile;
+            }
+
+            if (s_DefaultVolume.sharedProfile != defaultVolumeProfile)
+            {
+                s_DefaultVolume.sharedProfile = defaultVolumeProfile;
+            }
 
             return s_DefaultVolume;
         }
@@ -193,6 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_DepthOnlyPassNames = { HDShaderPassNames.s_DepthOnlyName };
         ShaderTagId[] m_TransparentDepthPrepassNames = { HDShaderPassNames.s_TransparentDepthPrepassName };
         ShaderTagId[] m_TransparentDepthPostpassNames = { HDShaderPassNames.s_TransparentDepthPostpassName };
+        ShaderTagId[] m_RayTracingPrepassNames = { HDShaderPassNames.s_RayTracingPrepassName };
         ShaderTagId[] m_ForwardErrorPassNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
         ShaderTagId[] m_DecalsEmissivePassNames = { HDShaderPassNames.s_MeshDecalsForwardEmissiveName, HDShaderPassNames.s_ShaderGraphMeshDecalsForwardEmissiveName };
         ShaderTagId[] m_SinglePassName = new ShaderTagId[1];
@@ -201,6 +210,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_Decals3RTPassNames = { HDShaderPassNames.s_MeshDecals3RTName , HDShaderPassNames.s_ShaderGraphMeshDecalsName3RT };
 
         RenderStateBlock m_DepthStateOpaque;
+        RenderStateBlock m_DepthStateNoWrite;
+
+        readonly List<CustomPassVolume> m_ActivePassVolumes = new List<CustomPassVolume>(6);
 
         // Detect when windows size is changing
         int m_MaxCameraWidth;
@@ -323,12 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ValidAPI = true;
 
-            if (!SetRenderingFeatures())
-            {
-                m_ValidAPI = false;
-
-                return;
-            }
+            SetRenderingFeatures();
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             m_RayTracingSupported = GatherRayTracingSupport(m_Asset.currentPlatformRenderPipelineSettings);
@@ -350,6 +357,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ValidateResources();
 #endif
+
+            // We need to call this after the resource initialization as we attempt to use them in checking the supported API.
+            if (!CheckAPIValidity())
+            {
+                m_ValidAPI = false;
+
+                return;
+            }
 
             // Initial state of the RTHandle system.
             // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
@@ -640,7 +655,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
         }
 
-        bool SetRenderingFeatures()
+        void SetRenderingFeatures()
         {
             // Set sub-shader pipeline tag
             Shader.globalRenderPipeline = "HDRenderPipeline";
@@ -683,7 +698,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode (HDRP isn't set up properly. Go to Windows > RenderPipeline > HDRP Wizard to fix your settings).");
             }
 #endif
+        }
 
+        bool CheckAPIValidity()
+        {
             GraphicsDeviceType unsupportedDeviceType;
             if (!IsSupportedPlatform(out unsupportedDeviceType))
             {
@@ -791,6 +809,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthStateOpaque = new RenderStateBlock
             {
                 depthState = new DepthState(true, CompareFunction.LessEqual),
+                mask = RenderStateMask.Depth
+            };
+
+            m_DepthStateNoWrite = new RenderStateBlock
+            {
+                depthState = new DepthState(false, CompareFunction.LessEqual),
                 mask = RenderStateMask.Depth
             };
         }
@@ -1011,6 +1035,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_SkyManager.SetGlobalSkyData(cmd, hdCamera);
 
+                bool enableRecursiveRayTracing = false;
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
                     bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
@@ -1018,7 +1043,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Bind the camera's ray tracing frame index
                     cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, RayTracingFrameIndex(hdCamera));
+
+                    // Check if recursive rendering is enabled or not. This will control the cull of primitive
+                    // during the gbuffer and forward pass
+                    RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+                    enableRecursiveRayTracing = recursiveSettings.enable.value;
                 }
+
+                cmd.SetGlobalInt(HDShaderIDs._EnableRecursiveRayTracing, enableRecursiveRayTracing ? 1 : 0);
+
                 cmd.SetGlobalFloat(HDShaderIDs._ContactShadowOpacity, m_ContactShadows.opacity.value);
             }
         }
@@ -1322,7 +1355,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             foreach (var req in renderRequests)
                             {
-                                if (req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
+                                if (camera == req.hdCamera.camera && req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
                                 {
                                     UnsafeGenericPool<HDCullingResults>.Release(cullingResults);
                                     cullingResults = req.cullingResults;
@@ -1543,7 +1576,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
-                        var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), m_FrameCount);
+                        var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), m_FrameCount, CameraType.Reflection);
                         var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
                         if (additionalCameraData == null)
@@ -1794,7 +1827,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
 
                             // Render XR mirror view once all render requests have been completed
-                            if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game)
+                            if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
                             {
                                 m_XRSystem.RenderMirrorView(cmd);
                             }
@@ -1985,6 +2018,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering);
+
+            RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, false);
 
             // This is always false in forward and if it is true, is equivalent of saying we have a partial depth prepass.
             bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
@@ -2252,10 +2287,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderSSRTransparent(hdCamera, cmd, renderContext);
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
-                {
-                    RaytracingRecursiveRender(hdCamera, cmd, renderContext, cullingResults);
-                }
+                RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, true);
+                RaytracingRecursiveRender(hdCamera, cmd, renderContext, cullingResults);
 
                 // To allow users to fetch the current color buffer, we temporarily bind the camera color buffer
                 cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, m_CameraColorBuffer);
@@ -2311,6 +2344,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.NanTracker);
                 PushFullScreenLightingDebugTexture(hdCamera, cmd, m_CameraColorBuffer);
+
+                if (m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
+                {
+                    RenderAccumulation(hdCamera, cmd, m_CameraColorBuffer, m_CameraColorBuffer, false);
+                }
 
 #if UNITY_EDITOR
                 // Render gizmos that should be affected by post processes
@@ -2889,9 +2927,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListDesc    mrtRendererListDesc;
             public bool                hasDepthOnlyPass;
             public bool                shouldRenderMotionVectorAfterGBuffer;
-            public RendererListDesc    rayTracingOpaqueRLDesc;
-            public RendererListDesc    rayTracingTransparentRLDesc;
-            public bool                renderRayTracingPrepass;
         }
 
         DepthPrepassParameters PrepareDepthPrepass(CullingResults cull, HDCamera hdCamera)
@@ -2958,18 +2993,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     throw new ArgumentOutOfRangeException("Unknown ShaderLitMode");
             }
 
-            result.renderRayTracingPrepass = false;
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
-            {
-                RecursiveRendering recursiveRendering = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-                if (recursiveRendering.enable.value)
-                {
-                    result.renderRayTracingPrepass = true;
-                    result.rayTracingOpaqueRLDesc = CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllOpaqueRaytracing);
-                    result.rayTracingTransparentRLDesc = CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentRaytracing);
-                }
-            }
-
             return result;
         }
 
@@ -2980,10 +3003,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         RTHandle                    depthBuffer,
                                         in RendererList             depthOnlyRendererList,
                                         in RendererList             mrtRendererList,
-                                        bool                        hasDepthOnlyPass,
-                                        in RendererList             rayTracingOpaqueRL,
-                                        in RendererList             rayTracingTransparentRL,
-                                        bool                        renderRayTracingPrepass
+                                        bool                        hasDepthOnlyPass
                                         )
         {
             CoreUtils.SetRenderTarget(cmd, depthBuffer);
@@ -2995,13 +3015,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.SetRenderTarget(cmd, mrt, depthBuffer);
             DrawOpaqueRendererList(renderContext, cmd, frameSettings, mrtRendererList);
-
-            // We want the opaque objects to be in the prepass so that we avoid rendering uselessly the pixels before ray tracing them
-            if (renderRayTracingPrepass)
-            {
-                HDUtils.DrawRendererList(renderContext, cmd, rayTracingOpaqueRL);
-                HDUtils.DrawRendererList(renderContext, cmd, rayTracingTransparentRL);
-            }
         }
 
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
@@ -3015,9 +3028,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var depthOnlyRendererList = RendererList.Create(depthPrepassParameters.depthOnlyRendererListDesc);
             var mrtDepthRendererList = RendererList.Create(depthPrepassParameters.mrtRendererListDesc);
 
-            var rayTracingOpaqueRendererList = RendererList.Create(depthPrepassParameters.rayTracingOpaqueRLDesc);
-            var rayTracingTransparentRendererList = RendererList.Create(depthPrepassParameters.rayTracingTransparentRLDesc);
-
             using (new ProfilingScope(cmd, ProfilingSampler.Get(depthPrepassParameters.profilingId)))
             {
                 RenderDepthPrepass(renderContext, cmd, hdCamera.frameSettings,
@@ -3025,10 +3035,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
                                     depthOnlyRendererList,
                                     mrtDepthRendererList,
-                                    depthPrepassParameters.hasDepthOnlyPass,
-                                    rayTracingOpaqueRendererList,
-                                    rayTracingTransparentRendererList,
-                                    depthPrepassParameters.renderRayTracingPrepass
+                                    depthPrepassParameters.hasDepthOnlyPass
                                     );
             }
 
@@ -3587,20 +3594,24 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 return false;
 
-            var customPass = CustomPassVolume.GetActivePassVolume(injectionPoint);
-
-            if (customPass == null)
-                return false;
-
-            var customPassTargets = new CustomPass.RenderTargets
+            bool executed = false;
+            CustomPassVolume.GetActivePassVolumes(injectionPoint, m_ActivePassVolumes);
+            foreach (var customPass in m_ActivePassVolumes)
             {
-                cameraColorMSAABuffer = m_CameraColorMSAABuffer,
-                cameraColorBuffer = (injectionPoint == CustomPassInjectionPoint.AfterPostProcess) ? m_IntermediateAfterPostProcessBuffer : m_CameraColorBuffer,
-                customColorBuffer = m_CustomPassColorBuffer,
-                customDepthBuffer = m_CustomPassDepthBuffer,
-            };
+                if (customPass == null)
+                    return false;
 
-            return customPass.Execute(context, cmd, hdCamera, cullingResults, m_SharedRTManager, customPassTargets);
+                var customPassTargets = new CustomPass.RenderTargets
+                {
+                    cameraColorMSAABuffer = m_CameraColorMSAABuffer,
+                    cameraColorBuffer = (injectionPoint == CustomPassInjectionPoint.AfterPostProcess) ? m_IntermediateAfterPostProcessBuffer : m_CameraColorBuffer,
+                    customColorBuffer = m_CustomPassColorBuffer,
+                    customDepthBuffer = m_CustomPassDepthBuffer,
+                };
+                executed |= customPass.Execute(context, cmd, hdCamera, cullingResults, m_SharedRTManager, customPassTargets);
+            }
+
+            return executed;
         }
 
         void RenderTransparentDepthPrepass(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -3624,6 +3635,40 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void RenderRayTracingPrepass(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool clear)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                return;
+
+            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+            if (recursiveSettings.enable.value)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RayTracingPrepass)))
+                {
+                    RendererList transparentRendererList;
+                    RendererList opaqueRendererList;
+
+                    // when clear is required, it mean we are before the recursive rendering call, otherwise it mean we are before the depth prepass
+                    // As the pass before depth prepass write depth, we don't need to write it again during the second one, also the buffer is only clear at this time
+                    // TODO: evaluate the usage of a stencil bit in the stencil buffer to save a rendertarget (But it require various headaches to work correctly).
+                    if (clear)
+                    {
+                        CoreUtils.SetRenderTarget(cmd, GetRayTracingBuffer(InternalRayTracingBuffers.R0), m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, Color.black);
+                        transparentRendererList = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames, stateBlock: m_DepthStateNoWrite));
+                        opaqueRendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes, stateBlock: m_DepthStateNoWrite));
+                    }
+                    else
+                    {
+                        CoreUtils.SetRenderTarget(cmd, GetRayTracingBuffer(InternalRayTracingBuffers.R0), m_SharedRTManager.GetDepthStencilBuffer());
+                        transparentRendererList = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames));
+                        opaqueRendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames));
+                    }
+                    DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, opaqueRendererList);
+                    DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, transparentRendererList);
+                }
+            }
+        }
+
         void RenderTransparentDepthPostpass(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentPostpass))
@@ -3634,17 +3679,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetDepthStencilBuffer());
                 var rendererList = RendererList.Create(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, m_TransparentDepthPostpassNames));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
-
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
-                {
-                    // If there is a ray-tracing environment and the feature is enabled we want to push these objects to the transparent postpass (they are not rendered in the first call because they are not in the generic transparent render queue)
-                    var rrSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-                    if (rrSettings.enable.value)
-                    {
-                        var rendererListRT = RendererList.Create(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, m_TransparentDepthPostpassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentRaytracing));
-                        DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListRT);
-                    }
-                }
             }
         }
 

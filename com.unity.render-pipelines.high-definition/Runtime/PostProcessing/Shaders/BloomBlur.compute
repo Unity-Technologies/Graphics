@@ -5,8 +5,9 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel KMain                MAIN=KMain
-#pragma kernel KMainDownsample      MAIN=KMainDownsample        DOWNSAMPLE
+#pragma kernel KMain
+
+#pragma multi_compile _ DOWNSAMPLE
 
 TEXTURE2D_X(_InputTexture);
 
@@ -102,7 +103,7 @@ void BlurVertically(uint2 pixelCoord, uint topMostIndex)
 #define GROUP_SIZE 8
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void MAIN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_DispatchThreadID)
+void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 

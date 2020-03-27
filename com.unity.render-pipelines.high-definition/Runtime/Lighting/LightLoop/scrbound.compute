@@ -1,8 +1,9 @@
 // The implementation is based on the demo on "fine pruned tiled lighting" published in GPU Pro 7.
 // https://github.com/wolfgangfengel/GPU-Pro-7
 
-#pragma kernel ScreenBoundsAABB                   SCRAABBGEN=ScreenBoundsAABB
-#pragma kernel ScreenBoundsAABB_Oblique           SCRAABBGEN=ScreenBoundsAABB_Oblique           USE_OBLIQUE_MODE
+#pragma kernel ScreenBoundsAABB
+
+#pragma multi_compile _ USE_OBLIQUE_MODE
 
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -46,7 +47,7 @@ void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, ou
 
 
 [numthreads(NR_THREADS, 1, 1)]
-void SCRAABBGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
+void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
     uint groupID = u3GroupID.x;
     uint eyeIndex = u3GroupID.y; // currently, can only be 0 or 1

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now save your graph as a new Asset.
 - Added support for vertex skinning when you use the DOTS animation package.
 - You can now use the right-click context menu to set the precision on multiple selected nodes.
+- You can now select unused nodes in your graph.
 - When you start the Editor, Shader Graph now displays Properties in the Blackboard as collapsed.
 - Updated the zoom level to let you zoom in further.
 - Blackboard properties now have a __Duplicate__ menu option. When you duplicate properties, Shader Graph maintains the order, and inserts duplicates below the current selection.
