@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_UpperHemisphereLuxValue;
         SerializedDataParameter m_UpperHemisphereLuxColor;
         SerializedDataParameter m_flowmap;
-        SerializedDataParameter m_flowSpeed;
+        SerializedDataParameter m_flowCycle;
         SerializedDataParameter m_flowStrength;
         SerializedDataParameter m_EnableBackplate;
         SerializedDataParameter m_BackplateType;
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
 
             m_flowmap                   = Unpack(o.Find(x => x.flowmap));
-            m_flowSpeed                 = Unpack(o.Find(x => x.flowSpeed));
+            m_flowCycle                 = Unpack(o.Find(x => x.flowCycle));
             m_flowStrength              = Unpack(o.Find(x => x.flowStrength));
 
             m_EnableBackplate           = Unpack(o.Find(x => x.enableBackplate));
@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_flowmap);
             {
                 EditorGUI.indentLevel++;
-                PropertyField(m_flowSpeed);
+                PropertyField(m_flowCycle);
                 PropertyField(m_flowStrength);
                 EditorGUI.indentLevel--;
             }

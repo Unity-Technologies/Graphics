@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_SkyHDRIMaterial.EnableKeyword("USE_FLOWMAP");
                 m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Flowmap, hdriSky.flowmap.value);
-                m_SkyHDRIMaterial.SetFloat(HDShaderIDs._FlowSpeed, hdriSky.flowSpeed.value);
+                m_SkyHDRIMaterial.SetFloat(HDShaderIDs._FlowSpeed, 0.5f / hdriSky.flowCycle.value);
                 m_SkyHDRIMaterial.SetFloat(HDShaderIDs._FlowStrength, hdriSky.flowStrength.value);
             }
             else

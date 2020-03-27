@@ -181,14 +181,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float3 GetSkyColor(float3 dir)
     {
 #ifdef USE_FLOWMAP
-        // Find cube normal at sample point
-        float3 absdir = abs(dir);
-        float absmax = max(max(absdir.x, absdir.y), absdir.z);
-        float3 normal = (absmax == absdir) * sign(dir);
-
         // Compute distortion directions on the cube
-        float3 tangent = (absmax == absdir.y) ? float3(0.0, 0.0, 1.0) : float3(0.0, 1.0, 0.0);
-        float3 bitangent = cross(normal, tangent);
+        float3 tangent = cross(dir, float3(0.0, 1.0, 0.0));
+        float3 bitangent = cross(dir, tangent);
 
         // Compute flow factor
         float2 flow = SAMPLE_TEXTURECUBE_LOD(_Flowmap, sampler_Flowmap, dir, 0).rg * 2.0 - 1.0;

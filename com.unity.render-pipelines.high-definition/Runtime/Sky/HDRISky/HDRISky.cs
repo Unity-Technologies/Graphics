@@ -14,14 +14,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Specify the cubemap HDRP uses to render the sky.")]
         public CubemapParameter         hdriSky             = new CubemapParameter(null);
         /// <summary>Cubemap used to distort the uv for the HDRI sky.</summary>
-        [Tooltip("Specify the cubemap HDRP uses to distort uvs.")]
+        [Tooltip("Specify the cubemap HDRP uses to distort sky uvs.")]
         public CubemapParameter         flowmap             = new CubemapParameter(null);
-        /// <summary>Cubemap used to distort the uv for the HDRI sky.</summary>
-        [Tooltip("Specify the cubemap HDRP uses to distort uvs.")]
-        public FloatParameter           flowSpeed             = new FloatParameter(1.0f);
-        /// <summary>Cubemap used to distort the uv for the HDRI sky.</summary>
-        [Tooltip("Specify the cubemap HDRP uses to distort uvs.")]
-        public FloatParameter           flowStrength             = new FloatParameter(1.0f);
+        /// <summary>Time to do a full loop.</summary>
+        [Tooltip("Specify the loop time for uv distortion.")]
+        public FloatParameter           flowCycle           = new FloatParameter(1.0f);
+        /// <summary>Multiplier for HDRI sky uv distortion.</summary>
+        [Tooltip("Specify the factor by which HDRP multiplies flow value.")]
+        public FloatParameter           flowStrength        = new FloatParameter(1.0f);
         /// <summary>Enable Backplate to have it visible.</summary>
         [Tooltip("Enable or disable the backplate.")]
         public BoolParameter            enableBackplate     = new BoolParameter(false);
@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
                 hash = hdriSky.value != null ? hash * 23 + hdriSky.value.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.value.GetHashCode() : hash;
-                hash = hash * 23 + flowSpeed.value.GetHashCode();
+                hash = hash * 23 + flowCycle.value.GetHashCode();
                 hash = hash * 23 + flowStrength.value.GetHashCode();
                 hash = hash * 23 + enableBackplate.value.GetHashCode();
                 hash = hash * 23 + backplateType.value.GetHashCode();
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 hash = hdriSky.value != null ? hash * 23 + hdriSky.overrideState.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.overrideState.GetHashCode() : hash;
-                hash = hash * 23 + flowSpeed.overrideState.GetHashCode();
+                hash = hash * 23 + flowCycle.overrideState.GetHashCode();
                 hash = hash * 23 + flowStrength.overrideState.GetHashCode();
                 hash = hash * 23 + enableBackplate.overrideState.GetHashCode();
                 hash = hash * 23 + backplateType.overrideState.GetHashCode();
@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
                 hash = hdriSky.value != null ? hash * 23 + hdriSky.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.GetHashCode() : hash;
-                hash = hash * 23 + flowSpeed.GetHashCode();
+                hash = hash * 23 + flowCycle.GetHashCode();
                 hash = hash * 23 + flowStrength.GetHashCode();
                 hash = hash * 23 + enableBackplate.GetHashCode();
                 hash = hash * 23 + backplateType.GetHashCode();
