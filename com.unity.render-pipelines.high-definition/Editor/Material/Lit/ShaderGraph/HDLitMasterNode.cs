@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "Lit (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.HDLitMasterNode")]
-    class HDLitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class HDLitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string AlbedoSlotName = "Albedo";
         public const string AlbedoDisplaySlotName = "BaseColor";
@@ -196,6 +196,23 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             SlotMask activeMask = GetActiveSlotMask();
             return (activeMask & mask) != 0;
+        }
+
+        [SerializeField]
+        bool m_RayTracing;
+
+        public ToggleData rayTracing
+        {
+            get { return new ToggleData(m_RayTracing); }
+            set
+            {
+                if (m_RayTracing == value.isOn)
+                    return;
+
+                m_RayTracing = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
         }
 
         [SerializeField]
@@ -482,10 +499,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 m_NormalDropOffSpace = value;
+                if (!IsSlotConnected(NormalSlotId))
+                    updateNormalSlot = true;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
             }
         }
+        bool updateNormalSlot;
 
 
         [SerializeField]
@@ -544,6 +564,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_ReceivesSSR == value.isOn)
                     return;
                 m_ReceivesSSR = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_ReceivesSSRTransparent = true;
+        public ToggleData receiveSSRTransparent
+        {
+            get { return new ToggleData(m_ReceivesSSRTransparent); }
+            set
+            {
+                if (m_ReceivesSSRTransparent == value.isOn)
+                    return;
+                m_ReceivesSSRTransparent = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -778,9 +812,24 @@ namespace UnityEditor.Rendering.HighDefinition
             hash |= (alphaTest.isOn ? 0 : 1) << 0;
             hash |= (alphaTestShadow.isOn ? 0 : 1) << 1;
             hash |= (receiveSSR.isOn ? 0 : 1) << 2;
-            hash |= (RequiresSplitLighting() ? 0 : 1) << 3;
+            hash |= (receiveSSRTransparent.isOn ? 0 : 1) << 3;
+            hash |= (RequiresSplitLighting() ? 0 : 1) << 4;
 
             return hash;
+        }
+
+        [SerializeField] private string m_ShaderGUIOverride;
+        public string ShaderGUIOverride
+        {
+            get => m_ShaderGUIOverride;
+            set => m_ShaderGUIOverride = value;
+        }
+
+        [SerializeField] private bool m_OverrideEnabled;
+        public bool OverrideEnabled
+        {
+            get => m_OverrideEnabled;
+            set => m_OverrideEnabled = value;
         }
 
         public HDLitMasterNode()
@@ -831,22 +880,24 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (MaterialTypeUsesSlotMask(SlotMask.Normal))
             {
-                RemoveSlot(NormalSlotId);
-
                 var coordSpace = CoordinateSpace.Tangent;
-                switch (m_NormalDropOffSpace)
+                if (updateNormalSlot)
                 {
-                    case NormalDropOffSpace.Tangent:
-                        coordSpace = CoordinateSpace.Tangent;
-                        break;
-                    case NormalDropOffSpace.World:
-                        coordSpace = CoordinateSpace.World;
-                        break;
-                    case NormalDropOffSpace.Object:
-                        coordSpace = CoordinateSpace.Object;
-                        break;
+                    RemoveSlot(NormalSlotId);
+                    switch (m_NormalDropOffSpace)
+                    {
+                        case NormalDropOffSpace.Tangent:
+                            coordSpace = CoordinateSpace.Tangent;
+                            break;
+                        case NormalDropOffSpace.World:
+                            coordSpace = CoordinateSpace.World;
+                            break;
+                        case NormalDropOffSpace.Object:
+                            coordSpace = CoordinateSpace.Object;
+                            break;
+                    }
+                    updateNormalSlot = false;
                 }
-
                 AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, coordSpace, ShaderStageCapability.Fragment));
                 validSlots.Add(NormalSlotId);
             }
@@ -1017,7 +1068,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         #pragma warning restore CS0618 // Type or member is obsolete
                                 renderingPass = HDRenderQueue.RenderQueueType.PreRefraction;
                             }
-                            else 
+                            else
                             {
                                 renderingPass = HDRenderQueue.RenderQueueType.Transparent;
                             }
@@ -1045,16 +1096,16 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(Fields.GraphVertex,                    IsSlotConnected(PositionSlotId) || 
-                                                                                IsSlotConnected(VertexNormalSlotID) || 
+                new ConditionalField(Fields.GraphVertex,                    IsSlotConnected(PositionSlotId) ||
+                                                                                IsSlotConnected(VertexNormalSlotID) ||
                                                                                 IsSlotConnected(VertexTangentSlotID)),
                 new ConditionalField(Fields.GraphPixel,                     true),
                 new ConditionalField(Fields.LodCrossFade,                   supportLodCrossFade.isOn),
-                
+
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                 !pass.Equals(HDPasses.HDLit.MotionVectors)),
-                
+
                 // Dots
                 new ConditionalField(HDFields.DotsInstancing,               dotsInstancing.isOn),
                 new ConditionalField(HDFields.DotsProperties,               hasDotsProperties),
@@ -1073,7 +1124,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Surface Type
                 new ConditionalField(Fields.SurfaceOpaque,                  surfaceType == SurfaceType.Opaque),
                 new ConditionalField(Fields.SurfaceTransparent,             surfaceType != SurfaceType.Opaque),
-                
+
                 // Blend Mode
                 new ConditionalField(Fields.BlendAdd,                       surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
                 new ConditionalField(Fields.BlendAlpha,                     surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
@@ -1110,38 +1161,46 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(Fields.NormalDropOffWS,                normalDropOffSpace == NormalDropOffSpace.World),
 
                 // Misc
-                new ConditionalField(Fields.AlphaTest,                      alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
-                new ConditionalField(HDFields.AlphaTestShadow,              alphaTest.isOn && alphaTestShadow.isOn && 
-                                                                                pass.pixelPorts.Contains(AlphaThresholdShadowSlotId)),
-                new ConditionalField(HDFields.AlphaTestPrepass,             alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId)),
-                new ConditionalField(HDFields.AlphaTestPostpass,            alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId)),
+                // We always generate the keyword ALPHATEST_ON
+                new ConditionalField(Fields.AlphaTest,                      alphaTest.isOn && (pass.pixelPorts.Contains(AlphaThresholdSlotId) || pass.pixelPorts.Contains(AlphaThresholdShadowSlotId) ||
+                                                                                 pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId) || pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId))),
+                // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
+                // Do alpha test only if we aren't using the TestShadow one
+                // Note: we always generate the code for DoAlphaTestXXX as it is then the keyword _ALPHATEST_ON that will define if it is enabled or not
+                new ConditionalField(HDFields.DoAlphaTest,                  alphaTest.isOn && (pass.pixelPorts.Contains(AlphaThresholdSlotId) &&
+                                                                                !(alphaTestShadow.isOn && pass.pixelPorts.Contains(AlphaThresholdShadowSlotId)))),
+                new ConditionalField(HDFields.DoAlphaTestShadow,            alphaTest.isOn && alphaTestShadow.isOn && pass.pixelPorts.Contains(AlphaThresholdShadowSlotId)),
+                new ConditionalField(HDFields.DoAlphaTestPrepass,           alphaTest.isOn && alphaTestDepthPrepass.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId)),
+                new ConditionalField(HDFields.DoAlphaTestPostpass,          alphaTest.isOn && alphaTestDepthPostpass.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId)),
                 new ConditionalField(HDFields.AlphaFog,                     surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
                 new ConditionalField(HDFields.BlendPreserveSpecular,        surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
                 new ConditionalField(HDFields.TransparentWritesMotionVec,   surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
                 new ConditionalField(HDFields.DisableDecals,                !receiveDecals.isOn),
                 new ConditionalField(HDFields.DisableSSR,                   !receiveSSR.isOn),
+                new ConditionalField(HDFields.DisableSSRTransparent,        !receiveSSRTransparent.isOn),
                 new ConditionalField(Fields.VelocityPrecomputed,                addPrecomputedVelocity.isOn),
-                new ConditionalField(HDFields.SpecularAA,                   specularAA.isOn && 
+                new ConditionalField(HDFields.SpecularAA,                   specularAA.isOn &&
                                                                                 pass.pixelPorts.Contains(SpecularAAThresholdSlotId) &&
                                                                                 pass.pixelPorts.Contains(SpecularAAScreenSpaceVarianceSlotId)),
                 new ConditionalField(HDFields.EnergyConservingSpecular,     energyConservingSpecular.isOn),
-                new ConditionalField(HDFields.BentNormal,                   IsSlotConnected(BentNormalSlotId) && 
+                new ConditionalField(HDFields.BentNormal,                   IsSlotConnected(BentNormalSlotId) &&
                                                                                 pass.pixelPorts.Contains(BentNormalSlotId)),
                 new ConditionalField(HDFields.AmbientOcclusion,             pass.pixelPorts.Contains(AmbientOcclusionSlotId) &&
                                                                                 (IsSlotConnected(AmbientOcclusionSlotId) ||
                                                                                 ambientOcclusionSlot.value != ambientOcclusionSlot.defaultValue)),
                 new ConditionalField(HDFields.CoatMask,                     pass.pixelPorts.Contains(CoatMaskSlotId) &&
                                                                                 (IsSlotConnected(CoatMaskSlotId) || coatMaskSlot.value > 0.0f)),
-                new ConditionalField(HDFields.Tangent,                      IsSlotConnected(TangentSlotId) && 
+                new ConditionalField(HDFields.Tangent,                      IsSlotConnected(TangentSlotId) &&
                                                                                 pass.pixelPorts.Contains(TangentSlotId)),
-                new ConditionalField(HDFields.LightingGI,                   IsSlotConnected(LightingSlotId) && 
+                new ConditionalField(HDFields.LightingGI,                   IsSlotConnected(LightingSlotId) &&
                                                                                 pass.pixelPorts.Contains(LightingSlotId)),
-                new ConditionalField(HDFields.BackLightingGI,               IsSlotConnected(BackLightingSlotId) && 
+                new ConditionalField(HDFields.BackLightingGI,               IsSlotConnected(BackLightingSlotId) &&
                                                                                 pass.pixelPorts.Contains(BackLightingSlotId)),
                 new ConditionalField(HDFields.DepthOffset,                  depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
                 new ConditionalField(HDFields.TransparentBackFace,          surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
                 new ConditionalField(HDFields.TransparentDepthPrePass,      surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
                 new ConditionalField(HDFields.TransparentDepthPostPass,     surfaceType != SurfaceType.Opaque && alphaTestDepthPostpass.isOn),
+                new ConditionalField(HDFields.RayTracing,                   rayTracing.isOn),
             };
         }
 
@@ -1262,7 +1321,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn, receiveSSRTransparent.isOn);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 surfaceType,
@@ -1276,12 +1335,14 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+            HDSubShaderUtilities.AddRayTracingProperty(collector, rayTracing.isOn);
 
             base.CollectShaderProperties(collector, generationMode);
         }
 
-        public override void ValidateNode()
+        public override void Setup()
         {
+            base.Setup();
             var hdPipelineAsset = HDRenderPipeline.currentAsset;
 
             if (hdPipelineAsset == null)
@@ -1294,10 +1355,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((diffusionProfileSlot.diffusionProfile) != null && !hdPipelineAsset.diffusionProfileSettingsList.Any(d => d == diffusionProfileSlot.diffusionProfile))
             {
-                // Debug.LogWarning($"Diffusion profile '{diffusionProfileSlot.diffusionProfile.name}' is not referenced in the current HDRP asset");
+                //owner.AddSetupError(tempId, $"Diffusion profile '{diffusionProfileSlot.diffusionProfile.name}' is not referenced in the current HDRP asset", ShaderCompilerMessageSeverity.Warning);
             }
 
-            base.ValidateNode();
         }
     }
 }

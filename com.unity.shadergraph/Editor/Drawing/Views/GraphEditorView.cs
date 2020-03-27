@@ -284,15 +284,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSubWindowsVisibility()
         {
-            if (m_UserViewSettings.isBlackboardVisible)
-                m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
-            else
-                m_BlackboardProvider.blackboard.RemoveFromHierarchy();
+            // Master Preview and Blackboard both need to keep their layouts when hidden in order to restore user preferences.
+            // Because of their differences we do this is different ways, for now. + Blackboard needs to be effectively removed when hidden to avoid bugs.
+            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
 
-            if (m_UserViewSettings.isPreviewVisible)
-                m_GraphView.Insert(m_GraphView.childCount, m_MasterPreviewView);
+            if (m_UserViewSettings.isBlackboardVisible)
+                m_BlackboardProvider.blackboard.style.display = DisplayStyle.Flex;
             else
-                m_MasterPreviewView.RemoveFromHierarchy();
+                m_BlackboardProvider.blackboard.style.display = DisplayStyle.None;
         }
 
         Action<Group, string> m_GraphViewGroupTitleChanged;
@@ -734,21 +733,19 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var messageData in m_MessageManager.GetNodeMessages())
             {
-                var node = m_Graph.GetNodeFromTempId(messageData.Key);
+                var node = m_Graph.GetNodeFromGuid(messageData.Key);
 
                 if (!(m_GraphView.GetNodeByGuid(node.guid.ToString()) is MaterialNodeView nodeView))
                     continue;
 
-                if (messageData.Value.Count == 0)
-                {
-                    var badge = nodeView.Q<IconBadge>();
-                    badge?.Detach();
-                    badge?.RemoveFromHierarchy();
-                }
-                else
+                if (messageData.Value.Count > 0)
                 {
                     var foundMessage = messageData.Value.First();
                     nodeView.AttachMessage(foundMessage.message, foundMessage.severity);
+                }
+                else
+                {
+                    nodeView.ClearMessage();
                 }
             }
         }
@@ -969,6 +966,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MasterPreviewView?.RemoveFromHierarchy();
             CreateMasterPreview();
             ApplyMasterPreviewLayout();
+            UpdateSubWindowsVisibility();
         }
 
         void HandleEditorViewChanged(GeometryChangedEvent evt)

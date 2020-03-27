@@ -48,6 +48,8 @@ Pass
     $features.graphVertex:                   #define HAVE_MESH_MODIFICATION
     $splice(GraphDefines)
 
+    $splice(HybridV1InjectedBuiltinProperties)
+
     // Includes
     $splice(PreGraphIncludes)
 
@@ -67,7 +69,6 @@ Pass
 
     // Graph Properties
     $splice(GraphProperties)
-    $splice(DotsInstancedProperties)
 
     // Graph Functions
     $splice(GraphFunctions)

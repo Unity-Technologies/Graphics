@@ -8,10 +8,9 @@ namespace UnityEditor.VFX.Test
 {
     class VFXSystemNamesTest
     {
-
         private class ContextSpawner : VFXContext
         {
-            public ContextSpawner() : base(VFXContextType.Spawner) { }
+            public ContextSpawner() : base(VFXContextType.Spawner) {}
         }
 
         [Test]
@@ -55,7 +54,6 @@ namespace UnityEditor.VFX.Test
             int i = 0;
             for (; i < spawnerCount; ++i)
             {
-
                 var context = ScriptableObject.CreateInstance<ContextSpawner>();
                 VFXSystemNames.SetSystemName(context, names[i]);
                 systems.Add(context);

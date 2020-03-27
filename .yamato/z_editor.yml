@@ -47,7 +47,7 @@ editor:priming:{{ editor.version }}:{{ platform.os }}:
     CUSTOM_REVISION: custom_revision_not_set
     {% endif %}
   commands:
-    - pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
     - >
       unity-downloader-cli {{ editor.cmd }} {% if platform.os == "android" %} -o windows {% else %} -o {{ platform.os }} {% endif %} --wait --skip-download {% for component in platform.components -%} -c {{ component }} {% endfor -%}
       > unity_revision.txt

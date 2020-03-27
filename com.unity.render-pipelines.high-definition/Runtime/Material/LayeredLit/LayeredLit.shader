@@ -364,12 +364,13 @@ Shader "HDRP/LayeredLit"
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
+        // Ray Tracing
+        [ToggleUI] _RayTracing("Ray Tracing (Preview)", Float) = 0
     }
 
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _DEPTHOFFSET_ON
@@ -460,13 +461,12 @@ Shader "HDRP/LayeredLit"
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-    //enable GPU instancing support
-    #pragma multi_compile_instancing
-    #pragma instancing_options renderinglayer
-
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
+
+    // This shader support recursive rendering for raytracing
+    #define HAVE_RECURSIVE_RENDERING
 
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
@@ -524,13 +524,14 @@ Shader "HDRP/LayeredLit"
             Name "SceneSelectionPass"
             Tags{ "LightMode" = "SceneSelectionPass" }
 
-            Cull[_CullMode]
-
-            ZWrite On
-
-            ColorMask 0
+            Cull Off
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             // Note: Require _ObjectId and _PassValue variables
 
@@ -557,7 +558,7 @@ Shader "HDRP/LayeredLit"
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
             Cull [_CullMode]
-            ZTest[_ZTestGBuffer]
+            ZTest [_ZTestGBuffer]
 
             Stencil
             {
@@ -568,6 +569,11 @@ Shader "HDRP/LayeredLit"
             }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -591,8 +597,8 @@ Shader "HDRP/LayeredLit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -610,6 +616,11 @@ Shader "HDRP/LayeredLit"
             Cull Off
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
@@ -647,6 +658,12 @@ Shader "HDRP/LayeredLit"
             ZWrite On
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
@@ -682,6 +699,11 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch    
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
@@ -714,6 +736,11 @@ Shader "HDRP/LayeredLit"
             ZWrite On
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
@@ -760,6 +787,11 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
@@ -808,6 +840,33 @@ Shader "HDRP/LayeredLit"
 
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "RayTracingPrepass"
+            Tags{ "LightMode" = "RayTracingPrepass" }
+
+            Cull[_CullMode]
+
+            ZWrite On
+            ZTest LEqual // If the object have already been render in depth prepass, it will re-render to tag stencil
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+            #define SHADERPASS SHADERPASS_CONSTANT
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitConstantPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            ENDHLSL
+        }
     }
 
     SubShader
@@ -818,6 +877,8 @@ Shader "HDRP/LayeredLit"
             Tags{ "LightMode" = "IndirectDXR" }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11
 
             #pragma raytracing surface_shader
 
@@ -862,6 +923,8 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
+
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -901,6 +964,8 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
+
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -936,6 +1001,8 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
+
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
@@ -959,6 +1026,8 @@ Shader "HDRP/LayeredLit"
             Tags{ "LightMode" = "SubSurfaceDXR" }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11
 
             #pragma raytracing surface_shader
 
@@ -991,6 +1060,8 @@ Shader "HDRP/LayeredLit"
             Tags{ "LightMode" = "PathTracingDXR" }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11
 
             #pragma raytracing surface_shader
 

@@ -1,6 +1,6 @@
 # Virtual Reality in the High Definition Render Pipeline
 
-To use Virtual Reality (VR) in the High Definition Render Pipeline (HDRP), you must enable VR in your Unity Project. To do this, see the [VR tab](Render-Pipeline-Wizard#VRTab) in the Render Pipeline Wizard.
+To use Virtual Reality (VR) in the High Definition Render Pipeline (HDRP), you must enable VR in your Unity Project. To do this, see the [VR tab](Render-Pipeline-Wizard.html#VRTab) in the Render Pipeline Wizard.
 
 Please refer to [Unity XR](https://docs.unity3d.com/Manual/XR.html) documentation for more information about XR developement with Unity.
 
@@ -8,7 +8,7 @@ Please refer to [Unity XR](https://docs.unity3d.com/Manual/XR.html) documentatio
 
 HDRP has been designed to fully support Single-Pass Instanced mode. This mode gives you the best performance on all platforms.
 HDRP also supports multi-pass but this is slower on the CPU and some features, like Auto-Exposure, can cause issues.
-If you encounter a problem with a specific feature, you can disable it in your Project’s [HDRP Asset](HDRP-Asset).
+If you encounter a problem with a specific feature, you can disable it in your Project’s [HDRP Asset](HDRP-Asset.html).
 
 You can also watch the presentation from Unite Copenhagen (October 2019) to learn more tips: [Maximizing visual fidelity in VR: HDRP support](https://youtu.be/_WkSAn55EBM)
 
@@ -30,7 +30,17 @@ There are multiple methods that you can use to control the resolution of your re
 * **Dynamic Resolution**: You can use the [dynamic resolution system](Dynamic-Resolution.md) to change the resolution at runtime. This is the best method to use if you want to change the resolution at runtime.
 * **Eye Texture**: You can set the device back-buffer resolution by changing [XRSettings.eyeTextureResolutionScale](https://docs.unity3d.com/ScriptReference/XR.XRSettings-eyeTextureResolutionScale.html). This is a resource intensive operation that reallocates all render targets.
 
-Be aware that SteamVR will apply a default 150% supersampling value. You can change this value in the settings of SteamVR.
+Be aware that SteamVR will apply a default 150% supersampling value. You can change this value in the settings of SteamVR.?
+## Enable VR single-pass after startup
+
+Due to some technical limitations that will be resolved in later versions, you need the following code in your script if your app does not boot directly in VR mode:
+
+```csharp
+private void Awake()
+{
+    TextureXR.maxViews = 2;
+}
+```
 
 ## C# defines
 

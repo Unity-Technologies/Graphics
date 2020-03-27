@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -393,7 +393,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection PBRGBuffer = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.ZTest(ZTest.Equal) },
+            { RenderState.ZTest(Uniforms.zTestGBuffer) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = $"{ 0 | (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering | (int)StencilUsage.TraceReflectionRay}",
@@ -478,12 +478,37 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // --------------------------------------------------
         // Transparent Depth Prepass & Postpass
 
+        public static RenderStateCollection HDLitTransparentDepthPrePostPass = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = Uniforms.stencilWriteMaskDepth,
+                Ref = Uniforms.stencilRefDepth,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
+
         public static RenderStateCollection HDTransparentDepthPrePostPass = new RenderStateCollection
         {
             { RenderState.Blend(Blend.One, Blend.Zero) },
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
             { RenderState.ColorMask("ColorMask 0") },
+        };
+
+        // --------------------------------------------------
+        // Transparent Depth Prepass & Postpass
+        
+        public static RenderStateCollection RayTracingPrepass = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            // Note: we use default ZTest LEqual so if the object have already been render in depth prepass, it will re-render to tag stencil
         };
 
         // --------------------------------------------------
