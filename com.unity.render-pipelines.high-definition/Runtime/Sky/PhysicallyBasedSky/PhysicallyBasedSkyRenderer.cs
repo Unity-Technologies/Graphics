@@ -438,10 +438,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passIndex++;
             }
+            else
+            {
+                int pass = (renderForCubemap ? 0 : 2) + (isPbrSkyActive ? 0 : 1);
 
-            int pass = (renderForCubemap ? 0 : 2) + (isPbrSkyActive ? 0 : 1);
-
-            CoreUtils.DrawFullScreen(builtinParams.commandBuffer, s_PbrSkyMaterial, s_PbrSkyMaterialProperties, pass);
+                CoreUtils.DrawFullScreen(builtinParams.commandBuffer, s_PbrSkyMaterial, s_PbrSkyMaterialProperties, pass);
+            }
         }
     }
 }
