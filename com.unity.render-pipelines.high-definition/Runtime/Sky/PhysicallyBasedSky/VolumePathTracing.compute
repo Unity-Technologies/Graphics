@@ -565,6 +565,16 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
         float sampledOpacity = rnd.x * (geometryHit ? 1 : viewOpacity);
         bool  volumeScatter  = (!geometryHit) || (sampledOpacity < viewOpacity);
 
+        if (geometryHit)
+        {
+            // We select between volume and surface scattering events
+            // based on opacity, so the opacity factor cancels out.
+        }
+        else
+        {
+            pathThroughput *= viewOpacity;
+        }
+
         if (volumeScatter)
         {
             float sampledOptDepth = OpticalDepthFromOpacity(sampledOpacity);
@@ -625,37 +635,27 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                     float airPhase = IsotropicPhaseFunction();
                     float aerPhase = CornetteShanksPhaseFunction(_AerosolAnisotropy, LdotD);
 
-                    if (geometryHit)
-                    {
-                        // We select between volume and surface scattering events
-                        // based on opacity, so the opacity factor cancels out.
-                    }
-                    else
-                    {
-                        pathThroughput *= viewOpacity;
-                    }
-
                     pathContribution += pathThroughput * (airAlbedo * airPhase + aerAlbedo * aerPhase) * (lightTransm * emittedRadiance);
-
-                    // Select the atmospheric component to sample.
-                    // Running out of random numbers, so have to cheat...
-                    float rndAlbedo = (rnd.x + rnd.y + rnd.z) * rcp(3) * totalAlbedo;
-
-                    // Generate a new ray.
-                    ray.origin = P;
-
-                    if (rndAlbedo < airAlbedo)
-                    {
-                        ray.direction = SampleHemisphereCosine(rnd.y, rnd.z);
-                    }
-                    else // Aerosols
-                    {
-                        ray.direction = SampleHemisphereCosine(rnd.y, rnd.z); // TODO: CornetteShanks
-                    }
-
-                    pathThroughput *= totalAlbedo; // Perfect phase IS
                 }
             }
+
+            // Generate a new ray.
+            ray.origin = P;
+
+            // Select the atmospheric component to sample.
+            // Running out of random numbers, so have to cheat...
+            float rndAlbedo = (rnd.x + rnd.y + rnd.z) * rcp(3) * totalAlbedo;
+
+            if (rndAlbedo < airAlbedo)
+            {
+                ray.direction = SampleSphereUniform(rnd.y, rnd.z);
+            }
+            else // Aerosols
+            {
+                ray.direction = SampleSphereUniform(rnd.y, rnd.z); // TODO: CornetteShanks
+            }
+
+            pathThroughput *= totalAlbedo; // Perfect phase IS
         }
         else // Surface scattering
         {
@@ -677,7 +677,7 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
 
                 float3 L = -light.forward.xyz;
 
-                float NdotL  = saturate(dot(N, L)); // TODO: 1-D
+                float NdotL  = dot(N, L); // TODO: 1-D
                 float cosHor = 0;
 
                 if (NdotL > cosHor) // Shadow test
@@ -693,29 +693,19 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                     float lightTransm     = TransmittanceFromOpticalDepth(lightOptDepth);
                     float emittedRadiance = light.color.rgb[(uint)ray.frequency];
 
-                    if (geometryHit)
-                    {
-                        // We select between volume and surface scattering events
-                        // based on opacity, so the opacity factor cancels out.
-                    }
-                    else
-                    {
-                        pathThroughput *= viewOpacity;
-                    }
-
                     pathContribution += pathThroughput * (groundAlbedo * Lambert()) * (lightTransm * emittedRadiance) * NdotL;
-
-                    // Generate a new ray.
-                    ray.origin    = P;
-                    ray.direction = SampleHemisphereCosine(rnd.y, rnd.z);
-
-                    pathThroughput *= groundAlbedo; // Perfect BSDF IS
                 }
             }
+
+            // Generate a new ray.
+            ray.origin    = P;
+            ray.direction = SampleHemisphereCosine(rnd.y, rnd.z, N);
+
+            pathThroughput *= groundAlbedo; // Perfect BSDF IS
         }
     }
 
-    radiance[(uint)ray.frequency] += pathContribution / pathPdf;
+    radiance[(uint)ray.frequency] = pathContribution / pathPdf;
 
     return float3(radiance[0], radiance[1], radiance[2]);
 }
