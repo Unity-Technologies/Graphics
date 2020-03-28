@@ -431,7 +431,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeIntParam(s_VolumePathTracingCS, "_DispatchThreadCount",       numGroupsX * 8 * numGroupsY * 8);
                 cmd.SetComputeIntParam(s_VolumePathTracingCS, "_DispatchWidth",             numGroupsX);
                 cmd.SetComputeIntParam(s_VolumePathTracingCS, "_PassIndex",                 passIndex);
-                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_BounceCount",               1);
+                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_BounceCount",               pbrSky.numberOfBounces.value);
                 cmd.SetComputeIntParam(s_VolumePathTracingCS, "_NumPaths",                  256);
 
                 cmd.DispatchCompute(s_VolumePathTracingCS, 0, numGroupsX, numGroupsY, 1);

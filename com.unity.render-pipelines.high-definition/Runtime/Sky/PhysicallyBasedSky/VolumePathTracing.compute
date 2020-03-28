@@ -113,7 +113,7 @@ float randfloat(uint i, uint p)
 // We specialize it for 6D, which means we generate s^6 points.
 float cmj6D(uint pointIndex, uint dimIndex, uint seed)
 {
-    dimIndex = dimIndex % (6 - 1);
+    dimIndex = dimIndex % 6;
 
     const uint s = 4;           // Number of strata per dimension
     const uint t = 6;           // Strength of the orthogonal array (number of dimensions)
@@ -498,7 +498,6 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
     // its density exponentially falls off to zero pretty quickly.
     const float A    = _AtmosphericRadius;
     const float R    = _PlanetaryRadius;
-    const float RRcp = _RcpPlanetaryRadius;
 
     // Reparametrize the ray.
     float r, rSq, rRcp, cosTheta;
@@ -586,10 +585,12 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
             float airAttCoef = _AirSeaLevelExtinction[(uint)ray.frequency]     * exp((R - r) * _AirDensityFalloff);
             float aerScaCoef = _AerosolSeaLevelScattering[(uint)ray.frequency] * exp((R - r) * _AerosolDensityFalloff);
             float aerAttCoef = _AerosolSeaLevelExtinction                      * exp((R - r) * _AerosolDensityFalloff);
-            float totalAtt   = airAttCoef + aerAttCoef;
 
-            float airAlbedo = airScaCoef * rcp(totalAtt);
-            float aerAlbedo = aerScaCoef * rcp(totalAtt);
+            float totalAtt    = airAttCoef + aerAttCoef;
+            float totalSca    = airScaCoef + aerScaCoef;
+            float airAlbedo   = airScaCoef * rcp(totalAtt);
+            float aerAlbedo   = aerScaCoef * rcp(totalAtt);
+            float totalAlbedo = totalSca   * rcp(totalAtt);
 
             for (uint lightIndex = 0; lightIndex < _DirectionalLightCount; lightIndex++)
             {
@@ -622,7 +623,7 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                     float airPhase = IsotropicPhaseFunction();
                     float aerPhase = CornetteShanksPhaseFunction(_AerosolAnisotropy, LdotD);
 
-                    if (!geometryHit)
+                    if (geometryHit)
                     {
                         // We select between volume and surface scattering events
                         // based on opacity, so the opacity factor cancels out.
@@ -634,25 +635,23 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
 
                     pathContribution += pathThroughput * (airAlbedo * airPhase + aerAlbedo * aerPhase) * (lightTransm * emittedRadiance);
 
-                    // // Select the atmospheric component to sample.
-                    // // Running out of random numbers, so have to cheat...
-                    // int component = (int)(rnd.x + rnd.y);
+                    // Select the atmospheric component to sample.
+                    // Running out of random numbers, so have to cheat...
+                    float rndAlbedo = (rnd.x + rnd.y + rnd.z) * rcp(3) * totalAlbedo;
 
-                    // // Generate a new ray.
-                    // if (component == 0) // Air
-                    // {
-                    //     ray.origin    = P;
-                    //     ray.direction = SampleHemisphereCosine(rnd.y, rnd.z);
+                    // Generate a new ray.
+                    ray.origin = P;
 
-                    //     pathThroughput *= airAlbedo; // Perfect IS
-                    // }
-                    // else // Aerosols
-                    // {
-                    //     ray.origin    = P;
-                    //     ray.direction = SampleHemisphereCosine(rnd.y, rnd.z); // TODO: CornetteShanks
+                    if (rndAlbedo < airAlbedo)
+                    {
+                        ray.direction = SampleHemisphereCosine(rnd.y, rnd.z);
+                    }
+                    else // Aerosols
+                    {
+                        ray.direction = SampleHemisphereCosine(rnd.y, rnd.z); // TODO: CornetteShanks
+                    }
 
-                    //     pathThroughput *= aerAlbedo; // Perfect IS
-                    // }
+                    pathThroughput *= totalAlbedo; // Perfect phase IS
                 }
             }
         }
@@ -660,8 +659,8 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
         {
             // Perform next event estimation.
             float3 P = ray.origin + groundEntry * ray.direction; // TODO: 1-D
-            float3 D = ray.direction;                        // TODO: 1-D
-            float3 N = normalize(P);                         // TODO: 1-D
+            float3 D = ray.direction;                            // TODO: 1-D
+            float3 N = normalize(P);                             // TODO: 1-D
 
             float groundAlbedo = _GroundAlbedo[(uint)ray.frequency];
 
@@ -692,7 +691,7 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                     float lightTransm     = TransmittanceFromOpticalDepth(lightOptDepth);
                     float emittedRadiance = light.color.rgb[(uint)ray.frequency];
 
-                    if (!geometryHit)
+                    if (geometryHit)
                     {
                         // We select between volume and surface scattering events
                         // based on opacity, so the opacity factor cancels out.
@@ -704,11 +703,11 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
 
                     pathContribution += pathThroughput * (groundAlbedo * Lambert()) * (lightTransm * emittedRadiance) * NdotL;
 
-                    // // Generate a new ray.
-                    // ray.origin    = P;
-                    // ray.direction = SampleHemisphereCosine(rnd.y, rnd.z);
+                    // Generate a new ray.
+                    ray.origin    = P;
+                    ray.direction = SampleHemisphereCosine(rnd.y, rnd.z);
 
-                    // pathThroughput *= groundAlbedo; // Perfect IS
+                    pathThroughput *= groundAlbedo; // Perfect BSDF IS
                 }
             }
         }
