@@ -23,9 +23,12 @@ namespace UnityEditor.Rendering.HighDefinition
         readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateBaking = new ExpandedState<Expandable, ProbeVolume>(Expandable.Baking, "HDRP");
 
         public static readonly CED.IDrawer Inspector = CED.Group(
+            CED.Group(
+                Drawer_FeatureWarningMessage
+                ),
             CED.Conditional(
                 IsFeatureDisabled,
-                Drawer_DisabledMessage
+                Drawer_FeatureEnableInfo
                 ),
             CED.Conditional(
                 IsFeatureEnabled,
@@ -66,9 +69,14 @@ namespace UnityEditor.Rendering.HighDefinition
             return ShaderOptions.ProbeVolumesEvaluationMode == (int)ProbeVolumesEvaluationModes.Disabled;
         }
 
-        static void Drawer_DisabledMessage(SerializedProbeVolume serialized, Editor owner)
+        static void Drawer_FeatureWarningMessage(SerializedProbeVolume serialized, Editor owner)
         {
-            EditorGUILayout.HelpBox("The ProbeVolume feature has been disabled. Please enable it via the HDRP configuration package.", MessageType.Error);
+            EditorGUILayout.HelpBox(Styles.k_featureWarning, MessageType.Warning);
+        }
+
+        static void Drawer_FeatureEnableInfo(SerializedProbeVolume serialized, Editor owner)
+        {
+            EditorGUILayout.HelpBox(Styles.k_featureEnableInfo, MessageType.Error);
         }
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)

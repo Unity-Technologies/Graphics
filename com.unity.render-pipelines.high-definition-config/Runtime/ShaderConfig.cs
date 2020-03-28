@@ -36,6 +36,15 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
         XrMaxViews = 1,
 #endif
+
+        // Warning: Probe Volumes is a highly experimental feature. It is disabled by default for this reason.
+        // It's functionality is subject to breaking changes and whole sale removal.
+        // It is not recommended for use outside of for providing feedback. It should not be used in production.
+        // To enable, set:
+        // ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.MaterialPass
+        // and inside of the editor run:
+        // Edit->Render Pipeline->Generate Shader Includes
+        // Probe Volumes feature must also be enabled inside of your HDRenderPipelineAsset.
         ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.Disabled,
         AreaLights = 1,
 

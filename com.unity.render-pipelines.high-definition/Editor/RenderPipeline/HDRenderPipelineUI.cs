@@ -875,6 +875,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 ++EditorGUI.indentLevel;
 
+                if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
+                    EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
+
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth, Styles.probeVolumeAtlasWidth);
                 if (EditorGUI.EndChangeCheck())

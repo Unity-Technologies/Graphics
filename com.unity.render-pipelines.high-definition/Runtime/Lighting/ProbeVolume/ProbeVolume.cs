@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
     } // class ProbeVolumeArtistParameters
 
     [ExecuteAlways]
-    [AddComponentMenu("Rendering/Probe Volume")]
+    [AddComponentMenu("Rendering/Experimental/Probe Volume")]
     public class ProbeVolume : MonoBehaviour
     {
         // Debugging code

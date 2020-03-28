@@ -6,6 +6,8 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal static class Styles
         {
+            public const string k_featureWarning = "Warning: Probe Volumes is a highly experimental feature.\nIt is disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.";
+            public const string k_featureEnableInfo = "\nProbe Volumes feature is disabled. To enable, set:\nProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.MaterialPass\ninside of ShaderConfig.cs\and inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes\nProbe Volumes feature must also be enabled inside of your HDRenderPipelineAsset.";
             public const string k_VolumeHeader = "Volume";
             public const string k_ProbesHeader = "Probes";
             public const string k_BakingHeader = "Baking";
