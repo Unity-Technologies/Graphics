@@ -62,63 +62,50 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_GraphEditorView.viewSettings.isPreviewVisible = showPreview;
 
             m_GraphEditorView.UserViewSettingsChangeCheck(0);
-
-            // TODO: As a team decide if we are going to make functions internal or use reflection inside of tests.
-            // m_GraphEditorView.UpdateSubWindowsVisibility(); // Needs to be non-private
-            MethodInfo updateVisibility = typeof(GraphEditorView).GetMethod("UpdateSubWindowsVisibility",
-                BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            updateVisibility.Invoke(m_GraphEditorView, null);
         }
 
+        // Tests that we the user can toggle the SubWindows
+        // The repeating Q<...>ing is done deliberately: to confirm that it's still in the graph view.
         [UnityTest]
-        public IEnumerator ToggleSubWindows()
+        public IEnumerator CanToggleSubWindows()
         {
-            Blackboard blackboard;
-            MasterPreviewView masterPreviewView;
-
             // Both
             ToggleSubWindows(true, true);
 
-            blackboard = m_GraphEditorView.Q<Blackboard>();
-            masterPreviewView = m_GraphEditorView.Q<MasterPreviewView>();
-
             yield return null;
 
-            Assert.That(blackboard, Is.Not.Null, "Blackboard is not visible when it should be.");
-            Assert.That(masterPreviewView, Is.Not.Null, "MasterPreviewView is not visible when it should be.");
+            Assert.That(m_GraphEditorView.Q<Blackboard>().style.display == DisplayStyle.Flex, "Blackboard is not visible when it should be. (1st pass)");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is not visible when it should be. (1st pass)");
+
+            yield return null;
 
             // Neither
             ToggleSubWindows(false, false);
 
-            blackboard = m_GraphEditorView.Q<Blackboard>();
-            masterPreviewView = m_GraphEditorView.Q<MasterPreviewView>();
-
             yield return null;
 
-            Assert.That(blackboard, Is.Null, "Blackboard remained visible when it should not be.");
-            Assert.That(masterPreviewView, Is.Null, "MasterPreviewView remained visible when it should not be.");
+            Assert.That(m_GraphEditorView.Q<Blackboard>().style.display == DisplayStyle.None, "Blackboard remained visible when it should not be. (2nd pass)");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView remained visible when it should not be. (2nd pass)");
+
+            yield return null;
 
             // Blackboard Only
             ToggleSubWindows(true, false);
 
-            blackboard = m_GraphEditorView.Q<Blackboard>();
-            masterPreviewView = m_GraphEditorView.Q<MasterPreviewView>();
-
             yield return null;
 
-            Assert.That(blackboard, Is.Not.Null, "Blackboard is not visible when it should be.");
-            Assert.That(masterPreviewView, Is.Null, "MasterPreviewView remained visible when it should not be.");
+            Assert.That(m_GraphEditorView.Q<Blackboard>().style.display == DisplayStyle.Flex, "Blackboard is not visible when it should be. (3rd pass)");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView remained visible when it should not be. (3rd pass)");
 
             // Preview Only
             ToggleSubWindows(false, true);
 
-            blackboard = m_GraphEditorView.Q<Blackboard>();
-            masterPreviewView = m_GraphEditorView.Q<MasterPreviewView>();
-
             yield return null;
 
-            Assert.That(masterPreviewView, Is.Not.Null, "MasterPreviewView is not visible when it should be.");
-            Assert.That(blackboard, Is.Null, "Blackboard remained visible when it should not be.");
+            Assert.That(m_GraphEditorView.Q<Blackboard>().style.display == DisplayStyle.None, "Blackboard remained visible when it should not be. (4th pass)");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is not visible when it should be. (4th pass)");
+
+            yield return null;
         }
 
         private IEnumerator ToggleSubWindowsThenCloseThenReopen(bool showBlackboard, bool showPreview)
@@ -133,48 +120,50 @@ namespace UnityEditor.ShaderGraph.UnitTests
             yield return null;
         }
 
+        // Tests that the Sub Window status is remembered when closing and reopening Shader Graphs.
+        // The repeating Q<...>ing is done deliberately: to confirm that it's still in the graph view.
         [UnityTest]
-        public IEnumerator ToggleSubWindowsRememberedAfterAfterCloseAndReopen()
+        public IEnumerator SubWindowStatusRememberedAfterCloseAndReopen()
         {
             yield return ToggleSubWindowsThenCloseThenReopen(true, true);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Not.Null, "0: Blackboard is not visible when it should be.");
-            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Not.Null, "0: MasterPreviewView is not visible when it should be.");
+            Assert.That(m_GraphEditorView.Q<Blackboard>().style.display == DisplayStyle.Flex, "Blackboard is NOT visible when it should be. (1st pass)");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is NOT visible when it should be. (1st pass)");
 
             yield return ToggleSubWindowsThenCloseThenReopen(true, true);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Not.Null, "1: Blackboard is not visible when it should be.");
-            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Not.Null, "1: MasterPreviewView is not visible when it should be.");
+            Assert.That(m_GraphEditorView.Q<Blackboard>().style.display == DisplayStyle.Flex, "Blackboard is NOT visible when it should be. (2nd pass)");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is NOT visible when it should be. (2nd pass)");
 
             yield return ToggleSubWindowsThenCloseThenReopen(true, false);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Not.Null, "2: Blackboard is not visible when it should be.");
-            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Null, "2: MasterPreviewView is visible when it should not be.");
+            Assert.That(m_GraphEditorView.Q<Blackboard>().style.display == DisplayStyle.Flex, "Blackboard is NOT visible when it should be. (3rd pass)");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (3rd pass)");
 
             yield return ToggleSubWindowsThenCloseThenReopen(true, false);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Not.Null, "3: Blackboard is not visible when it should be.");
-            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Null, "3: MasterPreviewView is visible when it should not be.");
+            Assert.That(m_GraphEditorView.Q<Blackboard>().style.display == DisplayStyle.Flex, "Blackboard is NOT visible when it should be. (4th pass)");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (4th pass)");
 
             yield return ToggleSubWindowsThenCloseThenReopen(false, true);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "4: Blackboard is visible when it should be.");
-            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Not.Null, "4: MasterPreviewView is not visible when it should not be.");
+            Assert.That(m_GraphEditorView.Q<Blackboard>().style.display == DisplayStyle.None, "Blackboard IS visible when it should not be. (5th pass)");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is NOT visible when it should not  (5th pass)be.");
 
             yield return ToggleSubWindowsThenCloseThenReopen(false, true);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "5: Blackboard is visible when it should be.");
-            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Not.Null, "5: MasterPreviewView is not visible when it should not be.");
+            Assert.That(m_GraphEditorView.Q<Blackboard>().style.display == DisplayStyle.None, "Blackboard IS visible when it should not be. (6th pass)");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is NOT visible when it should not  (6th pass)be.");
 
             yield return ToggleSubWindowsThenCloseThenReopen(false, false);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "6: Blackboard is visible when it should not be.");
-            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Null, "6: MasterPreviewView is visible when it should not be.");
+            Assert.That(m_GraphEditorView.Q<Blackboard>().style.display == DisplayStyle.None, "Blackboard IS visible when it should not be. (7th pass)");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (7th pass)");
 
             yield return ToggleSubWindowsThenCloseThenReopen(false, false);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "7: Blackboard is visible when it should not be.");
-            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Null, "7: MasterPreviewView is visible when it should not be.");
+            Assert.That(m_GraphEditorView.Q<Blackboard>().style.display == DisplayStyle.None, "Blackboard IS visible when it should not be. (8th pass)");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (8th pass)");
         }
 
         [UnityTest]
@@ -198,7 +187,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             blackboard.SetPosition(blackboardRect);
             yield return null;
 
-            CloseWindow();
+            CloseGraphWindow();
             yield return null;
             OpenGraphWindow();
             yield return null;

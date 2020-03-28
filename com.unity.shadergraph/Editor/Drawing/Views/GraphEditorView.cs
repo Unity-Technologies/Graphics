@@ -286,10 +286,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
             }
 
-            UpdateSubWindowsVisibility();
-
             var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
             EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
+
+            UpdateSubWindowsVisibility();
         }
 
         void UpdateSubWindowsVisibility()
