@@ -250,6 +250,8 @@ float RescaledChapman(float z, float Z, float cosTheta)
         ch = 2 * chP - ch;
     }
 
+    assert(ch >= 0);
+
     return ch;
 }
 
