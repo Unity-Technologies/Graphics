@@ -16,7 +16,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local _ ANTI_RINGING
         #pragma multi_compile_local LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY
 
-        #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"

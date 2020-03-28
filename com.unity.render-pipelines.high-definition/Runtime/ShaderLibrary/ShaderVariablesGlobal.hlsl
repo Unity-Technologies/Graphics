@@ -1,6 +1,17 @@
 #ifndef UNITY_SHADER_VARIABLES_GLOBAL_INCLUDED
 #define UNITY_SHADER_VARIABLES_GLOBAL_INCLUDED
 
+// ----------------------------------------------------------------------------
+// Macros that override the register local for constant buffers (for ray tracing mainly)
+// ----------------------------------------------------------------------------
+#if (SHADER_STAGE_RAY_TRACING && UNITY_RAY_TRACING_GLOBAL_RESOURCES)
+#define GLOBAL_RESOURCE(type, name, reg) type name : register(reg, space1);
+#define GLOBAL_CBUFFER_START(name, reg) cbuffer name : register(reg, space1) {
+#else
+#define GLOBAL_RESOURCE(type, name, reg) type name;
+#define GLOBAL_CBUFFER_START(name, reg) CBUFFER_START(name)
+#endif
+
 // Global Constant Buffers - b registers. Unity supports a maximum of 16 global constant buffers.
 	// Common constant buffers
 #define UNITY_GLOBAL_CBUFFER_REGISTER                           b0

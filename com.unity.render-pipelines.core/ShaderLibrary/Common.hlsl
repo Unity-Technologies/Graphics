@@ -185,17 +185,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 
 // ----------------------------------------------------------------------------
-// Macros that override the register local for constnat buffers (for ray tracing mainly)
-// ----------------------------------------------------------------------------
-#if (SHADER_STAGE_RAY_TRACING && UNITY_RAY_TRACING_GLOBAL_RESOURCES)
-    #define GLOBAL_RESOURCE(type, name, reg) type name : register(reg, space1);
-    #define GLOBAL_CBUFFER_START(name, reg) cbuffer name : register(reg, space1) {
-#else
-    #define GLOBAL_RESOURCE(type, name, reg) type name;
-    #define GLOBAL_CBUFFER_START(name, reg) CBUFFER_START(name)
-#endif
-
-// ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
 // ----------------------------------------------------------------------------
 
@@ -1168,11 +1157,11 @@ void LODDitheringTransition(uint2 fadeMaskSeed, float ditherFactor)
 // while on other APIs is in the red channel. Note that on some platform, always using the green channel might work, but is not guaranteed.
 uint GetStencilValue(uint2 stencilBufferVal)
 {
-#if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE)  
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE)
     return stencilBufferVal.y;
 #else
     return stencilBufferVal.x;
 #endif
-} 
+}
 
 #endif // UNITY_COMMON_INCLUDED
