@@ -518,36 +518,34 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
         ray.origin += atmosEntryExit.x * ray.direction;
         // Careful: we may end up on the edge of the atmosphere and, numerically, outside.
         ray.origin *= (1 - 1e-6); // 2 orders of magnitude larger than FLT_EPS
-
-        // Update ray parameters.
-        ApplySphericalSymmetry(ray.origin, ray.direction, /* -> */ r, rSq, rRcp, cosTheta);
-
-        atmosEntryExit.y -= atmosEntryExit.x;
-        atmosEntryExit.x  = 0;
     }
-
-    float tGround = IntersectSphere(R, cosTheta, r, rRcp).x; // Entry;
-
-    float cosHor       = ComputeCosineOfHorizonAngle(rRcp);
-    bool  aboveHorizon = (cosTheta >= cosHor);
-
-    if (aboveHorizon)
-    {
-        ray.maxDist = atmosEntryExit.y;
-    }
-    else // Intersect the planet
-    {
-        ray.maxDist = tGround;
-    }
-
-    assert(ray.maxDist > 0);
 
     float pathContribution = 0;
+    float pathThroughput   = 1;
     float frequencyPdf     = 1.0/3.0;
     float pathPdf          = frequencyPdf;
 
     for (bounce = 1; bounce <= bounceCount; bounce++) // Bounces are indexed starting from 1
     {
+        // Update ray parameters.
+        ApplySphericalSymmetry(ray.origin, ray.direction, /* -> */ r, rSq, rRcp, cosTheta);
+
+        float groundEntry  = IntersectSphere(R, cosTheta, r, rRcp).x; // Entry
+        float atmosExit    = IntersectSphere(A, cosTheta, r, rRcp).y; // Exit
+        float cosHor       = ComputeCosineOfHorizonAngle(rRcp);
+        bool  aboveHorizon = (cosTheta >= cosHor);
+
+        if (aboveHorizon)
+        {
+            ray.maxDist = atmosExit;
+        }
+        else // Intersect the planet
+        {
+            ray.maxDist = groundEntry;
+        }
+
+        assert(ray.maxDist > 0);
+
         seed = permute(tileIndexInDispatch, tileCountInDispatch, s_RandomPrimes[bounce / 2]);
         rnd  = float3(cmj6D(pointIndex, bounce * 3 + 0, seed),
                       cmj6D(pointIndex, bounce * 3 + 1, seed),
@@ -624,21 +622,44 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                     float airPhase = IsotropicPhaseFunction();
                     float aerPhase = CornetteShanksPhaseFunction(_AerosolAnisotropy, LdotD);
 
-                    if (geometryHit)
+                    if (!geometryHit)
                     {
                         // We select between volume and surface scattering events
                         // based on opacity, so the opacity factor cancels out.
-                        viewOpacity = 1;
+                    }
+                    else
+                    {
+                        pathThroughput *= viewOpacity;
                     }
 
-                    pathContribution += viewOpacity * (airAlbedo * airPhase + aerAlbedo * aerPhase) * (lightTransm * emittedRadiance);
+                    pathContribution += pathThroughput * (airAlbedo * airPhase + aerAlbedo * aerPhase) * (lightTransm * emittedRadiance);
+
+                    // // Select the atmospheric component to sample.
+                    // // Running out of random numbers, so have to cheat...
+                    // int component = (int)(rnd.x + rnd.y);
+
+                    // // Generate a new ray.
+                    // if (component == 0) // Air
+                    // {
+                    //     ray.origin    = P;
+                    //     ray.direction = SampleHemisphereCosine(rnd.y, rnd.z);
+
+                    //     pathThroughput *= airAlbedo; // Perfect IS
+                    // }
+                    // else // Aerosols
+                    // {
+                    //     ray.origin    = P;
+                    //     ray.direction = SampleHemisphereCosine(rnd.y, rnd.z); // TODO: CornetteShanks
+
+                    //     pathThroughput *= aerAlbedo; // Perfect IS
+                    // }
                 }
             }
         }
         else // Surface scattering
         {
             // Perform next event estimation.
-            float3 P = ray.origin + tGround * ray.direction; // TODO: 1-D
+            float3 P = ray.origin + groundEntry * ray.direction; // TODO: 1-D
             float3 D = ray.direction;                        // TODO: 1-D
             float3 N = normalize(P);                         // TODO: 1-D
 
@@ -671,15 +692,23 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                     float lightTransm     = TransmittanceFromOpticalDepth(lightOptDepth);
                     float emittedRadiance = light.color.rgb[(uint)ray.frequency];
 
-                    if (geometryHit)
+                    if (!geometryHit)
                     {
                         // We select between volume and surface scattering events
                         // based on opacity, so the opacity factor cancels out.
-                        viewOpacity = 1;
+                    }
+                    else
+                    {
+                        pathThroughput *= viewOpacity;
                     }
 
-                    // We sample proportionally to 'viewOpacity', so it cancels out.
-                    pathContribution += viewOpacity * (groundAlbedo * Lambert()) * (lightTransm * emittedRadiance) * NdotL;
+                    pathContribution += pathThroughput * (groundAlbedo * Lambert()) * (lightTransm * emittedRadiance) * NdotL;
+
+                    // // Generate a new ray.
+                    // ray.origin    = P;
+                    // ray.direction = SampleHemisphereCosine(rnd.y, rnd.z);
+
+                    // pathThroughput *= groundAlbedo; // Perfect IS
                 }
             }
         }
