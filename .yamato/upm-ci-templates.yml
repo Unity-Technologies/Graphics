@@ -142,8 +142,4 @@ all_template_ci_{{ editor.version }}:
     - .yamato/upm-ci-templates.yml#test_{{ template.id}}_{{ platform.name }}_{{ editor.version }}_dependencies
 {% endfor %}
 {% endfor %}
- artifacts:
-    packages:
-      paths:
-        - "upm-ci~/packages/**/*"
 {% endfor %}
