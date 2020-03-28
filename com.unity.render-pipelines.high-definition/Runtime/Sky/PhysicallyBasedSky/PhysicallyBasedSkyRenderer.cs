@@ -426,12 +426,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 int numGroupsX = HDUtils.DivRoundUp((int)builtinParams.screenSize.x, 8);
                 int numGroupsY = HDUtils.DivRoundUp((int)builtinParams.screenSize.y, 8);
 
-                cmd.SetComputeTextureParam(s_VolumePathTracingCS, 0, "_ColorBuffer",  builtinParams.colorBuffer);
-                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_DispatchThreadCount", numGroupsX * 8 * numGroupsY * 8);
-                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_DispatchWidth",       numGroupsX);
-                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_PassIndex",           passIndex);
-                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_BounceCount",         1);
-                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_NumPaths",            256);
+                cmd.SetComputeTextureParam(s_VolumePathTracingCS, 0, "_ColorBuffer",        builtinParams.colorBuffer);
+                cmd.SetComputeTextureParam(s_VolumePathTracingCS, 0, "_AccumulationBuffer", builtinParams.accumulationBuffer);
+                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_DispatchThreadCount",       numGroupsX * 8 * numGroupsY * 8);
+                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_DispatchWidth",             numGroupsX);
+                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_PassIndex",                 passIndex);
+                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_BounceCount",               1);
+                cmd.SetComputeIntParam(s_VolumePathTracingCS, "_NumPaths",                  256);
 
                 cmd.DispatchCompute(s_VolumePathTracingCS, 0, numGroupsX, numGroupsY, 1);
 

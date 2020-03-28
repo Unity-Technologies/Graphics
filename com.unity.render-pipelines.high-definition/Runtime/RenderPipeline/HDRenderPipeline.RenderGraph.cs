@@ -785,7 +785,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     var intermediateBuffer = context.resources.GetTexture(data.intermediateBuffer);
                     var inputVolumetric = context.resources.GetTexture(data.volumetricLighting);
 
-                    data.skyManager.RenderSky(data.hdCamera, data.sunLight, destination, depthBuffer, data.debugDisplaySettings, data.frameCount, context.cmd);
+                    // TODO: accumulationBuffer
+                    data.skyManager.RenderSky(data.hdCamera, data.sunLight, destination, depthBuffer, null, data.debugDisplaySettings, data.frameCount, context.cmd);
 
                     if (Fog.IsFogEnabled(data.hdCamera) || Fog.IsPBRFogEnabled(data.hdCamera))
                     {

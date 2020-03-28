@@ -147,6 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // 'm_CameraColorBuffer' does not contain diffuse lighting of SSS materials until the SSS pass. It is stored within 'm_CameraSssDiffuseLightingBuffer'.
         RTHandle m_CameraColorBuffer;
+        RTHandle m_PathTracedSkyAccumulationBuffer;
         RTHandle m_OpaqueAtmosphericScatteringBuffer; // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity
         RTHandle m_CameraSssDiffuseLightingBuffer;
 
@@ -581,6 +582,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SsrLightingTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, name: "SSR_Lighting_Texture");
             }
 
+            // if (true) // TODO
+            {
+                m_PathTracedSkyAccumulationBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "PathTracedSkyAccumulationBuffer");
+            }
+
             // Let's create the MSAA textures
             if (m_Asset.currentPlatformRenderPipelineSettings.supportMSAA)
             {
@@ -630,6 +636,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // RTHandles.Release(m_SsrDebugTexture);
             RTHandles.Release(m_SsrHitPointTexture);
             RTHandles.Release(m_SsrLightingTexture);
+
+            RTHandles.Release(m_PathTracedSkyAccumulationBuffer);
 
             RTHandles.Release(m_DebugColorPickerBuffer);
             RTHandles.Release(m_DebugFullScreenTempBuffer);
@@ -3360,7 +3368,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled);
 
             var visualEnv = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-            m_SkyManager.RenderSky(hdCamera, GetCurrentSunLight(), colorBuffer, depthBuffer, m_CurrentDebugDisplaySettings, m_FrameCount, cmd);
+            m_SkyManager.RenderSky(hdCamera, GetCurrentSunLight(), colorBuffer, depthBuffer, m_PathTracedSkyAccumulationBuffer, m_CurrentDebugDisplaySettings, m_FrameCount, cmd);
 
             if (Fog.IsFogEnabled(hdCamera) || Fog.IsPBRFogEnabled(hdCamera))
             {
@@ -3957,7 +3965,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", debugDisplayEnabledOrSceneLightingDisabled);
 
             // Setting this all the time due to a strange bug that either reports a (globally) bound texture as not bound or where SetGlobalTexture doesn't behave as expected.
-            // As a workaround we bind it regardless of debug display. Eventually with 
+            // As a workaround we bind it regardless of debug display. Eventually with
             cmd.SetGlobalTexture(HDShaderIDs._DebugMatCapTexture, defaultResources.textures.matcapTex);
 
             if (debugDisplayEnabledOrSceneLightingDisabled ||

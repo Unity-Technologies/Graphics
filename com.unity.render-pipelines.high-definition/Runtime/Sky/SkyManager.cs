@@ -61,6 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public RTHandle                 colorBuffer;
         /// <summary>Depth buffer used for rendering.</summary>
         public RTHandle                 depthBuffer;
+        /// <summary>Accumulation buffer used for rendering.</summary>
+        public RTHandle                 accumulationBuffer;
         /// <summary>Current frame index.</summary>
         public int                      frameIndex;
         /// <summary>Current sky settings.</summary>
@@ -783,7 +785,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void UpdateBuiltinParameters(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+        internal void UpdateBuiltinParameters(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, RTHandle accumulationBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             m_BuiltinParameters.hdCamera = hdCamera;
             m_BuiltinParameters.commandBuffer = cmd;
@@ -794,6 +796,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.screenSize = hdCamera.screenSize;
             m_BuiltinParameters.colorBuffer = colorBuffer;
             m_BuiltinParameters.depthBuffer = depthBuffer;
+            m_BuiltinParameters.accumulationBuffer = accumulationBuffer;
             m_BuiltinParameters.debugSettings = debugSettings;
             m_BuiltinParameters.frameIndex = frameIndex;
             m_BuiltinParameters.skySettings = skyContext.skySettings;
@@ -809,6 +812,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         sunLight,
                                         colorBuffer,
                                         depthBuffer,
+                                        null,
                                         debugSettings,
                                         frameIndex,
                                         cmd);
@@ -829,7 +833,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void RenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+        public void RenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, RTHandle accumulationBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             var skyContext = hdCamera.visualSky;
             if (skyContext.IsValid() && hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky)
@@ -841,6 +845,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                          sunLight,
                                          colorBuffer,
                                          depthBuffer,
+                                         accumulationBuffer,
                                          debugSettings,
                                          frameIndex,
                                          cmd);

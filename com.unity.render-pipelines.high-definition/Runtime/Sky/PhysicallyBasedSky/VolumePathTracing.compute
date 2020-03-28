@@ -30,6 +30,7 @@ TEXTURECUBE(_GroundEmissionTexture);
 TEXTURECUBE(_SpaceEmissionTexture);
 
 RW_TEXTURE2D_X(float4, _ColorBuffer);
+RW_TEXTURE2D_X(float4, _AccumulationBuffer);
 
 int _HasGroundAlbedoTexture;    // bool...
 int _HasGroundEmissionTexture;  // bool...
@@ -701,7 +702,6 @@ void main(uint2 groupCoordInDispatch  : SV_GroupID,
           uint  threadIndexInGroup    : SV_GroupIndex,
           uint2 threadCoordInDispatch : SV_DispatchThreadID)
 {
-    if (_PassIndex >= _NumPaths) return;
 
     const uint groupIndexInDispatch = groupCoordInDispatch.y * _DispatchWidth + groupCoordInDispatch.x;
 
@@ -737,11 +737,27 @@ void main(uint2 groupCoordInDispatch  : SV_GroupID,
     radiance.b  = g_RadianceB[threadIndexInGroup] * rcp(16384);
     sampleCount = g_SampleCnt[threadIndexInGroup];
 
-    // // We store the sample count in the alpha channel.
-    float3 oldRadiance    = _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].rgb * GetInversePreviousExposureMultiplier();
-    float  oldSampleCount = round(_ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].a);
-    float  newSampleCount = oldSampleCount + sampleCount;
-    float4 newValue       = float4((oldRadiance * oldSampleCount + radiance) * rcp(max(newSampleCount, 1)), newSampleCount);
-    newValue.rgb *= GetCurrentExposureMultiplier(); // Only the full-screen pass is pre-exposed
-    _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] = newValue;
+    float3 prevRadiance = 0; float prevSampleCount = 0;
+
+    if (_PassIndex != 0)
+    {
+        prevRadiance    = _AccumulationBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].rgb;
+        prevSampleCount = round(_AccumulationBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)].a);
+    }
+
+    if (_PassIndex < _NumPaths)
+    {
+        radiance    += prevRadiance;
+        sampleCount += prevSampleCount;
+
+        _AccumulationBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] = float4(radiance, sampleCount);
+    }
+    else
+    {
+        radiance    = prevRadiance;
+        sampleCount = prevSampleCount;
+    }
+
+    radiance *= GetCurrentExposureMultiplier(); // Only the full-screen pass is pre-exposed
+    _ColorBuffer[COORD_TEXTURE2D_X(threadCoordInDispatch)] = float4(radiance * rcp(max(sampleCount, 1)), 1);
 }
