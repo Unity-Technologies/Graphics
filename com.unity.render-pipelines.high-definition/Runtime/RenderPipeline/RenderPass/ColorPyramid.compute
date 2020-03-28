@@ -19,7 +19,7 @@
 // Author:  Bob Brown
 //
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #pragma kernel KColorGaussian                       KERNEL_SIZE=8  MAIN_GAUSSIAN=KColorGaussian                                     DISABLE_TEXTURE2D_X_ARRAY
 #pragma kernel KColorDownsample                     KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsample                                 DISABLE_TEXTURE2D_X_ARRAY
