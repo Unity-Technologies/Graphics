@@ -103,6 +103,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
 
             HLSLPROGRAM
                 #define SOURCE_DEPTH_NORMALS
+                #pragma multi_compile_local _ _BLUR_ENABLED
                 #pragma vertex VertDefault
                 #pragma fragment SSAO
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
@@ -149,6 +150,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
 
             HLSLPROGRAM
                 #define SOURCE_GBUFFER
+                #pragma multi_compile_local _ _BLUR_ENABLED
                 #pragma vertex VertDefault
                 #pragma fragment SSAO
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
