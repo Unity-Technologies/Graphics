@@ -125,7 +125,10 @@ half CompareNormal(half3 d1, half3 d2)
 
 float GetLinearDepth(float2 uv)
 {
-    return LinearEyeDepth(SampleSceneDepth(uv.xy).r, _ZBufferParams);
+    float rawDepth = SampleSceneDepth(uv.xy).r;
+    float persp = LinearEyeDepth(rawDepth, _ZBufferParams);
+    float ortho = (_ProjectionParams.z-_ProjectionParams.y)*(1-rawDepth)+_ProjectionParams.y;
+    return lerp(persp,ortho,unity_OrthoParams.w);
 }
 
 // Reconstruct view-space position from UV and depth.
