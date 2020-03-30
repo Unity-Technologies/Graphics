@@ -29,10 +29,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     return node;
                 }
-                
+
                 int wPadd = 0;
                 int hPadd = 0;
-                
+
                 if (powerOfTwoPadding)
                 {
                     wPadd = (int)m_Rect.x % width;
@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // perform the split
                     m_RightChild = new AtlasNode();
                     m_BottomChild = new AtlasNode();
-                    
+
                     m_Rect.z += wPadd;
                     m_Rect.w += hPadd;
                     m_Rect.x -= wPadd;
@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
     class Texture2DAtlas
     {
         protected RTHandle m_AtlasTexture = null;
-		protected bool m_IsAtlasTextureOwner = false;
+        protected bool m_IsAtlasTextureOwner = false;
         protected int m_Width;
         protected int m_Height;
         protected bool m_UseMipMaps;
