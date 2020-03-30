@@ -96,7 +96,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for hair for ray tracing effects.
 
 ### Fixed
-- Focus on Decal uses the extends of the projectors
 - Fix when rescale probe all direction below zero (1219246)
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -494,8 +493,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Half fixed shuriken particle light that cast shadows (only the first one will be correct)
 - Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
 - Fixed custom pass GC alloc issue in CustomPassVolume.GetActiveVolumes().
+- Fixed a bug where instanced shadergraph shaders wouldn't compile on PS4.
 - Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
 - Fixed shadow cascade tooltip when using the metric mode (case 1229232)
+- Focus on Decal uses the extends of the projectors
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
