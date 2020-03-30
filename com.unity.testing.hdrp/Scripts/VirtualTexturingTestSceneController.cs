@@ -61,7 +61,9 @@ public class VirtualTexturingTestSceneController : MonoBehaviour
         }
         if (Input.GetKeyDown("t"))
         {
+#if ENABLE_VIRTUALTEXTURES            
             UnityEngine.Rendering.VirtualTexturing.Debugging.debugTilesEnabled = !UnityEngine.Rendering.VirtualTexturing.Debugging.debugTilesEnabled;
+#endif            
         }
 
         if (dirLight != null && rotateLight)
