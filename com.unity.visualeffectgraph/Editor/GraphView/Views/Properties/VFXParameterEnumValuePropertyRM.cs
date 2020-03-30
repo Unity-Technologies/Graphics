@@ -14,7 +14,7 @@ using VFXVector4Field = UnityEditor.VFX.UI.VFXVector4Field;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXParameterEnumValuePropertyRM : PropertyRM<VFXParameter.EnumValue>
+    class VFXParameterEnumValuePropertyRM : PropertyRM<VFXEnumValue>
     {
         VFXStringField m_NameField;
         PropertyRM m_ValueProperty;
@@ -35,11 +35,11 @@ namespace UnityEditor.VFX.UI
 
             object IPropertyRMProvider.value
             {
-                get => ((VFXParameter.EnumValue)m_Owner.m_Provider.value).value.Get();
+                get => ((VFXEnumValue)m_Owner.m_Provider.value).value.Get();
 
                 set
                 {
-                    var val = (VFXParameter.EnumValue)m_Owner.m_Provider.value;
+                    var val = (VFXEnumValue)m_Owner.m_Provider.value;
 
                     val.value.Set(value);
 
@@ -57,7 +57,7 @@ namespace UnityEditor.VFX.UI
 
             object[] IPropertyRMProvider.customAttributes => null;
 
-            Type IPropertyRMProvider.portType => ((VFXParameter.EnumValue)m_Owner.m_Provider.value).value.type;
+            Type IPropertyRMProvider.portType => ((VFXEnumValue)m_Owner.m_Provider.value).value.type;
 
             int IPropertyRMProvider.depth => 0;
 
@@ -101,7 +101,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
-            m_NameField.value = ((VFXParameter.EnumValue)m_Provider.value).name;
+            m_NameField.value = ((VFXEnumValue)m_Provider.value).name;
             m_ValueProperty.Update();
         }
 
@@ -118,7 +118,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXListParameterEnumValuePropertyRM : ListPropertyRM<VFXParameter.EnumValue, VFXParameterEnumValuePropertyRM>
+    class VFXListParameterEnumValuePropertyRM : ListPropertyRM<VFXEnumValue, VFXParameterEnumValuePropertyRM>
     {
         public VFXListParameterEnumValuePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -129,9 +129,9 @@ namespace UnityEditor.VFX.UI
             return new VFXParameterEnumValuePropertyRM(provider,18);
         }
 
-        protected override VFXParameter.EnumValue CreateItem()
+        protected override VFXEnumValue CreateItem()
         {
-            return new VFXParameter.EnumValue() { name = "New item", value = new VFXSerializableObject(m_Provider.portType,VFXConverter.ConvertTo(m_List.itemCount,m_Provider.portType))};
+            return new VFXEnumValue() { name = "New item", value = new VFXSerializableObject(m_Provider.portType,VFXConverter.ConvertTo(m_List.itemCount,m_Provider.portType))};
         }
     }
 }

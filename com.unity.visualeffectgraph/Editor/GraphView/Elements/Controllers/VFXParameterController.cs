@@ -194,7 +194,7 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.expandableIfShowsEverything => false;
 
-        object IPropertyRMProvider.value { get => m_Owner.model.m_EnumValues; set => m_Owner.model.m_EnumValues = (List<VFXParameter.EnumValue>)value; }
+        object IPropertyRMProvider.value { get => m_Owner.model.enumValues; set => m_Owner.model.enumValues = (List<VFXEnumValue>)value; }
 
         bool IPropertyRMProvider.spaceableAndMasterOfSpace => false;
 

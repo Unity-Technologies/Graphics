@@ -30,7 +30,8 @@ namespace UnityEditor.VFX.UI
         }
 
         protected VFXBaseSliderField<U> m_Slider;
-        protected TextValueField<U> m_TextField;
+        protected TextValueField<U>     m_TextField;
+        protected VFXEnumValuePopup<U>     m_EnumPopup;
 
         protected abstract INotifyValueChanged<U> CreateSimpleField(out TextValueField<U> textField);
         protected abstract INotifyValueChanged<U> CreateSliderField(out VFXBaseSliderField<U> slider);
@@ -41,11 +42,19 @@ namespace UnityEditor.VFX.UI
             INotifyValueChanged<U> result;
             if (!RangeShouldCreateSlider(range))
             {
-                result = CreateSimpleField(out m_TextField);
-                if (m_TextField != null)
+                if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
                 {
-                    m_TextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
-                    m_TextField.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost);
+                    result = m_EnumPopup = new VFXEnumValuePopup<U>();
+                    m_EnumPopup.enumValues = m_Provider.attributes.FindEnum();
+                }
+                else
+                {
+                    result = CreateSimpleField(out m_TextField);
+                    if (m_TextField != null)
+                    {
+                        m_TextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
+                        m_TextField.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost);
+                    }
                 }
             }
             else
@@ -109,6 +118,7 @@ namespace UnityEditor.VFX.UI
             }
             if (m_TooltipHolder != null && m_Value != null)
                 m_TooltipHolder.tooltip = m_Value.ToString();
+
             base.UpdateGUI(force);
         }
 

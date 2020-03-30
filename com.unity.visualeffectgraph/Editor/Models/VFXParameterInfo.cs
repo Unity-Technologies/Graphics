@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
                     }
                     else if( parameter.valueFilter == ValueFilter.Enum)
                     {
-                        paramInfo.enumValues = parameter.m_EnumValues.Select(t => new VFXParameterInfo.EnumValue() { name = t.name, value = (float)VFXConverter.ConvertTo(t.value.Get(),typeof(float))}).ToList();
+                        paramInfo.enumValues = parameter.enumValues.Select(t => new VFXParameterInfo.EnumValue() { name = t.name, value = (float)VFXConverter.ConvertTo(t.value.Get(),typeof(float))}).ToList();
                     }
                     paramInfo.defaultValue = new VFXSerializableObject(parameter.type, parameter.value);
 

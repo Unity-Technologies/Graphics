@@ -40,15 +40,17 @@ namespace UnityEditor.VFX
         [SerializeField]
         private bool m_IsOutput;
 
-        [Serializable]
-        public struct EnumValue
-        {
-            public string name;
-            public VFXSerializableObject value;
-        }
-
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
-        public List<EnumValue> m_EnumValues;
+        protected List<VFXEnumValue> m_EnumValues;
+
+        public List<VFXEnumValue> enumValues
+        {
+            get { return m_EnumValues; }
+            set
+            {
+                m_EnumValues = value;
+            }
+        }
 
         [SerializeField]
         ValueFilter m_ValueFilter;
@@ -75,9 +77,9 @@ namespace UnityEditor.VFX
                             m_EnumValues = null;
                             break;
                         case ValueFilter.Enum:
-                            m_EnumValues = new List<EnumValue>();
-                            m_EnumValues.Add(new EnumValue() { name = "Zero", value = new VFXSerializableObject(type, VFXConverter.ConvertTo(0, type)) });
-                            m_EnumValues.Add(new EnumValue() { name = "One", value = new VFXSerializableObject(type, VFXConverter.ConvertTo(1, type)) });
+                            m_EnumValues = new List<VFXEnumValue>();
+                            m_EnumValues.Add(new VFXEnumValue() { name = "Zero", value = new VFXSerializableObject(type, VFXConverter.ConvertTo(0, type)) });
+                            m_EnumValues.Add(new VFXEnumValue() { name = "One", value = new VFXSerializableObject(type, VFXConverter.ConvertTo(1, type)) });
                             m_Max = m_Min = null;
                             break;
                     }

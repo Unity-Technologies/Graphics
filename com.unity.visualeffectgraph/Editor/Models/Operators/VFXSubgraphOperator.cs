@@ -37,8 +37,10 @@ namespace UnityEditor.VFX
             if (!string.IsNullOrEmpty(param.tooltip))
                 attributes.Add(new TooltipAttribute(param.tooltip));
 
-            if (param.valueFilter == ValueFilter.Enum)
+            if (param.valueFilter == ValueFilter.Range)
                 attributes.Add(new RangeAttribute((float)VFXConverter.ConvertTo(param.m_Min.Get(), typeof(float)), (float)VFXConverter.ConvertTo(param.m_Max.Get(), typeof(float))));
+            else if( param.valueFilter == ValueFilter.Enum)
+                attributes.Add(new EnumAttribute(param.enumValues.ToArray()));
 
             return new VFXPropertyWithValue(new VFXProperty(param.type, param.exposedName, attributes.ToArray()), param.value);
         }

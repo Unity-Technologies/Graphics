@@ -8,6 +8,16 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+    sealed class EnumAttribute  : PropertyAttribute
+    {
+        public EnumAttribute(VFXEnumValue[] values)
+        {
+            this.values = values;
+        }
+        public readonly VFXEnumValue[] values;
+    }
+
     // Attribute used to normalize a Vector or float
     [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     sealed class NormalizeAttribute : PropertyAttribute
@@ -35,15 +45,16 @@ namespace UnityEditor.VFX
         [Flags]
         public enum Type
         {
-            Range       = GraphAttribute | (1 << 0),
-            Min         = GraphAttribute | (1 << 1),
-            Normalized  = GraphAttribute | (1 << 2),
-            Tooltip     = 1 << 3,
-            Angle       = 1 << 4,
-            Color       = 1 << 5,
-            Regex       = 1 << 6,
-            Delayed     = 1 << 7,
-            BitField    = 1 << 8,
+            Range = GraphAttribute | (1 << 0),
+            Min = GraphAttribute | (1 << 1),
+            Normalized = GraphAttribute | (1 << 2),
+            Tooltip = 1 << 3,
+            Angle = 1 << 4,
+            Color = 1 << 5,
+            Regex = 1 << 6,
+            Delayed = 1 << 7,
+            BitField = 1 << 8,
+            Enum = 1 << 9,
 
             // Tells whether this attribute modifies the expression graph
             GraphAttribute = 1 << 31,
@@ -59,7 +70,8 @@ namespace UnityEditor.VFX
             { typeof(ShowAsColorAttribute), Type.Color },
             { typeof(RegexAttribute),       Type.Regex },
             { typeof(DelayedAttribute),     Type.Delayed },
-            { typeof(BitFieldAttribute),    Type.BitField }
+            { typeof(BitFieldAttribute),    Type.BitField },
+            { typeof(EnumAttribute),    Type.Enum }
         };
 
         public VFXPropertyAttributes(params object[] attributes) : this()
@@ -80,7 +92,7 @@ namespace UnityEditor.VFX
                         throw new ArgumentException($"The same property attribute type ({attribute.GetType()}) was added twice");
                     m_Flag |= attributeType;
                 }
-            }  
+            }
         }
 
         public VFXExpression ApplyToExpressionGraph(VFXExpression exp)
@@ -137,7 +149,7 @@ namespace UnityEditor.VFX
                     exp = VFXOperatorUtility.Normalize(exp);
                 }
                 else
-                    throw new NotImplementedException("Unrecognized expression attribute: "+ attribute);
+                    throw new NotImplementedException("Unrecognized expression attribute: " + attribute);
             }
 
             return exp;
@@ -180,6 +192,16 @@ namespace UnityEditor.VFX
 
             return Vector2.zero;
         }
+
+        public VFXEnumValue[] FindEnum()
+        {
+            if(Is(Type.Enum))
+            {
+                return m_AllAttributes.OfType<EnumAttribute>().First().values;
+            }
+            return null;
+        }
+
         public string ApplyRegex(object obj)
         {
             if (Is(Type.Regex))
