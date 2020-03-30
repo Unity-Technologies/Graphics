@@ -719,16 +719,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (!(m_GraphView.GetNodeByGuid(node.guid.ToString()) is MaterialNodeView nodeView))
                     continue;
 
-                if (messageData.Value.Count == 0)
-                {
-                    var badge = nodeView.Q<IconBadge>();
-                    badge?.Detach();
-                    badge?.RemoveFromHierarchy();
-                }
-                else
+                if (messageData.Value.Count > 0)
                 {
                     var foundMessage = messageData.Value.First();
                     nodeView.AttachMessage(foundMessage.message, foundMessage.severity);
+                }
+                else
+                {
+                    nodeView.ClearMessage();
                 }
             }
         }

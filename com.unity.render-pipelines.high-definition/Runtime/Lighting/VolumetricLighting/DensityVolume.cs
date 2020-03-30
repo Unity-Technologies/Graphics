@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
     } // class DensityVolumeParameters
 
     /// <summary>Density volume class.</summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Density-Volume" + Documentation.endURL)]
+    [HelpURL(Documentation.baseURL + Documentation.releaseVersion + Documentation.subURL + "Density-Volume" + Documentation.endURL)]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Density Volume")]
     public partial class DensityVolume : MonoBehaviour

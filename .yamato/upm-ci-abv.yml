@@ -124,7 +124,7 @@ trunk_verification:
     #skip
     {% else %}
     
-    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Windows64_DX11_{{ testplatform.name }}_CUSTOM-REVISION
+    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Win_DX11_{{ testplatform.name }}_CUSTOM-REVISION
       rerun: always
     {% endif %}
     {% endif %}
