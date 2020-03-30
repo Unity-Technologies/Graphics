@@ -955,7 +955,7 @@ namespace UnityEditor.ShaderGraph
                         if (stNode.noFeedback) continue;
                         if (keywordPermutationsPerNode[index] == null)
                         {
-                            Debug.Assert(shaderKeywords.permutations.Count == 1);//If there is more than one keywordPermutationsPerNode should be filled in
+                            Debug.Assert(shaderKeywords.permutations.Count == 0, $"Shader has {shaderKeywords.permutations.Count} permutations but keywordPermutationsPerNode of some nodes are null." );
                             feedbackVariablesPerPermutation[0].Add(stNode.GetFeedbackVariableName());
                         }
                         else
@@ -972,7 +972,7 @@ namespace UnityEditor.ShaderGraph
                         if (sgNode.asset == null) continue;
                         if (keywordPermutationsPerNode[index] == null)
                         {
-                            Debug.Assert(shaderKeywords.permutations.Count == 1);//If there is more than one keywordPermutationsPerNode should be filled in
+                            Debug.Assert(shaderKeywords.permutations.Count == 0, $"Shader has {shaderKeywords.permutations.Count} permutations but keywordPermutationsPerNode of some nodes are null.");
                             foreach (var feedbackSlot in sgNode.asset.vtFeedbackVariables)
                             {
 
