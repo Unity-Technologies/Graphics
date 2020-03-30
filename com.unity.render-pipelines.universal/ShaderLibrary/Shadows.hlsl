@@ -217,10 +217,14 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
 
 half computeShadowFade(float3 positionWS, float shadowStrength)
 {
+#if FADE_SHADOWS
     float3 fragToCamVec = _WorldSpaceCameraPos - positionWS;
     float distanceFragToCam2 = dot(fragToCamVec, fragToCamVec);
     float shadowDist = _MainLightShadowParams.z;
     return shadowStrength * (1 - saturate((distanceFragToCam2 - shadowDist * 0.8) / (shadowDist - shadowDist * 0.8)));
+#else
+    return shadowStrength;
+#endif
 }
 
 half MainLightRealtimeShadow(float4 shadowCoord)
