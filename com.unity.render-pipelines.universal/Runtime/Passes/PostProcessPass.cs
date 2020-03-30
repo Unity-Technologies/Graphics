@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // If eye texture color format is linear, we do explicit sRGB convertion
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.isStereoEnabled)
-                requiresSRGBConversion = !cameraData.xrPass.renderTargetDesc.sRGB;
+                requiresSRGBConversion = !cameraData.xr.renderTargetDesc.sRGB;
 #endif
             return requiresSRGBConversion && m_EnableSRGBConversionIfNeeded;
         }
@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             ref var cameraData = ref renderingData.cameraData;
             m_IsStereo = renderingData.cameraData.isStereoEnabled;
-            bool useDrawProceduleBlit = cameraData.xrPass.enabled;
+            bool useDrawProceduleBlit = cameraData.xr.enabled;
 
             // Don't use these directly unless you have a good reason to, use GetSource() and
             // GetDestination() instead
@@ -431,8 +431,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 RenderTargetHandle cameraTargetHandle = RenderTargetHandle.CameraTarget;
 #if ENABLE_VR && ENABLE_VR_MODULE
-                if(cameraData.xrPass.enabled)
-                    cameraTargetHandle.Init(cameraData.xrPass.renderTarget);
+                if(cameraData.xr.enabled)
+                    cameraTargetHandle.Init(cameraData.xr.renderTarget);
 #endif
                 // Note: We rendering to "camera target" we need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
@@ -442,12 +442,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 bool finishPostProcessOnScreen = cameraData.resolveFinalTarget || (m_Destination == cameraTargetHandle || m_HasFinalPass == true);
 
-                if (m_IsStereo && cameraData.xrPass.enabled)
+                if (m_IsStereo && cameraData.xr.enabled)
                 {
                     cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                          colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
       
-                    bool isRenderToBackBufferTarget = cameraTarget == cameraData.xrPass.renderTarget && !cameraData.xrPass.renderTargetIsRenderTexture;
+                    bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
                     // We y-flip if
                     // 1) we are bliting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
@@ -580,7 +580,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             cmd.ClearRenderTarget(true, true, Color.clear);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            if (cameraData.xrPass.enabled)
+            if (cameraData.xr.enabled)
             {
                 Vector4 scaleBias = new Vector4(1, 1, 0, 0);
                 Vector4 scaleBiasRT = new Vector4(1, 1, 0, 0);
@@ -1209,17 +1209,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             RenderTargetHandle cameraTargetHandle = RenderTargetHandle.CameraTarget;
 #if ENABLE_VR && ENABLE_VR_MODULE
-            if(cameraData.xrPass.enabled)
-                cameraTargetHandle.Init(cameraData.xrPass.renderTarget);
+            if(cameraData.xr.enabled)
+                cameraTargetHandle.Init(cameraData.xr.renderTarget);
 #endif
             // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
             // Overlay cameras need to output to the target described in the base camera while doing camera stack.
             RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetHandle.Identifier();
 
-            if (cameraData.isStereoEnabled && cameraData.xrPass.enabled)
+            if (cameraData.isStereoEnabled && cameraData.xr.enabled)
             {
                 //Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
-                bool isRenderToBackBufferTarget = cameraTarget == cameraData.xrPass.renderTarget && !cameraData.xrPass.renderTargetIsRenderTexture;
+                bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
                 // We y-flip if
                 // 1) we are bliting from render texture to back buffer and
                 // 2) renderTexture starts UV at top

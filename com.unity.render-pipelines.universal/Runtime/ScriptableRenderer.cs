@@ -55,9 +55,9 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
         public static void SetCameraMatrices(CommandBuffer cmd, ref CameraData cameraData, bool setInverseMatrices)
         {
-            if (cameraData.isStereoEnabled && cameraData.xrPass.enabled)
+            if (cameraData.isStereoEnabled && cameraData.xr.enabled)
             {
-                cameraData.xrPass.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, cameraData.xrPass.renderTargetIsRenderTexture);
+                cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, cameraData.xr.renderTargetIsRenderTexture);
                 return;
             }
 
@@ -547,7 +547,7 @@ namespace UnityEngine.Rendering.Universal
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
-            renderPass.eyeIndex = cameraData.xrPass.multipassId;
+            renderPass.eyeIndex = cameraData.xr.multipassId;
 
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
@@ -705,13 +705,13 @@ namespace UnityEngine.Rendering.Universal
                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
                 {
                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, passAttachmentDimension);
-                    if (cameraData.xrPass.singlePassEnabled && cameraData.xrPass.enabled)
+                    if (cameraData.xr.singlePassEnabled && cameraData.xr.enabled)
                     {
                         // SetRenderTarget might alter the internal device state(winding order).
                         // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
                         // XRTODO: Consolidate y-flip and winding order device state in URP
-                        bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xrPass.renderTarget) && !cameraData.xrPass.renderTargetIsRenderTexture;
-                        cameraData.xrPass.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
+                        bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
+                        cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
                     }
                 }
             }
@@ -726,12 +726,12 @@ namespace UnityEngine.Rendering.Universal
 
         void BeginXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
         {
-            if (!cameraData.xrPass.enabled)
+            if (!cameraData.xr.enabled)
                 return;
 
-            if (cameraData.xrPass.singlePassEnabled)
+            if (cameraData.xr.singlePassEnabled)
             {
-                cameraData.xrPass.StartSinglePass(cmd, context);
+                cameraData.xr.StartSinglePass(cmd, context);
             }
 
             cmd.EnableShaderKeyword(ShaderKeywordStrings.DrawProceduleQuadBlit);
@@ -741,12 +741,12 @@ namespace UnityEngine.Rendering.Universal
 
         void EndXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
         {
-            if (!cameraData.xrPass.enabled)
+            if (!cameraData.xr.enabled)
                 return;
 
-            if (cameraData.xrPass.singlePassEnabled)
+            if (cameraData.xr.singlePassEnabled)
             {
-                cameraData.xrPass.StopSinglePass(cmd, context);
+                cameraData.xr.StopSinglePass(cmd, context);
             }
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DrawProceduleQuadBlit);
             context.ExecuteCommandBuffer(cmd);

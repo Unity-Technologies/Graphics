@@ -122,9 +122,9 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 #if ENABLE_VR && ENABLE_VR_MODULE
-            if (cameraData.xrPass.enabled)
+            if (cameraData.xr.enabled)
             {
-                cameraTargetDescriptor = cameraData.xrPass.renderTargetDesc;
+                cameraTargetDescriptor = cameraData.xr.renderTargetDesc;
                 // In case of HDR, assign camera target hdr format to descriptor. This descriptor is later being used to create intermediate texture
                 if(cameraData.isHdrEnabled)
                     cameraTargetDescriptor.colorFormat = cameraData.cameraTargetDescriptor.colorFormat;
@@ -191,8 +191,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 RenderTargetHandle cameraTargetHandle = RenderTargetHandle.CameraTarget;
 #if ENABLE_VR && ENABLE_VR_MODULE
-                if(cameraData.xrPass.enabled)
-                    cameraTargetHandle.Init(cameraData.xrPass.renderTarget);
+                if(cameraData.xr.enabled)
+                    cameraTargetHandle.Init(cameraData.xr.renderTarget);
 #endif
                 m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : cameraTargetHandle;
                 m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : cameraTargetHandle;
@@ -301,8 +301,8 @@ namespace UnityEngine.Rendering.Universal
                     var destination = dontResolvePostProcessingToCameraTarget ? m_AfterPostProcessColor : RenderTargetHandle.CameraTarget;
 
                     bool cameraColorAttachmentIsRenderTexture = m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget;
-                    if (cameraData.xrPass.enabled)
-                        cameraColorAttachmentIsRenderTexture = m_ActiveCameraColorAttachment.Identifier() != cameraData.xrPass.renderTarget;
+                    if (cameraData.xr.enabled)
+                        cameraColorAttachmentIsRenderTexture = m_ActiveCameraColorAttachment.Identifier() != cameraData.xr.renderTarget;
                     // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
                     bool doSRGBConvertion = !(dontResolvePostProcessingToCameraTarget || cameraColorAttachmentIsRenderTexture);
                     m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, m_ColorGradingLut, applyFinalPostProcessing, doSRGBConvertion);

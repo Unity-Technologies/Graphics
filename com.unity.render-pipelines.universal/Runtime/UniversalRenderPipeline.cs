@@ -190,9 +190,9 @@ namespace UnityEngine.Rendering.Universal
 
         static bool TryGetCullingParameters(CameraData cameraData, out ScriptableCullingParameters cullingParams)
         {
-            if (cameraData.xrPass.enabled)
+            if (cameraData.xr.enabled)
             {
-                cullingParams = cameraData.xrPass.cullingParams;
+                cullingParams = cameraData.xr.cullingParams;
                 return true;
             }
             else
@@ -222,8 +222,8 @@ namespace UnityEngine.Rendering.Universal
             var xrPasses = m_XRSystem.SetupFrame(ref cameraData, /*XRTODO XR single pass settings in urp asset pipeline*/ true, /*XRTODO: test mode*/ false);
             foreach (XRPass xrPass in xrPasses)
             {
-                cameraData.xrPass = xrPass;
-                cameraData.isStereoEnabled = IsStereoEnabled(camera) && cameraData.xrPass.enabled;
+                cameraData.xr = xrPass;
+                cameraData.isStereoEnabled = IsStereoEnabled(camera) && cameraData.xr.enabled;
 
                 if (!TryGetCullingParameters(cameraData, out var cullingParameters))
                     return;

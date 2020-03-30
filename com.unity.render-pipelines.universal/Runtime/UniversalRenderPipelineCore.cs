@@ -62,8 +62,8 @@ namespace UnityEngine.Rendering.Universal
         public Matrix4x4 GetViewMatrix(int viewIndex = 0)
         {
 #if ENABLE_VR && ENABLE_VR_MODULE
-            if (xrPass.enabled)
-                return xrPass.GetViewMatrix(viewIndex);
+            if (xr.enabled)
+                return xr.GetViewMatrix(viewIndex);
 #endif
             return m_ViewMatrix;
         }
@@ -75,8 +75,8 @@ namespace UnityEngine.Rendering.Universal
         public Matrix4x4 GetProjectionMatrix(int viewIndex = 0)
         {
 #if ENABLE_VR && ENABLE_VR_MODULE
-            if (xrPass.enabled)
-                return xrPass.GetProjMatrix(viewIndex);
+            if (xr.enabled)
+                return xr.GetProjMatrix(viewIndex);
 #endif      
             return m_ProjectionMatrix;
         }
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.Universal
         public SortingCriteria defaultOpaqueSortFlags;
 
         public bool isStereoEnabled;
-        internal XRPass xrPass;
+        internal XRPass xr;
 
         public float maxShadowDistance;
         public bool postProcessEnabled;

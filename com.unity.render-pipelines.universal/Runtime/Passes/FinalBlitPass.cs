@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // If eye texture color format is linear, we do explicit sRGB convertion
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.isStereoEnabled)
-                requiresSRGBConversion = !cameraData.xrPass.renderTargetDesc.sRGB;
+                requiresSRGBConversion = !cameraData.xr.renderTargetDesc.sRGB;
 #endif
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
 
-            if (cameraData.isStereoEnabled && cameraData.xrPass.enabled)
+            if (cameraData.isStereoEnabled && cameraData.xr.enabled)
             {
                 RenderTargetIdentifier blitTarget;
 
@@ -70,8 +70,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-                    int depthSlice = cameraData.xrPass.singlePassEnabled ? -1 : cameraData.xrPass.GetTextureArraySlice(0); // XRTODO: Should be multipass eye id here?
-                    blitTarget = new RenderTargetIdentifier(cameraData.xrPass.renderTarget, 0, CubemapFace.Unknown, depthSlice);
+                    int depthSlice = cameraData.xr.singlePassEnabled ? -1 : cameraData.xr.GetTextureArraySlice(0); // XRTODO: Should be multipass eye id here?
+                    blitTarget = new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, depthSlice);
                 }
 
                 SetRenderTarget(
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Color.black,
                     m_TargetDimension);
 
-                cmd.SetViewport(cameraData.xrPass.GetViewport());
+                cmd.SetViewport(cameraData.xr.GetViewport());
 
                 CoreUtils.SetKeyword(cmd, "BLIT_SINGLE_SLICE", xrTestActive);
                 if (xrTestActive)
@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // We f-flip if
                 // 1) we are bliting from render texture to back buffer(UV starts at bottom) and
                 // 2) renderTexture starts UV at top
-                bool yflip = !cameraData.xrPass.renderTargetIsRenderTexture && SystemInfo.graphicsUVStartsAtTop;
+                bool yflip = !cameraData.xr.renderTargetIsRenderTexture && SystemInfo.graphicsUVStartsAtTop;
                 Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
                 Vector4 scaleBiasRT = new Vector4(1, 1, 0, 0);
                 cmd.SetGlobalVector(ShaderPropertyId.blitScaleBias, scaleBias);

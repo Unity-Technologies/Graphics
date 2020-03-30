@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (!renderingData.cameraData.xrPass.enabled)
+            if (!renderingData.cameraData.xr.enabled)
             {
                 context.DrawSkybox(renderingData.cameraData.camera);
             }
@@ -25,13 +25,13 @@ namespace UnityEngine.Rendering.Universal
                 CommandBuffer cmd = CommandBufferPool.Get();
 
                 // Setup Legacy XR buffer states
-                if (renderingData.cameraData.xrPass.singlePassEnabled)
+                if (renderingData.cameraData.xr.singlePassEnabled)
                 {
                     // Setup legacy skybox stereo buffer
-                    renderingData.cameraData.camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Left, renderingData.cameraData.xrPass.GetProjMatrix(0));
-                    renderingData.cameraData.camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, renderingData.cameraData.xrPass.GetViewMatrix(0));
-                    renderingData.cameraData.camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.xrPass.GetProjMatrix(1));
-                    renderingData.cameraData.camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.xrPass.GetViewMatrix(1));
+                    renderingData.cameraData.camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Left, renderingData.cameraData.xr.GetProjMatrix(0));
+                    renderingData.cameraData.camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, renderingData.cameraData.xr.GetViewMatrix(0));
+                    renderingData.cameraData.camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.xr.GetProjMatrix(1));
+                    renderingData.cameraData.camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.xr.GetViewMatrix(1));
 
                     // Use legacy stereo instancing mode to have legacy XR code path configured
                     cmd.SetSinglePassStereo(SinglePassStereoMode.Instancing);

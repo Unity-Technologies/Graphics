@@ -317,15 +317,15 @@ namespace UnityEngine.Rendering.Universal
 
         internal void UpdateGPUViewAndProjectionMatrices(CommandBuffer cmd, ref CameraData cameraData, bool isRenderToTexture)
         {
-            Matrix4x4 projectionMatrix = GL.GetGPUProjectionMatrix(cameraData.xrPass.GetProjMatrix(0), isRenderToTexture);
-            RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.xrPass.GetViewMatrix(0), projectionMatrix, true);
+            Matrix4x4 projectionMatrix = GL.GetGPUProjectionMatrix(cameraData.xr.GetProjMatrix(0), isRenderToTexture);
+            RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.xr.GetViewMatrix(0), projectionMatrix, true);
 
-            if (cameraData.xrPass.singlePassEnabled)
+            if (cameraData.xr.singlePassEnabled)
             {
                 for (int i = 0; i < 2; i++)
                 {
-                    stereoViewMatrix[i] = cameraData.xrPass.GetViewMatrix(i);
-                    stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(cameraData.xrPass.GetProjMatrix(i), isRenderToTexture);
+                    stereoViewMatrix[i] = cameraData.xr.GetViewMatrix(i);
+                    stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(cameraData.xr.GetProjMatrix(i), isRenderToTexture);
                 }
                 RenderingUtils.SetStereoViewAndProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, true);
             }
