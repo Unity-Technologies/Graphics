@@ -5,7 +5,7 @@
 
 // namespace UnityEditor.Rendering.HighDefinition.Drawing
 // {
-//     class DecalSettingsView : VisualElement
+//     class DecalSettingsView : MasterNodeSettingsView
 //     {
 //         DecalMasterNode m_Node;
 
@@ -19,7 +19,7 @@
 //             return new Label(label + text);
 //         }
 
-//         public DecalSettingsView(DecalMasterNode node)
+//         public DecalSettingsView(DecalMasterNode node) : base(node)
 //         {
 //             m_Node = node;
 //             PropertySheet ps = new PropertySheet();
@@ -81,6 +81,7 @@
 //             });
 
 //             Add(ps);
+//             Add(GetShaderGUIOverridePropertySheet());
 //         }
 
 //         void ChangeAffectsAlbedo(ChangeEvent<bool> evt)

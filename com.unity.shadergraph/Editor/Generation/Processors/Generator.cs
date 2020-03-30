@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using Data.Util;
+using UnityEditor.ShaderGraph.Drawing;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -15,7 +17,7 @@ namespace UnityEditor.ShaderGraph
 
         GraphData m_GraphData;
         AbstractMaterialNode m_OutputNode;
-        ITargetImplementation[] m_TargetImplementations;
+        Target[] m_Targets;
         List<BlockNode> m_Blocks;
         GenerationMode m_Mode;
         string m_Name;
@@ -49,11 +51,11 @@ namespace UnityEditor.ShaderGraph
         {
             if(m_OutputNode == null)
             {
-                m_TargetImplementations = m_GraphData.activeGenerationTarget.activeImplementations.ToArray();
+                m_Targets = m_GraphData.validTargets.ToArray();
             }
             else
             {
-                m_TargetImplementations = new ITargetImplementation[] { new DefaultPreviewTarget() };
+                m_Targets = new Target[] { new PreviewTarget() };
             }
         }
 
@@ -142,16 +144,38 @@ namespace UnityEditor.ShaderGraph
             {
                 GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
 
-                for(int i = 0; i < m_TargetImplementations.Length; i++)
+                for(int i = 0; i < m_Targets.Length; i++)
                 {
                     TargetSetupContext context = new TargetSetupContext();
-                    m_TargetImplementations[i].SetupTarget(ref context); 
+
+                    // Instead of setup target, we can also just do get context
+                    m_Targets[i].Setup(ref context);
                     GetAssetDependencyPaths(context);
 
                     foreach(var subShader in context.subShaders)
                     {
                         GenerateSubShader(i, subShader);
                     }
+
+                    // TODO: Reimplement custom GUI
+                    // // Either grab the Target default shader GUI or the user override
+                    // if (m_OutputNode is ICanChangeShaderGUI canChangeShaderGui)
+                    // {
+                    //     string customEditor = string.Empty;
+                    //     if(canChangeShaderGui.OverrideEnabled)
+                    //     {
+                    //         customEditor = GenerationUtils.FinalCustomEditorString(canChangeShaderGui);
+                    //     }
+                    //     else
+                    //     {
+                    //         customEditor = context.defaultShaderGUI;
+                    //     }
+                        
+                    //     if (customEditor != null)
+                    //     {
+                    //         m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
+                    //     }
+                    // }
                 }
 
                 if(m_Mode != GenerationMode.Preview)
@@ -168,7 +192,7 @@ namespace UnityEditor.ShaderGraph
             if(descriptor.passes == null)
                 return;
 
-            //early out of preview generation if no passes are used in preview
+            // Early out of preview generation if no passes are used in preview
             if (m_Mode == GenerationMode.Preview && descriptor.generatesPreview == false)
                 return;
 
@@ -193,8 +217,6 @@ namespace UnityEditor.ShaderGraph
                         GenerateShaderPass(targetIndex, pass.descriptor, activeFields);
                 }
             }
-            if (!string.IsNullOrEmpty(descriptor.customEditorOverride))
-                m_Builder.AppendLine(descriptor.customEditorOverride);
         }
 
         void GenerateShaderPass(int targetIndex, PassDescriptor pass, ActiveFields activeFields)
@@ -777,18 +799,10 @@ namespace UnityEditor.ShaderGraph
             // Finalize
 
             // Pass Template
-            string passTemplatePath;
-            if(!string.IsNullOrEmpty(pass.passTemplatePath))
-                passTemplatePath = pass.passTemplatePath;
-            else
-                passTemplatePath = m_TargetImplementations[targetIndex].passTemplatePath;
+            string passTemplatePath = pass.passTemplatePath;
 
             // Shared Templates
-            string sharedTemplateDirectory;
-            if(!string.IsNullOrEmpty(pass.sharedTemplateDirectory))
-                sharedTemplateDirectory = pass.sharedTemplateDirectory;
-            else
-                sharedTemplateDirectory = m_TargetImplementations[targetIndex].sharedTemplateDirectory;
+            string sharedTemplateDirectory = pass.sharedTemplateDirectory;
 
             if (!File.Exists(passTemplatePath))
                 return;

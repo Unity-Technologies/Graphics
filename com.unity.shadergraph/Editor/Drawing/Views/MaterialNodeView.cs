@@ -245,11 +245,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void ClearMessage()
         {
             var badge = this.Q<IconBadge>();
-            if(badge != null)
-            {
-                badge.Detach();
-                badge.RemoveFromHierarchy();
-            }
+            badge?.Detach();
+            badge?.RemoveFromHierarchy();
         }
 
         public VisualElement colorElement
@@ -643,7 +640,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var port = (ShaderPort)evt.target;
             var inputViews = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
-            
+
             // Ensure PortInputViews are initialized correctly
             // Dynamic port lists require one update to validate before init
             if(inputViews.Count() != 0)
@@ -651,7 +648,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var inputView = inputViews.First();
                 SetPortInputPosition(port, inputView);
             }
-            
+
             port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
         }
 

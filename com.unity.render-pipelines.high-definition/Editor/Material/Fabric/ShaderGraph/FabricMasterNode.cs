@@ -21,7 +21,7 @@
 //     [Title("Master", "Fabric (HDRP)")]
 //     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.FabricMasterNode")]
 //     [FormerName("UnityEditor.ShaderGraph.FabricMasterNode")]
-//     class FabricMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+//     class FabricMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
 //     {
 //         public const string PositionSlotName = "Vertex Position";
 //         public const string PositionSlotDisplayName = "Vertex Position";
@@ -517,6 +517,20 @@
 //             return hash;
 //         }
 
+//         [SerializeField] private string m_ShaderGUIOverride;
+//         public string ShaderGUIOverride
+//         {
+//             get => m_ShaderGUIOverride;
+//             set => m_ShaderGUIOverride = value;
+//         }
+
+//         [SerializeField] private bool m_OverrideEnabled;
+//         public bool OverrideEnabled
+//         {
+//             get => m_OverrideEnabled;
+//             set => m_OverrideEnabled = value;
+//         }
+
 //         public FabricMasterNode()
 //         {
 //             UpdateNodeAfterDeserialization();
@@ -542,14 +556,14 @@
 //                 validSlots.Add(PositionSlotId);
 //             }
 
-//             // Normal in Vertex 
+//             // Normal in Vertex
 //             if (MaterialTypeUsesSlotMask(SlotMask.VertexNormal))
 //             {
 //                 AddSlot(new NormalMaterialSlot(VertexNormalSlotId, VertexNormalSlotName, VertexNormalSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
 //                 validSlots.Add(VertexNormalSlotId);
 //             }
 
-//             // tangent in Vertex 
+//             // tangent in Vertex
 //             if (MaterialTypeUsesSlotMask(SlotMask.VertexTangent))
 //             {
 //                 AddSlot(new TangentMaterialSlot(VertexTangentSlotId, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
@@ -702,19 +716,19 @@
 //             return new ConditionalField[]
 //             {
 //                 // Features
-//                 new ConditionalField(Fields.GraphVertex,                            IsSlotConnected(PositionSlotId) || 
-//                                                                                         IsSlotConnected(VertexNormalSlotId) || 
+//                 new ConditionalField(Fields.GraphVertex,                            IsSlotConnected(PositionSlotId) ||
+//                                                                                         IsSlotConnected(VertexNormalSlotId) ||
 //                                                                                         IsSlotConnected(VertexTangentSlotId)),
 //                 new ConditionalField(Fields.GraphPixel,                             true),
 //                 new ConditionalField(Fields.LodCrossFade,                           supportLodCrossFade.isOn),
-                
+
 //                 // Surface Type
 //                 new ConditionalField(Fields.SurfaceOpaque,                          surfaceType == SurfaceType.Opaque),
 //                 new ConditionalField(Fields.SurfaceTransparent,                     surfaceType != SurfaceType.Opaque),
-                
+
 //                 // Structs
 //                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
-//                                                                                         !pass.Equals(HDPasses.Fabric.MotionVectors)),
+//                                                                                         !pass.Equals(HDFabricSubTarget.FabricPasses.MotionVectors)),
 //                 // Material
 //                 new ConditionalField(HDFields.CottonWool,                           materialType == MaterialType.CottonWool),
 //                 new ConditionalField(HDFields.Silk,                                 materialType == MaterialType.Silk),
@@ -728,21 +742,22 @@
 
 //                 // Misc
 //                 new ConditionalField(Fields.AlphaTest,                              alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
+//                 new ConditionalField(HDFields.DoAlphaTest,                          alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
 //                 new ConditionalField(HDFields.AlphaFog,                             surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
 //                 new ConditionalField(HDFields.BlendPreserveSpecular,                surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
 //                 new ConditionalField(HDFields.DisableDecals,                        !receiveDecals.isOn),
 //                 new ConditionalField(HDFields.DisableSSR,                           !receiveSSR.isOn),
 //                 new ConditionalField(Fields.VelocityPrecomputed,                    addPrecomputedVelocity.isOn),
-//                 new ConditionalField(HDFields.BentNormal,                           IsSlotConnected(BentNormalSlotId) && 
+//                 new ConditionalField(HDFields.BentNormal,                           IsSlotConnected(BentNormalSlotId) &&
 //                                                                                         pass.pixelPorts.Contains(BentNormalSlotId)),
 //                 new ConditionalField(HDFields.AmbientOcclusion,                     pass.pixelPorts.Contains(AmbientOcclusionSlotId) &&
 //                                                                                         (IsSlotConnected(AmbientOcclusionSlotId) ||
 //                                                                                         ambientOcclusionSlot.value != ambientOcclusionSlot.defaultValue)),
-//                 new ConditionalField(HDFields.Tangent,                              IsSlotConnected(TangentSlotId) && 
+//                 new ConditionalField(HDFields.Tangent,                              IsSlotConnected(TangentSlotId) &&
 //                                                                                         pass.pixelPorts.Contains(TangentSlotId)),
-//                 new ConditionalField(HDFields.LightingGI,                           IsSlotConnected(LightingSlotId) && 
+//                 new ConditionalField(HDFields.LightingGI,                           IsSlotConnected(LightingSlotId) &&
 //                                                                                         pass.pixelPorts.Contains(LightingSlotId)),
-//                 new ConditionalField(HDFields.BackLightingGI,                       IsSlotConnected(BackLightingSlotId) && 
+//                 new ConditionalField(HDFields.BackLightingGI,                       IsSlotConnected(BackLightingSlotId) &&
 //                                                                                         pass.pixelPorts.Contains(BackLightingSlotId)),
 //                 new ConditionalField(HDFields.DepthOffset,                          depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
 //                 new ConditionalField(HDFields.EnergyConservingSpecular,             energyConservingSpecular.isOn),

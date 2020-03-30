@@ -184,13 +184,13 @@ These settings define the volumetric behavior of this Light. Alter these setting
 
 ### **Shadows**
 
-Use the Shadows section to adjust the Shadows cast by this Light. HDRP currently does not support shadowing **Tube** Lights. Because of this, Unity does not expose the **Shadows** drop-down section in the Inspector when you select this **Type**. The Light **Types** that HDRP does support shadowing for (**Spot**, **Directional**, and **Point**) share almost all of their properties.
+Use this section to adjust the Shadows cast by this Light. Note that Area Lights can't currently cast shadows for GameObjects that use a **StackLit** Material.
 
-Unity exposes extra properties in the **Shadows** section depending on the **Mode** you set in the [General](#GeneralProperties) section. It also exposes extra properties depending on the **Filtering Quality** set in your Unity Project’s [HDRP Asset](HDRP-Asset.html). To change the **Filtering Quality** property, navigate to your Project’s **HDRP Asset > Shadows** and use the **Filtering Quality** drop-down  to select the shadow filtering mode. Setting **Filtering Quality** to **High** exposes extra properties in the Light Inspector’s **Shadow** drop-down section.
+Unity exposes extra properties in this section depending on the **Mode** you set in the [General](#GeneralProperties) section. Unity also exposes extra properties depending on the **Filtering Quality** set in your Unity Project’s [HDRP Asset](HDRP-Asset.html).
 
-&#8226; For more information on shadow filtering in HDRP, see the documentation on [Shadow Filtering](Shadows-in-HDRP.html#ShadowFiltering).
+&#8226; For more information on shadow filtering in HDRP, see [Shadow Filtering](Shadows-in-HDRP.html#ShadowFiltering).
 
-&#8226; For a list of the the available filter quality presets in HDRP, see the [Filtering Qualities table](HDRP-Asset.html#FilteringQualities).
+&#8226; For a list of the available filter quality presets in HDRP, see the [Filtering Qualities table](HDRP-Asset.html#FilteringQualities).
 
 #### Properties
 
@@ -202,7 +202,7 @@ This section is only available in Realtime or Mixed light **Mode**.
 | -------------------------- | ------------------------------------------------------------ |
 | **Enable**                 | Enable the checkbox to let this Light cast shadows.          |
 | **Update Mode**            | Use the drop-down to select the mode that HDRP uses to determine when to update a shadow map.<br />For information on the modes available, see the [Shadows in HDRP documentation](Shadows-in-HDRP.html#ShadowUpdateMode). |
-| **Resolution**             | Set the resolution of this Light’s shadow maps. Use the drop-down to set the modeIf you enable , use the drop-down to select which quality mode to derive the resolution from. If you do not enable **Use Quality Settings**, set the resolution, measured in pixels, in the input field.A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage, so if you experience any performance issues, try using a lower value. |
+| **Resolution**             | Set the resolution of this Light’s shadow maps. Use the drop-down to select which quality mode to derive the resolution from. If you do not enable **Use Quality Settings**, or you select **Custom**, set the resolution, measured in pixels, in the input field.<br/>A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage, so if you experience any performance issues, try using a lower value. |
 | **Near Plane**             | The distance, in meters, from the Light that GameObjects begin to cast shadows. |
 | **Shadowmask Mode**        | Defines how the shadowmask behaves for this Light. For detailed information on each **Shadowmask Mode**, see the documentation on [Shadowmasks](Shadows-in-HDRP.html#ShadowmaskModes). This property is only visible if you tet the **Mode**, under [General](#GeneralProperties), to **Mixed**. |
 | **Slope-Scale Depth Bias** | Use the slider to set the bias that HDRP adds to the distance in this Light's shadow map to avoid self intersection. This bias is proportional to the slope of the polygons represented in the shadow map.<br /> This property only appears when you enable [more options](More-Options.html) for this section. |

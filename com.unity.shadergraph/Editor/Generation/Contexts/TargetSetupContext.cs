@@ -7,6 +7,7 @@ namespace UnityEditor.ShaderGraph
     {
         public List<SubShaderDescriptor> subShaders { get; private set; }
         public List<string> assetDependencyPaths { get; private set; }
+        public string defaultShaderGUI { get; private set; }
 
         public TargetSetupContext()
         {
@@ -14,14 +15,19 @@ namespace UnityEditor.ShaderGraph
             assetDependencyPaths = new List<string>();
         }
 
-        public void AddSubShader(SubShaderDescriptor descriptor)
+        public void AddSubShader(SubShaderDescriptor subShader)
         {
-            subShaders.Add(descriptor);
+            subShaders.Add(subShader);
         }
 
         public void AddAssetDependencyPath(string path)
         {
             assetDependencyPaths.Add(path);
+        }
+
+        public void SetDefaultShaderGUI(string defaultShaderGUI)
+        {
+            this.defaultShaderGUI = defaultShaderGUI;
         }
     }
 }
