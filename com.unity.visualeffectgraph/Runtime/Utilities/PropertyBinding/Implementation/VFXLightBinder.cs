@@ -28,7 +28,7 @@ namespace UnityEngine.VFX.Utility
                 && (!BindColor || component.HasVector4(ColorProperty))
                 && (!BindBrightness || component.HasFloat(BrightnessProperty))
                 && (!BindRadius || component.HasFloat(RadiusProperty))
-                ;
+            ;
         }
 
         public override void UpdateBinding(VisualEffect component)

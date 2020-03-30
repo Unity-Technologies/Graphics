@@ -198,12 +198,13 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        protected override bool CalculateNodeHasError(ref string errorMessage)
+        protected override void CalculateNodeHasError()
         {
             if (!keywordGuid.Equals(Guid.Empty) && !owner.keywords.Any(x => x.guid == keywordGuid))
-                return true;
-
-            return false;
+            {
+                owner.AddConcretizationError(guid, "Keyword Node has no associated keyword.");
+                hasError = true;
+            }
         }
 
         public override void OnBeforeSerialize()
