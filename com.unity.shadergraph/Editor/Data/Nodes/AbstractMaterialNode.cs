@@ -294,6 +294,11 @@ namespace UnityEditor.ShaderGraph
                 inputSlot.AddDefaultProperty(properties, generationMode);
             }
         }
+        public string GetSlotValue(int inputSlotId, AbstractMaterialNode fromNode, GenerationMode generationMode, ConcretePrecision concretePrecision)
+        {
+            string slotValue = GetSlotValue(inputSlotId, fromNode, generationMode);
+            return slotValue.Replace(PrecisionUtil.Token, concretePrecision.ToShaderString());
+        }
 
         public string GetSlotValue(int inputSlotId, GenerationMode generationMode, ConcretePrecision concretePrecision)
         {
@@ -303,6 +308,12 @@ namespace UnityEditor.ShaderGraph
 
         public string GetSlotValue(int inputSlotId, GenerationMode generationMode)
         {
+            AbstractMaterialNode fromNode = GetInputNodeFromSlot(inputSlotId);
+            return GetSlotValue(inputSlotId, fromNode, generationMode);
+        }
+
+        public string GetSlotValue(int inputSlotId, AbstractMaterialNode fromNode, GenerationMode generationMode)
+        {
             var inputSlot = FindSlot<MaterialSlot>(inputSlotId);
             if (inputSlot == null)
                 return string.Empty;
@@ -311,12 +322,10 @@ namespace UnityEditor.ShaderGraph
 
             if (edges.Any())
             {
-                var fromSocketRef = edges[0].outputSlot;
-                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(fromSocketRef.nodeGuid);
                 if (fromNode == null)
                     return string.Empty;
 
-                var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
+                var slot = fromNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
                 if (slot == null)
                     return string.Empty;
 
@@ -324,6 +333,18 @@ namespace UnityEditor.ShaderGraph
             }
 
             return inputSlot.GetDefaultValue(generationMode);
+        }
+
+        public AbstractMaterialNode GetInputNodeFromSlot(int inputSlotId)
+        {
+            var inputSlot = FindSlot<MaterialSlot>(inputSlotId);
+            if (inputSlot == null)
+                return null;
+
+            var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
+            var fromSocketRef = edges[0].outputSlot;
+            var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(fromSocketRef.nodeGuid);
+            return fromNode;
         }
 
         public static ConcreteSlotValueType ConvertDynamicVectorInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)

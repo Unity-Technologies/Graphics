@@ -819,8 +819,9 @@ namespace UnityEditor.ShaderGraph
                     {
                         var foundEdges = graph.GetEdges(input.slotReference).ToArray();
                         var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
-                        if (foundEdges.Any())
-                            surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision)};");
+                        var fromNode = rootNode.GetInputNodeFromSlot(input.id);
+                        if (foundEdges.Any() && fromNode.isActive)
+                            surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {rootNode.GetSlotValue(input.id, fromNode, mode, rootNode.concretePrecision)};");
                         else
                             surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {input.GetDefaultValue(mode, rootNode.concretePrecision)};");
                     }
@@ -833,8 +834,9 @@ namespace UnityEditor.ShaderGraph
                 {
                     var foundEdges = graph.GetEdges(slot.slotReference).ToArray();
                     var hlslName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id}";
-                    if (foundEdges.Any())
-                        surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision)};");
+                    var fromNode = rootNode.GetInputNodeFromSlot(slot.id);
+                    if (foundEdges.Any() && fromNode.isActive)
+                        surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {rootNode.GetSlotValue(slot.id, fromNode, mode, rootNode.concretePrecision)};");
                     else
                         surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {slot.GetDefaultValue(mode, rootNode.concretePrecision)};");
                     surfaceDescriptionFunction.AppendLine($"surface.Out = all(isfinite(surface.{hlslName})) ? {GenerationUtils.AdaptNodeOutputForPreview(rootNode, slot.id, "surface." + hlslName)} : float4(1.0f, 0.0f, 1.0f, 1.0f);");
@@ -845,7 +847,12 @@ namespace UnityEditor.ShaderGraph
                 var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
                 if (slot != null)
                 {
-                    var slotValue = rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision);
+                    var fromNode = rootNode.GetInputNodeFromSlot(slot.id);
+                    string slotValue;
+                    if(rootNode.isActive)
+                        slotValue = rootNode.GetSlotValue(slot.id, fromNode, mode, rootNode.concretePrecision);
+                    else
+                        slotValue = slot.GetDefaultValue(mode, rootNode.concretePrecision);
                     surfaceDescriptionFunction.AppendLine($"surface.Out = all(isfinite({slotValue})) ? {GenerationUtils.AdaptNodeOutputForPreview(rootNode, slot.id)} : float4(1.0f, 0.0f, 1.0f, 1.0f);");
                 }
             }
@@ -911,8 +918,9 @@ namespace UnityEditor.ShaderGraph
                     {
                         var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
                         var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                        var slotValue = isSlotConnected ?
-                            ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
+                        var fromNode = ((AbstractMaterialNode)slot.owner).GetInputNodeFromSlot(slot.id);
+                        var slotValue = isSlotConnected && fromNode.isActive ?
+                            ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, fromNode, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
                         builder.AppendLine("description.{0} = {1};", slotName, slotValue);
                     }
                 }

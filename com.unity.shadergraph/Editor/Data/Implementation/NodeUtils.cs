@@ -121,7 +121,7 @@ namespace UnityEditor.Graphing
                 }
             }
 
-            if (includeSelf == IncludeSelf.Include)
+            if (includeSelf == IncludeSelf.Include && node.isActive)
                 nodeList.Add(node);
         }
 
@@ -217,7 +217,7 @@ namespace UnityEditor.Graphing
         {
             validLeaf = ValidLeafExists(node);
             validRoot = ValidRootExists(node);
-            validTree = validLeaf && validRoot;
+            validTree = validLeaf;
         }
 
         //First pass check if node is now active after a change, so just check if there is a valid "tree" : a valid upstream input path,
