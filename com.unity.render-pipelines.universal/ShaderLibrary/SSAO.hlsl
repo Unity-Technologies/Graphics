@@ -114,7 +114,7 @@ float UVRandom(float u, float v)
 // (returns 1.0 when orthographic)
 float CheckPerspective(float x)
 {
-    return lerp(x, 1.0, unity_OrthoParams.w);
+    return unity_OrthoParams.w == 0 ? x : 1.0;
 }
 
 // Normal vector comparer (for geometry-aware weighting)
@@ -123,12 +123,12 @@ half CompareNormal(half3 d1, half3 d2)
     return smoothstep(kGeometryCoeff, 1.0, dot(d1, d2));
 }
 
-float GetLinearDepth(float2 uv)
+float GetLinearEyeDepth(float2 uv)
 {
     float rawDepth = SampleSceneDepth(uv.xy).r;
     float persp = LinearEyeDepth(rawDepth, _ZBufferParams);
-    float ortho = (_ProjectionParams.z-_ProjectionParams.y)*(1-rawDepth)+_ProjectionParams.y;
-    return lerp(persp,ortho,unity_OrthoParams.w);
+    float ortho = ((_ProjectionParams.z - _ProjectionParams.y) * (1.0-rawDepth) + _ProjectionParams.y);
+    return unity_OrthoParams.w == 0 ? persp : ortho;
 }
 
 // Reconstruct view-space position from UV and depth.
@@ -136,7 +136,7 @@ float GetLinearDepth(float2 uv)
 // p13_31 = (unity_CameraProjection._13, unity_CameraProjection._23)
 float3 ReconstructViewPos(float3 uvDepth, float2 p11_22, float2 p13_31)
 {
-    return float3((uvDepth.xy * 2.0 - 1.0 - p13_31) / p11_22 * CheckPerspective(uvDepth.z), uvDepth.z);
+    return float3(((uvDepth.xy * 2.0 - 1.0 - p13_31) / p11_22) * CheckPerspective(uvDepth.z), uvDepth.z);
 }
 
 // Sample point picker
@@ -170,7 +170,7 @@ float3 PickSamplePoint(float2 uv, float index)
 float3 ReconstructNormal(float2 uv, float2 p11_22, float2 p13_31)
 {
     #if defined(_RECONSTRUCT_NORMAL_LOW)
-        float3 P0 = ReconstructViewPos(float3(uv,  GetLinearDepth(uv)), p11_22, p13_31);
+        float3 P0 = ReconstructViewPos(float3(uv,  GetLinearEyeDepth(uv)), p11_22, p13_31);
 
         // Use the cross product to calculate the normal...
         return normalize(cross(ddy(P0), ddx(P0)));
@@ -183,11 +183,11 @@ float3 ReconstructNormal(float2 uv, float2 p11_22, float2 p13_31)
         float2 uUV = float2(0.0,  delta.y);
         float2 dUV = float2(0.0, -delta.y);
 
-        float3 c  = float3(uv,       0.0); c.z  = GetLinearDepth( c.xy); // Center
-        float3 l1 = float3(uv + lUV, 0.0); l1.z = GetLinearDepth(l1.xy); // Left1
-        float3 r1 = float3(uv + rUV, 0.0); r1.z = GetLinearDepth(r1.xy); // Right1
-        float3 u1 = float3(uv + uUV, 0.0); u1.z = GetLinearDepth(u1.xy); // Up1
-        float3 d1 = float3(uv + dUV, 0.0); d1.z = GetLinearDepth(d1.xy); // Down1
+        float3 c  = float3(uv,       0.0); c.z  = GetLinearEyeDepth( c.xy); // Center
+        float3 l1 = float3(uv + lUV, 0.0); l1.z = GetLinearEyeDepth(l1.xy); // Left1
+        float3 r1 = float3(uv + rUV, 0.0); r1.z = GetLinearEyeDepth(r1.xy); // Right1
+        float3 u1 = float3(uv + uUV, 0.0); u1.z = GetLinearEyeDepth(u1.xy); // Up1
+        float3 d1 = float3(uv + dUV, 0.0); d1.z = GetLinearEyeDepth(d1.xy); // Down1
 
 
         // Determine the closest horizontal and vertical pixels...
@@ -197,10 +197,10 @@ float3 ReconstructNormal(float2 uv, float2 p11_22, float2 p13_31)
             uint closest_horizontal = l1.z > r1.z ? 0 : 1;
             uint closest_vertical   = d1.z > u1.z ? 0 : 1;
         #else
-            float3 l2 = float3(uv + lUV * 2.0, 0.0); l2.z = GetLinearDepth(l2.xy); // Left2
-            float3 r2 = float3(uv + rUV * 2.0, 0.0); r2.z = GetLinearDepth(r2.xy); // Right2
-            float3 u2 = float3(uv + uUV * 2.0, 0.0); u2.z = GetLinearDepth(u2.xy); // Up2
-            float3 d2 = float3(uv + dUV * 2.0, 0.0); d2.z = GetLinearDepth(d2.xy); // Down2
+            float3 l2 = float3(uv + lUV * 2.0, 0.0); l2.z = GetLinearEyeDepth(l2.xy); // Left2
+            float3 r2 = float3(uv + rUV * 2.0, 0.0); r2.z = GetLinearEyeDepth(r2.xy); // Right2
+            float3 u2 = float3(uv + uUV * 2.0, 0.0); u2.z = GetLinearEyeDepth(u2.xy); // Up2
+            float3 d2 = float3(uv + dUV * 2.0, 0.0); d2.z = GetLinearEyeDepth(d2.xy); // Down2
 
             const uint closest_horizontal = abs( (2.0 * l1.z - l2.z) - c.z) < abs( (2.0 * r1.z - r2.z) - c.z) ? 0 : 1;
             const uint closest_vertical   = abs( (2.0 * d1.z - d2.z) - c.z) < abs( (2.0 * u1.z - u2.z) - c.z) ? 0 : 1;
@@ -229,7 +229,7 @@ float3 ReconstructNormal(float2 uv, float2 p11_22, float2 p13_31)
         }
 
         // Use the cross product to calculate the normal...
-        return normalize(cross(P1 - P0, P2 - P0)) * -1;
+        return normalize(cross(P2 - P0, P1 - P0));
     #endif
 }
 
@@ -258,7 +258,7 @@ float4 SSAO(Varyings input) : SV_Target
     float2 p13_31 = float2(camProj._13, camProj._23);
 
     // View space normal and depth
-    float depth_o = GetLinearDepth(uv.xy);
+    float depth_o = GetLinearEyeDepth(uv.xy);
     float3 norm_o = SampleNormal(uv, p11_22, p13_31);
 
     // Reconstruct the view-space position.
@@ -283,7 +283,7 @@ float4 SSAO(Varyings input) : SV_Target
         float2 uv_s1_01 = (spos_s1.xy / CheckPerspective(vpos_s1.z) + 1.0) * 0.5;
 
         // Depth at the sample point
-        float depth_s1 = GetLinearDepth(uv_s1_01);
+        float depth_s1 = GetLinearEyeDepth(uv_s1_01);
 
         // Relative position of the sample point
         float3 vpos_s2 = ReconstructViewPos(float3(uv_s1_01, depth_s1), p11_22, p13_31);

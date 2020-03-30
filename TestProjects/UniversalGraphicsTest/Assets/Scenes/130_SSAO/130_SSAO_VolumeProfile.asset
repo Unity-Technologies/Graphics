@@ -25,7 +25,7 @@ MonoBehaviour:
     m_Value: 1
   Intensity:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 2
     min: 0
     max: 10
   Radius:
