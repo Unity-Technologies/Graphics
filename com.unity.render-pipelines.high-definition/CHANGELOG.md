@@ -8,11 +8,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Add XR setting to control camera jitter for temporal effects #6259
+- Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
 
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
+- Fixed an issue where default volume would not update when switching profile.
+- Fixed an issue where AO override would not override specular occlusion.
+- Fixed an issue where Volume inspector might not refresh correctly in some cases.
+- Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
+- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601)
+- Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
+- Fix when rescale probe all direction below zero (1219246)
+- Fixed issue with resources being accessed before initialization process has been performed completely. 
+- Fixed render texture with XR
+- Fixed sRGB mismatch with XR SDK
+- Fixed XR single-pass with Mock HMD plugin
+- Fixed XR culling with multiple cameras
+- Fixed shadow cascade tooltip when using the metric mode (case 1229232)
+- Focus on Decal uses the extends of the projectors
 
 ### Changed
+- Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
+- Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
+- Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
+- All custom pass volumes are now executed for one injection point instead of the first one.
+- Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 
@@ -64,6 +84,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some typos in debug menu (case 1224594)
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 - Fixed cubemap thumbnail generation at project load time. 
+- Half fixed shuriken particle light that cast shadows (only the first one will be correct)
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
