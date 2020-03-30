@@ -294,11 +294,6 @@ namespace UnityEditor.ShaderGraph
                 inputSlot.AddDefaultProperty(properties, generationMode);
             }
         }
-        public string GetSlotValue(int inputSlotId, AbstractMaterialNode fromNode, GenerationMode generationMode, ConcretePrecision concretePrecision)
-        {
-            string slotValue = GetSlotValue(inputSlotId, fromNode, generationMode);
-            return slotValue.Replace(PrecisionUtil.Token, concretePrecision.ToShaderString());
-        }
 
         public string GetSlotValue(int inputSlotId, GenerationMode generationMode, ConcretePrecision concretePrecision)
         {
@@ -308,12 +303,6 @@ namespace UnityEditor.ShaderGraph
 
         public string GetSlotValue(int inputSlotId, GenerationMode generationMode)
         {
-            AbstractMaterialNode fromNode = GetInputNodeFromSlot(inputSlotId);
-            return GetSlotValue(inputSlotId, fromNode, generationMode);
-        }
-
-        public string GetSlotValue(int inputSlotId, AbstractMaterialNode fromNode, GenerationMode generationMode)
-        {
             var inputSlot = FindSlot<MaterialSlot>(inputSlotId);
             if (inputSlot == null)
                 return string.Empty;
@@ -322,14 +311,19 @@ namespace UnityEditor.ShaderGraph
 
             if (edges.Any())
             {
+                var fromSocketRef = edges[0].outputSlot;
+                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(fromSocketRef.nodeGuid);
                 if (fromNode == null)
                     return string.Empty;
 
-                var slot = fromNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
+                var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
                 if (slot == null)
                     return string.Empty;
 
-                return GenerationUtils.AdaptNodeOutput(fromNode, slot.id, inputSlot.concreteValueType);
+                if (fromNode.isActive)
+                    return GenerationUtils.AdaptNodeOutput(fromNode, slot.id, inputSlot.concreteValueType);
+                else
+                    return inputSlot.GetDefaultValue(generationMode);
             }
 
             return inputSlot.GetDefaultValue(generationMode);
