@@ -33,15 +33,6 @@ struct ProbeVolumeEngineData
     float unused;
 };
 
-// Generated from UnityEngine.Rendering.HighDefinition.SphericalHarmonicsL1
-// PackingRules = Exact
-struct SphericalHarmonicsL1
-{
-    float4 shAr;
-    float4 shAg;
-    float4 shAb;
-};
-
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.ProbeVolumeEngineData
 //
@@ -104,21 +95,6 @@ float3 GetResolutionInverse(ProbeVolumeEngineData value)
 float GetUnused(ProbeVolumeEngineData value)
 {
     return value.unused;
-}
-//
-// Accessors for UnityEngine.Rendering.HighDefinition.SphericalHarmonicsL1
-//
-float4 GetShAr(SphericalHarmonicsL1 value)
-{
-    return value.shAr;
-}
-float4 GetShAg(SphericalHarmonicsL1 value)
-{
-    return value.shAg;
-}
-float4 GetShAb(SphericalHarmonicsL1 value)
-{
-    return value.shAb;
 }
 
 #endif
