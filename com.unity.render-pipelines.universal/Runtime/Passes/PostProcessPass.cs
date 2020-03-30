@@ -1094,9 +1094,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             var center = m_Vignette.center.value;
             var aspectRatio = m_Descriptor.width / (float)m_Descriptor.height;
 
-            if (m_IsStereo && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass)
-                aspectRatio *= 0.5f;
-
             var v1 = new Vector4(
                 color.r, color.g, color.b,
                 m_Vignette.rounded.value ? aspectRatio : 1f
