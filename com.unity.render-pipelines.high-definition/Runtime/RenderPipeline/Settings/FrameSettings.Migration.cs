@@ -420,8 +420,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static void MigrateSubsurfaceParams(ref FrameSettings fs, bool previouslyHighQuality)
         {
             // SSS moved from 25 to 46.
-            fs.SetEnabled((FrameSettingsField)25, false);
-            fs.SetEnabled(FrameSettingsField.SubsurfaceScattering, true);
+            fs.SetEnabled(FrameSettingsField.SubsurfaceScattering, fs.bitDatas[25]);
             // Set the defaults.
             fs.sssQualityMode        = previouslyHighQuality ? SssQualityMode.OverrideQualitySettings : SssQualityMode.FromQualitySettings;
             fs.sssQualityLevel       = 0;
