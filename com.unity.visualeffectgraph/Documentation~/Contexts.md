@@ -129,8 +129,8 @@ To customize **Update** Contexts, you can add compatible **Blocks** to them.
 
 | Setting             | Description                                                  |
 | ----------------------- | ------------------------------------------------------------ |
-| **Integration**         | Specifies the type of velocity integration to use for the particles.<br/>&#8226; **None**: No velocity Integration .<br/>&#8226; **Euler**: Applies simple Euler velocity integration to the particles positions every frame. |
-| **Angular Integration** | Specifies the type of angular integration to use for the particles.<br/>&#8226; **None**: No velocity Integration .<br/>&#8226; **Euler**: Applies simple Euler angular velocity integration to the particles angles every frame. |
+| **Update Position** | Specifies whether Unity applies velocity integration to the particles. When enabled, Unity applies simple Euler velocity integration to each particle's position every frame. When disabled, Unity does not apply any velocity integration. |
+| **Update Rotation** | Specifies whether Unity applies angular integration to the particles. When enabled, Unity applies simple Euler integration to each particle's rotation every frame. When disabled, Unity does not apply any angular integration. |
 | **Age Particles**       | If the Context uses the Age attribute, this controls whether the Update Context makes particles age over time. |
 | **Reap Particles**      | If the Context uses the Age and Lifetime attributes, this control whether the Update Context removes a particles if the particle's age is greater than its lifetime. |
 
