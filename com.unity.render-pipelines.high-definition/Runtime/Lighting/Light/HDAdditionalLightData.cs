@@ -1467,7 +1467,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                TryGetComponent<Light>(out m_Light);
+                // Calling TryGetComponent only when needed is faster than letting the null check happen inside TryGetComponent
+                if (m_Light == null)
+                    TryGetComponent<Light>(out m_Light);
+
                 return m_Light;
             }
         }
@@ -1633,7 +1636,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
             m_WillRenderShadowMap &= shadowDimmer > 0;
             // If the shadow is too far away, we don't render it
-            m_WillRenderShadowMap &= type == HDLightType.Directional || processedLight.distanceToCamera < shadowFadeDistance;
+            m_WillRenderShadowMap &= processedLight.lightType == HDLightType.Directional || processedLight.distanceToCamera < shadowFadeDistance;
 
             // First we reset the ray tracing and screen space shadow data
             m_WillRenderScreenSpaceShadow = false;
