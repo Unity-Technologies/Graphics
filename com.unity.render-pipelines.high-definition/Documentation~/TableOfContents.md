@@ -155,3 +155,4 @@
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
   * [Creating a Custom Render Pass](Custom-Pass)
 * [HDRP Glossary](Glossary)
+* [Known Issues and How To Fix Them](Known-Issues)
