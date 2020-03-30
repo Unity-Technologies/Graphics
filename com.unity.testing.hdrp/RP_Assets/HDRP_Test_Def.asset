@@ -234,12 +234,12 @@ MonoBehaviour:
     supportRayTracing: 0
     lightLoopSettings:
       cookieAtlasSize: 4096
-      cookieFormat: 74
+      cookieAtlasFormat: 74
       pointCookieSize: 512
       cubeCookieTexArraySize: 16
       cookieAtlasLastValidMip: 0
-      cookieTexArraySize: 1
-      planarReflectionAtlasSize: 8192
+      cookieAreaTextureArraySize: 16
+      planarReflectionAtlasSize: 2048
       reflectionProbeCacheSize: 128
       reflectionCubemapSize: 128
       reflectionCacheCompressed: 0
@@ -293,7 +293,6 @@ MonoBehaviour:
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48
-      bufferFormat: 74
     dynamicResolutionSettings:
       enabled: 0
       maxPercentage: 100
