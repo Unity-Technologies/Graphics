@@ -498,6 +498,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
 - Fixed shadow cascade tooltip when using the metric mode (case 1229232)
 - Focus on Decal uses the extends of the projectors
+- Fixed path validation when creating new volume profile (case 1229933)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
