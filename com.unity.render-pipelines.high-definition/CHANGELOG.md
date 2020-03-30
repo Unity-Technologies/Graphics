@@ -89,6 +89,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new debug panel for volumes
 - Added XR setting to control camera jitter for temporal effects
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
+- Added support for rasterized area light shadows in StackLit
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
