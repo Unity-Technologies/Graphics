@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_DepthOnlyPassNames = { HDShaderPassNames.s_DepthOnlyName };
         ShaderTagId[] m_TransparentDepthPrepassNames = { HDShaderPassNames.s_TransparentDepthPrepassName };
         ShaderTagId[] m_TransparentDepthPostpassNames = { HDShaderPassNames.s_TransparentDepthPostpassName };
-        ShaderTagId[] m_RayTracingPrepassNames = { HDShaderPassNames.s_RayTracingPrepassName };     
+        ShaderTagId[] m_RayTracingPrepassNames = { HDShaderPassNames.s_RayTracingPrepassName };
         ShaderTagId[] m_ForwardErrorPassNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
         ShaderTagId[] m_DecalsEmissivePassNames = { HDShaderPassNames.s_MeshDecalsForwardEmissiveName, HDShaderPassNames.s_ShaderGraphMeshDecalsForwardEmissiveName };
         ShaderTagId[] m_SinglePassName = new ShaderTagId[1];
@@ -1047,7 +1047,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Check if recursive rendering is enabled or not. This will control the cull of primitive
                     // during the gbuffer and forward pass
                     RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-                    enableRecursiveRayTracing = recursiveSettings.enable.value;               
+                    enableRecursiveRayTracing = recursiveSettings.enable.value;
                 }
 
                 cmd.SetGlobalInt(HDShaderIDs._EnableRecursiveRayTracing, enableRecursiveRayTracing ? 1 : 0);

@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<DeferredLightingPassData>("Deferred Lighting", out var passData))
             {
-                passData.parameters = PrepareDeferredLightingParameters(hdCamera, debugDisplaySettings);
+                passData.parameters = PrepareDeferredLightingParameters(hdCamera, m_CurrentDebugDisplaySettings);
 
                 // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
                 passData.resources = new  DeferredLightingResources();

@@ -831,7 +831,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.RayTracingPrepass,
-                pragmas = HDPragmas.BasicForRaytracing,
+                pragmas = HDPragmas.Basic,
                 defines = HDDefines.ShaderGraphRaytracingHigh,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.RayTracingPrepass,
@@ -2133,6 +2133,262 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 //Custom Template
                 passTemplatePath = GetPassTemplatePath("Fabric"),
+            };
+        }
+#endregion
+
+#region StackLitRayTracing
+        public static class StackLitRayTracing
+        {
+            public static PassDescriptor Indirect = new PassDescriptor()
+            {
+                // Definition
+                displayName = "IndirectDXR",
+                referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
+                lightMode = "IndirectDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                pixelPorts = HDPortMasks.Pixel.StackLitForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.StackLitRaytracingForwardIndirect,
+                keywords = HDKeywords.RaytracingIndirect,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingIndirect },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("StackLit"),
+            };
+
+            public static PassDescriptor Visibility = new PassDescriptor()
+            {
+                // Definition
+                displayName = "VisibilityDXR",
+                referenceName = "SHADERPASS_RAYTRACING_VISIBILITY",
+                lightMode = "VisibilityDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                pixelPorts = HDPortMasks.Pixel.StackLitForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                keywords = HDKeywords.HDBase,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingVisibility },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("StackLit"),
+            };
+
+            public static PassDescriptor Forward = new PassDescriptor()
+            {
+                // Definition
+                displayName = "ForwardDXR",
+                referenceName = "SHADERPASS_RAYTRACING_FORWARD",
+                lightMode = "ForwardDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                pixelPorts = HDPortMasks.Pixel.StackLitForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.StackLitRaytracingForwardIndirect,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingForward },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("StackLit"),
+            };
+
+            public static PassDescriptor GBuffer = new PassDescriptor()
+            {
+                // Definition
+                displayName = "GBufferDXR",
+                referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
+                lightMode = "GBufferDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                pixelPorts = HDPortMasks.Pixel.StackLitForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.StackLitRaytracingGBuffer,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RayTracingGBuffer },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("StackLit"),
+            };
+            public static PassDescriptor SubSurface = new PassDescriptor()
+            {
+                //Definition
+                displayName = "SubSurfaceDXR",
+                referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
+                lightMode = "SubSurfaceDXR",
+                useInPreview = false,
+
+                //Port mask
+                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                pixelPorts = HDPortMasks.Pixel.StackLitForward,
+
+                //Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.StackLitRaytracingGBuffer,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingSubSurface },
+
+                //Custom Template
+                passTemplatePath = GetPassTemplatePath("StackLit"),
+            };
+        }
+#endregion
+
+#region HairRayTracing
+        public static class HairRayTracing
+        {
+            public static PassDescriptor Indirect = new PassDescriptor()
+            {
+                // Definition
+                displayName = "IndirectDXR",
+                referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
+                lightMode = "IndirectDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.HairDefault,
+                pixelPorts = HDPortMasks.Pixel.HairForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.HairRaytracingForwardIndirect,
+                keywords = HDKeywords.RaytracingIndirect,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingIndirect },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("Hair"),
+            };
+
+            public static PassDescriptor Visibility = new PassDescriptor()
+            {
+                // Definition
+                displayName = "VisibilityDXR",
+                referenceName = "SHADERPASS_RAYTRACING_VISIBILITY",
+                lightMode = "VisibilityDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.HairDefault,
+                pixelPorts = HDPortMasks.Pixel.HairForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                keywords = HDKeywords.HDBase,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingVisibility },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("Hair"),
+            };
+
+            public static PassDescriptor Forward = new PassDescriptor()
+            {
+                // Definition
+                displayName = "ForwardDXR",
+                referenceName = "SHADERPASS_RAYTRACING_FORWARD",
+                lightMode = "ForwardDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.HairDefault,
+                pixelPorts = HDPortMasks.Pixel.HairForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.HairRaytracingForwardIndirect,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingForward },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("Hair"),
+            };
+
+            public static PassDescriptor GBuffer = new PassDescriptor()
+            {
+                // Definition
+                displayName = "GBufferDXR",
+                referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
+                lightMode = "GBufferDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.HairDefault,
+                pixelPorts = HDPortMasks.Pixel.HairForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.HairRaytracingGBuffer,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RayTracingGBuffer },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("Hair"),
+            };
+            public static PassDescriptor SubSurface = new PassDescriptor()
+            {
+                //Definition
+                displayName = "SubSurfaceDXR",
+                referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
+                lightMode = "SubSurfaceDXR",
+                useInPreview = false,
+
+                //Port mask
+                vertexPorts = HDPortMasks.Vertex.HairDefault,
+                pixelPorts = HDPortMasks.Pixel.HairForward,
+
+                //Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.HairRaytracingGBuffer,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingSubSurface },
+
+                //Custom Template
+                passTemplatePath = GetPassTemplatePath("Hair"),
             };
         }
 #endregion
