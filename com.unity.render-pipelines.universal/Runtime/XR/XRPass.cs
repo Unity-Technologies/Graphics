@@ -3,6 +3,7 @@
 // XRPass holds the render target information and a list of XRView.
 // When a pass has 2+ views, single-pass will be active.
 // To avoid allocating every frame, XRView is a struct and XRPass is pooled.
+
 using System;
 using System.Collections.Generic;
 
@@ -38,17 +39,6 @@ namespace UnityEngine.Rendering.Universal
         internal readonly Rect viewport;
         internal readonly Mesh occlusionMesh;
         internal readonly int textureArraySlice;
-        internal readonly Camera.StereoscopicEye legacyStereoEye;
-
-        internal XRView(Camera camera, Camera.StereoscopicEye eye, int dstSlice)
-        {
-            projMatrix = camera.GetStereoProjectionMatrix(eye);
-            viewMatrix = camera.GetStereoViewMatrix(eye);
-            viewport = camera.pixelRect;
-            occlusionMesh = null;
-            textureArraySlice = dstSlice;
-            legacyStereoEye = eye;
-        }
 
         internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int dstSlice)
         {
@@ -57,7 +47,6 @@ namespace UnityEngine.Rendering.Universal
             viewport = vp;
             occlusionMesh = null;
             textureArraySlice = dstSlice;
-            legacyStereoEye = (Camera.StereoscopicEye)(-1);
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -68,7 +57,6 @@ namespace UnityEngine.Rendering.Universal
             viewport = renderParameter.viewport;
             occlusionMesh = renderParameter.occlusionMesh;
             textureArraySlice = renderParameter.textureArraySlice;
-            legacyStereoEye = (Camera.StereoscopicEye)(-1);
 
             // Convert viewport from normalized to screen space
             viewport.x      *= renderPass.renderTargetDesc.width;
@@ -79,7 +67,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
     }
 
-    public class XRPass
+    class XRPass
     {
         readonly List<XRView> views = new List<XRView>(2);
 
@@ -118,10 +106,6 @@ namespace UnityEngine.Rendering.Universal
         CustomMirrorView customMirrorView = null;
         internal void SetCustomMirrorView(CustomMirrorView callback) => customMirrorView = callback;
 
-        // Legacy multipass support
-        internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
-        internal bool legacyMultipassEnabled  { get => enabled && !singlePassEnabled && legacyMultipassEye >= 0; }
-
         const string k_XRCustomMirrorTag = "XR Custom Mirror View";
         static ProfilingSampler _XRCustomMirrorProfilingSampler = new ProfilingSampler(k_XRCustomMirrorTag);
         const string k_XROcclusionTag = "XR Occlusion Mesh";
@@ -155,11 +139,6 @@ namespace UnityEngine.Rendering.Universal
             passInfo.copyDepth = false;
 
             return passInfo;
-        }
-
-        internal void AddView(Camera camera, Camera.StereoscopicEye eye, int textureArraySlice = -1)
-        {
-            AddViewInternal(new XRView(camera, eye, textureArraySlice));
         }
 
         internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
@@ -228,7 +207,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void StartSinglePass(CommandBuffer cmd, ScriptableRenderContext renderContext)
+        internal void StartSinglePass(CommandBuffer cmd)
         {
             if (enabled)
             {
@@ -255,7 +234,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void StopSinglePass(CommandBuffer cmd, ScriptableRenderContext renderContext)
+        internal void StopSinglePass(CommandBuffer cmd)
         {
             if (enabled)
             {
@@ -279,7 +258,7 @@ namespace UnityEngine.Rendering.Universal
             if (!enabled)
                 return;
 
-            StopSinglePass(cmd, renderContext);
+            StopSinglePass(cmd);
 
             // Callback for custom mirror view
             if (customMirrorView != null)

@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.Universal
         internal List<XRPass> SetupFrame(ref CameraData cameraData, bool singlePassAllowed, bool singlePassTestModeActive)
         {
             Camera camera = cameraData.camera;
-            bool xrSdkActive = RefreshXrSdk();
+            bool xrEnabled = RefreshXrSdk();
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (display != null)
@@ -149,9 +149,6 @@ namespace UnityEngine.Rendering.Universal
             if (camera == null)
                 return framePasses;
 
-            // Read XR SDK or legacy settings
-            bool xrEnabled = xrSdkActive;
-
             // Enable XR layout only for gameview camera
             bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
 
@@ -161,14 +158,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else if (xrEnabled && xrSupported)
             {
-                if (xrSdkActive)
-                {
-                    CreateLayoutFromXrSdk(camera, singlePassAllowed);
-                }
-                else
-                {
-                    CreateLayoutLegacyStereo(camera);
-                }
+                CreateLayoutFromXrSdk(camera, singlePassAllowed);
             }
             else
             {
@@ -242,57 +232,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             return false;
-        }
-
-        void CreateLayoutLegacyStereo(Camera camera)
-        {
-            if (!camera.TryGetCullingParameters(true, out var cullingParams))
-            {
-                Debug.LogError("Unable to get Culling Parameters from camera!");
-                return;
-            }
-
-            var passCreateInfo = new XRPassCreateInfo
-            {
-                multipassId = 0,
-                cullingPassId = 0,
-                cullingParameters = cullingParams,
-                renderTarget = camera.targetTexture,
-                renderTargetIsRenderTexture = false,
-                customMirrorView = null
-            };
-
-            if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.MultiPass)
-            {
-                if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Left)
-                {
-                    var pass = XRPass.Create(passCreateInfo);
-                    pass.AddView(camera, Camera.StereoscopicEye.Left, 0);
-
-                    AddPassToFrame(pass);
-                    passCreateInfo.multipassId++;
-                }
-
-                if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Right)
-                {
-                    var pass = XRPass.Create(passCreateInfo);
-                    pass.AddView(camera, Camera.StereoscopicEye.Right, 1);
-
-                    AddPassToFrame(pass);
-                }
-            }
-            else
-            {
-                var pass = XRPass.Create(passCreateInfo);
-
-                if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Left)
-                    pass.AddView(camera, Camera.StereoscopicEye.Left, 0);
-
-                if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Right)
-                    pass.AddView(camera, Camera.StereoscopicEye.Right, 1);
-
-               AddPassToFrame(pass);
-            }
         }
 
         void CreateLayoutFromXrSdk(Camera camera, bool singlePassAllowed)

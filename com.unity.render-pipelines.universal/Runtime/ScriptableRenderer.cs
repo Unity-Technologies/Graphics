@@ -731,7 +731,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.xr.singlePassEnabled)
             {
-                cameraData.xr.StartSinglePass(cmd, context);
+                cameraData.xr.StartSinglePass(cmd);
             }
 
             cmd.EnableShaderKeyword(ShaderKeywordStrings.DrawProceduleQuadBlit);
@@ -746,7 +746,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.xr.singlePassEnabled)
             {
-                cameraData.xr.StopSinglePass(cmd, context);
+                cameraData.xr.StopSinglePass(cmd);
             }
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DrawProceduleQuadBlit);
             context.ExecuteCommandBuffer(cmd);
