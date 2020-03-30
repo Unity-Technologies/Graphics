@@ -340,7 +340,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_InspectorView = new InspectorView(m_Graph, graphView);
             m_InspectorView.visible = m_UserViewSettings.isInspectorVisible;
-            m_GraphView.OnSelectionChange += m_InspectorView.UpdateSelection;
+            m_GraphView.OnSelectionChange += selectedObjects => m_InspectorView.Update();
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -584,12 +584,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_updateInspectorNextFrame)
             {
                 m_updateInspectorNextFrame = false;
-                m_InspectorView.UpdateSelection(m_GraphView.selection);
+                m_InspectorView.Update();
             }
 
-            if (wasUndoRedoPerformed)
+            // #TODO: Graph selection of elements is weird with undo-redo, doesn't always properly trigger the undoRedoPerformed flag from graphObject
+            // #TODO: Hence need to do explicit checking
+            if (wasUndoRedoPerformed || m_GraphView.selection.Count != m_InspectorView.currentlyDisplayedPropertyCount)
                 m_updateInspectorNextFrame = true;
-
             m_GroupHashSet.Clear();
 
             foreach (var node in m_Graph.removedNodes)

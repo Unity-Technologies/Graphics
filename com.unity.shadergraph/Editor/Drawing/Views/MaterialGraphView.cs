@@ -224,6 +224,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 OnSelectionChange(selection);
         }
 
+        public override void RemoveFromSelection(ISelectable selectable)
+        {
+            base.RemoveFromSelection(selectable);
+
+            if(OnSelectionChange != null)
+                OnSelectionChange(selection);
+        }
+
         public override void ClearSelection()
         {
             base.ClearSelection();

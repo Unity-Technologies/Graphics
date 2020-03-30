@@ -5,6 +5,7 @@ using Drawing.Inspector;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -47,16 +48,25 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
+                return $"{property?.displayName} (Node)";
+            }
+        }
+
+        [Inspectable("ShaderInput", null)]
+        private AbstractShaderProperty property
+        {
+            get
+            {
                 var propNode = node as PropertyNode;
                 var graph = node.owner as GraphData;
                 var property = graph.properties.FirstOrDefault(x => x.guid == propNode.propertyGuid);
-                return $"{property.displayName} (Node)";
+                return property;
             }
         }
 
         public object GetObjectToInspect()
         {
-            throw new NotImplementedException();
+            return property;
         }
 
         public PropertyInfo[] GetPropertyInfo()

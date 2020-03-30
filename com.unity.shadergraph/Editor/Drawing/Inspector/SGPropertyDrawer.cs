@@ -1263,7 +1263,8 @@ namespace Drawing.Inspector
             }
 
             BuildPrecisionField(propertySheet, property);
-            BuildGpuInstancingField(propertySheet, property);
+            if(property.isGpuInstanceable)
+                BuildGpuInstancingField(propertySheet, property);
         }
 
         // #TODO: Current Blackboard calls ValidateGraph() after changing this property, is this actually needed?

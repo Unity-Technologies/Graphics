@@ -22,7 +22,8 @@ namespace Drawing.Inspector
         // References
         readonly GraphData m_GraphData;
         readonly IList<Type> m_PropertyDrawerList = new List<Type>();
-        private List<ISelectable> m_SelectionList = null;
+
+        public int currentlyDisplayedPropertyCount { get; private set; } = 0;
 
         protected override string windowTitle => "Inspector";
         protected override string elementName => "InspectorView";
@@ -92,9 +93,9 @@ namespace Drawing.Inspector
 #endregion
 
 #region Selection
-        public void UpdateSelection(List<ISelectable> selectedObjects)
+        public void Update()
         {
-            m_SelectionList = selectedObjects;
+            currentlyDisplayedPropertyCount = selection.Count;
 
             // Remove current properties
             for (int i = 0; i < m_ContentContainer.childCount; ++i)
@@ -103,21 +104,21 @@ namespace Drawing.Inspector
                 m_ContentContainer.Remove(child);
             }
 
-            if(selectedObjects.Count == 0)
+            if(selection.Count == 0)
             {
                 SetSelectionToGraph();
                 return;
             }
 
-            if(selectedObjects.Count > 1)
+            if(selection.Count > 1)
             {
-                subTitle = $"{selectedObjects.Count} Objects.";
+                subTitle = $"{selection.Count} Objects.";
             }
 
             var propertySheet = new PropertySheet();
             try
             {
-                foreach (var selectable in selectedObjects)
+                foreach (var selectable in selection)
                 {
                     object dataObject = null;
                     PropertyInfo[] properties;
@@ -146,7 +147,7 @@ namespace Drawing.Inspector
                         {
                             var propertyDrawerInstance = (IPropertyDrawer)Activator.CreateInstance(propertyDrawerTypeToUse);
                             // Supply any required data to this particular kind of property drawer
-                            inspectable.SupplyDataToPropertyDrawer(propertyDrawerInstance, () => this.UpdateSelection(m_SelectionList));
+                            inspectable.SupplyDataToPropertyDrawer(propertyDrawerInstance, this.Update);
                             var propertyGUI = propertyDrawerInstance.DrawProperty(propertyInfo, dataObject, attribute);
                             propertySheet.Add(propertyGUI);
                         }
