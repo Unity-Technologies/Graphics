@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (cameraData.isStereoEnabled && cameraData.xrPass.enabled)
             {
-                cameraData.xrPass.UpdateGPUViewAndProjectionMatricies(cmd, ref cameraData, cameraData.xrPass.renderTargetIsRenderTexture);
+                cameraData.xrPass.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, cameraData.xrPass.renderTargetIsRenderTexture);
                 return;
             }
 
@@ -711,7 +711,7 @@ namespace UnityEngine.Rendering.Universal
                         // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
                         // XRTODO: Consolidate y-flip and winding order device state in URP
                         bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xrPass.renderTarget) && !cameraData.xrPass.renderTargetIsRenderTexture;
-                        cameraData.xrPass.UpdateGPUViewAndProjectionMatricies(cmd, ref cameraData, !isRenderToBackBufferTarget);
+                        cameraData.xrPass.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
                     }
                 }
             }

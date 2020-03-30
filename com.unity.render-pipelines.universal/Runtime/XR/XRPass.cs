@@ -311,15 +311,17 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void UpdateGPUViewAndProjectionMatricies(CommandBuffer cmd, ref CameraData cameraData, bool isRenderToTexture)
+        // XRTODO: move to StereoConstants in RenderingUtils.cs ?
+        private Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
+        private Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];
+
+        internal void UpdateGPUViewAndProjectionMatrices(CommandBuffer cmd, ref CameraData cameraData, bool isRenderToTexture)
         {
             Matrix4x4 projectionMatrix = GL.GetGPUProjectionMatrix(cameraData.xrPass.GetProjMatrix(0), isRenderToTexture);
             RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.xrPass.GetViewMatrix(0), projectionMatrix, true);
 
             if (cameraData.xrPass.singlePassEnabled)
             {
-                Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
-                Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];
                 for (int i = 0; i < 2; i++)
                 {
                     stereoViewMatrix[i] = cameraData.xrPass.GetViewMatrix(i);

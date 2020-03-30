@@ -134,6 +134,19 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixIVP");
         internal static readonly int UNITY_STEREO_VECTOR_CAMPOS = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
 
+        // Hold the stereo matrices in this class to avoid allocating arrays every frame
+        // XRTODO: revisit this code once everything is working
+        class StereoConstants
+        {
+            public Matrix4x4[] viewProjMatrix = new Matrix4x4[2];
+            public Matrix4x4[] invViewMatrix = new Matrix4x4[2];
+            public Matrix4x4[] invProjMatrix = new Matrix4x4[2];
+            public Matrix4x4[] invViewProjMatrix = new Matrix4x4[2];
+            public Vector4[] worldSpaceCameraPos = new Vector4[2];
+        };
+
+        static readonly StereoConstants stereoConstants = new StereoConstants();
+
         /// <summary>
         /// Helper function to set all view and projection related matricies
         /// Should be called before draw call and after cmd.SetRenderTarget 
@@ -146,33 +159,25 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>Void</c></returns>
         internal static void SetStereoViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4[] viewMatrix, Matrix4x4[] projMatrix, bool setInverseMatrices)
         {
-
-            Matrix4x4[] viewProjMatrix = new Matrix4x4[2];
-            Matrix4x4[] invViewMatrix = new Matrix4x4[2];
-            Matrix4x4[] invProjMatrix = new Matrix4x4[2];
-            Matrix4x4[] invViewProjMatrix = new Matrix4x4[2];
-            Vector4[] stereoWorldSpaceCameraPos = new Vector4[2];
-
             for (int i = 0; i < 2; i++)
             {
-
-                viewProjMatrix[i] = projMatrix[i] * viewMatrix[i];
-                invViewMatrix[i] = Matrix4x4.Inverse(viewMatrix[i]);
-                invProjMatrix[i] = Matrix4x4.Inverse(projMatrix[i]);
-                invViewProjMatrix[i] = Matrix4x4.Inverse(viewProjMatrix[i]);
-                stereoWorldSpaceCameraPos[i] = invViewMatrix[i].GetColumn(3);
+                stereoConstants.viewProjMatrix[i] = projMatrix[i] * viewMatrix[i];
+                stereoConstants.invViewMatrix[i] = Matrix4x4.Inverse(viewMatrix[i]);
+                stereoConstants.invProjMatrix[i] = Matrix4x4.Inverse(projMatrix[i]);
+                stereoConstants.invViewProjMatrix[i] = Matrix4x4.Inverse(stereoConstants.viewProjMatrix[i]);
+                stereoConstants.worldSpaceCameraPos[i] = stereoConstants.invViewMatrix[i].GetColumn(3);
             }
 
             cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_V, viewMatrix);
             cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_P, projMatrix);
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_VP, viewProjMatrix);
+            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_VP, stereoConstants.viewProjMatrix);
             if (setInverseMatrices)
             {
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IV, invViewMatrix);
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IP, invProjMatrix);
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IVP, invViewProjMatrix);
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IV, stereoConstants.invViewMatrix);
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IP, stereoConstants.invProjMatrix);
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IVP, stereoConstants.invViewProjMatrix);
             }
-            cmd.SetGlobalVectorArray(UNITY_STEREO_VECTOR_CAMPOS, stereoWorldSpaceCameraPos);
+            cmd.SetGlobalVectorArray(UNITY_STEREO_VECTOR_CAMPOS, stereoConstants.worldSpaceCameraPos);
         }
 #endif
 

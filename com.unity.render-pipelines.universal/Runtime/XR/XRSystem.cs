@@ -34,7 +34,9 @@ namespace UnityEngine.Rendering.Universal
         internal static bool automatedTestRunning = false;
 
         // Used by test framework and to enable debug features
-        internal static bool testModeEnabled { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
+        static bool testModeEnabledInitialization { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
+        internal static bool testModeEnabled = testModeEnabledInitialization;
+
         RenderTexture testRenderTexture = null;
 
         const string k_XRMirrorTag = "XR Mirror View";
@@ -211,7 +213,7 @@ namespace UnityEngine.Rendering.Universal
             framePasses.Clear();
 
             if (testRenderTexture)
-                testRenderTexture.Release();
+                RenderTexture.ReleaseTemporary(testRenderTexture);
         }
 
         bool RefreshXrSdk()
@@ -439,7 +441,7 @@ namespace UnityEngine.Rendering.Universal
                     rtDesc.dimension = TextureDimension.Tex2DArray;
                     rtDesc.volumeDepth = 2;
 
-                    testRenderTexture = new RenderTexture(rtDesc);
+                    testRenderTexture = RenderTexture.GetTemporary(rtDesc);
                 }
 
                 var passInfo = new XRPassCreateInfo
