@@ -266,6 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DstBlend = Shader.PropertyToID("_DstBlend");
 
         public static readonly int _ColorMaskTransparentVel = Shader.PropertyToID("_ColorMaskTransparentVel");
+        public static readonly int _ColorMaskNormal = Shader.PropertyToID("_ColorMaskNormal");
 
         public static readonly int _StencilTexture = Shader.PropertyToID("_StencilTexture");
 
@@ -311,6 +312,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
         public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
         public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
+        public static readonly int _TaaPostParameters = Shader.PropertyToID("_TaaPostParameters");
+        public static readonly int _TaaHistorySize = Shader.PropertyToID("_TaaHistorySize");
+        public static readonly int _TaaFilterWeights = Shader.PropertyToID("_TaaFilterWeights");
 
         public static readonly int _WorldSpaceCameraPos1 = Shader.PropertyToID("_WorldSpaceCameraPos1");
         public static readonly int _ViewMatrix1 = Shader.PropertyToID("_ViewMatrix1");
@@ -754,6 +758,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SourceTexture                  = Shader.PropertyToID("_SourceTexture");
         public static readonly int _InputHistoryTexture            = Shader.PropertyToID("_InputHistoryTexture");
         public static readonly int _OutputHistoryTexture           = Shader.PropertyToID("_OutputHistoryTexture");
+        public static readonly int _InputVelocityMagnitudeHistory  = Shader.PropertyToID("_InputVelocityMagnitudeHistory");
+        public static readonly int _OutputVelocityMagnitudeHistory = Shader.PropertyToID("_OutputVelocityMagnitudeHistory");
 
         public static readonly int _TargetScale                    = Shader.PropertyToID("_TargetScale");
         public static readonly int _Params                         = Shader.PropertyToID("_Params");
@@ -960,6 +966,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kZTestGBuffer = "_ZTestGBuffer";
         public const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
         public const string kBlendMode = "_BlendMode";
+        public const string kAlphaToMask = "_AlphaToMask";
         public const string kEnableFogOnTransparent = "_EnableFogOnTransparent";
         public const string kDistortionDepthTest = "_DistortionDepthTest";
         public const string kDistortionEnable = "_DistortionEnable";
