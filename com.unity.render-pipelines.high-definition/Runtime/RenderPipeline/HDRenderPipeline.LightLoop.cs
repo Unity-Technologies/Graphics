@@ -27,18 +27,67 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class BuildGPULightListPassData
         {
-            public ShadowGlobalParameters shadowGlobalParameters;
-            public LightLoopGlobalParameters lightLoopGlobalParameters;
+            public ShadowGlobalParameters       shadowGlobalParameters;
+            public LightLoopGlobalParameters    lightLoopGlobalParameters;
 
-            public BuildGPULightListParameters buildGPULightListParameters;
-            public BuildGPULightListResources buildGPULightListResources;
+            public BuildGPULightListParameters  buildGPULightListParameters;
             public TextureHandle                depthBuffer;
             public TextureHandle                stencilTexture;
             public TextureHandle[]              gBuffer = new TextureHandle[RenderGraph.kMaxMRTCount];
-            public int gBufferCount;
+            public int                          gBufferCount;
+
+            // These buffers are not used outside of BuildGPULight list so they don't need to be known by the render graph.
+            public ComputeBuffer                lightVolumeDataBuffer;
+            public ComputeBuffer                convexBoundsBuffer;
+            public ComputeBuffer                AABBBoundsBuffer;
+            public ComputeBuffer                globalLightListAtomic;
+
+            public BuildGPULightListOutput      output = new BuildGPULightListOutput();
         }
 
-        void BuildGPULightList(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle stencilBufferCopy, GBufferOutput gBuffer)
+        struct BuildGPULightListOutput
+        {
+            public ComputeBufferHandle tileFeatureFlags;
+            public ComputeBufferHandle dispatchIndirectBuffer;
+            public ComputeBufferHandle perVoxelOffset;
+            public ComputeBufferHandle perTileLogBaseTweak;
+            public ComputeBufferHandle tileList;
+            public ComputeBufferHandle bigTileLightList;
+            public ComputeBufferHandle perVoxelLightLists;
+            public ComputeBufferHandle lightList;
+        }
+
+        static BuildGPULightListResources PrepareBuildGPULightListResources(RenderGraphContext context, BuildGPULightListPassData data)
+        {
+            var buildLightListResources = new BuildGPULightListResources();
+
+            buildLightListResources.depthBuffer = context.resources.GetTexture(data.depthBuffer);
+            buildLightListResources.stencilTexture = context.resources.GetTexture(data.stencilTexture);
+            if (data.buildGPULightListParameters.computeMaterialVariants && data.buildGPULightListParameters.enableFeatureVariants)
+            {
+                buildLightListResources.gBuffer = context.renderGraphPool.GetTempArray<RTHandle>(data.gBufferCount);
+                for (int i = 0; i < data.gBufferCount; ++i)
+                    buildLightListResources.gBuffer[i] = context.resources.GetTexture(data.gBuffer[i]);
+            }
+
+            buildLightListResources.lightVolumeDataBuffer = data.lightVolumeDataBuffer;
+            buildLightListResources.convexBoundsBuffer = data.convexBoundsBuffer;
+            buildLightListResources.AABBBoundsBuffer = data.AABBBoundsBuffer;
+            buildLightListResources.globalLightListAtomic = data.globalLightListAtomic;
+
+            buildLightListResources.tileFeatureFlags = context.resources.GetComputeBuffer(data.output.tileFeatureFlags);
+            buildLightListResources.dispatchIndirectBuffer = context.resources.GetComputeBuffer(data.output.dispatchIndirectBuffer);
+            buildLightListResources.perVoxelOffset = context.resources.GetComputeBuffer(data.output.perVoxelOffset);
+            buildLightListResources.perTileLogBaseTweak = context.resources.GetComputeBuffer(data.output.perTileLogBaseTweak);
+            buildLightListResources.tileList = context.resources.GetComputeBuffer(data.output.tileList);
+            buildLightListResources.bigTileLightList = context.resources.GetComputeBuffer(data.output.bigTileLightList);
+            buildLightListResources.perVoxelLightLists = context.resources.GetComputeBuffer(data.output.perVoxelLightLists);
+            buildLightListResources.lightList = context.resources.GetComputeBuffer(data.output.lightList);
+
+            return buildLightListResources;
+        }
+
+        BuildGPULightListOutput BuildGPULightList(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle stencilBufferCopy, GBufferOutput gBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData, ProfilingSampler.Get(HDProfileId.BuildLightList)))
             {
@@ -47,8 +96,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shadowGlobalParameters = PrepareShadowGlobalParameters(hdCamera);
                 passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera);
                 passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, buildForProbeVolumes: false);
-                // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
-                passData.buildGPULightListResources = PrepareBuildGPULightListResources(m_TileAndClusterData, null, null, isGBufferNeeded: true);
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.stencilTexture = builder.ReadTexture(stencilBufferCopy);
                 if (passData.buildGPULightListParameters.computeMaterialVariants && passData.buildGPULightListParameters.enableFeatureVariants)
@@ -58,33 +105,41 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.gBufferCount = gBuffer.gBufferCount;
                 }
 
+                passData.lightVolumeDataBuffer = m_TileAndClusterData.lightVolumeDataBuffer;
+                passData.convexBoundsBuffer = m_TileAndClusterData.convexBoundsBuffer;
+                passData.AABBBoundsBuffer = m_TileAndClusterData.AABBBoundsBuffer;
+                passData.globalLightListAtomic = m_TileAndClusterData.globalLightListAtomic;
+
+                passData.output.tileFeatureFlags = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.tileFeatureFlags));
+                passData.output.dispatchIndirectBuffer = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.dispatchIndirectBuffer));
+                passData.output.perVoxelOffset = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.perVoxelOffset));
+                passData.output.perTileLogBaseTweak = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.perTileLogBaseTweak));
+                passData.output.tileList = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.tileList));
+                passData.output.bigTileLightList = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.bigTileLightList));
+                passData.output.perVoxelLightLists = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.perVoxelLightLists));
+                passData.output.lightList = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.lightList));
+
                 builder.SetRenderFunc(
                 (BuildGPULightListPassData data, RenderGraphContext context) =>
                 {
                     bool tileFlagsWritten = false;
 
-                    data.buildGPULightListResources.depthBuffer = context.resources.GetTexture(data.depthBuffer);
-                    data.buildGPULightListResources.stencilTexture = context.resources.GetTexture(data.stencilTexture);
-                    if (data.buildGPULightListParameters.computeMaterialVariants && data.buildGPULightListParameters.enableFeatureVariants)
-                    {
-                        data.buildGPULightListResources.gBuffer = context.renderGraphPool.GetTempArray<RTHandle>(data.gBufferCount);
-                        for (int i = 0; i < data.gBufferCount; ++i)
-                            data.buildGPULightListResources.gBuffer[i] = context.resources.GetTexture(data.gBuffer[i]);
-                    }
+                    var buildLightListResources = PrepareBuildGPULightListResources(context, data);
 
-                    ClearLightLists(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
-                    GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
-                    BigTilePrepass(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
-                    BuildPerTileLightList(data.buildGPULightListParameters, data.buildGPULightListResources, ref tileFlagsWritten, context.cmd);
-                    VoxelLightListGeneration(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
+                    ClearLightLists(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                    GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                    BigTilePrepass(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                    BuildPerTileLightList(data.buildGPULightListParameters, buildLightListResources, ref tileFlagsWritten, context.cmd);
+                    VoxelLightListGeneration(data.buildGPULightListParameters, buildLightListResources, context.cmd);
 
-                    BuildDispatchIndirectArguments(data.buildGPULightListParameters, data.buildGPULightListResources, tileFlagsWritten, context.cmd);
+                    BuildDispatchIndirectArguments(data.buildGPULightListParameters, buildLightListResources, tileFlagsWritten, context.cmd);
 
                     // TODO RENDERGRAPH WARNING: Note that the three sets of variables are bound here, but it should be handled differently.
                     PushShadowGlobalParams(data.shadowGlobalParameters, context.cmd);
                     PushLightLoopGlobalParams(data.lightLoopGlobalParameters, context.cmd);
                 });
 
+                return passData.output;
             }
         }
 
