@@ -157,5 +157,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices);
         }
+
+        public override void FilterPlanarTexture(CommandBuffer cmd, RenderTexture source, RenderTexture target)
+        {
+            m_MipGenerator.RenderColorGaussianPyramid(cmd, new Vector2Int(source.width, source.height), source, target, true);
+        }
     }
 }

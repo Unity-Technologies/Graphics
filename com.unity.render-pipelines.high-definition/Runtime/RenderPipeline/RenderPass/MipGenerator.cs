@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // We can't do it in place as the color pyramid has to be read while writing to the color
         // buffer in some cases (e.g. refraction, distortion)
         // Returns the number of mips
-        public int RenderColorGaussianPyramid(CommandBuffer cmd, Vector2Int size, Texture source, RenderTexture destination)
+        public int RenderColorGaussianPyramid(CommandBuffer cmd, Vector2Int size, Texture source, RenderTexture destination, bool planar = false)
         {
             // Select between Tex2D and Tex2DArray versions of the kernels
             bool sourceIsArray = (source.dimension == TextureDimension.Tex2DArray);
@@ -193,10 +193,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 scaleX = ((float)dstMipWidth / blurSourceTextureWidth);
                 scaleY = ((float)dstMipHeight / blurSourceTextureHeight);
 
+                float offsetWidth = 1.0f / blurSourceTextureWidth;
+                float offsetHeight = 1.0f / blurSourceTextureHeight;
+
+                if (planar)
+                {
+                    offsetWidth *= source.width / 256;
+                    offsetHeight *= source.height / 256;
+                }
+
                 // Blur horizontal.
                 m_PropertyBlock.SetTexture(HDShaderIDs._Source, m_TempDownsamplePyramid[rtIndex]);
                 m_PropertyBlock.SetVector(HDShaderIDs._SrcScaleBias, new Vector4(scaleX, scaleY, 0f, 0f));
-                m_PropertyBlock.SetVector(HDShaderIDs._SrcUvLimits, new Vector4((dstMipWidth - 0.5f) / blurSourceTextureWidth, (dstMipHeight - 0.5f) / blurSourceTextureHeight, 1.0f / blurSourceTextureWidth, 0f));
+                m_PropertyBlock.SetVector(HDShaderIDs._SrcUvLimits, new Vector4((dstMipWidth - 0.5f) / blurSourceTextureWidth, (dstMipHeight - 0.5f) / blurSourceTextureHeight, offsetWidth, 0f));
                 m_PropertyBlock.SetFloat(HDShaderIDs._SourceMip, 0);
                 cmd.SetRenderTarget(m_TempColorTargets[rtIndex], 0, CubemapFace.Unknown, -1);
                 cmd.SetViewport(new Rect(0, 0, dstMipWidth, dstMipHeight));
@@ -205,7 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Blur vertical.
                 m_PropertyBlock.SetTexture(HDShaderIDs._Source, m_TempColorTargets[rtIndex]);
                 m_PropertyBlock.SetVector(HDShaderIDs._SrcScaleBias, new Vector4(scaleX, scaleY, 0f, 0f));
-                m_PropertyBlock.SetVector(HDShaderIDs._SrcUvLimits, new Vector4((dstMipWidth - 0.5f) / blurSourceTextureWidth, (dstMipHeight - 0.5f) / blurSourceTextureHeight, 0f, 1.0f / blurSourceTextureHeight));
+                m_PropertyBlock.SetVector(HDShaderIDs._SrcUvLimits, new Vector4((dstMipWidth - 0.5f) / blurSourceTextureWidth, (dstMipHeight - 0.5f) / blurSourceTextureHeight, 0f, offsetHeight));
                 m_PropertyBlock.SetFloat(HDShaderIDs._SourceMip, 0);
                 cmd.SetRenderTarget(destination, srcMipLevel + 1, CubemapFace.Unknown, -1);
                 cmd.SetViewport(new Rect(0, 0, dstMipWidth, dstMipHeight));
