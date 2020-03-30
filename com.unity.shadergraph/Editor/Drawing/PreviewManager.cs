@@ -25,11 +25,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         HashSet<AbstractMaterialNode> m_NodesToUpdate = new HashSet<AbstractMaterialNode>();
         HashSet<AbstractMaterialNode> m_NodesToDraw = new HashSet<AbstractMaterialNode>();
         HashSet<AbstractMaterialNode> m_TimedNodes = new HashSet<AbstractMaterialNode>();
+        HashSet<BlockNode> m_Blocks = new HashSet<BlockNode>();
         bool m_RefreshTimedNodes;
 
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
         Vector2? m_NewMasterPreviewSize;
+
+        Identifier m_MasterIdentifier;
 
         public PreviewRenderData masterRenderData
         {
@@ -42,9 +45,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Messenger = messenger;
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
             m_SceneResources = new PreviewSceneResources();
+            m_MasterIdentifier = new Identifier(0);
 
             foreach (var node in m_Graph.GetNodes<AbstractMaterialNode>())
                 AddPreview(node);
+
+            if(!graph.isSubGraph)
+            {
+                AddMasterPreview();
+            }
         }
 
         public OnPrimaryMasterChanged onPrimaryMasterChanged;
@@ -71,13 +80,64 @@ namespace UnityEditor.ShaderGraph.Drawing
             return m_RenderDatas[node.guid];
         }
 
+        void AddMasterPreview()
+        {
+            var renderData = new PreviewRenderData
+            {
+                renderTexture =
+                    new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
+                    {
+                        hideFlags = HideFlags.HideAndDontSave
+                    },
+                previewMode = PreviewMode.Preview3D,
+            };
+
+            m_MasterRenderData = renderData;
+            renderData.renderTexture.width = renderData.renderTexture.height = 400;
+            renderData.renderTexture.Create();
+
+            var shaderData = new PreviewShaderData
+            {
+                node = null,
+                isCompiling = false,
+                hasError = false,
+                shader = ShaderUtil.CreateShaderAsset(k_EmptyShader, false),
+            };
+            shaderData.shader.hideFlags = HideFlags.HideAndDontSave;
+            shaderData.mat = new Material(shaderData.shader) {hideFlags = HideFlags.HideAndDontSave};
+            renderData.shaderData = shaderData;
+
+            m_NodesToUpdate.Add(null);
+            m_RefreshTimedNodes = true;
+        }
+
+        public void UpdateMasterPreview(ModificationScope scope)
+        {
+            if (scope == ModificationScope.Topological ||
+                scope == ModificationScope.Graph)
+            {
+                m_NodesToUpdate.Add(null);
+                m_RefreshTimedNodes = true;
+            }
+            else if (scope == ModificationScope.Node)
+            {
+                m_NodesToDraw.Add(null);
+            }
+        }
+
         void AddPreview(AbstractMaterialNode node)
         {
+            if(node is BlockNode)
+            {
+                node.RegisterCallback(OnNodeModified);
+                return;
+            }
+
             var isMaster = false;
 
-            if (node is IMasterNode || node is SubGraphOutputNode)
+            if (node is SubGraphOutputNode)
             {
-                if (masterRenderData != null || (node is IMasterNode && node.guid != node.owner.activeOutputNodeGuid))
+                if (masterRenderData != null)
                 {
                     return;
                 }
@@ -121,16 +181,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_RefreshTimedNodes = true;
             }
 
-            if (m_MasterRenderData == renderData && onPrimaryMasterChanged != null)
-            {
-                onPrimaryMasterChanged();
-            }
-
             m_NodesToUpdate.Add(node);
         }
 
         void OnNodeModified(AbstractMaterialNode node, ModificationScope scope)
         {
+            if(node is BlockNode blockNode)
+            {
+                node = null;
+            }
+
             if (scope == ModificationScope.Topological ||
                 scope == ModificationScope.Graph)
             {
@@ -208,13 +268,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public bool HandleGraphChanges()
         {
-            if (m_Graph.didActiveOutputNodeChange)
-            {
-                DestroyPreview(masterRenderData.shaderData.node.guid);
-            }
-
             foreach (var node in m_Graph.removedNodes)
             {
+                if(node is BlockNode)
+                {
+                    node.UnregisterCallback(OnNodeModified);
+                    UpdateMasterPreview(ModificationScope.Topological);
+                    continue;
+                }
+
                 DestroyPreview(node.guid);
                 m_NodesToUpdate.Remove(node);
                 m_NodesToDraw.Remove(node);
@@ -225,6 +287,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_Graph.addedNodes)
             {
+                if(node is BlockNode)
+                {
+                    node.RegisterCallback(OnNodeModified);
+                    UpdateMasterPreview(ModificationScope.Topological);
+                    continue;
+                }
+
                 AddPreview(node);
                 m_RefreshTimedNodes = true;
             }
@@ -234,6 +303,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var node = m_Graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                 if (node != null)
                 {
+                    if(node is BlockNode)
+                    {
+                        UpdateMasterPreview(ModificationScope.Topological);
+                        continue;
+                    }
+
                     m_NodesToUpdate.Add(node);
                     m_RefreshTimedNodes = true;
                 }
@@ -243,6 +318,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var node = m_Graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                 if(node != null)
                 {
+                    if(node is BlockNode)
+                    {
+                        UpdateMasterPreview(ModificationScope.Topological);
+                        continue;
+                    }
+                    
                     m_NodesToUpdate.Add(node);
                     m_RefreshTimedNodes = true;
                 }
@@ -259,7 +340,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PreviewProperties.Clear();
             m_PropertyNodes.Clear();
 
-            m_PropertyNodes.Add(node);
+            // TODO: Temporary. Remove
+            // TODO: While Master nodes still exist, branch and collect Blocks instead
+            if(node == null)
+            {
+                foreach(var block in m_Blocks)
+                {
+                    m_PropertyNodes.Add(block);
+                }
+            }
+            else
+            {
+                m_PropertyNodes.Add(node);
+            }
+
             PropagateNodeList(m_PropertyNodes, PropagationDirection.Upstream);
 
             foreach (var propNode in m_PropertyNodes)
@@ -290,10 +384,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_NodesToDraw)
             {
-                if(node == null || !node.hasPreview || !node.previewExpanded)
-                    continue;
+                PreviewRenderData renderData;
+                if(node == null)
+                {
+                    renderData = m_MasterRenderData;
+                }
+                else
+                {
+                    if(!node.hasPreview || !node.previewExpanded)
+                        continue;
 
-                var renderData = m_RenderDatas[node.guid];
+                    renderData = m_RenderDatas[node.guid];
+                }
 
                 CollectShaderProperties(node, renderData);
                 renderData.shaderData.mat.SetVector("_TimeParameters", timeParameters);
@@ -311,10 +413,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     continue;
                 }
 
-                if (renderData.previewMode == PreviewMode.Preview2D)
-                    m_RenderList2D.Add(renderData);
-                else
-                    m_RenderList3D.Add(renderData);
+                if(node != null)
+                {
+                    if (renderData.previewMode == PreviewMode.Preview2D)
+                        m_RenderList2D.Add(renderData);
+                    else
+                        m_RenderList3D.Add(renderData);
+                }
             }
 
             EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
@@ -343,7 +448,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var renderData in m_RenderList3D)
                 RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity);
 
-            var renderMasterPreview = masterRenderData != null && m_NodesToDraw.Contains(masterRenderData.shaderData.node);
+            var renderMasterPreview = masterRenderData != null && m_NodesToDraw.Contains(null);
             if (renderMasterPreview)
             {
                 CollectShaderProperties(masterRenderData.shaderData.node, masterRenderData);
@@ -387,12 +492,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_NodesToUpdate.Add(data.shaderData.node);
             }
+
+            m_NodesToUpdate.Add(null);
         }
 
         void UpdateShaders()
         {
-            // Check for shaders that finished compiling and set them to redraw
-            foreach (var renderData in m_RenderDatas.Values)
+            void CompilingProcess(PreviewRenderData renderData)
             {
                 if (renderData.shaderData.isCompiling)
                 {
@@ -408,7 +514,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if (!isCompiled)
                     {
-                        continue;
+                        return;
                     }
 
                     // Force the material to re-generate all it's shader properties.
@@ -418,10 +524,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                     CheckForErrors(renderData.shaderData);
                     m_NodesToDraw.Add(renderData.shaderData.node);
 
-                    var masterNode = renderData.shaderData.node as IMasterNode;
-                    masterNode?.ProcessPreviewMaterial(renderData.shaderData.mat);
+                    // Process preview materials
+                    foreach(var implementation in m_Graph.activeGenerationTarget.activeImplementations)
+                    {
+                        implementation.ProcessPreviewMaterial(renderData.shaderData.mat);
+                    }
                 }
             }
+
+            // Check for shaders that finished compiling and set them to redraw
+            foreach (var renderData in m_RenderDatas.Values)
+            {
+                CompilingProcess(renderData);
+            }
+
+            // MasterRenderData is not added to m_RenderDatas
+            CompilingProcess(masterRenderData);
 
             if (m_NodesToUpdate.Count == 0)
                 return;
@@ -434,13 +552,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_NodesToUpdate)
             {
-                if (node is IMasterNode && node == masterRenderData.shaderData.node && !(node is VfxMasterNode))
+                if (node == null)
                 {
                     UpdateMasterNodeShader();
                     continue;
                 }
 
-                if (!node.hasPreview && !(node is SubGraphOutputNode || node is VfxMasterNode))
+                if (!node.hasPreview && !(node is SubGraphOutputNode))
                     continue;
 
                 var renderData = m_RenderDatas[node.guid];
@@ -504,8 +622,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void RenderPreview(PreviewRenderData renderData, Mesh mesh, Matrix4x4 transform)
         {
-            var node = renderData.shaderData.node;
-            Assert.IsTrue((node != null && node.hasPreview && node.previewExpanded) || node == masterRenderData?.shaderData?.node);
+            // var node = renderData.shaderData.node;
+            // Assert.IsTrue((node != null && node.hasPreview && node.previewExpanded) || node == masterRenderData?.shaderData?.node);
 
             if (renderData.shaderData.hasError)
             {
@@ -520,11 +638,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             RenderTexture.active = temp;
             Graphics.Blit(Texture2D.whiteTexture, temp, m_SceneResources.checkerboardMaterial);
 
-            m_SceneResources.camera.targetTexture = temp;
-            Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, null, ShadowCastingMode.Off, false, null, false);
+            // Mesh is invalid for VFXTarget
+            // We should handle this more gracefully
+            if(m_Graph.activeGenerationTarget.target.GetType() != typeof(VFXTarget))
+            {
+                m_SceneResources.camera.targetTexture = temp;
+                Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, null, ShadowCastingMode.Off, false, null, false);
+            }
 
             var previousUseSRP = Unsupported.useScriptableRenderPipeline;
-            Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
+            Unsupported.useScriptableRenderPipeline = renderData.shaderData.node == null;
             m_SceneResources.camera.Render();
             Unsupported.useScriptableRenderPipeline = previousUseSRP;
 
@@ -543,6 +666,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var messages = ShaderUtil.GetShaderMessages(shaderData.shader);
                 if (messages.Length > 0)
                 {
+                    // TODO: Where to add errors to the stack??
+                    if(shaderData.node == null)
+                        return;
+
                     m_Messenger.AddOrAppendError(this, shaderData.node.guid, messages[0]);
                 }
             }
@@ -551,13 +678,21 @@ namespace UnityEditor.ShaderGraph.Drawing
         void UpdateMasterNodeShader()
         {
             var shaderData = masterRenderData?.shaderData;
-            var masterNode = shaderData?.node as IMasterNode;
+            
+            // Skip generation for VFXTarget
+            if(m_Graph.activeGenerationTarget.target.GetType() != typeof(VFXTarget))
+            {
+                var generator = new Generator(m_Graph, shaderData?.node, GenerationMode.Preview, "Master");
+                shaderData.shaderString = generator.generatedShader;
 
-            if (masterNode == null)
-                return;
-
-            var generator = new Generator(m_Graph, shaderData?.node, GenerationMode.Preview, shaderData?.node.name);
-            shaderData.shaderString = generator.generatedShader;
+                // Blocks from the generation include those temporarily created for missing stack blocks
+                // We need to hold on to these to set preview property values during CollectShaderProperties
+                m_Blocks.Clear();
+                foreach(var block in generator.blocks)
+                {
+                    m_Blocks.Add(block);
+                }
+            }
 
             if (string.IsNullOrEmpty(shaderData.shaderString))
             {
@@ -613,19 +748,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             DestroyRenderData(renderData);
             m_RenderDatas.Remove(nodeId);
-
-            // Check if we're destroying the shader data used by the master preview
-            if (masterRenderData == renderData)
-            {
-                m_MasterRenderData = null;
-                if (!m_Graph.isSubGraph && renderData.shaderData.node.guid != m_Graph.activeOutputNodeGuid)
-                {
-                    AddPreview(m_Graph.outputNode);
-                }
-
-                if (onPrimaryMasterChanged != null)
-                    onPrimaryMasterChanged();
-            }
         }
 
         void ReleaseUnmanagedResources()

@@ -1,53 +1,72 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
+    enum RaytracingMaterialType
+    {
+        Unlit,
+        Lit,
+        Fabric,
+    }
+
     class HDRaytracingMeshTarget : ITargetImplementation
     {
+        [SerializeField]
+        RaytracingMaterialType m_MaterialType;
+
         public Type targetType => typeof(MeshTarget);
         public string displayName => "HDRP Raytracing";
         public string passTemplatePath => string.Empty;
         public string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates";
-
-        public bool IsValid(IMasterNode masterNode)
-        {
-            return GetSubShaderDescriptorFromMasterNode(masterNode) != null;
-        }
-        public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
-        {
-            return currentPipeline is HDRenderPipelineAsset;
-        }
+        public string renderTypeTag { get; }
+        public string renderQueueTag { get; }
 
         public void SetupTarget(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("a3b60b90b9eb3e549adfd57a75e77811")); // HDRPRaytracingMeshTarget
 
-            var subShader = GetSubShaderDescriptorFromMasterNode(context.masterNode);
-            if (subShader != null)
-                context.SetupSubShader(subShader.Value);
+            switch(m_MaterialType)
+            {
+                case RaytracingMaterialType.Unlit:
+                    context.AddSubShader(HDSubShaders.HDUnlitRaytracing);
+                    break;
+                case RaytracingMaterialType.Lit:
+                    context.AddSubShader(HDSubShaders.HDLitRaytracing);
+                    break;
+                case RaytracingMaterialType.Fabric:
+                    context.AddSubShader(HDSubShaders.FabricRaytracing);
+                    break;
+            }
         }
 
-        public SubShaderDescriptor? GetSubShaderDescriptorFromMasterNode(IMasterNode masterNode)
+        public void SetActiveBlocks(ref List<BlockFieldDescriptor> activeBlocks)
         {
-            switch (masterNode)
-            {
-                case FabricMasterNode _:
-                    return HDSubShaders.FabricRaytracing;
-                case HDLitMasterNode _:
-                    return HDSubShaders.HDLitRaytracing;
-                case HDUnlitMasterNode _:
-                    return HDSubShaders.HDUnlitRaytracing;
-                case StackLitMasterNode _:
-                    return HDSubShaders.StackLitRaytracing;
-                case HairMasterNode _:
-                    return HDSubShaders.HairRaytracing;
-                default:
-                    return null;
-            }
+
+        }
+
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks)
+        {
+            return null;
+        }
+
+        public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
+        }
+
+        public VisualElement GetSettings(Action onChange)
+        {
+            return null;
         }
     }
 }

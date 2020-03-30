@@ -230,6 +230,26 @@ namespace UnityEditor.ShaderGraph
 
         #endregion
 
+        #region Context Data
+
+        [SerializeField]
+        ContextData m_VertexContext;
+
+        [SerializeField]
+        ContextData m_FragmentContext;
+
+        // We build this once and cache it as it uses reflection
+        // This list is used to build the Create Node menu entries for Blocks
+        // as well as when deserializing descriptor fields on serialized Blocks
+        [NonSerialized]
+        List<BlockFieldDescriptor> m_BlockFieldDescriptors;
+
+        public ContextData vertexContext => m_VertexContext;
+        public ContextData fragmentContext => m_FragmentContext;
+        public List<BlockFieldDescriptor> blockFieldDescriptors => m_BlockFieldDescriptors;
+
+        #endregion
+
         [SerializeField]
         InspectorPreviewData m_PreviewData = new InspectorPreviewData();
 
@@ -268,68 +288,138 @@ namespace UnityEditor.ShaderGraph
         }
 
         [NonSerialized]
-        Guid m_ActiveOutputNodeGuid;
+        private SubGraphOutputNode m_SubGraphOutputNode;
 
-        public Guid activeOutputNodeGuid
-        {
-            get { return m_ActiveOutputNodeGuid; }
-            set
-            {
-                if (value != m_ActiveOutputNodeGuid)
-                {
-                    m_ActiveOutputNodeGuid = value;
-                    m_OutputNode = null;
-                    didActiveOutputNodeChange = true;
-                    UpdateTargets();
-                }
-            }
-        }
-
-        [SerializeField]
-        string m_ActiveOutputNodeGuidSerialized;
-
-        [NonSerialized]
-        private AbstractMaterialNode m_OutputNode;
-
-        public AbstractMaterialNode outputNode
+        public SubGraphOutputNode subGraphOutputNode
         {
             get
             {
-                // find existing node
-                if (m_OutputNode == null)
+                if (m_SubGraphOutputNode == null)
                 {
-                    if (isSubGraph)
-                    {
-                        m_OutputNode = GetNodes<SubGraphOutputNode>().FirstOrDefault();
-                    }
-                    else
-                    {
-                        m_OutputNode = GetNodeFromGuid(m_ActiveOutputNodeGuid);
-                    }
+                    m_SubGraphOutputNode = GetNodes<SubGraphOutputNode>().FirstOrDefault();
                 }
 
-                return m_OutputNode;
+                return m_SubGraphOutputNode;
             }
         }
-
-        #region Targets
-        [NonSerialized]
-        List<ITarget> m_ValidTargets = new List<ITarget>();
-
-        [NonSerialized]
-        List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
-
-        public List<ITargetImplementation> validImplementations => m_ValidImplementations;
-        #endregion
-
-        public bool didActiveOutputNodeChange { get; set; }
 
         internal delegate void SaveGraphDelegate(Shader shader, object context);
         internal static SaveGraphDelegate onSaveGraph;
 
+        #region Targets
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializableGenerationTargets = new List<SerializationHelper.JSONSerializedElement>();
+
+        [SerializeField]
+        int m_ActiveTargetIndex = 0;
+
+        List<GenerationTarget> m_GenerationTargets = new List<GenerationTarget>();
+
+        // TODO: We should hand in the GenerationTarget during ctor
+        // TODO: But this requires preview refactors
+        public GenerationTarget activeGenerationTarget => m_GenerationTargets[m_ActiveTargetIndex];
+        #endregion
+
         public GraphData()
         {
             m_GroupItems[Guid.Empty] = new List<IGroupItem>();
+            GetBlockFieldDescriptors();
+            GetTargets();
+        }
+
+        public void SetTarget(Type type)
+        {
+            for(int i = 0; i < m_GenerationTargets.Count; i++)
+            {
+                if(m_GenerationTargets[i].target.GetType() == type)
+                {
+                    m_ActiveTargetIndex = i;
+                }
+            }
+        }
+
+        void GetBlockFieldDescriptors()
+        {
+            m_BlockFieldDescriptors = new List<BlockFieldDescriptor>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var nestedType in assembly.GetTypes().SelectMany(t => t.GetNestedTypes()))
+                {
+                    var attrs = nestedType.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
+                    if (attrs == null || attrs.Length <= 0)
+                        continue;
+
+                    // Get all fields that are BlockFieldDescriptor
+                    // If field and context stages match add to list
+                    foreach (var fieldInfo in nestedType.GetFields())
+                    {
+                        if(fieldInfo.GetValue(nestedType) is BlockFieldDescriptor blockFieldDescriptor)
+                        {
+                            m_BlockFieldDescriptors.Add(blockFieldDescriptor);
+                        }
+                    }
+                }
+            }
+        }
+
+        void GetTargets()
+        {
+            // Get all TargetImplementation types
+            var typeCollection = TypeCache.GetTypesDerivedFrom(typeof(ITarget));
+            foreach(var type in typeCollection)
+            {
+                if(!type.IsAbstract && type != typeof(PreviewTarget))
+                {
+                    // Instantiate and add TargetImplementation
+                    var target = Activator.CreateInstance(type) as ITarget;
+                    var generationTarget = new GenerationTarget(target);
+
+                    if(generationTarget.implementations.Count != 0)
+                    {
+                        m_GenerationTargets.Add(generationTarget);
+                    }
+                }
+            }
+        }
+
+        // TODO: We should not have any View code here
+        // TODO: However, for now we dont know how the InspectorView will work
+        // TODO: So for now leave it here and dont spill the assemblies outside the method
+        public UnityEngine.UIElements.VisualElement GetSettings(Action onChange)
+        {
+            var element = new UnityEngine.UIElements.VisualElement() { name = "graphSettings" };
+
+            // Add Label
+            var targetSettingsLabel = new UnityEngine.UIElements.Label("Target Settings");
+            targetSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            element.Add(new Drawing.PropertyRow(targetSettingsLabel));
+
+            // Target Dropdown Field
+            element.Add(new Drawing.PropertyRow(new UnityEngine.UIElements.Label("Target")), (row) =>
+                {
+                    row.Add(new UnityEngine.UIElements.IMGUIContainer(() => {
+                        EditorGUI.BeginChangeCheck();
+                        m_ActiveTargetIndex = EditorGUILayout.Popup(m_ActiveTargetIndex, 
+                            m_GenerationTargets.Select(x => x.target.displayName).ToArray(), GUILayout.Width(100f));
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            UpdateActiveBlocks();
+                            onChange();
+                        }
+                    }));
+                });
+            
+            // Add a space
+            element.Add(new Drawing.PropertyRow(new UnityEngine.UIElements.Label("")));
+
+            // Add Settings for TargetImplementations
+            element.Add(activeGenerationTarget.GetSettings(() =>
+                {
+                    UpdateActiveBlocks();
+                    onChange();
+                }));
+
+            return element;
         }
 
         public void ClearChanges()
@@ -350,7 +440,6 @@ namespace UnityEditor.ShaderGraph
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
             m_MostRecentlyCreatedGroup = null;
-            didActiveOutputNodeChange = false;
         }
 
         public void AddNode(AbstractMaterialNode node)
@@ -484,6 +573,65 @@ namespace UnityEditor.ShaderGraph
             m_ParentGroupChanges.Add(groupChange);
         }
 
+        public void AddContexts()
+        {
+            m_VertexContext = new ContextData();
+            m_VertexContext.shaderStage = ShaderStage.Vertex;
+            m_VertexContext.position = new Vector2(0, 0);
+            m_FragmentContext = new ContextData();
+            m_FragmentContext.shaderStage = ShaderStage.Fragment;
+            m_FragmentContext.position = new Vector2(0, 200);
+        }
+
+        public void AddBlock(BlockNode blockNode, ContextData contextData, int index)
+        {
+            AddBlockNoValidate(blockNode, contextData, index);
+            ValidateGraph();
+        }
+
+        void AddBlockNoValidate(BlockNode blockNode, ContextData contextData, int index)
+        {
+            // Regular AddNode path
+            AddNodeNoValidate(blockNode);
+
+            // Set BlockNode properties
+            blockNode.index = index;
+            blockNode.contextData = contextData;
+            
+            // Add to ContextData
+            if(index == -1 || index >= contextData.blocks.Count)
+            {
+                contextData.blocks.Add(blockNode);
+            }
+            else
+            {
+                contextData.blocks.Insert(index, blockNode);
+            }
+
+            // Update support Blocks
+            UpdateActiveBlocks();
+        }
+
+        public void UpdateActiveBlocks()
+        {
+            // Get list of active Block types
+            var activeBlocks = ListPool<BlockFieldDescriptor>.Get();
+            foreach(var implementation in activeGenerationTarget.implementations)
+            {
+                implementation.SetActiveBlocks(ref activeBlocks);
+            }
+
+            // Set Blocks as active based on supported Block list
+            foreach(var vertexBlock in vertexContext.blocks)
+            {
+                vertexBlock.isActive = activeBlocks.Contains(vertexBlock.descriptor);
+            }
+            foreach(var fragmentBlock in fragmentContext.blocks)
+            {
+                fragmentBlock.isActive = activeBlocks.Contains(fragmentBlock.descriptor);
+            }
+        }
+
         void AddNodeNoValidate(AbstractMaterialNode node)
         {
             if (node.groupGuid != Guid.Empty && !m_GroupItems.ContainsKey(node.groupGuid))
@@ -522,6 +670,13 @@ namespace UnityEditor.ShaderGraph
             if (m_GroupItems.TryGetValue(node.groupGuid, out var groupItems))
             {
                 groupItems.Remove(node);
+            }
+
+            if(node is BlockNode blockNode && blockNode.contextData != null)
+            {
+                // Remove from ContextData
+                blockNode.contextData.blocks.Remove(blockNode);
+                blockNode.Dirty(ModificationScope.Graph);
             }
         }
 
@@ -1092,7 +1247,17 @@ namespace UnityEditor.ShaderGraph
             }
 
             foreach (var node in other.GetNodes<AbstractMaterialNode>())
-                AddNodeNoValidate(node);
+            {
+                if(node is BlockNode blockNode)
+                {
+                    var contextData = blockNode.descriptor.shaderStage == ShaderStage.Vertex ? vertexContext : fragmentContext;
+                    AddBlockNoValidate(blockNode, contextData, blockNode.index);
+                }
+                else
+                {
+                    AddNodeNoValidate(node);
+                }
+            }
 
             foreach (var edge in other.edges)
                 ConnectNoValidate(edge.outputSlot, edge.inputSlot);
@@ -1140,6 +1305,11 @@ namespace UnityEditor.ShaderGraph
             var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
             foreach (var node in nodeList)
             {
+                if(node is BlockNode blockNode)
+                {
+                    continue;
+                }
+
                 AbstractMaterialNode pastedNode = node;
 
                 var oldGuid = node.guid;
@@ -1239,7 +1409,7 @@ namespace UnityEditor.ShaderGraph
             m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
-            m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
+            m_SerializableGenerationTargets = SerializationHelper.Serialize<GenerationTarget>(m_GenerationTargets);
         }
 
         public void OnAfterDeserialize()
@@ -1247,6 +1417,7 @@ namespace UnityEditor.ShaderGraph
             // have to deserialize 'globals' before nodes
             m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
             m_Keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, GraphUtil.GetLegacyTypeRemapping());
+            m_GenerationTargets = SerializationHelper.Deserialize<GenerationTarget>(m_SerializableGenerationTargets, GraphUtil.GetLegacyTypeRemapping());
 
             var nodes = SerializationHelper.Deserialize<AbstractMaterialNode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
 
@@ -1279,23 +1450,36 @@ namespace UnityEditor.ShaderGraph
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);
 
-            m_OutputNode = null;
+            m_SubGraphOutputNode = null;
 
-            if (!isSubGraph)
+            // --------------------------------------------------
+            // Deserialize Contexts & Blocks
+
+            void DeserializeContextData(ContextData contextData, ShaderStage stage)
             {
-                if (string.IsNullOrEmpty(m_ActiveOutputNodeGuidSerialized))
+                // Because Vertex/Fragment Contexts are serialized explicitly
+                // we do not need to serialize the Stage value on the ContextData
+                contextData.shaderStage = stage;
+
+                var blockCount = contextData.serializeableBlockGuids.Count;
+                for(int i = 0; i < blockCount; i++)
                 {
-                    var node = (AbstractMaterialNode)GetNodes<IMasterNode>().FirstOrDefault();
-                    if (node != null)
-                    {
-                        m_ActiveOutputNodeGuid = node.guid;
-                    }
-                }
-                else
-                {
-                    m_ActiveOutputNodeGuid = new Guid(m_ActiveOutputNodeGuidSerialized);
+                    // Deserialize the BlockNode guids on the ContextData
+                    // This needs to be done here as BlockNodes are deserialized before GraphData
+                    var blockGuid = new Guid(contextData.serializeableBlockGuids[i]);
+                    var block = GetNodeFromGuid<BlockNode>(blockGuid);
+                    contextData.blocks.Add(block);
+
+                    // Update NonSerialized data on the BlockNode
+                    block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
+                    block.contextData = contextData;
+                    block.index = i;
                 }
             }
+
+            // First deserialize the ContextDatas
+            DeserializeContextData(m_VertexContext, ShaderStage.Vertex);
+            DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
         }
 
         public void OnEnable()
@@ -1305,7 +1489,8 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
-            UpdateTargets();
+            // TODO: Do I need this?
+            UpdateActiveBlocks();
 
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
         }
@@ -1313,57 +1498,6 @@ namespace UnityEditor.ShaderGraph
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
-        }
-
-        public void UpdateTargets()
-        {
-            if(outputNode == null)
-                return;
-
-            // First get all valid TargetImplementations that are valid with the current graph
-            List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetTypesOrNothing())
-                {
-                    var isImplementation = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
-                    //for subgraph output nodes, preview target is the only valid target
-                    if (outputNode is SubGraphOutputNode && isImplementation && typeof(DefaultPreviewTarget).IsAssignableFrom(type))
-                    {
-                        var implementation = (DefaultPreviewTarget)Activator.CreateInstance(type);
-                        foundImplementations.Add(implementation);
-                    }
-                    else if (isImplementation && !foundImplementations.Any(s => s.GetType() == type))
-                    {
-                        var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
-                        var implementation = (ITargetImplementation)Activator.CreateInstance(type);
-                        if(implementation.IsValid(masterNode))
-                        {
-                            foundImplementations.Add(implementation);
-                        }
-                    }
-                }
-            }
-
-            // Next we get all Targets that have valid TargetImplementations
-            List<ITarget> foundTargets = new List<ITarget>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetTypesOrNothing())
-                {
-                    var isTarget = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITarget).IsAssignableFrom(type);
-                    if (isTarget && !foundTargets.Any(s => s.GetType() == type))
-                    {
-                        var target = (ITarget)Activator.CreateInstance(type);
-                        if(foundImplementations.Where(s => s.targetType == type).Any())
-                            foundTargets.Add(target);
-                    }
-                }
-            }
-
-            m_ValidTargets = foundTargets;
-            m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
-            
         }
     }
 

@@ -100,7 +100,7 @@ Pass
         ZERO_INITIALIZE(SurfaceData, surfaceData);
 
         // copy across graph values, if defined
-        $SurfaceDescription.Color: surfaceData.color = surfaceDescription.Color;
+        $SurfaceDescription.BaseColor: surfaceData.color = surfaceDescription.BaseColor;
 
         #if defined(DEBUG_DISPLAY)
             if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
@@ -115,10 +115,15 @@ Pass
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
+        half alpha = 1;
+        #if _SURFACE_TYPE_TRANSPARENT
+            alpha = surfaceDescription.Alpha;
+        #endif
+
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky.
         #ifdef _ALPHATEST_ON
-            $DoAlphaTest: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+            $AlphaTest: GENERIC_ALPHA_TEST(alpha, surfaceDescription.AlphaClipThreshold);
         #endif
 
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
@@ -134,7 +139,7 @@ Pass
             shadow = dot(shadow3, float3(1.0f/3.0f, 1.0f/3.0f, 1.0f/3.0f));
 
             float4 shadowColor = (1 - shadow)*surfaceDescription.ShadowTint.rgba;
-            float  localAlpha  = saturate(shadowColor.a + surfaceDescription.Alpha);
+            float  localAlpha  = saturate(shadowColor.a + alpha);
 
             // Keep the nested lerp
             // With no Color (bsdfData.color.rgb, bsdfData.color.a == 0.0f), just use ShadowColor*Color to avoid a ring of "white" around the shadow
@@ -146,12 +151,12 @@ Pass
             #endif
             localAlpha = ApplyBlendMode(surfaceData.color, localAlpha).a;
 
-            surfaceDescription.Alpha = localAlpha;
+            alpha = localAlpha;
         #endif
 
         // Builtin Data
         ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
-        builtinData.opacity = surfaceDescription.Alpha;
+        builtinData.opacity = alpha;
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 

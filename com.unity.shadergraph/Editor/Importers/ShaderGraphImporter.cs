@@ -94,10 +94,9 @@ Shader ""Hidden/GraphErrorShader2""
             graph.OnEnable();
             graph.ValidateGraph();
 
-            if (graph.outputNode is VfxMasterNode vfxMasterNode)
+            if (graph.activeGenerationTarget.target.GetType() == typeof(VFXTarget))
             {
-                var vfxAsset = GenerateVfxShaderGraphAsset(vfxMasterNode);
-
+                var vfxAsset = GenerateVfxShaderGraphAsset(graph);
                 mainObject = vfxAsset;
             }
             else
@@ -129,13 +128,14 @@ Shader ""Hidden/GraphErrorShader2""
             ctx.AddObjectToAsset("MainAsset", mainObject, texture);
             ctx.SetMainObject(mainObject);
 
-            var metadata = ScriptableObject.CreateInstance<ShaderGraphMetadata>();
-            metadata.hideFlags = HideFlags.HideInHierarchy;
-            if (graph != null)
-            {
-                metadata.outputNodeTypeName = graph.outputNode.GetType().FullName;
-            }
-            ctx.AddObjectToAsset("Metadata", metadata);
+            // TODO: Fix metadata
+            // var metadata = ScriptableObject.CreateInstance<ShaderGraphMetadata>();
+            // metadata.hideFlags = HideFlags.HideInHierarchy;
+            // if (graph != null)
+            // {
+            //     metadata.outputNodeTypeName = graph.outputNode.GetType().FullName;
+            // }
+            // ctx.AddObjectToAsset("Metadata", metadata);
 
             foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
             {
@@ -158,7 +158,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
-                var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, shaderName);
+                var generator = new Generator(graph, graph.subGraphOutputNode, GenerationMode.ForReals, shaderName);
                 shaderString = generator.generatedShader;
                 configuredTextures = generator.configuredTextures;
                 sourceAssetDependencyPaths = generator.assetDependencyPaths;
@@ -202,26 +202,39 @@ Shader ""Hidden/GraphErrorShader2""
             return GetShaderText(path, out configuredTextures, null,graph );
         }
 
-        static ShaderGraphVfxAsset GenerateVfxShaderGraphAsset(VfxMasterNode masterNode)
+        // TODO: Fix this
+        static ShaderGraphVfxAsset GenerateVfxShaderGraphAsset(GraphData graph)
         {
+            var implementation = graph.activeGenerationTarget.activeImplementations.FirstOrDefault(x => x is DefaultVFXTarget) as DefaultVFXTarget;
+            if(implementation == null)
+                return null;
+
             var nl = Environment.NewLine;
             var indent = new string(' ', 4);
             var asset = ScriptableObject.CreateInstance<ShaderGraphVfxAsset>();
             var result = asset.compilationResult = new GraphCompilationResult();
             var mode = GenerationMode.ForReals;
-            var graph = masterNode.owner;
 
-            asset.lit = masterNode.lit.isOn;
+            asset.lit = implementation.lit;
 
-            var assetGuid = masterNode.owner.assetGuid;
+            var assetGuid = graph.assetGuid;
             var assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
             var hlslName = NodeUtils.GetHLSLSafeName(Path.GetFileNameWithoutExtension(assetPath));
 
             var ports = new List<MaterialSlot>();
-            masterNode.GetInputSlots(ports);
-
             var nodes = new List<AbstractMaterialNode>();
-            NodeUtils.DepthFirstCollectNodesFromNode(nodes, masterNode);
+
+            foreach(var vertexBlock in graph.vertexContext.blocks)
+            {
+                vertexBlock.GetInputSlots(ports);
+                NodeUtils.DepthFirstCollectNodesFromNode(nodes, vertexBlock);
+            }
+
+            foreach(var fragmentBlock in graph.fragmentContext.blocks)
+            {
+                fragmentBlock.GetInputSlots(ports);
+                NodeUtils.DepthFirstCollectNodesFromNode(nodes, fragmentBlock);
+            }
 
             var bodySb = new ShaderStringBuilder(1);
             var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
@@ -527,14 +540,14 @@ Shader ""Hidden/GraphErrorShader2""
             #region Output Mapping
 
             sharedCodeIndices.Add(codeSnippets.Count);
-            codeSnippets.Add($"{nl}{indent}// {masterNode.name}{nl}{indent}{outputStructName} OUT;{nl}");
+            codeSnippets.Add($"{nl}{indent}// VFXMasterNode{nl}{indent}{outputStructName} OUT;{nl}");
 
             // Output mapping
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
             {
                 var port = ports[portIndex];
                 portCodeIndices[portIndex].Add(codeSnippets.Count);
-                codeSnippets.Add($"{indent}OUT.{port.shaderOutputName}_{port.id} = {masterNode.GetSlotValue(port.id, GenerationMode.ForReals, graph.concretePrecision)};{nl}");
+                codeSnippets.Add($"{indent}OUT.{port.shaderOutputName}_{port.id} = {port.owner.GetSlotValue(port.id, GenerationMode.ForReals, graph.concretePrecision)};{nl}");
             }
 
             #endregion

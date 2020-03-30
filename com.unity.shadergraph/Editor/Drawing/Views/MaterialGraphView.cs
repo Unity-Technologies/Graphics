@@ -27,9 +27,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             canPasteSerializedData = CanPasteSerializedDataImplementation;
             unserializeAndPaste = UnserializeAndPasteImplementation;
             deleteSelection = DeleteSelectionImplementation;
+            elementsInsertedToStackNode = ElementsInsertedToStackNode;
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<MouseMoveEvent>(OnMouseMoveEvent);
+        }
+
+        protected override bool canCutSelection
+        {
+            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCutNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
         }
 
         protected override bool canCopySelection
@@ -45,6 +51,24 @@ namespace UnityEditor.ShaderGraph.Drawing
         public GraphData graph { get; private set; }
         public Action onConvertToSubgraphClick { get; set; }
         public Vector2 cachedMousePosition { get; private set; }
+
+        // GraphView has UQueryState<Node> nodes built in to query for Nodes
+        // We need this for Contexts but we might as well cast it to a list once
+        List<ContextView> contexts { get; set; }
+
+        // We have to manually update Contexts
+        // Currently only called during GraphEditorView ctor as our Contexts are static
+        public void UpdateContextList()
+        {
+            var contextQuery = contentViewContainer.Query<ContextView>().Build();
+            contexts = contextQuery.ToList();
+        }
+
+        // We need a way to access specific ContextViews
+        public ContextView GetContext(ContextData contextData)
+        {
+            return contexts.FirstOrDefault(s => s.contextData == contextData);
+        }
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
@@ -160,6 +184,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (selectedObject is Group)
                             return DropdownMenuAction.Status.Disabled;
                         GraphElement ge = selectedObject as GraphElement;
+                        if (ge.userData is BlockNode)
+                        {
+                            return DropdownMenuAction.Status.Disabled;
+                        }
                         if (ge.userData is IGroupItem)
                         {
                             filteredSelection.Add(ge);
@@ -982,6 +1010,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         #endregion
+
+        void ElementsInsertedToStackNode(StackNode stackNode, int insertIndex, IEnumerable<GraphElement> elements)
+        {
+            var contextView = stackNode as ContextView;
+            contextView.InsertElements(insertIndex, elements);
+        }
     }
 
     static class GraphViewExtensions

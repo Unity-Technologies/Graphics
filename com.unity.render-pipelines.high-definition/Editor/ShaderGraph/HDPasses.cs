@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                pixelPorts = HDPortMasks.Pixel.UnlitDefault,
+                // pixelPorts = HDPortMasks.Pixel.UnlitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -56,8 +56,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.UnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.UnlitOnlyAlpha,
+                // vertexPorts = HDPortMasks.Vertex.UnlitDefault,
+                // pixelPorts = HDPortMasks.Pixel.UnlitOnlyAlpha,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -79,8 +79,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.UnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.UnlitOnlyAlpha,
+                // vertexPorts = HDPortMasks.Vertex.UnlitDefault,
+                // pixelPorts = HDPortMasks.Pixel.UnlitOnlyAlpha,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -103,8 +103,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.UnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.UnlitOnlyAlpha,
+                // vertexPorts = HDPortMasks.Vertex.UnlitDefault,
+                // pixelPorts = HDPortMasks.Pixel.UnlitOnlyAlpha,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -127,8 +127,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.UnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.UnlitOnlyAlpha,
+                // vertexPorts = HDPortMasks.Vertex.UnlitDefault,
+                // pixelPorts = HDPortMasks.Pixel.UnlitOnlyAlpha,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -152,8 +152,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.UnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.UnlitDefault,
+                // vertexPorts = HDPortMasks.Vertex.UnlitDefault,
+                // pixelPorts = HDPortMasks.Pixel.UnlitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -181,8 +181,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.PBRDefault,
-                pixelPorts = HDPortMasks.Pixel.PBRDefault,
+                // vertexPorts = HDPortMasks.Vertex.PBRDefault,
+                // pixelPorts = HDPortMasks.Pixel.PBRDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -206,7 +206,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                pixelPorts = HDPortMasks.Pixel.PBRDefault,
+                // pixelPorts = HDPortMasks.Pixel.PBRDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -230,8 +230,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.PBRDefault,
-                pixelPorts = HDPortMasks.Pixel.PBROnlyAlpha,
+                // vertexPorts = HDPortMasks.Vertex.PBRDefault,
+                // pixelPorts = HDPortMasks.Pixel.PBROnlyAlpha,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -254,8 +254,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.PBRDefault,
-                pixelPorts = HDPortMasks.Pixel.PBROnlyAlpha,
+                // vertexPorts = HDPortMasks.Vertex.PBRDefault,
+                // pixelPorts = HDPortMasks.Pixel.PBROnlyAlpha,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -279,8 +279,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.PBRDefault,
-                pixelPorts = HDPortMasks.Pixel.PBRDepthMotionVectors,
+                // vertexPorts = HDPortMasks.Vertex.PBRDefault,
+                // pixelPorts = HDPortMasks.Pixel.PBRDepthMotionVectors,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -305,8 +305,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.PBRDefault,
-                pixelPorts = HDPortMasks.Pixel.PBRDepthMotionVectors,
+                // vertexPorts = HDPortMasks.Vertex.PBRDefault,
+                // pixelPorts = HDPortMasks.Pixel.PBRDepthMotionVectors,
 
                 // Fields
                 structs = HDStructCollections.Default,
@@ -333,8 +333,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.PBRDefault,
-                pixelPorts = HDPortMasks.Pixel.PBRDefault,
+                // vertexPorts = HDPortMasks.Vertex.PBRDefault,
+                // pixelPorts = HDPortMasks.Pixel.PBRDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -363,8 +363,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "META",
                 useInPreview = false,
 
-                // Port Mask
-                pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
+                // Block Mask
+                pixelBlocks = HDBlockMasks.Pixel.UnlitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -387,9 +387,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "ShadowCaster",
                 useInPreview = false,
 
-                // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDUnlitOnlyAlpha,
+                // Block Mask
+                vertexBlocks = HDBlockMasks.Vertex.Default,
+                pixelBlocks = HDBlockMasks.Pixel.OnlyAlpha,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -412,9 +412,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "SceneSelectionPass",
                 useInPreview = false,
 
-                // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDUnlitOnlyAlpha,
+                // Block Mask
+                vertexBlocks = HDBlockMasks.Vertex.Default,
+                pixelBlocks = HDBlockMasks.Pixel.OnlyAlpha,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -438,9 +438,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "DepthForwardOnly",
                 useInPreview = true,
 
-                // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDUnlitOnlyAlpha,
+                // Block Mask
+                vertexBlocks = HDBlockMasks.Vertex.Default,
+                pixelBlocks = HDBlockMasks.Pixel.OnlyAlpha,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -463,9 +463,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "MotionVectors",
                 useInPreview = false,
 
-                // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDUnlitOnlyAlpha,
+                // Block Mask
+                vertexBlocks = HDBlockMasks.Vertex.Default,
+                pixelBlocks = HDBlockMasks.Pixel.OnlyAlpha,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -488,9 +488,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "DistortionVectors",
                 useInPreview = true,
 
-                // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDUnlitDistortion,
+                // Block Mask
+                vertexBlocks = HDBlockMasks.Vertex.Default,
+                pixelBlocks = HDBlockMasks.Pixel.Distortion,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -513,9 +513,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "ForwardOnly",
                 useInPreview = true,
 
-                // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDUnlitForward,
+                // Block Mask
+                vertexBlocks = HDBlockMasks.Vertex.Default,
+                pixelBlocks = HDBlockMasks.Pixel.UnlitForward,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -544,8 +544,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -570,7 +570,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                pixelPorts = HDPortMasks.Pixel.HDLitMeta,
+                // pixelPorts = HDPortMasks.Pixel.HDLitMeta,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -595,8 +595,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitShadowCaster,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitShadowCaster,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -620,8 +620,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitSceneSelection,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitSceneSelection,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -645,8 +645,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDepthMotionVectors,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitDepthMotionVectors,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -671,8 +671,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDepthMotionVectors,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitDepthMotionVectors,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -697,8 +697,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDistortion,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitDistortion,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -722,8 +722,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitTransparentDepthPrepass,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitTransparentDepthPrepass,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -748,8 +748,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitTransparentBackface,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitTransparentBackface,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -773,8 +773,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -799,8 +799,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitTransparentDepthPostpass,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitTransparentDepthPostpass,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -854,7 +854,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                pixelPorts = HDPortMasks.Pixel.EyeMETA,
+                // pixelPorts = HDPortMasks.Pixel.EyeMETA,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -878,8 +878,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.EyeDefault,
-                pixelPorts = HDPortMasks.Pixel.EyeAlphaDepth,
+                // vertexPorts = HDPortMasks.Vertex.EyeDefault,
+                // pixelPorts = HDPortMasks.Pixel.EyeAlphaDepth,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -902,8 +902,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.EyeDefault,
-                pixelPorts = HDPortMasks.Pixel.EyeAlphaDepth,
+                // vertexPorts = HDPortMasks.Vertex.EyeDefault,
+                // pixelPorts = HDPortMasks.Pixel.EyeAlphaDepth,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -927,8 +927,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.EyeDefault,
-                pixelPorts = HDPortMasks.Pixel.EyeDepthMotionVectors,
+                // vertexPorts = HDPortMasks.Vertex.EyeDefault,
+                // pixelPorts = HDPortMasks.Pixel.EyeDepthMotionVectors,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -953,8 +953,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.EyeDefault,
-                pixelPorts = HDPortMasks.Pixel.EyeDepthMotionVectors,
+                // vertexPorts = HDPortMasks.Vertex.EyeDefault,
+                // pixelPorts = HDPortMasks.Pixel.EyeDepthMotionVectors,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -979,8 +979,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.EyeDefault,
-                pixelPorts = HDPortMasks.Pixel.EyeForward,
+                // vertexPorts = HDPortMasks.Vertex.EyeDefault,
+                // pixelPorts = HDPortMasks.Pixel.EyeForward,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1010,7 +1010,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                pixelPorts = HDPortMasks.Pixel.FabricMETA,
+                // pixelPorts = HDPortMasks.Pixel.FabricMETA,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1034,8 +1034,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.FabricDefault,
-                pixelPorts = HDPortMasks.Pixel.FabricAlphaDepth,
+                // vertexPorts = HDPortMasks.Vertex.FabricDefault,
+                // pixelPorts = HDPortMasks.Pixel.FabricAlphaDepth,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1058,8 +1058,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.FabricDefault,
-                pixelPorts = HDPortMasks.Pixel.FabricAlphaDepth,
+                // vertexPorts = HDPortMasks.Vertex.FabricDefault,
+                // pixelPorts = HDPortMasks.Pixel.FabricAlphaDepth,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1083,8 +1083,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.FabricDefault,
-                pixelPorts = HDPortMasks.Pixel.FabricDepthMotionVectors,
+                // vertexPorts = HDPortMasks.Vertex.FabricDefault,
+                // pixelPorts = HDPortMasks.Pixel.FabricDepthMotionVectors,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1109,8 +1109,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.FabricDefault,
-                pixelPorts = HDPortMasks.Pixel.FabricDepthMotionVectors,
+                // vertexPorts = HDPortMasks.Vertex.FabricDefault,
+                // pixelPorts = HDPortMasks.Pixel.FabricDepthMotionVectors,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1135,8 +1135,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.FabricDefault,
-                pixelPorts = HDPortMasks.Pixel.FabricForward,
+                // vertexPorts = HDPortMasks.Vertex.FabricDefault,
+                // pixelPorts = HDPortMasks.Pixel.FabricForward,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1166,7 +1166,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                pixelPorts = HDPortMasks.Pixel.HairMETA,
+                // pixelPorts = HDPortMasks.Pixel.HairMETA,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1190,8 +1190,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HairDefault,
-                pixelPorts = HDPortMasks.Pixel.HairShadowCaster,
+                // vertexPorts = HDPortMasks.Vertex.HairDefault,
+                // pixelPorts = HDPortMasks.Pixel.HairShadowCaster,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1214,8 +1214,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HairDefault,
-                pixelPorts = HDPortMasks.Pixel.HairAlphaDepth,
+                // vertexPorts = HDPortMasks.Vertex.HairDefault,
+                // pixelPorts = HDPortMasks.Pixel.HairAlphaDepth,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1239,8 +1239,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HairDefault,
-                pixelPorts = HDPortMasks.Pixel.HairDepthMotionVectors,
+                // vertexPorts = HDPortMasks.Vertex.HairDefault,
+                // pixelPorts = HDPortMasks.Pixel.HairDepthMotionVectors,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1265,8 +1265,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HairDefault,
-                pixelPorts = HDPortMasks.Pixel.HairDepthMotionVectors,
+                // vertexPorts = HDPortMasks.Vertex.HairDefault,
+                // pixelPorts = HDPortMasks.Pixel.HairDepthMotionVectors,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1291,8 +1291,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HairDefault,
-                pixelPorts = HDPortMasks.Pixel.HairTransparentDepthPrepass,
+                // vertexPorts = HDPortMasks.Vertex.HairDefault,
+                // pixelPorts = HDPortMasks.Pixel.HairTransparentDepthPrepass,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1316,8 +1316,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HairDefault,
-                pixelPorts = HDPortMasks.Pixel.HairTransparentBackface,
+                // vertexPorts = HDPortMasks.Vertex.HairDefault,
+                // pixelPorts = HDPortMasks.Pixel.HairTransparentBackface,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1342,8 +1342,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HairDefault,
-                pixelPorts = HDPortMasks.Pixel.HairForward,
+                // vertexPorts = HDPortMasks.Vertex.HairDefault,
+                // pixelPorts = HDPortMasks.Pixel.HairForward,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1368,8 +1368,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HairDefault,
-                pixelPorts = HDPortMasks.Pixel.HairTransparentDepthPostpass,
+                // vertexPorts = HDPortMasks.Vertex.HairDefault,
+                // pixelPorts = HDPortMasks.Pixel.HairTransparentDepthPostpass,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1398,7 +1398,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                pixelPorts = HDPortMasks.Pixel.StackLitMETA,
+                // pixelPorts = HDPortMasks.Pixel.StackLitMETA,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1422,8 +1422,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.StackLitPosition,
-                pixelPorts = HDPortMasks.Pixel.StackLitAlphaDepth,
+                // vertexPorts = HDPortMasks.Vertex.StackLitPosition,
+                // pixelPorts = HDPortMasks.Pixel.StackLitAlphaDepth,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1446,8 +1446,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
-                pixelPorts = HDPortMasks.Pixel.StackLitAlphaDepth,
+                // vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.StackLitAlphaDepth,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1478,8 +1478,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
-                pixelPorts = HDPortMasks.Pixel.StackLitDepthMotionVectors,
+                // vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.StackLitDepthMotionVectors,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1504,8 +1504,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
-                pixelPorts = HDPortMasks.Pixel.StackLitDepthMotionVectors,
+                // vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.StackLitDepthMotionVectors,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1530,8 +1530,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
-                pixelPorts = HDPortMasks.Pixel.StackLitDistortion,
+                // vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.StackLitDistortion,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1554,8 +1554,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
-                pixelPorts = HDPortMasks.Pixel.StackLitForward,
+                // vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.StackLitForward,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1587,7 +1587,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port mask
-                pixelPorts = HDPortMasks.Pixel.DecalDefault,
+                // pixelPorts = HDPortMasks.Pixel.DecalDefault,
 
                 //Fields
                 structs = HDStructCollections.Default,
@@ -1607,7 +1607,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port mask
-                pixelPorts = HDPortMasks.Pixel.DecalDefault,
+                // pixelPorts = HDPortMasks.Pixel.DecalDefault,
 
                 //Fields
                 structs = HDStructCollections.Default,
@@ -1629,7 +1629,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port mask
-                pixelPorts = HDPortMasks.Pixel.DecalEmissive,
+                // pixelPorts = HDPortMasks.Pixel.DecalEmissive,
 
                 //Fields
                 structs = HDStructCollections.Default,
@@ -1650,7 +1650,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port mask
-                pixelPorts = HDPortMasks.Pixel.DecalDefault,
+                // pixelPorts = HDPortMasks.Pixel.DecalDefault,
 
                 //Fields
                 structs = HDStructCollections.Default,
@@ -1673,7 +1673,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port mask
-                pixelPorts = HDPortMasks.Pixel.DecalDefault,
+                // pixelPorts = HDPortMasks.Pixel.DecalDefault,
 
                 //Fields
                 structs = HDStructCollections.Default,
@@ -1696,7 +1696,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port mask
-                pixelPorts = HDPortMasks.Pixel.DecalMeshEmissive,
+                // pixelPorts = HDPortMasks.Pixel.DecalMeshEmissive,
 
                 //Fields
                 structs = HDStructCollections.Default,
@@ -1718,7 +1718,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port mask
-                pixelPorts = HDPortMasks.Pixel.DecalMeshEmissive,
+                // pixelPorts = HDPortMasks.Pixel.DecalMeshEmissive,
 
                 //Fields
                 structs = HDStructCollections.Default,
@@ -1745,8 +1745,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1770,8 +1770,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1794,8 +1794,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1819,8 +1819,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1843,8 +1843,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 //Port mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitDefault,
 
                 //Collections
                 structs = HDStructCollections.Default,
@@ -1866,8 +1866,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 //Port mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitDefault,
 
                 //Collections
                 structs = HDStructCollections.Default,
@@ -1896,8 +1896,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1920,8 +1920,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1944,8 +1944,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1968,8 +1968,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -1992,8 +1992,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -2021,8 +2021,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.FabricDefault,
-                pixelPorts = HDPortMasks.Pixel.FabricForward,
+                // vertexPorts = HDPortMasks.Vertex.FabricDefault,
+                // pixelPorts = HDPortMasks.Pixel.FabricForward,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -2046,8 +2046,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.FabricDefault,
-                pixelPorts = HDPortMasks.Pixel.FabricForward,
+                // vertexPorts = HDPortMasks.Vertex.FabricDefault,
+                // pixelPorts = HDPortMasks.Pixel.FabricForward,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -2070,8 +2070,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.FabricDefault,
-                pixelPorts = HDPortMasks.Pixel.FabricForward,
+                // vertexPorts = HDPortMasks.Vertex.FabricDefault,
+                // pixelPorts = HDPortMasks.Pixel.FabricForward,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -2095,8 +2095,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                vertexPorts = HDPortMasks.Vertex.FabricDefault,
-                pixelPorts = HDPortMasks.Pixel.FabricForward,
+                // vertexPorts = HDPortMasks.Vertex.FabricDefault,
+                // pixelPorts = HDPortMasks.Pixel.FabricForward,
 
                 // Collections
                 structs = HDStructCollections.Default,
@@ -2119,8 +2119,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 //Port mask
-                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
-                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
+                // vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                // pixelPorts = HDPortMasks.Pixel.HDLitDefault,
 
                 //Collections
                 structs = HDStructCollections.Default,

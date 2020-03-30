@@ -20,6 +20,11 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
-    half4 color = half4(surfaceDescription.Albedo, surfaceDescription.Alpha);
+    half alpha = 1;
+    #if _SURFACE_TYPE_TRANSPARENT
+        alpha = surfaceDescription.Alpha;
+    #endif
+
+    half4 color = half4(surfaceDescription.BaseColor, alpha);
     return color;
 }

@@ -60,6 +60,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             viewDataKey = node.guid.ToString();
             UpdateTitle();
 
+            // Add disabled overlay
+            Add(new VisualElement() { name = "disabledOverlay", pickingMode = PickingMode.Ignore });
+
             // Add controls container
             var controlsContainer = new VisualElement { name = "controls" };
             {
@@ -145,8 +148,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
             UpdatePortInputVisibilities();
 
-            SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
-
             if (node is SubGraphNode)
             {
                 RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
@@ -156,30 +157,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_TitleContainer = this.Q("title");
 
-            var masterNode = node as IMasterNode;
-            if (masterNode != null)
+            if(node is BlockNode blockData)
             {
-                AddToClassList("master");
-                bool validTarget = false;
-                foreach(ITargetImplementation activeTarget in node.owner.validImplementations)
+                AddToClassList("blockData");
+                m_TitleContainer.RemoveFromHierarchy();
+            }
+            else
                 {
-                    //if we have a valid active target implementation and render pipeline, don't display the error
-                    if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
-                {
-                        validTarget = true;
-                        break;
-                    }
-                }
-                //if no active target implementations are valid with the current pipeline, display the error
-                m_GraphView.graph.messageManager?.ClearAllFromProvider(this);
-                if (!validTarget)
-                {
-                    m_GraphView.graph.messageManager?.AddOrAppendError(this, node.guid,
-                        new ShaderMessage("The active Master Node is not compatible with the current Render Pipeline," +
-                                          " or no Render Pipeline is assigned." +
-                                          " Assign a Render Pipeline in the graphics settings that is compatible with this Master Node.",
-                            ShaderCompilerMessageSeverity.Error));
-                }
+                SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
             }
 
             m_NodeSettingsView = new NodeSettingsView();
@@ -212,6 +197,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_TitleContainer.Add(m_ButtonContainer);
             }
 
+            // Update active state
+            SetActive(node.isActive);
+
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
@@ -234,11 +222,36 @@ namespace UnityEditor.ShaderGraph.Drawing
             badge.AttachTo(m_TitleContainer, SpriteAlignment.RightCenter);
         }
 
+        public void SetActive(bool state)
+        {
+            // Setup
+            var disabledString = "disabled";
+            var inputViews = m_PortInputContainer.Children().OfType<PortInputView>();
+
+            if (!state)
+            {
+                // Add elements to disabled class list
+                AddToClassList(disabledString);
+                foreach(var inputView in inputViews)
+                    inputView.AddToClassList(disabledString);
+            }
+            else
+            {
+                // Remove elements from disabled class list
+                RemoveFromClassList(disabledString);
+                foreach(var inputView in inputViews)
+                    inputView.RemoveFromClassList(disabledString);
+            }
+        }
+
         public void ClearMessage()
         {
             var badge = this.Q<IconBadge>();
-            badge?.Detach();
-            badge?.RemoveFromHierarchy();
+            if(badge != null)
+            {
+                badge.Detach();
+                badge.RemoveFromHierarchy();
+            }
         }
 
         public VisualElement colorElement
@@ -312,15 +325,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (evt.target is Node)
             {
-                var isMaster = node is IMasterNode;
-                var isActive = node.guid == node.owner.activeOutputNodeGuid;
-                if (isMaster)
-                {
-                    evt.menu.AppendAction("Set Active", SetMasterAsActive,
-                        _ => isActive ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal);
-                }
-
-                var canViewShader = node.hasPreview || node is IMasterNode || node is SubGraphOutputNode;
+                var canViewShader = node.hasPreview || node is SubGraphOutputNode;
                 evt.menu.AppendAction("Copy Shader", CopyToClipboard,
                     _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden,
                     GenerationMode.ForReals);
@@ -337,11 +342,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             base.BuildContextualMenu(evt);
-        }
-
-        void SetMasterAsActive(DropdownMenuAction action)
-        {
-            node.owner.activeOutputNodeGuid = node.guid;
         }
 
         void CopyToClipboard(DropdownMenuAction action)
@@ -363,6 +363,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 SanitizeName(node.name), node.guid, mode == GenerationMode.Preview ? "-Preview" : "");
             if (GraphUtil.WriteToFile(path, ConvertToShader(mode)))
                 GraphUtil.OpenFile(path);
+        }
+
+        string ConvertToShader(GenerationMode mode)
+        {
+            var generator = new Generator(node.owner, node, mode, node.name);
+            return generator.generatedShader;
         }
 
         void AddDefaultSettings()
@@ -436,12 +442,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        string ConvertToShader(GenerationMode mode)
-        {
-            var generator = new Generator(node.owner, node, mode, node.name);
-            return generator.generatedShader;
-        }
-
         public object GetObjectToInspect()
         {
             return this.node;
@@ -492,7 +492,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public bool CanToggleNodeExpanded()
         {
-            return m_CollapseButton.enabledInHierarchy;
+            return !(node is BlockNode) && m_CollapseButton.enabledInHierarchy;
         }
 
         void UpdatePreviewExpandedState(bool expanded)
@@ -533,6 +533,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void OnModified(ModificationScope scope)
         {
             UpdateTitle();
+            SetActive(node.isActive);
             if (node.hasPreview)
                 UpdatePreviewExpandedState(node.previewExpanded);
 
@@ -646,6 +647,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
                     m_PortInputContainer.Add(portInputView);
                     SetPortInputPosition(port, portInputView);
+
+                    // Update active state
+                    if(node.isActive)
+                    {
+                        portInputView.RemoveFromClassList("disabled");
+                    }
+                    else
+                    {
+                        portInputView.AddToClassList("disabled");
+                    }
                 }
 
                 port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);

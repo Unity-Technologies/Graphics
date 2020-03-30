@@ -1,7 +1,9 @@
 ﻿using System;
-using UnityEngine.Rendering;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -11,36 +13,38 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public string displayName => "HDRP";
         public string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
         public string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates";
-
-        public bool IsValid(IMasterNode masterNode)
-        {
-            return GetSubShaderDescriptorFromMasterNode(masterNode) != null;
-        }
-
-        public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
-        {
-            return currentPipeline is HDRenderPipelineAsset;
-        }
+        public string renderTypeTag { get; }
+        public string renderQueueTag { get; }
 
         public void SetupTarget(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("61d739b0177943f4d858e09ae4b69ea2")); // DecalTarget
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("21bb2072667892445b27f3e9aad497af")); // HDRPDecalTarget
 
-            var subShader = GetSubShaderDescriptorFromMasterNode(context.masterNode);
-            if (subShader != null)
-                context.SetupSubShader(subShader.Value);
+            context.AddSubShader(HDSubShaders.Decal);
         }
 
-        public SubShaderDescriptor? GetSubShaderDescriptorFromMasterNode(IMasterNode masterNode)
+        public void SetActiveBlocks(ref List<BlockFieldDescriptor> activeBlocks)
         {
-            switch (masterNode)
-            {
-                case DecalMasterNode _:
-                    return HDSubShaders.Decal;
-                default:
-                    return null;
-            }
+
+        }
+
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks)
+        {
+            return null;
+        }
+
+        public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
+        }
+
+        public VisualElement GetSettings(Action onChange)
+        {
+            return null;
         }
     }
 }

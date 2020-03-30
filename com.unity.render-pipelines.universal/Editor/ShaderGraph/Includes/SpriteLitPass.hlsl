@@ -40,10 +40,11 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
 #if ETC1_EXTERNAL_ALPHA
     float4 alpha = SAMPLE_TEXTURE2D(_AlphaTex, sampler_AlphaTex, unpacked.texCoord0.xy);
-    surfaceDescription.Color.a = lerp (surfaceDescription.Color.a, alpha.r, _EnableAlphaTexture);
+    surfaceDescription.Alpha = lerp (surfaceDescription.Alpha, alpha.r, _EnableAlphaTexture);
 #endif
 
-    surfaceDescription.Color *= unpacked.color;
+    half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
+    color *= unpacked.color;
 
-    return CombinedShapeLightShared(surfaceDescription.Color, surfaceDescription.Mask, unpacked.screenPosition.xy / unpacked.screenPosition.w);
+    return CombinedShapeLightShared(color, surfaceDescription.SpriteMask, unpacked.screenPosition.xy / unpacked.screenPosition.w);
 }

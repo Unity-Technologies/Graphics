@@ -1,5 +1,7 @@
 ﻿using System;
-using UnityEngine.Rendering;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -10,10 +12,21 @@ namespace UnityEditor.ShaderGraph
         string displayName { get; }
         string passTemplatePath { get; }
         string sharedTemplateDirectory { get; }
+        string renderTypeTag { get; }
+        string renderQueueTag { get; }
 
-        bool IsValid(IMasterNode masterNode);
-        bool IsPipelineCompatible(RenderPipelineAsset currentPipeline);
         void SetupTarget(ref TargetSetupContext context);
-        SubShaderDescriptor? GetSubShaderDescriptorFromMasterNode(IMasterNode masterNode);
+        void SetActiveBlocks(ref List<BlockFieldDescriptor> activeBlocks);
+        ConditionalField[] GetConditionalFields(PassDescriptor pass, List<BlockFieldDescriptor> blocks);
+        void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode);
+        void ProcessPreviewMaterial(Material material);
+        VisualElement GetSettings(Action onChange);
+    }
+
+    [GenerationAPI]
+    internal interface ITargetHasMetadata
+    {
+        string metadataIdentifier { get; }
+        ScriptableObject GetMetadataObject();
     }
 }

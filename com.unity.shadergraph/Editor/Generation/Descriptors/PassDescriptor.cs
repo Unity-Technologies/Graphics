@@ -10,8 +10,8 @@
         public bool useInPreview;
 
         // Port mask
-        public int[] vertexPorts;
-        public int[] pixelPorts;
+        public BlockFieldDescriptor[] vertexBlocks;
+        public BlockFieldDescriptor[] pixelBlocks;
 
         // Collections
         public StructCollection structs;

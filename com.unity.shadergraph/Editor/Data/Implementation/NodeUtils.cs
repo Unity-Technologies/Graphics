@@ -83,7 +83,7 @@ namespace UnityEditor.Graphing
         }
 
         public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node,
-            IncludeSelf includeSelf = IncludeSelf.Include, IEnumerable<int> slotIds = null, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
+            IncludeSelf includeSelf = IncludeSelf.Include, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
         {
             // no where to start
             if (node == null)
@@ -102,13 +102,9 @@ namespace UnityEditor.Graphing
                 var valueInPermutation = keywordPermutation.Where(x => x.Key.guid == keywordNode.keywordGuid).FirstOrDefault();
                 ids = new int[] { keywordNode.GetSlotIdForPermutation(valueInPermutation) };
             }
-            else if (slotIds == null)
-            {
-                ids = node.GetInputSlots<ISlot>().Select(x => x.id);
-            }
             else
             {
-                ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
+                ids = node.GetInputSlots<ISlot>().Select(x => x.id);
             }
 
             foreach (var slot in ids)
@@ -123,6 +119,61 @@ namespace UnityEditor.Graphing
 
             if (includeSelf == IncludeSelf.Include)
                 nodeList.Add(node);
+        }
+
+        public static void GetDownsteamNodesForNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node)
+        {
+            // no where to start
+            if (node == null)
+                return;            
+
+            // Recursively traverse downstream from the original node
+            // Traverse down each edge and continue on any connected downstream nodes
+            // Only nodes with no nodes further downstream are added to node list
+            bool hasDownstream = false;
+            var ids = node.GetOutputSlots<MaterialSlot>().Select(x => x.id);
+            foreach (var slot in ids)
+            {
+                foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
+                {
+                    var inputNode = node.owner.GetNodeFromGuid(((Edge)edge).inputSlot.nodeGuid);
+                    if (inputNode != null)
+                    {
+                        hasDownstream = true;
+                        GetDownsteamNodesForNode(nodeList, inputNode);
+                    }
+                }
+            }
+
+            // No more nodes downstream from here
+            if(!hasDownstream)
+                nodeList.Add(node);
+        }
+
+        public static void UpdateNodeActiveOnEdgeChange(AbstractMaterialNode node)
+        {
+            if(node == null)
+                return;
+
+            // Get downstream node of the output node
+            var nodes = ListPool<AbstractMaterialNode>.Get();
+            NodeUtils.GetDownsteamNodesForNode(nodes, node);
+
+            // If the only downstream node is this node
+            // This is the end of the chain and should always be active
+            if(nodes.Count == 1 && nodes[0] == node && !(node is BlockNode))
+            {
+                node.isActive = true;
+            }
+            else
+            {
+                // If any downstream nodes are active
+                // then this node is also active
+                if(nodes.Any(x => x.isActive))
+                    node.isActive = true;
+                else
+                    node.isActive = false;
+            }
         }
 
         public static void CollectNodeSet(HashSet<AbstractMaterialNode> nodeSet, MaterialSlot slot)
