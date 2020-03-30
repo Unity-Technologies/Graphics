@@ -5,15 +5,15 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class SerializedGlobalProbeVolumeSettings
     {
-        public SerializedProperty root;
+        internal SerializedProperty root;
 
-        public SerializedProperty atlasWidth;
-        public SerializedProperty atlasHeight;
-        public SerializedProperty atlasDepth;
-        public SerializedProperty atlasOctahedralDepthWidth;
-        public SerializedProperty atlasOctahedralDepthHeight;
+        internal SerializedProperty atlasWidth;
+        internal SerializedProperty atlasHeight;
+        internal SerializedProperty atlasDepth;
+        internal SerializedProperty atlasOctahedralDepthWidth;
+        internal SerializedProperty atlasOctahedralDepthHeight;
 
-        public SerializedGlobalProbeVolumeSettings(SerializedProperty root)
+        internal SerializedGlobalProbeVolumeSettings(SerializedProperty root)
         {
             this.root = root;
 

@@ -28,8 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
         IndirectDiffuseOcclusion,
         /// <summary>Display indirect specular occlusion.</summary>
         IndirectSpecularOcclusion,
-		/// <summary>Display Probe Volumes.</summary>
-		ProbeVolume
+        /// <summary>Display Probe Volumes.</summary>
+        ProbeVolume
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Probe Volume Debug Modes.
     /// </summary>
     [GenerateHLSL]
-    public enum ProbeVolumeDebugMode
+    internal enum ProbeVolumeDebugMode
     {
         None,
         VisualizeAtlas,
@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Probe Volume Atlas Slicing Modes.
     /// </summary>
     [GenerateHLSL]
-    public enum ProbeVolumeAtlasSliceMode
+    internal enum ProbeVolumeAtlasSliceMode
     {
         IrradianceSH00,
         IrradianceSH1_1,
@@ -222,13 +222,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Current Shadow Maps debug mode.</summary>
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
         /// <summary>Current Probe Volume Debug Mode.</summary>
-        public ProbeVolumeDebugMode probeVolumeDebugMode = ProbeVolumeDebugMode.None;
+        [SerializeField] internal ProbeVolumeDebugMode probeVolumeDebugMode = ProbeVolumeDebugMode.None;
 		/// <summary>Current Probe Volume Atlas Slicing Mode.</summary>
-        public ProbeVolumeAtlasSliceMode probeVolumeAtlasSliceMode = ProbeVolumeAtlasSliceMode.IrradianceSH00;
+        [SerializeField] internal ProbeVolumeAtlasSliceMode probeVolumeAtlasSliceMode = ProbeVolumeAtlasSliceMode.IrradianceSH00;
 		/// <summary>The minimum display threshold for atlas slices.</summary>
-        public float                probeVolumeMinValue = 0.0f;
+        [SerializeField] internal float probeVolumeMinValue = 0.0f;
 		/// <summary>The maximum display threshold for atlas slices.</summary>
-        public float                probeVolumeMaxValue = 1.0f;
+        [SerializeField] internal float probeVolumeMaxValue = 1.0f;
 		/// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
         public bool                 shadowDebugUseSelection = false;
         /// <summary>Index in the list of currently visible lights of the shadow map to display.</summary>

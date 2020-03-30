@@ -96,13 +96,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent[] LightTypeTitles = { EditorGUIUtility.TrTextContent("Spot"), EditorGUIUtility.TrTextContent("Directional"), EditorGUIUtility.TrTextContent("Point"), EditorGUIUtility.TrTextContent("Area") };
             public static readonly int[] LightTypeValues = { (int)HDLightType.Spot, (int)HDLightType.Directional, (int)HDLightType.Point, (int)HDLightType.Area };
-            public static readonly GUIContent DrawProbes = EditorGUIUtility.TrTextContent("Draw");
-            public static readonly GUIContent DebugColor = EditorGUIUtility.TrTextContent("Debug Color");
-            public static readonly GUIContent ResolutionX = EditorGUIUtility.TrTextContent("Resolution X");
-            public static readonly GUIContent ResolutionY = EditorGUIUtility.TrTextContent("Resolution Y");
-            public static readonly GUIContent ResolutionZ = EditorGUIUtility.TrTextContent("Resolution Z");
-            public static readonly GUIContent FadeStart = EditorGUIUtility.TrTextContent("Fade Start");
-            public static readonly GUIContent FadeEnd = EditorGUIUtility.TrTextContent("Fade End");
+            internal static readonly GUIContent DrawProbes = EditorGUIUtility.TrTextContent("Draw");
+            internal static readonly GUIContent DebugColor = EditorGUIUtility.TrTextContent("Debug Color");
+            internal static readonly GUIContent ResolutionX = EditorGUIUtility.TrTextContent("Resolution X");
+            internal static readonly GUIContent ResolutionY = EditorGUIUtility.TrTextContent("Resolution Y");
+            internal static readonly GUIContent ResolutionZ = EditorGUIUtility.TrTextContent("Resolution Z");
+            internal static readonly GUIContent FadeStart = EditorGUIUtility.TrTextContent("Fade Start");
+            internal static readonly GUIContent FadeEnd = EditorGUIUtility.TrTextContent("Fade End");
 
             public static readonly GUIContent[] globalModes = { new GUIContent("Global"), new GUIContent("Local") };
         }
@@ -185,7 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return volumes;
         }
 
-        protected virtual UnityEngine.Object[] GetProbeVolumes()
+        protected internal virtual UnityEngine.Object[] GetProbeVolumes()
         {
             return Resources.FindObjectsOfTypeAll<ProbeVolume>();
         }
@@ -1035,7 +1035,7 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
-        protected virtual LightingExplorerTableColumn[] GetProbeVolumeColumns()
+        protected internal virtual LightingExplorerTableColumn[] GetProbeVolumeColumns()
         {
             return new[]
             {
@@ -1047,7 +1047,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("drawProbes").boolValue.CompareTo(rhs.FindPropertyRelative("drawProbes").boolValue);
-                }, (target, source) => 
+                }, (target, source) =>
                 {
                     target.FindPropertyRelative("drawProbes").boolValue = source.FindPropertyRelative("drawProbes").boolValue;
                 }),
@@ -1061,7 +1061,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     Color.RGBToHSV(lhs.FindPropertyRelative("debugColor").colorValue, out lh, out ls, out lv);
                     Color.RGBToHSV(rhs.FindPropertyRelative("debugColor").colorValue, out rh, out rs, out rv);
                     return lh.CompareTo(rh);
-                }, (target, source) => 
+                }, (target, source) =>
                 {
                     target.FindPropertyRelative("debugColor").colorValue = source.FindPropertyRelative("debugColor").colorValue;
                 }),
@@ -1079,7 +1079,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("resolutionX").intValue.CompareTo(rhs.FindPropertyRelative("resolutionX").intValue);
-                }, (target, source) => 
+                }, (target, source) =>
                 {
                     target.FindPropertyRelative("resolutionX").intValue = source.FindPropertyRelative("resolutionX").intValue;
                 }),
@@ -1098,14 +1098,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("resolutionY").intValue.CompareTo(rhs.FindPropertyRelative("resolutionY").intValue);
-                }, (target, source) => 
+                }, (target, source) =>
                 {
                     target.FindPropertyRelative("resolutionY").intValue = source.FindPropertyRelative("resolutionY").intValue;
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ResolutionZ, "parameters", 75, (r, prop, dep) =>      // 5: Resolution Z
                 {
                     SerializedProperty resolutionZ = prop.FindPropertyRelative("resolutionZ");
-                    
+
                     EditorGUI.BeginChangeCheck();
                     EditorGUI.PropertyField(r, resolutionZ, GUIContent.none);
 
@@ -1117,7 +1117,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("resolutionZ").intValue.CompareTo(rhs.FindPropertyRelative("resolutionZ").intValue);
-                }, (target, source) => 
+                }, (target, source) =>
                 {
                     target.FindPropertyRelative("resolutionZ").intValue = source.FindPropertyRelative("resolutionZ").intValue;
                 }),
@@ -1128,7 +1128,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("distanceFadeStart").floatValue.CompareTo(rhs.FindPropertyRelative("distanceFadeStart").floatValue);
-                }, (target, source) => 
+                }, (target, source) =>
                 {
                     target.FindPropertyRelative("distanceFadeStart").floatValue = source.FindPropertyRelative("distanceFadeStart").floatValue;
                 }),
@@ -1139,7 +1139,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("distanceFadeEnd").floatValue.CompareTo(rhs.FindPropertyRelative("distanceFadeEnd").floatValue);
-                }, (target, source) => 
+                }, (target, source) =>
                 {
                     target.FindPropertyRelative("distanceFadeEnd").floatValue = source.FindPropertyRelative("distanceFadeEnd").floatValue;
                 })

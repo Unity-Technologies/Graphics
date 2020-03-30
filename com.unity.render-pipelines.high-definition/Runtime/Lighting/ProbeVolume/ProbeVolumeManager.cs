@@ -3,11 +3,11 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class ProbeVolumeManager
+    internal class ProbeVolumeManager
     {
         static private ProbeVolumeManager _instance = null;
 
-        public static ProbeVolumeManager manager
+        internal static ProbeVolumeManager manager
         {
             get
             {
@@ -35,17 +35,17 @@ namespace UnityEngine.Rendering.HighDefinition
         #endif
         }
 
-        public List<ProbeVolume> volumes = null;
-        protected List<ProbeVolume> volumesSelected = null;
+        internal List<ProbeVolume> volumes = null;
+        protected internal List<ProbeVolume> volumesSelected = null;
 
-        public void RegisterVolume(ProbeVolume volume)
+        internal void RegisterVolume(ProbeVolume volume)
         {
             if (volumes.Contains(volume))
                 return;
 
             volumes.Add(volume);
         }
-        public void DeRegisterVolume(ProbeVolume volume)
+        internal void DeRegisterVolume(ProbeVolume volume)
         {
             if (!volumes.Contains(volume))
                 return;
@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static void BakeSelected()
+        internal static void BakeSelected()
         {
             manager.volumesSelected.Clear();
 

@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>All lights.</summary>
         EnvironmentAndAreaAndPunctual = 7,
 		/// <summary>Probe Volumes.</summary>
-		ProbeVolumes = 8,
+        ProbeVolumes = 8,
         /// <summary>Decals.</summary>
         Decal = 16,
         /// <summary>Density Volumes.</summary>
@@ -2625,10 +2625,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
                 m_probeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
 
-                var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
-                float probeVolumeNormalBiasWS = (settings == null || (settings.leakMitigationMode != LeakMitigationMode.NormalBias && settings.leakMitigationMode != LeakMitigationMode.OctahedralDepthOcclusionFilter))
-                    ? 0.0f
-                    : settings.normalBiasWS.value;
+                float probeVolumeNormalBiasWS = 0.0f;
+                if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
+                {
+                    var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
+                    probeVolumeNormalBiasWS = (settings == null || (settings.leakMitigationMode != LeakMitigationMode.NormalBias && settings.leakMitigationMode != LeakMitigationMode.OctahedralDepthOcclusionFilter))
+                        ? 0.0f
+                        : settings.normalBiasWS.value;
+                }
 
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {

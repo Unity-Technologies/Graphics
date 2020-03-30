@@ -2,42 +2,42 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class SerializedProbeVolume
     {
-        public SerializedProperty probeVolumeParams;
-        public SerializedProperty probeVolumeAsset;
-        public SerializedProperty debugColor;
-        public SerializedProperty drawProbes;
+        internal SerializedProperty probeVolumeParams;
+        internal SerializedProperty probeVolumeAsset;
+        internal SerializedProperty debugColor;
+        internal SerializedProperty drawProbes;
 
-        public SerializedProperty probeSpacingMode;
+        internal SerializedProperty probeSpacingMode;
 
-        public SerializedProperty resolutionX;
-        public SerializedProperty resolutionY;
-        public SerializedProperty resolutionZ;
+        internal SerializedProperty resolutionX;
+        internal SerializedProperty resolutionY;
+        internal SerializedProperty resolutionZ;
 
-        public SerializedProperty densityX;
-        public SerializedProperty densityY;
-        public SerializedProperty densityZ;
+        internal SerializedProperty densityX;
+        internal SerializedProperty densityY;
+        internal SerializedProperty densityZ;
 
-        public SerializedProperty volumeBlendMode;
-        public SerializedProperty weight;
+        internal SerializedProperty volumeBlendMode;
+        internal SerializedProperty weight;
 
-        public SerializedProperty size;
+        internal SerializedProperty size;
 
-        public SerializedProperty positiveFade;
-        public SerializedProperty negativeFade;
-        public SerializedProperty uniformFade;
-        public SerializedProperty advancedFade;
+        internal SerializedProperty positiveFade;
+        internal SerializedProperty negativeFade;
+        internal SerializedProperty uniformFade;
+        internal SerializedProperty advancedFade;
 
-        public SerializedProperty distanceFadeStart;
-        public SerializedProperty distanceFadeEnd;
+        internal SerializedProperty distanceFadeStart;
+        internal SerializedProperty distanceFadeEnd;
 
-        public SerializedProperty backfaceTolerance;
-        public SerializedProperty dilationIterations;
+        internal SerializedProperty backfaceTolerance;
+        internal SerializedProperty dilationIterations;
 
-        public SerializedProperty lightLayers;
+        internal SerializedProperty lightLayers;
 
         SerializedObject m_SerializedObject;
 
-        public SerializedProbeVolume(SerializedObject serializedObject)
+        internal SerializedProbeVolume(SerializedObject serializedObject)
         {
             m_SerializedObject = serializedObject;
 
@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
             lightLayers = probeVolumeParams.FindPropertyRelative("lightLayers");
         }
 
-        public void Apply()
+        internal void Apply()
         {
             m_SerializedObject.ApplyModifiedProperties();
         }

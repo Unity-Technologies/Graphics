@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // Currently 128-bytes.
     // TODO: pack better. This data structure contains a bunch of UNORMs.
     [GenerateHLSL]
-    public struct ProbeVolumeEngineData
+    internal struct ProbeVolumeEngineData
     {
         public Vector3 debugColor;
         public float weight;
@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
-    public enum LeakMitigationMode
+    internal enum LeakMitigationMode
     {
         NormalBias = 0,
         GeometricFilter,
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         List<OrientedBBox> m_VisibleProbeVolumeBounds = null;
         List<ProbeVolumeEngineData> m_VisibleProbeVolumeData = null;
-        public const int k_MaxVisibleProbeVolumeCount = 512;
+        internal const int k_MaxVisibleProbeVolumeCount = 512;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
         static ComputeBuffer s_VisibleProbeVolumeBoundsBuffer = null;
@@ -99,8 +99,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static int s_ProbeVolumeAtlasOctahedralDepthWidth;
         static int s_ProbeVolumeAtlasOctahedralDepthHeight;
         static int k_MaxProbeVolumeAtlasOctahedralDepthProbeCount;
-        public const int k_ProbeOctahedralDepthWidth = 8;
-        public const int k_ProbeOctahedralDepthHeight = 8;
+        internal const int k_ProbeOctahedralDepthWidth = 8;
+        internal const int k_ProbeOctahedralDepthHeight = 8;
 
         // TODO: Preallocating compute buffer for this worst case of a single probe volume that consumes the whole atlas is a memory hog.
         // May want to look at dynamic resizing of compute buffer based on use, or more simply, slicing it up across multiple dispatches for massive volumes.
@@ -324,7 +324,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._ProbeVolumeBilateralFilterWeight, 0.0f);
         }
 
-        public void ReleaseProbeVolumeFromAtlas(ProbeVolume volume)
+        internal void ReleaseProbeVolumeFromAtlas(ProbeVolume volume)
         {
             if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return;

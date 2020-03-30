@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportTransparentBackface;
         public SerializedProperty supportTransparentDepthPrepass;
         public SerializedProperty supportTransparentDepthPostpass;
-        public SerializedProperty supportProbeVolume;
+        internal SerializedProperty supportProbeVolume;
 
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedXRSettings xrSettings;
         public SerializedPostProcessingQualitySettings postProcessQualitySettings;
         public SerializedLightingQualitySettings lightingQualitySettings;
-        public SerializedGlobalProbeVolumeSettings probeVolumeSettings;
+        internal SerializedGlobalProbeVolumeSettings probeVolumeSettings;
 
         public SerializedLightSettings lightSettings;
         public SerializedScalableSetting lodBias;
@@ -96,13 +96,13 @@ namespace UnityEditor.Rendering.HighDefinition
             customBufferFormat              = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
             supportCustomPass               = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
-            
+
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
-            MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);                        
+            MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
             supportDitheringCrossFade       = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
-            supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);            
+            supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);
             supportDistortion               = root.Find((RenderPipelineSettings s) => s.supportDistortion);
             supportTransparentBackface      = root.Find((RenderPipelineSettings s) => s.supportTransparentBackface);
             supportTransparentDepthPrepass  = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);

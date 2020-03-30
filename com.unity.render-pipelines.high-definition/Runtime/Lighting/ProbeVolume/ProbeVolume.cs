@@ -7,14 +7,14 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public enum ProbeSpacingMode
+    internal enum ProbeSpacingMode
     {
         Density = 0,
         Resolution
     };
 
     [GenerateHLSL]
-    public enum VolumeBlendMode
+    internal enum VolumeBlendMode
     {
         Normal = 0,
         Additive,
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // It also means we can never ever have hash collision issues (due to precision loss in string construction, or from hashing),
     // which means we always detect changes correctly.
     [Serializable]
-    public struct ProbeVolumeSettingsKey
+    internal struct ProbeVolumeSettingsKey
     {
         public int id;
         public Vector3 position;
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable]
-    public struct ProbeVolumeArtistParameters
+    internal struct ProbeVolumeArtistParameters
     {
         public bool drawProbes;
         public Color debugColor;
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.lightLayers = LightLayerEnum.LightLayerDefault;
         }
 
-        public void Constrain()
+        internal void Constrain()
         {
             this.distanceFadeStart = Mathf.Max(0, this.distanceFadeStart);
             this.distanceFadeEnd = Mathf.Max(this.distanceFadeStart, this.distanceFadeEnd);
@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public ProbeVolumeEngineData ConvertToEngineData()
+        internal ProbeVolumeEngineData ConvertToEngineData()
         {
             ProbeVolumeEngineData data = new ProbeVolumeEngineData();
 
@@ -231,14 +231,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Experimental/Probe Volume")]
-    public class ProbeVolume : MonoBehaviour
+    internal class ProbeVolume : MonoBehaviour
     {
         // Debugging code
         private Material m_DebugMaterial = null;
         private Mesh m_DebugMesh = null;
         private List<Matrix4x4[]> m_DebugProbeMatricesList;
         private List<Mesh> m_DebugProbePointMeshList;
-        public bool dataUpdated = false;
+        internal bool dataUpdated = false;
         private ProbeVolumeSettingsKey bakeKey = new ProbeVolumeSettingsKey
         {
             id = 0,
@@ -250,10 +250,10 @@ namespace UnityEngine.Rendering.HighDefinition
             resolutionZ = 0
         };
 
-        public ProbeVolumeAsset probeVolumeAsset = null;
-        public ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
+        [SerializeField] internal ProbeVolumeAsset probeVolumeAsset = null;
+        [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
 
-        public int GetID()
+        internal int GetID()
         {
             return GetInstanceID();
         }
@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        public (SphericalHarmonicsL1[], float[], float[]) GetData()
+        internal (SphericalHarmonicsL1[], float[], float[]) GetData()
         {
             dataUpdated = false;
 
@@ -382,7 +382,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SetupProbePositions();
         }
 
-        public bool IsAssetCompatible()
+        internal bool IsAssetCompatible()
         {
             if (probeVolumeAsset)
             {

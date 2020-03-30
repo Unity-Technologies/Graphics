@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
         readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateProbes = new ExpandedState<Expandable, ProbeVolume>(Expandable.Probes, "HDRP");
         readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateBaking = new ExpandedState<Expandable, ProbeVolume>(Expandable.Baking, "HDRP");
 
-        public static readonly CED.IDrawer Inspector = CED.Group(
+        internal static readonly CED.IDrawer Inspector = CED.Group(
             CED.Group(
                 Drawer_FeatureWarningMessage
                 ),

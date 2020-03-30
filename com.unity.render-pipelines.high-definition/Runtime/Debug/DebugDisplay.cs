@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int debugCameraToFreezeEnumIndex;
             internal int volumeComponentEnumIndex;
             internal int volumeCameraEnumIndex;
-			internal int probeVolumeDebugModeEnumIndex;
+            internal int probeVolumeDebugModeEnumIndex;
             internal int probeVolumeAtlasSliceModeEnumIndex;
 
             // When settings mutually exclusives enum values, we need to reset the other ones.
@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Returns the current Probe Volume Debug Mode.
         /// </summary>
         /// <returns>Current Probe Volume Debug Mode.</returns>
-		public ProbeVolumeDebugMode GetProbeVolumeDebugMode()
+        internal ProbeVolumeDebugMode GetProbeVolumeDebugMode()
         {
             return data.lightingDebugSettings.probeVolumeDebugMode;
         }
@@ -574,7 +574,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Set the current Probe Volume Debug Mode.
         /// </summary>
         /// <param name="value">Desired Probe Volume Debug Mode.</param>
-		public void SetProbeVolumeDebugMode(ProbeVolumeDebugMode value)
+        internal void SetProbeVolumeDebugMode(ProbeVolumeDebugMode value)
         {
             data.lightingDebugSettings.probeVolumeDebugMode = value;
         }
@@ -583,7 +583,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Set the current Probe Volume Atlas Mode.
         /// </summary>
         /// <param name="value">Desired Probe Volume Atlas Mode.</param>
-        public void SetProbeVolumeAtlasSliceMode(ProbeVolumeAtlasSliceMode value)
+        internal void SetProbeVolumeAtlasSliceMode(ProbeVolumeAtlasSliceMode value)
         {
             data.lightingDebugSettings.probeVolumeAtlasSliceMode = value;
         }

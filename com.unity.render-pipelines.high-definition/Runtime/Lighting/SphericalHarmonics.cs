@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     [Serializable]
     [GenerateHLSL]
-    public struct SphericalHarmonicsL1
+    internal struct SphericalHarmonicsL1
     {
         public Vector4 shAr;
         public Vector4 shAg;

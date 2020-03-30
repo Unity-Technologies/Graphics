@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(ProbeVolumeController))]
-    public class ProbeVolumeControllerEditor : VolumeComponentEditor
+    internal class ProbeVolumeControllerEditor : VolumeComponentEditor
     {
         public override void OnInspectorGUI()
         {

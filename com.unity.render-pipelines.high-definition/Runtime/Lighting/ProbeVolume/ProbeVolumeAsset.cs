@@ -4,9 +4,10 @@ using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class ProbeVolumeAsset : ScriptableObject
+    internal class ProbeVolumeAsset : ScriptableObject
     {
-        public enum AssetVersion
+        [Serializable]
+        internal enum AssetVersion
         {
             First,
             // Add new version here and they will automatically be the Current one
@@ -14,30 +15,32 @@ namespace UnityEngine.Rendering.HighDefinition
             Current = Max - 1
         }
 
-        protected int m_Version = (int)AssetVersion.First;
-        public int Version { get => m_Version; }
+        [SerializeField] protected internal int m_Version = (int)AssetVersion.First;
+        [SerializeField] internal int Version { get => m_Version; }
 
-        public int instanceID;
+        [SerializeField] internal int instanceID;
 
-        public SphericalHarmonicsL1[] dataSH = null;
-        public float[] dataValidity = null;
-        public float[] dataOctahedralDepth = null;
+        [SerializeField] internal SphericalHarmonicsL1[] dataSH = null;
+        [SerializeField] internal float[] dataValidity = null;
+        [SerializeField] internal float[] dataOctahedralDepth = null;
 
-        public int resolutionX;
-        public int resolutionY;
-        public int resolutionZ;
+        [SerializeField] internal int resolutionX;
+        [SerializeField] internal int resolutionY;
+        [SerializeField] internal int resolutionZ;
 
-        public float backfaceTolerance;
-        public int dilationIterations;
+        [SerializeField] internal float backfaceTolerance;
+        [SerializeField] internal int dilationIterations;
 
 #if UNITY_EDITOR
-        [UnityEditor.MenuItem("Assets/Create/ProbeVolume", false, 204)]
-        protected static void CreateAssetFromMenu()
-        {
-            CreateAsset();
-        }
+        // Debug only: Uncomment out if you want to manually create a probe volume asset and type in data into the inspector.
+        // This is not a user facing workflow we are supporting.
+        // [UnityEditor.MenuItem("Assets/Create/Experimental/ProbeVolume", false, 204)]
+        // protected static void CreateAssetFromMenu()
+        // {
+        //     CreateAsset();
+        // }
 
-        public static string GetFileName(int id = -1)
+        internal static string GetFileName(int id = -1)
         {
             string assetName = "ProbeVolumeData";
 
@@ -68,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return assetFileName;
         }
 
-        public static ProbeVolumeAsset CreateAsset(int id = -1)
+        internal static ProbeVolumeAsset CreateAsset(int id = -1)
         {
             ProbeVolumeAsset asset = ScriptableObject.CreateInstance<ProbeVolumeAsset>();
             string assetFileName = GetFileName(id);
@@ -80,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return asset;
         }
 
-        protected static Vector3Int[] s_Offsets = new Vector3Int[] {
+        protected internal static Vector3Int[] s_Offsets = new Vector3Int[] {
             // middle slice
             new Vector3Int( 1,  0,  0),
             new Vector3Int( 1,  0,  1),
@@ -117,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
             new Vector3Int( 0, -1, -1),
         };
 
-        protected int IndexAt(Vector3Int pos)
+        protected internal int IndexAt(Vector3Int pos)
         {
             return pos.x + pos.y * resolutionX + pos.z * resolutionX * resolutionY;
         }
@@ -214,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void Dilate(float backfaceTolerance, int dilationIterations)
+        internal void Dilate(float backfaceTolerance, int dilationIterations)
         {
             if (backfaceTolerance == this.backfaceTolerance && dilationIterations == this.dilationIterations)
                 return;

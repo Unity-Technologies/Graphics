@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeVolume))]
-    public class ProbeVolumeEditor : Editor
+    internal class ProbeVolumeEditor : Editor
     {
         internal const EditMode.SceneViewEditMode k_EditShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
         internal const EditMode.SceneViewEditMode k_EditBlend = EditMode.SceneViewEditMode.GridBox;

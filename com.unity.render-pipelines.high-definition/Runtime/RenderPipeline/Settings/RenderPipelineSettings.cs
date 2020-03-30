@@ -188,12 +188,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
         /// <summary>Support Probe Volumes.</summary>
-        public bool supportProbeVolume;
+        [SerializeField] internal bool supportProbeVolume;
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;
 
         /// <summary>Global Probe Volume settings.</summary>
-        public GlobalProbeVolumeSettings probeVolumeSettings;
+        [SerializeField] internal GlobalProbeVolumeSettings probeVolumeSettings;
 		/// <summary>Global light loop settings.</summary>
         public GlobalLightLoopSettings lightLoopSettings;
         /// <summary>Global shadows settings.</summary>

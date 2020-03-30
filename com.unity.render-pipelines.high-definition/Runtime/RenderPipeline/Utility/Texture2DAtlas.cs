@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
     class Texture2DAtlas
     {
         protected RTHandle m_AtlasTexture = null;
-        protected bool m_IsAtlasTextureOwner = false;
+        internal bool m_IsAtlasTextureOwner = false;
         protected int m_Width;
         protected int m_Height;
         protected bool m_UseMipMaps;
@@ -352,7 +352,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public virtual bool UpdateTexture(CommandBuffer cmd, Texture texture, ref Vector4 scaleOffset, bool updateIfNeeded = true, bool blitMips = true)
             => UpdateTexture(cmd, texture, texture, ref scaleOffset, fullScaleOffset, updateIfNeeded, blitMips);
-        public bool EnsureTextureSlot(out bool isUploadNeeded, ref Vector4 scaleBias, int key, int width, int height)
+        internal bool EnsureTextureSlot(out bool isUploadNeeded, ref Vector4 scaleBias, int key, int width, int height)
         {
             isUploadNeeded = false;
             if (m_AllocationCache.TryGetValue(key, out scaleBias)) { return true; }

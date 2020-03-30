@@ -1010,7 +1010,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPrepass, Styles.supportTransparentDepthPrepass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, Styles.supportTransparentDepthPostpass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
-			AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+            AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);
         }
