@@ -65,6 +65,9 @@ namespace UnityEditor.VFX.UI
 
         public Type portType { get; set; }
 
+
+        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
+
         public Type storageType
         {
             get

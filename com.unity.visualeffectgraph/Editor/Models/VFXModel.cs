@@ -288,7 +288,8 @@ namespace UnityEditor.VFX
 
         // Override this method to update other settings based on a setting modification
         // Use OnIvalidate with KSettingChanged and not this method to handle other side effects
-        protected virtual void OnSettingModified(VFXSetting setting) {}
+        protected virtual void OnSettingModified(VFXSetting setting) { }
+        public virtual IEnumerable<int> GetFilteredOutEnumerators(string name) { return null; }
 
         public virtual VFXSetting GetSetting(string name)
         {
