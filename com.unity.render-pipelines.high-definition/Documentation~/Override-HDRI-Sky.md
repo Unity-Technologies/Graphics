@@ -22,6 +22,9 @@ After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sk
 | Property                         | Description                                                  |
 | -------------------------------- | ------------------------------------------------------------ |
 | **HDRI Sky**                     | Assign a HDRI Texture that HDRP uses to render the sky.      |
+| **Flowmap**                      | Assign a flowmap that HDRP uses to distort uvs when rendering the sky. |
+| - **Flow Cycle**                 | Set the period (in seconds) of the animation loop cycle. |
+| - **Flow Strength**              | Set the multiplier HDRP applies to values from the flowmap. |
 | **Intensity Mode**        | Use the drop-down to select the method that HDRP uses to calculate the sky intensity.<br />&#8226; **Exposure**: HDRP calculates intensity from an exposure value in EV100.<br />&#8226; **Multiplier**: HDRP calculates intensity from a flat multiplier. <br />&#8226; **Lux**: HDRP calculates intensity in terms of a target Lux value. |
 | - **Exposure**                   | Set the amount of light per unit area that HDRP applies to the HDRI Sky cubemap.<br />This property only appears when you select **Exposure** from the **Intensity Mode** drop-down. |
 | - **Multiplier**                 | Set the multiplier for HDRP to apply to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value.<br />This property only appears when you select **Multiplier** from the **Intensity Mode** drop-down. |
