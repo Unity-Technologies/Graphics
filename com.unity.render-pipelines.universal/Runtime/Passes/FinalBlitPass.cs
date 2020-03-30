@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // For stereo case, eye texture always want color data in sRGB space.
             // If eye texture color format is linear, we do explicit sRGB convertion
 #if ENABLE_VR && ENABLE_VR_MODULE
-            if (cameraData.isStereoEnabled)
+            if (cameraData.isStereoEnabled && cameraData.camera.targetTexture == null)
                 requiresSRGBConversion = !cameraData.xr.renderTargetDesc.sRGB;
 #endif
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
