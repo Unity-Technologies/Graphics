@@ -14,7 +14,7 @@ You can load two different Assets into Look Dev at the same time and compare the
 
 ## Using Look Dev
 
-To open Look Dev in the Unity Editor, select **Window > Render Pipeline > Look Dev**. The first time you use Look Dev, you must either create a new [Environment Library](Look-Dev-Environment-Library.html) or load one. For information on how to create an Environment Library, see the [Environment Library documentation](Environment-Library.html).
+To open Look Dev in the Unity Editor, select **Window > Render Pipeline > Look Dev**. The first time you use Look Dev, you must either create a new [Environment Library](Look-Dev-Environment-Library.html) or load one. For information on how to create an Environment Library, see the [Environment Library documentation](Look-Dev-Environment-Library.html).
 
 ### Viewports
 
@@ -127,7 +127,7 @@ The white circle automatically snaps back into the center when you drag it back.
 
 Lighting in Look Dev uses an HDRI. The Look Dev view allows you to manipulate and easily switch between HDRIs to simulate different environments for the Asset you are working on.
 
-Look Dev uses the [Environment Library](Look-Dev-Environment-Library.html) Asset to store a list of environments, which are HDRIs with extra properties that you can use to further refine the environment. For information on how to create, edit, and assign Environment Libraries, see the [Environment Library documentation](Environment-Library.html#Creation).
+Look Dev uses the [Environment Library](Look-Dev-Environment-Library.html) Asset to store a list of environments, which are HDRIs with extra properties that you can use to further refine the environment. For information on how to create, edit, and assign Environment Libraries, see the [Environment Library documentation](Look-Dev-Environment-Library.html#Creation).
 
 ## Implementing Look Dev for your custom Scriptable Render Pipeline
 

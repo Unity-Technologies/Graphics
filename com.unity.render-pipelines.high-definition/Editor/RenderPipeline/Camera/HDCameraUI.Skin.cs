@@ -8,7 +8,6 @@ namespace UnityEditor.Rendering.HighDefinition
         const string generalSettingsHeaderContent = "General";
         const string physicalSettingsHeaderContent = "Physical";
         const string outputSettingsHeaderContent = "Output";
-        const string xrSettingsHeaderContent = "XR";
 
         const string clippingPlaneMultiFieldTitle = "Clipping Planes";
 
@@ -50,6 +49,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent antialiasingContent = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
         static readonly GUIContent SMAAQualityPresetContent = EditorGUIUtility.TrTextContent("SMAA Quality Preset", "The quality preset for SMAA, low has the best performance but worst quality, High has the highest quality but worst performance.");
         static readonly GUIContent TAASharpenContent = EditorGUIUtility.TrTextContent("TAA Sharpen Strength", "The intensity of the sharpen filter used to counterbalance the blur introduced by TAA. A high value might create artifacts such as dark lines depending on the frame content.");
+        static readonly GUIContent TAAHistorySharpening = EditorGUIUtility.TrTextContent("TAA History Sharpening", "Values closer to 0 lead to softer look when movement is detected, but can further reduce aliasing. Values closer to 1 lead to sharper results, with the risk of reintroducing a bit of aliasing.");
+        static readonly GUIContent TAAAntiFlicker = EditorGUIUtility.TrTextContent("TAA Anti-flickering", "With high values flickering might be reduced, but it can lead to more ghosting or disocclusion artifacts.");
+        static readonly GUIContent TAAMotionVectorRejection = EditorGUIUtility.TrTextContent("TAA Speed Rejection", "Higher this value, more likely history will be rejected when current and reprojected history motion vector differ by a substantial amount. High values can decrease ghosting but will also reintroduce aliasing on the aforementioned cases.");
+        static readonly GUIContent TAAQualityLevelContent = EditorGUIUtility.TrTextContent("TAA Quality Preset", "Low quality is fast, but can lead to more ghosting and blurrier output when moving, Medium quality has better ghosting handling and sharper results upon movement, High allows for velocity rejection policy, has better antialiasing and has mechanism to combat ringing for over sharpening the history.");
+        static readonly GUIContent TAAAntiRingingContent = EditorGUIUtility.TrTextContent("TAA Anti-ringing", "When enabled, ringing artifacts (dark or strangely saturated edges) caused by history sharpening will be improved. This comes at a potential loss of sharpness upon motion.");
 
         static readonly GUIContent ditheringContent = EditorGUIUtility.TrTextContent("Dithering", "Should we apply 8-bit dithering to the final render?");
         static readonly GUIContent stopNaNsContent = EditorGUIUtility.TrTextContent("Stop NaNs", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will slightly affect performances and should only be used if you experience NaN issues that you can't fix.");
@@ -62,18 +66,6 @@ namespace UnityEditor.Rendering.HighDefinition
 #if ENABLE_MULTIPLE_DISPLAYS
         static readonly GUIContent targetDisplayContent = EditorGUIUtility.TrTextContent("Target Display");
 #endif
-
-
-        static readonly GUIContent stereoSeparationContent = EditorGUIUtility.TrTextContent("Stereo Separation");
-        static readonly GUIContent stereoConvergenceContent = EditorGUIUtility.TrTextContent("Stereo Convergence");
-        static readonly GUIContent targetEyeContent = EditorGUIUtility.TrTextContent("Target Eye");
-        static readonly GUIContent[] k_TargetEyes = //order must match k_TargetEyeValues
-        {
-            new GUIContent("Both"),
-            new GUIContent("Left"),
-            new GUIContent("Right"),
-            new GUIContent("None (Main Display)"),
-        };
 
         static readonly GUIContent[] antialiasingModeNames =
         {

@@ -12,7 +12,8 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(10, Extension)]
+    [ExcludeFromPreset]
+    [ScriptedImporter(11, Extension)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -59,7 +60,7 @@ namespace UnityEditor.ShaderGraph
                     graphAsset.isValid = false;
                     foreach (var pair in messageManager.GetNodeMessages())
                     {
-                        var node = graphData.GetNodeFromTempId(pair.Key);
+                        var node = graphData.GetNodeFromGuid(pair.Key);
                         foreach (var message in pair.Value)
                         {
                             MessageManager.Log(node, subGraphPath, message, graphAsset);
@@ -116,10 +117,10 @@ namespace UnityEditor.ShaderGraph
             asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
-            
+
             GatherFromGraph(assetPath, out var containsCircularDependency, out var descendents);
             asset.descendents.AddRange(descendents);
-            
+
             var childrenSet = new HashSet<string>();
             var anyErrors = false;
             foreach (var node in nodes)
@@ -132,7 +133,7 @@ namespace UnityEditor.ShaderGraph
                         asset.children.Add(subGraphGuid);
                     }
                 }
-                
+
                 if (node.hasError)
                 {
                     anyErrors = true;
@@ -164,7 +165,7 @@ namespace UnityEditor.ShaderGraph
 
             registry.ProvideFunction(asset.functionName, sb =>
             {
-                SubShaderGenerator.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
+                GenerationUtils.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
                 sb.AppendNewLine();
 
                 // Generate arguments... first INPUTS
@@ -219,27 +220,27 @@ namespace UnityEditor.ShaderGraph
 
             asset.OnBeforeSerialize();
         }
-        
+
         static void GatherFromGraph(string assetPath, out bool containsCircularDependency, out HashSet<string> descendentGuids)
         {
             var dependencyMap = new Dictionary<string, string[]>();
             using (var tempList = ListPool<string>.GetDisposable())
             {
                 GatherDependencies(assetPath, dependencyMap, tempList.value);
-                containsCircularDependency = ContainsCircularDependency(assetPath, dependencyMap, tempList.value);    
+                containsCircularDependency = ContainsCircularDependency(assetPath, dependencyMap, tempList.value);
             }
-            
+
             descendentGuids = new HashSet<string>();
             GatherDescendents(assetPath, descendentGuids, dependencyMap);
         }
-        
+
         static void GatherDependencies(string assetPath, Dictionary<string, string[]> dependencyMap, List<string> dependencies)
         {
             if (!dependencyMap.ContainsKey(assetPath))
             {
                 if(assetPath.EndsWith(Extension))
                     MinimalGraphData.GetDependencyPaths(assetPath, dependencies);
-                
+
                 var dependencyPaths = dependencyMap[assetPath] = dependencies.ToArray();
                 dependencies.Clear();
                 foreach (var dependencyPath in dependencyPaths)
@@ -267,7 +268,7 @@ namespace UnityEditor.ShaderGraph
             {
                 return true;
             }
-            
+
             ancestors.Add(assetPath);
             foreach (var dependencyPath in dependencyMap[assetPath])
             {

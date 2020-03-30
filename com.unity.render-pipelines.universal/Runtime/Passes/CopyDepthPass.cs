@@ -18,6 +18,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_CopyDepthMaterial;
         const string m_ProfilerTag = "Copy Depth";
 
+        int m_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
+
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
             m_CopyDepthMaterial = copyDepthMaterial;
@@ -42,6 +44,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
             cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
+
+            ConfigureTarget(destination.Identifier());
         }
 
         /// <inheritdoc/>
@@ -60,43 +64,54 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
             int cameraSamples = descriptor.msaaSamples;
 
-            // TODO: we don't need a command buffer here. We can set these via Material.Set* API
-            cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
-
-            if (cameraSamples > 1)
+            CameraData cameraData = renderingData.cameraData;
+            
+            switch (cameraSamples)
             {
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
-                if (cameraSamples == 4)
-                {
+                case 8:
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                    break;
+
+                case 4:
                     cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                     cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                }
-                else
-                {
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                    break;
+
+                case 2:
                     cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                     cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                }
-                
-                Blit(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                    break;
+
+                // MSAA disabled
+                default:
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                    break;
             }
-            else
-            {
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
-            }
+
+            cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
+
+            // Blit has logic to flip projection matrix when rendering to render texture.
+            // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
+            // If you replace this Blit with a Draw* that sets projection matrix double check
+            // to also update shader.
+            // scaleBias.x = flipSign
+            // scaleBias.y = scale
+            // scaleBias.z = bias
+            // scaleBias.w = unused
+            float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
+            Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+            cmd.SetGlobalVector(m_ScaleBiasId, scaleBias);
+
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
-        {
-            // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
-            //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
-            //    cmd.CopyTexture(source, dest);
-            //else
-            Blit(cmd, source, dest, material);
         }
 
         /// <inheritdoc/>

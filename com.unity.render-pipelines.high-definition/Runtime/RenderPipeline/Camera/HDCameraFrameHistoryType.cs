@@ -13,6 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Exposure,
         /// <summary>Temporal antialiasing history.</summary>
         TemporalAntialiasing,
+        /// <summary>Velocity magnitude history used for TAA velocity weighting.</summary>
+        TAAMotionVectorMagnitude,
         /// <summary>Depth of field CoC.</summary>
         DepthOfFieldCoC,
         /// <summary>Normal buffer.</summary>
@@ -27,6 +29,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracedShadowHistory,
         /// <summary>Ray traced shadow history validity buffer.</summary>
         RaytracedShadowHistoryValidity,
+        /// <summary>Ray traced shadow history distance buffer.</summary>
+        RaytracedShadowDistanceValidity,
         /// <summary>Ray traced reflections buffer.</summary>
         RaytracedReflection,
         /// <summary>Ray traced indirect diffuse HF buffer.</summary>

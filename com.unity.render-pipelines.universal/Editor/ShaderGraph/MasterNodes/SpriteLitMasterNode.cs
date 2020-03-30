@@ -5,13 +5,14 @@ using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
     [Serializable]
     [Title("Master", "Sprite Lit (Experimental)")]
     [FormerName("UnityEditor.Experimental.Rendering.LWRP.SpriteLitMasterNode")]
-    class SpriteLitMasterNode : MasterNode<ISpriteLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class SpriteLitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionName = "Vertex Position";
         public const string NormalName = "Vertex Normal";
@@ -26,6 +27,20 @@ namespace UnityEditor.Experimental.Rendering.Universal
         public const int NormalSlotId = 2;
         public const int VertNormalSlotId = 10;
         public const int VertTangentSlotId = 11;
+
+        [SerializeField] private string m_ShaderGUIOverride;
+        public string ShaderGUIOverride
+        {
+            get => m_ShaderGUIOverride;
+            set => m_ShaderGUIOverride = value;
+        }
+
+        [SerializeField] private bool m_OverrideEnabled;
+        public bool OverrideEnabled
+        {
+            get => m_OverrideEnabled;
+            set => m_OverrideEnabled = value;
+        }
 
         public SpriteLitMasterNode()
         {
@@ -55,6 +70,37 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 MaskSlotId,
                 NormalSlotId,
             });
+        }
+
+        public VisualElement CreateSettingsElement()
+        {
+            return new SpriteSettingsView(this);
+        }
+
+        public string renderQueueTag => $"{RenderQueue.Transparent}";
+        public string renderTypeTag => $"{RenderType.Transparent}";
+
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass)
+        {
+            return new ConditionalField[]
+            {
+                // Features
+                new ConditionalField(Fields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) ||
+                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) ||
+                                                                        IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
+                new ConditionalField(Fields.GraphPixel,          true),
+
+                // Surface Type
+                new ConditionalField(Fields.SurfaceTransparent,  true),
+
+                // Blend Mode
+                new ConditionalField(Fields.BlendAlpha,          true),
+            };
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
+
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)

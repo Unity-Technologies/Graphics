@@ -87,9 +87,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     Rebuild();
                     DirtyNodes(ModificationScope.Graph);
                 });
-                m_ExposedToogle.value = input.generatePropertyBlock;
+                m_ExposedToogle.value = input.generatePropertyBlock && input.isExposable;
                 AddRow("Exposed", m_ExposedToogle, input.isExposable);
-				
             }
 
             if(!m_Graph.isSubGraph || input is ShaderKeyword)
@@ -102,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_Graph.owner.RegisterCompleteObjectUndo("Change Reference Name");
                     if (m_ReferenceNameField.value != m_Input.referenceName)
                         m_Graph.SanitizeGraphInputReferenceName(input, evt.newValue);
-                    
+
                     m_ReferenceNameField.value = input.referenceName;
                     if (string.IsNullOrEmpty(input.overrideReferenceName))
                         m_ReferenceNameField.RemoveFromClassList("modified");
@@ -183,7 +182,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 label.AddToClassList("rowViewLabel");
                 rowView.Add(label);
             }
-            
+
             control.AddToClassList("rowViewControl");
             control.SetEnabled(enabled);
 

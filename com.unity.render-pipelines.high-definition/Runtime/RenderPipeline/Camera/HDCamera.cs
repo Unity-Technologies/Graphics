@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Utilities;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -174,6 +173,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector4[]              frustumPlaneEquations;
         internal int                    taaFrameIndex;
         internal float                  taaSharpenStrength;
+        internal float                  taaHistorySharpening;
+        internal float                  taaAntiFlicker;
+        internal float                  taaMotionVectorRejection;
+        internal bool                   taaAntiRinging;
+
         internal Vector4                zBufferParams;
         internal Vector4                unity_OrthoParams;
         internal Vector4                projectionParams;
@@ -283,6 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
 
         internal HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
+        internal HDAdditionalCameraData.TAAQualityLevel TAAQuality { get; private set; } = HDAdditionalCameraData.TAAQualityLevel.Medium;
 
         internal bool resetPostProcessingHistory = true;
 
@@ -343,6 +348,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return antialiasing == AntialiasingMode.TemporalAntialiasing;
         }
 
+        internal bool IsSSREnabled()
+        {
+            var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
+            return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value;
+        }
+
+        internal bool IsTransparentSSREnabled()
+        {
+            var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
+            return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
+        }
+
         internal bool IsVolumetricReprojectionEnabled()
         {
             bool a = Fog.IsVolumetricFogEnabled(this);
@@ -392,7 +409,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdrp.ReinitializeVolumetricBufferParams(this);
 
                 bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
-                bool isHistoryColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing;
+                bool isHistoryColorPyramidRequired = IsSSREnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 
                 int numColorPyramidBuffersRequired = 0;
@@ -595,12 +612,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
 
-            // TODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
+            // XRTODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
             if (true)
             {
                 cmd.SetGlobalInt(HDShaderIDs._XRViewCount, viewCount);
 
                 // Convert AoS to SoA for GPU constant buffer until we can use StructuredBuffer via command buffer
+                // XRTODO: use the new API and remove this code
                 for (int i = 0; i < viewCount; i++)
                 {
                     m_XRViewMatrix[i] = m_XRViewConstants[i].viewMatrix;
@@ -681,14 +699,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class ExecuteCaptureActionsPassData
         {
-            public RenderGraphResource input;
-            public RenderGraphMutableResource tempTexture;
+            public TextureHandle input;
+            public TextureHandle tempTexture;
             public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> recorderCaptureActions;
             public Vector2 viewportScale;
             public Material blitMaterial;
         }
 
-        internal void ExecuteCaptureActions(RenderGraph renderGraph, RenderGraphResource input)
+        internal void ExecuteCaptureActions(RenderGraph renderGraph, TextureHandle input)
         {
             if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
                 return;
@@ -844,7 +862,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     antialiasing = m_AdditionalCameraData.antialiasing;
                     SMAAQuality = m_AdditionalCameraData.SMAAQuality;
+                    TAAQuality = m_AdditionalCameraData.TAAQuality;
                     taaSharpenStrength = m_AdditionalCameraData.taaSharpenStrength;
+                    taaHistorySharpening = m_AdditionalCameraData.taaHistorySharpening;
+                    taaAntiFlicker = m_AdditionalCameraData.taaAntiFlicker;
+                    taaAntiRinging = m_AdditionalCameraData.taaAntiHistoryRinging;
+                    taaMotionVectorRejection = m_AdditionalCameraData.taaMotionVectorRejection;
+
                 }
                 else
                     antialiasing = AntialiasingMode.None;
@@ -941,6 +965,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Matrix4x4 noTransViewMatrix = gpuView;
             if (ShaderConfig.s_CameraRelativeRendering == 0)
             {
+                // In case we are not camera relative, gpuView contains the camera translation component at this stage, so we need to remove it.
                 noTransViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
 
             }
@@ -1112,8 +1137,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
-            // Do not add extra jitter in VR (micro-variations from head tracking are enough)
-            if (xr.enabled)
+            // Do not add extra jitter in VR unless requested (micro-variations from head tracking are usually enough)
+            if (xr.enabled && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter)
             {
                 taaJitter = Vector4.zero;
                 return origProj;

@@ -5,10 +5,11 @@
 //--------------------------------------------------------------------------------------------------
 
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel SubsurfaceScattering SubsurfaceScattering=SubsurfaceScattering
-#pragma kernel SubsurfaceScattering_MSAA SubsurfaceScattering=SubsurfaceScattering_MSAA ENABLE_MSAA
+#pragma kernel SubsurfaceScattering
+
+#pragma multi_compile _ ENABLE_MSAA
 
 // TODO: use sharp load hoisting on PS4.
 

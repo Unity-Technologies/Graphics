@@ -18,7 +18,6 @@ namespace UnityEditor.Rendering.HighDefinition
             Output = 1 << 2,
             Orthographic = 1 << 3,
             RenderLoop = 1 << 4,
-            XR = 1 << 5
         }
 
         enum ProjectionType
@@ -91,7 +90,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 SectionFrameSettings,
                 SectionPhysicalSettings,
                 SectionOutputSettings,
-                SectionXRSettings
             };
 
             string key = $"HDRP:{typeof(HDCameraUI).Name}:ShutterSpeedState";
@@ -155,19 +153,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 Drawer_FieldRenderTarget,
                 Drawer_FieldDepth,
                 Drawer_FieldNormalizedViewPort
-                )
-            );
-
-        public static readonly CED.IDrawer SectionXRSettings = CED.Conditional(
-            (serialized, owner) => XRGraphics.tryEnable,
-            CED.FoldoutGroup(
-                xrSettingsHeaderContent,
-                Expandable.XR,
-                k_ExpandedState,
-                CED.Group(
-                    Drawer_FieldVR,
-                    Drawer_FieldTargetEye
-                    )
                 )
             );
 
@@ -467,7 +452,25 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if(p.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
             {
+                EditorGUILayout.PropertyField(p.taaQualityLevel, TAAQualityLevelContent);
+
+                EditorGUI.indentLevel++;
+
                 EditorGUILayout.PropertyField(p.taaSharpenStrength, TAASharpenContent);
+
+                if (p.taaQualityLevel.intValue > (int)HDAdditionalCameraData.TAAQualityLevel.Low)
+                {
+                    EditorGUILayout.PropertyField(p.taaHistorySharpening, TAAHistorySharpening);
+                    EditorGUILayout.PropertyField(p.taaAntiFlicker, TAAAntiFlicker);
+                }
+
+                if(p.taaQualityLevel.intValue == (int)HDAdditionalCameraData.TAAQualityLevel.High)
+                {
+                    EditorGUILayout.PropertyField(p.taaMotionVectorRejection, TAAMotionVectorRejection);
+                    EditorGUILayout.PropertyField(p.taaAntiRinging, TAAAntiRingingContent);
+                }
+
+                EditorGUI.indentLevel--;
             }
         }
 
@@ -527,12 +530,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void Drawer_FieldVR(SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.baseCameraSettings.stereoSeparation, stereoSeparationContent);
-            EditorGUILayout.PropertyField(p.baseCameraSettings.stereoConvergence, stereoConvergenceContent);
-        }
-
 #if ENABLE_MULTIPLE_DISPLAYS
         static void Drawer_SectionMultiDisplay(SerializedHDCamera p, Editor owner)
         {
@@ -546,13 +543,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
 #endif
-
-        static readonly int[] k_TargetEyeValues = { (int)StereoTargetEyeMask.Both, (int)StereoTargetEyeMask.Left, (int)StereoTargetEyeMask.Right, (int)StereoTargetEyeMask.None };
-
-        static void Drawer_FieldTargetEye(SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.IntPopup(p.baseCameraSettings.targetEye, k_TargetEyes, k_TargetEyeValues, targetEyeContent);
-        }
 
         static MethodInfo k_DisplayUtility_GetDisplayIndices = Type.GetType("UnityEditor.DisplayUtility,UnityEditor")
             .GetMethod("GetDisplayIndices");
