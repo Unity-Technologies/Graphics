@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Rendering.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -125,5 +126,8 @@ namespace UnityEditor.ShaderGraph
         {
             return $"Unity_LinearBlendSkinning_{concretePrecision.ToShaderString()}";
         }
+
+        public override string documentationURL => Documentation.GetPageLink("SGNode-LinearBlendSkinning");
+
     }
 }
