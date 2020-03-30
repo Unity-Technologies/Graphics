@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: Foliage
   m_EditorClassIdentifier: 
   m_Version: 1
-  profiles: []
   profile:
     scatteringDistance: {r: 0.7568628, g: 0.7019608, b: 0.24313727, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}

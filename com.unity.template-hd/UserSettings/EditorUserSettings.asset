@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!162 &1
+EditorUserSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 4
+  m_ConfigSettings:
+    UnityEditor.ShaderGraph.FloatingWindowsLayout2:
+      value: 181344140043005e1a220d3b1f364b524c0c5a27130c293326201334cee5322ca0bd22fbf23f737e343dcb3307350831f53e061bb4511e19040bb14c1cc0261603d111c61bc4301acd0a19da8f4780b29b8698a8d5d4cfd7ccd6bafdfae4eff4daf7a3e8afbcbe9af8f9abffff8e85c9fef9bedec98493dcf8ca9389ef828a9d899ac7cf9bdd898e8bc3f090bfdce5a69fa0a79d97aa98b999b29dab6fa6bb223c7c2ab7839cb983b6b063845e75829c302d926b628fc3ce84ad5b839785988145ae968b04c18e89749b01dc6c705666734161566b54406a5d7a694a1f37713d756a66771753783a27353f4c504172674347264e2e7a1600746f0243326d645d4b5f450e471441155070727140736e6130644f757f46667b34007c5f3fe12420e62304f4e023e03efadde518f54165ebb4efba505d59505e5d45bf0a809a4549948946d4da
+      flags: 0
+    lightmappingDeviceAndPlatform:
+      value: 53
+      flags: 0
+    vcSharedLogLevel:
+      value: 0d5e400f0650
+      flags: 0
+  m_VCAutomaticAdd: 1
+  m_VCDebugCom: 0
+  m_VCDebugCmd: 0
+  m_VCDebugOut: 0
+  m_SemanticMergeMode: 2
+  m_VCShowFailedCheckout: 1
+  m_VCOverwriteFailedCheckoutAssets: 1
+  m_VCOverlayIcons: 1
+  m_VCAllowAsyncUpdate: 0
