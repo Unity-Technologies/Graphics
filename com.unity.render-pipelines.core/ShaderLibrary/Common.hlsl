@@ -1164,4 +1164,12 @@ uint GetStencilValue(uint2 stencilBufferVal)
 #endif
 }
 
+// Sharpens the alpha of a texture to the width of a single pixel
+// Used for alpha to coverage
+// source: https://medium.com/@bgolus/anti-aliased-alpha-test-the-esoteric-alpha-to-coverage-8b177335ae4f
+float SharpenAlpha(float alpha, float alphaClipTreshold)
+{
+    return saturate((alpha - alphaClipTreshold) / max(fwidth(alpha), 0.0001) + 0.5);
+}
+
 #endif // UNITY_COMMON_INCLUDED

@@ -246,6 +246,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local
             };
+
+            public static KeywordDescriptor AlphaToMask = new KeywordDescriptor()
+            {
+                displayName = "Alpha To Mask",
+                referenceName = "_ALPHATOMASK_ON",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local
+            };
         }
         public static KeywordCollection HDBase = new KeywordCollection
         {
@@ -315,6 +324,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { HDBase },
             { Descriptors.WriteMsaaDepth },
+            { Descriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
         };
 
         public static KeywordCollection HDUnlitForward = new KeywordCollection
@@ -338,6 +348,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { HDBase },
             { Descriptors.WriteMsaaDepth },
             { Descriptors.WriteNormalBuffer },
+            { Descriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
         };
 
         public static KeywordCollection HDForward = new KeywordCollection
@@ -355,6 +366,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { HDBase },
             { Descriptors.WriteMsaaDepth },
+            { Descriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
         };
 
         public static KeywordCollection RaytracingIndirect = new KeywordCollection

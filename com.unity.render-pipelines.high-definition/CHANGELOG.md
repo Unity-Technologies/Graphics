@@ -94,6 +94,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an alpha blend option for recursive rendering
 - Added support for stack lit for ray tracing effects.
 - Added support for hair for ray tracing effects.
+- Added support for alpha to coverage for HDRP shaders and shader graph
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
