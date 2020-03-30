@@ -87,6 +87,7 @@ namespace UnityEditor.VFX.UI
             m_NameField.textfield.style.flexGrow = 1;
             m_NameField.style.flexShrink = 1;
             m_NameField.textfield.style.flexShrink = 1;
+            m_NameField.OnValueChanged += OnNameChanges;
             Add(m_NameField);
             m_ValueProperty = PropertyRM.Create(new ValueProvider(this),0);
             m_ValueProperty.style.width = 50;
@@ -97,6 +98,15 @@ namespace UnityEditor.VFX.UI
         public override float GetPreferredControlWidth()
         {
             return 150;
+        }
+
+
+        void OnNameChanges()
+        {
+            VFXEnumValue value = (VFXEnumValue)m_Provider.value;
+            value.name = m_NameField.value;
+
+            m_Provider.value = value;
         }
 
         public override void UpdateGUI(bool force)
