@@ -314,7 +314,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 case AbstractShaderProperty property:
                 {
-                    var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
+                    var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock && !property.hidden)) ? exposedIcon : null;
                     field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
                     var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
                     row = new BlackboardRow(field, propertyView) { userData = input };

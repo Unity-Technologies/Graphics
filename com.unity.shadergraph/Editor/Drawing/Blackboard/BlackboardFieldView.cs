@@ -82,12 +82,27 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ExposedToogle.OnToggleChanged(evt =>
                 {
                     m_Graph.owner.RegisterCompleteObjectUndo("Change Exposed Toggle");
-                    input.generatePropertyBlock = evt.newValue;
-                    m_BlackboardField.icon = input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+                    if (input is AbstractShaderProperty p)
+                    {
+                        p.hidden = !evt.newValue;
+                        m_BlackboardField.icon = !p.hidden ? BlackboardProvider.exposedIcon : null;
+                    }
+                    else
+                    {
+                        input.generatePropertyBlock = evt.newValue;
+                        m_BlackboardField.icon = input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+                    }
                     Rebuild();
                     DirtyNodes(ModificationScope.Graph);
                 });
-                m_ExposedToogle.value = input.generatePropertyBlock && input.isExposable;
+                if(input is AbstractShaderProperty prop)
+                {
+                    m_ExposedToogle.value = !prop.hidden && prop.isExposable;
+                }
+                else
+                {
+                    m_ExposedToogle.value = input.generatePropertyBlock && input.isExposable;
+                }
                 AddRow("Exposed", m_ExposedToogle, input.isExposable);
             }
 
