@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
 - Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601)
 - Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
+- Fix when rescale probe all direction below zero (1219246)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
@@ -119,7 +120,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the Tint parameter to Sky Colored Fog.
 
 ### Fixed
-- Fix when rescale probe all direction below zero (1219246)
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
 - Fixed TerrainLitGUI when per-pixel normal property is not present.
 - Fixed a bug due to depth history begin overriden too soon
