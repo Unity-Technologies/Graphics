@@ -254,9 +254,9 @@ Material:
     - _ZWrite: 1
     - _useThreadMap: 1
     m_Colors:
-    - _BaseColor: {r: 0.85300004, g: 0.42022192, b: 0.20898502, a: 1}
+    - _BaseColor: {r: 0.638, g: 0.638, b: 0.638, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.85300004, g: 0.4202219, b: 0.20898497, a: 1}
+    - _Color: {r: 0.63799995, g: 0.63799995, b: 0.63799995, a: 1}
     - _DiffusionProfileAsset: {r: -8.851371e-34, g: 1.2241986e+22, b: -2.5962676e-29, a: -2.918011e-34}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
@@ -273,7 +273,7 @@ Material:
     - _uvBaseMask: {r: 1, g: 0, b: 0, a: 0}
     - _uvBaseST: {r: 1, g: 1, b: 0, a: 0}
     - _uvThreadMask: {r: 1, g: 0, b: 0, a: 0}
-    - _uvThreadST: {r: 30, g: 30, b: 0, a: 0}
+    - _uvThreadST: {r: 40, g: 40, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &3775346471072160633
 MonoBehaviour:

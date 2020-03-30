@@ -245,8 +245,8 @@ Material:
     - _Thickness: 1
     - _ThicknessMultiplier: 1
     - _ThreadAOStrength01: 0.29
-    - _ThreadNormalStrength: 0.2
-    - _ThreadSmoothnessScale: 0.2
+    - _ThreadNormalStrength: 0.419
+    - _ThreadSmoothnessScale: 0.162
     - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
