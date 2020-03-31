@@ -182,7 +182,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Update this node
                 m_IsActive = value;
-                Dirty(ModificationScope.Node);
+                Dirty(ModificationScope.Topological);
             }
         }
 
@@ -288,7 +288,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var inputSlot in this.GetInputSlots<MaterialSlot>())
             {
                 var edges = owner.GetEdges(inputSlot.slotReference);
-                if (edges.Any())
+                if (edges.Any(e => owner.GetNodeFromGuid(e.outputSlot.nodeGuid).isActive))
                     continue;
 
                 inputSlot.AddDefaultProperty(properties, generationMode);

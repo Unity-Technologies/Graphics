@@ -1295,6 +1295,13 @@ namespace UnityEditor.ShaderGraph
                 {
                     m_ActiveOutputNodeGuid = new Guid(m_ActiveOutputNodeGuidSerialized);
                 }
+                UpdateTargets();
+            }
+
+            ValidateGraph();
+            foreach(var node in m_Nodes)
+            {
+                NodeUtils.UpdateNodeActiveOnEdgeChange(node);
             }
         }
 
