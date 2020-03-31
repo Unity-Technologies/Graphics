@@ -605,6 +605,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hidden unsupported choice in emission in Materials
 - Temporal Anti aliasing improvements.
 - Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
+- Moved scene view camera settings for HDRP from the preferences window to the scene view camera settings window.
 
 ## [7.1.1] - 2019-09-05
 

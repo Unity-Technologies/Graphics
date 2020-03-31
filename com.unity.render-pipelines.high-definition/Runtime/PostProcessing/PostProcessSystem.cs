@@ -389,7 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 #if UNITY_EDITOR
                     if (isSceneView)
-                        stopNaNs = HDRenderPipelinePreferences.sceneViewStopNaNs;
+                        stopNaNs = HDAdditionalSceneViewSettings.sceneViewStopNaNs;
                 #endif
 
                     if (stopNaNs)
