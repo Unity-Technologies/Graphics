@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         HashSet<AbstractMaterialNode> m_NodesToUpdate = new HashSet<AbstractMaterialNode>();                // nodes we need to rebuild the preview shader for (may be downstream from node with a shader change)
         HashSet<AbstractMaterialNode> m_NodesToCompile = new HashSet<AbstractMaterialNode>();               // temporary list used to track nodes we are kicking off async compiles for RIGHT NOW
         int m_NodesCompiling = 0;                                                                           // number of node preview shaders currently being async compiled
-        int m_MaxNodesCompiling = 7;                                                                        // max preview shaders we want to async compile at once
+        int m_MaxNodesCompiling = 1;                                                                        // max preview shaders we want to async compile at once
         // nodes that are compiling are just flagged in their m_RenderDatas..  once we detect the compile is complete, we pass them to m_NodesToDraw
         HashSet<AbstractMaterialNode> m_NodesToDraw = new HashSet<AbstractMaterialNode>();                  // nodes to rebuild the texture for
         HashSet<AbstractMaterialNode> m_TimedNodes = new HashSet<AbstractMaterialNode>();                   // nodes that are dependent on a time node -- i.e. animated -- need to redraw every frame
@@ -115,6 +115,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 node = node,
                 isCompiling = false,
+                isOutOfDate = true,
                 hasError = false,
             };
             renderData.shaderData = shaderData;
@@ -405,8 +406,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if ((renderData.shaderData.shader == null) || (renderData.shaderData.mat == null))
                     {
-                        renderData.texture = null;          // still compiling texture?  what other cases hit this?
-                        renderData.NotifyPreviewChanged();
+                        if (renderData.texture != null)     // avoid calling this all the time if the view already knows
+                        {
+                            Debug.Log("NULL SHADER OR MATERIAL");
+                            renderData.texture = null;
+                            renderData.NotifyPreviewChanged();      // force redraw node -- 
+                        }
                         continue;
                     }
 
@@ -539,8 +544,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                             // Force the material to re-generate all it's shader properties.  (by reassigning the shader?)
                             renderData.shaderData.mat.shader = renderData.shaderData.shader;
-
                             renderData.shaderData.isCompiling = false;
+                            renderData.shaderData.isOutOfDate = false;
                             CheckForErrors(renderData.shaderData);
                             m_NodesCompiling--;
                             Assert.IsTrue(m_NodesCompiling >= 0);
@@ -565,28 +570,40 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if ((m_NodesToUpdate.Count == 0) || (m_NodesCompiling >= m_MaxNodesCompiling))
                     return;
 
-                // select some nodes to kick off async compile
+                // select some nodes to start async compile, first let's figure out how many we want to start
                 int remainingCompiles = m_MaxNodesCompiling - m_NodesCompiling;
                 m_NodesToCompile.Clear();
                 foreach (var node in m_NodesToUpdate)
                 {
-                    if (remainingCompiles <= 0)
-                        break;
+                    Assert.IsTrue(node != null);
+                    // if (node == null) continue;
 
-                    m_NodesToCompile.Add(node);
-                    remainingCompiles--;
+                    // flag all nodes in m_NodesToUpdate as having out of date textures
+                    PreviewRenderData previewRendererData = m_RenderDatas[node.guid];
+                    if (!previewRendererData.shaderData.isOutOfDate)
+                    {
+                        previewRendererData.shaderData.isOutOfDate = true;
+                        previewRendererData.NotifyPreviewChanged();      // flag node to redraw with out-of-date appearance
+                    }
+
+                    // add to compile list if it needs a preview and we have room
+                    if (node.hasPreview && node.previewExpanded && (remainingCompiles > 0))
+                    {
+                        m_NodesToCompile.Add(node);
+                        remainingCompiles--;
+                    }
                 }
 
                 // remove the selected nodes from the update list
                 m_NodesToUpdate.ExceptWith(m_NodesToCompile);
 
-                // Reset error states for the UI, the shader, and all render data for nodes we're updating
+                // Reset error states for the UI, the shader, and all render data for nodes we're recompiling
                 using (ClearNodesFromProviderMarker.Auto())
                 {
                     m_Messenger.ClearNodesFromProvider(this, m_NodesToCompile);
                 }
 
-                // Force async compile for previews
+                // Force async compile on
                 var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
                 ShaderUtil.allowAsyncCompilation = true;
 
@@ -618,7 +635,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     BeginCompile(renderData, generator.generatedShader);
                     compileRequestedCount++;
 
-                    // TODO: Can we move this somewhere more relevant?
+                    // TODO: Can we move this somewhere more relevant?  seems more preview rendering related
                     // Calculate the PreviewMode from upstream nodes
                     // If any upstream node is 3D that trickles downstream
                     List<AbstractMaterialNode> upstreamNodes = new List<AbstractMaterialNode>();
@@ -634,7 +651,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
 
-                // Debug.Log("Kicked " + compileRequestedCount + "/" + m_NodesToCompile.Count + " shader compiles");
+//                if ((compileRequestedCount > 0) || (m_NodesToCompile.Count > 0))
+//                    Debug.Log("Kicked " + compileRequestedCount + "/" + m_NodesToCompile.Count + " shader compiles");
 
                 ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
                 m_NodesToCompile.Clear();
@@ -650,6 +668,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             using (BeginCompileMarker.Auto())
             {
                 var shaderData = renderData.shaderData;
+                Assert.IsFalse(shaderData.isCompiling);     // not sure what happens if we double-launch a compile.. at the very least it is double work, possibly gets confused
+
                 if (shaderData.shader == null)
                 {
                     using (CreateShaderAssetMarker.Auto())
@@ -682,8 +702,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 shaderData.isCompiling = true;
                 Assert.IsTrue(m_NodesCompiling >= 0);
                 m_NodesCompiling++;
-
-                renderData.NotifyPreviewChanged();      // TODO: do we want to notify right away?  or wait for the shader result to come back?
             }
         }
 
@@ -857,6 +875,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Material mat { get; set; }
         public string shaderString { get; set; }
         public bool isCompiling { get; set; }
+        public bool isOutOfDate { get; set; }
         public bool hasError { get; set; }
     }
 

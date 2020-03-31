@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Rendering.ShaderGraph;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.Graphing
 {
@@ -173,6 +174,9 @@ namespace UnityEditor.Graphing
                     CollectNodesNodeFeedsInto(nodeList, inputNode);
                 }
             }
+
+            Assert.IsFalse(nodeList.Contains(node));
+
             if (includeSelf == IncludeSelf.Include)
                 nodeList.Add(node);
         }
