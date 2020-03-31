@@ -177,6 +177,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             },
         };
 
+        public static SubShaderDescriptor StackLitRaytracing = new SubShaderDescriptor()
+        {
+            pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = false,
+            passes = new PassCollection
+            {
+                { HDPasses.StackLitRayTracing.Indirect, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.StackLitRayTracing.Visibility, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.StackLitRayTracing.Forward, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.StackLitRayTracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.StackLitRayTracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
+            },
+        };
+
+        public static SubShaderDescriptor HairRaytracing = new SubShaderDescriptor()
+        {
+            pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = false,
+            passes = new PassCollection
+            {
+                { HDPasses.HairRayTracing.Indirect, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HairRayTracing.Visibility, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HairRayTracing.Forward, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HairRayTracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HairRayTracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
+            },
+        };
+
         public static SubShaderDescriptor HDLitRaytracing = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
