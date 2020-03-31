@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -18,8 +21,75 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
-            context.AddSubShader(SubShaders.Unlit);
-            context.AddSubShader(SubShaders.UnlitDOTS);
+
+            // Process SubShaders
+            SubShaderDescriptor[] subShaders = { SubShaders.Unlit, SubShaders.UnlitDOTS };
+            for(int i = 0; i < subShaders.Length; i++)
+            {
+                // Update Render State
+                subShaders[i].renderType = target.renderType;
+                subShaders[i].renderQueue = target.renderQueue;
+
+                // Add
+                context.AddSubShader(subShaders[i]);
+            }
+        }
+
+        public override void GetFields(ref TargetFieldContext context)
+        {
+            // Surface Type & Blend Mode
+            // These must be set per SubTarget as Sprite SubTargets override them
+            context.AddField(Fields.SurfaceOpaque,       target.surfaceType == SurfaceType.Opaque);
+            context.AddField(Fields.SurfaceTransparent,  target.surfaceType != SurfaceType.Opaque);
+            context.AddField(Fields.BlendAdd,            target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
+            context.AddField(Fields.BlendAlpha,          target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
+            context.AddField(Fields.BlendMultiply,       target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
+            context.AddField(Fields.BlendPremultiply,    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
+        }
+
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+        {
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
+        }
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        {
+            context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
+            {
+                if (Equals(target.surfaceType, evt.newValue))
+                    return;
+                
+                target.surfaceType = (SurfaceType)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Blend", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(target.alphaMode, evt.newValue))
+                    return;
+
+                target.alphaMode = (AlphaMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Alpha Clip", new Toggle() { value = target.alphaClip }, (evt) =>
+            {
+                if (Equals(target.alphaClip, evt.newValue))
+                    return;
+                
+                target.alphaClip = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Two Sided", new Toggle() { value = target.twoSided }, (evt) =>
+            {
+                if (Equals(target.twoSided, evt.newValue))
+                    return;
+                
+                target.twoSided = evt.newValue;
+                onChange();
+            });
         }
 
 #region SubShader
@@ -80,8 +150,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexPorts = UnlitPortMasks.Vertex,
-                pixelPorts = UnlitPortMasks.Fragment,
+                vertexBlocks = CoreBlockMasks.Vertex,
+                pixelBlocks = CoreBlockMasks.FragmentColorAlpha,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -92,25 +162,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.Forward,
                 keywords = UnlitKeywords.Unlit,
                 includes = UnlitIncludes.Unlit,
-            };
-        }
-#endregion
-
-#region PortMask
-        static class UnlitPortMasks
-        {
-            public static int[] Vertex = new int[]
-            {
-                UnlitMasterNode.PositionSlotId,
-                UnlitMasterNode.VertNormalSlotId,
-                UnlitMasterNode.VertTangentSlotId,
-            };
-
-            public static int[] Fragment = new int[]
-            {
-                UnlitMasterNode.ColorSlotId,
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId,
             };
         }
 #endregion

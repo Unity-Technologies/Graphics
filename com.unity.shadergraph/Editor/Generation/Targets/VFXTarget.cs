@@ -1,26 +1,76 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
     sealed class VFXTarget : Target
     {
+        [SerializeField]
+        bool m_Lit;
+
+        [SerializeField]
+        bool m_AlphaTest = false;
+
         public VFXTarget()
         {
             displayName = "Visual Effect";
+        }
+
+        public bool lit
+        {
+            get => m_Lit;
+            set => m_Lit = value;
+        }
+
+        public bool alphaTest
+        {
+            get => m_AlphaTest;
+            set => m_AlphaTest = value;
         }
 
         public override void Setup(ref TargetSetupContext context)
         {
         }
 
-        public override bool IsValid(IMasterNode masterNode)
+        public override void GetFields(ref TargetFieldContext context)
         {
-            return masterNode is VfxMasterNode;
         }
 
-        public override bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            return currentPipeline != null;
+            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
+            context.AddBlock(BlockFields.SurfaceDescription.Metallic,           lit);
+            context.AddBlock(BlockFields.SurfaceDescription.Smoothness,         lit);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalTS,           lit);
+            context.AddBlock(BlockFields.SurfaceDescription.Emission,           lit);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, alphaTest);
+        }
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        {
+            context.AddProperty("Lit", new Toggle() { value = m_Lit }, (evt) =>
+            {
+                if (Equals(m_Lit, evt.newValue))
+                    return;
+
+                m_Lit = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Alpha Test", new Toggle() { value = m_AlphaTest }, (evt) =>
+            {
+                if (Equals(m_AlphaTest, evt.newValue))
+                    return;
+
+                m_AlphaTest = evt.newValue;
+                onChange();
+            });
         }
     }
 }

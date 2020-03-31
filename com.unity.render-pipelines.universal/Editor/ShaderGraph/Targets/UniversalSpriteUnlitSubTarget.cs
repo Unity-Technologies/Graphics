@@ -11,10 +11,32 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         const string kAssetGuid = "ed7c0aacec26e9646b45c96fb318e5a3";
 
+        public UniversalSpriteUnlitSubTarget()
+        {
+            displayName = "Sprite Unlit";
+        }
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
             context.AddSubShader(SubShaders.SpriteUnlit);
+        }
+
+        public override void GetFields(ref TargetFieldContext context)
+        {
+            // Surface Type & Blend Mode
+            context.AddField(Fields.SurfaceTransparent);
+            context.AddField(Fields.BlendAlpha);
+        }
+
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+        {
+            context.AddBlock(BlockFields.SurfaceDescription.SpriteMask);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
+        }
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        {
         }
 
 #region SubShader
@@ -23,6 +45,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                renderType = $"{RenderType.Transparent}",
+                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
                 generatesPreview = true,
                 passes = new PassCollection
                 {
@@ -46,8 +70,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexPorts = SpriteUnlitPortMasks.Vertex,
-                pixelPorts = SpriteUnlitPortMasks.Fragment,
+                vertexBlocks = CoreBlockMasks.Vertex,
+                pixelBlocks = SpriteUnlitBlockMasks.Fragment,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -64,18 +88,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #endregion
 
 #region PortMasks
-        static class SpriteUnlitPortMasks
+        static class SpriteUnlitBlockMasks
         {
-            public static int[] Vertex = new int[]
+            public static BlockFieldDescriptor[] Fragment = new BlockFieldDescriptor[]
             {
-                SpriteUnlitMasterNode.PositionSlotId,
-                SpriteUnlitMasterNode.VertNormalSlotId,
-                SpriteUnlitMasterNode.VertTangentSlotId
-            };
-
-            public static int[] Fragment = new int[]
-            {
-                SpriteUnlitMasterNode.ColorSlotId,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.Alpha,
             };
         }
 #endregion

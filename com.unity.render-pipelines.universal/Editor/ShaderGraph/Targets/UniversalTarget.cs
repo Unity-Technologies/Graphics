@@ -1,67 +1,212 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEditor.Experimental.Rendering.Universal;
 
+using UnityEditor.Graphing;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
+
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalTarget : Target
+    public enum MaterialType
     {
-        const string kAssetGuid = "8c72f47fdde33b14a9340e325ce56f4d";
-        List<SubTarget> m_SubTargets;
-        SubTarget m_ActiveSubTarget;
+        Lit,
+        Unlit,
+        SpriteLit,
+        SpriteUnlit,
+    }
 
+    public enum WorkflowMode
+    {
+        Specular,
+        Metallic,
+    }
+
+    enum SurfaceType
+    {
+        Opaque,
+        Transparent,
+    }
+
+    enum AlphaMode
+    {
+        Alpha,
+        Premultiply,
+        Additive,
+        Multiply,
+    }
+
+    sealed class UniversalTarget : Target, ISerializationCallbackReceiver
+    {
+        public void OnBeforeSerialize()
+        {
+            m_SerializedSubTarget = SerializationHelper.Serialize<SubTarget>(activeSubTarget);
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // Deserialize the SubTarget
+            var deserializedSubTarget = SerializationHelper.Deserialize<SubTarget>(m_SerializedSubTarget, GraphUtil.GetLegacyTypeRemapping());
+            deserializedSubTarget.target = this;
+            
+            // Update active SubTarget and index
+            var activeSubTargetCurrent = m_SubTargets.FirstOrDefault(x => x.GetType() == deserializedSubTarget.GetType());
+            m_ActiveSubTargetIndex = m_SubTargets.IndexOf(activeSubTargetCurrent);
+            m_SubTargets[m_ActiveSubTargetIndex] = deserializedSubTarget;
+        }
+
+        const string kAssetGuid = "8c72f47fdde33b14a9340e325ce56f4d";
+        public const string kPipelineTag = "UniversalPipeline";
+        List<SubTarget> m_SubTargets;
+        List<string> m_SubTargetNames;
+        int m_ActiveSubTargetIndex;
+        PopupField<string> m_SubTargetField;
+
+        [SerializeField]
+        SerializationHelper.JSONSerializedElement m_SerializedSubTarget;
+
+        [SerializeField]
+        SurfaceType m_SurfaceType = SurfaceType.Opaque;
+
+        [SerializeField]
+        AlphaMode m_AlphaMode = AlphaMode.Alpha;
+
+        [SerializeField]
+        bool m_TwoSided = false;
+
+        [SerializeField]
+        bool m_AlphaClip = false;
+
+        [SerializeField]
+        bool m_AddPrecomputedVelocity = false;
+        
         public UniversalTarget()
         {
             displayName = "Universal";
-            m_SubTargets = TargetUtils.GetSubTargetsOfType<UniversalTarget>();
+            m_SubTargets = TargetUtils.GetSubTargets(this);
+            m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
+        }
+        
+        public SubTarget activeSubTarget => m_SubTargets[m_ActiveSubTargetIndex];
+        public List<string> subTargetNames => m_SubTargetNames;
+
+        public string renderType
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{RenderType.Transparent}";
+                else
+                    return $"{RenderType.Opaque}";
+            }
         }
 
-        public const string kPipelineTag = "UniversalPipeline";
+        public string renderQueue
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}";
+                else if(alphaClip)
+                    return $"{UnityEditor.ShaderGraph.RenderQueue.AlphaTest}";
+                else
+                    return $"{UnityEditor.ShaderGraph.RenderQueue.Geometry}";
+            }
+        }
+
+        public int activeSubTargetIndex
+        {
+            get => m_ActiveSubTargetIndex;
+            set => m_ActiveSubTargetIndex = value;
+        }
+        
+        public SurfaceType surfaceType
+        {
+            get => m_SurfaceType;
+            set => m_SurfaceType = value;
+        }
+
+        public AlphaMode alphaMode
+        {
+            get => m_AlphaMode;
+            set => m_AlphaMode = value;
+        }
+
+        public bool twoSided
+        {
+            get => m_TwoSided;
+            set => m_TwoSided = value;
+        }
+
+        public bool alphaClip
+        {
+            get => m_AlphaClip;
+            set => m_AlphaClip = value;
+        }
+
+        public bool addPrecomputedVelocity
+        {
+            get => m_AddPrecomputedVelocity;
+            set => m_AddPrecomputedVelocity = value;
+        }
 
         public override void Setup(ref TargetSetupContext context)
         {
-            // Currently we infer the active SubTarget based on the MasterNode type
-            void SetActiveSubTargetIndex(IMasterNode masterNode)
-            {
-                Type activeSubTargetType;
-                if(!s_SubTargetMap.TryGetValue(masterNode.GetType(), out activeSubTargetType))
-                    return;
-
-                m_ActiveSubTarget = m_SubTargets.FirstOrDefault(x => x.GetType() == activeSubTargetType);
-            }
-            
             // Setup the Target
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
 
             // Setup the active SubTarget
-            SetActiveSubTargetIndex(context.masterNode);
-            m_ActiveSubTarget.Setup(ref context);
+            activeSubTarget.Setup(ref context);
         }
 
-        public override bool IsValid(IMasterNode masterNode)
+        public override void GetFields(ref TargetFieldContext context)
         {
-            // Currently we infer the validity based on SubTarget mapping
-            return s_SubTargetMap.TryGetValue(masterNode.GetType(), out _);
+            // Core fields
+            context.AddField(Fields.GraphVertex,            context.blocks.Contains(BlockFields.VertexDescription.Position) ||
+                                                            context.blocks.Contains(BlockFields.VertexDescription.Normal) ||
+                                                            context.blocks.Contains(BlockFields.VertexDescription.Tangent));
+            context.AddField(Fields.GraphPixel);
+            context.AddField(Fields.AlphaClip,              alphaClip);
+            context.AddField(Fields.VelocityPrecomputed,    addPrecomputedVelocity);
+            context.AddField(Fields.DoubleSided,            twoSided);
+
+            // SubTarget fields
+            activeSubTarget.GetFields(ref context);
         }
 
-        public override bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            return currentPipeline is UniversalRenderPipelineAsset;
+            // Core blocks
+            context.AddBlock(BlockFields.VertexDescription.Position);
+            context.AddBlock(BlockFields.VertexDescription.Normal);
+            context.AddBlock(BlockFields.VertexDescription.Tangent);
+            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+
+            // SubTarget blocks
+            activeSubTarget.GetActiveBlocks(ref context);
         }
 
-        // Currently we need to map SubTarget type to IMasterNode type
-        // We do this here to avoid bleeding this into the SubTarget API
-        static Dictionary<Type, Type> s_SubTargetMap = new Dictionary<Type, Type>()
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
         {
-            { typeof(PBRMasterNode), typeof(UniversalLitSubTarget) },
-            { typeof(UnlitMasterNode), typeof(UniversalUnlitSubTarget) },
-            { typeof(SpriteLitMasterNode), typeof(UniversalSpriteLitSubTarget) },
-            { typeof(SpriteUnlitMasterNode), typeof(UniversalSpriteUnlitSubTarget) },
-        };
+            // Core properties
+            m_SubTargetField = new PopupField<string>(subTargetNames, activeSubTargetIndex);
+            context.AddProperty("Material", m_SubTargetField, (evt) =>
+            {
+                if (Equals(activeSubTargetIndex, m_SubTargetField.index))
+                    return;
+
+                activeSubTargetIndex = m_SubTargetField.index;
+                onChange();
+            });
+
+            // SubTarget properties
+            activeSubTarget.GetPropertiesGUI(ref context, onChange);
+        }
     }
 
 #region Passes
@@ -80,8 +225,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
             // Port Mask
-            vertexPorts = CorePortMasks.Vertex,
-            pixelPorts = CorePortMasks.FragmentAlphaOnly,
+            vertexBlocks = CoreBlockMasks.Vertex,
+            pixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
             // Fields
             structs = CoreStructCollections.Default,
@@ -105,8 +250,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
             // Port Mask
-            vertexPorts = CorePortMasks.Vertex,
-            pixelPorts = CorePortMasks.FragmentAlphaOnly,
+            vertexBlocks = CoreBlockMasks.Vertex,
+            pixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
             // Fields
             structs = CoreStructCollections.Default,
@@ -122,19 +267,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #endregion
 
 #region PortMasks
-    class CorePortMasks
+    class CoreBlockMasks
     {
-        public static int[] Vertex = new int[]
+        public static BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
         {
-            PBRMasterNode.PositionSlotId,
-            PBRMasterNode.VertNormalSlotId,
-            PBRMasterNode.VertTangentSlotId,
+            BlockFields.VertexDescription.Position,
+            BlockFields.VertexDescription.Normal,
+            BlockFields.VertexDescription.Tangent,
         };
 
-        public static int[] FragmentAlphaOnly = new int[]
+        public static BlockFieldDescriptor[] FragmentAlphaOnly = new BlockFieldDescriptor[]
         {
-            PBRMasterNode.AlphaSlotId,
-            PBRMasterNode.AlphaThresholdSlotId,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+        };
+
+        public static BlockFieldDescriptor[] FragmentColorAlpha = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.BaseColor,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
         };
     }
 #endregion

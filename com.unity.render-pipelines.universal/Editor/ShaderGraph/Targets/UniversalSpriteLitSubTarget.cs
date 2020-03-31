@@ -11,10 +11,33 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         const string kAssetGuid = "ea1514729d7120344b27dcd67fbf34de";
 
+        public UniversalSpriteLitSubTarget()
+        {
+            displayName = "Sprite Lit";
+        }
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
             context.AddSubShader(SubShaders.SpriteLit);
+        }
+
+        public override void GetFields(ref TargetFieldContext context)
+        {
+            // Surface Type & Blend Mode
+            context.AddField(Fields.SurfaceTransparent);
+            context.AddField(Fields.BlendAlpha);
+        }
+
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+        {
+            context.AddBlock(BlockFields.SurfaceDescription.SpriteMask);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalTS);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
+        }
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        {
         }
 
 #region SubShader
@@ -23,6 +46,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                renderType = $"{RenderType.Transparent}",
+                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
                 generatesPreview = true,
                 passes = new PassCollection
                 {
@@ -50,8 +75,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexPorts = SpriteLitPortMasks.Vertex,
-                pixelPorts = SpriteLitPortMasks.FragmentLit,
+                vertexBlocks = CoreBlockMasks.Vertex,
+                pixelBlocks = SpriteLitBlockMasks.FragmentLit,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -78,8 +103,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexPorts = SpriteLitPortMasks.Vertex,
-                pixelPorts = SpriteLitPortMasks.FragmentForwardNormal,
+                vertexBlocks = CoreBlockMasks.Vertex,
+                pixelBlocks = SpriteLitBlockMasks.FragmentForwardNormal,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -105,8 +130,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexPorts = SpriteLitPortMasks.Vertex,
-                pixelPorts = SpriteLitPortMasks.FragmentForwardNormal,
+                vertexBlocks = CoreBlockMasks.Vertex,
+                pixelBlocks = SpriteLitBlockMasks.FragmentForwardNormal,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -123,25 +148,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #endregion
 
 #region PortMasks
-        static class SpriteLitPortMasks
+        static class SpriteLitBlockMasks
         {
-            public static int[] Vertex = new int[]
+            public static BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
             {
-                SpriteLitMasterNode.PositionSlotId,
-                SpriteLitMasterNode.VertNormalSlotId,
-                SpriteLitMasterNode.VertTangentSlotId,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.SpriteMask,
             };
 
-            public static int[] FragmentLit = new int[]
+            public static BlockFieldDescriptor[] FragmentForwardNormal = new BlockFieldDescriptor[]
             {
-                SpriteLitMasterNode.ColorSlotId,
-                SpriteLitMasterNode.MaskSlotId,
-            };
-
-            public static int[] FragmentForwardNormal = new int[]
-            {
-                SpriteLitMasterNode.ColorSlotId,
-                SpriteLitMasterNode.NormalSlotId,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.NormalTS,
             };
         }
 #endregion

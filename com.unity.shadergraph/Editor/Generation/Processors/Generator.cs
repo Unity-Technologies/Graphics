@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
 
         void GetBlocksFromStack()
         {
-            m_Blocks = ListPool<BlockNode>.Get();
+            m_Blocks = Graphing.ListPool<BlockNode>.Get();
             foreach(var vertexBlock in m_GraphData.vertexContext.blocks)
             {
                 m_Blocks.Add(vertexBlock);
@@ -80,12 +80,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<BlockFieldDescriptor> blocks, ITargetImplementation targetImplementation)
+        public ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<BlockFieldDescriptor> blocks, Target target)
         {
             var activeFields = new ActiveFields();
             if(outputNode == null)
             {
-                var fields = GenerationUtils.GetActiveFieldsFromConditionals(targetImplementation.GetConditionalFields(pass, blocks));
+                var context = new TargetFieldContext(pass, blocks);
+                target.GetFields(ref context);
+                var fields = GenerationUtils.GetActiveFieldsFromConditionals(context.conditionalFields.ToArray());
                 foreach(FieldDescriptor field in fields)
                     activeFields.baseInstance.Add(field);
             }
@@ -99,7 +101,7 @@ namespace UnityEditor.ShaderGraph
 
         void BuildShader()
         {
-            var activeNodeList = ListPool<AbstractMaterialNode>.Get();
+            var activeNodeList = Graphing.ListPool<AbstractMaterialNode>.Get();
             if(m_OutputNode == null)
             {
                 foreach(var block in m_Blocks)
@@ -134,9 +136,9 @@ namespace UnityEditor.ShaderGraph
                 activeNode.CollectShaderProperties(shaderProperties, m_Mode);
 
             // Collect excess shader properties from the TargetImplementation
-            foreach(var implementation in m_TargetImplementations)
+            foreach(var target in m_Targets)
             {
-                implementation.CollectShaderProperties(shaderProperties, m_Mode);
+                target.CollectShaderProperties(shaderProperties, m_Mode);
             }
 
             m_Builder.AppendLine(@"Shader ""{0}""", m_Name);
@@ -199,14 +201,14 @@ namespace UnityEditor.ShaderGraph
             m_Builder.AppendLine("SubShader");
             using(m_Builder.BlockScope())
             {
-                GenerationUtils.GenerateSubShaderTags(m_TargetImplementations[targetIndex], descriptor, m_Builder);
+                GenerationUtils.GenerateSubShaderTags(m_Targets[targetIndex], descriptor, m_Builder);
 
                 // Get block descriptor list here as we will add temporary blocks to m_Blocks during pass evaluations
                 var blockFieldDescriptors = m_Blocks.Select(x => x.descriptor).ToList();
 
                 foreach(PassCollection.Item pass in descriptor.passes)
                 {
-                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, blockFieldDescriptors, m_TargetImplementations[targetIndex]);
+                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, blockFieldDescriptors, m_Targets[targetIndex]);
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
                     if(m_Mode == GenerationMode.Preview)
@@ -253,8 +255,8 @@ namespace UnityEditor.ShaderGraph
             if(m_OutputNode == null)
             {
                 // Update supported block list for current target implementation
-                var activeBlocks = ListPool<BlockFieldDescriptor>.Get();
-                m_TargetImplementations[targetIndex].SetActiveBlocks(ref activeBlocks);
+                var activeBlockContext = new TargetActiveBlockContext();
+                m_Targets[targetIndex].GetActiveBlocks(ref activeBlockContext);
 
                 void ProcessStackForPass(ContextData contextData, BlockFieldDescriptor[] passBlockMask,
                     List<AbstractMaterialNode> nodeList, List<MaterialSlot> slotList)
@@ -266,7 +268,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         // Mask blocks on active state
                         // TODO: Can we merge these?
-                        if(!activeBlocks.Contains(blockFieldDescriptor))
+                        if(!activeBlockContext.blocks.Contains(blockFieldDescriptor))
                             continue;
                         
                         // Attempt to get BlockNode from the stack
@@ -306,7 +308,7 @@ namespace UnityEditor.ShaderGraph
                 ProcessStackForPass(m_GraphData.fragmentContext, pass.pixelBlocks, pixelNodes, pixelSlots);
 
                 // Collect excess shader properties from the TargetImplementation
-                m_TargetImplementations[targetIndex].CollectShaderProperties(propertyCollector, m_Mode);
+                m_Targets[targetIndex].CollectShaderProperties(propertyCollector, m_Mode);
             }
             else if(m_OutputNode is SubGraphOutputNode)
             {

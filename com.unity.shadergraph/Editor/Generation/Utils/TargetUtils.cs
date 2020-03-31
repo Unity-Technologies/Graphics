@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph
 {
     static class TargetUtils
     {
-        public static List<SubTarget> GetSubTargetsOfType<T>() where T : Target
+        public static List<SubTarget> GetSubTargets<T>(T target) where T : Target
         {
             // Get Variants
             var subTargets = ListPool<SubTarget>.Get();
@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph
                 var subTarget = (SubTarget)Activator.CreateInstance(type);
                 if(subTarget.targetType.Equals(typeof(T)))
                 {
+                    subTarget.target = target;
                     subTargets.Add(subTarget);
                 }
             }

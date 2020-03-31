@@ -102,18 +102,18 @@ namespace UnityEditor.ShaderGraph
 
     class NewGraphAction : EndNameEditAction
     {
-        Type m_TargetType;
-        public Type targetType
+        Target[] m_Targets;
+        public Target[] targets
         {
-            get { return m_TargetType; }
-            set { m_TargetType = value; }
+            get { return m_Targets; }
+            set { m_Targets = value; }
         }
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             var graph = new GraphData();
             graph.AddContexts();
-            graph.SetTarget(m_TargetType);
+            graph.AddTargets(m_Targets);
             graph.path = "Shader Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
@@ -143,10 +143,18 @@ namespace UnityEditor.ShaderGraph
             return newText.ToString();
         }
 
-        public static void CreateNewGraph<T>() where T : ITarget
+        public static void CreateNewGraph()
         {
             var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
-            graphItem.targetType = typeof(T);
+            graphItem.targets = null;
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
+                string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
+        }
+
+        public static void CreateNewGraphWithTargets(Target[] targets)
+        {
+            var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
+            graphItem.targets = targets;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
         }
@@ -320,25 +328,6 @@ namespace UnityEditor.ShaderGraph
                 };
                 p.Start();
             }
-        }
-
-        public static string CurrentPipelinePreferredShaderGUI(IMasterNode masterNode)
-        {
-            foreach (var target in (masterNode as AbstractMaterialNode).owner.validTargets)
-            {
-                if (target.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
-                {
-                    var context = new TargetSetupContext();
-                    context.SetMasterNode(masterNode);
-                    target.Setup(ref context);
-
-                    var defaultShaderGUI = context.defaultShaderGUI;
-                    if (!string.IsNullOrEmpty(defaultShaderGUI))
-                        return defaultShaderGUI;
-                }
-            }
-
-            return null;
         }
     }
 }

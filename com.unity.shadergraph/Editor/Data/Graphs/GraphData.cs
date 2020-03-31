@@ -9,6 +9,8 @@ using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Internal;
 using Edge = UnityEditor.Graphing.Edge;
 
+using UnityEngine.UIElements;
+
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
@@ -307,22 +309,22 @@ namespace UnityEditor.ShaderGraph
         internal static SaveGraphDelegate onSaveGraph;
 
         #region Targets
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializedTargets = new List<SerializationHelper.JSONSerializedElement>();
+
         [NonSerialized]
         List<Target> m_ValidTargets = new List<Target>();
 
+        [NonSerialized]
+        List<Target> m_ActiveTargets = new List<Target>();
+
+        int m_ActiveTargetBitmask;
+
         public List<Target> validTargets => m_ValidTargets;
+        public List<Target> activeTargets => m_ActiveTargets;
 
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializableGenerationTargets = new List<SerializationHelper.JSONSerializedElement>();
-
-        [SerializeField]
-        int m_ActiveTargetIndex = 0;
-
-        List<GenerationTarget> m_GenerationTargets = new List<GenerationTarget>();
-
-        // TODO: We should hand in the GenerationTarget during ctor
-        // TODO: But this requires preview refactors
-        public GenerationTarget activeGenerationTarget => m_GenerationTargets[m_ActiveTargetIndex];
+        // TODO: Need a better way to handle this
+        public bool isVFXTarget => activeTargets.Count > 0 && activeTargets[0].GetType() == typeof(VFXTarget);
         #endregion
 
         public GraphData()
@@ -332,13 +334,16 @@ namespace UnityEditor.ShaderGraph
             GetTargets();
         }
 
-        public void SetTarget(Type type)
+        public void AddTargets(Target[] targets)
         {
-            for(int i = 0; i < m_GenerationTargets.Count; i++)
+            if(targets == null)
+                return;
+
+            foreach(var target in targets)
             {
-                if(m_GenerationTargets[i].target.GetType() == type)
+                if(m_ValidTargets.Any(x => x.GetType().Equals(target.GetType())))
                 {
-                    m_ActiveTargetIndex = i;
+                    m_ActiveTargets.Add(target);
                 }
             }
         }
@@ -369,23 +374,39 @@ namespace UnityEditor.ShaderGraph
 
         void GetTargets()
         {
-            // Get all TargetImplementation types
-            var typeCollection = TypeCache.GetTypesDerivedFrom(typeof(ITarget));
+            // Find all valid Targets
+            var typeCollection = TypeCache.GetTypesDerivedFrom<Target>();
             foreach(var type in typeCollection)
             {
-                if(!type.IsAbstract && type != typeof(PreviewTarget))
+                if(type.IsAbstract || type.IsGenericType || !type.IsClass)
+                    continue;
+                
+                var target = (Target)Activator.CreateInstance(type);
+                if(!target.isHidden)
                 {
-                    // Instantiate and add TargetImplementation
-                    var target = Activator.CreateInstance(type) as ITarget;
-                    var generationTarget = new GenerationTarget(target);
+                    m_ValidTargets.Add(target);
+                }
+            }
+        }
 
-                    if(generationTarget.implementations.Count != 0)
+        void UpdateActiveTargets()
+        {
+            // Update active TargetImplementation list
+            if(m_ActiveTargets != null)
+            {
+                m_ActiveTargets.Clear();
+                var targetCount = m_ValidTargets.Count;
+                for(int i = 0; i < targetCount; i++)
+                {
+                    if(((1 << i) & m_ActiveTargetBitmask) == (1 << i))
                     {
-                        m_GenerationTargets.Add(generationTarget);
+                        m_ActiveTargets.Add(m_ValidTargets[i]);
                     }
                 }
             }
         }
+
+        Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
 
         // TODO: We should not have any View code here
         // TODO: However, for now we dont know how the InspectorView will work
@@ -399,30 +420,52 @@ namespace UnityEditor.ShaderGraph
             targetSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             element.Add(new Drawing.PropertyRow(targetSettingsLabel));
 
-            // Target Dropdown Field
-            element.Add(new Drawing.PropertyRow(new UnityEngine.UIElements.Label("Target")), (row) =>
+            element.Add(new Drawing.PropertyRow(new UnityEngine.UIElements.Label("Targets")), (row) =>
                 {
                     row.Add(new UnityEngine.UIElements.IMGUIContainer(() => {
                         EditorGUI.BeginChangeCheck();
-                        m_ActiveTargetIndex = EditorGUILayout.Popup(m_ActiveTargetIndex, 
-                            m_GenerationTargets.Select(x => x.target.displayName).ToArray(), GUILayout.Width(100f));
+                        m_ActiveTargetBitmask = EditorGUILayout.MaskField(m_ActiveTargetBitmask, m_ValidTargets.Select(x => x.displayName).ToArray(), GUILayout.Width(100f));
                         if (EditorGUI.EndChangeCheck())
                         {
-                            UpdateActiveBlocks();
+                            UpdateActiveTargets();
                             onChange();
                         }
                     }));
                 });
-            
-            // Add a space
-            element.Add(new Drawing.PropertyRow(new UnityEngine.UIElements.Label("")));
 
-            // Add Settings for TargetImplementations
-            element.Add(activeGenerationTarget.GetSettings(() =>
+            // Iterate active TargetImplementations
+            foreach(var target in m_ActiveTargets)
+            {
+                // Ensure enabled state is being tracked and get value
+                bool foldoutActive = true;
+                if(!m_TargetFoldouts.TryGetValue(target, out foldoutActive))
                 {
-                    UpdateActiveBlocks();
+                    m_TargetFoldouts.Add(target, foldoutActive);
+                }
+
+                // Create foldout
+                var foldout = new UnityEngine.UIElements.Foldout() { text = target.displayName, value = foldoutActive };
+                element.Add(foldout);
+                foldout.RegisterValueChangedCallback(evt => 
+                {
+                    // Update foldout value and rebuild
+                    m_TargetFoldouts[target] = evt.newValue;
+                    foldout.value = evt.newValue;
                     onChange();
-                }));
+                });
+                
+                if(foldout.value)
+                {
+                    // Get settings for Target
+                    var context = new TargetPropertyGUIContext();
+                    target.GetPropertiesGUI(ref context, onChange);
+
+                    foreach(var property in context.properties)
+                    {
+                        element.Add(property);
+                    }
+                }
+            }
 
             return element;
         }
@@ -621,19 +664,20 @@ namespace UnityEditor.ShaderGraph
         {
             // Get list of active Block types
             var activeBlocks = ListPool<BlockFieldDescriptor>.Get();
-            foreach(var implementation in activeGenerationTarget.implementations)
+            var context = new TargetActiveBlockContext();
+            foreach(var target in activeTargets)
             {
-                implementation.SetActiveBlocks(ref activeBlocks);
+                target.GetActiveBlocks(ref context);
             }
 
             // Set Blocks as active based on supported Block list
             foreach(var vertexBlock in vertexContext.blocks)
             {
-                vertexBlock.isActive = activeBlocks.Contains(vertexBlock.descriptor);
+                vertexBlock.isActive = context.blocks.Contains(vertexBlock.descriptor);
             }
             foreach(var fragmentBlock in fragmentContext.blocks)
             {
-                fragmentBlock.isActive = activeBlocks.Contains(fragmentBlock.descriptor);
+                fragmentBlock.isActive = context.blocks.Contains(fragmentBlock.descriptor);
             }
         }
 
@@ -1414,7 +1458,7 @@ namespace UnityEditor.ShaderGraph
             m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
-            m_SerializableGenerationTargets = SerializationHelper.Serialize<GenerationTarget>(m_GenerationTargets);
+            m_SerializedTargets = SerializationHelper.Serialize<Target>(m_ActiveTargets);
         }
 
         public void OnAfterDeserialize()
@@ -1422,7 +1466,17 @@ namespace UnityEditor.ShaderGraph
             // have to deserialize 'globals' before nodes
             m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
             m_Keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, GraphUtil.GetLegacyTypeRemapping());
-            m_GenerationTargets = SerializationHelper.Deserialize<GenerationTarget>(m_SerializableGenerationTargets, GraphUtil.GetLegacyTypeRemapping());
+
+            var deserializedTargets = SerializationHelper.Deserialize<Target>(m_SerializedTargets, GraphUtil.GetLegacyTypeRemapping());
+            m_ActiveTargetBitmask = 0;
+            foreach(var deserializedTarget in deserializedTargets)
+            {
+                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == deserializedTarget.GetType());
+                var targetIndex = m_ValidTargets.IndexOf(activeTargetCurrent);
+                m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
+                m_ValidTargets[targetIndex] = deserializedTarget;
+            }
+            UpdateActiveTargets();
 
             var nodes = SerializationHelper.Deserialize<AbstractMaterialNode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
 
@@ -1503,37 +1557,6 @@ namespace UnityEditor.ShaderGraph
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
-        }
-
-        public void UpdateTargets()
-        {
-            if(outputNode == null)
-                return;
-
-            // Clear current Targets
-            m_ValidTargets.Clear();
-
-            // SubGraph Target is always PreviewTarget
-            if(outputNode is SubGraphOutputNode)
-            {
-                m_ValidTargets.Add(new PreviewTarget());
-                return;
-            }
-
-            // Find all valid Targets
-            var typeCollection = TypeCache.GetTypesDerivedFrom<Target>();
-            foreach(var type in typeCollection)
-            {
-                if(type.IsAbstract || type.IsGenericType || !type.IsClass)
-                    continue;
-                
-                var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
-                var target = (Target)Activator.CreateInstance(type);
-                if(!target.isHidden && target.IsValid(masterNode))
-                {
-                    m_ValidTargets.Add(target);
-                }
-            }
         }
     }
 

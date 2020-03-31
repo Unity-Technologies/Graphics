@@ -1,4 +1,8 @@
-﻿using UnityEngine.Rendering;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,20 +20,22 @@ namespace UnityEditor.ShaderGraph
             context.AddSubShader(s_SubShader);
         }
 
-        public override bool IsValid(IMasterNode masterNode)
+        public override void GetFields(ref TargetFieldContext context)
         {
-            return false;
         }
 
-        public override bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            return currentPipeline != null;
+        }
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        {
         }
 
         static SubShaderDescriptor s_SubShader = new SubShaderDescriptor()
         {
-            renderQueueOverride = "Geometry",
-            renderTypeOverride = "Opaque",
+            renderQueue = "Geometry",
+            renderType = "Opaque",
             generatesPreview = true,
             passes = new PassCollection { s_PreviewPass },
         };

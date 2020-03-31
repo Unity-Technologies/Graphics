@@ -13,15 +13,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         PreviewManager m_PreviewManager;
         VisualElement m_Element;
 
-        // Track enabled states of foldouts
-        Dictionary<ITargetImplementation, bool> m_ImplementationFoldouts;
-
         public InspectorView(GraphData graphData, PreviewManager previewManager)
         {
             name = "inspectorView";
             m_GraphData = graphData;
             m_PreviewManager = previewManager;
-            m_ImplementationFoldouts = new Dictionary<ITargetImplementation, bool>();
 
             // Styles
             style.width = 270;

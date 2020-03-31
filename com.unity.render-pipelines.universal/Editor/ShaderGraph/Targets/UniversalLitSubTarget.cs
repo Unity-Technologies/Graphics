@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -10,17 +13,133 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         const string kAssetGuid = "d6c78107b64145745805d963de80cc17";
 
+        [SerializeField]
+        WorkflowMode m_WorkflowMode = WorkflowMode.Metallic;
+
+        [SerializeField]
+        NormalDropOffSpace m_NormalDropOffSpace = NormalDropOffSpace.Tangent;
+
         public UniversalLitSubTarget()
         {
             displayName = "Lit";
+        }
+
+        public WorkflowMode workflowMode
+        {
+            get => m_WorkflowMode;
+            set => m_WorkflowMode = value;
+        }
+
+        public NormalDropOffSpace normalDropOffSpace
+        {
+            get => m_NormalDropOffSpace;
+            set => m_NormalDropOffSpace = value;
         }
 
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
             context.SetDefaultShaderGUI("ShaderGraph.PBRMasterGUI"); // TODO: This should be owned by URP
-            context.AddSubShader(SubShaders.Lit);
-            context.AddSubShader(SubShaders.LitDOTS);
+
+            // Process SubShaders
+            SubShaderDescriptor[] subShaders = { SubShaders.Lit, SubShaders.LitDOTS };
+            for(int i = 0; i < subShaders.Length; i++)
+            {
+                // Update Render State
+                subShaders[i].renderType = target.renderType;
+                subShaders[i].renderQueue = target.renderQueue;
+
+                // Add
+                context.AddSubShader(subShaders[i]);
+            }
+        }
+
+        public override void GetFields(ref TargetFieldContext context)
+        {
+            // Surface Type & Blend Mode
+            // These must be set per SubTarget as Sprite SubTargets override them
+            context.AddField(Fields.SurfaceOpaque,       target.surfaceType == SurfaceType.Opaque);
+            context.AddField(Fields.SurfaceTransparent,  target.surfaceType != SurfaceType.Opaque);
+            context.AddField(Fields.BlendAdd,            target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
+            context.AddField(Fields.BlendAlpha,          target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
+            context.AddField(Fields.BlendMultiply,       target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
+            context.AddField(Fields.BlendPremultiply,    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
+
+            // Lit
+            context.AddField(Fields.NormalDropOffOS,     normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddField(Fields.NormalDropOffTS,     normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddField(Fields.NormalDropOffWS,     normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddField(Fields.SpecularSetup,       workflowMode == WorkflowMode.Specular);
+            context.AddField(Fields.Normal,              context.blocks.Contains(BlockFields.SurfaceDescription.NormalTS));
+        }
+
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+        {
+            context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalTS);
+            context.AddBlock(BlockFields.SurfaceDescription.Emission);
+            context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
+            context.AddBlock(BlockFields.SurfaceDescription.Specular,           workflowMode == WorkflowMode.Specular);
+            context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode == WorkflowMode.Metallic);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
+        }
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        {
+            context.AddProperty("Workflow", new EnumField(WorkflowMode.Metallic) { value = workflowMode }, (evt) =>
+            {
+                if (Equals(workflowMode, evt.newValue))
+                    return;
+
+                workflowMode = (WorkflowMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
+            {
+                if (Equals(target.surfaceType, evt.newValue))
+                    return;
+                
+                target.surfaceType = (SurfaceType)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Blend", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(target.alphaMode, evt.newValue))
+                    return;
+
+                target.alphaMode = (AlphaMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Alpha Clip", new Toggle() { value = target.alphaClip }, (evt) =>
+            {
+                if (Equals(target.alphaClip, evt.newValue))
+                    return;
+                
+                target.alphaClip = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Two Sided", new Toggle() { value = target.twoSided }, (evt) =>
+            {
+                if (Equals(target.twoSided, evt.newValue))
+                    return;
+                
+                target.twoSided = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Fragment Normal Space", new EnumField(NormalDropOffSpace.Tangent) { value = normalDropOffSpace }, (evt) =>
+            {
+                if (Equals(normalDropOffSpace, evt.newValue))
+                    return;
+
+                normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
+                onChange();
+            });
         }
 
 #region SubShader
@@ -90,8 +209,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexPorts = CorePortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentLit,
+                vertexBlocks = CoreBlockMasks.Vertex,
+                pixelBlocks = LitBlockMasks.FragmentLit,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -117,8 +236,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexPorts = CorePortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentMeta,
+                vertexBlocks = CoreBlockMasks.Vertex,
+                pixelBlocks = LitBlockMasks.FragmentMeta,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -143,8 +262,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexPorts = CorePortMasks.Vertex,
-                pixelPorts = LitPortMasks.Fragment2D,
+                vertexBlocks = CoreBlockMasks.Vertex,
+                pixelBlocks = CoreBlockMasks.FragmentColorAlpha,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -159,34 +278,27 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #endregion
 
 #region PortMasks
-        static class LitPortMasks
+        static class LitBlockMasks
         {
-            public static int[] FragmentLit = new int[]
+            public static BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
             {
-                PBRMasterNode.AlbedoSlotId,
-                PBRMasterNode.NormalSlotId,
-                PBRMasterNode.EmissionSlotId,
-                PBRMasterNode.MetallicSlotId,
-                PBRMasterNode.SpecularSlotId,
-                PBRMasterNode.SmoothnessSlotId,
-                PBRMasterNode.OcclusionSlotId,
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.Emission,
+                BlockFields.SurfaceDescription.Metallic,
+                BlockFields.SurfaceDescription.Specular,
+                BlockFields.SurfaceDescription.Smoothness,
+                BlockFields.SurfaceDescription.Occlusion,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
 
-            public static int[] FragmentMeta = new int[]
+            public static BlockFieldDescriptor[] FragmentMeta = new BlockFieldDescriptor[]
             {
-                PBRMasterNode.AlbedoSlotId,
-                PBRMasterNode.EmissionSlotId,
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId,
-            };
-
-            public static int[] Fragment2D = new int[]
-            {
-                PBRMasterNode.AlbedoSlotId,
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.Emission,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
         }
 #endregion

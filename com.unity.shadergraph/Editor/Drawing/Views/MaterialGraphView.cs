@@ -260,10 +260,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             List<AbstractMaterialNode> endNodes = new List<AbstractMaterialNode>();
             if (!graph.isSubGraph)
             {
-                var nodeView = graph.GetNodes<IMasterNode>();
-                foreach (IMasterNode masterNode in nodeView)
+                var nodeView = graph.GetNodes<BlockNode>();
+                foreach (BlockNode blockNode in nodeView)
                 {
-                    endNodes.Add(masterNode as AbstractMaterialNode);
+                    endNodes.Add(blockNode as AbstractMaterialNode);
                 }
             }
             else

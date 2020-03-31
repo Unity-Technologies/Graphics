@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
             return fields;
         }
 
-        internal static void GenerateSubShaderTags(ITargetImplementation implementation, SubShaderDescriptor descriptor, ShaderStringBuilder builder)
+        internal static void GenerateSubShaderTags(Target target, SubShaderDescriptor descriptor, ShaderStringBuilder builder)
         {
             builder.AppendLine("Tags");
             using (builder.BlockScope())
@@ -41,18 +41,14 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine("// RenderPipeline: <None>");
 
                 // Render Type
-                string renderType = !string.IsNullOrEmpty(descriptor.renderTypeOverride) ? 
-                    descriptor.renderTypeOverride : implementation.renderTypeTag;
-                if(!string.IsNullOrEmpty(renderType))
-                    builder.AppendLine($"\"RenderType\"=\"{renderType}\"");
+                if(!string.IsNullOrEmpty(descriptor.renderType))
+                    builder.AppendLine($"\"RenderType\"=\"{descriptor.renderType}\"");
                 else
                     builder.AppendLine("// RenderType: <None>");
 
                 // Render Queue
-                string renderQueue = !string.IsNullOrEmpty(descriptor.renderQueueOverride) ? 
-                    descriptor.renderQueueOverride : implementation.renderQueueTag;
-                if(!string.IsNullOrEmpty(renderQueue))
-                    builder.AppendLine($"\"Queue\"=\"{renderQueue}\"");
+                if(!string.IsNullOrEmpty(descriptor.renderQueue))
+                    builder.AppendLine($"\"Queue\"=\"{descriptor.renderQueue}\"");
                 else
                     builder.AppendLine("// Queue: <None>");
             }
