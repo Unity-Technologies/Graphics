@@ -62,10 +62,7 @@ mac_apis:
     CUSTOM_REVISION: custom_revision_not_set
   {% endif %}
   commands:
-    - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-    
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only 
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr    
 
     - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
   artifacts:
@@ -73,8 +70,6 @@ mac_apis:
       paths:
         - "**/test-results/**"
   dependencies:
-    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
-      rerun: {{ editor.rerun_strategy }}
     - path: .yamato/upm-ci-hdrp_standalone.yml#Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}
       rerun: {{ editor.rerun_strategy }}
   
@@ -192,8 +187,6 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
     - chmod +x ./utr
     - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r ../ScriptableRenderPipeline/ bokken@$BOKKEN_DEVICE_IP:~/ScriptableRenderPipeline
     - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-    # Copy across players folder?
-    #- scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r ../ScriptableRenderPipeline/build/players bokken@$BOKKEN_DEVICE_IP:~/ScriptableRenderPipeline/build/players
     
     - |
       export GIT_BRANCH=$GIT_BRANCH
@@ -209,8 +202,6 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
       exit $UTR_RESULT
 
   dependencies:
-    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
-      rerun: {{ editor.rerun_strategy }}
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}
       rerun: {{ editor.rerun_strategy }}
   artifacts:
