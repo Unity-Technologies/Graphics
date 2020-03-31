@@ -56,6 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_DefaultVolume.priority = float.MinValue;
                 s_DefaultVolume.sharedProfile = defaultVolumeProfile;
             }
+
             if (
                 // In case the asset was deleted or the reference removed
                 s_DefaultVolume.sharedProfile == null || s_DefaultVolume.sharedProfile.Equals(null)
@@ -66,7 +67,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 || !UnityEditor.AssetDatabase.Contains(s_DefaultVolume.sharedProfile)
 #endif
             )
+            {
                 s_DefaultVolume.sharedProfile = defaultVolumeProfile;
+            }
+
+            if (s_DefaultVolume.sharedProfile != defaultVolumeProfile)
+            {
+                s_DefaultVolume.sharedProfile = defaultVolumeProfile;
+            }
 
             return s_DefaultVolume;
         }
@@ -324,12 +332,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ValidAPI = true;
 
-            if (!SetRenderingFeatures())
-            {
-                m_ValidAPI = false;
-
-                return;
-            }
+            SetRenderingFeatures();
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             m_RayTracingSupported = GatherRayTracingSupport(m_Asset.currentPlatformRenderPipelineSettings);
@@ -351,6 +354,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ValidateResources();
 #endif
+
+            // We need to call this after the resource initialization as we attempt to use them in checking the supported API.
+            if (!CheckAPIValidity())
+            {
+                m_ValidAPI = false;
+
+                return;
+            }
 
             // Initial state of the RTHandle system.
             // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
@@ -641,7 +652,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
         }
 
-        bool SetRenderingFeatures()
+        void SetRenderingFeatures()
         {
             // Set sub-shader pipeline tag
             Shader.globalRenderPipeline = "HDRenderPipeline";
@@ -684,7 +695,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode (HDRP isn't set up properly. Go to Windows > RenderPipeline > HDRP Wizard to fix your settings).");
             }
 #endif
+        }
 
+        bool CheckAPIValidity()
+        {
             GraphicsDeviceType unsupportedDeviceType;
             if (!IsSupportedPlatform(out unsupportedDeviceType))
             {
@@ -1297,7 +1311,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             foreach (var req in renderRequests)
                             {
-                                if (req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
+                                if (camera == req.hdCamera.camera && req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
                                 {
                                     UnsafeGenericPool<HDCullingResults>.Release(cullingResults);
                                     cullingResults = req.cullingResults;
@@ -1518,7 +1532,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
-                        var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), m_FrameCount);
+                        var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), m_FrameCount, CameraType.Reflection);
                         var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
                         if (additionalCameraData == null)
@@ -1769,7 +1783,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
 
                             // Render XR mirror view once all render requests have been completed
-                            if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game)
+                            if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
                             {
                                 m_XRSystem.RenderMirrorView(cmd);
                             }

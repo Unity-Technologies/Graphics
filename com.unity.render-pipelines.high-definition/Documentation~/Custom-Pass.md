@@ -198,6 +198,8 @@ Here is the list of all the defines you can enable
 
 Note that you can also override the depth state of the objects in your pass. This is especially useful when you're rendering objects that are not in the camera culling mask (they are only rendered in the custom pass). Because in these objects, opaque ones will be rendered in `Depth Equal` test which only works if they already are in the depth buffer. In this case you may want to override the depth test to `Less Equal`.
 
+**⚠️ Be careful when rendering Opaque objects if you're in deferred: All objects rendered within custom passes are rendered in Forward. It means that you'll need to set your HDRP settings Lit Shader Mode to 'Both' in case you encounter issues when building in release.**
+
 <a name="ScriptingAPI"></a>
 
 ## Scripting API
