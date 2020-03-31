@@ -2,7 +2,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 {
     HLSLINCLUDE
         #pragma target 4.5
-        #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -61,6 +61,8 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
             float4 Frag(Varyings input) : SV_Target
             {
+            #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED
+
                 // Layout Z slices horizontally in debug view UV space.
                 float3 uvw;
                 uvw.z = input.texcoord.x * _TextureViewResolution.z;
@@ -120,6 +122,9 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
                     default: return float4(0.0, 0.0, 0.0, 1.0);
                 }
 
+                #else
+                return float4(0.0, 0.0, 0.0, 1.0);
+                #endif
             }
 
             ENDHLSL
