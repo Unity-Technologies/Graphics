@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
 
-        public NodeTypeCollection allowedNodes => NodeTypes.AllBuiltin; 
+        public NodeTypeCollection allowedNodes => NodeTypes.AllBuiltin - NodeTypes.Artistic.Adjustment; 
 
         public bool IsValid(IMasterNode masterNode)
         {

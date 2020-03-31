@@ -674,13 +674,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                     .FirstOrDefault(p => p.userData is IEdge && Equals((IEdge) p.userData, edge));
                 if (edgeView != null)
                 {
-                    var nodeView = (IShaderNodeView)edgeView.input.node;
+                    var nodeView = (IShaderNodeView)edgeView.output.node;
                     if (nodeView?.node != null)
                     {
                         nodesToUpdate.Add(nodeView);
-
+                        AbstractMaterialNode n = nodeView.node;
                         // Update active state for connected Nodes
-                        NodeUtils.UpdateNodeActiveOnEdgeChange(nodeView?.node);
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(n);
+                    }
+                    var nodeViewInput = (IShaderNodeView)edgeView.input.node;
+                    if(nodeViewInput?.node != null)
+                    {
+                        nodesToUpdate.Add(nodeViewInput);
+                        AbstractMaterialNode n = nodeViewInput.node;
+
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(n);
                     }
 
                     edgeView.output.Disconnect(edgeView);
@@ -698,11 +706,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var edgeView = AddEdge(edge);
                 if (edgeView != null)
                 {
-                    var outputNodeView = (IShaderNodeView)edgeView.output.node;
-                    nodesToUpdate.Add(outputNodeView);
+                   var nodeView = (IShaderNodeView)edgeView.output.node;
+                    if (nodeView?.node != null)
+                    {
+                        nodesToUpdate.Add(nodeView);
+                        AbstractMaterialNode n = nodeView.node;
+                        // Update active state for connected Nodes
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(n);
+                    }
+                    var nodeViewInput = (IShaderNodeView)edgeView.input.node;
+                    if(nodeViewInput?.node != null)
+                    {
+                        nodesToUpdate.Add(nodeViewInput);
+                        AbstractMaterialNode n = nodeViewInput.node;
 
-                    // Update active state for connected Nodes
-                    NodeUtils.UpdateNodeActiveOnEdgeChange(outputNodeView?.node);
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(n);
+                    }
                 }
             }
 

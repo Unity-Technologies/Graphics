@@ -40,6 +40,9 @@ namespace UnityEditor.ShaderGraph
         bool m_IsActive = true;
 
         [NonSerialized]
+        bool m_IsValid = true;
+
+        [NonSerialized]
         private List<ISlot> m_Slots = new List<ISlot>();
 
         [SerializeField]
@@ -179,15 +182,22 @@ namespace UnityEditor.ShaderGraph
 
                 // Update this node
                 m_IsActive = value;
-                Dirty(ModificationScope.Node);
+                Dirty(ModificationScope.Topological);
+            }
+        }
 
-                // Get all downsteam nodes and update their active state
-                var nodes = ListPool<AbstractMaterialNode>.Get();
-                NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude);
-                foreach(var upstreamNode in nodes)
-                {
-                    NodeUtils.UpdateNodeActiveOnEdgeChange(upstreamNode);
-                }
+        public virtual bool isValid
+        {
+            get { return m_IsValid; }
+            set 
+            {
+                if(m_IsValid == value)
+                    return;
+                
+                if(value == false)
+                    isActive = false;
+                
+                m_IsValid = value;
             }
         }
 
@@ -278,7 +288,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var inputSlot in this.GetInputSlots<MaterialSlot>())
             {
                 var edges = owner.GetEdges(inputSlot.slotReference);
-                if (edges.Any())
+                if (edges.Any(e => owner.GetNodeFromGuid(e.outputSlot.nodeGuid).isActive))
                     continue;
 
                 inputSlot.AddDefaultProperty(properties, generationMode);
@@ -310,10 +320,25 @@ namespace UnityEditor.ShaderGraph
                 if (slot == null)
                     return string.Empty;
 
-                return GenerationUtils.AdaptNodeOutput(fromNode, slot.id, inputSlot.concreteValueType);
+                if (fromNode.isActive)
+                    return GenerationUtils.AdaptNodeOutput(fromNode, slot.id, inputSlot.concreteValueType);
+                else
+                    return inputSlot.GetDefaultValue(generationMode);
             }
 
             return inputSlot.GetDefaultValue(generationMode);
+        }
+
+        public AbstractMaterialNode GetInputNodeFromSlot(int inputSlotId)
+        {
+            var inputSlot = FindSlot<MaterialSlot>(inputSlotId);
+            if (inputSlot == null)
+                return null;
+
+            var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
+            var fromSocketRef = edges[0].outputSlot;
+            var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(fromSocketRef.nodeGuid);
+            return fromNode;
         }
 
         public static ConcreteSlotValueType ConvertDynamicVectorInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
