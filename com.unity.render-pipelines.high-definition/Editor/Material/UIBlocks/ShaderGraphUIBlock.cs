@@ -26,7 +26,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected static class Styles
         {
-            public static readonly string header = "Exposed Properties";
+            public const string header = "Exposed Properties";
+            public static readonly GUIContent bakedEmission = new GUIContent("Baked Emission", "");
         }
 
         Expandable  m_ExpandableBit;
@@ -146,10 +147,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawEmissionGI()
         {
-            if (materialEditor.EmissionEnabledProperty())
-            {
-                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);
-            }
+            EmissionUIBlock.BakedEmissionEnabledProperty(materialEditor);
         }
 
         // Track additional velocity state. See SG-ADDITIONALVELOCITY-NOTE

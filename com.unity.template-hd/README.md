@@ -2,7 +2,6 @@
 
 master (2020.1): [![](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-badge.svg?branch=master)](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-info?branch=master)
 [![](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/dependencies-badge.svg?branch=master)](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/dependencies-info?branch=master)
-
 2019.3: [![](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-badge.svg?branch=2019.3)](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-info?branch=2019.3)
 
 2019.2: [![](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-badge.svg?branch=2019.2)](https://badges.cds.internal.unity3d.com/packages/com.unity.template.hd/build-info?branch=2019.2)
