@@ -369,7 +369,7 @@ Shader "HDRP/LayeredLit"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _DEPTHOFFSET_ON
