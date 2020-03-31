@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Data.Interfaces;
 using Drawing.Views;
-using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Drawing.Inspector
@@ -20,8 +18,13 @@ namespace Drawing.Inspector
     class InspectorView : GraphSubWindow
     {
         // References
+        // #TODO: Remove concrete reference to SG GraphData object
         readonly GraphData m_GraphData;
         readonly IList<Type> m_PropertyDrawerList = new List<Type>();
+
+        // Used to handle drawing the default settings of the graph that the Inspector is targeting
+        private Type m_GraphSettingsPropertyDrawerType = null;
+        private object m_defaultSettingsData;
 
         public int currentlyDisplayedPropertyCount { get; private set; } = 0;
 
@@ -29,9 +32,9 @@ namespace Drawing.Inspector
         protected override string elementName => "InspectorView";
         protected override string styleName => "InspectorView";
 
-        public InspectorView(GraphData graphData, GraphView graphView) : base(graphView)
+        public InspectorView(object defaultSettingsData, GraphView graphView) : base(graphView)
         {
-            m_GraphData = graphData;
+            m_defaultSettingsData = defaultSettingsData;
 
             // Register property drawer types here
             RegisterPropertyDrawer(typeof(BoolPropertyDrawer));
@@ -48,6 +51,12 @@ namespace Drawing.Inspector
             RegisterPropertyDrawer(typeof(Texture3DPropertyDrawer));
             RegisterPropertyDrawer(typeof(CubemapPropertyDrawer));
             RegisterPropertyDrawer(typeof(ShaderInputPropertyDrawer));
+            RegisterPropertyDrawer(typeof(GraphDataPropertyDrawer));
+
+            if (IsPropertyTypeHandled(defaultSettingsData.GetType(), out var propertyDrawerToUse))
+            {
+                m_GraphSettingsPropertyDrawerType = propertyDrawerToUse;
+            }
         }
 
 #region PropertyDrawing
@@ -104,9 +113,10 @@ namespace Drawing.Inspector
                 m_ContentContainer.Remove(child);
             }
 
+            var propertySheet = new PropertySheet();
             if(selection.Count == 0)
             {
-                SetSelectionToGraph();
+                ShowGraphSettings(propertySheet);
                 return;
             }
 
@@ -115,43 +125,11 @@ namespace Drawing.Inspector
                 subTitle = $"{selection.Count} Objects.";
             }
 
-            var propertySheet = new PropertySheet();
             try
             {
                 foreach (var selectable in selection)
                 {
-                    object dataObject = null;
-                    PropertyInfo[] properties;
-                    if (selectable is IInspectable inspectable)
-                    {
-                        dataObject = inspectable.GetObjectToInspect();
-                        if (dataObject == null)
-                            throw new NullReferenceException("DataObject returned by Inspectable is null!");
-
-                        properties = inspectable.GetPropertyInfo();
-                        if (properties == null)
-                            throw new NullReferenceException("PropertyInfos returned by Inspectable is null!");
-                    }
-                    else
-                        continue;
-
-                    foreach (var propertyInfo in properties)
-                    {
-                        var attribute = propertyInfo.GetCustomAttribute<Inspectable>();
-                        if (attribute == null)
-                            continue;
-
-                        var propertyType = propertyInfo.PropertyType;
-
-                        if (IsPropertyTypeHandled(propertyType, out var propertyDrawerTypeToUse))
-                        {
-                            var propertyDrawerInstance = (IPropertyDrawer)Activator.CreateInstance(propertyDrawerTypeToUse);
-                            // Supply any required data to this particular kind of property drawer
-                            inspectable.SupplyDataToPropertyDrawer(propertyDrawerInstance, this.Update);
-                            var propertyGUI = propertyDrawerInstance.DrawProperty(propertyInfo, dataObject, attribute);
-                            propertySheet.Add(propertyGUI);
-                        }
-                    }
+                    DrawSelection(selectable, propertySheet);
                 }
             }
             catch (Exception e)
@@ -164,13 +142,59 @@ namespace Drawing.Inspector
             m_ContentContainer.MarkDirtyRepaint();
         }
 
-        void SetSelectionToGraph()
+        private void DrawSelection(ISelectable selectable, PropertySheet propertySheet)
+        {
+            object dataObject = null;
+            var inspectable = (IInspectable) selectable;
+            if (inspectable == null)
+            {
+                throw new InvalidCastException("Failed to cast selection to Inspectable in the inspector. Please make sure that your selection is also implementing the IInspectable interface!");
+                return;
+            }
+
+            DrawInspectable(propertySheet, inspectable);
+        }
+
+        private void DrawInspectable(PropertySheet propertySheet, IInspectable inspectable)
+        {
+            var dataObject = inspectable.GetObjectToInspect();
+            if (dataObject == null)
+                throw new NullReferenceException("DataObject returned by Inspectable is null!");
+
+            var properties = inspectable.GetPropertyInfo();
+            if (properties == null)
+                throw new NullReferenceException("PropertyInfos returned by Inspectable is null!");
+
+            foreach (var propertyInfo in properties)
+            {
+                var attribute = propertyInfo.GetCustomAttribute<Inspectable>();
+                if (attribute == null)
+                    continue;
+
+                var propertyType = propertyInfo.PropertyType;
+
+                if (IsPropertyTypeHandled(propertyType, out var propertyDrawerTypeToUse))
+                {
+                    var propertyDrawerInstance = (IPropertyDrawer) Activator.CreateInstance(propertyDrawerTypeToUse);
+                    // Supply any required data to this particular kind of property drawer
+                    inspectable.SupplyDataToPropertyDrawer(propertyDrawerInstance, this.Update);
+                    var propertyGUI = propertyDrawerInstance.DrawProperty(propertyInfo, dataObject, attribute);
+                    propertySheet.Add(propertyGUI);
+                }
+            }
+        }
+
+        // This should be implemented by any inspector class that wants to define its own GraphSettings
+        // which for SG, is a representation of the settings in GraphData
+        protected virtual void ShowGraphSettings(PropertySheet propertySheet)
         {
             var graphEditorView = m_GraphView.GetFirstAncestorOfType<GraphEditorView>();
             if(graphEditorView == null)
                 return;
 
             subTitle = $"{graphEditorView.assetName} (Graph)";
+
+            DrawInspectable(propertySheet, (IInspectable)graphView);
 
             // #TODO - Refactor, shouldn't this just be a property on the graph data object itself?
             var precisionField = new EnumField((Enum)m_GraphData.concretePrecision);

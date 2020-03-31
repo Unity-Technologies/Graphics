@@ -5,7 +5,6 @@ using Drawing.Inspector;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
-using UnityEditor.ShaderGraph.Drawing.Inspector;
 using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
@@ -15,6 +14,7 @@ using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.VersionControl;
 using UnityEditor.Searcher;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 
 
 namespace UnityEditor.ShaderGraph.Drawing

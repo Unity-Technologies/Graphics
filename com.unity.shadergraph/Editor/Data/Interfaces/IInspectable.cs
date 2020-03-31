@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Reflection;
 using Drawing.Inspector;
-using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.Drawing
+namespace Data.Interfaces
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class Inspectable : Attribute
@@ -28,8 +27,13 @@ namespace UnityEditor.ShaderGraph.Drawing
     interface IInspectable
     {
         string displayName { get; }
+
+        // This function should return the underlying data object that the inspector needs to represent the state of
+        // The type of that object also determines what PropertyDrawer the inspector uses,
+        // so make sure that whatever type you return here, there's a matching PropertyDrawer defined and registered with the InspectorView you're using.
         object GetObjectToInspect();
 
+        //
         PropertyInfo[] GetPropertyInfo();
 
         // Used to provide any data needed by the property drawer from the inspectable

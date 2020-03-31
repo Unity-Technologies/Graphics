@@ -1,17 +1,14 @@
 using System;
 using System.Linq;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using Data.Interfaces;
 using Drawing.Inspector;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditorInternal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {

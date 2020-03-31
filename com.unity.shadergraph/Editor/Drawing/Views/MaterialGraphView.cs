@@ -2,7 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Xml;
+using Data.Interfaces;
+using Drawing.Inspector;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -18,7 +21,7 @@ using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    sealed class MaterialGraphView : GraphView
+    sealed class MaterialGraphView : GraphView, IInspectable
     {
         public MaterialGraphView()
         {
@@ -49,6 +52,24 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public GraphData graph { get; private set; }
+
+        public string displayName => this.graph.path;
+
+        public object GetObjectToInspect()
+        {
+            return this.graph;
+        }
+
+        public PropertyInfo[] GetPropertyInfo()
+        {
+            return this.GetType().GetProperties();
+        }
+
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        {
+            throw new NotImplementedException();
+        }
+
         public Action onConvertToSubgraphClick { get; set; }
         public Vector2 cachedMousePosition { get; private set; }
 
