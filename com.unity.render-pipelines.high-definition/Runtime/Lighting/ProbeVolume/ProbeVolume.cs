@@ -233,12 +233,13 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("Light/Experimental/Probe Volume")]
     internal class ProbeVolume : MonoBehaviour
     {
+#if UNITY_EDITOR
         // Debugging code
         private Material m_DebugMaterial = null;
         private Mesh m_DebugMesh = null;
         private List<Matrix4x4[]> m_DebugProbeMatricesList;
         private List<Mesh> m_DebugProbePointMeshList;
-        internal bool dataUpdated = false;
+#endif
         private ProbeVolumeSettingsKey bakeKey = new ProbeVolumeSettingsKey
         {
             id = 0,
@@ -249,6 +250,8 @@ namespace UnityEngine.Rendering.HighDefinition
             resolutionY = 0,
             resolutionZ = 0
         };
+
+        internal bool dataUpdated = false;
 
         [SerializeField] internal ProbeVolumeAsset probeVolumeAsset = null;
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
@@ -310,7 +313,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnEnable()
         {
+#if UNITY_EDITOR
             OnValidate();
+#endif
 
             ProbeVolumeManager.manager.RegisterVolume(this);
 
@@ -334,6 +339,18 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
                 return;
 #endif
+        }
+
+        internal bool IsAssetCompatible()
+        {
+            if (probeVolumeAsset)
+            {
+                return parameters.resolutionX == probeVolumeAsset.resolutionX &&
+                       parameters.resolutionY == probeVolumeAsset.resolutionY &&
+                       parameters.resolutionZ == probeVolumeAsset.resolutionZ;
+            }
+
+            return false;
         }
 
 #if UNITY_EDITOR
@@ -380,18 +397,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             SetupProbePositions();
-        }
-
-        internal bool IsAssetCompatible()
-        {
-            if (probeVolumeAsset)
-            {
-                return parameters.resolutionX == probeVolumeAsset.resolutionX &&
-                       parameters.resolutionY == probeVolumeAsset.resolutionY &&
-                       parameters.resolutionZ == probeVolumeAsset.resolutionZ;
-            }
-
-            return false;
         }
 
         internal void OnLightingDataCleared()
