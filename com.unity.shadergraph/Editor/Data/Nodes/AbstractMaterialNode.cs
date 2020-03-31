@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
         private string m_Name;
 
         [SerializeField]
-        protected int m_NodeVersion;
+        private int m_NodeVersion;
 
         [SerializeField]
         private DrawState m_DrawState;
@@ -212,6 +212,7 @@ namespace UnityEditor.ShaderGraph
         {
             m_DrawState.expanded = true;
             m_Guid = Guid.NewGuid();
+            m_NodeVersion = GetCompiledNodeVersion();
             version = 0;
         }
 
