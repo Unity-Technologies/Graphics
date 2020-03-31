@@ -972,10 +972,10 @@ MonoBehaviour:
     create materials like cotton, denim, wool, linen and velvet.
 
 
-    The Knit or
-    weave has an influence on the appearance of the material as well as the fibers
+    The knit or
+    weave have an influence on the appearance of the material as well as the fibers
     that make up the fabric. Natural fibers are typically rougher and as a result
-    diffuse light a lot more.'
+    diffuse light.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1049,10 +1049,10 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -2.2390704}
   m_textInfo:
     textComponent: {fileID: 315967746}
-    characterCount: 400
+    characterCount: 390
     spriteCount: 0
-    spaceCount: 73
-    wordCount: 72
+    spaceCount: 70
+    wordCount: 69
     linkCount: 0
     lineCount: 11
     pageCount: 1
@@ -1884,11 +1884,19 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "These materials uses the Silk material type.\n\nThis can be used to create
-    fabrics like silk, satin, nylon and polyester.\n\nIn general, silk and synthetic
-    fibers are smoother because they\u2019re a single filament. Synthetic fibres
-    are extruded as a single smooth filament, and silk is a protein produced by the
-    silkworm as a single smooth filament.\n\n"
+  m_text: 'These materials uses the Silk material type.
+
+
+    This can be used to
+    create fabrics like silk, satin, nylon and polyester.
+
+
+    In general, silk
+    and synthetic fibers are smoother because they are produced as a single smooth
+    filament. This once weaved also gives an anisotropic specularity.
+
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1962,12 +1970,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 632544997}
-    characterCount: 343
+    characterCount: 284
     spriteCount: 0
-    spaceCount: 59
-    wordCount: 56
+    spaceCount: 48
+    wordCount: 45
     linkCount: 0
-    lineCount: 11
+    lineCount: 10
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
@@ -2885,76 +2893,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 09d873e82f06a51458debc9fd17532f1, type: 3}
---- !u!114 &1090089153
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a81bcacc415a1f743bfdf703afc52027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  active: 1
-  m_AdvancedMode: 0
-  rotation:
-    m_OverrideState: 0
-    m_Value: 0
-    min: 0
-    max: 360
-  skyIntensityMode:
-    m_OverrideState: 0
-    m_Value: 0
-  exposure:
-    m_OverrideState: 0
-    m_Value: 10
-  multiplier:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0
-  upperHemisphereLuxValue:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0
-  upperHemisphereLuxColor:
-    m_OverrideState: 0
-    m_Value: {x: 0, y: 0, z: 0}
-  desiredLuxValue:
-    m_OverrideState: 0
-    m_Value: 20000
-  updateMode:
-    m_OverrideState: 0
-    m_Value: 0
-  updatePeriod:
-    m_OverrideState: 0
-    m_Value: 0
-    min: 0
-  includeSunInBaking:
-    m_OverrideState: 0
-    m_Value: 0
-  top:
-    m_OverrideState: 0
-    m_Value: {r: 0.22322798, g: 0.2581829, b: 0.4341537, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
-  middle:
-    m_OverrideState: 0
-    m_Value: {r: 0.2767907, g: 0.32292244, b: 0.541, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
-  bottom:
-    m_OverrideState: 0
-    m_Value: {r: 0.6273585, g: 0.6739387, b: 1, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
-  gradientDiffusion:
-    m_OverrideState: 0
-    m_Value: 1
 --- !u!1 &1139053732
 GameObject:
   m_ObjectHideFlags: 0
@@ -3673,7 +3611,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: bcce1d882ad78594e96df95e83512585, type: 2}
   m_StaticLightingSkyUniqueID: 3
-  m_SkySettings: {fileID: 1090089153}
+  m_SkySettings: {fileID: 2016592541}
   m_SkySettingsFromProfile: {fileID: -213621468369542312, guid: bcce1d882ad78594e96df95e83512585, type: 2}
 --- !u!4 &1728193973
 Transform:
@@ -3938,6 +3876,76 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &2016592541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a81bcacc415a1f743bfdf703afc52027, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  rotation:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 360
+  skyIntensityMode:
+    m_OverrideState: 0
+    m_Value: 0
+  exposure:
+    m_OverrideState: 0
+    m_Value: 10
+  multiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+  upperHemisphereLuxValue:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+  upperHemisphereLuxColor:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 0, z: 0}
+  desiredLuxValue:
+    m_OverrideState: 0
+    m_Value: 20000
+  updateMode:
+    m_OverrideState: 0
+    m_Value: 0
+  updatePeriod:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  includeSunInBaking:
+    m_OverrideState: 0
+    m_Value: 0
+  top:
+    m_OverrideState: 0
+    m_Value: {r: 0.22322798, g: 0.2581829, b: 0.4341537, a: 1}
+    hdr: 1
+    showAlpha: 0
+    showEyeDropper: 1
+  middle:
+    m_OverrideState: 0
+    m_Value: {r: 0.2767907, g: 0.32292244, b: 0.541, a: 1}
+    hdr: 1
+    showAlpha: 0
+    showEyeDropper: 1
+  bottom:
+    m_OverrideState: 0
+    m_Value: {r: 0.6273585, g: 0.6739387, b: 1, a: 1}
+    hdr: 1
+    showAlpha: 0
+    showEyeDropper: 1
+  gradientDiffusion:
+    m_OverrideState: 0
+    m_Value: 1
 --- !u!1001 &2025648721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4078,7 +4086,7 @@ MonoBehaviour:
   m_text: 'Cotton
 
     This material uses a jersey knit threadmap typically used
-    for clothing'
+    for clothing. With a thin diffusion profile for light transmission.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4152,12 +4160,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -2.2390704}
   m_textInfo:
     textComponent: {fileID: 2041204706}
-    characterCount: 77
+    characterCount: 132
     spriteCount: 0
-    spaceCount: 11
-    wordCount: 12
+    spaceCount: 19
+    wordCount: 20
     linkCount: 0
-    lineCount: 3
+    lineCount: 5
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
