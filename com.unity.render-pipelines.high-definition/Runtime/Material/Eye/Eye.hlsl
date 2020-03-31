@@ -48,7 +48,7 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
     bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
     bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
     bool overrideNormal = _DebugLightingNormal.x != 0.0;
-    bool overrideAO = _DebugLightingAmbientOcclusion.x != 0.0;    
+    bool overrideAO = _DebugLightingAmbientOcclusion.x != 0.0;
 
     if (overrideAlbedo)
     {
@@ -135,7 +135,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.diffuseNormalWS = surfaceData.irisNormalWS;
     bsdfData.geomNormalWS = surfaceData.geomNormalWS;
 
-    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness); 
+    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     bsdfData.fresnel0 = IorToFresnel0(surfaceData.IOR).xxx;
     bsdfData.IOR = surfaceData.IOR;
@@ -323,7 +323,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-    // For SSS we need to take into account the state of diffuseColor 
+    // For SSS we need to take into account the state of diffuseColor
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_SUBSURFACE_SCATTERING))
     {
         bsdfData.diffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
@@ -820,12 +820,16 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_LightProbeL1 for ProbeVolumes
 // ----------------------------------------------------------------------------
-
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+// Wrapping this function in define blocks so that pre-existing 3rd party shaders do not run into compilation issues.
 float3 EvaluateBSDF_LightProbeL1(BuiltinData builtinData, BSDFData bsdfData,
                                  float4 shAr, float4 shAg, float4 shAb)
 {
-    return ShadeSurface_LightProbeL1(builtinData, bsdfData, shAr, shAg, shAb) * GetAmbientOcclusionForMicroShadowing(bsdfData);
+    return ShadeSurface_LightProbeL1(builtinData, bsdfData, shAr, shAg, shAb);
 }
+#endif
+#endif
 
 //-----------------------------------------------------------------------------
 // PostEvaluateBSDF

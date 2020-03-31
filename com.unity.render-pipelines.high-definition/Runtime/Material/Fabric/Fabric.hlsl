@@ -160,7 +160,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // In forward everything is statically know and we could theorically cumulate all the material features. So the code reflect it.
     // However in practice we keep parity between deferred and forward, so we should constrain the various features.
     // The UI is in charge of setuping the constrain, not the code. So if users is forward only and want unleash power, it is easy to unleash by some UI change
-    
+
     bsdfData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))
@@ -329,7 +329,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
         builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
     }
 
-    // For SSS we need to take into account the state of diffuseColor 
+    // For SSS we need to take into account the state of diffuseColor
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))
     {
         bsdfData.diffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
@@ -651,12 +651,16 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_LightProbeL1 for ProbeVolumes
 // ----------------------------------------------------------------------------
-
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+// Wrapping this function in define blocks so that pre-existing 3rd party shaders do not run into compilation issues.
 float3 EvaluateBSDF_LightProbeL1(BuiltinData builtinData, BSDFData bsdfData,
                                  float4 shAr, float4 shAg, float4 shAb)
 {
-    return ShadeSurface_LightProbeL1(builtinData, bsdfData, shAr, shAg, shAb) * GetAmbientOcclusionForMicroShadowing(bsdfData);
+    return ShadeSurface_LightProbeL1(builtinData, bsdfData, shAr, shAg, shAb);
 }
+#endif
+#endif
 
 //-----------------------------------------------------------------------------
 // PostEvaluateBSDF

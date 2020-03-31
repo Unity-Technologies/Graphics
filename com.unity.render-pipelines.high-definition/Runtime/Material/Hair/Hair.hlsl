@@ -155,7 +155,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // Kajiya kay
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
-        bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);        
+        bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);
         bsdfData.specularTint = surfaceData.specularTint;
         bsdfData.secondarySpecularTint = surfaceData.secondarySpecularTint;
         bsdfData.specularShift = surfaceData.specularShift;
@@ -593,12 +593,16 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_LightProbeL1 for ProbeVolumes
 // ----------------------------------------------------------------------------
-
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+// Wrapping this function in define blocks so that pre-existing 3rd party shaders do not run into compilation issues.
 float3 EvaluateBSDF_LightProbeL1(BuiltinData builtinData, BSDFData bsdfData,
                                  float4 shAr, float4 shAg, float4 shAb)
 {
-    return ShadeSurface_LightProbeL1(builtinData, bsdfData, shAr, shAg, shAb) * GetAmbientOcclusionForMicroShadowing(bsdfData);
+    return ShadeSurface_LightProbeL1(builtinData, bsdfData, shAr, shAg, shAb);
 }
+#endif
+#endif
 
 //-----------------------------------------------------------------------------
 // PostEvaluateBSDF
