@@ -546,7 +546,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return probeVolumes;
 
             var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
-            bool octahedralDepthOcclusionFilterIsEnabled = settings.leakMitigationMode == LeakMitigationMode.OctahedralDepthOcclusionFilter;
+            bool octahedralDepthOcclusionFilterIsEnabled = settings.leakMitigationMode.value == LeakMitigationMode.OctahedralDepthOcclusionFilter;
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareProbeVolumeList)))
             {

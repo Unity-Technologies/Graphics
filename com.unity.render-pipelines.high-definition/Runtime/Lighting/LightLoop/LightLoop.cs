@@ -2667,7 +2667,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
                 {
                     var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
-                    probeVolumeNormalBiasWS = (settings == null || (settings.leakMitigationMode != LeakMitigationMode.NormalBias && settings.leakMitigationMode != LeakMitigationMode.OctahedralDepthOcclusionFilter))
+                    probeVolumeNormalBiasWS = (settings == null || (settings.leakMitigationMode.value != LeakMitigationMode.NormalBias && settings.leakMitigationMode.value != LeakMitigationMode.OctahedralDepthOcclusionFilter))
                         ? 0.0f
                         : settings.normalBiasWS.value;
                 }
