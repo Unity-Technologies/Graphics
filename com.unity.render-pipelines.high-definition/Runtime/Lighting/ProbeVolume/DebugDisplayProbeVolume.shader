@@ -122,9 +122,9 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
                     default: return float4(0.0, 0.0, 0.0, 1.0);
                 }
 
-                #else
+            #else
                 return float4(0.0, 0.0, 0.0, 1.0);
-                #endif
+            #endif
             }
 
             ENDHLSL
