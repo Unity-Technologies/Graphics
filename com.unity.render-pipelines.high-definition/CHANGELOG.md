@@ -94,6 +94,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an alpha blend option for recursive rendering
 - Added support for stack lit for ray tracing effects.
 - Added support for hair for ray tracing effects.
+- Added support for alpha to coverage for HDRP shaders and shader graph
 - Added a flow map parameter to HDRI Sky
 
 ### Fixed
@@ -494,7 +495,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Half fixed shuriken particle light that cast shadows (only the first one will be correct)
 - Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
 - Fixed custom pass GC alloc issue in CustomPassVolume.GetActiveVolumes().
+- Fixed a bug where instanced shadergraph shaders wouldn't compile on PS4.
 - Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
+- Fixed shadow cascade tooltip when using the metric mode (case 1229232)
+- Focus on Decal uses the extends of the projectors
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -602,6 +606,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hidden unsupported choice in emission in Materials
 - Temporal Anti aliasing improvements.
 - Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
+- Moved scene view camera settings for HDRP from the preferences window to the scene view camera settings window.
 
 ## [7.1.1] - 2019-09-05
 
