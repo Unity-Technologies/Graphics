@@ -57,6 +57,7 @@ class TestSceneAssetEditor : Editor
         list.drawHeaderCallback = (r) => EditorGUI.LabelField(r, title, EditorStyles.boldLabel);
 
         list.drawElementCallback = (rect, index, isActive, isFocused) => {
+            serializedObject.Update();
             EditorGUI.BeginChangeCheck();
             var elem = list.serializedProperty.GetArrayElementAtIndex(index);
             var sceneName = elem.FindPropertyRelative(nameof(TestSceneAsset.SceneData.scene));
@@ -78,10 +79,7 @@ class TestSceneAssetEditor : Editor
             EditorGUI.PropertyField(rect, enabled);
 
             if (EditorGUI.EndChangeCheck())
-            {
                 serializedObject.ApplyModifiedProperties();
-                serializedObject.Update();
-            }
         };
 
         list.elementHeight = fieldHeight * 2;
@@ -95,6 +93,7 @@ class TestSceneAssetEditor : Editor
         list.drawHeaderCallback = (r) => EditorGUI.LabelField(r, title, EditorStyles.boldLabel);
 
         list.drawElementCallback = (rect, index, isActive, isFocused) => {
+            serializedObject.Update();
             rect.height = EditorGUIUtility.singleLineHeight;
             var elem = list.serializedProperty.GetArrayElementAtIndex(index);
             var srpAsset = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.asset));
@@ -108,10 +107,7 @@ class TestSceneAssetEditor : Editor
             alias.stringValue = PerformanceTestUtils.testScenesAsset.GetSRPAssetAlias(srpAsset.objectReferenceValue as RenderPipelineAsset);
 
             if (EditorGUI.EndChangeCheck())
-            {
                 serializedObject.ApplyModifiedProperties();
-                serializedObject.Update();
-            }
         };
         list.onAddCallback = DefaultListAdd;
         list.onRemoveCallback = DefaultListDelete;
@@ -122,6 +118,7 @@ class TestSceneAssetEditor : Editor
         list.drawHeaderCallback = (r) => EditorGUI.LabelField(r, title, EditorStyles.boldLabel);
 
         list.drawElementCallback = (rect, index, isActive, isFocused) => {
+            serializedObject.Update();
             rect.height = EditorGUIUtility.singleLineHeight;
             var elem = list.serializedProperty.GetArrayElementAtIndex(index);
             var srpAsset = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.asset));
@@ -136,10 +133,7 @@ class TestSceneAssetEditor : Editor
             assetLabels.stringValue = GetLabelForAsset(srpAsset.objectReferenceValue);
 
             if (EditorGUI.EndChangeCheck())
-            {
                 serializedObject.ApplyModifiedProperties();
-                serializedObject.Update();
-            }
         };
         list.onAddCallback = DefaultListAdd;
         list.onRemoveCallback = DefaultListDelete;
@@ -160,9 +154,8 @@ class TestSceneAssetEditor : Editor
 
     void DefaultListAdd(ReorderableList list)
     {
-        ReorderableList.defaultBehaviours.DoAddButton(list);
-
         serializedObject.Update();
+        ReorderableList.defaultBehaviours.DoAddButton(list);
 
         // Enable the scene by default
         var element = list.serializedProperty.GetArrayElementAtIndex(list.count - 1);
