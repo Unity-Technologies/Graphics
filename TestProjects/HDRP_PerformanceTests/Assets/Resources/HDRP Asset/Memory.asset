@@ -297,6 +297,7 @@ MonoBehaviour:
     xrSettings:
       singlePass: 1
       occlusionMesh: 1
+      cameraJitter: 0
     postProcessQualitySettings:
       NearBlurSampleCount: 030000000500000008000000
       NearBlurMaxRadius:
@@ -316,7 +317,7 @@ MonoBehaviour:
       ChromaticAberrationMaxSamples: 03000000060000000c000000
     lightSettings:
       useContactShadow:
-        m_Values: 
+        m_Values: 000000
         m_SchemaId:
           m_Id: 
     maximumLODLevel:
