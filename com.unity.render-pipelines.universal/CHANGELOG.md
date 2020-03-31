@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - UniversalRenderPipelineAsset no longer supports presets [case 1197020](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-on-preset-of-universalrenderpipelineassets)
 - You can now subclass ForwardRenderer to create a custom renderer based on it.
 - The Metallic property value of a Material is now linear, which is the correct behavior for the PBR approach. In the previous URP package version, those values were interpreted as gamma values. This change might affect the look of Materials that use this property after upgrading from the previous package version.
+- The pipeline is now computing tangent space in per fragment.
 
 ### Fixed
 - Fixed an issue with shadows not appearing on terrains when no cascades were selected [case 1226530](https://issuetracker.unity3d.com/issues/urp-no-shadows-on-terrain-when-cascades-is-set-to-no-cascades-in-render-pipeline-asset-settings)
