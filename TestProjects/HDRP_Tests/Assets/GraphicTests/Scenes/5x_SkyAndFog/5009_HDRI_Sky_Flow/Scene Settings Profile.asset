@@ -71,11 +71,11 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: 6ec129c61e856c8418af7e35f6f557d0, type: 3}
   flowCycle:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0.3
   flowStrength:
     m_OverrideState: 1
-    m_Value: 0.2
+    m_Value: 2
   enableBackplate:
     m_OverrideState: 0
     m_Value: 0

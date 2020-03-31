@@ -301,11 +301,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
-      propertyPath: ImageComparisonSettings.TargetHeight
-      value: 640
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
       propertyPath: renderPipelineAsset
       value: 
       objectReference: {fileID: 11400000, guid: ea1589d4340c02946897a7c2f9ade2f0,
