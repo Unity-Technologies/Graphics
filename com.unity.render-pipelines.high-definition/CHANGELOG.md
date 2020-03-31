@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
 - Fixed shadow cascade tooltip when using the metric mode (case 1229232)
 - Fix when rescale probe all direction below zero (1219246)
+- Fixed how the area light influence volume is computed to match rasterization.
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
