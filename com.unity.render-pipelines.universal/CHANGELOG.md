@@ -149,6 +149,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where particles using Sprite Shader Graph shaders were invisible.
 - Fixed an issue where Scene objects might be incorrectly affected by 2D Lights from a previous Sorting Layer.
 - Fixed an issue where errors would appear in the Console when entering Play Mode with a 2D Light selected in the Hierarchy. [Case 1226918](https://issuetracker.unity3d.com/issues/errors-appear-in-the-console-when-global-2d-light-is-selected-in-hierarchy)
+- Fixed an issue that caused Android GLES to render blank screen when Depth texture was enabled without Opaque texture [case 1219325](https://issuetracker.unity3d.com/issues/scene-is-not-rendered-on-android-8-and-9-when-depth-texture-is-enabled-in-urp-asset)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
