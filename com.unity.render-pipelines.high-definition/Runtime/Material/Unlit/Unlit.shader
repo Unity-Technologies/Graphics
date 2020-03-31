@@ -46,6 +46,7 @@ Shader "HDRP/Unlit"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
         [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
+        [HideInInspector][ToggleUI]_AlphaToMask("__alphaToMask", Float) = 0
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
         [HideInInspector][ToggleUI] _TransparentZWrite("_TransparentZWrite", Float) = 0.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
@@ -99,6 +100,7 @@ Shader "HDRP/Unlit"
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature_local _ALPHATEST_ON
+    #pragma shader_feature_local _ALPHATOMASK_ON
     // #pragma shader_feature_local _DOUBLESIDED_ON - We have no lighting, so no need to have this combination for shader, the option will just disable backface culling
 
     #pragma shader_feature_local _EMISSIVE_COLOR_MAP
@@ -187,13 +189,17 @@ Shader "HDRP/Unlit"
             }
 
             Cull[_CullMode]
+            AlphaToMask [_AlphaToMask]
 
             ZWrite On
 
             // Caution: When using MSAA we have normal and depth buffer bind.
-            // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
-            // This is not a problem in no MSAA mode as there is no buffer bind
-            ColorMask 0 0
+            // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+            // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+            // - When MSAA: disable target 1 (normal buffer)
+            // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
+            ColorMask [_ColorMaskNormal]
+            ColorMask 0 1
 
             HLSLPROGRAM
 
@@ -235,13 +241,17 @@ Shader "HDRP/Unlit"
             }
 
             Cull[_CullMode]
+            AlphaToMask [_AlphaToMask]
 
             ZWrite On
 
             // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
-            // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
-            // This is not a problem in no MSAA mode as there is no buffer bind
-            ColorMask 0 1
+            // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+            // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+            // - When MSAA: disable target 2 (normal buffer)
+            // - When no MSAA: disable target 1 (normal buffer) and 2 (unused)
+            ColorMask [_ColorMaskNormal] 1
+            ColorMask 0 2
 
             HLSLPROGRAM
 

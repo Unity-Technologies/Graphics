@@ -803,6 +803,24 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_AlphaToMask = false;
+
+        public ToggleData alphaToMask
+        {
+            get { return new ToggleData(m_AlphaToMask); }
+            set
+            {
+                if (m_AlphaToMask == value.isOn)
+                    return;
+
+                m_AlphaToMask = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+
+
+        [SerializeField]
         int m_MaterialNeedsUpdateHash = 0;
 
         int ComputeMaterialNeedsUpdateHash()
@@ -1172,6 +1190,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.DoAlphaTestShadow,            alphaTest.isOn && alphaTestShadow.isOn && pass.pixelPorts.Contains(AlphaThresholdShadowSlotId)),
                 new ConditionalField(HDFields.DoAlphaTestPrepass,           alphaTest.isOn && alphaTestDepthPrepass.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId)),
                 new ConditionalField(HDFields.DoAlphaTestPostpass,          alphaTest.isOn && alphaTestDepthPostpass.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId)),
+                new ConditionalField(Fields.AlphaToMask,                    alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId) && alphaToMask.isOn),
                 new ConditionalField(HDFields.AlphaFog,                     surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
                 new ConditionalField(HDFields.BlendPreserveSpecular,        surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
                 new ConditionalField(HDFields.TransparentWritesMotionVec,   surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
@@ -1327,6 +1346,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 surfaceType,
                 HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode),
                 sortPriority,
+                alphaToMask.isOn,
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,

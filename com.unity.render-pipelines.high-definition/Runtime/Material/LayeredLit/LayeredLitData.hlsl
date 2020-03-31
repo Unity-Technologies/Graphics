@@ -818,6 +818,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 
+#ifdef _ALPHATEST_ON
+    // Used for sharpening by alpha to mask
+    builtinData.alphaClipTreshold = _AlphaCutoff;
+#endif
+
     RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 }
 #ifndef SHADER_STAGE_RAY_TRACING
