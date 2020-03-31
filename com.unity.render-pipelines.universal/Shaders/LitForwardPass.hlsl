@@ -154,10 +154,20 @@ float4 LitPassFragment(Varyings input) : SV_Target
     half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    #ifdef RENDER_WITH_MODE_TEST
+
+    #ifdef RENDER_OBJECT_ID
     return asint(unity_LODFade.z);
-    #endif
+    #elif defined(RENDER_DEPTH)
+    return 0;
+    #elif defined(RENDER_NORMALS)
+    return float4(inputData.normalWS, 1.0f);
+    #elif defined(RENDER_WORLD_POS)
+    return float4(inputData.positionWS, 1.0);
+    #elif defined(RENDER_ENTITY_ID)
+    return 0;
+    #else
     return color;
+    #endif
 }
 
 #endif

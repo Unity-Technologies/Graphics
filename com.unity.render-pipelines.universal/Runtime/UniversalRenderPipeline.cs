@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                return (Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore) 
+                return (Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
                         ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
             }
         }
@@ -143,24 +143,45 @@ namespace UnityEngine.Rendering.Universal
                 switch (renderRequest.mode)
                 {
                     case Camera.RenderRequestModes.ObjectId:
+                        Shader.EnableKeyword("RENDER_OBJECT_ID");
                         break;
                     case Camera.RenderRequestModes.Depth:
                         break;
                     case Camera.RenderRequestModes.Normals:
+                        Shader.EnableKeyword("RENDER_NORMALS");
                         break;
-                    case Camera.RenderRequestModes.DepthNormals:
+                    case Camera.RenderRequestModes.EntityId:
                         break;
                     case Camera.RenderRequestModes.WorldPosition:
+                        Shader.EnableKeyword("RENDER_WORLD_POS");
                         break;
                     default:
                         Debug.LogWarning(string.Format("Requested camera render mode {0} is not supported by UniversalRenderPipeline", renderRequest.mode));
                         break;
                 }
 
-                Shader.EnableKeyword("RENDER_WITH_MODE_TEST");
                 camera.targetTexture = renderRequest.result;
                 Render(context, new[] {camera});
-                Shader.DisableKeyword("RENDER_WITH_MODE_TEST");
+
+                switch (renderRequest.mode)
+                {
+                    case Camera.RenderRequestModes.ObjectId:
+                        Shader.DisableKeyword("RENDER_OBJECT_ID");
+                        break;
+                    case Camera.RenderRequestModes.Depth:
+                        break;
+                    case Camera.RenderRequestModes.Normals:
+                        Shader.DisableKeyword("RENDER_NORMALS");
+                        break;
+                    case Camera.RenderRequestModes.EntityId:
+                        break;
+                    case Camera.RenderRequestModes.WorldPosition:
+                        Shader.DisableKeyword("RENDER_WORLD_POS");
+                        break;
+                    default:
+                        Debug.LogWarning(string.Format("Requested camera render mode {0} is not supported by UniversalRenderPipeline", renderRequest.mode));
+                        break;
+                }
             }
 
             camera.targetTexture = cameraTarget;
@@ -190,7 +211,7 @@ namespace UnityEngine.Rendering.Universal
                     VFX.VFXManager.PrepareCamera(camera);
 #endif
                     UpdateVolumeFramework(camera, null);
-                    
+
                     RenderSingleCamera(renderContext, camera);
                     EndCameraRendering(renderContext, camera);
                 }
@@ -402,7 +423,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
                     layerMask = mainAdditionalCameraData.volumeLayerMask;
-                
+
                 trigger = mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null ? mainAdditionalCameraData.volumeTrigger : trigger;
             }
 
