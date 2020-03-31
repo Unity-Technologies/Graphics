@@ -3,6 +3,18 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
+#if defined(_DEPTH_MSAA_2)
+    #define MSAA_SAMPLES 2
+#elif defined(_DEPTH_MSAA_4)
+    #define MSAA_SAMPLES 4
+#elif defined(_DEPTH_MSAA_8)
+    #define MSAA_SAMPLES 8
+#else
+    #define MSAA_SAMPLES 1
+#endif
+
+half4 _ScaleBiasRT;
+
 struct Attributes
 {
     float4 positionOS   : POSITION;
@@ -41,13 +53,7 @@ Varyings vert(Attributes input)
 #define SAMPLE(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthAttachment, sampler_CameraDepthAttachment, uv)
 #endif
 
-#ifdef _DEPTH_MSAA_2
-    #define MSAA_SAMPLES 2
-#elif _DEPTH_MSAA_4
-    #define MSAA_SAMPLES 4
-#endif
-
-#ifdef _DEPTH_NO_MSAA
+#if MSAA_SAMPLES == 1
     DEPTH_TEXTURE(_CameraDepthAttachment);
     SAMPLER(sampler_CameraDepthAttachment);
 #else
