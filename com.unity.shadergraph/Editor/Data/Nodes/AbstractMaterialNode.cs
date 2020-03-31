@@ -281,14 +281,19 @@ namespace UnityEditor.ShaderGraph
                 if (fromNode == null)
                     return string.Empty;
 
-                var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
-                if (slot == null)
-                    return string.Empty;
-
-                return GenerationUtils.AdaptNodeOutput(fromNode, slot.id, inputSlot.concreteValueType);
+                return fromNode.GetOutputForSlot(fromSocketRef, inputSlot.concreteValueType, generationMode);
             }
 
             return inputSlot.GetDefaultValue(generationMode);
+        }
+
+        protected virtual string GetOutputForSlot(SlotReference fromSocketRef,  ConcreteSlotValueType valueType, GenerationMode generationMode)
+        {
+            var slot = FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
+            if (slot == null)
+                return string.Empty;
+
+            return GenerationUtils.AdaptNodeOutput(this, slot.id, valueType);
         }
 
         public static ConcreteSlotValueType ConvertDynamicVectorInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
@@ -504,7 +509,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                
+
                 tempSlots.Clear();
                 GetOutputSlots(tempSlots);
                 if(tempSlots.Any(x => x.hasError))
@@ -536,12 +541,12 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void ValidateNode()
         {
-            
+
         }
 
         public int version { get; set; }
         public virtual bool canCopyNode => true;
-        
+
         protected virtual void CalculateNodeHasError()
         {
             foreach (var slot in this.GetInputSlots<MaterialSlot>())
