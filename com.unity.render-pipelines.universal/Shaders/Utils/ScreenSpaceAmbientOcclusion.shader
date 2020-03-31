@@ -10,9 +10,10 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
+        half4 _ScaleBiasRT;
         struct Attributes
         {
-            float4 positionOS   : POSITION;
+            float4 positionHCS   : POSITION;
             float2 uv           : TEXCOORD0;
             UNITY_VERTEX_INPUT_INSTANCE_ID
         };
@@ -30,9 +31,20 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-            output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-            output.uv = input.uv;
+            // Note: The pass is setup with a mesh already in CS
+            // Therefore, we can just output vertex position
 
+            // We need to handle y-flip in a way that all existing shaders using _ProjectionParams.x work.
+            // Otherwise we get flipping issues like this one (case https://issuetracker.unity3d.com/issues/lwrp-depth-texture-flipy)
+
+            // Unity flips projection matrix in non-OpenGL platforms and when rendering to a render texture.
+            // If URP is rendering to RT:
+            //  - Source is upside down.
+            // If URP is NOT rendering to RT neither rendering with OpenGL:
+            //  - Source Depth is NOT flipped. (ProjectionParams.x == 1)
+            output.positionCS = float4(input.positionHCS.xyz, 1.0);
+            output.positionCS.y *= _ScaleBiasRT.x;
+            output.uv = input.uv;
             return output;
         }
 

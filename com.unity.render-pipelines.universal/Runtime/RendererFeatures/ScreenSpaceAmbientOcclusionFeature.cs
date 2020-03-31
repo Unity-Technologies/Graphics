@@ -116,7 +116,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         private static readonly int s_IntensityID = Shader.PropertyToID("_Intensity");
         private static readonly int s_RadiusID = Shader.PropertyToID("_Radius");
         private static readonly int s_SampleCountID = Shader.PropertyToID("_SampleCount");
-
+        private static readonly int s_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
 
         // Enums
         private enum ShaderPass
@@ -239,6 +239,18 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             {
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceAmbientOcclusion, true);
 
+                // Blit has logic to flip projection matrix when rendering to render texture.
+                // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
+                // If you replace this Blit with a Draw* that sets projection matrix double check
+                // to also update shader.
+                // scaleBias.x = flipSign
+                // scaleBias.y = scale
+                // scaleBias.z = bias
+                // scaleBias.w = unused
+                float flipSign = (renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
+                Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+                cmd.SetGlobalVector(s_ScaleBiasId, scaleBias);
+
                 // This switch statement will be used once we've exposed render feature requirements.
                 // switch (m_FeatureSettings.DepthSource)
                 // {
@@ -274,24 +286,29 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             if (!shouldBlur)
             {
                 // Occlusion pass
-                cmd.Blit(s_BlurTexture1ID, m_SSAOTextureHandle.id, material, occlusionPass);
+                cmd.SetRenderTarget(m_SSAOTextureHandle.id);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, occlusionPass);
                 return;
             }
 
             // Occlusion pass
-            cmd.Blit(s_BlurTexture1ID, s_BlurTexture1ID, material, occlusionPass);
+            cmd.SetRenderTarget(s_BlurTexture1ID);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, occlusionPass);
 
             // Horizontal Blur
             cmd.SetGlobalTexture(s_BaseMapID, s_BlurTexture1ID);
-            cmd.Blit(s_BlurTexture1ID, s_BlurTexture2ID, material, horizontalBlurPass);
+            cmd.SetRenderTarget(s_BlurTexture2ID);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, horizontalBlurPass);
 
             // Vertical Blur
             cmd.SetGlobalTexture(s_BaseMapID, s_BlurTexture2ID);
-            cmd.Blit(s_BlurTexture2ID, s_BlurTexture1ID, material, verticalPass);
+            cmd.SetRenderTarget(s_BlurTexture1ID);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, verticalPass);
 
             // Final Composition
             cmd.SetGlobalTexture(s_BaseMapID, s_BlurTexture1ID);
-            cmd.Blit(s_BlurTexture1ID, m_SSAOTextureHandle.id, material, finalPass);
+            cmd.SetRenderTarget(m_SSAOTextureHandle.id);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, finalPass);
         }
 
         /// <inheritdoc/>
