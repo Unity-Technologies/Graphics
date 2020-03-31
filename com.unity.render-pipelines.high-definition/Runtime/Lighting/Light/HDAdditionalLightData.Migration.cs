@@ -182,6 +182,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
+            if(shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
+            {
+                // TODO: TEMPORARILY THIS IS ONLY PUNCTUAL LIGHT. TODO TEMP.
+                if (type == HDLightType.Point)
+                {
+                    var cachedAtlas = HDShadowManager.instance.m_TMP_TEST;
+                    cachedAtlas.RegisterLight(this);
+                }
+            }
+
             if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
                 m_ShadowMapRenderedSinceLastRequest = false;
             SetEmissiveMeshRendererEnabled(true);

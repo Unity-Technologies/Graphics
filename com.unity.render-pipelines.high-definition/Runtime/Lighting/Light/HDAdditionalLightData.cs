@@ -1444,6 +1444,10 @@ namespace UnityEngine.Rendering.HighDefinition
         int[]               m_ShadowRequestIndices;
         bool                m_ShadowMapRenderedSinceLastRequest = false;
 
+
+        // Data for cached shadow maps TODO_FCC: Rename
+        internal int m_LightIdxForCacheSystem = -1; 
+
         // Data for cached shadow maps.
         Vector2             m_CachedShadowResolution = new Vector2(0,0);
         Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
@@ -1570,11 +1574,13 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDestroy()
         {
             DisableCachedShadowSlot();
+            HDShadowManager.instance.m_TMP_TEST.EvictLight(this);
         }
 
         void OnDisable()
         {
             DisableCachedShadowSlot();
+            HDShadowManager.instance.m_TMP_TEST.EvictLight(this);
             SetEmissiveMeshRendererEnabled(false);
         }
 
@@ -2283,6 +2289,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UpdateBounds();
             DisableCachedShadowSlot();
+
+            // TODO: VERIFY THIS TODO_FCC
+            bool wentThroughCachedShadowSystem = m_LightIdxForCacheSystem > 0;
+            if(wentThroughCachedShadowSystem && shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
+            {
+                HDShadowManager.instance.m_TMP_TEST.EvictLight(this);
+                if(enabled)
+                    HDShadowManager.instance.m_TMP_TEST.RegisterLight(this);
+            }
+
             m_ShadowMapRenderedSinceLastRequest = false;
 
 #if UNITY_EDITOR

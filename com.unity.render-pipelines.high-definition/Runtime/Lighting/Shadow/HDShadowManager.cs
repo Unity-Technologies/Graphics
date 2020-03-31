@@ -252,6 +252,11 @@ namespace UnityEngine.Rendering.HighDefinition
         HDShadowAtlas               m_Atlas;
         HDShadowAtlas               m_AreaLightShadowAtlas;
 
+
+        // TMP REMOVE
+        public HDShadowInitParameters initParams;
+        public HDCachedShadowAtlas m_TMP_TEST; // TODO_FCC: REMOVE!!
+
         int                         m_MaxShadowRequests;
         int                         m_ShadowRequestCount;
         int                         m_CascadeCount;
@@ -263,7 +268,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         private HDShadowManager()
-        {}
+        {
+            m_TMP_TEST = new HDCachedShadowAtlas();
+        }
 
         public void InitShadowManager(RenderPipelineResources renderPipelineResources, DepthBits directionalShadowDepthBits,
                             HDShadowInitParameters.HDShadowAtlasInitParams punctualLightAtlasInfo, HDShadowInitParameters.HDShadowAtlasInitParams areaLightAtlasInfo, int maxShadowRequests, Shader clearShader)

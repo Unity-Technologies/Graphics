@@ -691,6 +691,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_ShadowInitParameters = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             m_ShadowManager = HDShadowManager.instance;
+            HDShadowManager.instance.initParams = m_ShadowInitParameters;
             m_ShadowManager.InitShadowManager(
                 defaultResources,
                 m_ShadowInitParameters.directionalShadowsDepthBits,
@@ -2455,6 +2456,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
+
+            m_ShadowManager.m_TMP_TEST.AssignOffsetsInAtlas(m_ShadowInitParameters);
+            m_ShadowManager.m_TMP_TEST.DebugPrintAtlas();
+        //    m_ShadowManager.m_TMP_TEST.DebugPrintAtlas();
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU)))
             {
