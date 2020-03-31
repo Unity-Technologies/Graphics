@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.Operator
 
             // Camera expressions
             var expressions = Block.CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this), camera);
-			// camera matrix is already in world even in custom mode due to GetOutputSpaceFromSlot returning world space
+            // camera matrix is already in world even in custom mode due to GetOutputSpaceFromSlot returning world space
             Block.CameraMatricesExpressions camMatrices = Block.CameraHelper.GetMatricesExpressions(expressions, VFXCoordinateSpace.World, VFXCoordinateSpace.World);
 
             var Camera_depthBuffer = expressions.First(e => e.name == "Camera_depthBuffer").exp;

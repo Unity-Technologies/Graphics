@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         const string kMaterialUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl";
         const string kDecalUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl";
         //pre graph material includes
+        const string kDebugDisplay = "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl";
         const string kUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl";
         const string kLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl";
         const string kEye = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl";
@@ -51,6 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         const string kPassGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl";
         const string kPassForward = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl";
         const string kPassDecal = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl";
+        const string kPassConstant = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl";
         //pregraph raytracing includes
         const string kRaytracingMacros = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl";
         const string kShaderVariablesRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl";
@@ -61,6 +63,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         const string kLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl";
         const string kUnlitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl";
         const string kFabricRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl";
+        const string kStackLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitRaytracing.hlsl";
+        const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";
         const string kRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl";
         const string kRaytracingCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl";
         const string kNormalBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl";
@@ -80,6 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { kShaderVariables, IncludeLocation.Pregraph },
             { kFragInputs, IncludeLocation.Pregraph },
             { kShaderPass, IncludeLocation.Pregraph },
+            { kDebugDisplay, IncludeLocation.Pregraph },            
             { kMaterial, IncludeLocation.Pregraph },
         };
         public static IncludeCollection CoreUtility = new IncludeCollection
@@ -169,6 +174,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { LitCommon },
             { kPassDepthOnly, IncludeLocation.Postgraph },
+        };
+
+        public static IncludeCollection RayTracingPrepass = new IncludeCollection
+        {
+            { LitCommon },
+            { kPassConstant, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection LitMotionVectors = new IncludeCollection
@@ -439,6 +450,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { kLit, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Lit, true)},
             { kFabric, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Fabric, true)},
             { kUnlit, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Unlit, true )},
+            { kStackLit, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.StackLit, true )},
+            { kHair, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Hair, true )},
 
             // We want to have the normal buffer include if this is a gbuffer and unlit shader
             { kNormalBuffer, IncludeLocation.Pregraph, new FieldCondition[]{
@@ -452,7 +465,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
             { kLitRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Lit, true)},
             { kFabricRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Fabric, true)},
+            { kStackLitRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.StackLit, true)},
             { kUnlitRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Unlit, true )},
+            { kHairRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Hair, true )},
       
 
             // We want to have the ray tracing light loop if this is an indirect sub-shader or a forward one and it is not the unlit shader

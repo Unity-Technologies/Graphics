@@ -21,6 +21,8 @@ A [Master Node](Master-Node.md) for unlit materials.
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| Surface      | Dropdown | Opaque, Transparent | Defines if the material is transparent |
-| Blend      | Dropdown | Alpha, Premultiply, Additive, Multiply | Defines blend mode of a transparent material |
-| Two Sided      | Toggle | True, False | If true both front and back faces of the mesh are rendered |
+| Surface      | Dropdown | Opaque, Transparent | Defines whether the material is transparent. |
+| Blend      | Dropdown | Alpha, Premultiply, Additive, Multiply | Defines blend mode of a transparent material. |
+| Two Sided      | Toggle | True, False | If `true`, renders both front and back faces of the mesh.|
+| Override ShaderGUI | Toggle | True, False | Lets you override the [ShaderGUI](https://docs.unity3d.com/ScriptReference/ShaderGUI.html) that this Shader Graph uses. If `true`, the **ShaderGUI** property appears, which lets you specify the ShaderGUI to use. |
+| - ShaderGUI      | TextField | Text | The full name of the ShaderGUI class to use, including the class path. |

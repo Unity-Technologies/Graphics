@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
             public static float reorderableListHandleIndentWidth = 12;
             public static float indentSpaceInPixels = 16;
+            public static float helpBoxHeight = EditorGUIUtility.singleLineHeight * 2;
             public static GUIContent callback = new GUIContent("Event", "Chose the Callback position for this render pass object.");
             public static GUIContent enabled = new GUIContent("Enabled", "Enable or Disable the custom pass");
 
@@ -54,6 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static string unlitShaderMessage = "HDRP Unlit shaders will force the shader passes to \"ForwardOnly\"";
             public static string hdrpLitShaderMessage = "HDRP Lit shaders are not supported in a custom pass";
+            public static string opaqueObjectWithDeferred = "Your HDRP settings does not support ForwardOnly, some object might not render.";
         }
 
         //Headers and layout
@@ -154,6 +156,23 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        // Tel if we need to show a warning for rendering opaque object and we're in deferred.
+        bool ShowOpaqueObjectWarning()
+        {
+            // Only opaque objects are concerned
+            RenderQueueRange currentRange = CustomPass.GetRenderQueueRangeFromRenderQueueType((CustomPass.RenderQueueType)m_RenderQueue.intValue);
+            var allOpaque = HDRenderQueue.k_RenderQueue_AllOpaque;
+            bool customPassQueueContainsOpaqueObjects = currentRange.upperBound >= allOpaque.lowerBound && currentRange.lowerBound <= allOpaque.upperBound;
+            if (!customPassQueueContainsOpaqueObjects)
+                return false;
+
+            // Only Deferred rendering
+            if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
+                return false;
+
+            return true;
+        }
+
         void DoFilters(ref Rect rect)
         {
             m_FilterFoldout.boolValue = EditorGUI.Foldout(rect, m_FilterFoldout.boolValue, Styles.filtersHeader, true);
@@ -166,10 +185,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 // TODO: remove all this code when the fix for SerializedReference lands
                 m_RenderQueue.intValue = (int)(CustomPass.RenderQueueType)EditorGUI.EnumPopup(rect, Styles.renderQueueFilter, (CustomPass.RenderQueueType)m_RenderQueue.intValue);
                 rect.y += Styles.defaultLineSpace;
+                if (ShowOpaqueObjectWarning())
+                {
+                    Rect helpBoxRect = rect;
+                    helpBoxRect.xMin += EditorGUI.indentLevel * Styles.indentSpaceInPixels;
+                    helpBoxRect.height = Styles.helpBoxHeight;
+                    EditorGUI.HelpBox(helpBoxRect, Styles.opaqueObjectWithDeferred, MessageType.Error);
+                    rect.y += Styles.helpBoxHeight;
+                }
                 //Layer mask
                 EditorGUI.PropertyField(rect, m_LayerMask, Styles.layerMask);
                 rect.y += Styles.defaultLineSpace;
-                //Shader pass list
                 EditorGUI.indentLevel--;
             }
         }
@@ -268,7 +294,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override float GetPassHeight(SerializedProperty customPass)
         {
-            float height = Styles.defaultLineSpace * (m_FilterFoldout.boolValue ? m_FilterLines : 1);
+            float height = Styles.defaultLineSpace;
+
+            if (m_FilterFoldout.boolValue)
+            {
+                height *= m_FilterLines;
+                height += ShowOpaqueObjectWarning() ? Styles.helpBoxHeight : 0;
+            }
 
             height += Styles.defaultLineSpace; // add line for overrides dropdown
             if (m_RendererFoldout.boolValue)

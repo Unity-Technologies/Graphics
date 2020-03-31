@@ -246,7 +246,6 @@ namespace UnityEditor.VFX.UI
             }
 
 
-
             VFXDataEdge dataEdge  = edge as VFXDataEdge;
             bool exists = false;
             if (dataEdge.controller != null)

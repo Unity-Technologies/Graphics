@@ -214,7 +214,7 @@ namespace UnityEditor.VFX
 
         protected virtual string expectedOutputName { get { return string.Empty; } }
 
-        protected virtual VFXPropertyAttribute[] expectedOutputAttributes { get { return null; } }
+        protected virtual VFXPropertyAttributes expectedOutputAttributes { get { return new VFXPropertyAttributes(); } }
 
         protected override sealed IEnumerable<VFXPropertyWithValue> outputProperties
         {

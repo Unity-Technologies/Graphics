@@ -11,7 +11,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class HairSettingsView : VisualElement
+    class HairSettingsView : MasterNodeSettingsView
     {
         HairMasterNode m_Node;
 
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
-        public HairSettingsView(HairMasterNode node)
+        public HairSettingsView(HairMasterNode node) : base(node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
@@ -172,6 +172,15 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                         toggle.OnToggleChanged(ChangeAlphaTestShadow);
                     });
                 });
+                
+                ps.Add(new PropertyRow(CreateLabel("Alpha to Mask", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.alphaToMask.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaToMask);
+                    });
+                });
                 --indentLevel;
             }
 
@@ -257,6 +266,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             });
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeSurfaceType(ChangeEvent<Enum> evt)
@@ -330,6 +340,14 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             ToggleData td = m_Node.alphaTest;
             td.isOn = evt.newValue;
             m_Node.alphaTest = td;
+        }
+
+        void ChangeAlphaToMask(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha to Mask Change");
+            ToggleData td = m_Node.alphaToMask;
+            td.isOn = evt.newValue;
+            m_Node.alphaToMask = td;
         }
 
         void ChangeAlphaTestPrepass(ChangeEvent<bool> evt)
