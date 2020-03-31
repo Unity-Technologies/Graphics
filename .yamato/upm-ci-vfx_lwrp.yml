@@ -79,7 +79,6 @@ linux_apis:
     flavor: b1.large
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
-  skip_checkout: true
   {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
     CUSTOM_REVISION: custom_revision_not_set
@@ -204,7 +203,6 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
       type: Unity::VM::osx
       image: buildfarm/mac:stable
       flavor: m1.mac
-  skip_checkout: true
   {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
     CUSTOM_REVISION: custom_revision_not_set
@@ -301,7 +299,6 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
     type: Unity::metal::macmini
     image: slough-ops/macos-10.14-xcode:stable
     flavor: m1.mac
-  skip_checkout: true
 {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
     CUSTOM_REVISION: custom_revision_not_set

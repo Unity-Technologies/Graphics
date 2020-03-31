@@ -42,7 +42,6 @@ projects:
     flavor: b1.large
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
-  skip_checkout: true
 {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
     CUSTOM_REVISION: custom_revision_not_set
