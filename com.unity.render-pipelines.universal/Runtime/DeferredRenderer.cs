@@ -9,7 +9,6 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public sealed class DeferredRenderer : ScriptableRenderer
     {
-        public static readonly int k_GBufferSlicesCount = 3;
         public static readonly int k_DepthStencilBufferBits = 32;
 
         static readonly string k_CreateCameraTextures = "Create Camera Texture";
@@ -46,7 +45,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_CameraColorTexture;
         RenderTargetHandle m_CameraDepthTexture;
         RenderTargetHandle m_CameraDepthAttachment;
-        RenderTargetHandle[] m_GBufferAttachments = new RenderTargetHandle[k_GBufferSlicesCount];
+        RenderTargetHandle[] m_GBufferAttachments = new RenderTargetHandle[DeferredConfig.kGBufferSliceCount];
         RenderTargetHandle m_OpaqueColor;
         RenderTargetHandle m_AfterPostProcessColor;
         RenderTargetHandle m_ColorGradingLut;
@@ -190,7 +189,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (requiresDepthPrepass)
                 {
-                    m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthTexture);
+                    m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthAttachment);
                     EnqueuePass(m_DepthPrepass);
                 }
 
@@ -431,18 +430,15 @@ namespace UnityEngine.Rendering.Universal
 
         void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
-            RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[k_GBufferSlicesCount + 1];
-            for (int gbufferIndex = 0; gbufferIndex < k_GBufferSlicesCount; ++gbufferIndex)
-                gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
-            gbufferColorAttachments[k_GBufferSlicesCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
-            m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, gbufferColorAttachments, hasDepthPrepass);
+            m_GBufferAttachments[DeferredConfig.kGBufferLightingIndex] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
+            m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, m_GBufferAttachments, hasDepthPrepass);
             EnqueuePass(m_GBufferPass);
 
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
             m_CopyDepthPass0.Setup(m_CameraDepthAttachment, m_CameraDepthTexture);
             EnqueuePass(m_CopyDepthPass0);
 
-            m_DeferredLights.Setup(ref renderingData, applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null, m_CameraDepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_CameraDepthAttachment, gbufferColorAttachments);
+            m_DeferredLights.Setup(ref renderingData, applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null, m_CameraDepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_CameraDepthAttachment, m_GBufferAttachments);
             // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
             // At this point, we do not know if m_DeferredLights.m_Tilers[x].m_Tiles actually contain any indices of lights intersecting tiles (If there are no lights intersecting tiles, we could skip several following passes) : this information is computed in DeferredRender.SetupLights, which is called later by UniversalRenderPipeline.RenderSingleCamera (via ScriptableRenderer.Execute).
             // However HasTileLights uses m_HasTileVisLights which is calculated by CheckHasTileLights from all visibleLights. visibleLights is the list of lights that have passed camera culling, so we know they are in front of the camera. So we can assume m_DeferredLights.m_Tilers[x].m_Tiles will not be empty in that case.

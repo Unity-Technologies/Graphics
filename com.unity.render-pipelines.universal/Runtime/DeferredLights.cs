@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using Unity.Collections;
 using Unity.Jobs;
@@ -62,6 +63,27 @@ namespace UnityEngine.Rendering.Universal.Internal
 #else
         public const bool kHasNativeQuadSupport = false;
 #endif
+        public const int kGBufferAlbedoIndex = 0;
+        public const int kGBufferSpecularMetallicIndex = 1;
+        public const int kGBufferNormalSmoothnessIndex = 2;
+        public const int kGBufferLightingIndex = 3;
+        public const int kGBufferDepthIndex = 4;
+
+        public const int kGBufferSliceCount = 4;
+
+        public static GraphicsFormat GetGBufferFormat(int index, bool accurateGbufferNormals = false)
+        {
+            switch(index)
+            {
+                case kGBufferAlbedoIndex:           return GraphicsFormat.R8G8B8A8_SRGB;    // albedo          albedo          albedo          occlusion       (sRGB rendertarget)
+                case kGBufferSpecularMetallicIndex: return GraphicsFormat.R8G8B8A8_SRGB;    // specular        specular        specular        metallic        (sRGB rendertarget)
+                case kGBufferNormalSmoothnessIndex: return accurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm;
+                                                                                            // encoded-normal  encoded-normal  encoded-normal  smoothness
+                case kGBufferLightingIndex:         return GraphicsFormat.None;             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
+                case kGBufferDepthIndex:            return GraphicsFormat.R32_SFloat;       // Optional: some mobile platforms are faster reading back depth as color instead of real depth.
+                default:                            return GraphicsFormat.None;
+            }
+        }
     }
 
     // Manages tiled-based deferred lights.
