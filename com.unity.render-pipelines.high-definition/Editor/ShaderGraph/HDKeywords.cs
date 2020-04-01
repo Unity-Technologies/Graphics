@@ -211,24 +211,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 scope = KeywordScope.Local,
             };
 
-            public static KeywordDescriptor TransparentDepthPrepass = new KeywordDescriptor()
-            {
-                displayName = "Transparent Depth Prepass",
-                referenceName = "CUTOFF_TRANSPARENT_DEPTH_PREPASS",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.ShaderFeature,
-                scope = KeywordScope.Local,
-            };
-
-            public static KeywordDescriptor TransparentDepthPostpass = new KeywordDescriptor()
-            {
-                displayName = "Transparent Depth Postpass",
-                referenceName = "CUTOFF_TRANSPARENT_DEPTH_POSTPASS",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.ShaderFeature,
-                scope = KeywordScope.Local,
-            };
-
             public static KeywordDescriptor Decals3RT = new KeywordDescriptor()
             {
                 displayName = "Decals 3RT",
@@ -264,6 +246,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local
             };
+
+            public static KeywordDescriptor AlphaToMask = new KeywordDescriptor()
+            {
+                displayName = "Alpha To Mask",
+                referenceName = "_ALPHATOMASK_ON",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local
+            };
         }
         public static KeywordCollection HDBase = new KeywordCollection
         {
@@ -273,19 +264,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Descriptors.DoubleSided, new FieldCondition(HDFields.SubShader.Unlit, false) },
             { Descriptors.FogOnTransparent },
             { Descriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
-        };
-
-        public static KeywordCollection TransparentDepthPrepass = new KeywordCollection
-        {
-            { HDBase },
-            { Descriptors.AlphaTest, new FieldCondition(HDFields.AlphaTestPrepass, true) },
-            { Descriptors.WriteNormalBufferDefine, new FieldCondition(HDFields.DisableSSRTransparent, false) },
-        };
-
-        public static KeywordCollection TransparentDepthPostpass = new KeywordCollection
-        {
-            { HDBase },
-            { Descriptors.AlphaTest, new FieldCondition(HDFields.AlphaTestPostpass, true) },
         };
 
         public static KeywordCollection Lightmaps = new KeywordCollection
@@ -346,6 +324,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { HDBase },
             { Descriptors.WriteMsaaDepth },
+            { Descriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
         };
 
         public static KeywordCollection HDUnlitForward = new KeywordCollection
@@ -369,6 +348,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { HDBase },
             { Descriptors.WriteMsaaDepth },
             { Descriptors.WriteNormalBuffer },
+            { Descriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
         };
 
         public static KeywordCollection HDForward = new KeywordCollection
@@ -386,6 +366,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { HDBase },
             { Descriptors.WriteMsaaDepth },
+            { Descriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
         };
 
         public static KeywordCollection RaytracingIndirect = new KeywordCollection
