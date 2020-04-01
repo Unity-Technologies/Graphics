@@ -23,13 +23,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         // ScriptableRenderPass
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
-        {
-            // TODO: Cannot currently bind depth texture as read-only!
-            ConfigureTarget(m_DeferredLights.m_GbufferColorAttachments[3].Identifier(), m_DeferredLights.m_DepthTexture.Identifier());
-        }
-
-        // ScriptableRenderPass
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_DeferredLights.ExecuteDeferredPass(context, ref renderingData);

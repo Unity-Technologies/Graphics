@@ -751,12 +751,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             // This must be set for each eye in XR mode multipass.
             SetupMatrixConstants(cmd, ref renderingData);
 
-            // Bug in XR Multi-pass mode where gbuffer2 is not correctly rendered/bound for the right eye.
-            // Workaround is to bind gbuffer textures explicitely here.
-            cmd.SetGlobalTexture(m_GbufferColorAttachments[0].id, this.m_GbufferColorAttachments[0].Identifier());
-            cmd.SetGlobalTexture(m_GbufferColorAttachments[1].id, this.m_GbufferColorAttachments[1].Identifier());
-            cmd.SetGlobalTexture(m_GbufferColorAttachments[2].id, this.m_GbufferColorAttachments[2].Identifier());
-
             RenderTileLights(context, cmd, ref renderingData);
 
             RenderStencilLights(context, cmd, ref renderingData);

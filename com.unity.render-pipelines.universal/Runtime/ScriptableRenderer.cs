@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
@@ -488,6 +489,13 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveRenderPassQueue.Add(pass);
         }
 
+        public void EnqueueRenderPass(ScriptableRenderPass pass, RenderTextureDescriptor passDescriptor,
+            bool readOnlyDepth = true)
+        {
+            pass.ConfigureRenderPassDescriptor(passDescriptor.width, passDescriptor.height, passDescriptor.msaaSamples, readOnlyDepth);
+            EnqueuePass(pass);
+        }
+
         /// <summary>
         /// Returns a clear flag based on CameraClearFlags.
         /// </summary>
@@ -620,7 +628,9 @@ namespace UnityEngine.Rendering.Universal
 
                             for (int i = 0; i < rp.colorAttachmentDescriptors.Length; i++)
                             {
-                                if (rp.colorAttachmentDescriptors[i].loadStoreTarget == BuiltinRenderTextureType.None) //First invalid means we are done with the attachments
+                                if (rp.colorAttachmentDescriptors[i].loadStoreTarget == BuiltinRenderTextureType.None //First invalid means we are done with the attachments
+                                    && rp.colorAttachmentDescriptors[i].storeAction != RenderBufferStoreAction.DontCare //This also checks whether it's a transient texture
+                                    && rp.colorAttachmentDescriptors[i].loadAction != RenderBufferLoadAction.DontCare)
                                     break;
                                 attachmentSet.Add(rp.colorAttachmentDescriptors[i]);
                             }
@@ -649,10 +659,12 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     //Map color and input attachments for the subpass
+
                     descriptors = new NativeArray<AttachmentDescriptor>(attachmentSet.ToArray(), Allocator.Temp);
+
                     if (descriptors.Length > k_MaxAttachmentCount)
                     {
-                        Debug.LogError("Maximum attachment count " + k_MaxAttachmentCount + " has been exceeded");
+                        Debug.LogError("Maximum attachment count " + k_MaxAttachmentCount + " has been exceeded with " + descriptors.Length);
                         break;
                     }
 
