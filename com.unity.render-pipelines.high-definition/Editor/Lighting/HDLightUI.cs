@@ -606,10 +606,10 @@ namespace UnityEditor.Rendering.HighDefinition
             Rect valueRect = lineRect;
             Rect labelRect = lineRect;
             labelRect.width = EditorGUIUtility.labelWidth;
-            valueRect.x += labelRect.width - indent + k_PrefixPaddingRight;
+
             // We use PropertyField to draw the value to keep the handle at left of the field
-            // This will apply the indent again thus we need to remove it two time for alignment
-            valueRect.width -= labelRect.width + k_UnitWidth - indent - indent + k_PrefixPaddingRight + k_ValueUnitSeparator;
+            // This will apply the indent again thus we need to remove it time for alignment
+            valueRect.width += indent - k_ValueUnitSeparator - k_UnitWidth;
             Rect unitRect = valueRect;
             unitRect.x += valueRect.width - indent + k_ValueUnitSeparator;
             unitRect.width = k_UnitWidth + .5f;
@@ -623,8 +623,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
-
-            EditorGUI.PropertyField(valueRect, serialized.intensity, GUIContent.none);
+            
+            EditorGUI.PropertyField(valueRect, serialized.intensity, s_Styles.empty);
             DrawLightIntensityUnitPopup(unitRect, serialized, owner);
 
             if (EditorGUI.EndChangeCheck())
