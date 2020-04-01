@@ -931,8 +931,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     userData = edge,
                     output = sourceAnchor,
                     input = targetAnchor,
-                    isGhostEdge = !isEdgeActive
                 };
+
+                SetEdgeViewOpacity(edgeView, isEdgeActive ? 1f : 0.5f);
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
                 m_GraphView.AddElement(edgeView);
@@ -945,6 +946,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             return null;
+        }
+
+        private void SetEdgeViewOpacity(Edge edgeView, float v)
+        {
         }
 
         Stack<Node> m_NodeStack = new Stack<Node>();
@@ -971,9 +976,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             //if any node connected is not active, edge should be dimmed
                             if(!inputNode.node.isActive || !outputNode.node.isActive)
-                                edgeView.isGhostEdge = true;
+                                SetEdgeViewOpacity(edgeView, 0.5f);
                             else
-                                edgeView.isGhostEdge = false;
+                                SetEdgeViewOpacity(edgeView, 1f);
                             //force redraw on update to prevent visual lag in the graph
                             edgeView.UpdateEdgeControl();
                         }
@@ -1002,9 +1007,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             //if any node connected is not active, edge should be dimmed
                             if(!inputNode.node.isActive || !outputNode.node.isActive)
-                                edgeView.isGhostEdge = true;
+                                SetEdgeViewOpacity(edgeView, 0.5f);
                             else
-                                edgeView.isGhostEdge = false;
+                                SetEdgeViewOpacity(edgeView, 1f);
                             //force redraw on update to prevent visual lag in the graph
                             edgeView.UpdateEdgeControl();
                         }
