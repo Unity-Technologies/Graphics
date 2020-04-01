@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -74,6 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.HDLit.TransparentDepthPrepass, new FieldCondition(HDFields.TransparentDepthPrePass, true) },
                 { HDPasses.HDLit.Forward },
                 { HDPasses.HDLit.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
+                { HDPasses.HDLit.RayTracingPrepass, new FieldCondition(HDFields.RayTracing, true) },
             },
             customEditorOverride = "Rendering.HighDefinition.HDLitGUI",
         };
@@ -173,6 +174,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.FabricRaytracing.Forward, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.FabricRaytracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.FabricRaytracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
+            },
+        };
+
+        public static SubShaderDescriptor StackLitRaytracing = new SubShaderDescriptor()
+        {
+            pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = false,
+            passes = new PassCollection
+            {
+                { HDPasses.StackLitRayTracing.Indirect, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.StackLitRayTracing.Visibility, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.StackLitRayTracing.Forward, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.StackLitRayTracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.StackLitRayTracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
+            },
+        };
+
+        public static SubShaderDescriptor HairRaytracing = new SubShaderDescriptor()
+        {
+            pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = false,
+            passes = new PassCollection
+            {
+                { HDPasses.HairRayTracing.Indirect, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HairRayTracing.Visibility, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HairRayTracing.Forward, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HairRayTracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HairRayTracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
             },
         };
 

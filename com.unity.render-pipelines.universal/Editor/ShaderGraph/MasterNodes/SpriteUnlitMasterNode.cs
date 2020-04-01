@@ -88,6 +88,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
                 // Blend Mode
                 new ConditionalField(Fields.BlendAlpha,          true),
+
+                // Culling
+                new ConditionalField(Fields.DoubleSided,         true),
             };
         }
 
