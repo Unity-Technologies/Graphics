@@ -28,6 +28,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         private static readonly string TestGraphLocation = "Assets/Testing/CreatedTestGraphs/";
         private static readonly string TestPrefix = "_Test_";
         private const float CompilationTimeout = 30f;
+        private static bool verbose = false;
 
 
         public static void CloseAllOpenShaderGraphWindows()
@@ -104,7 +105,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             if (graphToCopy.isSubGraph)
             {
-                Debug.Log("CreationTests: Graph was a subgraph - creating subgraph asset");
+                if(verbose) Debug.Log("CreationTests : Graph was a subgraph - creating subgraph asset");
                 graphData.isSubGraph = true;
                 SubGraphOutputNode rootOutput = rootNode as SubGraphOutputNode;
                 graphData.AddNode(rootOutput);
@@ -126,7 +127,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
             else
             {
-                Debug.Log("CreationTests: Graph was not a subgraph - creating shadergraph asset");
+                if(verbose) Debug.Log("CreationTests : Graph was not a subgraph - creating shadergraph asset");
                 graphData.AddNode(rootNode);
                 graphData.path = "Shader Graphs";
                 string outputPath = TestGraphLocation + TestPrefix + Path.GetFileNameWithoutExtension(basedOnGraph)
@@ -155,7 +156,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 {
                     string outputPath = TestGraphLocation + TestPrefix + Path.GetFileNameWithoutExtension(assetPath)
                                       + '.' + ShaderGraphImporter.Extension;
-                    Debug.Log("CreationTests: " + ShaderGraphImporter.GetShaderText(outputPath, out List<PropertyCollector.TextureInfo> configuredTextures));
+                    if(verbose) Debug.Log("CreationTests : " + ShaderGraphImporter.GetShaderText(outputPath, out List<PropertyCollector.TextureInfo> configuredTextures));
                 }
 
                 testGraphWindow.Close();
@@ -174,7 +175,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             try
             {
-                Debug.Log("CreationTests: Attempting to open MaterialGraphEditWindows and grab needed GraphObjects");
+                if(verbose) Debug.Log("CreationTests : Attempting to open MaterialGraphEditWindows and grab needed GraphObjects");
                 copyWindow = OpenShaderGraphWindowForAsset(assetPath);
                 graphObjectToCopy = copyWindow.GetPrivateProperty<GraphObject>("graphObject");
                 string testGraphPath;
@@ -192,7 +193,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 testGraphWindow = OpenShaderGraphWindowForAsset(testGraphPath);
                 testGraphWindow.Focus();
                 testGraphObject = testGraphWindow.GetPrivateProperty<GraphObject>("graphObject");
-                Debug.Log("CreationTests: Succesfully opened MaterialGraphEditWindows and grabbed needed GraphObjects");
+                if(verbose) Debug.Log("CreationTests : Succesfully opened MaterialGraphEditWindows and grabbed needed GraphObjects");
             }
             catch (Exception cantOpenWindowsOrAccessPrivatePropertyException)
             {
@@ -226,8 +227,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
             while (stack.Count > 0)
             {
-                Debug.Log("CreationTests: Start loop");
-                Debug.Log("CreationTests: Current stack:");
+                if(verbose) Debug.Log("CreationTests : Start loop");
+                if(verbose) Debug.Log("CreationTests : Current stack:");
                 foreach(var item in stack)
                 {
                     Debug.Log($"CreationTests: -- node : {item.Item1.ToString()} slot to : {item.Item2?.ToString()} slot from : {item.Item3?.ToString()}");
@@ -236,27 +237,27 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 Debug.Log($"CreationTests:  popped node : {node.ToString()} slot to : {to?.ToString()} slot from : {from?.ToString()}");
                 if (permanentMarks.Contains((node, to, from)))
                 {
-                    Debug.Log("CreationTests: Permanent marks contains entry, continuing");
+                    if(verbose) Debug.Log("CreationTests : Permanent marks contains entry, continuing");
                     continue;
                 }
 
                 if (temporaryMarks.Contains((node, to, from)))
                 {
-                    Debug.Log("CreationTests: Temporary marks contains enty, checking if add is needed");
+                    if(verbose) Debug.Log("CreationTests : Temporary marks contains enty, checking if add is needed");
                     if (!nodeLookup.ContainsKey(node))
                     {
-                        Debug.Log("CreationTests: Add needed");
+                        if(verbose) Debug.Log("CreationTests : Add needed");
                         yield return UserlikeAddNode(node, testGraphWindow, nodeLookup, debugData);
                         afterUserAddNode?.Invoke();
                     }
 
                     if (to.HasValue)
                     {
-                        Debug.Log("CreationTests: To slot has a value, checking if add is needed");
+                        if(verbose) Debug.Log("CreationTests : To slot has a value, checking if add is needed");
                         AbstractMaterialNode toNode = graphObjectToCopy.graph.GetNodeFromGuid(to.Value.nodeGuid);
                         if (toNode != null && !nodeLookup.ContainsKey(toNode))
                         {
-                            Debug.Log("CreationTests: Add needed");
+                            if(verbose) Debug.Log("CreationTests : Add needed");
                             yield return UserlikeAddNode(toNode, testGraphWindow, nodeLookup, debugData);
                             afterUserAddNode?.Invoke();
                             permanentMarks.Add((toNode, null, null));
@@ -264,7 +265,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                         Assert.IsTrue(from.HasValue);
                         try
                         {
-                            Debug.Log("CreationTests: Adding edge");
+                            if(verbose) Debug.Log("CreationTests : Adding edge");
                             UserlikeAddEdge(to.Value, from.Value, ref graphObjectToCopy, ref testGraphObject, ref nodeLookup);
                             afterUserAddEdge?.Invoke();
                         }
@@ -291,7 +292,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 }
                 else
                 {
-                    Debug.Log("CreationTests: Neither permanent nor temporary marks contained entry, add entry and grab children");
+                    if(verbose) Debug.Log("CreationTests : Neither permanent nor temporary marks contained entry, add entry and grab children");
                     temporaryMarks.Add((node, to, from));
                     stack.Push((node, to, from));
                     node.GetInputSlots(slots);
@@ -381,7 +382,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                                                                              Dictionary<AbstractMaterialNode, AbstractMaterialNode> nodeLookup,
                                                                              (string, bool, MaterialGraphEditWindow, MaterialGraphEditWindow) debugData)
         {
-            Debug.Log("CreationTests: Begin UserlikeAddInlineNodeAndConvertToProperty");
+            if(verbose) Debug.Log("CreationTests : Begin UserlikeAddInlineNodeAndConvertToProperty");
             //find coresponding shader property
             AbstractShaderProperty property = propertyNode.owner.properties.FirstOrDefault(x => x.guid == propertyNode.propertyGuid);
             Assert.IsNotNull(property);
@@ -408,7 +409,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             nodeLookup.Add(propertyNode, searcherAddedNode);
             searcherAddedNode = null;
-            Debug.Log("CreationTests: End UserlikeAddInlineNodeAndConvertToProperty");
+            if(verbose) Debug.Log("CreationTests : End UserlikeAddInlineNodeAndConvertToProperty");
         }
 
         private static AbstractMaterialNode searcherAddedNode;
@@ -433,7 +434,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                                                                              GraphEditorView graphEditorView,
                                                                              (string, bool, MaterialGraphEditWindow, MaterialGraphEditWindow) debugData)
         {
-            Debug.Log("CreationTests: Begin UserlikeAddNodeUsingSearcherAndCopyValues");
+            if(verbose) Debug.Log("CreationTests : Begin UserlikeAddNodeUsingSearcherAndCopyValues");
 
             //Need to access the searcherprovider to call OnSearcherSelectEntry
             SearchWindowProvider searchWindowProvider = graphEditorView.GetPrivateField<SearchWindowProvider>("m_SearchWindowProvider");
@@ -472,6 +473,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 }
             }
             Assert.IsNotNull(searcherAddedNode);
+            searcherAddedNode.previewExpanded = false;
 
             var inputs = node.GetInputsWithNoConnection();
             foreach (var input in inputs)
@@ -499,7 +501,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 searcherWindow.Close();
             }
-            Debug.Log("CreationTests: End UserlikeAddNodeUsingSearcherAndCopyValues");
+            if(verbose) Debug.Log("CreationTests : End UserlikeAddNodeUsingSearcherAndCopyValues");
         }
 
         private static IEnumerator DefaultAddNode(AbstractMaterialNode node,
@@ -542,12 +544,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             if (node is PropertyNode propertyNode)
             {
-                Debug.Log("CreationTests: Node was a property node");
+                if(verbose) Debug.Log("CreationTests : Node was a property node");
                 yield return UserlikeAddInlineNodeAndConvertToProperty(propertyNode, graphObject, testGraphWindow, graphEditorView, nodeLookup, debugData);
             }
             else
             {
-                Debug.Log("CreationTests: Node was not a property node");
+                if(verbose) Debug.Log("CreationTests : Node was not a property node");
                 yield return DefaultAddNode(node, graphObject, testGraphWindow, graphEditorView, nodeLookup, debugData);
             }
 
