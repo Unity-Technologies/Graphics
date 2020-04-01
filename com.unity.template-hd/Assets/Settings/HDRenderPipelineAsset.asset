@@ -209,7 +209,7 @@ MonoBehaviour:
     colorBufferFormat: 48
     supportCustomPass: 1
     customBufferFormat: 12
-    supportedLitShaderMode: 3
+    supportedLitShaderMode: 2
     supportDecals: 1
     msaaSampleCount: 1
     supportMotionVectors: 1

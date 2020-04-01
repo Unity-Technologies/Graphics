@@ -1652,11 +1652,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8366368646168435665, guid: 263b361516243224eaacb3a1e5fc5271, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 1
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: -7206025959204234863, guid: 263b361516243224eaacb3a1e5fc5271, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 1
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: -7206025959204234863, guid: 263b361516243224eaacb3a1e5fc5271, type: 3}
       propertyPath: m_IsActive
@@ -1768,7 +1768,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 782962999069852289, guid: 263b361516243224eaacb3a1e5fc5271, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 1
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 2256623152118636952, guid: 263b361516243224eaacb3a1e5fc5271, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -1776,7 +1776,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2579346506342229864, guid: 263b361516243224eaacb3a1e5fc5271, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 1
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 2854640206039601503, guid: 263b361516243224eaacb3a1e5fc5271, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -2345,7 +2345,7 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: -1.215004, y: 0.15317512, z: -0.26182783}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
-    resolution: 512
+    resolution: 1024
     cameraSettings:
       customRenderingSettings: 0
       renderingPathCustomFrameSettings:
