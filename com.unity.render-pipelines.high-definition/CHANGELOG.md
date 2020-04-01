@@ -502,6 +502,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Focus on Decal uses the extends of the projectors
 - Fixed usage of light size data that are not available at runtime.
 - Fixed the depth buffer copy made before custom pass after opaque and normal injection point.
+- Fix for issue that prevented scene from being completely saved when baked reflection probes are present and lighting is set to auto generate.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
