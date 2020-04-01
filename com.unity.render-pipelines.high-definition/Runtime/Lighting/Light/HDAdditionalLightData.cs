@@ -1830,8 +1830,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cachedDataIsValid = cachedDataIsValid || (legacyLight.type == LightType.Directional);
             shadowIsCached = shadowIsCached && (hasCachedSlotInAtlas && cachedDataIsValid || legacyLight.type == LightType.Directional);
 
-            bool hasOrthoMatrix = false;
-
             for (int index = 0; index < count; index++)
             {
                 var         shadowRequest = shadowRequests[index];
@@ -1886,7 +1884,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             );
                             break;
                         case HDLightType.Directional:
-                            hasOrthoMatrix = true;
                             UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
                             break;
                         case HDLightType.Area:
@@ -1952,7 +1949,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowRequest.position = new Vector3(shadowRequest.view.m03, shadowRequest.view.m13, shadowRequest.view.m23);
             }
             else
-                shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? visibleLight.GetPosition() - cameraPos : visibleLight.GetPosition();
+            {
+                var vlPos = visibleLight.GetPosition();
+                shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? vlPos - cameraPos : vlPos;
+            }
 
             shadowRequest.shadowToWorld = invViewProjection.transpose;
             shadowRequest.zClip = (lightType != HDLightType.Directional);
