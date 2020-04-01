@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused Android GLES to render blank screen when Depth texture was enabled without Opaque texture [case 1219325](https://issuetracker.unity3d.com/issues/scene-is-not-rendered-on-android-8-and-9-when-depth-texture-is-enabled-in-urp-asset)
 - Metallic slider on the Lit shader is now linear meaning correct values are used for PBR.
 - Fixed an issue with shadows not being correctly calculated in some shaders.
+- URP shaders that contain a priority slider now no longer have an offset of 50 by default.
 
 ## [7.3.0] - 2020-03-11
 
