@@ -2512,8 +2512,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     PrepareGPUProbeData(cmd, hdCamera, cullResults, hdProbeCullingResults, processedProbesCount);
                 }
 
-                HDShadowManager.instance.CheckForCulledCachedShadows();
-
                 if (decalDatasCount > 0)
                 {
                     for (int i = 0; i < decalDatasCount; i++)

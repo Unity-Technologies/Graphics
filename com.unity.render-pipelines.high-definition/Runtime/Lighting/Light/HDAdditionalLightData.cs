@@ -1453,9 +1453,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
 
         int[]               m_CachedResolutionRequestIndices = new int[6];
-        bool                m_CachedDataIsValid = true;
-        // This is useful to detect whether the atlas has been repacked since the light was last seen
-        int                 m_AtlasShapeID = 0;
 
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
@@ -1560,26 +1557,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-        
-        private void DisableCachedShadowSlot()
-        {
-            if (WillRenderShadowMap() && !ShadowIsUpdatedEveryFrame())
-            {
-                HDShadowManager.instance.MarkCachedShadowSlotsAsEmpty(shadowMapType, GetInstanceID());
-                HDShadowManager.instance.PruneEmptyCachedSlots(shadowMapType);  // We invalidate it all to be sure.
-                m_ShadowMapRenderedSinceLastRequest = false;
-            }
-        }
 
         void OnDestroy()
         {
-            DisableCachedShadowSlot();
             HDShadowManager.instance.m_TMP_TEST.EvictLight(this);
         }
 
         void OnDisable()
         {
-            DisableCachedShadowSlot();
             HDShadowManager.instance.m_TMP_TEST.EvictLight(this);
             SetEmissiveMeshRendererEnabled(false);
         }
@@ -1754,7 +1739,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int index = 0; index < count; index++)
             {
-                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(needsCachedSlotsInAtlas ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, needsCachedSlotsInAtlas, out m_CachedResolutionRequestIndices[index]);
+                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(needsCachedSlotsInAtlas ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index);
             }
         }
 
@@ -1823,10 +1808,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool hasCachedSlotInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
 
-            bool shouldUseRequestFromCachedList = shadowIsCached && hasCachedSlotInAtlas && !manager.AtlasHasResized(shadowMapType);
-            bool cachedDataIsValid = shadowIsCached && m_CachedDataIsValid && (manager.GetAtlasShapeID(shadowMapType) == m_AtlasShapeID) && manager.CachedDataIsValid(shadowMapType);
-            cachedDataIsValid = cachedDataIsValid || (legacyLight.type == LightType.Directional);
-            shadowIsCached = shadowIsCached && (hasCachedSlotInAtlas && cachedDataIsValid || legacyLight.type == LightType.Directional);
+            bool shouldUseRequestFromCachedList = shadowIsCached;
+            bool cachedDataIsValid = shadowIsCached && false; // TODO_FCC: THIS IS FALSE WHILE REFACTORING. OF COURSE REMOVE THIS.
 
             for (int index = 0; index < count; index++)
             {
@@ -1835,7 +1818,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Matrix4x4   invViewProjection = Matrix4x4.identity;
                 int         shadowRequestIndex = m_ShadowRequestIndices[index];
 
-                HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, shouldUseRequestFromCachedList, shouldUseRequestFromCachedList ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
+                HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, shadowRequestIndex);
 
                 if (resolutionRequest == null)
                     continue;
@@ -1909,9 +1892,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest);
                 shadowRequest.shouldUseCachedShadow = shadowRequest.shouldUseCachedShadow && cachedDataIsValid;
-
-                m_CachedDataIsValid = manager.CachedDataIsValid(shadowMapType);
-                m_AtlasShapeID = manager.GetAtlasShapeID(shadowMapType);
 
                 // Store the first shadow request id to return it
                 if (firstShadowRequestIndex == -1)
@@ -2288,13 +2268,14 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnValidate()
         {
             UpdateBounds();
-            DisableCachedShadowSlot();
 
             // TODO: VERIFY THIS TODO_FCC
-            bool wentThroughCachedShadowSystem = m_LightIdxForCacheSystem > 0;
-            if(wentThroughCachedShadowSystem && shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
-            {
+            bool wentThroughCachedShadowSystem = m_LightIdxForCacheSystem >= 0;
+            if(wentThroughCachedShadowSystem)
                 HDShadowManager.instance.m_TMP_TEST.EvictLight(this);
+
+            if (/*wentThroughCachedShadowSystem &&*/ shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
+            {
                 if(enabled)
                     HDShadowManager.instance.m_TMP_TEST.RegisterLight(this);
             }

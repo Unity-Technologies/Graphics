@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ShadowMapType    shadowMapType;
 
         /* Data for cached shadows */
-        public int              lightID;
+        public int lightID;
         public int              indexInLight = 0;
         public int              lastFrameActive = 0;
         public bool             emptyRequest = false;
@@ -335,16 +335,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CascadeAtlas.UpdateSize(atlasResolution);
         }
 
-        internal int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType, int lightID, int index, bool canBeCached, out int cachedRequestIdx)
+        internal int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType, int lightID, int index)
         {
-            cachedRequestIdx = -1;
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
             {
                 Debug.LogWarning("Max shadow requests count reached, dropping all exceeding requests. You can increase this limit by changing the max requests in the HDRP asset");
                 return -1;
             }
 
-            int cachedIndex = -1;
 
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].resolution = resolution;
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].shadowMapType = shadowMapType;
@@ -353,30 +351,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].indexInLight = index;
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].atlasViewport.width = resolution.x;
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].atlasViewport.height = resolution.y;
-            if (canBeCached)
-            {
-                m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].hasBeenStoredInCachedList = true;
-            }
-            else
-            {
-                m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].hasBeenStoredInCachedList = false;
-            }
 
             switch (shadowMapType)
             {
                 case ShadowMapType.PunctualAtlas:
-                    if(canBeCached)
-                    {
-                        cachedIndex = m_Atlas.RegisterCachedLight(m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter]);
-                    }
                     m_Atlas.ReserveResolution(m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter]);
                     break;
                 case ShadowMapType.AreaLightAtlas:
-                    if(canBeCached)
-                    {
-                        cachedIndex = m_AreaLightShadowAtlas.RegisterCachedLight(m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter]);
-                    }
-
                     m_AreaLightShadowAtlas.ReserveResolution(m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter]);
                     break;
                 case ShadowMapType.CascadedDirectional:
@@ -386,110 +367,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ShadowResolutionRequestCounter++;
             m_ShadowRequestCount = m_ShadowResolutionRequestCounter;
-            cachedRequestIdx = cachedIndex;
 
             return m_ShadowResolutionRequestCounter - 1;
         }
 
-        internal void MarkCachedShadowSlotsAsEmpty(ShadowMapType shadowMapType, int lightID)
+        internal HDShadowResolutionRequest GetResolutionRequest(ShadowMapType type, int index)
         {
-            switch (shadowMapType)
-            {
-                case ShadowMapType.PunctualAtlas:
-                    if(m_Atlas != null)
-                        m_Atlas.MarkCachedShadowSlotAsEmpty(lightID);
-                    break;
-                case ShadowMapType.AreaLightAtlas:
-                    if (m_AreaLightShadowAtlas != null)
-                        m_AreaLightShadowAtlas.MarkCachedShadowSlotAsEmpty(lightID);
-                    break;
-            }
-        }
+            if (index < 0 || index >= m_ShadowRequestCount)
+                return null;
 
-        internal void CheckForCulledCachedShadows()
-        {
-            m_Atlas.MarkCulledShadowMapAsEmptySlots();
-            if (ShaderConfig.s_AreaLights == 1)
-                m_AreaLightShadowAtlas.MarkCulledShadowMapAsEmptySlots();
-        }
-        internal bool CachedDataIsValid(ShadowMapType type)
-        {
-            const int thresholdOfValidFrames = 30;
-            switch (type)
-            {
-                case ShadowMapType.PunctualAtlas:
-                    return m_Atlas.frameOfCacheValidity > thresholdOfValidFrames;
-                case ShadowMapType.AreaLightAtlas:
-                    return m_AreaLightShadowAtlas.frameOfCacheValidity > thresholdOfValidFrames;
-            }
-
-            return false;
-        }
-
-        internal void PruneEmptyCachedSlots(ShadowMapType type)
-        {
-            switch (type)
-            {
-                case ShadowMapType.PunctualAtlas:
-                    if(m_Atlas != null)
-                        m_Atlas.PruneDeadCachedLightSlots();
-                    break;
-                case ShadowMapType.AreaLightAtlas:
-                    if (m_AreaLightShadowAtlas != null)
-                        m_AreaLightShadowAtlas.PruneDeadCachedLightSlots();
-                    break;
-                default:
-                    break;
-            }
-
-        }
-
-        internal int GetAtlasShapeID(ShadowMapType type)
-        {
-            switch (type)
-            {
-                case ShadowMapType.PunctualAtlas:
-                    return m_Atlas.atlasShapeID;
-                case ShadowMapType.AreaLightAtlas:
-                    return m_AreaLightShadowAtlas.atlasShapeID;
-            }
-            return -1;
-        }
-
-        internal bool AtlasHasResized(ShadowMapType type)
-        {
-            switch (type)
-            {
-                case ShadowMapType.PunctualAtlas:
-                    return m_Atlas.HasResizedThisFrame();
-                case ShadowMapType.AreaLightAtlas:
-                    return m_AreaLightShadowAtlas.HasResizedThisFrame();
-            }
-
-            return false;
-        }
-
-        internal HDShadowResolutionRequest GetResolutionRequest(ShadowMapType type, bool cachedShadow, int index)
-        {
-            if(cachedShadow)
-            {
-                switch (type)
-                {
-                    case ShadowMapType.PunctualAtlas:
-                        return m_Atlas.GetCachedRequest(index);
-                    case ShadowMapType.AreaLightAtlas:
-                        return m_AreaLightShadowAtlas.GetCachedRequest(index);
-                }
-            }
-            else
-            {
-                if (index < 0 || index >= m_ShadowRequestCount)
-                    return null;
-
-                return m_ShadowResolutionRequests[index];
-            }
-
-            return null;
+            return m_ShadowResolutionRequests[index];
         }
 
         public Vector2 GetReservedResolution(int index)

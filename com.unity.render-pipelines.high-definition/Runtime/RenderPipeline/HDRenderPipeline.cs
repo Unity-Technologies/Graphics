@@ -1478,8 +1478,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Camera parentCamera;
 
+                    // Camera A, B
+                    // PLANAR C
+
+                    // PLANAR C->A, C->B
+
+                    // A C->B
+
+                    // Planar C->a  << AddHDProbeRenderRequests
+                    // camera a
+                    // Planar C->b 
+                    // camera b 
+
                     if (isViewDependent)
                     {
+                        // TODO: remove this loop
+
                         for (int i = 0; i < visibilities.Count; ++i)
                         {
                             var visibility = visibilities[i];
@@ -1487,7 +1501,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 continue;
 
                             var visibleInIndex = visibility.index;
-                            var visibleInRenderRequest = renderRequests[visibleInIndex];
+                            var visibleInRenderRequest = renderRequests[visibleInIndex];        // << Store here the view dependent prbes. Whenever this is called loops through the probe and add and execute all render
+                                                                                                // before I exhaust visibleInRenderRequest
                             var viewerTransform = visibleInRenderRequest.hdCamera.camera.transform;
 
                             parentCamera = visibleInRenderRequest.hdCamera.camera;
@@ -1679,9 +1694,13 @@ namespace UnityEngine.Rendering.HighDefinition
                                 face = CubemapFace.Unknown
                             };
                         }
+
+                        // SPLIT FOLLOWING TWO LINES IN ANOTHER FUNCTION (QUEUE request or something) 
+
+                        // For planar don't add here, we want return and execute for planar outside. 
                         renderRequests.Add(request);
 
-
+                        // No need for planar 
                         foreach (var visibility in visibilities)
                             renderRequests[visibility.index].dependsOnRenderRequestIndices.Add(request.index);
                     }
@@ -1780,6 +1799,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                             // var aovRequestIndex = 0;
+                            // TODO: EXECUTE HERE THE ENQUEUED PLANAR REQUESTS.  Stored in renderRequest.
                             foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
                             {
                                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
