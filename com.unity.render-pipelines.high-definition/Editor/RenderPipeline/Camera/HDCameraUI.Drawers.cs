@@ -147,6 +147,9 @@ namespace UnityEditor.Rendering.HighDefinition
             Expandable.Output,
             k_ExpandedState,
             CED.Group(
+#if ENABLE_VR && ENABLE_XR_MANAGEMENT
+                Drawer_SectionXRRendering,
+#endif
 #if ENABLE_MULTIPLE_DISPLAYS
                 Drawer_SectionMultiDisplay,
 #endif
@@ -528,6 +531,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (warnings.Length > 0)
                     EditorGUILayout.HelpBox(string.Join("\n\n", warnings), MessageType.Warning, true);
             }
+        }
+
+        static void Drawer_SectionXRRendering(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.xrRendering, xrRenderingContent);
         }
 
 #if ENABLE_MULTIPLE_DISPLAYS
