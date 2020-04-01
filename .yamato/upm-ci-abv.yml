@@ -74,7 +74,7 @@ all_project_ci_nightly:
       rerun: always
   triggers:
     recurring:
-      - branch: master
+      - branch: VirtualTexturingSampleTerrain-latest-vt
         frequency: daily     
 
 {% for testplatform in testplatforms %} 
