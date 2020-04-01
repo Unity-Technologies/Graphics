@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Focus on Decal uses the extends of the projectors
 - Fixed how the area light influence volume is computed to match rasterization.
 - Fixed usage of light size data that are not available at runtime.
+- Fixed light type resolution when performing a reset on HDAdditionalLightData (case 1220931)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
