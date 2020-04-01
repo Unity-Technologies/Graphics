@@ -14,7 +14,6 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
     private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;
 
     // Constants
-    private const string BLUR_ENABLED_KEYWORD                 = "_BLUR_ENABLED";
     private const string NORMAL_RECONSTRUCTION_LOW_KEYWORD    = "_RECONSTRUCT_NORMAL_LOW";
     private const string NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD = "_RECONSTRUCT_NORMAL_MEDIUM";
     private const string NORMAL_RECONSTRUCTION_HIGH_KEYWORD   = "_RECONSTRUCT_NORMAL_HIGH";
@@ -39,10 +38,9 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
     {
         public Shader Shader                = null;
         public bool UseVolumes              = false;
-        //public DepthSource DepthSource      = DepthSource.Depth;
+        //public DepthSource DepthSource    = DepthSource.Depth;
         public QualityOptions NormalQuality = QualityOptions.Medium;
-        public bool Downsample               = true;
-        public bool Blur                    = true;
+        public bool Downsample              = true;
         public float Intensity              = 0.0f;
         public float Radius                 = 0.05f;
         public int SampleCount              = 10;
@@ -149,7 +147,6 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 //m_FeatureSettings.DepthSource = volume.DepthSource.value;
                 m_FeatureSettings.NormalQuality = volume.NormalQuality.value;
                 m_FeatureSettings.Downsample = volume.Downsample.value;
-                m_FeatureSettings.Blur = volume.Blur.value;
                 m_FeatureSettings.Intensity = volume.Intensity.value;
                 m_FeatureSettings.Radius = volume.Radius.value;
                 m_FeatureSettings.SampleCount = volume.SampleCount.value;
@@ -159,7 +156,6 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 //m_FeatureSettings.DepthSource = featureSettings.DepthSource;
                 m_FeatureSettings.NormalQuality = featureSettings.NormalQuality;
                 m_FeatureSettings.Downsample = featureSettings.Downsample;
-                m_FeatureSettings.Blur = featureSettings.Blur;
                 m_FeatureSettings.Intensity = featureSettings.Intensity;
                 m_FeatureSettings.Radius = featureSettings.Radius;
                 m_FeatureSettings.SampleCount = featureSettings.SampleCount;
@@ -182,7 +178,6 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             material.SetInt(s_SampleCountID, m_FeatureSettings.SampleCount);
 
             // Keywords
-            SetKeyword(BLUR_ENABLED_KEYWORD, m_FeatureSettings.Blur);
             //if (m_FeatureSettings.DepthSource == DepthSource.Depth)
             {
                 switch (m_FeatureSettings.NormalQuality)
@@ -219,12 +214,9 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             var desc = GetStereoCompatibleDescriptor(cameraTextureDescriptor.width, cameraTextureDescriptor.height, GraphicsFormat.R8G8B8A8_UNorm);
             cmd.GetTemporaryRT(m_SSAOTextureHandle.id, m_Descriptor, FilterMode.Point);
 
-            if (m_FeatureSettings.Blur)
-            {
-                FilterMode filterMode = m_FeatureSettings.Downsample ? FilterMode.Bilinear : FilterMode.Point;
-                cmd.GetTemporaryRT(s_BlurTexture1ID, desc, filterMode);
-                cmd.GetTemporaryRT(s_BlurTexture2ID, desc, filterMode);
-            }
+            FilterMode filterMode = m_FeatureSettings.Downsample ? FilterMode.Bilinear : FilterMode.Point;
+            cmd.GetTemporaryRT(s_BlurTexture1ID, desc, filterMode);
+            cmd.GetTemporaryRT(s_BlurTexture2ID, desc, filterMode);
 
             // Configure targets and clear color
             ConfigureTarget(m_SSAOTextureHandle.id);
@@ -265,7 +257,6 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 //     case DepthSource.Depth:
                         ExecuteSSAO(
                             cmd,
-                            m_FeatureSettings.Blur,
                             (int) ShaderPass.OcclusionDepth,
                             (int) ShaderPass.HorizontalBlurDepth,
                             (int) ShaderPass.VerticalBlurDepth,
@@ -275,7 +266,6 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 //     case DepthSource.DepthNormals:
                 //         ExecuteSSAO(
                 //             cmd,
-                //             m_FeatureSettings.Blur,
                 //             (int) ShaderPass.OcclusionDepthNormals,
                 //             (int) ShaderPass.HorizontalBlurDepthNormals,
                 //             (int) ShaderPass.VerticalBlurDepthNormals,
@@ -289,16 +279,8 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             CommandBufferPool.Release(cmd);
         }
 
-        private void ExecuteSSAO(CommandBuffer cmd, bool shouldBlur, int occlusionPass, int horizontalBlurPass, int verticalPass, int finalPass)
+        private void ExecuteSSAO(CommandBuffer cmd, int occlusionPass, int horizontalBlurPass, int verticalPass, int finalPass)
         {
-            if (!shouldBlur)
-            {
-                // Occlusion pass
-                cmd.SetRenderTarget(m_SSAOTextureHandle.id);
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, occlusionPass);
-                return;
-            }
-
             // Occlusion pass
             cmd.SetRenderTarget(s_BlurTexture1ID);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, occlusionPass);
@@ -329,12 +311,8 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
 
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceAmbientOcclusion, false);
             cmd.ReleaseTemporaryRT(m_SSAOTextureHandle.id);
-
-            if (m_FeatureSettings.Blur)
-            {
-                cmd.ReleaseTemporaryRT(s_BlurTexture1ID);
-                cmd.ReleaseTemporaryRT(s_BlurTexture2ID);
-            }
+            cmd.ReleaseTemporaryRT(s_BlurTexture1ID);
+            cmd.ReleaseTemporaryRT(s_BlurTexture2ID);
         }
 
         private void SetKeyword(string keyword, bool state)

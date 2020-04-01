@@ -20,6 +20,7 @@ half _Intensity;
 half _Radius;
 float _DownSample;
 
+#define RANDOM(f) GenerateHashedRandomFloat(f)
 #define SAMPLE_BASEMAP(uv)  SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
 #define SCREEN_PARAMS GetScaledScreenParams()
 #define INTENSITY _Intensity
@@ -105,12 +106,6 @@ float2 CosSin(float theta)
     return float2(cs, sn);
 }
 
-// Pseudo random number generator with 2D coordinates
-float UVRandom(float u, float v)
-{
-    return frac(sin(dot(float2(u, v), float2(12.9898, 78.233)))*43758.5453);
-}
-
 // Check if the camera is perspective.
 // (returns 1.0 when orthographic)
 float CheckPerspective(float x)
@@ -149,11 +144,11 @@ float3 PickSamplePoint(float2 uv, float index)
     float gn = InterleavedGradientNoise(uv * DOWNSAMPLE * SCREEN_PARAMS.xy, index);
     // FIXME: This was added to avoid a NVIDIA driver issue.
     //                                       vvvvvvvvvvvv
-    float u     = frac(UVRandom(0.0, index + uv.x * 1e-10) + gn) * 2.0 - 1.0;
-    float theta =     (UVRandom(1.0, index + uv.x * 1e-10) + gn) * TWO_PI;
+    float u     = frac(RANDOM(0.0 + index + uv.x * 1e-10) + gn) * 2.0 - 1.0;
+    float theta =     (RANDOM(1.0 + index + uv.x * 1e-10) + gn) * TWO_PI;
 #else
-    float u     = UVRandom( uv.x + _Time.x, uv.y + index) * 2.0 - 1.0;
-    float theta = UVRandom(-uv.x - _Time.x, uv.y + index) * TWO_PI;
+    float u     = RANDOM( uv.x + _Time.x + uv.y + index) * 2.0 - 1.0;
+    float theta = RANDOM(-uv.x - _Time.x + uv.y + index) * TWO_PI;
 #endif
 
     float3 v = float3(CosSin(theta) * sqrt(1.0 - u * u), u);
@@ -302,11 +297,7 @@ float4 SSAO(Varyings input) : SV_Target
     // Apply contrast
     ao = PositivePow(ao * INTENSITY / SAMPLE_COUNT, kContrast);
 
-    #if defined(_BLUR_ENABLED)
         return PackAONormal(ao, norm_o);
-    #else
-        return float4(1.0 - ao, 0.0, 0.0, 0.0);
-    #endif
 }
 
 // Geometry-aware separable bilateral filter

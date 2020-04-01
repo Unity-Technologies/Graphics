@@ -17,7 +17,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             //public static GUIContent DepthSource = new GUIContent("Depth Source", "");
             public static GUIContent NormalQuality = new GUIContent("Normal Quality", "Controls the quality of computing the reconstructed normal.");
             public static GUIContent DownSample = new GUIContent("Downsample", "Controls whether the resulting SSAO texture is downsampled to half size or not.");
-            public static GUIContent Blur = new GUIContent("Blur", "Controls whether the resulting SSAO texture is blurred or not.");
             public static GUIContent Intensity = new GUIContent("Intensity", "The degree of darkness added by ambient occlusion.");
             public static GUIContent Radius = new GUIContent("Radius", "Radius of sample points, which affects extent of darkened areas.");
             public static GUIContent SampleCount = new GUIContent("Sample Count", "The number of sample points, which affects quality and performance.");
@@ -28,7 +27,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         //private SerializedProperty m_DepthSource;
         private SerializedProperty m_NormalQuality;
         private SerializedProperty m_Downsample;
-        private SerializedProperty m_Blur;
         private SerializedProperty m_Intensity;
         private SerializedProperty m_Radius;
         private SerializedProperty m_SampleCount;
@@ -41,7 +39,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             //m_DepthSource = property.FindPropertyRelative("DepthSource");
             m_NormalQuality = property.FindPropertyRelative("NormalQuality");
             m_Downsample = property.FindPropertyRelative("Downsample");
-            m_Blur = property.FindPropertyRelative("Blur");
             m_Intensity = property.FindPropertyRelative("Intensity");
             m_Radius = property.FindPropertyRelative("Radius");
             m_SampleCount = property.FindPropertyRelative("SampleCount");
@@ -65,9 +62,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (m_UseVolumes.boolValue)
             {
-                rect.height += Styles.defaultLineSpace * 5;
+                rect.height += Styles.defaultLineSpace * 4;
                 EditorGUI.HelpBox(rect, "Settings will be taken from SSAO volumes. Make sure you have a Volume in your scene with a Screen Space Ambient Occlusion override.", MessageType.Info);
-                rect.y += Styles.defaultLineSpace * 5;
+                rect.y += Styles.defaultLineSpace * 4;
             }
             else
             {
@@ -81,9 +78,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 }
 
                 EditorGUI.PropertyField(rect, m_Downsample, Styles.DownSample);
-                rect.y += Styles.defaultLineSpace;
-
-                EditorGUI.PropertyField(rect, m_Blur, Styles.Blur);
                 rect.y += Styles.defaultLineSpace;
 
                 EditorGUI.Slider(rect, m_Intensity, 0f, 10f, Styles.Intensity);

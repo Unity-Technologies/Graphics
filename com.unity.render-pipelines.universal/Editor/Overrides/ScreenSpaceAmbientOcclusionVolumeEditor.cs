@@ -10,7 +10,6 @@ namespace UnityEditor.Rendering.Universal
         //SerializedDataParameter m_DepthSource;
         SerializedDataParameter m_NormalQuality;
         SerializedDataParameter m_Downsample;
-        SerializedDataParameter m_Blur;
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_Radius;
         SerializedDataParameter m_SampleCount;
@@ -22,7 +21,6 @@ namespace UnityEditor.Rendering.Universal
             //m_DepthSource = Unpack(volume.Find(x => x.depthSource));
             m_NormalQuality = Unpack(volume.Find(x => x.NormalQuality));
             m_Downsample    = Unpack(volume.Find(x => x.Downsample));
-            m_Blur          = Unpack(volume.Find(x => x.Blur));
             m_Intensity     = Unpack(volume.Find(x => x.Intensity));
             m_Radius        = Unpack(volume.Find(x => x.Radius));
             m_SampleCount   = Unpack(volume.Find(x => x.SampleCount));
@@ -36,7 +34,6 @@ namespace UnityEditor.Rendering.Universal
                 PropertyField(m_NormalQuality, ScreenSpaceAmbientOcclusionFeatureEditor.Styles.NormalQuality);
             }
             PropertyField(m_Downsample,  ScreenSpaceAmbientOcclusionFeatureEditor.Styles.DownSample);
-            PropertyField(m_Blur,        ScreenSpaceAmbientOcclusionFeatureEditor.Styles.Blur);
             PropertyField(m_Intensity,   ScreenSpaceAmbientOcclusionFeatureEditor.Styles.Intensity);
             PropertyField(m_Radius,      ScreenSpaceAmbientOcclusionFeatureEditor.Styles.Radius);
             PropertyField(m_SampleCount, ScreenSpaceAmbientOcclusionFeatureEditor.Styles.SampleCount);

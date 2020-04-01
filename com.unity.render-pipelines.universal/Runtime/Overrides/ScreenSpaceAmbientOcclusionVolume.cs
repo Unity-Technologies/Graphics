@@ -7,8 +7,7 @@ class ScreenSpaceAmbientOcclusionVolume : VolumeComponent
     // Public properties
     //public DepthSource depthSource = new DepthSource(ScreenSpaceAmbientOcclusionFeature.DepthSource.Depth);
     public QualitySettingNormals NormalQuality = new QualitySettingNormals(ScreenSpaceAmbientOcclusionFeature.QualityOptions.Medium);
-    public BoolParameter Downsample             = new BoolParameter(true);
-    public BoolParameter Blur                  = new BoolParameter(true);
+    public BoolParameter Downsample            = new BoolParameter(true);
     public ClampedFloatParameter Intensity     = new ClampedFloatParameter(0f, 0f, 10f, false);
     public ClampedFloatParameter Radius        = new ClampedFloatParameter(0.05f, 0f, 10.0f, false);
     public ClampedIntParameter SampleCount     = new ClampedIntParameter(10, 0, 12, false);
