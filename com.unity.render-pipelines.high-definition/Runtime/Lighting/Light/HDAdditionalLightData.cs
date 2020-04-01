@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
-    public partial class HDAdditionalLightData : MonoBehaviour
+    public partial class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
     {
         internal static class ScalableSettings
         {
@@ -1908,7 +1908,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // Assign all setting common to every lights
-                    SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, CoreMatrixUtils.MultiplyProjectionMatrix(shadowRequest.deviceProjectionYFlip, shadowRequest.view, hasOrthoMatrix), viewportSize, lightIndex, lightType, filteringQuality);
+                    SetCommonShadowRequestSettings(shadowRequest, visibleLight, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality);
                 }
 
                 shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
@@ -1928,7 +1928,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return firstShadowRequestIndex;
         }
 
-        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 viewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality)
+        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight vl, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality)
         {
             // zBuffer param to reconstruct depth position (for transmission)
             float f = legacyLight.range;
@@ -1945,10 +1945,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreMatrixUtils.TranslationTimesMatrix(ref invViewProjection, -cameraPos);
             }
 
-            if (lightType == HDLightType.Directional || lightType == HDLightType.Spot && spotLightShape == SpotLightShape.Box)
+            //if (lightType == HDLightType.Directional || lightType == HDLightType.Spot && spotLightShape == SpotLightShape.Box)
                 shadowRequest.position = new Vector3(shadowRequest.view.m03, shadowRequest.view.m13, shadowRequest.view.m23);
-            else
-                shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? visibleLight.GetPosition() - cameraPos : visibleLight.GetPosition();
+            //else
+            //    shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? visibleLight.GetPosition() - cameraPos : visibleLight.GetPosition();
+
+            Vector3 tmpLightPos = vl.GetPosition();
+            var tmp = (ShaderConfig.s_CameraRelativeRendering != 0) ? vl.GetPosition() - cameraPos : vl.GetPosition();
 
             shadowRequest.shadowToWorld = invViewProjection.transpose;
             shadowRequest.zClip = (lightType != HDLightType.Directional);
@@ -1968,7 +1971,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // shadow clip planes (used for tessellation clipping)
-            GeometryUtility.CalculateFrustumPlanes(viewProjection, m_ShadowFrustumPlanes);
+            GeometryUtility.CalculateFrustumPlanes(shadowRequest.deviceProjectionYFlip * shadowRequest.view, m_ShadowFrustumPlanes);
             if (shadowRequest.frustumPlanes?.Length != 6)
                 shadowRequest.frustumPlanes = new Vector4[6];
             // Left, right, top, bottom, near, far.
@@ -2947,6 +2950,33 @@ namespace UnityEngine.Rendering.HighDefinition
             : type != HDLightType.Directional
                 ? ShadowMapType.PunctualAtlas
                 : ShadowMapType.CascadedDirectional;
+
+        void OnEnable()
+        {
+            if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
+                m_ShadowMapRenderedSinceLastRequest = false;
+            SetEmissiveMeshRendererEnabled(true);
+        }
+
+        /// <summary>
+        /// Deserialization callback
+        /// </summary>
+        void ISerializationCallbackReceiver.OnAfterDeserialize() { }
+
+        /// <summary>
+        /// Serialization callback
+        /// </summary>
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            // When reseting, Light component can be not available (will be called later in Reset)
+            if (m_Light == null || m_Light.Equals(null))
+                return;
+
+            UpdateBounds();
+        }
+
+        void Reset()
+            => UpdateBounds();
 
         // This is faster than the above property if lightType is known given that type does a non-trivial amount of work.
         internal ShadowMapType GetShadowMapType(HDLightType lightType)
