@@ -472,11 +472,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     }, HDShaderIDs._VBufferLighting));
                     if (passData.parameters.enableReprojection)
                     {
-                        // Cannot import a RenderTexture => WILL BE HORRIBLY BROKEN.
-                        //passData.feedbackBuffer = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[0]));
-                        //passData.historyBuffer = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[1]));
-                        passData.feedbackBuffer = passData.lightingBuffer;
-                        passData.historyBuffer = passData.densityBuffer;
+                        var currIdx = (frameIndex + 0) & 1;
+                        var prevIdx = (frameIndex + 1) & 1;
+
+                        passData.feedbackBuffer = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[currIdx]));
+                        passData.historyBuffer  = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[prevIdx]));
                     }
 
                     HDShadowManager.ReadShadowResult(shadowResult, builder);
@@ -486,10 +486,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         RTHandle densityBufferRT = ctx.resources.GetTexture(data.densityBuffer);
                         RTHandle lightinBufferRT = ctx.resources.GetTexture(data.lightingBuffer);
+
                         VolumetricLightingPass( data.parameters,
                                                 densityBufferRT,
                                                 lightinBufferRT,
-                                                data.parameters.enableReprojection ? ctx.resources.GetTexture(data.historyBuffer) : null,
+                                                data.parameters.enableReprojection ? ctx.resources.GetTexture(data.historyBuffer)  : null,
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.feedbackBuffer) : null,
                                                 data.bigTileLightListBuffer,
                                                 ctx.cmd);
