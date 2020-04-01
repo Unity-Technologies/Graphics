@@ -85,7 +85,6 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
     finalOutput.a = color.a;
 
     finalOutput = finalOutput *_UseSceneLighting + (1 - _UseSceneLighting)*color;
-    return finalOutput;
+    return max(0, finalOutput);
 }
 #endif
-
