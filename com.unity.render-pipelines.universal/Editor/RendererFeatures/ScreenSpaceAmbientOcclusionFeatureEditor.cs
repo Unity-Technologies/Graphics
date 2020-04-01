@@ -13,7 +13,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         {
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-            //public static GUIContent Shader = new GUIContent("Shader", "");
             public static GUIContent UseVolumes = new GUIContent("Use Volumes", "");
             //public static GUIContent DepthSource = new GUIContent("Depth Source", "");
             public static GUIContent NormalQuality = new GUIContent("Normal Quality", "");
@@ -25,7 +24,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         }
 
         // Serialized Properties
-        private SerializedProperty m_Shader;
         private SerializedProperty m_UseVolumes;
         //private SerializedProperty m_DepthSource;
         private SerializedProperty m_NormalQuality;
@@ -39,7 +37,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         private void Init(SerializedProperty property)
         {
-            m_Shader = property.FindPropertyRelative("Shader");
             m_UseVolumes = property.FindPropertyRelative("UseVolumes");
             //m_DepthSource = property.FindPropertyRelative("DepthSource");
             m_NormalQuality = property.FindPropertyRelative("NormalQuality");
@@ -61,9 +58,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 Init(property);
             }
-
-            //EditorGUI.PropertyField(rect, m_Shader, Styles.Shader);
-            //rect.y += Styles.defaultLineSpace;
 
             rect.y += Styles.defaultLineSpace;
             EditorGUI.PropertyField(rect, m_UseVolumes, Styles.UseVolumes);

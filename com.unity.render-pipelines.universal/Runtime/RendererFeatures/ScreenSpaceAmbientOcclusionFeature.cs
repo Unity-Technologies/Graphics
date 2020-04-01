@@ -166,13 +166,14 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             }
 
             return material != null
-               &&  m_FeatureSettings.Intensity > 0.0f;
+               &&  m_FeatureSettings.Intensity > 0.0f
+               &&  m_FeatureSettings.Radius > 0.0f
+               &&  m_FeatureSettings.SampleCount > 0;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             int downScaleDivider = m_FeatureSettings.DownScale ? 2 : 1;
-            FilterMode filterMode = m_FeatureSettings.DownScale ? FilterMode.Bilinear : FilterMode.Point;
 
             // Material settings
             material.SetFloat(s_DownScaleID, 1.0f / downScaleDivider);
@@ -180,6 +181,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             material.SetFloat(s_RadiusID, m_FeatureSettings.Radius);
             material.SetInt(s_SampleCountID, m_FeatureSettings.SampleCount);
 
+            // Keywords
             SetKeyword(BLUR_ENABLED_KEYWORD, m_FeatureSettings.Blur);
             //if (m_FeatureSettings.DepthSource == DepthSource.Depth)
             {
@@ -213,10 +215,16 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             m_Descriptor.height = m_Descriptor.height / downScaleDivider;
             m_Descriptor.colorFormat = RenderTextureFormat.R8;
 
+            // Get temporary render textures
             var desc = GetStereoCompatibleDescriptor(cameraTextureDescriptor.width, cameraTextureDescriptor.height, GraphicsFormat.R8G8B8A8_UNorm);
             cmd.GetTemporaryRT(m_SSAOTextureHandle.id, m_Descriptor, FilterMode.Point);
-            cmd.GetTemporaryRT(s_BlurTexture1ID, desc, filterMode);
-            cmd.GetTemporaryRT(s_BlurTexture2ID, desc, filterMode);
+
+            if (m_FeatureSettings.Blur)
+            {
+                FilterMode filterMode = m_FeatureSettings.DownScale ? FilterMode.Bilinear : FilterMode.Point;
+                cmd.GetTemporaryRT(s_BlurTexture1ID, desc, filterMode);
+                cmd.GetTemporaryRT(s_BlurTexture2ID, desc, filterMode);
+            }
 
             // Configure targets and clear color
             ConfigureTarget(m_SSAOTextureHandle.id);
@@ -321,8 +329,12 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
 
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceAmbientOcclusion, false);
             cmd.ReleaseTemporaryRT(m_SSAOTextureHandle.id);
-            cmd.ReleaseTemporaryRT(s_BlurTexture1ID);
-            cmd.ReleaseTemporaryRT(s_BlurTexture2ID);
+
+            if (m_FeatureSettings.Blur)
+            {
+                cmd.ReleaseTemporaryRT(s_BlurTexture1ID);
+                cmd.ReleaseTemporaryRT(s_BlurTexture2ID);
+            }
         }
 
         private void SetKeyword(string keyword, bool state)
