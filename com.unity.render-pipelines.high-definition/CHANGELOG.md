@@ -86,6 +86,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hidden unsupported choice in emission in Materials
 - All custom pass volumes are now executed for one injection point instead of the first one.
 - Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
+- Changed the diffusion profile warning on the material to an info and changed the message to be more precise.
 
 ## [8.0.0] - 2020-05-25
 
