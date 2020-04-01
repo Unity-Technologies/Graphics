@@ -1928,7 +1928,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return firstShadowRequestIndex;
         }
 
-        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight vl, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality)
+        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality)
         {
             // zBuffer param to reconstruct depth position (for transmission)
             float f = legacyLight.range;
@@ -1945,13 +1945,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreMatrixUtils.TranslationTimesMatrix(ref invViewProjection, -cameraPos);
             }
 
-            //if (lightType == HDLightType.Directional || lightType == HDLightType.Spot && spotLightShape == SpotLightShape.Box)
+            bool hasOrthoMatrix = false;
+            if (lightType == HDLightType.Directional || lightType == HDLightType.Spot && spotLightShape == SpotLightShape.Box)
+            {
+                hasOrthoMatrix = true;
                 shadowRequest.position = new Vector3(shadowRequest.view.m03, shadowRequest.view.m13, shadowRequest.view.m23);
-            //else
-            //    shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? visibleLight.GetPosition() - cameraPos : visibleLight.GetPosition();
-
-            Vector3 tmpLightPos = vl.GetPosition();
-            var tmp = (ShaderConfig.s_CameraRelativeRendering != 0) ? vl.GetPosition() - cameraPos : vl.GetPosition();
+            }
+            else
+                shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? visibleLight.GetPosition() - cameraPos : visibleLight.GetPosition();
 
             shadowRequest.shadowToWorld = invViewProjection.transpose;
             shadowRequest.zClip = (lightType != HDLightType.Directional);
@@ -1971,7 +1972,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // shadow clip planes (used for tessellation clipping)
-            GeometryUtility.CalculateFrustumPlanes(shadowRequest.deviceProjectionYFlip * shadowRequest.view, m_ShadowFrustumPlanes);
+            GeometryUtility.CalculateFrustumPlanes(CoreMatrixUtils.MultiplyProjectionMatrix(shadowRequest.deviceProjectionYFlip, shadowRequest.view, hasOrthoMatrix), m_ShadowFrustumPlanes);
             if (shadowRequest.frustumPlanes?.Length != 6)
                 shadowRequest.frustumPlanes = new Vector4[6];
             // Left, right, top, bottom, near, far.
