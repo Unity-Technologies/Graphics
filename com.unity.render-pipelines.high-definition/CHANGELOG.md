@@ -95,6 +95,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add range-based clipping to box lights (case 1178780)
 - Improve area light culling (case 1085873)
 - Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
+- Changed the diffusion profile warning on the material to an info and changed the message to be more precise.
 
 ## [7.2.0] - 2020-02-10
 
