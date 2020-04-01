@@ -2,14 +2,13 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph;
 using UnityEditor.Experimental.Rendering.Universal;
-
 using UnityEditor.Graphing;
 using UnityEditor.UIElements;
-using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -43,32 +42,25 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
     sealed class UniversalTarget : Target, ISerializationCallbackReceiver
     {
-        public void OnBeforeSerialize()
-        {
-            m_SerializedSubTarget = SerializationHelper.Serialize<SubTarget>(activeSubTarget);
-        }
-
-        public void OnAfterDeserialize()
-        {
-            // Deserialize the SubTarget
-            var deserializedSubTarget = SerializationHelper.Deserialize<SubTarget>(m_SerializedSubTarget, GraphUtil.GetLegacyTypeRemapping());
-            deserializedSubTarget.target = this;
-            
-            // Update active SubTarget and index
-            var activeSubTargetCurrent = m_SubTargets.FirstOrDefault(x => x.GetType() == deserializedSubTarget.GetType());
-            m_ActiveSubTargetIndex = m_SubTargets.IndexOf(activeSubTargetCurrent);
-            m_SubTargets[m_ActiveSubTargetIndex] = deserializedSubTarget;
-        }
-
+        // Constants
         const string kAssetGuid = "8c72f47fdde33b14a9340e325ce56f4d";
         public const string kPipelineTag = "UniversalPipeline";
+
+        // SubTarget
         List<SubTarget> m_SubTargets;
         List<string> m_SubTargetNames;
-        int m_ActiveSubTargetIndex;
-        PopupField<string> m_SubTargetField;
+        int activeSubTargetIndex => m_SubTargets.IndexOf(m_ActiveSubTarget);
 
+        // View
+        PopupField<string> m_SubTargetField;
+        TextField m_CustomGUIField;
+
+        // TODO: Remove when Peter's serialization lands
         [SerializeField]
         SerializationHelper.JSONSerializedElement m_SerializedSubTarget;
+
+        [SerializeField]
+        SubTarget m_ActiveSubTarget;
 
         [SerializeField]
         SurfaceType m_SurfaceType = SurfaceType.Opaque;
@@ -84,6 +76,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         bool m_AddPrecomputedVelocity = false;
+
+        [SerializeField]
+        string m_CustomEditorGUI;
         
         public UniversalTarget()
         {
@@ -91,9 +86,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             m_SubTargets = TargetUtils.GetSubTargets(this);
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
         }
-        
-        public SubTarget activeSubTarget => m_SubTargets[m_ActiveSubTargetIndex];
-        public List<string> subTargetNames => m_SubTargetNames;
 
         public string renderType
         {
@@ -117,12 +109,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 else
                     return $"{UnityEditor.ShaderGraph.RenderQueue.Geometry}";
             }
-        }
-
-        public int activeSubTargetIndex
-        {
-            get => m_ActiveSubTargetIndex;
-            set => m_ActiveSubTargetIndex = value;
         }
         
         public SurfaceType surfaceType
@@ -155,13 +141,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_AddPrecomputedVelocity = value;
         }
 
+        public string customEditorGUI
+        {
+            get => m_CustomEditorGUI;
+            set => m_CustomEditorGUI = value;
+        }
+
         public override void Setup(ref TargetSetupContext context)
         {
             // Setup the Target
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
 
             // Setup the active SubTarget
-            activeSubTarget.Setup(ref context);
+            TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+            m_ActiveSubTarget.Setup(ref context);
+
+            // Override EditorGUI
+            if(!string.IsNullOrEmpty(m_CustomEditorGUI))
+            {
+                context.SetDefaultShaderGUI(m_CustomEditorGUI);
+            }
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -176,7 +175,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(Fields.DoubleSided,            twoSided);
 
             // SubTarget fields
-            activeSubTarget.GetFields(ref context);
+            m_ActiveSubTarget.GetFields(ref context);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -188,25 +187,53 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
 
             // SubTarget blocks
-            activeSubTarget.GetActiveBlocks(ref context);
+            m_ActiveSubTarget.GetActiveBlocks(ref context);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
         {
             // Core properties
-            m_SubTargetField = new PopupField<string>(subTargetNames, activeSubTargetIndex);
+            m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
             context.AddProperty("Material", m_SubTargetField, (evt) =>
             {
                 if (Equals(activeSubTargetIndex, m_SubTargetField.index))
                     return;
 
-                activeSubTargetIndex = m_SubTargetField.index;
+                m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
                 onChange();
             });
 
             // SubTarget properties
-            activeSubTarget.GetPropertiesGUI(ref context, onChange);
+            m_ActiveSubTarget.GetPropertiesGUI(ref context, onChange);
+
+            // Custom Editor GUI
+            // Requires FocusOutEvent
+            m_CustomGUIField = new TextField("") { value = customEditorGUI };
+            m_CustomGUIField.RegisterCallback<FocusOutEvent>(s =>
+            {
+                if (Equals(customEditorGUI, m_CustomGUIField.value))
+                    return;
+
+                customEditorGUI = m_CustomGUIField.value;
+                onChange();
+            });
+            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
         }
+
+        // TODO: Remove this
+#region Serialization
+        public void OnBeforeSerialize()
+        {
+            m_SerializedSubTarget = SerializationHelper.Serialize<SubTarget>(m_ActiveSubTarget);
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // Deserialize the SubTarget
+            m_ActiveSubTarget = SerializationHelper.Deserialize<SubTarget>(m_SerializedSubTarget, GraphUtil.GetLegacyTypeRemapping());
+            m_ActiveSubTarget.target = this;
+        }
+#endregion
     }
 
 #region Passes

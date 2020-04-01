@@ -1,5 +1,6 @@
 PropertyRow EnumField,
 PropertyRow PopupField,
+PropertyRow TextField,
 PropertyRow Label,
 PropertyRow Toggle,
 PropertyRow IntegerField,
