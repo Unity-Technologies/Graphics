@@ -423,12 +423,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
 #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-    if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
-    {
-        float3 probeVolumeDiffuseLighting = EvaluateProbeVolumesLightLoop(posInput, bsdfData, builtinData);
-        builtinData.bakeDiffuseLighting = probeVolumeDiffuseLighting;
-        builtinData.backBakeDiffuseLighting = float3(0, 0, 0);
-    }
+    float3 probeVolumeDiffuseLighting = EvaluateProbeVolumesLightLoop(posInput, bsdfData, builtinData, featureFlags);
+    builtinData.bakeDiffuseLighting = probeVolumeDiffuseLighting;
+    builtinData.backBakeDiffuseLighting = float3(0, 0, 0);
 #endif
 #endif
 
