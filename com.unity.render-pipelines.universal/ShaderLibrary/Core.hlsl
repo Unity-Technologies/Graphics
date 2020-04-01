@@ -233,7 +233,7 @@ half3 MixFog(real3 fragColor, real fogFactor)
 #else
 
     #define SLICE_ARRAY_INDEX       0
-
+    
     #define TEXTURE2D_X(textureName)                                        TEXTURE2D(textureName)
     #define TEXTURE2D_X_PARAM(textureName, samplerName)                     TEXTURE2D_PARAM(textureName, samplerName)
     #define TEXTURE2D_X_ARGS(textureName, samplerName)                      TEXTURE2D_ARGS(textureName, samplerName)

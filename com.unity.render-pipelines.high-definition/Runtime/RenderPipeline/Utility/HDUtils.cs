@@ -24,6 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
         /// <summary>Default HDAdditionalCameraData</summary>
         static internal HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
+        
+        static List<CustomPassVolume> m_TempCustomPassVolumeList = new List<CustomPassVolume>();
 
         static Texture3D m_ClearTexture3D;
         static RTHandle m_ClearTexture3DRTH;
@@ -449,6 +451,42 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static string GetCorePath()
             => "Packages/com.unity.render-pipelines.core/";
 
+        // It returns the previously set RenderPipelineAsset, assetWasFromQuality is true if the current asset was set through the quality settings
+        internal static RenderPipelineAsset SwitchToBuiltinRenderPipeline(out bool assetWasFromQuality)
+        {
+            var graphicSettingAsset = GraphicsSettings.renderPipelineAsset;
+            assetWasFromQuality = false;
+            if (graphicSettingAsset != null)
+            {
+                // Check if the currently used pipeline is the one from graphics settings
+                if (GraphicsSettings.currentRenderPipeline == graphicSettingAsset)
+                {
+                    GraphicsSettings.renderPipelineAsset = null;
+                    return graphicSettingAsset;
+                }
+            }
+            // If we are here, it means the asset comes from quality settings
+            var assetFromQuality = QualitySettings.renderPipeline;
+            QualitySettings.renderPipeline = null;
+            assetWasFromQuality = true;
+            return assetFromQuality;
+        }
+
+        // Set the renderPipelineAsset, either on the quality settings if it was unset from there or in GraphicsSettings.
+        // IMPORTANT: RenderPipelineManager.currentPipeline won't be HDRP until a camera.Render() call is made. 
+        internal static void RestoreRenderPipelineAsset(bool wasUnsetFromQuality, RenderPipelineAsset renderPipelineAsset)
+        {
+            if(wasUnsetFromQuality)
+            {
+                QualitySettings.renderPipeline = renderPipelineAsset;
+            }
+            else
+            {
+                GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
+            }
+
+        }
+
         internal struct PackedMipChainInfo
         {
             public Vector2Int textureSize;
@@ -698,12 +736,17 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 return false;
 
-            var customPass = CustomPassVolume.GetActivePassVolume(injectionPoint);
+            bool executed = false;
+            CustomPassVolume.GetActivePassVolumes(injectionPoint, m_TempCustomPassVolumeList);
+            foreach(var customPassVolume in m_TempCustomPassVolumeList)
+            {
+                if (customPassVolume == null)
+                    return false;
 
-            if (customPass == null)
-                return false;
+                executed |= customPassVolume.WillExecuteInjectionPoint(hdCamera);
+            }
 
-            return customPass.WillExecuteInjectionPoint(hdCamera);
+            return executed;
         }
 
         internal static bool PostProcessIsFinalPass(HDCamera hdCamera)

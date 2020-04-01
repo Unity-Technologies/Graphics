@@ -254,6 +254,7 @@ namespace UnityEngine.Rendering.Universal
             List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
+            anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             // We need to know the last active camera in the stack to be able to resolve
             // rendering to screen when rendering it. The last camera in the stack is not

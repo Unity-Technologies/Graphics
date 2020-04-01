@@ -52,6 +52,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ _SCREEN_SPACE_AMBIENT_OCCLUSION
 
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -72,10 +73,9 @@ Shader "Universal Render Pipeline/Baked Lit"
             {
                 float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
                 DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-                half3 normal                    : TEXCOORD2;
+                half3 normalWS                  : TEXCOORD2;
     #if defined(_NORMALMAP)
-                half3 tangent                   : TEXCOORD3;
-                half3 bitangent                 : TEXCOORD4;
+                half4 tangentWS                 : TEXCOORD3;
     #endif
                 float4 vertex : SV_POSITION;
 
@@ -96,14 +96,17 @@ Shader "Universal Render Pipeline/Baked Lit"
                 output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
                 output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
 
+                // normalWS and tangentWS already normalize.
+                // this is required to avoid skewing the direction during interpolation
+                // also required for per-vertex SH evaluation
                 VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
-                output.normal = normalInput.normalWS;
+                output.normalWS = normalInput.normalWS;
     #if defined(_NORMALMAP)
-                output.tangent = normalInput.tangentWS;
-                output.bitangent = normalInput.bitangentWS;
+                real sign = input.tangentOS.w * GetOddNegativeScale();
+                output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
     #endif
                 OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
-                OUTPUT_SH(output.normal, output.vertexSH);
+                OUTPUT_SH(output.normalWS, output.vertexSH);
 
                 return output;
             }
@@ -119,25 +122,25 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half alpha = texColor.a * _BaseColor.a;
                 AlphaDiscard(alpha, _Cutoff);
 
-                #ifdef _ALPHAPREMULTIPLY_ON
-                    color *= alpha;
-                #endif
+#ifdef _ALPHAPREMULTIPLY_ON
+                color *= alpha;
+#endif
 
-                #if defined(_NORMALMAP)
-                    half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
-                    half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
-                #else
-                    half3 normalWS = input.normal;
-                #endif
+    #if defined(_NORMALMAP)
+                half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
+                float sgn = input.tangentWS.w;      // should be either +1 or -1
+                float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+                half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS));
+    #else
+                half3 normalWS = input.normalWS;
+    #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
-
-                alpha = OutputAlpha(alpha);
-
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
                     color *= SampleScreenSpaceAmbientOcclusionTexture(input.vertex);
                 #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
+                alpha = OutputAlpha(alpha);
 
                 return half4(color, alpha);
             }
@@ -247,6 +250,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma shader_feature _ _NORMALMAP
             #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma multi_compile _ _SCREEN_SPACE_AMBIENT_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords
@@ -274,10 +278,9 @@ Shader "Universal Render Pipeline/Baked Lit"
             {
                 float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
                 DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-                half3 normal                    : TEXCOORD2;
+                half3 normalWS                  : TEXCOORD2;
     #if defined(_NORMALMAP)
-                half3 tangent                   : TEXCOORD3;
-                half3 bitangent                 : TEXCOORD4;
+                half4 tangentWS                 : TEXCOORD3;
     #endif
                 float4 vertex : SV_POSITION;
 
@@ -298,14 +301,17 @@ Shader "Universal Render Pipeline/Baked Lit"
                 output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
                 output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
 
+                // normalWS and tangentWS already normalize.
+                // this is required to avoid skewing the direction during interpolation
+                // also required for per-vertex SH evaluation
                 VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
-                output.normal = normalInput.normalWS;
+                output.normalWS = normalInput.normalWS;
     #if defined(_NORMALMAP)
-                output.tangent = normalInput.tangentWS;
-                output.bitangent = normalInput.bitangentWS;
+                real sign = input.tangentOS.w * GetOddNegativeScale();
+                output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
     #endif
                 OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
-                OUTPUT_SH(output.normal, output.vertexSH);
+                OUTPUT_SH(output.normalWS, output.vertexSH);
 
                 return output;
             }
@@ -321,25 +327,25 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half alpha = texColor.a * _BaseColor.a;
                 AlphaDiscard(alpha, _Cutoff);
 
-                #ifdef _ALPHAPREMULTIPLY_ON
-                    color *= alpha;
-                #endif
+#ifdef _ALPHAPREMULTIPLY_ON
+                color *= alpha;
+#endif
 
-                #if defined(_NORMALMAP)
-                    half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
-                    half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
-                #else
-                    half3 normalWS = input.normal;
-                #endif
+    #if defined(_NORMALMAP)
+                half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
+                float sgn = input.tangentWS.w;      // should be either +1 or -1
+                float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+                half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS));
+    #else
+                half3 normalWS = input.normalWS;
+    #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
-
-                alpha = OutputAlpha(alpha);
-
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 #if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
                     color *= SampleScreenSpaceAmbientOcclusionTexture(input.vertex);
                 #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
+                alpha = OutputAlpha(alpha);
 
                 return half4(color, alpha);
             }
