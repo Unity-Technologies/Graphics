@@ -6,6 +6,7 @@
         * [Blackboard](Blackboard)  
         * [Master Preview](Master-Preview) 
     * [Create Node Menu](Create-Node-Menu)
+    * [Sticky Notes](Sticky-Notes)
     * [Sub Graph](Sub-graph)     
     * [Color Modes](Color-Modes)
     * [Precision Modes](Precision-Modes)
@@ -13,7 +14,7 @@
     * [Samples](ShaderGraph-Samples.md)
 * Inside Shader Graph  
     * [Shader Graph Asset](Shader-Graph-Asset) 
-	* [Sub Graph Asset](Sub-graph-Asset)
+    * [Sub Graph Asset](Sub-graph-Asset)
     * [Node](Node) 
         * [Port](Port)  
         * [Custom Port Menu](Custom-Port-Menu)

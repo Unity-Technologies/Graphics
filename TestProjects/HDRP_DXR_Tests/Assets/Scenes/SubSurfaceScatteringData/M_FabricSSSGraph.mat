@@ -10,7 +10,7 @@ Material:
   m_Name: M_FabricSSSGraph
   m_Shader: {fileID: -6465566751694194690, guid: 113aed9e576fd8a46b435b54d9ad988b,
     type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -185,6 +185,7 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _ReceivesSSR: 1
+    - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
     - _RequireSplitLighting: 1
     - _SSRefractionProjectionModel: 0
@@ -260,4 +261,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 2
+  version: 3

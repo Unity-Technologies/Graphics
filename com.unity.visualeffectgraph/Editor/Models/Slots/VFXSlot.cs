@@ -654,8 +654,8 @@ namespace UnityEditor.VFX
                 var fields = s.property.type.GetFields(BindingFlags.Public | BindingFlags.Instance).ToArray();
                 if (fields.Length != s.children.Count())
                     throw new InvalidOperationException(string.Format("Unexpected slot count for : " + s.property.type + " ({0} vs. {1})",
-                                                                       fields.Length == 0 ? "(empty)" : fields.Select(o => o.Name).Aggregate((a, b) => a + ", " + b),
-                                                                       s.children.Count() == 0 ? "(empty)" : s.children.Select(o => o.name).Aggregate((a, b) => a + ", " + b)));
+                        fields.Length == 0 ? "(empty)" : fields.Select(o => o.Name).Aggregate((a, b) => a + ", " + b),
+                        s.children.Count() == 0 ? "(empty)" : s.children.Select(o => o.name).Aggregate((a, b) => a + ", " + b)));
 
                 for (int fieldIndex = 0; fieldIndex < fields.Length; ++fieldIndex)
                 {

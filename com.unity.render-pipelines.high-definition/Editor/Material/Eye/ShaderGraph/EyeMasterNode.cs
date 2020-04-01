@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
     [Title("Master", "Eye (HDRP)(Preview)")]
-    class EyeMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class EyeMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -227,6 +227,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_AlphaTest = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
+            }
+        }
+        
+        [SerializeField]
+        bool m_AlphaToMask = false;
+
+        public ToggleData alphaToMask
+        {
+            get { return new ToggleData(m_AlphaToMask); }
+            set
+            {
+                if (m_AlphaToMask == value.isOn)
+                    return;
+                m_AlphaToMask = value.isOn;
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -513,6 +528,20 @@ namespace UnityEditor.Rendering.HighDefinition
             return hash;
         }
 
+        [SerializeField] private string m_ShaderGUIOverride;
+        public string ShaderGUIOverride
+        {
+            get => m_ShaderGUIOverride;
+            set => m_ShaderGUIOverride = value;
+        }
+
+        [SerializeField] private bool m_OverrideEnabled;
+        public bool OverrideEnabled
+        {
+            get => m_OverrideEnabled;
+            set => m_OverrideEnabled = value;
+        }
+
         public EyeMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -536,7 +565,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotDisplayName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(PositionSlotId);
-            }            
+            }
 
             //Normal in Vertex
             if (MaterialTypeUsesSlotMask(SlotMask.VertexNormal))
@@ -691,12 +720,12 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(Fields.GraphVertex,                            IsSlotConnected(PositionSlotId) || 
-                                                                                        IsSlotConnected(VertexNormalSlotID) || 
+                new ConditionalField(Fields.GraphVertex,                            IsSlotConnected(PositionSlotId) ||
+                                                                                        IsSlotConnected(VertexNormalSlotID) ||
                                                                                         IsSlotConnected(VertexTangentSlotID)),
                 new ConditionalField(Fields.GraphPixel,                             true),
                 new ConditionalField(Fields.LodCrossFade,                           supportLodCrossFade.isOn),
-                
+
                 // Surface Type
                 new ConditionalField(Fields.SurfaceOpaque,                          surfaceType == SurfaceType.Opaque),
                 new ConditionalField(Fields.SurfaceTransparent,                     surfaceType != SurfaceType.Opaque),
@@ -704,7 +733,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                         !pass.Equals(HDPasses.Eye.MotionVectors)),
-                
+
                 // Material
                 new ConditionalField(HDFields.Eye,                                  materialType == MaterialType.Eye),
                 new ConditionalField(HDFields.EyeCinematic,                         materialType == MaterialType.EyeCinematic),
@@ -717,19 +746,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Misc
                 new ConditionalField(Fields.AlphaTest,                              alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
+                new ConditionalField(HDFields.DoAlphaTest,                          alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
+                new ConditionalField(Fields.AlphaToMask,                            alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId) && alphaToMask.isOn),
                 new ConditionalField(HDFields.AlphaFog,                             surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
                 new ConditionalField(HDFields.BlendPreserveSpecular,                surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
                 new ConditionalField(HDFields.DisableDecals,                        !receiveDecals.isOn),
                 new ConditionalField(HDFields.DisableSSR,                           !receiveSSR.isOn),
                 new ConditionalField(Fields.VelocityPrecomputed,                    addPrecomputedVelocity.isOn),
-                new ConditionalField(HDFields.BentNormal,                           IsSlotConnected(BentNormalSlotId) && 
+                new ConditionalField(HDFields.BentNormal,                           IsSlotConnected(BentNormalSlotId) &&
                                                                                         pass.pixelPorts.Contains(BentNormalSlotId)),
                 new ConditionalField(HDFields.AmbientOcclusion,                     pass.pixelPorts.Contains(AmbientOcclusionSlotId) &&
                                                                                         (IsSlotConnected(AmbientOcclusionSlotId) ||
                                                                                         ambientOcclusionSlot.value != ambientOcclusionSlot.defaultValue)),
-                new ConditionalField(HDFields.LightingGI,                           IsSlotConnected(LightingSlotId) && 
+                new ConditionalField(HDFields.LightingGI,                           IsSlotConnected(LightingSlotId) &&
                                                                                         pass.pixelPorts.Contains(LightingSlotId)),
-                new ConditionalField(HDFields.BackLightingGI,                       IsSlotConnected(BackLightingSlotId) && 
+                new ConditionalField(HDFields.BackLightingGI,                       IsSlotConnected(BackLightingSlotId) &&
                                                                                         pass.pixelPorts.Contains(BackLightingSlotId)),
                 new ConditionalField(HDFields.DepthOffset,                          depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
             };
@@ -853,6 +884,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 surfaceType,
                 HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode),
                 sortPriority,
+                alphaToMask.isOn,
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,
