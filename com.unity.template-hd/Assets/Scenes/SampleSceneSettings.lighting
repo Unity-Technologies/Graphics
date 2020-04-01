@@ -19,7 +19,7 @@ LightingSettings:
   m_BakeBackend: 2
   m_LightmapMaxSize: 512
   m_BakeResolution: 16
-  m_Padding: 8
+  m_Padding: 16
   m_TextureCompression: 1
   m_AO: 0
   m_AOMaxDistance: 1
