@@ -154,6 +154,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused Android GLES to render blank screen when Depth texture was enabled without Opaque texture [case 1219325](https://issuetracker.unity3d.com/issues/scene-is-not-rendered-on-android-8-and-9-when-depth-texture-is-enabled-in-urp-asset)
 - Fixed an issue that caused transparent objects to always render over top of world space UI. [case 1219877](https://issuetracker.unity3d.com/product/unity/issues/guid/1219877/)
 - Fixed issue causing sorting fudge to not work between shadergraph and urp particle shaders. [case 1222762](https://issuetracker.unity3d.com/product/unity/issues/guid/1222762/)
+- Fixed shader compilation errors when using multiple lights in DX10 level GPU. [case 1222302](https://issuetracker.unity3d.com/issues/urp-no-materials-apart-from-ui-are-rendered-when-using-direct3d11-graphics-api-on-a-dx10-gpu)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
