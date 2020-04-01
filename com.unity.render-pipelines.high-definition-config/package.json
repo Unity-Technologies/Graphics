@@ -1,7 +1,7 @@
 {
   "name": "com.unity.render-pipelines.high-definition-config",
   "description": "Configuration files for the High Definition Render Pipeline.",
-  "version": "9.0.0-preview.12",
+  "version": "9.0.0-preview.13",
   "unity": "2020.1",
   "unityRelease": "0a23",
   "displayName": "High Definition RP Config",
