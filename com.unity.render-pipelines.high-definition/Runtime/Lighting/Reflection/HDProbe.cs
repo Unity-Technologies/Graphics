@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public RenderData renderData => GetRenderData(mode);
         /// <summary>
-        /// Get the render data of a specific mode
+        /// Get the render data of a specific mode. Note that for real time view dependent probes, the render data is going to be specific to the parent camera.
         /// </summary>
         /// <param name="targetMode">The mode to query</param>
         /// <returns>The requested render data</returns>
@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
         /// <summary>
-        /// Set the render data for a specific mode
+        /// Set the render data for a specific mode. Note that in case of real time view dependent probes, this needs to be set with the correct data once per camera.
         /// </summary>
         /// <param name="targetMode">The mode to update</param>
         /// <param name="renderData">The data to set</param>
