@@ -18,13 +18,13 @@ SAMPLER(sampler_ScreenSpaceAmbientOcclusionTexture);
 int _SampleCount;
 half _Intensity;
 half _Radius;
-float _DownScale;
+float _DownSample;
 
 #define SAMPLE_BASEMAP(uv)  SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
 #define SCREEN_PARAMS GetScaledScreenParams()
 #define INTENSITY _Intensity
 #define RADIUS _Radius
-#define DOWNSAMPLE _DownScale
+#define DOWNSAMPLE _DownSample
 
 #if !defined(SHADER_API_GLES)
     #define SAMPLE_COUNT _SampleCount

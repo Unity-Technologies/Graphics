@@ -41,7 +41,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         public bool UseVolumes              = false;
         //public DepthSource DepthSource      = DepthSource.Depth;
         public QualityOptions NormalQuality = QualityOptions.Medium;
-        public bool DownScale               = false;
+        public bool Downsample               = true;
         public bool Blur                    = true;
         public float Intensity              = 0.0f;
         public float Radius                 = 0.05f;
@@ -112,7 +112,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
         private static readonly int s_BlurTexture1ID = Shader.PropertyToID("_SSAO_BlurTexture1");
         private static readonly int s_BlurTexture2ID = Shader.PropertyToID("_SSAO_BlurTexture2");
-        private static readonly int s_DownScaleID = Shader.PropertyToID("_DownScale");
+        private static readonly int s_DownsampleID = Shader.PropertyToID("_DownSample");
         private static readonly int s_IntensityID = Shader.PropertyToID("_Intensity");
         private static readonly int s_RadiusID = Shader.PropertyToID("_Radius");
         private static readonly int s_SampleCountID = Shader.PropertyToID("_SampleCount");
@@ -148,7 +148,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             {
                 //m_FeatureSettings.DepthSource = volume.DepthSource.value;
                 m_FeatureSettings.NormalQuality = volume.NormalQuality.value;
-                m_FeatureSettings.DownScale = volume.DownScale.value;
+                m_FeatureSettings.Downsample = volume.Downsample.value;
                 m_FeatureSettings.Blur = volume.Blur.value;
                 m_FeatureSettings.Intensity = volume.Intensity.value;
                 m_FeatureSettings.Radius = volume.Radius.value;
@@ -158,7 +158,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             {
                 //m_FeatureSettings.DepthSource = featureSettings.DepthSource;
                 m_FeatureSettings.NormalQuality = featureSettings.NormalQuality;
-                m_FeatureSettings.DownScale = featureSettings.DownScale;
+                m_FeatureSettings.Downsample = featureSettings.Downsample;
                 m_FeatureSettings.Blur = featureSettings.Blur;
                 m_FeatureSettings.Intensity = featureSettings.Intensity;
                 m_FeatureSettings.Radius = featureSettings.Radius;
@@ -173,10 +173,10 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            int downScaleDivider = m_FeatureSettings.DownScale ? 2 : 1;
+            int downsampleDivider = m_FeatureSettings.Downsample ? 2 : 1;
 
             // Material settings
-            material.SetFloat(s_DownScaleID, 1.0f / downScaleDivider);
+            material.SetFloat(s_DownsampleID, 1.0f / downsampleDivider);
             material.SetFloat(s_IntensityID, m_FeatureSettings.Intensity);
             material.SetFloat(s_RadiusID, m_FeatureSettings.Radius);
             material.SetInt(s_SampleCountID, m_FeatureSettings.SampleCount);
@@ -211,8 +211,8 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             m_Descriptor = cameraTextureDescriptor;
             m_Descriptor.msaaSamples = 1;
             m_Descriptor.depthBufferBits = 0;
-            m_Descriptor.width = m_Descriptor.width / downScaleDivider;
-            m_Descriptor.height = m_Descriptor.height / downScaleDivider;
+            m_Descriptor.width = m_Descriptor.width / downsampleDivider;
+            m_Descriptor.height = m_Descriptor.height / downsampleDivider;
             m_Descriptor.colorFormat = RenderTextureFormat.R8;
 
             // Get temporary render textures
@@ -221,7 +221,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
 
             if (m_FeatureSettings.Blur)
             {
-                FilterMode filterMode = m_FeatureSettings.DownScale ? FilterMode.Bilinear : FilterMode.Point;
+                FilterMode filterMode = m_FeatureSettings.Downsample ? FilterMode.Bilinear : FilterMode.Point;
                 cmd.GetTemporaryRT(s_BlurTexture1ID, desc, filterMode);
                 cmd.GetTemporaryRT(s_BlurTexture2ID, desc, filterMode);
             }

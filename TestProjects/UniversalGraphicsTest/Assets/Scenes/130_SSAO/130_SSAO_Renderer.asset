@@ -15,12 +15,12 @@ MonoBehaviour:
   m_Active: 1
   settings:
     Shader: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
-    UseVolumes: 1
+    UseVolumes: 0
     NormalQuality: 1
-    DownScale: 0
+    Downsample: 1
     Blur: 1
     Intensity: 3
-    Radius: 0.1
+    Radius: 0.05
     SampleCount: 10
 --- !u!114 &11400000
 MonoBehaviour:

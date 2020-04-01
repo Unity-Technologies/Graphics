@@ -13,21 +13,21 @@ namespace UnityEditor.Experimental.Rendering.Universal
         {
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-            public static GUIContent UseVolumes = new GUIContent("Use Volumes", "");
+            public static GUIContent UseVolumes = new GUIContent("Use Volumes", "Enable this if the settings should be controlled by a volume override.");
             //public static GUIContent DepthSource = new GUIContent("Depth Source", "");
-            public static GUIContent NormalQuality = new GUIContent("Normal Quality", "");
-            public static GUIContent DownScale = new GUIContent("Down Scale", "");
-            public static GUIContent Blur = new GUIContent("Blur", "");
-            public static GUIContent Intensity = new GUIContent("Intensity", "");
-            public static GUIContent Radius = new GUIContent("Radius", "");
-            public static GUIContent SampleCount = new GUIContent("Sample Count", "");
+            public static GUIContent NormalQuality = new GUIContent("Normal Quality", "Controls the quality of computing the reconstructed normal.");
+            public static GUIContent DownSample = new GUIContent("Downsample", "Controls whether the resulting SSAO texture is downsampled to half size or not.");
+            public static GUIContent Blur = new GUIContent("Blur", "Controls whether the resulting SSAO texture is blurred or not.");
+            public static GUIContent Intensity = new GUIContent("Intensity", "The degree of darkness added by ambient occlusion.");
+            public static GUIContent Radius = new GUIContent("Radius", "Radius of sample points, which affects extent of darkened areas.");
+            public static GUIContent SampleCount = new GUIContent("Sample Count", "The number of sample points, which affects quality and performance.");
         }
 
         // Serialized Properties
         private SerializedProperty m_UseVolumes;
         //private SerializedProperty m_DepthSource;
         private SerializedProperty m_NormalQuality;
-        private SerializedProperty m_DownScale;
+        private SerializedProperty m_Downsample;
         private SerializedProperty m_Blur;
         private SerializedProperty m_Intensity;
         private SerializedProperty m_Radius;
@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_UseVolumes = property.FindPropertyRelative("UseVolumes");
             //m_DepthSource = property.FindPropertyRelative("DepthSource");
             m_NormalQuality = property.FindPropertyRelative("NormalQuality");
-            m_DownScale = property.FindPropertyRelative("DownScale");
+            m_Downsample = property.FindPropertyRelative("Downsample");
             m_Blur = property.FindPropertyRelative("Blur");
             m_Intensity = property.FindPropertyRelative("Intensity");
             m_Radius = property.FindPropertyRelative("Radius");
@@ -80,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     rect.y += Styles.defaultLineSpace;
                 }
 
-                EditorGUI.PropertyField(rect, m_DownScale, Styles.DownScale);
+                EditorGUI.PropertyField(rect, m_Downsample, Styles.DownSample);
                 rect.y += Styles.defaultLineSpace;
 
                 EditorGUI.PropertyField(rect, m_Blur, Styles.Blur);
@@ -92,7 +92,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 EditorGUI.Slider(rect, m_Radius, 0f, 10f, Styles.Radius);
                 rect.y += Styles.defaultLineSpace;
 
-                EditorGUI.IntSlider(rect, m_SampleCount, 0, 32, Styles.SampleCount);
+                EditorGUI.IntSlider(rect, m_SampleCount, 0, 12, Styles.SampleCount);
                 rect.y += Styles.defaultLineSpace;
             }
 

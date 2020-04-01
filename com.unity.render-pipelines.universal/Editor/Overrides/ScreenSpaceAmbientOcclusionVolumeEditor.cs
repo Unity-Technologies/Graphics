@@ -1,3 +1,4 @@
+using UnityEditor.Experimental.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -8,7 +9,7 @@ namespace UnityEditor.Rendering.Universal
     {
         //SerializedDataParameter m_DepthSource;
         SerializedDataParameter m_NormalQuality;
-        SerializedDataParameter m_DownScale;
+        SerializedDataParameter m_Downsample;
         SerializedDataParameter m_Blur;
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_Radius;
@@ -20,7 +21,7 @@ namespace UnityEditor.Rendering.Universal
 
             //m_DepthSource = Unpack(volume.Find(x => x.depthSource));
             m_NormalQuality = Unpack(volume.Find(x => x.NormalQuality));
-            m_DownScale     = Unpack(volume.Find(x => x.DownScale));
+            m_Downsample    = Unpack(volume.Find(x => x.Downsample));
             m_Blur          = Unpack(volume.Find(x => x.Blur));
             m_Intensity     = Unpack(volume.Find(x => x.Intensity));
             m_Radius        = Unpack(volume.Find(x => x.Radius));
@@ -29,16 +30,16 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            //PropertyField(m_DepthSource);
+            //PropertyField(m_DepthSource, ScreenSpaceAmbientOcclusionFeatureEditor.Styles.DepthSource);
             //if (m_DepthSource == DepthSource.Depth)
             {
-                PropertyField(m_NormalQuality);
+                PropertyField(m_NormalQuality, ScreenSpaceAmbientOcclusionFeatureEditor.Styles.NormalQuality);
             }
-            PropertyField(m_DownScale);
-            PropertyField(m_Blur);
-            PropertyField(m_Intensity);
-            PropertyField(m_Radius);
-            PropertyField(m_SampleCount);
+            PropertyField(m_Downsample,  ScreenSpaceAmbientOcclusionFeatureEditor.Styles.DownSample);
+            PropertyField(m_Blur,        ScreenSpaceAmbientOcclusionFeatureEditor.Styles.Blur);
+            PropertyField(m_Intensity,   ScreenSpaceAmbientOcclusionFeatureEditor.Styles.Intensity);
+            PropertyField(m_Radius,      ScreenSpaceAmbientOcclusionFeatureEditor.Styles.Radius);
+            PropertyField(m_SampleCount, ScreenSpaceAmbientOcclusionFeatureEditor.Styles.SampleCount);
         }
     }
 }
