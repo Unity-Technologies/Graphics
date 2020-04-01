@@ -126,7 +126,7 @@ void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
 float3 EvaluateProbeVolumesMaterialPass(PositionInputs posInput, float3 normalWS, uint renderingLayers)
 #else // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-float3 EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags)
+float3 EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags, bool isBackface)
 #endif
 {
     float3 probeVolumeDiffuseLighting = float3(0.0, 0.0, 0.0);
@@ -144,7 +144,7 @@ float3 EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData,
         probeVolumeHierarchyWeight = 1.0;
     }
 
-    float3 normalWS = bsdfData.normalWS;
+    float3 normalWS = isBackface ? -bsdfData.normalWS : bsdfData.normalWS;
     uint renderingLayers = builtinData.renderingLayers;
 #endif
     float3 positionRWS = posInput.positionWS;

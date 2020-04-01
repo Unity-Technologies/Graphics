@@ -423,9 +423,14 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
 #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-    float3 probeVolumeDiffuseLighting = EvaluateProbeVolumesLightLoop(posInput, bsdfData, builtinData, featureFlags);
-    builtinData.bakeDiffuseLighting = probeVolumeDiffuseLighting;
-    builtinData.backBakeDiffuseLighting = float3(0, 0, 0);
+    // For now, to match what we are doing in material pass evaluation, we simply call evaluate twice.
+    // Once for the front face, and once for the back face.
+    // This makes supporting transmission simple, and this support was especially important for supporting the fallback path with ambient probe.
+    // An alternative to calling evaluate twice (and looping over the probe data twice), would be to loop over the data once, but accumulate front face and backface values.
+    // Another alternative would be to accumulate + blend raw SH data, and then evaluate for both the front facing and backfacing BSDF outside of the probe volume loop.
+    // We should compare these techniques in our next round of profiling work.
+    builtinData.bakeDiffuseLighting = EvaluateProbeVolumesLightLoop(posInput, bsdfData, builtinData, featureFlags, false);
+    builtinData.backBakeDiffuseLighting = EvaluateProbeVolumesLightLoop(posInput, bsdfData, builtinData, featureFlags, true);
 #endif
 #endif
 
