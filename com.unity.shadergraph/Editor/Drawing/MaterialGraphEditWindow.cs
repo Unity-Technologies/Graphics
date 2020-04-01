@@ -137,130 +137,125 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Deleted = false; // Was restored
         }
 
-        private static readonly ProfilerMarker MaterialGraphEditWindowUpdateMarker = new ProfilerMarker("MaterialGraphEditWindowUpdate");
-
         void Update()
         {
-            using (MaterialGraphEditWindowUpdateMarker.Auto())
+            if (m_HasError)
+                return;
+
+            if (focusedWindow == this && m_Deleted)
+                DisplayDeletedFromDiskDialog();
+
+            if (PlayerSettings.colorSpace != m_ColorSpace)
             {
-                if (m_HasError)
+                graphEditorView = null;
+                m_ColorSpace = PlayerSettings.colorSpace;
+            }
+
+            if (GraphicsSettings.renderPipelineAsset != m_RenderPipelineAsset)
+            {
+                graphEditorView = null;
+                m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+            }
+
+            if (EditorGUIUtility.isProSkin != m_ProTheme)
+            {
+                if (graphObject != null && graphObject.graph != null)
+                {
+                    Texture2D icon = GetThemeIcon(graphObject.graph);
+
+                    // This is adding the icon at the front of the tab
+                    titleContent = EditorGUIUtility.TrTextContentWithIcon(assetName, icon);
+                    m_ProTheme = EditorGUIUtility.isProSkin;
+                }
+            }
+
+            if (m_PromptChangedOnDisk)
+            {
+                m_PromptChangedOnDisk = false;
+                DisplayChangedOnDiskDialog();
+            }
+
+            try
+            {
+                if (graphObject == null && selectedGuid != null)
+                {
+                    var guid = selectedGuid;
+                    selectedGuid = null;
+                    Initialize(guid);
+                }
+
+                if (graphObject == null)
+                {
+                    Close();
+                    return;
+                }
+
+                var materialGraph = graphObject.graph as GraphData;
+                if (materialGraph == null)
                     return;
 
-                if (focusedWindow == this && m_Deleted)
-                    DisplayDeletedFromDiskDialog();
-
-                if (PlayerSettings.colorSpace != m_ColorSpace)
+                if (graphEditorView == null)
                 {
-                    graphEditorView = null;
+                    messageManager.ClearAll();
+                    materialGraph.messageManager = messageManager;
+                    var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
+                    graphEditorView = new GraphEditorView(this, materialGraph, messageManager)
+                    {
+                        viewDataKey = selectedGuid,
+                        assetName = asset.name.Split('/').Last()
+                    };
                     m_ColorSpace = PlayerSettings.colorSpace;
-                }
-
-                if (GraphicsSettings.renderPipelineAsset != m_RenderPipelineAsset)
-                {
-                    graphEditorView = null;
                     m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+                    graphObject.Validate();
                 }
 
-                if (EditorGUIUtility.isProSkin != m_ProTheme)
+                if (m_ChangedFileDependencies.Count > 0 && graphObject != null && graphObject.graph != null)
                 {
-                    if (graphObject != null && graphObject.graph != null)
+                    var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
+                    foreach (var subGraphNode in subGraphNodes)
                     {
-                        Texture2D icon = GetThemeIcon(graphObject.graph);
-
-                        // This is adding the icon at the front of the tab
-                        titleContent = EditorGUIUtility.TrTextContentWithIcon(assetName, icon);
-                        m_ProTheme = EditorGUIUtility.isProSkin;
+                        subGraphNode.Reload(m_ChangedFileDependencies);
                     }
+                    if (subGraphNodes.Count() > 0)
+                    {
+                        // Keywords always need to be updated to test against variant limit
+                        // No Keywords may indicate removal and this may have now made the Graph valid again
+                        // Need to validate Graph to clear errors in this case
+                        materialGraph.OnKeywordChanged();
+                    }
+                    foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
+                    {
+                        customFunctionNode.Reload(m_ChangedFileDependencies);
+                    }
+
+                    m_ChangedFileDependencies.Clear();
                 }
 
-                if (m_PromptChangedOnDisk)
+                var wasUndoRedoPerformed = graphObject.wasUndoRedoPerformed;
+
+                if (wasUndoRedoPerformed)
                 {
-                    m_PromptChangedOnDisk = false;
-                    DisplayChangedOnDiskDialog();
-                }
-
-                try
-                {
-                    if (graphObject == null && selectedGuid != null)
-                    {
-                        var guid = selectedGuid;
-                        selectedGuid = null;
-                        Initialize(guid);
-                    }
-
-                    if (graphObject == null)
-                    {
-                        Close();
-                        return;
-                    }
-
-                    var materialGraph = graphObject.graph as GraphData;
-                    if (materialGraph == null)
-                        return;
-
-                    if (graphEditorView == null)
-                    {
-                        messageManager.ClearAll();
-                        materialGraph.messageManager = messageManager;
-                        var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-                        graphEditorView = new GraphEditorView(this, materialGraph, messageManager)
-                        {
-                            viewDataKey = selectedGuid,
-                            assetName = asset.name.Split('/').Last()
-                        };
-                        m_ColorSpace = PlayerSettings.colorSpace;
-                        m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-                        graphObject.Validate();
-                    }
-
-                    if (m_ChangedFileDependencies.Count > 0 && graphObject != null && graphObject.graph != null)
-                    {
-                        var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
-                        foreach (var subGraphNode in subGraphNodes)
-                        {
-                            subGraphNode.Reload(m_ChangedFileDependencies);
-                        }
-                        if (subGraphNodes.Count() > 0)
-                        {
-                            // Keywords always need to be updated to test against variant limit
-                            // No Keywords may indicate removal and this may have now made the Graph valid again
-                            // Need to validate Graph to clear errors in this case
-                            materialGraph.OnKeywordChanged();
-                        }
-                        foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
-                        {
-                            customFunctionNode.Reload(m_ChangedFileDependencies);
-                        }
-
-                        m_ChangedFileDependencies.Clear();
-                    }
-
-                    var wasUndoRedoPerformed = graphObject.wasUndoRedoPerformed;
-
-                    if (wasUndoRedoPerformed)
-                    {
-                        graphEditorView.HandleGraphChanges();
-                        graphObject.graph.ClearChanges();
-                        graphObject.HandleUndoRedo();
-                    }
-
-                    if (graphObject.isDirty || wasUndoRedoPerformed)
-                    {
-                        UpdateTitle();
-                        graphObject.isDirty = false;
-                    }
-
                     graphEditorView.HandleGraphChanges();
                     graphObject.graph.ClearChanges();
+                    graphObject.HandleUndoRedo();
                 }
-                catch (Exception e)
+
+                if (graphObject.isDirty || wasUndoRedoPerformed)
                 {
-                    m_HasError = true;
-                    m_GraphEditorView = null;
-                    graphObject = null;
-                    Debug.LogException(e);
-                    throw;
+                    UpdateTitle();
+                    graphObject.isDirty = false;
                 }
+
+                graphEditorView.HandleGraphChanges();
+                graphObject.graph.ClearChanges();
+            }
+            catch (Exception e)
+            {
+                m_HasError = true;
+                m_GraphEditorView = null;
+                graphObject = null;
+                Debug.LogException(e);
+                throw;
             }
         }
 
@@ -805,9 +800,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AssetDatabase.ImportAsset(path);
         }
 
-        private static readonly ProfilerMarker MaterialGraphEditWindowInitializeMarker = new ProfilerMarker("MaterialGraphEditWindowInitialize");
-        private static readonly ProfilerMarker LoadAssetAtPathMarker = new ProfilerMarker("LoadAssetAtPath");
-
         private static readonly ProfilerMarker GraphLoadMarker = new ProfilerMarker("GraphLoad");
         private static readonly ProfilerMarker CreateGraphEditorViewMarker = new ProfilerMarker("CreateGraphEditorView");
 
@@ -815,90 +807,82 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void Initialize(string assetGuid)
         {
-            using (MaterialGraphEditWindowInitializeMarker.Auto())
+            try
             {
-                try
+                m_ColorSpace = PlayerSettings.colorSpace;
+                m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+
+                var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(assetGuid));
+                if (asset == null)
+                    return;
+
+                if (!EditorUtility.IsPersistent(asset))
+                    return;
+
+                if (selectedGuid == assetGuid)
+                    return;
+
+                var path = AssetDatabase.GetAssetPath(asset);
+                var extension = Path.GetExtension(path);
+                if (extension == null)
+                    return;
+                // Path.GetExtension returns the extension prefixed with ".", so we remove it. We force lower case such that
+                // the comparison will be case-insensitive.
+                extension = extension.Substring(1).ToLowerInvariant();
+                bool isSubGraph;
+                switch (extension)
                 {
-                    m_ColorSpace = PlayerSettings.colorSpace;
-                    m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-
-                    Object asset;
-                    using (LoadAssetAtPathMarker.Auto())
-                    {
-                        asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(assetGuid));
-                    }
-
-                    if (asset == null)
+                    case ShaderGraphImporter.Extension:
+                        isSubGraph = false;
+                        break;
+                    case ShaderSubGraphImporter.Extension:
+                        isSubGraph = true;
+                        break;
+                    default:
                         return;
-
-                    if (!EditorUtility.IsPersistent(asset))
-                        return;
-
-                    if (selectedGuid == assetGuid)
-                        return;
-
-                    var path = AssetDatabase.GetAssetPath(asset);
-                    var extension = Path.GetExtension(path);
-                    if (extension == null)
-                        return;
-                    // Path.GetExtension returns the extension prefixed with ".", so we remove it. We force lower case such that
-                    // the comparison will be case-insensitive.
-                    extension = extension.Substring(1).ToLowerInvariant();
-                    bool isSubGraph;
-                    switch (extension)
-                    {
-                        case ShaderGraphImporter.Extension:
-                            isSubGraph = false;
-                            break;
-                        case ShaderSubGraphImporter.Extension:
-                            isSubGraph = true;
-                            break;
-                        default:
-                            return;
-                    }
-
-                    selectedGuid = assetGuid;
-
-                    using (GraphLoadMarker.Auto())
-                    {
-                        var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                        graphObject = CreateInstance<GraphObject>();
-                        graphObject.hideFlags = HideFlags.HideAndDontSave;
-                        graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
-                        graphObject.graph.assetGuid = assetGuid;
-                        graphObject.graph.isSubGraph = isSubGraph;
-                        graphObject.graph.messageManager = messageManager;
-                        graphObject.graph.OnEnable();
-                        graphObject.graph.ValidateGraph();
-                    }
-
-                    using (CreateGraphEditorViewMarker.Auto())
-                    {
-                        graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
-                        {
-                            viewDataKey = selectedGuid,
-                            assetName = asset.name.Split('/').Last()
-                        };
-                    }
-
-                    Texture2D icon = GetThemeIcon(graphObject.graph);
-
-                    // This is adding the icon at the front of the tab
-                    titleContent = EditorGUIUtility.TrTextContentWithIcon(selectedGuid, icon);
-                    UpdateTitle();
-
-                    using (RepaintMarker.Auto())
-                    {
-                        Repaint();
-                    }
                 }
-                catch (Exception)
+
+                selectedGuid = assetGuid;
+
+                using (GraphLoadMarker.Auto())
                 {
-                    m_HasError = true;
-                    m_GraphEditorView = null;
-                    graphObject = null;
-                    throw;
+                    var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                    graphObject = CreateInstance<GraphObject>();
+                    graphObject.hideFlags = HideFlags.HideAndDontSave;
+                    graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
+                    graphObject.graph.assetGuid = assetGuid;
+                    graphObject.graph.isSubGraph = isSubGraph;
+                    graphObject.graph.messageManager = messageManager;
+                    graphObject.graph.OnEnable();
+                    graphObject.graph.ValidateGraph();
                 }
+
+                using (CreateGraphEditorViewMarker.Auto())
+                {
+                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                    {
+                        viewDataKey = selectedGuid,
+                        assetName = asset.name.Split('/').Last()
+                    };
+                }
+
+                Texture2D icon = GetThemeIcon(graphObject.graph);
+
+                // This is adding the icon at the front of the tab
+                titleContent = EditorGUIUtility.TrTextContentWithIcon(selectedGuid, icon);
+                UpdateTitle();
+
+                using (RepaintMarker.Auto())
+                {
+                    Repaint();
+                }
+            }
+            catch (Exception)
+            {
+                m_HasError = true;
+                m_GraphEditorView = null;
+                graphObject = null;
+                throw;
             }
         }
 
