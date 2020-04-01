@@ -21,6 +21,7 @@ half _Radius;
 float _DownScale;
 
 #define SAMPLE_BASEMAP(uv)  SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
+#define SCREEN_PARAMS GetScaledScreenParams()
 #define INTENSITY _Intensity
 #define RADIUS _Radius
 #define DOWNSAMPLE _DownScale
@@ -145,7 +146,7 @@ float3 PickSamplePoint(float2 uv, float index)
     // Uniformly distributed points on a unit sphere
     // http://mathworld.wolfram.com/SpherePointPicking.html
 #if defined(FIX_SAMPLING_PATTERN)
-    float gn = InterleavedGradientNoise(uv * DOWNSAMPLE * GetScreenParams().xy, index);
+    float gn = InterleavedGradientNoise(uv * DOWNSAMPLE * SCREEN_PARAMS.xy, index);
     // FIXME: This was added to avoid a NVIDIA driver issue.
     //                                       vvvvvvvvvvvv
     float u     = frac(UVRandom(0.0, index + uv.x * 1e-10) + gn) * 2.0 - 1.0;
@@ -175,7 +176,7 @@ float3 ReconstructNormal(float2 uv, float2 p11_22, float2 p13_31)
         // Use the cross product to calculate the normal...
         return normalize(cross(ddy(P0), ddx(P0)));
     #else
-        float2 delta = GetScreenParams().zw - 1.0;
+        float2 delta = SCREEN_PARAMS.zw - 1.0;
 
         // Sample the neighbour fragments
         float2 lUV = float2(-delta.x, 0.0);
@@ -315,9 +316,9 @@ float4 FragBlur(Varyings input) : SV_Target
     float2 uv = input.uv;
 
     #if defined(BLUR_HORIZONTAL)
-        float2 delta = float2(GetScreenParams().z - 1.0, 0.0);
+        float2 delta = float2(SCREEN_PARAMS.z - 1.0, 0.0);
     #else
-        float2 delta = float2(0.0, (GetScreenParams().w - 1.0) / DOWNSAMPLE);
+        float2 delta = float2(0.0, (SCREEN_PARAMS.w - 1.0) / DOWNSAMPLE);
     #endif
 
     #if defined(BLUR_HIGH_QUALITY)
@@ -427,7 +428,7 @@ float4 FragComposition(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     float2 uv = input.uv;
 
-    float2 delta = (GetScreenParams().zw - 1.0) / DOWNSAMPLE;
+    float2 delta = (SCREEN_PARAMS.zw - 1.0) / DOWNSAMPLE;
     half ao = BlurSmall(TEXTURE2D_X_ARGS(_BaseMap, sampler_BaseMap), uv, delta);
 
     return EncodeAO(1.0 - ao);
@@ -442,7 +443,7 @@ float4 FragComposition(Varyings input) : SV_Target
 
     CompositionOutput FragCompositionGBuffer(Varyings i)
     {
-        float2 delta = (GetScreenParams().zw - 1.0) / DOWNSAMPLE;
+        float2 delta = (SCREEN_PARAMS.zw - 1.0) / DOWNSAMPLE;
         half ao = BlurSmall(TEXTURE2D_X_ARGS(_ScreenSpaceAmbientOcclusionTexture, sampler_ScreenSpaceAmbientOcclusionTexture), i.uv.xy, delta);
 
         CompositionOutput o;
