@@ -70,8 +70,13 @@ namespace UnityEngine.Rendering.Universal
         {
             SubsystemManager.GetInstances(displayList);
 
+            // XRTODO: refactor with RefreshXrSdk()
             for (int i = 0; i < displayList.Count; i++)
+            {
                 displayList[i].disableLegacyRenderer = true;
+                displayList[i].textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
+                displayList[i].sRGB = QualitySettings.activeColorSpace == ColorSpace.Linear;
+            }
         }
 #endif
 
@@ -133,7 +138,7 @@ namespace UnityEngine.Rendering.Universal
             if (display != null)
             {
                 // XRTODO: Handle stereo mode selection in URP pipeline asset UI
-                display.textureLayout = XR.XRDisplaySubsystem.TextureLayout.Texture2DArray;
+                display.textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
                 display.zNear = cameraData.camera.nearClipPlane;
                 display.zFar  = cameraData.camera.farClipPlane;
                 display.sRGB  = QualitySettings.activeColorSpace == ColorSpace.Linear;
@@ -162,30 +167,6 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                //camera.TryGetCullingParameters(false, out var cullingParams);
-                //var passInfo = new XRPassCreateInfo
-                //{
-                //    multipassId = 0,
-                //    cullingPassId = 0,
-                //    cullingParameters = cullingParams,
-                //    // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
-                //    // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-                //    renderTarget = cameraData.targetTexture,
-                //    renderTargetDesc = cameraData.cameraTargetDescriptor,
-                //    renderTargetIsRenderTexture = cameraData.targetTexture != null || camera.cameraType == CameraType.SceneView || camera.cameraType == CameraType.Preview,
-                //    // TODO: config renderTarget desc
-                //    customMirrorView = null
-                //};
-                //var viewInfo = new XRViewCreateInfo
-                //{
-                //    projMatrix = camera.projectionMatrix,
-                //    viewMatrix = camera.worldToCameraMatrix,
-                //    viewport = camera.pixelRect,
-                //    textureArraySlice = -1
-                //};
-                //var emptyPass = XRPass.Create(passInfo);
-                //emptyPass.AddView(viewInfo.projMatrix, viewInfo.viewMatrix, viewInfo.viewport, viewInfo.textureArraySlice);
-
                 AddPassToFrame(emptyPass);
             }
 
