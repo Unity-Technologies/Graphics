@@ -595,7 +595,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Match const defined in EditorGUI.cs
             const int k_IndentPerLevel = 15;
-            const int k_PrefixPaddingRight = 2;
 
             const int k_ValueUnitSeparator = 2;
             const int k_UnitWidth = 100;
