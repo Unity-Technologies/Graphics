@@ -105,7 +105,7 @@ float3 EvaluateProbeVolumes(PositionInputs posInputs, float3 normalWS, uint rend
     #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
         // If probe volumes are evaluated in the lightloop, we place a sentinel value to detect that no lightmap data is present at the current pixel,
         // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
-        return _EnableProbeVolumes ? UNINITIALIZED_GI : float3(0, 0, 0);
+        return UNINITIALIZED_GI;
     #elif SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
     #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
 
@@ -116,7 +116,7 @@ float3 EvaluateProbeVolumes(PositionInputs posInputs, float3 normalWS, uint rend
         posInputs.tileCoord = tileCoord;
     #endif
 
-        return _EnableProbeVolumes ? EvaluateProbeVolumesMaterialPass(posInputs, normalWS, renderingLayers) : float3(0, 0, 0);
+        return EvaluateProbeVolumesMaterialPass(posInputs, normalWS, renderingLayers);
     #else
         // !(SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)
         return float3(0, 0, 0);

@@ -319,7 +319,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static void PushProbeVolumesGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
+        internal void PushProbeVolumesGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
             cmd.SetGlobalInt(HDShaderIDs._EnableProbeVolumes, 0);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBufferDefault);
@@ -333,7 +333,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._ProbeVolumeBilateralFilterWeight, 0.0f);
 
             {
-                for (int i = 0; i < s_AmbientProbeFallbackPackedCoeffs.Length; ++i) { s_AmbientProbeFallbackPackedCoeffs[i] = Vector4.zero; }
+                // Need to populate ambient probe fallback even in the default case,
+                // As if the feature is enabled in the ShaderConfig, but disabled in the HDRenderPipelineAsset, we need to fallback to ambient probe only.
+                SphericalHarmonicsL2 ambientProbeFallbackSH = m_SkyManager.GetAmbientProbe(hdCamera);
+                SphericalHarmonicMath.PackCoefficients(s_AmbientProbeFallbackPackedCoeffs, ambientProbeFallbackSH);
                 cmd.SetGlobalVectorArray(HDShaderIDs._ProbeVolumeAmbientProbeFallbackPackedCoeffs, s_AmbientProbeFallbackPackedCoeffs);
             }
         }

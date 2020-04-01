@@ -150,9 +150,11 @@ float3 EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData,
     float3 positionRWS = posInput.positionWS;
     float positionLinearDepth = posInput.linearDepth;
 
+    if (_EnableProbeVolumes
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-    if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
+        && (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
 #endif
+    )
     {
 
         uint probeVolumeStart, probeVolumeCount;
