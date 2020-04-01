@@ -504,6 +504,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the depth buffer copy made before custom pass after opaque and normal injection point.
 - Fix for issue that prevented scene from being completely saved when baked reflection probes are present and lighting is set to auto generate.
 - Fixed drag area width at left of Light's intensity field in Inspector.
+- Fixed light type resolution when performing a reset on HDAdditionalLightData (case 1220931)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
