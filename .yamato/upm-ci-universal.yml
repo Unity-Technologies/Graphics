@@ -282,7 +282,6 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
 {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
-    - brew install python
     - brew upgrade python
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
