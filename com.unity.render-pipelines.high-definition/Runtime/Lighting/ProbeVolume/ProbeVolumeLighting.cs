@@ -114,6 +114,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture2DAtlasDynamic probeVolumeAtlasOctahedralDepth = null;
         bool isClearProbeVolumeAtlasRequested = false;
 
+        // Preallocated scratch memory for storing ambient probe packed SH coefficients, which are used as a fallback when probe volume weight < 1.0.
+        static Vector4[] s_AmbientProbeFallbackPackedCoeffs = new Vector4[7];
+
         void InitializeProbeVolumes()
         {
             if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
@@ -308,6 +311,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._ProbeVolumeNormalBiasWS, normalBiasWS);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeVolumeBilateralFilterWeightMin, 1e-5f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeVolumeBilateralFilterWeight, bilateralFilterWeight);
+
+            {
+                SphericalHarmonicsL2 ambientProbeFallbackSH = m_SkyManager.GetAmbientProbe(hdCamera);
+                SphericalHarmonicMath.PackCoefficients(s_AmbientProbeFallbackPackedCoeffs, ambientProbeFallbackSH);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ProbeVolumeAmbientProbeFallbackPackedCoeffs, s_AmbientProbeFallbackPackedCoeffs);
+            }
         }
 
         internal static void PushProbeVolumesGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
@@ -322,6 +331,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._ProbeVolumeNormalBiasWS, 0.0f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeVolumeBilateralFilterWeightMin, 0.0f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeVolumeBilateralFilterWeight, 0.0f);
+
+            {
+                for (int i = 0; i < s_AmbientProbeFallbackPackedCoeffs.Length; ++i) { s_AmbientProbeFallbackPackedCoeffs[i] = Vector4.zero; }
+                cmd.SetGlobalVectorArray(HDShaderIDs._ProbeVolumeAmbientProbeFallbackPackedCoeffs, s_AmbientProbeFallbackPackedCoeffs);
+            }
         }
 
         internal void ReleaseProbeVolumeFromAtlas(ProbeVolume volume)

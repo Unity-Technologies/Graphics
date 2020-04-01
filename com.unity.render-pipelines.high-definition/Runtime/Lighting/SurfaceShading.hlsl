@@ -206,8 +206,19 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
     return lighting;
 }
 
+#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+// Wrapping this function in define blocks so that pre-existing 3rd party shaders do not run into compilation issues.
 float3 ShadeSurface_LightProbeL1(BuiltinData builtinData, BSDFData bsdfData,
                                  float4 shAr, float4 shAg, float4 shAb)
 {
     return SHEvalLinearL0L1(bsdfData.normalWS, shAr, shAg, shAb) * bsdfData.diffuseColor;
 }
+
+float3 ShadeSurface_LightProbeL2(BuiltinData builtinData, BSDFData bsdfData, float4 SHCoefficients[7])
+{
+    return SampleSH9(SHCoefficients, bsdfData.normalWS) * bsdfData.diffuseColor;
+}
+#endif
+#endif
+

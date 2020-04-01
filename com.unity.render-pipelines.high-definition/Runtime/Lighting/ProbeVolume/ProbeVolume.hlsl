@@ -483,5 +483,26 @@ float3 EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData,
         }
     }
 
+    if (probeVolumeHierarchyWeight < 1.0
+#ifdef DEBUG_DISPLAY
+        && (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
+        && (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
+#endif
+    )
+    {
+        // Fallback to global ambient probe lighting when probe volume lighting weight is not fully saturated.
+
+    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
+        // When probe volumes are evaluated in the material pass, BSDF modulation is applied as a post operation, outside of this function.
+        float3 sampleAmbientProbeOutgoingRadiance = SampleSH9(_ProbeVolumeAmbientProbeFallbackPackedCoeffs, normalWS);
+
+    #else // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+        // When probe volumes are evaluated in the light loop, BSDF modulation is applied directly here.
+        float3 sampleAmbientProbeOutgoingRadiance = EvaluateBSDF_LightProbeL2(builtinData, bsdfData, _ProbeVolumeAmbientProbeFallbackPackedCoeffs);
+    #endif
+
+        probeVolumeDiffuseLighting = sampleAmbientProbeOutgoingRadiance * (1.0 - probeVolumeHierarchyWeight) + probeVolumeDiffuseLighting;
+    }
+
     return probeVolumeDiffuseLighting;
 }

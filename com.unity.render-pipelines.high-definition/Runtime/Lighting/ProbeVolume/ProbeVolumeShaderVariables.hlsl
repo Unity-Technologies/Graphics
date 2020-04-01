@@ -24,6 +24,8 @@
     float _ProbeVolumeNormalBiasWS;
     float _ProbeVolumeBilateralFilterWeightMin;
     float _ProbeVolumeBilateralFilterWeight;
+
+    float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
 #endif
 #endif // endof defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 

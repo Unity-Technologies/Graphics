@@ -659,6 +659,11 @@ float3 EvaluateBSDF_LightProbeL1(BuiltinData builtinData, BSDFData bsdfData,
 {
     return ShadeSurface_LightProbeL1(builtinData, bsdfData, shAr, shAg, shAb);
 }
+
+float3 EvaluateBSDF_LightProbeL2(BuiltinData builtinData, BSDFData bsdfData, float4 SHCoefficients[7])
+{
+    return ShadeSurface_LightProbeL2(builtinData, bsdfData, SHCoefficients);
+}
 #endif
 #endif
 
