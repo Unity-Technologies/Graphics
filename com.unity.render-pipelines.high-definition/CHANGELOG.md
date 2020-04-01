@@ -500,6 +500,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow cascade tooltip when using the metric mode (case 1229232)
 - Fixed how the area light influence volume is computed to match rasterization.
 - Focus on Decal uses the extends of the projectors
+- Fixed reflections of world space UI elements (case 1155022)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

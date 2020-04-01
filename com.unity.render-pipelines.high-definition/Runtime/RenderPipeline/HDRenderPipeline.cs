@@ -2689,8 +2689,8 @@ namespace UnityEngine.Rendering.HighDefinition
         )
         {
 #if UNITY_EDITOR
-            // emit scene view UI
-            if (camera.cameraType == CameraType.SceneView)
+            // emit UI geometry for scene view and reflection cameras
+            if (camera.cameraType == CameraType.SceneView || camera.cameraType == CameraType.Reflection)
             {
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
             }
