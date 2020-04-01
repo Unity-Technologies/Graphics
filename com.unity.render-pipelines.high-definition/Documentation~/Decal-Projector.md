@@ -41,3 +41,7 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 | **Offset**              | Offsets the decal Material along its UV axes. Use this with the **UV Scale** when using a Material atlas for your decal. |
 | **Fade Factor**         | Allows you to manually fade the decal in and out. A value of 0 makes the decal fully transparent, and a value of 1 makes the decal as opaque as defined by the **Material**. The **Material** manages the maximum opacity of the decal using **Global Opacity** and an opacity map. |
 | **Affects Transparent** | Enable the checkbox to allow HDRP to draw the projector’s decal on top of transparent surfaces. HDRP packs all Textures from decals with **Affects Transparency** enabled into an atlas, which can affect memory and performance. You can edit the dimensions of this atlas in the **Decals** section of your Unity Project’s [HDRP Asset](HDRP-Asset.html#Decals). |
+
+## Know limitation
+
+- Decal texture tiling is ignored when projected on transparent surface

@@ -29,6 +29,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/008_AssetBundle.unity
     guid: 3144ec9758afdcf4482416ecbc5c193c
+  - enabled: 0
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/009_MultiCamera.unity
+    guid: 6d090a604691ff048bb6cd282208c7bd
   - enabled: 1
     path: Assets/GraphicsTests/100_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20

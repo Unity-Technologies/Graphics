@@ -140,7 +140,7 @@ float3 EvaluateTransmittance_Punctual(LightLoopContext lightLoopContext,
     float dt = max(0, thicknessInMillimeters - bsdfData.thickness);
     float3 S = _ShapeParamsAndMaxScatterDists[bsdfData.diffusionProfileIndex].rgb;
 
-    float3 exp_13 = exp2(((LOG2_E * (-1.0/3.0)) * dt) * S); // Exp[-S * r / 3]
+    float3 exp_13 = exp2(((LOG2_E * (-1.0/3.0)) * dt) * S); // Exp[-S * dt / 3]
 
     // Approximate the decrease of transmittance by e^(-1/3 * dt * S).
     return bsdfData.transmittance * exp_13;

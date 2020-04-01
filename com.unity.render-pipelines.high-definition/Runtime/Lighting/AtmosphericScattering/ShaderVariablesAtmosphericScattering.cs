@@ -8,7 +8,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int     _PBRFogEnabled;
         public float   _MaxFogDistance;
         public float   _FogColorMode;
-        public float   _SkyTextureMipCount;
         public Vector4 _FogColor; // color in rgb
         public Vector4 _MipFogParameters;
 

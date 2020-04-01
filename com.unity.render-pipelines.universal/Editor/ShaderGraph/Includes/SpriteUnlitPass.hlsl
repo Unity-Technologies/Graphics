@@ -1,4 +1,4 @@
-﻿#if ETC1_EXTERNAL_ALPHA
+#if ETC1_EXTERNAL_ALPHA
     TEXTURE2D(_AlphaTex); SAMPLER(sampler_AlphaTex);
     float _EnableAlphaTexture;
 #endif
@@ -26,7 +26,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     surfaceDescription.Color.a = lerp (surfaceDescription.Color.a, alpha.r, _EnableAlphaTexture);
 #endif
 
-    surfaceDescription.Color *= unpacked.color;
+    surfaceDescription.Color *= unpacked.color * _RendererColor;
 
     return surfaceDescription.Color;
 }

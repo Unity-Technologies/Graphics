@@ -20,6 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty supportShadowMask;
         public SerializedProperty supportSSR;
+        public SerializedProperty supportSSRTransparent;
         public SerializedProperty supportSSAO;
         public SerializedProperty supportSubsurfaceScattering;
         public SerializedScalableSetting sssSampleBudget;
@@ -78,6 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             supportShadowMask               = root.Find((RenderPipelineSettings s) => s.supportShadowMask);
             supportSSR                      = root.Find((RenderPipelineSettings s) => s.supportSSR);
+            supportSSRTransparent           = root.Find((RenderPipelineSettings s) => s.supportSSRTransparent);
             supportSSAO                     = root.Find((RenderPipelineSettings s) => s.supportSSAO);
             supportSubsurfaceScattering     = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
             sssSampleBudget                 = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssSampleBudget));

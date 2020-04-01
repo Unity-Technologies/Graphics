@@ -7,7 +7,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     // #pragma enable_d3d11_debug_symbols
     #pragma editor_sync_compilation
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -137,8 +137,9 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                                 color *= SampleCookie2D(uv, light.surfaceTextureScaleOffset);
                                 // color *= SAMPLE_TEXTURE2D_ARRAY(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex).rgb;
-                                color *= light.surfaceTint;
                             }
+                            
+                            color *= light.surfaceTint;
                         }
                         else // Flare region.
                         {

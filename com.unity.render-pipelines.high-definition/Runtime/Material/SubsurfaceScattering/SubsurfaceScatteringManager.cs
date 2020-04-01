@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We need to allocate the texture if we are in forward or both in case one of the cameras is in enable forward only mode
-            if (settings.supportMSAA)
+            if (settings.supportMSAA && settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
             {
                  m_SSSColorMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_SRGB, dimension: TextureXR.dimension, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "SSSBufferMSAA");
             }
@@ -94,10 +94,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Disney SSS (compute + combine)
             string kernelName = "SubsurfaceScattering";
-            string kernelNameMSAA = "SubsurfaceScattering_MSAA";
             m_SubsurfaceScatteringCS = defaultResources.shaders.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel(kernelName);
-            m_SubsurfaceScatteringKernelMSAA = m_SubsurfaceScatteringCS.FindKernel(kernelNameMSAA);
             m_CombineLightingPass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.combineLightingPS);
             m_CombineLightingPass.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SubsurfaceScattering);
             m_CombineLightingPass.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SubsurfaceScattering);
@@ -229,6 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4[]     worldScalesAndFilterRadiiAndThicknessRemaps;
             public Vector4[]     shapeParamsAndMaxScatterDists;
             public float[]       diffusionProfileHashes;
+            public ComputeBuffer coarseStencilBuffer;
         }
 
         struct SubsurfaceScatteringResources
@@ -248,7 +247,14 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new SubsurfaceScatteringParameters();
 
             parameters.subsurfaceScatteringCS = m_SubsurfaceScatteringCS;
-            parameters.subsurfaceScatteringCSKernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SubsurfaceScatteringKernelMSAA : m_SubsurfaceScatteringKernel;
+            parameters.subsurfaceScatteringCS.shaderKeywords = null;
+
+            if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            {
+                m_SubsurfaceScatteringCS.EnableKeyword("ENABLE_MSAA");
+            }
+
+            parameters.subsurfaceScatteringCSKernel = m_SubsurfaceScatteringKernel;
             parameters.needTemporaryBuffer = NeedTemporarySubsurfaceBuffer() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             parameters.copyStencilForSplitLighting = m_SSSCopyStencilForSplitLighting;
             parameters.combineLighting = m_CombineLightingPass;
@@ -261,6 +267,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.worldScalesAndFilterRadiiAndThicknessRemaps = m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps;
             parameters.shapeParamsAndMaxScatterDists = m_SSSShapeParamsAndMaxScatterDists;
             parameters.diffusionProfileHashes = m_SSSDiffusionProfileHashes;
+
+            parameters.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
 
             return parameters;
         }
@@ -278,6 +286,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
+
+            BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
 
             var settings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
 
@@ -305,6 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
                     RTHandle intermediateBuffer2 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA2);
                     RTHandle intermediateBuffer3 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA3);
+                    RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
 
                     // Grab the acceleration structure for the target camera
                     RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
@@ -323,19 +334,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int sampleIndex = 0; sampleIndex < settings.sampleCount.value; ++sampleIndex)
                     {
                         // Inject the ray generation data
-                        cmd.SetRayTracingFloatParams(subSurfaceShader, HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
-                        cmd.SetRayTracingIntParams(subSurfaceShader, HDShaderIDs._RaytracingNumSamples, settings.sampleCount.value);
-                        cmd.SetRayTracingIntParams(subSurfaceShader, HDShaderIDs._RaytracingSampleIndex, sampleIndex);
+                        cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
+                        cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, settings.sampleCount.value);
+                        cmd.SetGlobalInt(HDShaderIDs._RaytracingSampleIndex, sampleIndex);
                         int frameIndex = RayTracingFrameIndex(hdCamera);
-                        cmd.SetRayTracingIntParam(subSurfaceShader, HDShaderIDs._RaytracingFrameIndex, frameIndex);
+                        cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                         // Bind the textures for ray generation
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DepthTexture, sharedRTManager.GetDepthStencilBuffer());
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._NormalBufferTexture, sharedRTManager.GetNormalBuffer());
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._SSSBufferTexture, m_SSSColor);
                         cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, sharedRTManager.GetDepthStencilBuffer(), RenderTextureSubElement.Stencil);
 
@@ -344,6 +351,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._NormalTextureRW, intermediateBuffer1);
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._PositionTextureRW, intermediateBuffer2);
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DiffuseLightingTextureRW, intermediateBuffer3);
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DirectionTextureRW, directionBuffer);
 
                         // Run the computation
                         cmd.DispatchRays(subSurfaceShader, m_RayGenSubSurfaceShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
@@ -361,6 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._ThroughputTextureRW, intermediateBuffer0);
                         cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._NormalTextureRW, intermediateBuffer1);
                         cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._PositionTextureRW, intermediateBuffer2);
+                        cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._DirectionTextureRW, directionBuffer);
                         cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._DiffuseLightingTextureRW, intermediateBuffer3);
 
                         // Bind the output texture (it is used for accumulation read and write)
@@ -407,7 +416,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     resources.depthStencilBuffer = depthStencilBufferRT;
                     resources.depthTexture = depthTextureRT;
                     resources.cameraFilteringBuffer = m_SSSCameraFilteringBuffer;
-                    resources.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
+                    resources.coarseStencilBuffer = parameters.coarseStencilBuffer;
                     resources.sssBuffer = m_SSSColor;
 
                     // For Jimenez we always need an extra buffer, for Disney it depends on platform
