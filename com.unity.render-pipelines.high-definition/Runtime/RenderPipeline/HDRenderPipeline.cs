@@ -1886,10 +1886,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_RayTracingSupported)
             {
-                // This call need to happen once per camera
+                // This calls need to happen once per camera
                 // TODO: This can be wasteful for "compatible" cameras.
                 // We need to determine the minimum set of feature used by all the camera and build the minimum number of acceleration structures.
                 BuildRayTracingAccelerationStructure(hdCamera);
+                CullForRayTracing(cmd, hdCamera);
             }
 
             using (ListPool<RTHandle>.Get(out var aovBuffers))
@@ -1975,6 +1976,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Let's bind as soon as possible the light data
             BindLightDataParameters(hdCamera, cmd);
+
+            // Do the same for ray tracing if allowed
+            if (m_RayTracingSupported)
+            {
+                BuildRayTracingLightData(cmd, hdCamera, m_CurrentDebugDisplaySettings);
+            }
 
             // Configure all the keywords
             ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
@@ -2094,8 +2101,6 @@ namespace UnityEngine.Rendering.HighDefinition
                      hdCamera.volumeStack.GetComponent<PathTracing>().enable.value &&
                      hdCamera.camera.cameraType != CameraType.Preview)
             {
-                // Update the light clusters that we need to update
-                BuildRayTracingLightCluster(cmd, hdCamera);
 
                 // We only request the light cluster if we are gonna use it for debug mode
                 if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
@@ -2185,9 +2190,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
-                    // Update the light clusters that we need to update
-                    BuildRayTracingLightCluster(cmd, hdCamera);
-
                     // We only request the light cluster if we are gonna use it for debug mode
                     if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
                     {
