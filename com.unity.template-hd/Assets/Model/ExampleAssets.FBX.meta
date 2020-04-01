@@ -27,6 +27,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Marble
+    second: {fileID: 2100000, guid: fd1c11234019226488a9bbaa5e05aedf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: MeshDecal
     second: {fileID: 2100000, guid: 42a14693c4881b345a7592df4ce86958, type: 2}
   - first:

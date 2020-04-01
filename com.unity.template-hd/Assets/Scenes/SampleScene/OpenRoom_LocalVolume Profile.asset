@@ -31,10 +31,10 @@ MonoBehaviour:
     m_Value: 0
   limitMin:
     m_OverrideState: 1
-    m_Value: 10
+    m_Value: 9
   limitMax:
     m_OverrideState: 1
-    m_Value: 12
+    m_Value: 11
   curveMap:
     m_OverrideState: 0
     m_Value:
@@ -129,7 +129,7 @@ MonoBehaviour:
     m_Value: 5
   albedo:
     m_OverrideState: 1
-    m_Value: {r: 0.333, g: 0.333, b: 0.333, a: 1}
+    m_Value: {r: 0.11320752, g: 0.11320752, b: 0.11320752, a: 1}
     hdr: 0
     showAlpha: 1
     showEyeDropper: 1
@@ -198,5 +198,5 @@ MonoBehaviour:
     min: 0
   indirectDiffuseIntensity:
     m_OverrideState: 1
-    m_Value: 4
+    m_Value: 5
     min: 0
