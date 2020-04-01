@@ -2,6 +2,7 @@
 
 ## Description
 
+**HDRP Only**
 Node for authorizing Linear Blend Vertex Skinning.
 Requires skinned matrices to be provided by user in _SkinMatrices buffer.
 The node uses the Skin Matrix Index Offset to know where the matrices associated with the current mesh are located in the _SkinMatrices buffer.
