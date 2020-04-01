@@ -33,7 +33,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Plaster
-    second: {fileID: 2100000, guid: c6c4bc54f3b19a942bcc16ff93ea9d1c, type: 2}
+    second: {fileID: 2100000, guid: a8519d2453b371f428c188869870fb61, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
