@@ -1875,7 +1875,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         case HDLightType.Spot:
                             float spotAngleForShadows = useCustomSpotLightShadowCone ? Math.Min(customSpotLightShadowCone, visibleLight.light.spotAngle)  : visibleLight.light.spotAngle;
-                            hasOrthoMatrix = spotLightShape == SpotLightShape.Box;
                             HDShadowUtils.ExtractSpotLightData(
                                 spotLightShape, spotAngleForShadows, shadowNearPlane, aspectRatio, shapeWidth,
                                 shapeHeight, visibleLight, viewportSize, normalBias, filteringQuality,
