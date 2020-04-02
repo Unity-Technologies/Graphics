@@ -41,17 +41,18 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         private static IEnumerator UntilGraphIsDoneCompiling(MaterialGraphEditWindow window, (string, bool, MaterialGraphEditWindow, MaterialGraphEditWindow) debugData)
         {
-            Debug.Log($"CreationTests: Begin waiting until graph is done compiling at {Time.realtimeSinceStartup}");
+            if(verbose)  Debug.Log($"CreationTests : Begin waiting until graph is done compiling at {Time.realtimeSinceStartup}");
             GraphEditorView graphEditorView = window.GetPrivateProperty<GraphEditorView>("graphEditorView");
             PreviewManager previewManager = graphEditorView.GetPrivateProperty<PreviewManager>("previewManager");
-            List<PreviewRenderData> renderDatas = previewManager.GetPrivateField<List<PreviewRenderData>>("m_RenderDatas");
+            Dictionary<Guid, PreviewRenderData> renderDatas = previewManager.GetPrivateField<Dictionary<Guid, PreviewRenderData>>("m_RenderDatas");
             bool allCompiled;
             float startTime = Time.realtimeSinceStartup;
             do
             {
                 allCompiled = true;
-                foreach (var renderData in renderDatas)
+                foreach (var renderDataKV in renderDatas)
                 {
+                    var renderData = renderDataKV.Value;
                     if (renderData != null && renderData.shaderData.isCompiling)
                     {
                         var isCompiled = true;
@@ -78,7 +79,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 }
                 yield return null;
             } while (!allCompiled);
-            Debug.Log($"CreationTests: Graph finished compiling in {Time.realtimeSinceStartup - startTime} seconds");
+            if(verbose)  Debug.Log($"CreationTests : Graph finished compiling in {Time.realtimeSinceStartup - startTime} seconds");
         }
 
         public static MaterialGraphEditWindow OpenShaderGraphWindowForAsset(string assetPath)
@@ -90,7 +91,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         public static void CreateEmptyTestGraph(string basedOnGraph)
         {
-            Debug.Log($"CreationTests: Begin CreateEmptyTestGraph on {basedOnGraph}");
+            if(verbose)  Debug.Log($"CreationTests : Begin CreateEmptyTestGraph on {basedOnGraph}");
             var window = OpenShaderGraphWindowForAsset(basedOnGraph);
             GraphObject graphObject = window.GetPrivateProperty<GraphObject>("graphObject");
             GraphData graphToCopy = graphObject.graph;
@@ -167,7 +168,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         private const float userTime = 0.1f;
         public static IEnumerator UserlikeGraphCreation(string assetPath, Action afterUserAddNode, Action afterUserAddEdge)
         {
-            Debug.Log($"CreationTests: Begining UserlikeGraphCreation on {assetPath}");
+            if(verbose)  Debug.Log($"CreationTests : Begining UserlikeGraphCreation on {assetPath}");
             MaterialGraphEditWindow copyWindow = null;
             MaterialGraphEditWindow testGraphWindow = null;
             GraphObject graphObjectToCopy = null;
@@ -220,7 +221,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             nodeLookup.Add(graphObjectToCopy.graph.outputNode, testGraphObject.graph.outputNode);
 
-            Debug.Log($"CreationTests: Begin main algorithm");
+            if(verbose)  Debug.Log($"CreationTests : Begin main algorithm");
             foreach (var node in graphObjectToCopy.graph.GetNodes<AbstractMaterialNode>())
             {
                 stack.Push((node, null, null));
@@ -231,10 +232,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 if(verbose) Debug.Log("CreationTests : Current stack:");
                 foreach(var item in stack)
                 {
-                    Debug.Log($"CreationTests: -- node : {item.Item1.ToString()} slot to : {item.Item2?.ToString()} slot from : {item.Item3?.ToString()}");
+                    if(verbose)  Debug.Log($"CreationTests : -- node : {item.Item1.ToString()} slot to : {item.Item2?.ToString()} slot from : {item.Item3?.ToString()}");
                 }
                 (AbstractMaterialNode node, SlotReference? to, SlotReference? from) = stack.Pop();
-                Debug.Log($"CreationTests:  popped node : {node.ToString()} slot to : {to?.ToString()} slot from : {from?.ToString()}");
+                if(verbose)  Debug.Log($"CreationTests :  popped node : {node.ToString()} slot to : {to?.ToString()} slot from : {from?.ToString()}");
                 if (permanentMarks.Contains((node, to, from)))
                 {
                     if(verbose) Debug.Log("CreationTests : Permanent marks contains entry, continuing");
@@ -312,7 +313,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     slots.Clear();
                 }
             }
-            Debug.Log($"CreationTests: End main algorithm");
+            if(verbose)  Debug.Log($"CreationTests : End main algorithm");
             yield return UntilGraphIsDoneCompiling(testGraphWindow, debugData);
 
             try
@@ -538,7 +539,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                                                   Dictionary<AbstractMaterialNode, AbstractMaterialNode> nodeLookup,
                                                   (string, bool, MaterialGraphEditWindow, MaterialGraphEditWindow) debugData)
         {
-            Debug.Log($"CreationTests: Begin UserlikeAddNode");
+            if(verbose)  Debug.Log($"CreationTests : Begin UserlikeAddNode");
             GraphEditorView graphEditorView = testGraphWindow.GetPrivateProperty<GraphEditorView>("graphEditorView");
             GraphObject graphObject = testGraphWindow.GetPrivateProperty<GraphObject>("graphObject");
 
@@ -588,7 +589,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [UnityTest, TestCaseSource(typeof(SmokeTestGraphCases), "TestCases")]
         public IEnumerator SmokeTests(string assetPath)
         {
-            Debug.Log($"CreationTests: ===========Begin smoke test on {assetPath}");
+            Debug.Log($"CreationTests : ===========Begin smoke test on {assetPath}");
             GraphCreationUtils.CreateEmptyTestGraph(assetPath);
             return GraphCreationUtils.UserlikeGraphCreation(assetPath);
         }
