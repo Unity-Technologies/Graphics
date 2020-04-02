@@ -208,7 +208,7 @@ namespace UnityEditor.VFX.Test
             var graph = CreateGraph_And_System();
 
             yield return null;
-        
+
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
@@ -216,7 +216,7 @@ namespace UnityEditor.VFX.Test
             Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
 
             yield return null;
-        
+
             //Plug a GPU instruction on bounds, excepting an exception while recompiling
             var getPositionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.modelType == typeof(VFXAttributeParameter) && o.name.Contains(VFXAttribute.Position.name));
             var getPosition = getPositionDesc.CreateInstance();

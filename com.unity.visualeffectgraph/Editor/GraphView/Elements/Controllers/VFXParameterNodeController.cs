@@ -227,6 +227,7 @@ namespace UnityEditor.VFX.UI
         bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
 
 
+        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
         public object value
         {
             get
@@ -243,7 +244,7 @@ namespace UnityEditor.VFX.UI
 
         object[] IPropertyRMProvider.customAttributes { get { return new object[] {}; } }
 
-        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[] {}; } }
+        VFXPropertyAttributes IPropertyRMProvider.attributes { get { return new VFXPropertyAttributes(); } }
 
         public Type portType
         {

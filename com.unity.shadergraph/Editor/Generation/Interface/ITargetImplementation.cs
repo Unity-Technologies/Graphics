@@ -14,5 +14,6 @@ namespace UnityEditor.ShaderGraph
         bool IsValid(IMasterNode masterNode);
         bool IsPipelineCompatible(RenderPipelineAsset currentPipeline);
         void SetupTarget(ref TargetSetupContext context);
+        SubShaderDescriptor? GetSubShaderDescriptorFromMasterNode(IMasterNode masterNode);
     }
 }

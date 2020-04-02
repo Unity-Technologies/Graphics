@@ -695,10 +695,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static VFXShaderSourceDesc[] SaveShaderFiles(   VisualEffectResource resource,
-                                                                List<GeneratedCodeData> generatedCodeData,
-                                                                Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
-                                                                VFXSystemNames systemNames)
+        private static VFXShaderSourceDesc[] SaveShaderFiles(VisualEffectResource resource,
+            List<GeneratedCodeData> generatedCodeData,
+            Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
+            VFXSystemNames systemNames)
         {
             Profiler.BeginSample("VFXEditor.SaveShaderFiles");
             try
@@ -745,7 +745,7 @@ namespace UnityEditor.VFX
 
                     if (!generated.computeShader)
                     {
-                        generated.content.Insert(0,"Shader \""+ shaderName + "\"\n");
+                        generated.content.Insert(0, "Shader \"" + shaderName + "\"\n");
                     }
                     descs[i].source = generated.content.ToString();
                     descs[i].name = fileName;

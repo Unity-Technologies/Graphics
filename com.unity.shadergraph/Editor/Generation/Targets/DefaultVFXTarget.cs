@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph
         {
             return masterNode is VfxMasterNode;
         }
+
         public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
         {
             return (currentPipeline != null);
@@ -22,6 +23,11 @@ namespace UnityEditor.ShaderGraph
 
         public void SetupTarget(ref TargetSetupContext context)
         {
+        }
+
+        public SubShaderDescriptor? GetSubShaderDescriptorFromMasterNode(IMasterNode masterNode)
+        {
+            return null;
         }
     }
 }
