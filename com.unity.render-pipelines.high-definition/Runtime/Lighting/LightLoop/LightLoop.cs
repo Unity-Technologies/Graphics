@@ -1184,7 +1184,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.shadowDimmer           = additionalLightData.shadowDimmer;
             lightData.volumetricShadowDimmer = additionalLightData.volumetricShadowDimmer;
-            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, true, ref lightData.contactShadowMask,ref lightData.isRayTracedContactShadow);
+            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, isRasterization: true, ref lightData.contactShadowMask,ref lightData.isRayTracedContactShadow);
 
             // We want to have a colored penumbra if the flag is on and the color is not gray
             bool penumbraTint = additionalLightData.penumbraTint && ((additionalLightData.shadowTint.r != additionalLightData.shadowTint.g) || (additionalLightData.shadowTint.g != additionalLightData.shadowTint.b));
@@ -1285,7 +1285,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal void GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, VisibleLight light, Light lightComponent,
-            ProcessedLightData processedData, int shadowIndex,  BoolScalableSetting contactShadowsScalableSetting, bool isRasterization, ref Vector3 lightDimensions, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot, ref LightData lightData)
+            in ProcessedLightData processedData, int shadowIndex,  BoolScalableSetting contactShadowsScalableSetting, bool isRasterization, ref Vector3 lightDimensions, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot, ref LightData lightData)
         {
             var additionalLightData = processedData.additionalLightData;
             var gpuLightType = processedData.gpuLightType;
@@ -2270,7 +2270,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     LightData lightData = new LightData();
                     
                     // Punctual, area, projector lights - the rendering side.
-                    GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, m_ProcessedLightData[lightIndex], shadowIndex, contactShadowScalableSetting, isRasterization: true, ref lightDimensions, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot, ref lightData);
+                    GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, in m_ProcessedLightData[lightIndex], shadowIndex, contactShadowScalableSetting, isRasterization: true, ref lightDimensions, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot, ref lightData);
 
                     // Add the previously created light data
                     m_lightList.lights.Add(lightData);
