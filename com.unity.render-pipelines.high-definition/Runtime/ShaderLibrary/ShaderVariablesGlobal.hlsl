@@ -26,4 +26,6 @@
 #define RAY_TRACING_LIGHT_DATA_REGISTER                         t3
 #define RAY_TRACING_ENV_LIGHT_DATA_REGISTER                     t4
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.cs.hlsl"
+
 #endif // UNITY_SHADER_VARIABLES_GLOBAL_INCLUDED
