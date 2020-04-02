@@ -152,6 +152,7 @@ namespace UnityEditor.VFX.UI
             {
                 return false;
             }
+            IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
 
             void IPropertyRMProvider.RetractPath()
             {

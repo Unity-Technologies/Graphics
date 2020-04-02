@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
+        public virtual IEnumerable<int>  filteredOutEnumerators { get { return null; } }
 
         string IPropertyRMProvider.name
         {

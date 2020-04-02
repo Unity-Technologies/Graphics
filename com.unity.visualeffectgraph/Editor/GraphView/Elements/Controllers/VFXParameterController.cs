@@ -211,6 +211,7 @@ namespace UnityEditor.VFX.UI
         int IPropertyRMProvider.depth => 0;
 
         bool IPropertyRMProvider.editable => m_Owner.editable;
+        public IEnumerable<int> filteredOutEnumerators { get { return null; } }
 
         void IPropertyRMProvider.ExpandPath()
         {

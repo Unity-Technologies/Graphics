@@ -14,6 +14,22 @@ using UnityEditor.SceneManagement;
 
 namespace  UnityEditor.VFX.UI
 {
+
+    class ValueFilterEnumPropertyRMProvider : SimplePropertyRMProvider<VFXValueFilter>
+    {
+        bool m_NoEnum;
+        public ValueFilterEnumPropertyRMProvider(string name, System.Func<VFXValueFilter> getter, System.Action<VFXValueFilter> setter,bool noEnum) : base(name, getter, setter)
+        {
+            m_NoEnum = noEnum;
+        }
+        public override IEnumerable<int>  filteredOutEnumerators {
+            get
+            {
+            return m_NoEnum?new int[] {2 }:null;
+            }
+        }
+    }
+
     class VFXBlackboardPropertyView : VisualElement, IControlledElement<VFXParameterController>
     {
         public VFXBlackboardPropertyView()
@@ -221,7 +237,7 @@ namespace  UnityEditor.VFX.UI
 
                     if (m_ValueFilterProperty == null)
                     {
-                        m_ValueFilterProperty = new EnumPropertyRM(new SimplePropertyRMProvider<VFXValueFilter>("Value Filter", () => controller.valueFilter, t => controller.valueFilter = t), 55);
+                        m_ValueFilterProperty = new EnumPropertyRM(new ValueFilterEnumPropertyRMProvider("Value Filter", () => controller.valueFilter, t => controller.valueFilter = t, controller.portType != typeof(uint)), 55);
                     }
                     Insert(insertIndex++, m_ValueFilterProperty);
 
