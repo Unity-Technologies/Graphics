@@ -17,6 +17,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: ConcreteRibbed
+    second: {fileID: 2100000, guid: a8519d2453b371f428c188869870fb61, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Glass
     second: {fileID: 2100000, guid: cb70645871dc2f74981c86ec014a1cdf, type: 2}
   - first:
@@ -33,7 +38,12 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MeshDecal
-    second: {fileID: 2100000, guid: 42a14693c4881b345a7592df4ce86958, type: 2}
+    second: {fileID: 2100000, guid: 4d8738e45269b3b41b4e5cc7444ef453, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Metal
+    second: {fileID: 2100000, guid: 96a3c45a30f167c44b489976f4670f25, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -49,6 +59,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: WoodCoat
     second: {fileID: 2100000, guid: c7f00f6b5978eb7459f9bcc5baf9564f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: WoodPlanks
+    second: {fileID: 2100000, guid: ea19bc57f889fe844a17a1fae16cda8c, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0

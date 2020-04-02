@@ -12,6 +12,16 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: BonsaiLeaves
+    second: {fileID: 2100000, guid: e1666260af705cc4bbc67acb74bb2eaf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BonsaiTrunk
+    second: {fileID: 2100000, guid: 45069cbae3fce194ca962d487b3514fe, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Pot
     second: {fileID: 2100000, guid: c6c4bc54f3b19a942bcc16ff93ea9d1c, type: 2}
   - first:

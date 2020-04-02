@@ -31,10 +31,10 @@ MonoBehaviour:
     m_Value: 0
   limitMin:
     m_OverrideState: 1
-    m_Value: 9
+    m_Value: 10
   limitMax:
     m_OverrideState: 1
-    m_Value: 11
+    m_Value: 12
   curveMap:
     m_OverrideState: 0
     m_Value:
@@ -198,5 +198,5 @@ MonoBehaviour:
     min: 0
   indirectDiffuseIntensity:
     m_OverrideState: 1
-    m_Value: 5
+    m_Value: 4
     min: 0
