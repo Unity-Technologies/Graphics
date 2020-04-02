@@ -276,8 +276,9 @@ namespace UnityEngine.Rendering.HighDefinition
             HashUtilities.AppendHash(ref h2, ref h);
             HashUtilities.ComputeHash128(ref proxySettings, ref h2);
             HashUtilities.AppendHash(ref h2, ref h);
-            HashUtilities.ComputeHash128(ref cameraSettings, ref h2);
+            h2 = cameraSettings.GetHash();
             HashUtilities.AppendHash(ref h2, ref h);
+
             if (influence != null)
             {
                 h2 = influence.ComputeHash();
