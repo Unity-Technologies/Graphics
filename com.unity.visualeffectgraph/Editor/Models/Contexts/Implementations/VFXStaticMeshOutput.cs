@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
             base.OnEnable();
             shader = ((VFXDataMesh)GetData()).shader;
         }
-            
+
         public override bool SetupCompilation()
         {
             shader = ((VFXDataMesh)GetData()).shader;
@@ -71,7 +71,7 @@ namespace UnityEditor.VFX
         {
             base.GetImportDependentAssets(dependencies);
 
-            if (!object.ReferenceEquals(shader,null))
+            if (!object.ReferenceEquals(shader, null))
             {
                 Shader shader = ((VFXDataMesh)GetData()).shader;
 
@@ -85,10 +85,10 @@ namespace UnityEditor.VFX
             {
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Mesh), "mesh"), VFXResources.defaultResources.mesh);
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Transform), "transform"), Transform.defaultValue);
-                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "subMeshMask",new VFXPropertyAttribute(VFXPropertyAttribute.Type.kBitField)), uint.MaxValue);
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "subMeshMask", new VFXPropertyAttribute(VFXPropertyAttribute.Type.kBitField)), uint.MaxValue);
 
 
-                if( GetData() != null)
+                if (GetData() != null)
                 {
                     Shader copyShader = ((VFXDataMesh)GetData()).shader;
 
@@ -227,7 +227,6 @@ namespace UnityEditor.VFX
 
                                 if (expr != null)
                                     mapper.AddExpression(expr, name, -1);
-
                             }
                         }
                     }

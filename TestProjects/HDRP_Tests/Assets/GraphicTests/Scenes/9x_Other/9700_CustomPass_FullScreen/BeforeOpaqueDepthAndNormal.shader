@@ -5,7 +5,7 @@
     #pragma vertex Vert
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
 
@@ -44,7 +44,7 @@
             color = float4(CustomPassLoadCameraColor(varyings.positionCS.xy, 0), 1);
 
         // Add your custom pass code here
-        outputDepth = 0.06;
+        outputDepth = 0.063;
 
         // Fade value allow you to increase the strength of the effect while the camera gets closer to the custom pass volume
         float f = 1 - abs(_FadeValue * 2 - 1);

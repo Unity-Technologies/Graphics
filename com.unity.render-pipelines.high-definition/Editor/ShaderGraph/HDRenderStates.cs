@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static readonly string dstBlend = "[_DstBlend]";
             public static readonly string alphaSrcBlend = "[_AlphaSrcBlend]";
             public static readonly string alphaDstBlend = "[_AlphaDstBlend]";
+            public static readonly string alphaToMask = "[_AlphaToMask]";
             public static readonly string cullMode = "[_CullMode]";
             public static readonly string cullModeForward = "[_CullModeForward]";
             public static readonly string zTestDepthEqualForOpaque = "[_ZTestDepthEqualForOpaque]";
@@ -120,24 +121,31 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // Depth Forward Only
 
         // Caution: When using MSAA we have normal and depth buffer bind.
-        // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
-        // This is not a problem in no MSAA mode as there is no buffer bind
+        // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+        // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+        // - When MSAA: disable target 1 (normal buffer)
+        // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
         public static RenderStateCollection DepthForwardOnly = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
             { RenderState.ZWrite(ZWrite.On), new FieldCondition(Fields.SurfaceOpaque, true) },
             { RenderState.ZWrite(ZWrite.Off), new FieldCondition(Fields.SurfaceTransparent, true) },
-            { RenderState.ColorMask("ColorMask 0 0") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskNormal]") },
+            { RenderState.ColorMask("ColorMask 0 1") },
         };
 
         // Caution: When using MSAA we have normal and depth buffer bind.
-        // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
-        // This is not a problem in no MSAA mode as there is no buffer bind
+        // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+        // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+        // - When MSAA: disable target 1 (normal buffer)
+        // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
         public static RenderStateCollection HDDepthForwardOnly = new RenderStateCollection
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.ColorMask("ColorMask 0 0") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskNormal]") },
+            { RenderState.ColorMask("ColorMask 0 1") },
+            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskDepth,
@@ -167,19 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.Stencil(new StencilDescriptor()
-            {
-                WriteMask = Uniforms.stencilWriteMaskDepth,
-                Ref = Uniforms.stencilRefDepth,
-                Comp = "Always",
-                Pass = "Replace",
-            }) },
-        };
-
-        public static RenderStateCollection HairDepthOnly = new RenderStateCollection
-        {
-            { RenderState.Cull(Uniforms.cullMode) },
-            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskDepth,
@@ -193,12 +189,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // Motion Vectors
 
         // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
-        // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
-        // This is not a problem in no MSAA mode as there is no buffer bind
+        // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+        // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+        // - When MSAA: disable target 2 (normal buffer)
+        // - When no MSAA: disable target 1 (normal buffer) and 2 (unused)
         public static RenderStateCollection UnlitMotionVectors = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.ColorMask("ColorMask 0 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskNormal] 1") },
+            { RenderState.ColorMask("ColorMask 0 2") },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = $"{(int)StencilUsage.ObjectMotionVector}",
@@ -224,6 +223,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskMV,
@@ -234,13 +234,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
-        // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
-        // This is not a problem in no MSAA mode as there is no buffer bind
+        // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+        // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+        // - When MSAA: disable target 2 (normal buffer)
+        // - When no MSAA: disable target 1 (normal buffer) and 2 (unused)
         public static RenderStateCollection HDUnlitMotionVectors = new RenderStateCollection
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.ColorMask("ColorMask 0 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskNormal] 1") },
+            { RenderState.ColorMask("ColorMask 0 2") },
+            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskMV,
@@ -252,6 +256,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static RenderStateCollection HairMotionVectors = new RenderStateCollection
         {
+            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskMV,
@@ -393,7 +398,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection PBRGBuffer = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.ZTest(ZTest.Equal) },
+            { RenderState.ZTest(Uniforms.zTestGBuffer) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = $"{ 0 | (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering | (int)StencilUsage.TraceReflectionRay}",
@@ -478,12 +483,38 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // --------------------------------------------------
         // Transparent Depth Prepass & Postpass
 
+        public static RenderStateCollection HDLitTransparentDepthPrePostPass = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = Uniforms.stencilWriteMaskDepth,
+                Ref = Uniforms.stencilRefDepth,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
+
         public static RenderStateCollection HDTransparentDepthPrePostPass = new RenderStateCollection
         {
             { RenderState.Blend(Blend.One, Blend.Zero) },
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.ColorMask("ColorMask 0") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskNormal]") },
+            { RenderState.ColorMask("ColorMask 0 1") },
+        };
+
+        // --------------------------------------------------
+        // Transparent Depth Prepass & Postpass
+        
+        public static RenderStateCollection RayTracingPrepass = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            // Note: we use default ZTest LEqual so if the object have already been render in depth prepass, it will re-render to tag stencil
         };
 
         // --------------------------------------------------

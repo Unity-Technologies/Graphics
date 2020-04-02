@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.Unlit.MotionVectors, new FieldCondition(Fields.SurfaceOpaque, true) },
                 { HDPasses.Unlit.ForwardOnly },
             },
+            customEditorOverride = "Rendering.HighDefinition.UnlitUI",
         };
 
         public static SubShaderDescriptor PBR = new SubShaderDescriptor()
@@ -36,6 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.PBR.MotionVectors, new FieldCondition(Fields.SurfaceOpaque, true) },
                 { HDPasses.PBR.Forward },
             },
+            customEditorOverride = "Rendering.HighDefinition.HDPBRLitGUI",
         };
 
         public static SubShaderDescriptor HDUnlit = new SubShaderDescriptor()
@@ -52,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.HDUnlit.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
                 { HDPasses.HDUnlit.ForwardOnly },
             },
-            customEditorOverride = @"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDUnlitGUI""",
+            customEditorOverride = "Rendering.HighDefinition.HDUnlitGUI",
         };
 
         public static SubShaderDescriptor HDLit = new SubShaderDescriptor()
@@ -72,8 +74,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.HDLit.TransparentDepthPrepass, new FieldCondition(HDFields.TransparentDepthPrePass, true) },
                 { HDPasses.HDLit.Forward },
                 { HDPasses.HDLit.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
+                { HDPasses.HDLit.RayTracingPrepass, new FieldCondition(HDFields.RayTracing, true) },
             },
-            customEditorOverride = @"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDLitGUI""",
+            customEditorOverride = "Rendering.HighDefinition.HDLitGUI",
         };
 
         public static SubShaderDescriptor Eye = new SubShaderDescriptor()
@@ -89,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.Eye.MotionVectors },
                 { HDPasses.Eye.ForwardOnly },
             },
-            customEditorOverride = @"CustomEditor ""UnityEditor.Rendering.HighDefinition.EyeGUI""",
+            customEditorOverride = "Rendering.HighDefinition.EyeGUI",
         };
 
         public static SubShaderDescriptor Fabric = new SubShaderDescriptor()
@@ -105,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.Fabric.MotionVectors },
                 { HDPasses.Fabric.FabricForwardOnly },
             },
-            customEditorOverride = @"CustomEditor ""UnityEditor.Rendering.HighDefinition.FabricGUI""",
+            customEditorOverride = "Rendering.HighDefinition.FabricGUI",
         };
         public static SubShaderDescriptor Hair = new SubShaderDescriptor()
         {
@@ -123,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.Hair.ForwardOnly },
                 { HDPasses.Hair.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
             },
-            customEditorOverride = @"CustomEditor ""UnityEditor.Rendering.HighDefinition.HairGUI""",
+            customEditorOverride = "Rendering.HighDefinition.HairGUI",
         };
 
         public static SubShaderDescriptor StackLit = new SubShaderDescriptor()
@@ -140,7 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.StackLit.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
                 { HDPasses.StackLit.ForwardOnly },
             },
-            customEditorOverride = @"CustomEditor ""UnityEditor.Rendering.HighDefinition.StackLitGUI""",
+            customEditorOverride = "Rendering.HighDefinition.StackLitGUI",
         };
 
         public static SubShaderDescriptor Decal = new SubShaderDescriptor()
@@ -157,7 +160,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.Decal.MeshEmissive, new FieldCondition(HDFields.AffectsEmission, true) },
                 { HDPasses.Decal.Preview, new FieldCondition(Fields.IsPreview, true) },
             },
-            customEditorOverride = @"CustomEditor ""UnityEditor.Rendering.HighDefinition.DecalGUI""",
+            customEditorOverride = "Rendering.HighDefinition.DecalGUI",
         };
 
         public static SubShaderDescriptor FabricRaytracing = new SubShaderDescriptor()
@@ -171,6 +174,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.FabricRaytracing.Forward, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.FabricRaytracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.FabricRaytracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
+            },
+        };
+
+        public static SubShaderDescriptor StackLitRaytracing = new SubShaderDescriptor()
+        {
+            pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = false,
+            passes = new PassCollection
+            {
+                { HDPasses.StackLitRayTracing.Indirect, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.StackLitRayTracing.Visibility, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.StackLitRayTracing.Forward, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.StackLitRayTracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.StackLitRayTracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
+            },
+        };
+
+        public static SubShaderDescriptor HairRaytracing = new SubShaderDescriptor()
+        {
+            pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = false,
+            passes = new PassCollection
+            {
+                { HDPasses.HairRayTracing.Indirect, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HairRayTracing.Visibility, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HairRayTracing.Forward, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HairRayTracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HairRayTracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
             },
         };
 
@@ -199,6 +230,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.HDUnlitRaytracing.Visibility, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.HDUnlitRaytracing.Forward, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.HDUnlitRaytracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HDUnlitRaytracing.PathTracing, new FieldCondition(Fields.IsPreview, false) },
             },
         };
     }

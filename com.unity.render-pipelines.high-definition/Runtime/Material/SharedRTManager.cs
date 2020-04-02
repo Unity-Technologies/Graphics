@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void InitSharedBuffers(GBufferManager gbufferManager, RenderPipelineSettings settings, RenderPipelineResources resources)
         {
             // Set the flags
-            m_MSAASupported = settings.supportMSAA;
+            m_MSAASupported = settings.supportMSAA && settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
             m_MSAASamples = m_MSAASupported ? settings.msaaSampleCount : MSAASamples.None;
             m_MotionVectorsSupport = settings.supportMotionVectors;
             m_ReuseGBufferMemory = settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
@@ -126,8 +126,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
-                m_RTIDs2[0] = m_NormalMSAART.nameID;
-                m_RTIDs2[1] = m_DepthAsColorMSAART.nameID;
+                m_RTIDs2[0] = m_DepthAsColorMSAART.nameID;
+                m_RTIDs2[1] = m_NormalMSAART.nameID;
                 return m_RTIDs2;
             }
             else
@@ -144,9 +144,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
-                m_RTIDs3[0] = m_MotionVectorsMSAART.nameID;
-                m_RTIDs3[1] = m_NormalMSAART.nameID;
-                m_RTIDs3[2] = m_DepthAsColorMSAART.nameID;
+                m_RTIDs3[0] = m_DepthAsColorMSAART.nameID;
+                m_RTIDs3[1] = m_MotionVectorsMSAART.nameID;
+                m_RTIDs3[2] = m_NormalMSAART.nameID;
                 return m_RTIDs3;
             }
             else

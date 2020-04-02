@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 using UnityEditor.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -238,6 +238,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdDepthPrepassSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
+                HDLitMasterNode.NormalSlotId,
+                HDLitMasterNode.SmoothnessSlotId,
             };
 
             public static int[] HDLitTransparentBackface = new int[]
@@ -272,7 +274,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static int[] HDLitTransparentDepthPostpass = new int[]
             {
                 HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdDepthPrepassSlotId,
+                HDLitMasterNode.AlphaThresholdDepthPostpassSlotId,
+                HDLitMasterNode.DepthOffsetSlotId,
+            };
+
+            public static int[] HDLitRayTracingPrepass = new int[]
+            {
+                HDLitMasterNode.AlphaSlotId,
+                HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
             };
 

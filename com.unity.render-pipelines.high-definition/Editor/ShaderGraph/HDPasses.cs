@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.Meta,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.Meta,
-                pragmas = HDPragmas.Instanced,
+                pragmas = HDPragmas.DotsInstancedInV2Only,
                 includes = HDIncludes.UnlitMeta,
 
                 // Custom Template
@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.ShadowCasterUnlit,
-                pragmas = HDPragmas.Instanced,
+                pragmas = HDPragmas.DotsInstancedInV2Only,
                 includes = HDIncludes.UnlitDepthOnly,
 
                 // Custom Template
@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.SceneSelection,
-                pragmas = HDPragmas.InstancedEditorSync,
+                pragmas = HDPragmas.DotsInstancedInV2OnlyEditorSync,
                 defines = HDDefines.SceneSelection,
                 includes = HDIncludes.UnlitDepthOnly,
 
@@ -110,7 +110,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.DepthForwardOnly,
-                pragmas = HDPragmas.Instanced,
+                pragmas = HDPragmas.DotsInstancedInV2Only,
                 keywords = HDKeywords.WriteMsaaDepth,
                 includes = HDIncludes.UnlitDepthOnly,
 
@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.PositionRWS,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.UnlitMotionVectors,
-                pragmas = HDPragmas.Instanced,
+                pragmas = HDPragmas.DotsInstancedInV2Only,
                 keywords = HDKeywords.WriteMsaaDepth,
                 includes = HDIncludes.UnlitMotionVectors,
 
@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.UnlitForward,
-                pragmas = HDPragmas.Instanced,
+                pragmas = HDPragmas.DotsInstancedInV2Only,
                 keywords = HDKeywords.DebugDisplay,
                 includes = HDIncludes.UnlitForwardOnly,
 
@@ -189,7 +189,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitMinimal,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.PBRGBuffer,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 keywords = HDKeywords.GBuffer,
                 includes = HDIncludes.LitGBuffer,
 
@@ -213,7 +213,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.Meta,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.Meta,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 keywords = HDKeywords.LodFadeCrossfade,
                 includes = HDIncludes.LitMeta,
 
@@ -237,7 +237,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.ShadowCasterPBR,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 keywords = HDKeywords.LodFadeCrossfade,
                 includes = HDIncludes.LitDepthOnly,
 
@@ -261,7 +261,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.SceneSelection,
-                pragmas = HDPragmas.InstancedRenderingPlayerEditorSync,
+                pragmas = HDPragmas.InstancedRenderingLayerEditorSync,
                 defines = HDDefines.SceneSelection,
                 keywords = HDKeywords.LodFadeCrossfade,
                 includes = HDIncludes.LitDepthOnly,
@@ -287,7 +287,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.DepthOnly,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.ShaderGraphRaytracingHigh,
                 keywords = HDKeywords.DepthMotionVectors,
                 includes = HDIncludes.LitDepthOnly,
@@ -315,7 +315,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Conditional State
                 renderStates = HDRenderStates.PBRMotionVectors,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.ShaderGraphRaytracingHigh,
                 keywords = HDKeywords.DepthMotionVectors,
                 includes = HDIncludes.LitMotionVectors,
@@ -341,7 +341,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitMinimal,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.PBRForward,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.Forward,
                 keywords = HDKeywords.Forward,
                 includes = HDIncludes.LitForward,
@@ -371,7 +371,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = new FieldCollection(){ HDRequiredFields.Meta, HDFields.SubShader.Unlit },
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.Meta,
-                pragmas = HDPragmas.Instanced,
+                pragmas = HDPragmas.DotsInstancedInV2Only,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.UnlitMeta,
 
@@ -396,7 +396,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDShadowCaster,
-                pragmas = HDPragmas.Instanced,
+                pragmas = HDPragmas.DotsInstancedInV2Only,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.UnlitDepthOnly,
 
@@ -421,7 +421,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDUnlitSceneSelection,
-                pragmas = HDPragmas.InstancedEditorSync,
+                pragmas = HDPragmas.DotsInstancedInV2OnlyEditorSync,
                 defines = HDDefines.SceneSelection,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.UnlitDepthOnly,
@@ -447,7 +447,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDDepthForwardOnly,
-                pragmas = HDPragmas.Instanced,
+                pragmas = HDPragmas.DotsInstancedInV2Only,
                 keywords = HDKeywords.HDDepthMotionVectors,
                 includes = HDIncludes.UnlitDepthOnly,
 
@@ -472,7 +472,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = new FieldCollection(){ HDRequiredFields.PositionRWS, HDFields.SubShader.Unlit },
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDUnlitMotionVectors,
-                pragmas = HDPragmas.Instanced,
+                pragmas = HDPragmas.DotsInstancedInV2Only,
                 keywords = HDKeywords.HDDepthMotionVectors,
                 includes = HDIncludes.UnlitMotionVectors,
 
@@ -497,7 +497,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDUnlitDistortion,
-                pragmas = HDPragmas.Instanced,
+                pragmas = HDPragmas.DotsInstancedInV2Only,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.UnlitDistortion,
 
@@ -521,8 +521,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
                 fieldDependencies = HDFieldDependencies.Default,
-                renderStates = HDRenderStates.HDUnlitForward,
-                pragmas = HDPragmas.Instanced,
+                renderStates = HDRenderStates.HDForward,
+                pragmas = HDPragmas.DotsInstancedInV2Only,
                 keywords = HDKeywords.HDUnlitForward,
                 includes = HDIncludes.UnlitForwardOnly,
 
@@ -552,7 +552,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitMinimal,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDLitGBuffer,
-                pragmas = HDPragmas.DotsInstanced,
+                pragmas = HDPragmas.DotsInstancedInV1AndV2,
                 defines = HDDefines.ShaderGraphRaytracingHigh,
                 keywords = HDKeywords.HDGBuffer,
                 includes = HDIncludes.LitGBuffer,
@@ -577,7 +577,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.Meta,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.Meta,
-                pragmas = HDPragmas.DotsInstanced,
+                pragmas = HDPragmas.DotsInstancedInV1AndV2,
                 defines = HDDefines.ShaderGraphRaytracingHigh,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.LitMeta,
@@ -602,7 +602,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDBlendShadowCaster,
-                pragmas = HDPragmas.DotsInstanced,
+                pragmas = HDPragmas.DotsInstancedInV1AndV2,
                 defines = HDDefines.ShaderGraphRaytracingHigh,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.LitDepthOnly,
@@ -627,7 +627,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDSceneSelection,
-                pragmas = HDPragmas.DotsInstancedEditorSync,
+                pragmas = HDPragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = HDDefines.SceneSelection,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.LitDepthOnly,
@@ -653,7 +653,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDDepthOnly,
-                pragmas = HDPragmas.DotsInstanced,
+                pragmas = HDPragmas.DotsInstancedInV1AndV2,
                 defines = HDDefines.ShaderGraphRaytracingHigh,
                 keywords = HDKeywords.HDLitDepthMotionVectors,
                 includes = HDIncludes.LitDepthOnly,
@@ -679,7 +679,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDMotionVectors,
-                pragmas = HDPragmas.DotsInstanced,
+                pragmas = HDPragmas.DotsInstancedInV1AndV2,
                 defines = HDDefines.ShaderGraphRaytracingHigh,
                 keywords = HDKeywords.HDLitDepthMotionVectors,
                 includes = HDIncludes.LitMotionVectors,
@@ -704,7 +704,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDLitDistortion,
-                pragmas = HDPragmas.DotsInstanced,
+                pragmas = HDPragmas.DotsInstancedInV1AndV2,
                 defines = HDDefines.ShaderGraphRaytracingHigh,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.LitDistortion,
@@ -727,11 +727,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 structs = HDStructCollections.Default,
+                requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
-                renderStates = HDRenderStates.HDTransparentDepthPrePostPass,
-                pragmas = HDPragmas.DotsInstanced,
+                renderStates = HDRenderStates.HDLitTransparentDepthPrePostPass,
+                pragmas = HDPragmas.DotsInstancedInV1AndV2,
                 defines = HDDefines.TransparentDepthPrepass,
-                keywords = HDKeywords.TransparentDepthPrepass,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.LitDepthOnly,
 
                 // Custom Template
@@ -754,7 +755,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDTransparentBackface,
-                pragmas = HDPragmas.DotsInstanced,
+                pragmas = HDPragmas.DotsInstancedInV1AndV2,
                 defines = HDDefines.Forward,
                 keywords = HDKeywords.HDForward,
                 includes = HDIncludes.LitForward,
@@ -780,7 +781,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitMinimal,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDForwardColorMask,
-                pragmas = HDPragmas.DotsInstanced,
+                pragmas = HDPragmas.DotsInstancedInV1AndV2,
                 defines = HDDefines.Forward,
                 keywords = HDKeywords.HDForward,
                 includes = HDIncludes.LitForward,
@@ -805,10 +806,35 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDTransparentDepthPrePostPass,
-                pragmas = HDPragmas.DotsInstanced,
-                defines = HDDefines.TransparentDepthPostpass,
-                keywords = HDKeywords.TransparentDepthPostpass,
+                pragmas = HDPragmas.DotsInstancedInV1AndV2,
+                defines = HDDefines.ShaderGraphRaytracingHigh,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.LitDepthOnly,
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("Lit"),
+            };
+
+            public static PassDescriptor RayTracingPrepass = new PassDescriptor()
+            {
+                // Definition
+                displayName = "RayTracingPrepass",
+                referenceName = "SHADERPASS_CONSTANT",
+                lightMode = "RayTracingPrepass",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                pixelPorts = HDPortMasks.Pixel.HDLitRayTracingPrepass,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                renderStates = HDRenderStates.RayTracingPrepass,
+                pragmas = HDPragmas.Basic,
+                defines = HDDefines.ShaderGraphRaytracingHigh,
+                keywords = HDKeywords.HDBase,
+                includes = HDIncludes.RayTracingPrepass,
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Lit"),
@@ -835,7 +861,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.Meta,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.Meta,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.EyeMeta,
 
@@ -859,7 +885,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDBlendShadowCaster,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.EyeDepthOnly,
 
@@ -883,7 +909,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDSceneSelection,
-                pragmas = HDPragmas.InstancedRenderingPlayerEditorSync,
+                pragmas = HDPragmas.InstancedRenderingLayerEditorSync,
                 defines = HDDefines.SceneSelection,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.EyeDepthOnly,
@@ -909,7 +935,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDDepthOnly,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.DepthMotionVectors,
                 keywords = HDKeywords.HDDepthMotionVectorsNoNormal,
                 includes = HDIncludes.EyeDepthOnly,
@@ -935,7 +961,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDMotionVectors,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.DepthMotionVectors,
                 keywords = HDKeywords.HDDepthMotionVectorsNoNormal,
                 includes = HDIncludes.EyeMotionVectors,
@@ -961,7 +987,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDForward,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.Forward,
                 keywords = HDKeywords.HDForward,
                 includes = HDIncludes.EyeForwardOnly,
@@ -991,7 +1017,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.Meta,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.Meta,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.FabricMeta,
 
@@ -1015,7 +1041,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDBlendShadowCaster,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.FabricDepthOnly,
 
@@ -1039,7 +1065,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDShadowCaster,
-                pragmas = HDPragmas.InstancedRenderingPlayerEditorSync,
+                pragmas = HDPragmas.InstancedRenderingLayerEditorSync,
                 defines = HDDefines.SceneSelection,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.FabricDepthOnly,
@@ -1065,7 +1091,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDDepthOnly,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.DepthMotionVectors,
                 keywords = HDKeywords.HDDepthMotionVectorsNoNormal,
                 includes = HDIncludes.FabricDepthOnly,
@@ -1091,7 +1117,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDMotionVectors,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.DepthMotionVectors,
                 keywords = HDKeywords.HDDepthMotionVectorsNoNormal,
                 includes = HDIncludes.FabricMotionVectors,
@@ -1117,7 +1143,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDForward,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.Forward,
                 keywords = HDKeywords.HDForward,
                 includes = HDIncludes.FabricForwardOnly,
@@ -1147,7 +1173,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.Meta,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.Meta,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.HairMeta,
 
@@ -1171,7 +1197,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDBlendShadowCaster,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.HairDepthOnly,
 
@@ -1195,7 +1221,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDSceneSelection,
-                pragmas = HDPragmas.InstancedRenderingPlayerEditorSync,
+                pragmas = HDPragmas.InstancedRenderingLayerEditorSync,
                 defines = HDDefines.SceneSelection,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.HairDepthOnly,
@@ -1220,8 +1246,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
-                renderStates = HDRenderStates.HairDepthOnly,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                renderStates = HDRenderStates.HDDepthOnly,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.DepthMotionVectors,
                 keywords = HDKeywords.HDDepthMotionVectorsNoNormal,
                 includes = HDIncludes.HairDepthOnly,
@@ -1247,7 +1273,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HairMotionVectors,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.DepthMotionVectors,
                 keywords = HDKeywords.HDDepthMotionVectorsNoNormal,
                 includes = HDIncludes.HairMotionVectors,
@@ -1272,9 +1298,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDTransparentDepthPrePostPass,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.TransparentDepthPrepass,
-                keywords = HDKeywords.TransparentDepthPrepass,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.HairDepthOnly,
 
                 // Custom Template
@@ -1298,7 +1324,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitMinimal,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDTransparentBackface,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.Forward,
                 keywords = HDKeywords.HDForward,
                 includes = HDIncludes.HairForwardOnly,
@@ -1324,7 +1350,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDForwardColorMask,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.InstancedRenderingLayer,
                 defines = HDDefines.Forward,
                 keywords = HDKeywords.HDForward,
                 includes = HDIncludes.HairForwardOnly,
@@ -1349,9 +1375,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDTransparentDepthPrePostPass,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
-                defines = HDDefines.TransparentDepthPostpass,
-                keywords = HDKeywords.TransparentDepthPostpass,
+                pragmas = HDPragmas.InstancedRenderingLayer,
+                defines = HDDefines.ShaderGraphRaytracingHigh,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.HairDepthOnly,
 
                 // Custom Template
@@ -1379,7 +1405,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.Meta,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.Meta,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.DotsInstancedInV2OnlyRenderingLayer,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.StackLitMeta,
 
@@ -1403,7 +1429,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.StackLitShadowCaster,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.DotsInstancedInV2OnlyRenderingLayer,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.StackLitDepthOnly,
 
@@ -1427,7 +1453,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDSceneSelection,
-                pragmas = HDPragmas.InstancedRenderingPlayerEditorSync,
+                pragmas = HDPragmas.DotsInstancedInV2OnlyRenderingLayerEditorSync,
                 defines = HDDefines.SceneSelection,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.StackLitDepthOnly,
@@ -1460,7 +1486,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDDepthOnly,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.DotsInstancedInV2OnlyRenderingLayer,
                 defines = HDDefines.DepthMotionVectors,
                 keywords = HDKeywords.HDDepthMotionVectorsNoNormal,
                 includes = HDIncludes.StackLitDepthOnly,
@@ -1486,7 +1512,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDMotionVectors,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.DotsInstancedInV2OnlyRenderingLayer,
                 defines = HDDefines.DepthMotionVectors,
                 keywords = HDKeywords.HDDepthMotionVectorsNoNormal,
                 includes = HDIncludes.StackLitMotionVectors,
@@ -1511,7 +1537,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.StackLitDistortion,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.DotsInstancedInV2OnlyRenderingLayer,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.StackLitDistortion,
 
@@ -1536,7 +1562,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = HDRequiredFields.LitFull,
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDForward,
-                pragmas = HDPragmas.InstancedRenderingPlayer,
+                pragmas = HDPragmas.DotsInstancedInV2OnlyRenderingLayer,
                 defines = HDDefines.Forward,
                 keywords = HDKeywords.HDForward,
                 includes = HDIncludes.StackLitForwardOnly,
@@ -1725,7 +1751,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingInstanced,
+                pragmas = HDPragmas.RaytracingBasic,
                 defines = HDDefines.HDLitRaytracingForwardIndirect,
                 keywords = HDKeywords.RaytracingIndirect,
                 includes = HDIncludes.Raytracing,
@@ -1750,7 +1776,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingInstanced,
+                pragmas = HDPragmas.RaytracingBasic,
                 defines = HDDefines.HDLitRaytracingVisibility,
                 includes = HDIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Lit, HDFields.ShaderPass.RaytracingVisibility },
@@ -1774,7 +1800,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingInstanced,
+                pragmas = HDPragmas.RaytracingBasic,
                 defines = HDDefines.HDLitRaytracingForwardIndirect,
                 keywords = HDKeywords.RaytracingGBufferForward,
                 includes = HDIncludes.Raytracing,
@@ -1799,7 +1825,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingInstanced,
+                pragmas = HDPragmas.RaytracingBasic,
                 defines = HDDefines.HDLitRaytracingGBuffer,
                 keywords = HDKeywords.RaytracingGBufferForward,
                 includes = HDIncludes.Raytracing,
@@ -1823,7 +1849,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingInstanced,
+                pragmas = HDPragmas.RaytracingBasic,
                 defines = HDDefines.HDLitRaytracingPathTracing,
                 includes = HDIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Lit, HDFields.ShaderPass.RaytracingPathTracing },
@@ -1846,7 +1872,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingInstanced,
+                pragmas = HDPragmas.RaytracingBasic,
                 defines = HDDefines.HDLitRaytracingGBuffer,
                 keywords = HDKeywords.RaytracingGBufferForward,
                 includes = HDIncludes.Raytracing,
@@ -1956,6 +1982,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Unlit"),
             };
+
+            public static PassDescriptor PathTracing = new PassDescriptor()
+            {
+                //Definition
+                displayName = "PathTracingDXR",
+                referenceName = "SHADERPASS_PATH_TRACING",
+                lightMode = "PathTracingDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.HDUnlitDefault,
+                pixelPorts = HDPortMasks.Pixel.HDUnlitDefault,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                keywords = HDKeywords.HDBase,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingPathTracing },
+
+                //Custom Template
+                passTemplatePath = GetPassTemplatePath("Unlit"),
+            };
         }
 #endregion
 
@@ -1977,7 +2027,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingInstanced,
+                pragmas = HDPragmas.RaytracingBasic,
                 defines = HDDefines.FabricRaytracingForwardIndirect,
                 keywords = HDKeywords.RaytracingIndirect,
                 includes = HDIncludes.Raytracing,
@@ -2002,7 +2052,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingInstanced,
+                pragmas = HDPragmas.RaytracingBasic,
                 keywords = HDKeywords.HDBase,
                 includes = HDIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Fabric, HDFields.ShaderPass.RaytracingVisibility },
@@ -2026,7 +2076,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingInstanced,
+                pragmas = HDPragmas.RaytracingBasic,
                 defines = HDDefines.FabricRaytracingForwardIndirect,
                 keywords = HDKeywords.RaytracingGBufferForward,
                 includes = HDIncludes.Raytracing,
@@ -2051,7 +2101,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingInstanced,
+                pragmas = HDPragmas.RaytracingBasic,
                 defines = HDDefines.FabricRaytracingGBuffer,
                 keywords = HDKeywords.RaytracingGBufferForward,
                 includes = HDIncludes.Raytracing,
@@ -2075,7 +2125,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Collections
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
-                pragmas = HDPragmas.RaytracingInstanced,
+                pragmas = HDPragmas.RaytracingBasic,
                 defines = HDDefines.FabricRaytracingGBuffer,
                 keywords = HDKeywords.RaytracingGBufferForward,
                 includes = HDIncludes.Raytracing,
@@ -2083,6 +2133,262 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 //Custom Template
                 passTemplatePath = GetPassTemplatePath("Fabric"),
+            };
+        }
+#endregion
+
+#region StackLitRayTracing
+        public static class StackLitRayTracing
+        {
+            public static PassDescriptor Indirect = new PassDescriptor()
+            {
+                // Definition
+                displayName = "IndirectDXR",
+                referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
+                lightMode = "IndirectDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                pixelPorts = HDPortMasks.Pixel.StackLitForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.StackLitRaytracingForwardIndirect,
+                keywords = HDKeywords.RaytracingIndirect,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingIndirect },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("StackLit"),
+            };
+
+            public static PassDescriptor Visibility = new PassDescriptor()
+            {
+                // Definition
+                displayName = "VisibilityDXR",
+                referenceName = "SHADERPASS_RAYTRACING_VISIBILITY",
+                lightMode = "VisibilityDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                pixelPorts = HDPortMasks.Pixel.StackLitForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                keywords = HDKeywords.HDBase,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingVisibility },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("StackLit"),
+            };
+
+            public static PassDescriptor Forward = new PassDescriptor()
+            {
+                // Definition
+                displayName = "ForwardDXR",
+                referenceName = "SHADERPASS_RAYTRACING_FORWARD",
+                lightMode = "ForwardDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                pixelPorts = HDPortMasks.Pixel.StackLitForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.StackLitRaytracingForwardIndirect,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingForward },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("StackLit"),
+            };
+
+            public static PassDescriptor GBuffer = new PassDescriptor()
+            {
+                // Definition
+                displayName = "GBufferDXR",
+                referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
+                lightMode = "GBufferDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                pixelPorts = HDPortMasks.Pixel.StackLitForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.StackLitRaytracingGBuffer,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RayTracingGBuffer },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("StackLit"),
+            };
+            public static PassDescriptor SubSurface = new PassDescriptor()
+            {
+                //Definition
+                displayName = "SubSurfaceDXR",
+                referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
+                lightMode = "SubSurfaceDXR",
+                useInPreview = false,
+
+                //Port mask
+                vertexPorts = HDPortMasks.Vertex.StackLitDefault,
+                pixelPorts = HDPortMasks.Pixel.StackLitForward,
+
+                //Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.StackLitRaytracingGBuffer,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingSubSurface },
+
+                //Custom Template
+                passTemplatePath = GetPassTemplatePath("StackLit"),
+            };
+        }
+#endregion
+
+#region HairRayTracing
+        public static class HairRayTracing
+        {
+            public static PassDescriptor Indirect = new PassDescriptor()
+            {
+                // Definition
+                displayName = "IndirectDXR",
+                referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
+                lightMode = "IndirectDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.HairDefault,
+                pixelPorts = HDPortMasks.Pixel.HairForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.HairRaytracingForwardIndirect,
+                keywords = HDKeywords.RaytracingIndirect,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingIndirect },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("Hair"),
+            };
+
+            public static PassDescriptor Visibility = new PassDescriptor()
+            {
+                // Definition
+                displayName = "VisibilityDXR",
+                referenceName = "SHADERPASS_RAYTRACING_VISIBILITY",
+                lightMode = "VisibilityDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.HairDefault,
+                pixelPorts = HDPortMasks.Pixel.HairForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                keywords = HDKeywords.HDBase,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingVisibility },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("Hair"),
+            };
+
+            public static PassDescriptor Forward = new PassDescriptor()
+            {
+                // Definition
+                displayName = "ForwardDXR",
+                referenceName = "SHADERPASS_RAYTRACING_FORWARD",
+                lightMode = "ForwardDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.HairDefault,
+                pixelPorts = HDPortMasks.Pixel.HairForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.HairRaytracingForwardIndirect,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingForward },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("Hair"),
+            };
+
+            public static PassDescriptor GBuffer = new PassDescriptor()
+            {
+                // Definition
+                displayName = "GBufferDXR",
+                referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
+                lightMode = "GBufferDXR",
+                useInPreview = false,
+
+                // Port Mask
+                vertexPorts = HDPortMasks.Vertex.HairDefault,
+                pixelPorts = HDPortMasks.Pixel.HairForward,
+
+                // Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.HairRaytracingGBuffer,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RayTracingGBuffer },
+
+                // Custom Template
+                passTemplatePath = GetPassTemplatePath("Hair"),
+            };
+            public static PassDescriptor SubSurface = new PassDescriptor()
+            {
+                //Definition
+                displayName = "SubSurfaceDXR",
+                referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
+                lightMode = "SubSurfaceDXR",
+                useInPreview = false,
+
+                //Port mask
+                vertexPorts = HDPortMasks.Vertex.HairDefault,
+                pixelPorts = HDPortMasks.Pixel.HairForward,
+
+                //Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingBasic,
+                defines = HDDefines.HairRaytracingGBuffer,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingSubSurface },
+
+                //Custom Template
+                passTemplatePath = GetPassTemplatePath("Hair"),
             };
         }
 #endregion
