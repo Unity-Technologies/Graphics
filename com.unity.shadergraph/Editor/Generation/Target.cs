@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph
     {
         public string displayName { get; set; }
         public bool isHidden { get; set; }
+        public abstract bool IsActive();
         public abstract void Setup(ref TargetSetupContext context);
         public abstract void GetFields(ref TargetFieldContext context);
         public abstract void GetActiveBlocks(ref TargetActiveBlockContext context);

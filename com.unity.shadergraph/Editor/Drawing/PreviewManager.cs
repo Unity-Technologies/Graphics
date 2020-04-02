@@ -527,7 +527,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Process preview materials
                     foreach(var target in m_Graph.activeTargets)
                     {
-                        target.ProcessPreviewMaterial(renderData.shaderData.mat);
+                        if(target.IsActive())
+                        {
+                            target.ProcessPreviewMaterial(renderData.shaderData.mat);
+                        }
                     }
                 }
             }

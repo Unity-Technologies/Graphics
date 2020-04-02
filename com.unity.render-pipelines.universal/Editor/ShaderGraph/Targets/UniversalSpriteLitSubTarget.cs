@@ -16,6 +16,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "Sprite Lit";
         }
 
+        public override bool IsActive() => true;
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));

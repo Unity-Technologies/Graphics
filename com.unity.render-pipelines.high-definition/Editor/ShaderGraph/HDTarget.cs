@@ -230,6 +230,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_CustomEditorGUI = value;
         }
 
+        public override bool IsActive()
+        {
+            bool isHDRenderPipeline = GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset;
+            return isHDRenderPipeline && activeSubTarget.IsActive();
+        }
+
         public override void Setup(ref TargetSetupContext context)
         {
             // Setup the Target

@@ -110,6 +110,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     return $"{UnityEditor.ShaderGraph.RenderQueue.Geometry}";
             }
         }
+
+        public SubTarget activeSubTarget
+        {
+            get => m_ActiveSubTarget;
+            set => m_ActiveSubTarget = value;
+        }
         
         public SurfaceType surfaceType
         {
@@ -145,6 +151,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_CustomEditorGUI;
             set => m_CustomEditorGUI = value;
+        }
+
+        public override bool IsActive()
+        {
+            bool isUniversalRenderPipeline = GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset;
+            return isUniversalRenderPipeline && activeSubTarget.IsActive();
         }
 
         public override void Setup(ref TargetSetupContext context)

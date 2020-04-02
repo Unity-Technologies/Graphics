@@ -255,6 +255,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         bool hasTransparentDepthPrepass => target.surfaceType != SurfaceType.Opaque && m_AlphaTestDepthPrepass;
         bool hasTransparentDepthPostpass => target.surfaceType != SurfaceType.Opaque && m_AlphaTestDepthPostpass;
 
+        public override bool IsActive() => true;
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));

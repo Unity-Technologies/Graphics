@@ -18,6 +18,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "Unlit";
         }
 
+        public override bool IsActive() => true;
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));

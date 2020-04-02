@@ -36,6 +36,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_NormalDropOffSpace = value;
         }
 
+        public override bool IsActive() => true;
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));

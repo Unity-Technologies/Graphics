@@ -48,6 +48,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_EnableShadowMatte = value;
         }
 
+        public override bool IsActive() => true;
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));

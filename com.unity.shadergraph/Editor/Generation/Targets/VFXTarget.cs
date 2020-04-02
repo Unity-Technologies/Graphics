@@ -33,6 +33,8 @@ namespace UnityEditor.ShaderGraph
             set => m_AlphaTest = value;
         }
 
+        public override bool IsActive() => true;
+
         public override void Setup(ref TargetSetupContext context)
         {
         }

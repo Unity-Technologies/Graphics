@@ -14,6 +14,8 @@ namespace UnityEditor.ShaderGraph
             isHidden = true;
         }
 
+        public override bool IsActive() => false;
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7464b9fcde08e5645a16b9b8ae1e573c")); // PreviewTarget
