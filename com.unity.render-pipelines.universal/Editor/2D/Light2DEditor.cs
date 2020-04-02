@@ -235,10 +235,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Analytics.Renderer2DAnalytics.instance.SendData(Analytics.AnalyticsDataTypes.k_LightDataString, lightData);
         }
 
-        private void OnDestroy()
+        void OnDestroy()
         {
-
-            if(m_ModifiedLights.Count > 0)
+            if(m_ModifiedLights != null && m_ModifiedLights.Count > 0)
             {
                 foreach (Light2D light in m_ModifiedLights)
                 {

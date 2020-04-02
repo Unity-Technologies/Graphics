@@ -108,10 +108,9 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _NumTileClusteredY;
     int _EnvSliceSize;
     float _Pad6;
-    float4 _ThicknessRemaps[16];
-    float4 _ShapeParams[16];
+    float4 _ShapeParamsAndMaxScatterDists[16];
     float4 _TransmissionTintsAndFresnel0[16];
-    float4 _WorldScales[16];
+    float4 _WorldScalesAndFilterRadiiAndThicknessRemaps[16];
     uint4 _DiffusionProfileHashTable[16];
     uint _EnableSubsurfaceScattering;
     uint _TexturingModeFlags;
