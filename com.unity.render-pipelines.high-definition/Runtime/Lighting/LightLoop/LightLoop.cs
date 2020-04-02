@@ -2793,7 +2793,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
                 // to changes to the inner workings of the lists.
                 // Also, we clear all the lists and to be resilient to changes in pipeline.
-                ClearLightList(parameters, cmd, resources.tileAndClusterData.bigTileLightList);
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                    ClearLightList(parameters, cmd, resources.tileAndClusterData.bigTileLightList);
                 ClearLightList(parameters, cmd, resources.tileAndClusterData.lightList);
                 ClearLightList(parameters, cmd, resources.tileAndClusterData.perVoxelOffset);
 
