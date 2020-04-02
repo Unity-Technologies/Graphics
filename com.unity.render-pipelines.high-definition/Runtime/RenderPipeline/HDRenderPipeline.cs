@@ -1836,7 +1836,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Render XR mirror view once all render requests have been completed
                             if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
                             {
-                                m_XRSystem.RenderMirrorView(cmd);
+                                HDAdditionalCameraData acd;
+                                if (renderRequest.hdCamera.camera.TryGetComponent<HDAdditionalCameraData>(out acd) && acd.xrRendering)
+                                {
+                                    m_XRSystem.RenderMirrorView(cmd);
+                                }
                             }
 
                             // Now that all cameras have been rendered, let's propagate the data required for screen space shadows
@@ -1886,10 +1890,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_RayTracingSupported)
             {
-                // This call need to happen once per camera
+                // This calls need to happen once per camera
                 // TODO: This can be wasteful for "compatible" cameras.
                 // We need to determine the minimum set of feature used by all the camera and build the minimum number of acceleration structures.
                 BuildRayTracingAccelerationStructure(hdCamera);
+                CullForRayTracing(cmd, hdCamera);
             }
 
             using (ListPool<RTHandle>.Get(out var aovBuffers))
@@ -1976,6 +1981,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Let's bind as soon as possible the light data
             BindLightDataParameters(hdCamera, cmd);
 
+            // Do the same for ray tracing if allowed
+            if (m_RayTracingSupported)
+            {
+                BuildRayTracingLightData(cmd, hdCamera, m_CurrentDebugDisplaySettings);
+            }
+
             // Configure all the keywords
             ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
 
@@ -2059,7 +2070,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SharedRTManager.BindNormalBuffer(cmd);
 
             // After Depth and Normals/roughness including decals
-            RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
+            bool depthBufferModified = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
+
+            // If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth. 
+            if (depthBufferModified)
+                m_IsDepthBufferCopyValid = false;
 
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
             GenerateDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid);
@@ -2094,8 +2109,6 @@ namespace UnityEngine.Rendering.HighDefinition
                      hdCamera.volumeStack.GetComponent<PathTracing>().enable.value &&
                      hdCamera.camera.cameraType != CameraType.Preview)
             {
-                // Update the light clusters that we need to update
-                BuildRayTracingLightCluster(cmd, hdCamera);
 
                 // We only request the light cluster if we are gonna use it for debug mode
                 if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
@@ -2185,9 +2198,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
-                    // Update the light clusters that we need to update
-                    BuildRayTracingLightCluster(cmd, hdCamera);
-
                     // We only request the light cluster if we are gonna use it for debug mode
                     if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
                     {
