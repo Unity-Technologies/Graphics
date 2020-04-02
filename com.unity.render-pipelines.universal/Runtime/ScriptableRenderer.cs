@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
         public static void SetCameraMatrices(CommandBuffer cmd, ref CameraData cameraData, bool setInverseMatrices)
         {
-            if (cameraData.isStereoEnabled && cameraData.xr.enabled)
+            if (cameraData.xr.enabled)
             {
                 cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, cameraData.xr.renderTargetIsRenderTexture);
                 return;
@@ -340,7 +340,6 @@ namespace UnityEngine.Rendering.Universal
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
-            bool stereoEnabled = cameraData.isStereoEnabled;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraRenderStateTag);
 
@@ -409,8 +408,7 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
-            if (stereoEnabled)
-                BeginXRRendering(cmd, context, ref renderingData.cameraData);
+            BeginXRRendering(cmd, context, ref renderingData.cameraData);
 
             // In the opaque and transparent blocks the main rendering executes.
 
@@ -426,8 +424,7 @@ namespace UnityEngine.Rendering.Universal
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
             ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
 
-            if (stereoEnabled)
-                EndXRRendering(cmd, context, ref renderingData.cameraData);
+            EndXRRendering(cmd, context, ref renderingData.cameraData);
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
@@ -705,7 +702,7 @@ namespace UnityEngine.Rendering.Universal
                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
                 {
                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, passAttachmentDimension);
-                    if (cameraData.xr.singlePassEnabled && cameraData.xr.enabled)
+                    if (cameraData.xr.singlePassEnabled)
                     {
                         // SetRenderTarget might alter the internal device state(winding order).
                         // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.

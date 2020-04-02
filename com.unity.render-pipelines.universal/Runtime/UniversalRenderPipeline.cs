@@ -104,8 +104,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
             }
 
-#if ENABLE_VR && ENABLE_VR_MODULE
-            XRGraphics.eyeTextureResolutionScale = asset.renderScale;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            XRSystem.UpdateRenderScale(asset.renderScale);
 #endif
             // For compatibility reasons we also match old LightweightPipeline tag.
             Shader.globalRenderPipeline = "UniversalPipeline,LightweightPipeline";
@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                if (!cameraData.camera.TryGetCullingParameters(cameraData.camera.stereoEnabled, out cullingParams))
+                if (!cameraData.camera.TryGetCullingParameters(false, out cullingParams))
                     return false;
             }
             return true;
@@ -223,7 +223,6 @@ namespace UnityEngine.Rendering.Universal
             foreach (XRPass xrPass in xrPasses)
             {
                 cameraData.xr = xrPass;
-                cameraData.isStereoEnabled = IsStereoEnabled(camera) && cameraData.xr.enabled;
 
                 if (!TryGetCullingParameters(cameraData, out var cullingParameters))
                     return;
@@ -259,6 +258,8 @@ namespace UnityEngine.Rendering.Universal
                 // and we need to ensure we submit the shadow pass work before starting the next shadow pass.
                 context.Submit();
                 CommandBufferPool.Release(cmd);
+
+                cameraData.xr = null;
             }
 
             // Render XR mirror view once all xr passes have been completed
@@ -512,12 +513,15 @@ namespace UnityEngine.Rendering.Universal
             cameraData.isDefaultViewport = (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f ||
                 Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f));
 
-            // If XR is enabled, use XR renderScale.
             // Discard variations lesser than kRenderScaleThreshold.
             // Scale is only enabled for gameview.
             const float kRenderScaleThreshold = 0.05f;
-            float usedRenderScale = XRGraphics.enabled ? XRGraphics.eyeTextureResolutionScale : settings.renderScale;
-            cameraData.renderScale = (Mathf.Abs(1.0f - usedRenderScale) < kRenderScaleThreshold) ? 1.0f : usedRenderScale;
+            cameraData.renderScale = (Mathf.Abs(1.0f - settings.renderScale) < kRenderScaleThreshold) ? 1.0f : settings.renderScale;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            cameraData.renderScale = XRSystem.UpdateRenderScale(settings.renderScale);
+#endif
+
             var commonOpaqueFlags = SortingCriteria.CommonOpaque;
             var noFrontToBackOpaqueFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
             bool hasHSRGPU = SystemInfo.hasHiddenSurfaceRemovalOnGPU;

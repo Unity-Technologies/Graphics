@@ -57,7 +57,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetIdentifier[] m_MRT2;
         Vector4[] m_BokehKernel;
         int m_BokehHash;
-        bool m_IsStereo;
 
         // True when this is the very last pass in the pipeline
         bool m_IsFinalPass;
@@ -232,9 +231,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             bool requiresSRGBConversion = Display.main.requiresSrgbBlitToBackbuffer;
             // For stereo case, eye texture always want color data in sRGB space.
-            // If eye texture color format is linear, we do explicit sRGB convertion
+            // If eye texture color format is linear, we do explicit sRGB conversion
 #if ENABLE_VR && ENABLE_VR_MODULE
-            if (cameraData.isStereoEnabled)
+            if (cameraData.xr.enabled)
                 requiresSRGBConversion = !cameraData.xr.renderTargetDesc.sRGB;
 #endif
             return requiresSRGBConversion && m_EnableSRGBConversionIfNeeded;
@@ -298,7 +297,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
         {
             ref var cameraData = ref renderingData.cameraData;
-            m_IsStereo = renderingData.cameraData.isStereoEnabled;
             bool useDrawProceduleBlit = cameraData.xr.enabled;
 
             // Don't use these directly unless you have a good reason to, use GetSource() and
@@ -442,7 +440,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 bool finishPostProcessOnScreen = cameraData.resolveFinalTarget || (m_Destination == cameraTargetHandle || m_HasFinalPass == true);
 
-                if (m_IsStereo && cameraData.xr.enabled)
+                if (cameraData.xr.enabled)
                 {
                     cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                          colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
@@ -1216,7 +1214,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Overlay cameras need to output to the target described in the base camera while doing camera stack.
             RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetHandle.Identifier();
 
-            if (cameraData.isStereoEnabled && cameraData.xr.enabled)
+            if (cameraData.xr.enabled)
             {
                 //Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
                 bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;

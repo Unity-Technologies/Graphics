@@ -78,6 +78,16 @@ namespace UnityEngine.Rendering.Universal
                 displayList[i].sRGB = QualitySettings.activeColorSpace == ColorSpace.Linear;
             }
         }
+
+        internal static float UpdateRenderScale(float renderScale)
+        {
+            SubsystemManager.GetInstances(displayList);
+
+            for (int i = 0; i < displayList.Count; i++)
+                displayList[i].scaleOfAllRenderTargets = renderScale;
+
+            return (displayList.Count > 0) ? 1.0f : renderScale;
+        }
 #endif
 
         // Compute the maximum number of views (slices) to allocate for texture arrays
@@ -93,10 +103,6 @@ namespace UnityEngine.Rendering.Universal
             }
             else
 #endif
-            {
-                if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
-                    maxViews = 2;
-            }
 
             if (testModeEnabled)
                 maxViews = Math.Max(maxViews, 2);
@@ -154,8 +160,9 @@ namespace UnityEngine.Rendering.Universal
             if (camera == null)
                 return framePasses;
 
-            // Enable XR layout only for gameview camera
-            bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
+            // Enable XR layout only for game camera
+            bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
+            bool xrSupported = isGameCamera && camera.targetTexture == null;
 
             if (testModeEnabled && automatedTestRunning && LayoutSinglePassTestMode(ref cameraData, new XRLayout() { camera = camera, xrSystem = this }))
             {
@@ -163,6 +170,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else if (xrEnabled && xrSupported)
             {
+                // XRTODO: handle camera.stereoTargetEye here ?
                 CreateLayoutFromXrSdk(camera, singlePassAllowed);
             }
             else

@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
-            RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+            ref RenderTextureDescriptor cameraTargetDescriptor = ref renderingData.cameraData.cameraTargetDescriptor;
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.xr.enabled)
             {
@@ -159,7 +159,6 @@ namespace UnityEngine.Rendering.Universal
             bool generateColorGradingLUT = anyPostProcessing && cameraData.renderType == CameraRenderType.Base;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             bool requiresDepthTexture = cameraData.requiresDepthTexture;
-            bool isStereoEnabled = cameraData.isStereoEnabled;
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
@@ -177,7 +176,7 @@ namespace UnityEngine.Rendering.Universal
 
             // TODO: CopyDepth pass is disabled in XR due to required work to handle camera matrices in URP.
             // IF this condition is removed make sure the CopyDepthPass.cs is working properly on all XR modes. This requires PureXR SDK integration.
-            if (isStereoEnabled && requiresDepthTexture)
+            if (cameraData.xr.enabled && requiresDepthTexture)
                 requiresDepthPrepass = true;
 
             bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
@@ -211,7 +210,7 @@ namespace UnityEngine.Rendering.Universal
                 int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
 
                 if (Camera.main == camera && camera.cameraType == CameraType.Game && cameraData.targetTexture == null)
-                    SetupBackbufferFormat(backbufferMsaaSamples, isStereoEnabled);
+                    SetupBackbufferFormat(backbufferMsaaSamples, cameraData.xr.enabled);
             }
             else
             {
@@ -434,7 +433,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
         }
 
-        void SetupBackbufferFormat(int msaaSamples, bool stereo)
+        void SetupBackbufferFormat(int msaaSamples, bool xrEnabled)
         {
 #if ENABLE_VR && ENABLE_VR_MODULE
             bool msaaSampleCountHasChanged = false;
@@ -451,7 +450,7 @@ namespace UnityEngine.Rendering.Universal
             // This settings should not be changed on a frame basis so that's fine.
             QualitySettings.antiAliasing = msaaSamples;
 
-            if (stereo && msaaSampleCountHasChanged)
+            if (xrEnabled && msaaSampleCountHasChanged)
                 XR.XRDevice.UpdateEyeTextureMSAASetting();
 #endif
         }
@@ -471,16 +470,15 @@ namespace UnityEngine.Rendering.Universal
 
             var cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
             int msaaSamples = cameraTargetDescriptor.msaaSamples;
-            bool isStereoEnabled = cameraData.isStereoEnabled;
-            bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f) && !cameraData.isStereoEnabled;
+            bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
             bool isCompatibleBackbufferTextureDimension = cameraTargetDescriptor.dimension == TextureDimension.Tex2D;
             bool requiresExplicitMsaaResolve = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
             bool isOffscreenRender = cameraData.targetTexture != null && !cameraData.isSceneViewCamera;
             bool isCapturing = cameraData.captureActions != null;
 
 #if ENABLE_VR && ENABLE_VR_MODULE
-            if (isStereoEnabled)
-                isCompatibleBackbufferTextureDimension = UnityEngine.XR.XRSettings.deviceEyeTextureDimension == cameraTargetDescriptor.dimension;
+            if (cameraData.xr.enabled)
+                isCompatibleBackbufferTextureDimension = cameraData.xr.renderTargetDesc.dimension == cameraTargetDescriptor.dimension;
 #endif
 
             bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport;
@@ -488,7 +486,7 @@ namespace UnityEngine.Rendering.Universal
                 return requiresBlitForOffscreenCamera;
 
             return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                   !isCompatibleBackbufferTextureDimension || isCapturing || (Display.main.requiresBlitToBackbuffer && !isStereoEnabled);
+                   !isCompatibleBackbufferTextureDimension || isCapturing || (Display.main.requiresBlitToBackbuffer && !cameraData.xr.enabled);
         }
 
         bool CanCopyDepth(ref CameraData cameraData)
