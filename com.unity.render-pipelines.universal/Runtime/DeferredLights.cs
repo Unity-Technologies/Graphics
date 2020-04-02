@@ -34,7 +34,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public static bool kUseCBufferForLightData = true;
         public static bool kUseCBufferForLightList = false;
 #endif
-
         // Keep in sync with PREFERRED_CBUFFER_SIZE.
         public const int kPreferredCBufferSize = 64 * 1024;
         public const int kPreferredStructuredBufferSize = 128 * 1024;
@@ -825,7 +824,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (!hasAdditionalLights)
             {
-                prePunctualLights = new NativeArray<DeferredTiler.PrePunctualLight>(0, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                prePunctualLights = new NativeArray<DeferredTiler.PrePunctualLight>(0, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 stencilVisLights = new NativeArray<ushort>(0, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 stencilVisLightOffsets = new NativeArray<ushort>(lightTypeCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 return;
@@ -850,7 +849,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             int totalTileLightCount = tileLightOffsets[(int)LightType.Point] + tileLightOffsets[(int)LightType.Spot];
             int totalStencilLightCount = stencilVisLightOffsets[(int)LightType.Spot] + stencilVisLightOffsets[(int)LightType.Directional] + stencilVisLightOffsets[(int)LightType.Point];
-            prePunctualLights = new NativeArray<DeferredTiler.PrePunctualLight>(totalTileLightCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            prePunctualLights = new NativeArray<DeferredTiler.PrePunctualLight>(totalTileLightCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             stencilVisLights = new NativeArray<ushort>(totalStencilLightCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             // Calculate correct offsets now.
