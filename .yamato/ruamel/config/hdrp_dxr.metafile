@@ -12,6 +12,11 @@ editors:
   #   rerun_strategy: on-new-revision
   # - version: CUSTOM-REVISION
   #   rerun_strategy: always
+testplatforms:
+  - name: Standalone
+    args: --suite=playmode --platform=Standalone
+  - name: playmode
+    args: --suite=playmode
 platforms:
   - name: Win
     os: windows

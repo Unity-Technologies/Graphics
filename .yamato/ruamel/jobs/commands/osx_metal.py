@@ -34,6 +34,18 @@ def cmd_playmode(project, platform, api):
      ])
     return base
 
+def cmd_playmode_xr(project, platform, api):
+    base = _cmd_base(project, platform["components"])
+    base.extend([ 
+        pss(f'''
+        ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{project["folder"]} && ~/ScriptableRenderPipeline/TestProjects/{project["folder"]}/utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{project["folder"]} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{project["folder"]}/test-results\'
+        UTR_RESULT=$? 
+        mkdir -p TestProjects/{project["folder"]}/test-results/
+        scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/ScriptableRenderPipeline/TestProjects/{project["folder"]}/test-results/ TestProjects/{project["folder"]}/test-results/
+        exit $UTR_RESULT''')
+     ])
+    return base
+
 def cmd_standalone(project, platform, api):
     base = _cmd_base(project, platform["components"])
     base.extend([ 

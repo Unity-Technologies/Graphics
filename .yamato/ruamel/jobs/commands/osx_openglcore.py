@@ -21,6 +21,13 @@ def cmd_playmode(project, platform, api):
     ])
     return base
 
+def cmd_playmode_xr(project, platform, api):
+    base = _cmd_base(project, platform["components"])
+    base.extend([ 
+        f'cd TestProjects/{project["folder"]} && utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results'
+    ])
+    return base
+
 def cmd_standalone(project, platform, api):
     base = _cmd_base(project, platform["components"])
     base.extend([
