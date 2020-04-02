@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // and inside of the editor run:
         // Edit->Render Pipeline->Generate Shader Includes
         // Probe Volumes feature must also be enabled inside of your HDRenderPipelineAsset.
-        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.LightLoop,
+        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.MaterialPass,
         AreaLights = 1,
 
         DeferredShadowFiltering = HDShadowFilteringQuality.Medium,
