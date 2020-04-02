@@ -15,10 +15,9 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
     
     job = {
         'name' : job_name,
-        'agent' : {
-            'flavor' : agent["flavor"],
-            'type' : agent["type"],
-            'image' : agent["image"]
+        'agent' : dict(agent),
+        'variables':{
+            'UPM_REGISTRY': 'https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates'
         },
         'dependencies' : [
             {
@@ -37,7 +36,7 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
     }
 
     if editor['version'] == 'CUSTOM-REVISION':
-        job['variables'] = {'CUSTOM_REVISION': 'custom_revision_not_set'}
+        job['variables']['CUSTOM_REVISION'] = 'custom_revision_not_set'
 
     return job
 

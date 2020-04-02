@@ -1,9 +1,11 @@
 ShaderGraph_Stereo_Win__Standalone_2020.1:
     name: ShaderGraph_Stereo on Win__Standalone on version 2020.1
     agent:
-        flavor: b1.large
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/z_editor.yml#editor:priming:2020.1:windows
          rerun: on-new-revision
@@ -11,7 +13,7 @@ ShaderGraph_Stereo_Win__Standalone_2020.1:
          rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraphUniversalStereo/utr
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraphUniversalStereo && utr/utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -22,15 +24,17 @@ ShaderGraph_Stereo_Win__Standalone_2020.1:
 ShaderGraph_Stereo_Win__playmode_2020.1:
     name: ShaderGraph_Stereo on Win__playmode on version 2020.1
     agent:
-        flavor: b1.large
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/z_editor.yml#editor:priming:2020.1:windows
          rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraphUniversalStereo/utr
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraphUniversalStereo && utr\utr --suite=playmode --extra-editor-arg="" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
@@ -40,15 +44,17 @@ ShaderGraph_Stereo_Win__playmode_2020.1:
 ShaderGraph_Stereo_Win__editmode_2020.1:
     name: ShaderGraph_Stereo on Win__editmode on version 2020.1
     agent:
-        flavor: b1.large
         type: Unity::VM
         image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/z_editor.yml#editor:priming:2020.1:windows
          rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraphUniversalStereo/utr
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraphUniversalStereo && utr\utr --suite=editor --platform=editmode --extra-editor-arg="" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
