@@ -43,7 +43,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         public bool Downsample              = true;
         public float Intensity              = 0.0f;
         public float Radius                 = 0.05f;
-        public int SampleCount              = 10;
+        public int SampleCount              = 8;
     }
 
     // Called from OnEnable and OnValidate...
