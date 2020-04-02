@@ -6,20 +6,129 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
-    class VFXResources
+    class VFXResources : ScriptableObject
     {
-        public static VFXResources defaultResources
+        public static Values defaultResources
         {
             get
             {
-                if (s_Instance == null)
+                if (s_Values == null)
                 {
                     Initialize();
                 }
-                return s_Instance;
+                return s_Values;
             }
         }
         private static VFXResources s_Instance;
+        private static Values s_Values;
+
+        void OnEnable()
+        {
+            if( s_Instance != null)
+            {
+                Debug.LogError("Having more than on VFXResources in you project is unsupported");
+            }
+            s_Instance = this;
+        }
+
+        void OnDisable()
+        {
+            if( s_Instance == this)
+                s_Instance = null;
+        }
+
+        public class Values
+        {
+            public AnimationCurve animationCurve
+            {
+                get
+                {
+                    if (s_Instance != null)
+                        return s_Instance.animationCurve;
+
+                    return defaultAnimationCurve;
+                }
+            }
+            public Gradient gradient
+            {
+                get
+                {
+                    if (s_Instance != null)
+                        return s_Instance.gradient;
+                    return defaultGradient;
+                }
+            }
+            public Gradient gradientMapRamp
+            {
+                get
+                {
+                    if (s_Instance != null)
+                        return s_Instance.gradientMapRamp;
+                    return defaultGradientMapRamp;
+                }
+            }
+
+            public Shader shader
+            {
+                get
+                {
+                    if (s_Instance != null && s_Instance.shader != null)
+                        return s_Instance.shader;
+
+                    return defaultShader;
+                }
+            }
+
+
+            public Texture2D particleTexture
+            {
+                get
+                {
+                    if (s_Instance != null && s_Instance.particleTexture != null)
+                        return s_Instance.particleTexture;
+                    return defaultParticleTexture;
+                }
+            }
+
+            public Texture2D noiseTexture
+            {
+                get
+                {
+                    if (s_Instance != null && s_Instance.noiseTexture != null)
+                        return s_Instance.noiseTexture;
+                    return defaultNoiseTexture;
+                }
+            }
+            public Texture3D vectorField
+            {
+                get
+                {
+                    if (s_Instance != null && s_Instance.vectorField != null)
+                        return s_Instance.vectorField;
+                    return defaultVectorField;
+                }
+            }
+            public Texture3D signedDistanceField
+            {
+                get
+                {
+                    if (s_Instance != null && s_Instance.signedDistanceField != null)
+                        return s_Instance.signedDistanceField;
+                    return defaultSignedDistanceField;
+                }
+            }
+
+            public Mesh mesh
+            {
+                get
+                {
+                    if (s_Instance != null && s_Instance.mesh != null)
+                        return s_Instance.mesh;
+
+                    return defaultMesh;
+                }
+            }
+        }
 
         private static string defaultPath { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/"; } }
 
@@ -35,25 +144,24 @@ namespace UnityEditor.VFX
         }
         private static void Initialize()
         {
+            s_Values = new Values();
 
-            VFXResources newAsset = new VFXResources();
+            defaultShader = Shader.Find("Hidden/Default StaticMeshOutput");
 
-            newAsset.shader = Shader.Find("Hidden/Default StaticMeshOutput");
-
-            newAsset.animationCurve = new AnimationCurve(new Keyframe[]
+            defaultAnimationCurve = new AnimationCurve(new Keyframe[]
             {
                 new Keyframe(0.0f, 0.0f, 0.0f, 0.0f),
                 new Keyframe(0.25f, 0.25f, 0.0f, 0.0f),
                 new Keyframe(1.0f, 0.0f, 0.0f, 0.0f),
             });
 
-            newAsset.gradient = new Gradient();
-            newAsset.gradient.colorKeys = new GradientColorKey[]
+            defaultGradient = new Gradient();
+            defaultGradient.colorKeys = new GradientColorKey[]
             {
                 new GradientColorKey(Color.white, 0.0f),
                 new GradientColorKey(Color.gray, 1.0f),
             };
-            newAsset.gradient.alphaKeys = new GradientAlphaKey[]
+            defaultGradient.alphaKeys = new GradientAlphaKey[]
             {
                 new GradientAlphaKey(0.0f, 0.0f),
                 new GradientAlphaKey(1.0f, 0.1f),
@@ -61,8 +169,8 @@ namespace UnityEditor.VFX
                 new GradientAlphaKey(0.0f, 1.0f),
             };
 
-            newAsset.gradientMapRamp = new Gradient();
-            newAsset.gradientMapRamp.colorKeys = new GradientColorKey[]
+            defaultGradientMapRamp = new Gradient();
+            defaultGradientMapRamp.colorKeys = new GradientColorKey[]
             {
                 new GradientColorKey(new Color(0.0f,    0.0f,   0.0f),  0.0f),
                 new GradientColorKey(new Color(0.75f,   0.15f,  0.0f),  0.3f),
@@ -71,66 +179,101 @@ namespace UnityEditor.VFX
                 new GradientColorKey(new Color(4.0f,    3.5f,   1.2f),  0.9f),
                 new GradientColorKey(new Color(12.0f,   10.0f,  2.5f),  1.0f),
             };
-            newAsset.gradientMapRamp.alphaKeys = new GradientAlphaKey[]
+            defaultGradientMapRamp.alphaKeys = new GradientAlphaKey[]
             {
                 new GradientAlphaKey(0.0f, 0.0f),
                 new GradientAlphaKey(1.0f, 1.0f),
             };
-
-            s_Instance = newAsset;
         }
-        Texture2D m_ParticleTexture;
-        public Texture2D particleTexture {
+        static Texture2D m_DefaultParticleTexture;
+        public static Texture2D defaultParticleTexture {
             get
             {
-                if (m_ParticleTexture == null)
-                    m_ParticleTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultParticle.tga");
-                return m_ParticleTexture;
+                if (m_DefaultParticleTexture == null)
+                    m_DefaultParticleTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultParticle.tga");
+                return m_DefaultParticleTexture;
             }
         }
 
-        Texture2D m_NoiseTexture;
-        public Texture2D noiseTexture {
+        static Texture2D m_DefaultNoiseTexture;
+        public static Texture2D defaultNoiseTexture {
             get
             {
-                if (m_NoiseTexture == null)
-                    m_NoiseTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/Noise.tga");
-                return m_NoiseTexture;
+                if (m_DefaultNoiseTexture == null)
+                    m_DefaultNoiseTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/Noise.tga");
+                return m_DefaultNoiseTexture;
             }
         }
 
-        Texture3D m_VectorField;
-        public Texture3D vectorField {
+        static Texture3D m_DefaultVectorField;
+        public static Texture3D defaultVectorField {
             get
             {
-                if( m_VectorField == null)
-                    m_VectorField = SafeLoadAssetAtPath<Texture3D>(defaultPath + "Textures/vectorfield.asset");
-                return m_VectorField;
+                if( m_DefaultVectorField == null)
+                    m_DefaultVectorField = SafeLoadAssetAtPath<Texture3D>(defaultPath + "Textures/vectorfield.asset");
+                return m_DefaultVectorField;
             }
         }
-        Texture3D m_SignedDistanceField;
+        static Texture3D m_DefaultSignedDistanceField;
 
-        public Texture3D signedDistanceField {
+        public static Texture3D defaultSignedDistanceField {
             get
             {
-                if (m_SignedDistanceField == null)
-                    m_SignedDistanceField = SafeLoadAssetAtPath<Texture3D>(defaultPath + "Textures/SignedDistanceField.asset");
-                return m_SignedDistanceField;
+                if (m_DefaultSignedDistanceField == null)
+                    m_DefaultSignedDistanceField = SafeLoadAssetAtPath<Texture3D>(defaultPath + "Textures/SignedDistanceField.asset");
+                return m_DefaultSignedDistanceField;
             }
         }
 
-        Mesh m_Mesh;
-        public Mesh mesh {
+        static Mesh m_DefaultMesh;
+        static public Mesh defaultMesh {
             get
             {
-                if(m_Mesh == null)
-                    m_Mesh = Resources.GetBuiltinResource<Mesh>("New-Capsule.fbx");
-                return m_Mesh;
+                if(m_DefaultMesh == null)
+                    m_DefaultMesh = Resources.GetBuiltinResource<Mesh>("New-Capsule.fbx");
+                return m_DefaultMesh;
             }
         }
-        public AnimationCurve animationCurve { get; private set; }
-        public Gradient gradient { get; private set; }
-        public Gradient gradientMapRamp { get; private set; }
-        public Shader shader { get; private set; }
+
+        [SerializeField]
+        AnimationCurve animationCurve = null;
+
+        [SerializeField]
+        Gradient gradient = null;
+
+        [SerializeField]
+        Gradient gradientMapRamp = null;
+
+        [SerializeField]
+        Shader shader = null;
+
+        [SerializeField]
+        Texture2D particleTexture = null;
+
+        [SerializeField]
+        Texture2D noiseTexture = null;
+
+        [SerializeField]
+        Texture3D vectorField = null;
+
+        [SerializeField]
+        Texture3D signedDistanceField = null;
+
+        [SerializeField]
+        Mesh mesh = null;
+
+        static AnimationCurve defaultAnimationCurve;
+        static Gradient defaultGradient;
+        static Gradient defaultGradientMapRamp;
+        static Shader defaultShader;
+
+        public void SetDefaults()
+        {
+            if( s_Values == null)
+                Initialize();
+            animationCurve = defaultAnimationCurve;
+            gradient = defaultGradient;
+            gradientMapRamp = defaultGradientMapRamp;
+        }
     }
 }
