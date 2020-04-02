@@ -7,7 +7,7 @@ using System;
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable]
-    public class XRSystemData : ScriptableObject
+    internal class XRSystemData : ScriptableObject
     {
 #if UNITY_EDITOR
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         [Serializable, ReloadGroup]
-        public sealed class ShaderResources
+        internal sealed class ShaderResources
         {
             [Reload("Shaders/XR/XROcclusionMesh.shader")]
             public Shader xrOcclusionMeshPS;
@@ -39,6 +39,6 @@ namespace UnityEngine.Rendering.Universal
             public Shader xrMirrorViewPS;
         }
 
-        public ShaderResources shaders;
+        internal ShaderResources shaders;
     }
 }
