@@ -5,12 +5,12 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXEnumValuePopup<T> : VisualElement, INotifyValueChanged<T>
+    class VFXEnumValuePopup : VisualElement, INotifyValueChanged<long>
     {
         protected Label m_DropDownButton;
         TextElement m_ValueText;
 
-        public VFXEnumValue[] enumValues { get; set; }
+        public string[] enumValues { get; set; }
 
         public VFXEnumValuePopup()
         {
@@ -33,22 +33,21 @@ namespace UnityEditor.VFX.UI
         {
             GenericMenu menu = new GenericMenu();
 
-            foreach (var val in enumValues)
+            for(long i = 0; i < enumValues.Length; ++i)
             {
-                object value = val.value.Get();
-                menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(val.name)), object.Equals(value, m_Value), ChangeValue, value);
+                menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(enumValues[i])), i == m_Value, ChangeValue, i);
             }
             menu.DropDown(m_DropDownButton.worldBound);
         }
 
         void ChangeValue(object value)
         {
-            SetValueAndNotify((T)value);
+            SetValueAndNotify((long)value);
         }
 
-        public T m_Value;
+        public long m_Value;
 
-        public T value
+        public long value
         {
             get
             {
@@ -61,11 +60,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void SetValueAndNotify(T newValue)
+        public void SetValueAndNotify(long newValue)
         {
-            if (!EqualityComparer<T>.Default.Equals(value, newValue))
+            if (!EqualityComparer<long>.Default.Equals(value, newValue))
             {
-                using (ChangeEvent<T> evt = ChangeEvent<T>.GetPooled(value, newValue))
+                using (ChangeEvent<long> evt = ChangeEvent<long>.GetPooled(value, newValue))
                 {
                     evt.target = this;
                     SetValueWithoutNotify(newValue);
@@ -74,16 +73,16 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void SetValueWithoutNotify(T newValue)
+        public void SetValueWithoutNotify(long newValue)
         {
             m_Value = newValue;
             bool found = false;
-            foreach(var val in enumValues)
+            for (uint i = 0; i < enumValues.Length; ++i)
             {
-                if( object.Equals(newValue,val.value.Get()))
+                if( newValue == i)
                 {
                     found = true;
-                    m_ValueText.text = val.name;
+                    m_ValueText.text = enumValues[i];
                     break;
                 }
             }

@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX
 {
-    enum ValueFilter
+    enum VFXValueFilter
     {
         Default,
         Range,
@@ -41,9 +41,9 @@ namespace UnityEditor.VFX
         private bool m_IsOutput;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
-        protected List<VFXEnumValue> m_EnumValues;
+        protected List<string> m_EnumValues;
 
-        public List<VFXEnumValue> enumValues
+        public List<string> enumValues
         {
             get { return m_EnumValues; }
             set
@@ -53,10 +53,10 @@ namespace UnityEditor.VFX
         }
 
         [SerializeField]
-        ValueFilter m_ValueFilter;
+        VFXValueFilter m_ValueFilter;
 
 
-        public ValueFilter valueFilter
+        public VFXValueFilter valueFilter
         {
             get => m_ValueFilter;
 
@@ -67,19 +67,19 @@ namespace UnityEditor.VFX
                     m_ValueFilter = value;
                     switch(m_ValueFilter)
                     {
-                        case ValueFilter.Default:
+                        case VFXValueFilter.Default:
                             m_Max = m_Min = null;
                             m_EnumValues = null;
                             break;
-                        case ValueFilter.Range:
+                        case VFXValueFilter.Range:
                             m_Min = new VFXSerializableObject(type, this.value);
                             m_Max = new VFXSerializableObject(type, this.value);
                             m_EnumValues = null;
                             break;
-                        case ValueFilter.Enum:
-                            m_EnumValues = new List<VFXEnumValue>();
-                            m_EnumValues.Add(new VFXEnumValue() { name = "Zero", value = new VFXSerializableObject(type, VFXConverter.ConvertTo(0, type)) });
-                            m_EnumValues.Add(new VFXEnumValue() { name = "One", value = new VFXSerializableObject(type, VFXConverter.ConvertTo(1, type)) });
+                        case VFXValueFilter.Enum:
+                            m_EnumValues = new List<string>();
+                            m_EnumValues.Add("Zero");
+                            m_EnumValues.Add("One");
                             m_Max = m_Min = null;
                             break;
                     }

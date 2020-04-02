@@ -254,8 +254,8 @@ namespace UnityEditor.VFX.UI
                     exposed = p.model.exposed,
                     isOutput = p.model.isOutput,
                     valueFilter = p.valueFilter,
-                    min = p.valueFilter == ValueFilter.Range ? p.model.m_Min : null,
-                    max = p.valueFilter == ValueFilter.Range ? p.model.m_Max : null,
+                    min = p.valueFilter == VFXValueFilter.Range ? p.model.m_Min : null,
+                    max = p.valueFilter == VFXValueFilter.Range ? p.model.m_Max : null,
                     tooltip = p.model.tooltip,
                     nodes = c.Select((u, i) => CopyParameterNode(cpt - 1, i, u, parameterIndices[Array.IndexOf(parameters, u)])).ToArray()
                 };

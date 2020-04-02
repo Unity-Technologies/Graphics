@@ -31,7 +31,6 @@ namespace UnityEditor.VFX.UI
 
         protected VFXBaseSliderField<U> m_Slider;
         protected TextValueField<U>     m_TextField;
-        protected VFXEnumValuePopup<U>     m_EnumPopup;
 
         protected abstract INotifyValueChanged<U> CreateSimpleField(out TextValueField<U> textField);
         protected abstract INotifyValueChanged<U> CreateSliderField(out VFXBaseSliderField<U> slider);
@@ -42,19 +41,11 @@ namespace UnityEditor.VFX.UI
             INotifyValueChanged<U> result;
             if (!RangeShouldCreateSlider(range))
             {
-                if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
+                result = CreateSimpleField(out m_TextField);
+                if (m_TextField != null)
                 {
-                    result = m_EnumPopup = new VFXEnumValuePopup<U>();
-                    m_EnumPopup.enumValues = m_Provider.attributes.FindEnum();
-                }
-                else
-                {
-                    result = CreateSimpleField(out m_TextField);
-                    if (m_TextField != null)
-                    {
-                        m_TextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
-                        m_TextField.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost);
-                    }
+                    m_TextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
+                    m_TextField.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost);
                 }
             }
             else
@@ -176,6 +167,20 @@ namespace UnityEditor.VFX.UI
 
         public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
+        }
+        protected VFXEnumValuePopup m_EnumPopup;
+
+        public override INotifyValueChanged<long> CreateField()
+        {
+            INotifyValueChanged<long> result;
+            if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
+            {
+                result = m_EnumPopup = new VFXEnumValuePopup();
+                m_EnumPopup.enumValues = m_Provider.attributes.FindEnum();
+            }
+            else
+                result = base.CreateField();
+            return result;
         }
 
         protected override bool RangeShouldCreateSlider(Vector2 range)

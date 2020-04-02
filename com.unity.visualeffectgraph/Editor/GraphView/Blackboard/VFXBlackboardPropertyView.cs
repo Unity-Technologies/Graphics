@@ -221,11 +221,11 @@ namespace  UnityEditor.VFX.UI
 
                     if (m_ValueFilterProperty == null)
                     {
-                        m_ValueFilterProperty = new EnumPropertyRM(new SimplePropertyRMProvider<ValueFilter>("Value Filter", () => controller.valueFilter, t => controller.valueFilter = t), 55);
+                        m_ValueFilterProperty = new EnumPropertyRM(new SimplePropertyRMProvider<VFXValueFilter>("Value Filter", () => controller.valueFilter, t => controller.valueFilter = t), 55);
                     }
                     Insert(insertIndex++, m_ValueFilterProperty);
 
-                    if (controller.model.valueFilter == ValueFilter.Range)
+                    if (controller.model.valueFilter == VFXValueFilter.Range)
                     {
                         if (m_MinProperty.parent == null)
                         {
@@ -239,7 +239,7 @@ namespace  UnityEditor.VFX.UI
                         m_MinProperty.RemoveFromHierarchy();
                         m_MaxProperty.RemoveFromHierarchy();
                     }
-                    if (controller.valueFilter == ValueFilter.Enum)
+                    if (controller.valueFilter == VFXValueFilter.Enum)
                     {
                         if (m_EnumProperty == null || !m_EnumProperty.IsCompatible(controller.enumController))
                         {

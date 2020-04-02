@@ -11,11 +11,11 @@ namespace UnityEditor.VFX
     [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     sealed class EnumAttribute  : PropertyAttribute
     {
-        public EnumAttribute(VFXEnumValue[] values)
+        public EnumAttribute(string[] values)
         {
             this.values = values;
         }
-        public readonly VFXEnumValue[] values;
+        public readonly string[] values;
     }
 
     // Attribute used to normalize a Vector or float
@@ -148,6 +148,11 @@ namespace UnityEditor.VFX
                 {
                     exp = VFXOperatorUtility.Normalize(exp);
                 }
+                else if(attribute is EnumAttribute)
+                {
+                    var enumAttribute = (EnumAttribute)attribute;
+                    exp = new VFXExpressionMax(exp, VFXValue.Constant((uint)enumAttribute.values.Length - 1));
+                }
                 else
                     throw new NotImplementedException("Unrecognized expression attribute: " + attribute);
             }
@@ -193,7 +198,7 @@ namespace UnityEditor.VFX
             return Vector2.zero;
         }
 
-        public VFXEnumValue[] FindEnum()
+        public string[] FindEnum()
         {
             if(Is(Type.Enum))
             {

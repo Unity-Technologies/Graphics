@@ -194,7 +194,7 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.expandableIfShowsEverything => false;
 
-        object IPropertyRMProvider.value { get => m_Owner.model.enumValues; set => m_Owner.model.enumValues = (List<VFXEnumValue>)value; }
+        object IPropertyRMProvider.value { get => m_Owner.model.enumValues; set => m_Owner.model.enumValues = (List<string>)value; }
 
         bool IPropertyRMProvider.spaceableAndMasterOfSpace => false;
 
@@ -647,7 +647,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public ValueFilter valueFilter
+        public VFXValueFilter valueFilter
         {
             get { return parameter.valueFilter; }
 
@@ -738,7 +738,7 @@ namespace UnityEditor.VFX.UI
 
                 VFXSlot slot = parameter.GetOutputSlot(0);
 
-                if (valueFilter == ValueFilter.Range)
+                if (valueFilter == VFXValueFilter.Range)
                 {
                     if (RangeToFloat(value) < RangeToFloat(minValue))
                     {

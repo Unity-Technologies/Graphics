@@ -199,25 +199,11 @@ namespace UnityEditor.VFX
                 }
                 else if( parameter.enumValues != null && parameter.enumValues.Count > 0)
                 {
-                    if (valueProperty.propertyType == SerializedPropertyType.Float)
+                    long currentValue = valueProperty.longValue;
+                    int newIndex = EditorGUI.Popup(rect, nameContent, (int)currentValue, parameter.enumValues.ToArray());
+                    if (newIndex != currentValue)
                     {
-                        float currentValue = valueProperty.floatValue;
-                        int selectedIndex = parameter.enumValues.FindIndex(t => currentValue == t.value);
-                        int newIndex = EditorGUI.Popup(rect, nameContent,selectedIndex,parameter.enumValues.Select(t=>t.name).ToArray());
-                        if( newIndex != selectedIndex)
-                        {
-                            valueProperty.floatValue = parameter.enumValues[newIndex].value;
-                        }
-                    }
-                    else
-                    {
-                        int currentValue = valueProperty.intValue;
-                        int selectedIndex = parameter.enumValues.FindIndex(t => currentValue == t.value);
-                        int newIndex = EditorGUI.Popup(rect, nameContent, selectedIndex, parameter.enumValues.Select(t => t.name).ToArray());
-                        if (newIndex != selectedIndex)
-                        {
-                            valueProperty.intValue = (int)parameter.enumValues[newIndex].value;
-                        }
+                        valueProperty.longValue = newIndex;
                     }
                 }
                 else if (parameter.realType == typeof(Color).Name)
