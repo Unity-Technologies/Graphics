@@ -24,14 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection TransparentDepthPrepass = new DefineCollection
         {
             { RayTracingNode.GetRayTracingKeyword(), 0 },
-            { HDKeywords.Descriptors.TransparentDepthPrepass, 1 },
             { HDKeywords.Descriptors.WriteNormalBufferDefine, 1, new FieldCondition(HDFields.DisableSSRTransparent, false) },
-        };
-
-        public static DefineCollection TransparentDepthPostpass = new DefineCollection
-        {
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
-            { HDKeywords.Descriptors.TransparentDepthPostpass, 1 },
         };
 
         public static DefineCollection DepthMotionVectors = new DefineCollection
@@ -80,6 +73,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         public static DefineCollection FabricRaytracingGBuffer = new DefineCollection
+        {
+            { HDKeywords.Descriptors.Shadow, 0 },
+        };
+
+        public static DefineCollection StackLitRaytracingForwardIndirect = new DefineCollection
+        {
+            { HDKeywords.Descriptors.Shadow, 0 },
+            { HDKeywords.Descriptors.HasLightloop, 1 },
+        };
+
+        public static DefineCollection StackLitRaytracingGBuffer = new DefineCollection
+        {
+            { HDKeywords.Descriptors.Shadow, 0 },
+        };
+        public static DefineCollection HairRaytracingForwardIndirect = new DefineCollection
+        {
+            { HDKeywords.Descriptors.Shadow, 0 },
+            { HDKeywords.Descriptors.HasLightloop, 1 },
+        };
+
+        public static DefineCollection HairRaytracingGBuffer = new DefineCollection
         {
             { HDKeywords.Descriptors.Shadow, 0 },
         };

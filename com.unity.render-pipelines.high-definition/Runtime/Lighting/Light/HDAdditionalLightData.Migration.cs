@@ -8,7 +8,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDAdditionalLightData : ISerializationCallbackReceiver, IVersionable<HDAdditionalLightData.Version>
+    public partial class HDAdditionalLightData : IVersionable<HDAdditionalLightData.Version>
     {
         enum Version
         {
@@ -166,26 +166,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 })
             );
 #pragma warning restore 0618, 0612
-
-        /// <summary>
-        /// Deserialization callback
-        /// </summary>
-        void ISerializationCallbackReceiver.OnAfterDeserialize() {}
-
-        /// <summary>
-        /// Serialization callback
-        /// </summary>
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
-        {
-            UpdateBounds();
-        }
-
-        void OnEnable()
-        {
-            if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
-                m_ShadowMapRenderedSinceLastRequest = false;
-            SetEmissiveMeshRendererEnabled(true);
-        }
 
         void Migrate()
         {

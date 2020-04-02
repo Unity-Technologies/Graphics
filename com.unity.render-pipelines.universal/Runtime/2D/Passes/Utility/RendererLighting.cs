@@ -137,9 +137,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.dimension = TextureDimension.Tex2D;
 
             cmd.GetTemporaryRT(s_LightRenderTargets[blendStyleIndex].id, descriptor, FilterMode.Bilinear);
-
-            cmd.EnableShaderKeyword(k_UseBlendStyleKeywords[blendStyleIndex]);
             s_LightRenderTargetsDirty[blendStyleIndex] = true;
+        }
+
+        static public void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
+        {
+            string keyword = k_UseBlendStyleKeywords[blendStyleIndex];
+
+            if (enabled)
+                cmd.EnableShaderKeyword(keyword);
+            else
+                cmd.DisableShaderKeyword(keyword);
         }
 
         static public void CreateShadowRenderTexture(CommandBuffer cmd, int blendStyleIndex)
@@ -372,11 +380,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
 
-                if (i >= k_UseBlendStyleKeywords.Length)
+                if (i >= k_BlendFactorsPropNames.Length)
                     break;
 
-                string keyword = k_UseBlendStyleKeywords[i];
-                cmdBuffer.DisableShaderKeyword(keyword);
                 cmdBuffer.SetGlobalVector(k_BlendFactorsPropNames[i], s_BlendStyles[i].blendFactors);
                 cmdBuffer.SetGlobalVector(k_MaskFilterPropNames[i], s_BlendStyles[i].maskTextureChannelFilter.mask);
                 cmdBuffer.SetGlobalVector(k_InvertedFilterPropNames[i], s_BlendStyles[i].maskTextureChannelFilter.inverted);
