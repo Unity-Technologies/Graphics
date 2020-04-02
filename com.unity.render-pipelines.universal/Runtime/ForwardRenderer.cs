@@ -294,16 +294,17 @@ namespace UnityEngine.Rendering.Universal
 
             if (lastCameraInTheStack)
             {
+                bool cameraColorAttachmentIsCameraTarget = m_ActiveCameraColorAttachment == RenderTargetHandle.CameraTarget;
+                if (cameraData.xr.enabled)
+                    cameraColorAttachmentIsCameraTarget = m_ActiveCameraColorAttachment.Identifier() == cameraData.xr.renderTarget;
+
                 // Post-processing will resolve to final target. No need for final blit pass.
                 if (applyPostProcessing)
                 {
                     var destination = dontResolvePostProcessingToCameraTarget ? m_AfterPostProcessColor : RenderTargetHandle.CameraTarget;
 
-                    bool cameraColorAttachmentIsRenderTexture = m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget;
-                    if (cameraData.xr.enabled)
-                        cameraColorAttachmentIsRenderTexture = m_ActiveCameraColorAttachment.Identifier() != cameraData.xr.renderTarget;
                     // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
-                    bool doSRGBConvertion = !(dontResolvePostProcessingToCameraTarget || cameraColorAttachmentIsRenderTexture);
+                    bool doSRGBConvertion = !(dontResolvePostProcessingToCameraTarget || !cameraColorAttachmentIsCameraTarget);
                     m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, m_ColorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
                     Debug.Assert(applyPostProcessing || doSRGBConvertion, "This will do unnecessary blit!");
                     EnqueuePass(m_PostProcessPass);
@@ -325,6 +326,7 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_FinalPostProcessPass);
                 }
 
+
                 // if post-processing then we already resolved to camera target while doing post.
                 // Also only do final blit if camera is not rendering to RT.
                 bool cameraTargetResolved =
@@ -333,7 +335,7 @@ namespace UnityEngine.Rendering.Universal
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
                     (applyPostProcessing && !hasPassesAfterPostProcessing) ||
                     // offscreen camera rendering to a texture, we don't need a blit pass to resolve to screen
-                    m_ActiveCameraColorAttachment == RenderTargetHandle.CameraTarget;
+                    cameraColorAttachmentIsCameraTarget;
 
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)
@@ -475,10 +477,13 @@ namespace UnityEngine.Rendering.Universal
             bool requiresExplicitMsaaResolve = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
             bool isOffscreenRender = cameraData.targetTexture != null && !cameraData.isSceneViewCamera;
             bool isCapturing = cameraData.captureActions != null;
-
+            bool requiresExplicitSRGBCorrection = Display.main.requiresBlitToBackbuffer;
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.xr.enabled)
+            {
                 isCompatibleBackbufferTextureDimension = cameraData.xr.renderTargetDesc.dimension == cameraTargetDescriptor.dimension;
+                requiresExplicitSRGBCorrection = !cameraData.xr.renderTargetDesc.sRGB;
+            }
 #endif
 
             bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport;
@@ -486,7 +491,7 @@ namespace UnityEngine.Rendering.Universal
                 return requiresBlitForOffscreenCamera;
 
             return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                   !isCompatibleBackbufferTextureDimension || isCapturing || (Display.main.requiresBlitToBackbuffer && !cameraData.xr.enabled);
+                   !isCompatibleBackbufferTextureDimension || isCapturing || requiresExplicitSRGBCorrection;
         }
 
         bool CanCopyDepth(ref CameraData cameraData)
