@@ -391,7 +391,10 @@ namespace UnityEditor.ShaderGraph
             surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
             using (surfaceDescriptionFunction.BlockScope())
             {
-                surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
+                if (rootNode is SubGraphOutputNode)
+                    surfaceDescriptionFunction.AppendLine("{0} surface;", surfaceDescriptionName);
+                else
+                    surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
                 for(int i = 0; i < nodes.Count; i++)
                 {
                     GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
