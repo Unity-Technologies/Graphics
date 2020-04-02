@@ -18,6 +18,19 @@ namespace UnityEditor.VFX
     [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
+        void OnPreprocessAsset()
+        {
+            bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
+            if (isVFX)
+            {
+                VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
+                if (resource == null)
+                    return;
+                Debug.Log("Sanitizing graph");
+                resource.GetOrCreateGraph().SanitizeGraph();
+            }
+        }
+
         static string[] OnAddResourceDependencies(string assetPath)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -685,8 +698,7 @@ namespace UnityEditor.VFX
                         }
                     }
                 }
-
-                SanitizeGraph();
+                // Graph must have been sanitized at this point by the VFXGraphPreprocessor.OnPreprocess
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();
 
