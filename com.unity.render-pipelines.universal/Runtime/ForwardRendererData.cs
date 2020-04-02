@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
         public PostProcessData postProcessData = null;
 
         [Reload("Runtime/Data/XRSystemData.asset")]
-        internal XRSystemData xrSystemData = null;
+        public XRSystemData xrSystemData = null;
 
         public ShaderResources shaders = null;
 
