@@ -627,9 +627,20 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
     {
         if (all(builtinData.emissiveColor == 0.0))
+        {
+            // Write out uninitializedGI sentinel value.
             outGBuffer3 = float4(builtinData.bakeDiffuseLighting, 0.0);
+        }
         else
-            outGBuffer3 = float4(builtinData.emissiveColor, 0.0);
+        {
+            // Write out emissiveColor value.
+            // This means probe volumes will not get applied to this pixel, only emissiveColor will.
+            // When length(emissiveColor) is much greater than length(probeVolumeOutgoingRadiance), this will visually look reasonable.
+            // Unfortunately this will break down when emissiveColor is faded out (result will pop).
+            // TODO: If evaluating probe volumes in lightloop, only write out sentinel value here, and re-render emissive surfaces.
+            // Pre-expose lighting buffer
+            outGBuffer3 = float4(builtinData.emissiveColor * GetCurrentExposureMultiplier(), 0.0);
+        }
     }
     else
 #endif
