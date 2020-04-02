@@ -201,14 +201,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Subsurface scattering
         // Use float4 to avoid any packing issue between compute and pixel shaders
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
-        public fixed float _ThicknessRemaps[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];   // R: start, G = end - start, BA unused
-        [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
-        public fixed float _ShapeParams[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];        // RGB = S = 1 / D, A = filter radius
+        public fixed float _ShapeParamsAndMaxScatterDists[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];   // RGB = S = 1 / D, A = d = RgbMax(D)
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
         public fixed float _TransmissionTintsAndFresnel0[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];  // RGB = 1/4 * color, A = fresnel0
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
-        public fixed float _WorldScales[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];        // X = meters per world unit; Y = world units per meter
-
+        public fixed float _WorldScalesAndFilterRadiiAndThicknessRemaps[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4]; // X = meters per world unit, Y = filter radius (in mm), Z = remap start, W = end - start
         // Because of constant buffer limitation, arrays can only hold 4 components elements (otherwise we get alignment issues)
         // We could pack the 16 values inside 4 uint4 but then the generated code is inefficient and generates a lots of swizzle operations instead of a single load.
         // That's why we have 16 uint and only use the first component of each element.

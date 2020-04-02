@@ -535,7 +535,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
-                cmd.SetGlobalVectorArray(HDShaderIDs._ShadowClipPlanes, shadowRequest.frustumPlanes);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ShadowFrustumPlanes, shadowRequest.frustumPlanes);
 
                 // TODO: remove this execute when DrawShadows will use a CommandBuffer
                 renderContext.ExecuteCommandBuffer(cmd);
