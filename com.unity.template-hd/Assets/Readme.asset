@@ -61,7 +61,7 @@ MonoBehaviour:
   - heading:
     text: 'The <b>VR Alchemist Lab</b> project is a small medieval laboratory that showcases HDRP rendering features in VR. This project also shows interactive effects.'
     linkText: VR Alchemist Lab demo
-    url: https://github.com/Unity-Technologies/VRAlchemistLab
+    url: https://github.com/Unity-Technologies/VRAlchemyLab
   - heading: Ray tracing (Preview)
     text: 'This version of HDRP includes a preview of Ray tracing features. To read more on this topic please see our <b>"Getting started"</b> guide :'
     linkText: Getting started with Ray Tracing
