@@ -126,27 +126,12 @@ void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
 float3 EvaluateProbeVolumesMaterialPass(PositionInputs posInput, float3 normalWS, uint renderingLayers)
 #else // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-float3 EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags, bool isBackface)
+float3 EvaluateProbeVolumesLightLoop(PositionInputs posInput, float3 normalWS, uint renderingLayers, uint featureFlags)
 #endif
 {
     float3 probeVolumeDiffuseLighting = float3(0.0, 0.0, 0.0);
     float probeVolumeHierarchyWeight = 0.0; // Max: 1.0
 
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-    // Determine if GI (from Lightmaps) is already present.
-    // If so do not process any probe volumes.
-    // For probe volumes evaluated in the material pass (GBuffer / Forward),
-    // we simply do not call this function if light maps are present so no need to detect this state.
-    bool uninitialized = IsUninitializedGI(builtinData.bakeDiffuseLighting);
-    if (!uninitialized)
-    {
-        probeVolumeDiffuseLighting = builtinData.bakeDiffuseLighting;
-        probeVolumeHierarchyWeight = 1.0;
-    }
-
-    float3 normalWS = isBackface ? -bsdfData.normalWS : bsdfData.normalWS;
-    uint renderingLayers = builtinData.renderingLayers;
-#endif
     float3 positionRWS = posInput.positionWS;
     float positionLinearDepth = posInput.linearDepth;
 
@@ -456,13 +441,8 @@ float3 EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData,
                     }
                 }
 
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
                 // When probe volumes are evaluated in the material pass, BSDF modulation is applied as a post operation, outside of this function.
                 float3 sampleOutgoingRadiance = SHEvalLinearL0L1(normalWS, sampleShAr, sampleShAg, sampleShAb);
-#else // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-                // When probe volumes are evaluated in the light loop, BSDF modulation is applied directly here.
-                float3 sampleOutgoingRadiance = EvaluateBSDF_LightProbeL1(builtinData, bsdfData, sampleShAr, sampleShAg, sampleShAb);
-#endif
 
 #ifdef DEBUG_DISPLAY
                 if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
@@ -480,11 +460,6 @@ float3 EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData,
                     probeVolumeDiffuseLighting += sampleOutgoingRadiance * weight;
                 }
 
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-                // When probe volumes are evaluated in the material pass, IndirectLightingMultiplier is applied outside of this function in PostInitBuiltinData().
-                probeVolumeDiffuseLighting *= _IndirectLightingMultiplier.x;
-#endif
-
                 if (isWeightAccumulated)
                     probeVolumeHierarchyWeight += weight;
             }
@@ -500,16 +475,7 @@ float3 EvaluateProbeVolumesLightLoop(PositionInputs posInput, BSDFData bsdfData,
     )
     {
         // Fallback to global ambient probe lighting when probe volume lighting weight is not fully saturated.
-
-    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-        // When probe volumes are evaluated in the material pass, BSDF modulation is applied as a post operation, outside of this function.
         float3 sampleAmbientProbeOutgoingRadiance = SampleSH9(_ProbeVolumeAmbientProbeFallbackPackedCoeffs, normalWS);
-
-    #else // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-        // When probe volumes are evaluated in the light loop, BSDF modulation is applied directly here.
-        float3 sampleAmbientProbeOutgoingRadiance = EvaluateBSDF_LightProbeL2(builtinData, bsdfData, _ProbeVolumeAmbientProbeFallbackPackedCoeffs);
-    #endif
-
         probeVolumeDiffuseLighting = sampleAmbientProbeOutgoingRadiance * (1.0 - probeVolumeHierarchyWeight) + probeVolumeDiffuseLighting;
     }
 

@@ -4,7 +4,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeShaderVariables.hlsl"
 
-#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
 // Cluster helper functions copied and lightly modified from ClusteredUtils.hlsl with ENABLE_DEPTH_TEXTURE_BACKPLANE undefined
 
@@ -92,6 +91,5 @@ uint ProbeVolumeFetchIndex(uint lightStart, uint lightOffset)
 }
 
 #endif // endof SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-#endif // endof defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 
 #endif // endof PROBE_VOLUME_LIGHT_LOOP_DEF

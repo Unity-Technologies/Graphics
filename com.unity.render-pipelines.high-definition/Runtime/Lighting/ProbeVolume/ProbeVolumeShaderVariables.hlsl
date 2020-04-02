@@ -4,7 +4,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SphericalHarmonics.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLighting.cs.hlsl"
 
-#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
     // Evaluating probe volumes in the material pass requires a custom probe volume only light list.
     // Cannot reuse LightLoop g_vLightListGlobal and g_vLayeredOffsetsBuffer buffers, as they are in active use in forward rendered shader passes.
@@ -27,6 +26,5 @@
 
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
 #endif
-#endif // endof defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 
 #endif // endof PROBE_VOLUME_SHADER_VARIABLES

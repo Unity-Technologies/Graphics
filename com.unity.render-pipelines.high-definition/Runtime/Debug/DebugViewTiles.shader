@@ -191,7 +191,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint mask = 1u << category;
                     if (mask & _ViewTilesFlags)
                     {
-                    #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
                     #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
                         if (category == LIGHTCATEGORY_PROBE_VOLUME)
                         {
@@ -206,7 +205,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                         #endif
                         }
                         else
-                    #endif
                     #endif
                         {
                             uint start;
@@ -250,7 +248,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint start;
                     uint count;
 
-                #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
                 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
                     if (category == LIGHTCATEGORY_PROBE_VOLUME)
                     {
@@ -260,7 +257,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     #endif
                     }
                     else
-                #endif
                 #endif
                     {
                         GetCountAndStart(mousePosInput, category, start, count);
@@ -277,7 +273,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     }
                     else if(lightListIndex >= 0 && lightListIndex < (int)count)
                     {
-                    #if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
                     #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
                         if (category == LIGHTCATEGORY_PROBE_VOLUME)
                         {
@@ -286,7 +281,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                         #endif
                         }
                         else
-                    #endif
                     #endif
                         {
                             n = FetchIndex(start, lightListIndex);

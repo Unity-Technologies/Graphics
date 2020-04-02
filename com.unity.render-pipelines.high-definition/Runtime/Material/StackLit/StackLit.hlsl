@@ -2928,13 +2928,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 #define MODIFY_BAKED_DIFFUSE_LIGHTING
 #endif
 
-void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
+void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)
 {
-    // Since this is called early at PostInitBuiltinData and we need some fields from bsdfData and preLightData,
-    // we get the whole structures redundantly earlier here - compiler should optimize out everything.
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
-    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
-
     // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this saves VGPR)
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
     {
@@ -4379,25 +4374,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     return lighting;
 }
-
-//-----------------------------------------------------------------------------
-// EvaluateBSDF_LightProbeL1 for ProbeVolumes
-// ----------------------------------------------------------------------------
-#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-// Wrapping this function in define blocks so that pre-existing 3rd party shaders do not run into compilation issues.
-float3 EvaluateBSDF_LightProbeL1(BuiltinData builtinData, BSDFData bsdfData,
-                                 float4 shAr, float4 shAg, float4 shAb)
-{
-    return ShadeSurface_LightProbeL1(builtinData, bsdfData, shAr, shAg, shAb);
-}
-
-float3 EvaluateBSDF_LightProbeL2(BuiltinData builtinData, BSDFData bsdfData, float4 SHCoefficients[7])
-{
-    return ShadeSurface_LightProbeL2(builtinData, bsdfData, SHCoefficients);
-}
-#endif
-#endif
 
 //-----------------------------------------------------------------------------
 // PostEvaluateBSDF

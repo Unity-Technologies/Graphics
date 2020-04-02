@@ -622,34 +622,25 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     // RT3 - 11f:11f:10f
     // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
     // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
-#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+
     if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
     {
-        if (all(builtinData.emissiveColor == 0.0))
-        {
-            // Write out uninitializedGI sentinel value.
-            outGBuffer3 = float4(builtinData.bakeDiffuseLighting, 0.0);
-        }
-        else
-        {
-            // Write out emissiveColor value.
-            // This means probe volumes will not get applied to this pixel, only emissiveColor will.
-            // When length(emissiveColor) is much greater than length(probeVolumeOutgoingRadiance), this will visually look reasonable.
-            // Unfortunately this will break down when emissiveColor is faded out (result will pop).
-            // TODO: If evaluating probe volumes in lightloop, only write out sentinel value here, and re-render emissive surfaces.
-            // Pre-expose lighting buffer
-            outGBuffer3 = float4(builtinData.emissiveColor * GetCurrentExposureMultiplier(), 0.0);
-        }
+        // builtinData.bakeDiffuseLighting contain uninitializedGI sentinel value.
+
+        // This means probe volumes will not get applied to this pixel, only emissiveColor will.
+        // When length(emissiveColor) is much greater than length(probeVolumeOutgoingRadiance), this will visually look reasonable.
+        // Unfortunately this will break down when emissiveColor is faded out (result will pop).
+        // TODO: If evaluating probe volumes in lightloop, only write out sentinel value here, and re-render emissive surfaces.
+        // Pre-expose lighting buffer
+        outGBuffer3 = float4(all(builtinData.emissiveColor == 0.0) ? builtinData.bakeDiffuseLighting : builtinData.emissiveColor * GetCurrentExposureMultiplier(), 0.0);
     }
+#endif
     else
-#endif
-#endif
     {
         outGBuffer3 = float4(builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor, 0.0);
-
         // Pre-expose lighting buffer
-        outGBuffer3 *= GetCurrentExposureMultiplier();
+        outGBuffer3.rgb *= GetCurrentExposureMultiplier();
     }
 
 #ifdef LIGHT_LAYERS
@@ -686,10 +677,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // BuiltinData
     builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
 
-#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
     if (!IsUninitializedGI(builtinData.bakeDiffuseLighting))
-#endif
 #endif
     {
         // Inverse pre-exposure
@@ -1154,13 +1143,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 // This function allow to modify the content of (back) baked diffuse lighting when we gather builtinData
 // This is use to apply lighting model specific code, like pre-integration, transmission etc...
 // It is up to the lighting model implementer to chose if the modification are apply here or in PostEvaluateBSDF
-void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
+void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)
 {
     // In case of deferred, all lighting model operation are done before storage in GBuffer, as we store emissive with bakeDiffuseLighting
-
-    // To get the data we need to do the whole process - compiler should optimize everything
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
-    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR in forward and in deferred we can't store it anyway)
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
@@ -1959,25 +1944,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     return lighting;
 }
-
-//-----------------------------------------------------------------------------
-// EvaluateBSDF_LightProbeL1 for ProbeVolumes
-// ----------------------------------------------------------------------------
-#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-// Wrapping this function in define blocks so that pre-existing 3rd party shaders do not run into compilation issues.
-float3 EvaluateBSDF_LightProbeL1(BuiltinData builtinData, BSDFData bsdfData,
-                                 float4 shAr, float4 shAg, float4 shAb)
-{
-    return ShadeSurface_LightProbeL1(builtinData, bsdfData, shAr, shAg, shAb);
-}
-
-float3 EvaluateBSDF_LightProbeL2(BuiltinData builtinData, BSDFData bsdfData, float4 SHCoefficients[7])
-{
-    return ShadeSurface_LightProbeL2(builtinData, bsdfData, SHCoefficients);
-}
-#endif
-#endif
 
 //-----------------------------------------------------------------------------
 // PostEvaluateBSDF

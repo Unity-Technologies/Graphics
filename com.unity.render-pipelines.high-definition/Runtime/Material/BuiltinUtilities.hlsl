@@ -102,21 +102,32 @@ void ApplyDebugToBuiltinData(inout BuiltinData builtinData)
 #endif
 }
 
+#ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
+void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
+{
+    // Since this is called early at PostInitBuiltinData and we need some fields from bsdfData and preLightData,
+    // we get the whole structures redundantly earlier here - compiler should optimize out everything.
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
+    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+    ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinData);
+}
+#endif
+
 // InitBuiltinData must be call before calling PostInitBuiltinData
 void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfaceData,
                             inout BuiltinData builtinData)
 {
-#if defined(SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE)
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
     if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
         return;
-#endif
-#endif
-
+#else
     // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive
     // color in case of lit deferred for example and avoid material to have to deal with it
+
+    // Note: We only apply indirect multiplier for Material pass mode, for lightloop mode, the multiplier will be apply in lightloop
     builtinData.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
     builtinData.backBakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+#endif
 
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
 
