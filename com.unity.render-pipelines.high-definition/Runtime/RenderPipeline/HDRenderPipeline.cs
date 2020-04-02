@@ -1807,7 +1807,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 target.id = m_TemporaryTargetForCubemaps;
                             }
 
-                            // We need to set the appropriate render data for view dependent probes.
+                            // The HDProbe store only one RenderData per probe, however RenderData can be view dependent (e.g. planar probes).
+                            // To avoid that the render data for the wrong view is used, we previously store a copy of the render data
+                            // for each viewer and we are going to set it on the probe right before said viewer is rendered. 
                             foreach (var probeDataPair in renderRequest.viewDependentProbesData)
                             {
                                 var probe = probeDataPair.Item2;
