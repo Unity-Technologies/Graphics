@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+- Error messages reported on Sub Graph output nodes for invalid previews now present clearer information, with documentation support.
+
 ### Fixed
 - Fixed a bug where the `Position` node would change coordinate spaces from `World` to `Absolute World` when shaders recompile. [1184617](https://issuetracker.unity3d.com/product/unity/issues/guid/1184617/)
 
