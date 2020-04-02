@@ -87,6 +87,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var node = new SubGraphNode { asset = asset };
                 var title = asset.path.Split('/').ToList();
                 
+
                 if (asset.descendents.Contains(m_Graph.assetGuid) || asset.assetGuid == m_Graph.assetGuid)
                 {
                     continue;
@@ -107,17 +108,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var property in m_Graph.properties)
             {
                 var node = new PropertyNode();
-                node.owner = m_Graph;
-                node.propertyGuid = property.guid;
-                node.owner = null;
+                node.property = property;
                 AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
             }
             foreach (var keyword in m_Graph.keywords)
             {
                 var node = new KeywordNode();
-                node.owner = m_Graph;
-                node.keywordGuid = keyword.guid;
-                node.owner = null;
+                node.keyword = keyword;
                 AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
             }
 
@@ -295,4 +292,5 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
     
+
 }

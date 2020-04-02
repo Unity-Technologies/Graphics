@@ -275,7 +275,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var portNodeSet = portNodeSets[portIndex];
                     if (portNodeSet.Contains(node))
                     {
-                        portPropertySets[portIndex].Add(propertyNode.propertyGuid);
+                        portPropertySets[portIndex].Add(propertyNode.property.guid);
                     }
                 }
             }

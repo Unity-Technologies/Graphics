@@ -10,5 +10,9 @@ namespace UnityEditor.ShaderGraph.Legacy
         public string m_GuidSerialized;
 
         public List<SerializationHelper.JSONSerializedElement> m_SerializableSlots;
+
+        public string m_PropertyGuidSerialized;
+
+        public string m_KeywordGuidSerialized;
     }
 }

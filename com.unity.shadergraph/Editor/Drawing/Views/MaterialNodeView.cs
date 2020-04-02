@@ -705,7 +705,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // TODO: Move to new NodeView type when keyword node has unique style
             if(node is KeywordNode keywordNode)
             {
-                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keywordGuid);
+                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keyword);
                 if (keywordRow != null)
                 {
                     if (evt.eventTypeId == MouseEnterEvent.TypeId())

@@ -494,7 +494,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 propNode.drawState = node.drawState;
                 propNode.groupGuid = node.groupGuid;
                 graph.AddNode(propNode);
-                propNode.propertyGuid = prop.guid;
+                propNode.property = prop;
 
                 var oldSlot = node.FindSlot<MaterialSlot>(converter.outputSlotId);
                 var newSlot = propNode.FindSlot<MaterialSlot>(PropertyNode.OutputSlotId);
@@ -548,12 +548,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             var notes = elements.OfType<StickyNote>().Select(x => x.userData);
 
             // Collect the property nodes and get the corresponding properties
-            var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
-            var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
+            var propertyNodeValues = nodes.OfType<PropertyNode>().Select(x => x.property);
+            var metaProperties = this.graph.properties.Where(x => propertyNodeValues.Contains(x));
 
             // Collect the keyword nodes and get the corresponding keywords
-            var keywordNodeGuids = nodes.OfType<KeywordNode>().Select(x => x.keywordGuid);
-            var metaKeywords = this.graph.keywords.Where(x => keywordNodeGuids.Contains(x.guid));
+            var keywordNodeValues = nodes.OfType<KeywordNode>().Select(x => x.keyword);
+            var metaKeywords = this.graph.keywords.Where(x => keywordNodeValues.Contains(x));
 
             var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, metaKeywords, notes);
             return JsonUtility.ToJson(graph, true);
@@ -592,7 +592,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             containsProperty = true;
                             break;
                         case ShaderKeyword keyword:
-                            keywordNodes.AddRange(graph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid));
+                            keywordNodes.AddRange(graph.GetNodes<KeywordNode>().Where(x => x.keyword == keyword));
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -832,7 +832,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     case AbstractShaderProperty property:
                     {
                         // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
-                        if (graph.properties.FirstOrDefault(p => p.guid == property.guid) == null)
+                        if (graph.properties.FirstOrDefault(p => p == property) == null)
                         {
                             var copy = (AbstractShaderProperty)property.Copy();
                             graph.SanitizeGraphInputName(copy);
@@ -849,13 +849,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                         graph.AddNode(node);
 
                         // Setting the guid requires the graph to be set first.
-                        node.propertyGuid = property.guid;
+                        node.property = property;
                         break;
                     }
                     case ShaderKeyword keyword:
                     {
                         // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
-                        if (graph.keywords.FirstOrDefault(k => k.guid == keyword.guid) == null)
+                        if (graph.keywords.FirstOrDefault(k => k == keyword) == null)
                         {
                             var copy = (ShaderKeyword)keyword.Copy();
                             graph.SanitizeGraphInputName(copy);
@@ -872,7 +872,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         graph.AddNode(node);
 
                         // Setting the guid requires the graph to be set first.
-                        node.keywordGuid = keyword.guid;
+                        node.keyword = keyword;
                         break;
                     }
                     default:
@@ -906,20 +906,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     case AbstractShaderProperty property:
                         // Update the property nodes that depends on the copied node
-                        var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid);
+                        var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.property == input);
                         foreach (var node in dependentPropertyNodes)
                         {
                             node.owner = graphView.graph;
-                            node.propertyGuid = copiedInput.guid;
+                            node.property = property;
                         }
                         break;
                     case ShaderKeyword shaderKeyword:
                         // Update the keyword nodes that depends on the copied node
-                        var dependentKeywordNodes = copyGraph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == input.guid);
+                        var dependentKeywordNodes = copyGraph.GetNodes<KeywordNode>().Where(x => x.keyword == input);
                         foreach (var node in dependentKeywordNodes)
                         {
                             node.owner = graphView.graph;
-                            node.keywordGuid = copiedInput.guid;
+                            node.keyword = shaderKeyword;
                         }
 
                         // Pasting a new Keyword so need to test against variant limit
