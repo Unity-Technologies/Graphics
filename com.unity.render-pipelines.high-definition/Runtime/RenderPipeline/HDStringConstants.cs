@@ -373,10 +373,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _BlitPaddingSize = Shader.PropertyToID("_BlitPaddingSize");
         public static readonly int _BlitTexArraySlice = Shader.PropertyToID("_BlitTexArraySlice");
 
-        public static readonly int _FilterKernels = Shader.PropertyToID("_FilterKernels");
-        public static readonly int _FilterKernelsBasic = Shader.PropertyToID("_FilterKernelsBasic");
-        public static readonly int _HalfRcpWeightedVariances = Shader.PropertyToID("_HalfRcpWeightedVariances");
-
         public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
         public static readonly int _CameraMotionVectorsTexture = Shader.PropertyToID("_CameraMotionVectorsTexture");
         public static readonly int _FullScreenDebugMode = Shader.PropertyToID("_FullScreenDebugMode");

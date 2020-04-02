@@ -219,7 +219,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int              numTilesX;
             public int              numTilesY;
             public int              numTilesZ;
-            public Vector4[]        filterKernels;
             public ComputeBuffer    coarseStencilBuffer;
 
         }
@@ -426,7 +425,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // However, the compute can't output and MSAA target so we blend the non-MSAA target into the MSAA one.
         static void RenderSubsurfaceScattering(in SubsurfaceScatteringParameters parameters, in SubsurfaceScatteringResources resources, CommandBuffer cmd)
         {
-            cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._FilterKernels, parameters.filterKernels);
             cmd.SetComputeIntParam(parameters.subsurfaceScatteringCS, HDShaderIDs._SssSampleBudget, parameters.sampleBudget);
 
             cmd.SetComputeTextureParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._DepthTexture, resources.depthTexture);
