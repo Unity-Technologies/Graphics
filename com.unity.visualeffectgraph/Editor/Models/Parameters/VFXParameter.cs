@@ -481,6 +481,9 @@ namespace UnityEditor.VFX
 
             HashSet<int> usedIds = new HashSet<int>();
 
+            if (m_Min != null && m_Min.type != null && m_ValueFilter == VFXValueFilter.Default)
+                m_ValueFilter = VFXValueFilter.Range;
+
             if (m_Nodes != null)
             {
                 foreach (var node in m_Nodes)
