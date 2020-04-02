@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
 - Fixed an issue where Shader Graph subshaders referenced incorrect asset GUIDs.
 - Fixed issue that caused the QualitySettings anti-aliasing changing without user interaction. [case 1195272](https://issuetracker.unity3d.com/issues/lwrp-the-anti-alias-quality-settings-value-is-changing-without-user-interaction)
+- Fixed a shader issue that caused the Color in Sprite Shape to work improperly.
 
 ## [8.0.0] - 2020-05-25
 ### Added
