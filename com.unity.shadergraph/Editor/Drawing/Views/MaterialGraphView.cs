@@ -15,6 +15,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using Node = UnityEditor.Experimental.GraphView.Node;
+using SlotType = UnityEditor.Graphing.SlotType;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -60,6 +61,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var candidateAnchor in ports.ToList())
             {
                 var candidateSlot = candidateAnchor.GetSlot();
+
                 if (!startSlot.IsCompatibleWith(candidateSlot))
                     continue;
 
@@ -217,6 +219,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.InsertAction(count, "Delete Group and Contents", (e) => RemoveNodesInsideGroup(e, data), DropdownMenuAction.AlwaysEnabled);
             }
 
+            // Contextual menu
+            if (evt.target is Edge)
+            {
+                var target = evt.target as Edge;
+                var pos = evt.mousePosition;
+
+                evt.menu.AppendSeparator();
+                evt.menu.AppendAction("Add Redirect Node", e => CreateRedirectNode(pos, target));
+            }
+
             if (evt.target is BlackboardField)
             {
                 PopulateBlackboardField(evt);
@@ -226,6 +238,24 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 PopulateBlackboardCateogrySectionMenu(evt);
             }
+        }
+
+        public void CreateRedirectNode(Vector2 position, Edge edgeTarget)
+        {
+            var outputSlot = edgeTarget.output.GetSlot();
+            var inputSlot = edgeTarget.input.GetSlot();
+            // Need to check if the Nodes that are connected are in a group or not
+            // If they are in the same group we also add in the Redirect Node
+            // var groupGuidOutputNode = graph.GetNodeFromGuid(outputSlot.slotReference.nodeGuid).groupGuid;
+            // var groupGuidInputNode = graph.GetNodeFromGuid(inputSlot.slotReference.nodeGuid).groupGuid;
+            var groupId = Guid.Empty;
+            if (outputSlot.owner.groupGuid == inputSlot.owner.groupGuid)
+            {
+                groupId = inputSlot.owner.groupGuid;
+            }
+
+            RedirectNodeData.Create(graph, outputSlot.valueType, contentViewContainer.WorldToLocal(position), inputSlot.slotReference,
+                outputSlot.slotReference, groupId);
         }
 
         void PopulateBlackboardField(ContextualMenuPopulateEvent evt)

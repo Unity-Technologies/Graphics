@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
 - Add api documentation for TextureCombiner.
+- Add tooltips in LookDev's toolbar.
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support
@@ -36,6 +37,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unreachable code in TextureXR.useTexArray
 - Fixed GC pressure caused by `VolumeParameter<T>.GetHashCode()`
 - Fixed issue when LookDev window is opened and the CoreRP Package is updated to a newer version.
+- Fix LookDev's camera button layout.
+- Fix LookDev's layout vanishing on domain reload.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
