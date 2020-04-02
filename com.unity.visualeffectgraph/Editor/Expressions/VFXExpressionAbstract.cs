@@ -537,8 +537,12 @@ namespace UnityEditor.VFX
                 {
                     foldable &= parent.Is(Flags.Foldable);
                     m_Flags |= (parent.m_Flags & (Flags.NotCompilableOnCPU));
+
                     if (parent.IsAny(Flags.NotCompilableOnCPU) && parent.Is(Flags.InvalidOnGPU))
                         m_Flags |= Flags.InvalidOnGPU; // Only propagate GPU validity for per element expressions
+
+                    if (parent.Is(Flags.InvalidConstant))
+                        m_Flags |= Flags.InvalidConstant;
                 }
                 if (foldable)
                     m_Flags |= Flags.Foldable;

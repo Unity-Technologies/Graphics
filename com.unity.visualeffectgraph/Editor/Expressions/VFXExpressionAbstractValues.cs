@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
 
     class VFXValue<T> : VFXValue
     {
-        private static Flags GetFlagsFromType(VFXValueType valueType)
+        protected static Flags GetFlagsFromType(VFXValueType valueType)
         {
             var flags = Flags.None;
             if (!IsTypeValidOnGPU(valueType))
@@ -152,7 +152,7 @@ namespace UnityEditor.VFX
             return flags;
         }
 
-        public VFXValue(T content, Mode mode = Mode.FoldableVariable) : base(mode, GetFlagsFromType(ToValueType()))
+        public VFXValue(T content, Mode mode = Mode.FoldableVariable, Flags flag = Flags.None) : base(mode, flag | GetFlagsFromType(ToValueType()))
         {
             m_Content = content;
         }
@@ -237,16 +237,24 @@ namespace UnityEditor.VFX
         }
     }
 
-
     class VFXObjectValue : VFXValue<int>
     {
-        public VFXObjectValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode)
+        public VFXObjectValue(int instanceID, Mode mode, VFXValueType contentType) : base(instanceID, mode, GetFlagsFromType(contentType))
         {
+            m_ContentType = contentType;
+        }
+
+        sealed protected override int[] additionnalOperands
+        {
+            get
+            {
+                return new int[] { (int)m_ContentType };
+            }
         }
 
         public override VFXValue CopyExpression(Mode mode)
         {
-            var copy = new VFXObjectValue((int)m_Content, mode);
+            var copy = new VFXObjectValue((int)m_Content, mode, m_ContentType);
             return copy;
         }
 
@@ -278,6 +286,8 @@ namespace UnityEditor.VFX
 
             m_Content = (int)value;
         }
+
+        VFXValueType m_ContentType;
     }
 
 #pragma warning restore 0659
