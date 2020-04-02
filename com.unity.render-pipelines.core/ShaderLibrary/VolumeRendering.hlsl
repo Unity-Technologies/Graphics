@@ -356,15 +356,42 @@ void ImportanceSamplePunctualLight(real rndVal, real3 lightPosition, real lightS
 
 // Returns the cosine.
 // Weight = Phase / Pdf = 1.
-real ImportanceSampleRayleighPhase(real rndVal)
+// TODO RETURN DIRECTION IN WORLD SPACE
+real ImportanceSampleRayleighPhase(real cdf)
 {
-    // real a = sqrt(16 * (rndVal - 1) * rndVal + 5);
-    // real b = -4 * rndVal + a + 2;
-    // real c = PositivePow(b, 0.33333333);
-    // return rcp(c) - c;
+    // Approximate... Relative error is 0.0359514.
+    // return lerp(cos(PI * cdf + PI), 2 * cdf - 1, 0.5);
+    // Exact below.
+    real a = sqrt(16 * (cdf - 1) * cdf + 5);
+    real b = a + (4 * cdf - 2);
+    real c = PositivePow(b,  0.33333333);
+    real d = PositivePow(b, -0.33333333); // Same base, so just as fast as rcp()
+    return c - d;
+}
 
-    // Approximate...
-    return lerp(cos(PI * rndVal + PI), 2 * rndVal - 1, 0.5);
+// TODO RETURN DIRECTION IN WORLD SPACE
+real2 ImportanceSampleHenyeyGreenstein(real cdf, real u, real g)
+{
+    // -(((-1+g)^2+2 (-1+g) (1+g^2) y-2 g (1+g^2) y^2)/(1+g (-1+2 y))^2)
+    real result;
+
+    real a = -1 + 2 * cdf;
+    real b = -2 + 2 * cdf;
+
+    real numer = a + g * (2 + cdf * b + g * (a + g * cdf * b));
+    real denom = 1 + g * a; // (denom != 0) if (abs(g) < 1)
+
+    return numer * rcp(denom);
+}
+
+// TODO RETURN DIRECTION IN WORLD SPACE
+// The PDF does not appear to be analytically invertible.
+real ImportanceSampleCornetteShanks(real cdf, real g, out real weight)
+{
+    // Use Henyey-Greenstein as a proxy for sampling.
+    float c = ImportanceSampleHenyeyGreenstein(cdf, g);
+    weight = 1.5 * (1 + c * c) * rcp(2 + g * g); // Significantly increases variance :(
+    return c;
 }
 
 //

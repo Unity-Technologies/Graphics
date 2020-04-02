@@ -518,7 +518,7 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
     {
         ray.origin += atmosEntryExit.x * ray.direction;
         // Careful: we may end up on the edge of the atmosphere and, numerically, outside.
-        ray.origin *= (1 - 1e-6); // 2 orders of magnitude larger than FLT_EPS
+        ray.origin *= (1 - 1e-6); // 2 orders of magnitude larger than FLT_EPS; TODO: remove & fix intersector
     }
 
     float pathContribution = 0;
@@ -529,6 +529,7 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
     for (bounce = 1; bounce <= bounceCount; bounce++) // Bounces are indexed starting from 1
     {
         // Update ray parameters.
+        // TODO: avoid doing this twice per iteration...
         ApplySphericalSymmetry(ray.origin, ray.direction, /* -> */ r, rSq, rRcp, cosTheta);
 
         float groundEntry  = IntersectSphere(R, cosTheta, r, rRcp).x; // Entry
@@ -632,7 +633,7 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                     float emittedRadiance = light.color.rgb[(uint)ray.frequency];
 
                     float LdotD    = dot(L, D);
-                    float airPhase = IsotropicPhaseFunction();
+                    float airPhase = RayleighPhaseFunction(LdotD);
                     float aerPhase = CornetteShanksPhaseFunction(_AerosolAnisotropy, LdotD);
 
                     pathContribution += pathThroughput * (airAlbedo * airPhase + aerAlbedo * aerPhase) * (lightTransm * emittedRadiance);
@@ -655,7 +656,12 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
                 ray.direction = SampleSphereUniform(rnd.y, rnd.z); // TODO: CornetteShanks
             }
 
-            pathThroughput *= totalAlbedo; // Perfect phase IS
+            // AirAlbedo + AerosolAlbedo = TotalAlbedo. Therefore,
+            // AirScatteringProbability = AirAlbedo / TotalAlbedo,
+            // AirAlbedo = TotalAlbedo * AirScatteringProbability.
+            // We stochastically select the atmospheric component based on the probability,
+            // so the probability factor cancels out.
+            pathThroughput *= totalAlbedo;
         }
         else // Surface scattering
         {
@@ -699,6 +705,7 @@ float3 PathTraceSky(uint2 groupCoordInDispatch, uint groupIndexInDispatch,
 
             // Generate a new ray.
             ray.origin    = P;
+            ray.origin   *= (1 + 1e-6); // 2 orders of magnitude larger than FLT_EPS; TODO: remove & fix intersector
             ray.direction = SampleHemisphereCosine(rnd.y, rnd.z, N);
 
             pathThroughput *= groundAlbedo; // Perfect BSDF IS
