@@ -3,30 +3,22 @@ from . import win, osx_openglcore, osx_metal, linux
 # TODO maybe better to join up editmode, playmode, and playmode xr
 cmd_map = {
     'win' : {
-        'editmode' : win.cmd_editmode,
-        'playmode' : win.cmd_playmode,
-        'playmode_xr' : win.cmd_playmode_xr,
+        'not_standalone': win.cmd_not_standalone,
         'standalone' : win.cmd_standalone,
         'standalone_build' : win.cmd_standalone_build
     },
     'osx_openglcore' :  {
-        'editmode' : osx_openglcore.cmd_editmode,
-        'playmode' : osx_openglcore.cmd_playmode,
-        'playmode_xr' : osx_openglcore.cmd_playmode_xr,
+        'not_standalone': osx_openglcore.cmd_not_standalone,
         'standalone' : osx_openglcore.cmd_standalone,
         'standalone_build' : osx_openglcore.cmd_standalone_build
     },
     'osx_metal' :  {
-        'editmode' : osx_metal.cmd_editmode,
-        'playmode' : osx_metal.cmd_playmode,
-        'playmode_xr' : osx_metal.cmd_playmode_xr,
+        'not_standalone': osx_metal.cmd_not_standalone,
         'standalone' : osx_metal.cmd_standalone,
         'standalone_build' : osx_metal.cmd_standalone_build
     },
     'linux' : {
-        'editmode' : linux.cmd_editmode,
-        'playmode' : linux.cmd_playmode,
-        'playmode_xr' : linux.cmd_playmode_xr,
+        'not_standalone': linux.cmd_not_standalone,
         'standalone' : linux.cmd_standalone,
         'standalone_build' : linux.cmd_standalone_build
     }

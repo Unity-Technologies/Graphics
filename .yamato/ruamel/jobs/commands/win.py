@@ -7,31 +7,17 @@ def _cmd_base(project, components):
     ]
 
 
-def cmd_editmode(project, platform, api):
+def cmd_not_standalone(project, platform, api, test_platform_args):
     base = _cmd_base(project, platform["components"])
     base.extend([
-        f'cd TestProjects/{project["folder"]} && utr\\utr --suite=editor --platform=editmode --extra-editor-arg="{api["cmd"]}" --testproject=. --editor-location=.Editor --artifacts_path=test-results'
+        f'cd TestProjects/{project["folder"]} && utr\\utr {test_platform_args} --extra-editor-arg="{api["cmd"]}" --testproject=. --editor-location=.Editor --artifacts_path=test-results'
     ])
     return base
 
-def cmd_playmode(project, platform, api):
+def cmd_standalone(project, platform, api, test_platform_args):
     base = _cmd_base(project, platform["components"])
     base.extend([
-        f'cd TestProjects/{project["folder"]} && utr\\utr --suite=playmode --extra-editor-arg="{api["cmd"]}" --testproject=. --editor-location=.Editor --artifacts_path=test-results'
-    ])
-    return base
-
-def cmd_playmode_xr(project, platform, api):
-    base = _cmd_base(project, platform["components"])
-    base.extend([
-        f'cd TestProjects/{project["folder"]} && utr\\utr --suite=playmode --extra-editor-arg="-xr-tests" --extra-editor-arg="{api["cmd"]}" --testproject=. --editor-location=.Editor --artifacts_path=test-results'
-    ])
-    return base
-
-def cmd_standalone(project, platform, api):
-    base = _cmd_base(project, platform["components"])
-    base.extend([
-        f'cd TestProjects/{project["folder"]} && utr/utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto'
+        f'cd TestProjects/{project["folder"]} && utr/utr {test_platform_args}Windows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto'
     ])
     return base
 

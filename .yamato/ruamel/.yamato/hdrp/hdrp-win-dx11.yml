@@ -17,7 +17,7 @@ HDRP_Win_DX11_playmode_2020.1:
             paths:
               -  "**/test-results/**"
 HDRP_Win_DX11_playmode XR_2020.1:
-    name: HDRP on Win_DX11_playmode_XR on version 2020.1
+    name: HDRP on Win_DX11_playmode XR on version 2020.1
     agent:
         flavor: b1.large
         type: Unity::VM::GPU

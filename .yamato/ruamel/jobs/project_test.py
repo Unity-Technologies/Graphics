@@ -11,7 +11,7 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
     else:
         job_name = f'{project_name} on {platform["name"]}_{api["name"]}_{test_platform_name} on version {editor["version"]}'
 
-    agent = platform.get(f'agent_{test_platform_name.lower()}', platform['agent_default'])
+    agent = platform.get(f'agent_{test_platform_name.lower().replace(" ","_")}', platform['agent_default'])
     
     job = {
         'name' : job_name,
@@ -41,33 +41,20 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
 
     return job
 
-def project_editmode(project, editor, platform, api):
-    '''Creates editmode test job'''
+
+def project_not_standalone(project, editor, platform, api, test_platform):
+    '''Creates test job'''
     
-    cmd = cm.get_cmd(platform["name"], api["name"], 'editmode')
-    job = _job(project["name"], 'editmode', editor, platform, api, cmd(project, platform, api))
+    cmd = cm.get_cmd(platform["name"], api["name"], 'not_standalone')
+    job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project, platform, api, test_platform["args"]))
     return job
 
 
-def project_playmode(project, editor, platform, api):
-    '''Creates playmode test job'''
-    
-    cmd = cm.get_cmd(platform["name"], api["name"], 'playmode')
-    job = _job(project["name"], 'playmode', editor, platform, api, cmd(project, platform, api))
-    return job
-
-def project_playmode_xr(project, editor, platform, api):
-    '''Creates playmode test job'''
-    
-    cmd = cm.get_cmd(platform["name"], api["name"], 'playmode_xr')
-    job = _job(project["name"], 'playmode_XR', editor, platform, api, cmd(project, platform, api))
-    return job
-
-def project_standalone(project, editor, platform, api):
+def project_standalone(project, editor, platform, api, test_platform):
     '''Creates Standalone test job'''
 
     cmd = cm.get_cmd(platform["name"], api["name"], 'standalone') 
-    job = _job(project["name"], 'Standalone', editor, platform, api, cmd(project, platform, api))
+    job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project, platform, api, test_platform["args"]))
 
     if platform["standalone_split"]:
         

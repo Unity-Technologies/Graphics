@@ -25,7 +25,7 @@ HDRP_OSX_Metal_playmode_2020.1:
             paths:
               -  "**/test-results/**"
 HDRP_OSX_Metal_playmode XR_2020.1:
-    name: HDRP on OSX_Metal_playmode_XR on version 2020.1
+    name: HDRP on OSX_Metal_playmode XR on version 2020.1
     agent:
         flavor: m1.mac
         type: Unity::metal::macmini

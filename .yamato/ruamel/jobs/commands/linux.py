@@ -7,31 +7,18 @@ def _cmd_base(project, components):
         f'cd TestProjects/{project["folder"]} && sudo unity-downloader-cli --source-file ../../unity_revision.txt {"".join([f"-c {c} " for c in components])} --wait --published-only'
     ]
 
-def cmd_editmode(project, platform, api):
+
+def cmd_not_standalone(project, platform, api, test_platform_args):
     base = _cmd_base(project, platform["components"])
     base.extend([ 
-        f'cd TestProjects/{project["folder"]} && DISPLAY=:0.0 utr/utr --extra-editor-arg="{api["cmd"]}"  --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results'
+        f'cd TestProjects/{project["folder"]} && DISPLAY=:0.0 utr/utr --extra-editor-arg="{api["cmd"]}"  {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path=test-results'
      ])
     return base
 
-def cmd_playmode(project, platform, api):
-    base = _cmd_base(project, platform["components"])
-    base.extend([ 
-        f'cd TestProjects/{project["folder"]} && DISPLAY=:0.0 utr/utr --extra-editor-arg="{api["cmd"]}"  --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results'
-     ])
-    return base
-
-def cmd_playmode_xr(project, platform, api):
-    base = _cmd_base(project, platform["components"])
-    base.extend([ 
-        f'cd TestProjects/{project["folder"]} && DISPLAY=:0.0 utr/utr --extra-editor-arg="{api["cmd"]}"  --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results'
-     ])
-    return base
-
-def cmd_standalone(project, platform, api):
+def cmd_standalone(project, platform, api, test_platform_args):
     base = _cmd_base(project, platform["components"])
     base.extend([
-        f'cd TestProjects/{project["folder"]} && DISPLAY=:0.0 utr/utr --suite=playmode --platform=StandaloneLinux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinux{api["name"]}Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results'
+        f'cd TestProjects/{project["folder"]} && DISPLAY=:0.0 utr/utr {test_platform_args}Linux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinux{api["name"]}Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results'
       ])
     return base
 

@@ -5,20 +5,25 @@ from jobs import editor_priming as ep
 from jobs.helpers.namer import file_path, file_path_all
 import sys, glob
 
+# TODO check for cleaner way
 test_platform_jobs = {
-    'playmode': pt.project_playmode,
-    'playmode XR': pt.project_playmode_xr, 
-    'editmode': pt.project_editmode,
+    'playmode': pt.project_not_standalone,
+    'playmode XR': pt.project_not_standalone, 
+    'editmode': pt.project_not_standalone,
     'Standalone': pt.project_standalone,
 }
 
-def read_metafile(filepath):
+def load_yml(filepath):
     with open(filepath) as f:
         return yaml.load(f)
 
+def dump_yml(filepath, yml_dict):
+    with open(filepath, 'w') as f:
+        yaml.dump(yml_dict, f)
+
 def create_yml_jobs(project_metafile):
 
-    metafile = read_metafile(project_metafile)
+    metafile = load_yml(project_metafile)
     project = metafile["project"]
 
     for platform in metafile['platforms']:
@@ -26,11 +31,10 @@ def create_yml_jobs(project_metafile):
 
             yml = {}
             for editor in metafile['editors']:
-                for test_platform in metafile['testplatforms']:
+                for test_platform in metafile['test_platforms']:
 
-                    
                     job_id = f'{project["name"]}_{platform["name"]}_{api["name"]}_{test_platform["name"]}_{editor["version"]}'
-                    yml[job_id] = test_platform_jobs[test_platform["name"]](project, editor, platform, api)
+                    yml[job_id] = test_platform_jobs[test_platform["name"]](project, editor, platform, api, test_platform)
 
                     # create build player job for when standalone uses split build
                     if test_platform["name"].lower == 'standalone' and platform["standalone_split"]: # TODO check for better way to do it
@@ -38,34 +42,29 @@ def create_yml_jobs(project_metafile):
                         yml[job_id] = pt.project_standalone_build(project, editor, platform, api)
 
             # store yml per [project]-[platform]-[api]
-            yml_file= file_path(project["name"], platform["name"], api["name"])
-            with open(yml_file, 'w') as f:
-                yaml.dump(yml, f)
+            yml_file = file_path(project["name"], platform["name"], api["name"])
+            dump_yml(yml_file, yml)
 
 
 
 def create_yml_all(project_metafile):
 
-    metafile = read_metafile(project_metafile)
+    metafile = load_yml(project_metafile)
     project_name = metafile["project"]["name"]
-    dependencies_in_all = metafile["dependencies_in_all"]
 
     yml = {}
     for editor in metafile['editors']:
-
         job_id = f'All_{project_name}_{editor["version"]}'
-        yml[job_id] = pa.project_all(project_name, editor, dependencies_in_all)
-
+        yml[job_id] = pa.project_all(project_name, editor, metafile["dependencies_in_all"])
 
     yml_file = file_path_all(project_name)
-    with open(yml_file, 'w') as f:
-        yaml.dump(yml, f)
+    dump_yml(yml_file, yml)
 
 
 
 def create_yml_editor(editor_metafile):
 
-    metafile = read_metafile(editor_metafile)
+    metafile = load_yml(editor_metafile)
 
     yml = {}
     for platform in metafile["platforms"]:
@@ -73,8 +72,7 @@ def create_yml_editor(editor_metafile):
             job_id = f'editor:priming:{editor["version"]}:{platform["os"]}'
             yml[job_id] = ep.editor(platform, editor)
 
-    with open('.yamato/z_editor.yml', 'w') as f:
-        yaml.dump(yml, f)
+    dump_yml('.yamato/z_editor.yml', yml)
 
 
 
@@ -93,14 +91,10 @@ if __name__== "__main__":
 
     # create yml jobs for each specified project (universal, shadergraph, vfx_lwrp, ...)
     args = sys.argv
-    if 'all' in args:
-        project_metafiles = glob.glob('config/[!z_]*.metafile')
-    else:
-        project_metafiles = [f'config/{project}.metafile' for project in args[1:]]
-    
-    print(f'Running: {project_metafiles}')
+    projects = glob.glob('config/[!z_]*.metafile') if 'all' in args else [f'config/{project}.metafile' for project in args[1:]]   
+    print(f'Running: {projects}')
 
-    for project_metafile in project_metafiles:
+    for project_metafile in projects:
         create_yml_jobs(project_metafile) # create jobs for testplatforms
         create_yml_all(project_metafile) # create All_ job
 
