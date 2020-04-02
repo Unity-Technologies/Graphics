@@ -82,7 +82,7 @@ ShaderPort.typeTexture {
     --port-color:#FF8B8B;
 }
 
-ShaderPort.typeTexture .inactive {
+ShaderPort.typeTexture.inactive {
     --port-color:#7F5C5C;
 }
 
@@ -91,7 +91,7 @@ ShaderPort.typeTexture2D {
     --port-color:#FF8B8B;
 }
 
-ShaderPort.typeTexture2D .inactive {
+ShaderPort.typeTexture2D.inactive {
     /* Same as typeTexture */
     --port-color:#7F5C5C;
 }
@@ -101,7 +101,7 @@ ShaderPort.typeTexture2DArray {
     --port-color:#FF8B8B;
 }
 
-ShaderPort.typeTexture2DArray .inactive {
+ShaderPort.typeTexture2DArray.inactive {
     /* Same as typeTexture */
     --port-color:#7F5C5C;
 }
@@ -111,7 +111,7 @@ ShaderPort.typeTexture3D {
     --port-color:#FF8B8B;
 }
 
-ShaderPort.typeTexture3D .inactive {
+ShaderPort.typeTexture3D.inactive {
     /* Same as typeTexture */
     --port-color:#7F5C5C;
 }
@@ -121,7 +121,7 @@ ShaderPort.typeCubemap {
     --port-color:#FF8B8B;
 }
 
-ShaderPort.typeCubemap .inactive {
+ShaderPort.typeCubemap.inactive {
     /* Same as typeTexture */
     --port-color:#7F5C5C;
 }
@@ -131,7 +131,7 @@ ShaderPort.typeGraphScript {
     --port-color:#E681BA;
 }
 
-ShaderPort.typeGraphScript .inactive {
+ShaderPort.typeGraphScript.inactive {
     /* Todo: there is no such type in Unity atm */
     --port-color:#73405D;
 }
@@ -140,7 +140,7 @@ ShaderPort.typeFloat4 {
     --port-color:#FBCBF4;
 }
 
-ShaderPort.typeFloat4 .inactive {
+ShaderPort.typeFloat4.inactive {
     --port-color:#7D657A;
 }
 
@@ -149,7 +149,7 @@ ShaderPort.typeVector4 {
     --port-color:#FBCBF4;
 }
 
-ShaderPort.typeVector4 .inactive {
+ShaderPort.typeVector4.inactive {
     /* Same as typeFloat4 */
     --port-color:#7D657A;
 }
@@ -159,7 +159,7 @@ ShaderPort.typeQuaternion {
     --port-color:#FBCBF4;
 }
 
-ShaderPort.typeQuaternion .inactive {
+ShaderPort.typeQuaternion.inactive {
     /* Same as typeFloat4 */
     --port-color:#7D657A;
 }
@@ -169,7 +169,7 @@ ShaderPort.typeColor {
     --port-color:#FBCBF4;
 }
 
-ShaderPort.typeColor .inactive {
+ShaderPort.typeColor.inactive {
     /* Same as typeFloat4 */
     --port-color:#7D657A;
 }
@@ -178,7 +178,7 @@ ShaderPort.typeInt {
     --port-color:#9481E6;
 }
 
-ShaderPort.typeInt .inactive {
+ShaderPort.typeInt.inactive {
     --port-color:#4A4073;
 }
 
@@ -187,7 +187,7 @@ ShaderPort.typeInt32 {
     --port-color:#9481E6;
 }
 
-ShaderPort.typeInt32 .inactive {
+ShaderPort.typeInt32.inactive {
     /* Same as typeInt */
     --port-color:#4A4073;
 }
@@ -199,7 +199,7 @@ ShaderPort.typeInt64 {
     --port-color:#9481E6;
 }
 
-ShaderPort.typeInt64 .inactive {
+ShaderPort.typeInt64.inactive {
     /* Same as typeInt */
     /* todo we might want to differentiate that from int32 */
     --port-color:#4A4073;
@@ -209,7 +209,7 @@ ShaderPort.typeBoolean {
     --port-color:#9481E6;
 }
 
-ShaderPort.typeBoolean .inactive {
+ShaderPort.typeBoolean.inactive {
     --port-color:#4A4073;
 }
 
@@ -217,7 +217,7 @@ ShaderPort.typeMatrix {
     --port-color:#8FC1DF;
 }
 
-ShaderPort.typeMatrix .inactive {
+ShaderPort.typeMatrix.inactive {
     --port-color:#47606F;
 }
 
@@ -226,7 +226,7 @@ ShaderPort.typeMatrix4x4 {
     --port-color:#8FC1DF;
 }
 
-ShaderPort.typeMatrix4x4 .inactive {
+ShaderPort.typeMatrix4x4.inactive {
     /* Same as typeMatrix */
     --port-color:#47606F;
 }
@@ -235,7 +235,7 @@ ShaderPort.typeGameObject {
     --port-color:#8FC1DF;
 }
 
-ShaderPort.typeGameObject .inactive {
+ShaderPort.typeGameObject.inactive {
     --port-color:#47606F;
 }
 
@@ -243,7 +243,7 @@ ShaderPort.typeFloat {
     --port-color:#84E4E7;
 }
 
-ShaderPort.typeFloat .inactive {
+ShaderPort.typeFloat.inactive {
     --port-color:#427273;
 }
 
@@ -252,7 +252,7 @@ ShaderPort.typeFloat1 {
     --port-color:#84E4E7;
 }
 
-ShaderPort.typeFloat1 .inactive {
+ShaderPort.typeFloat1.inactive {
     /* Same as typeFloat */
     --port-color:#427273;
 }
@@ -262,7 +262,7 @@ ShaderPort.typeSingle {
     --port-color:#84E4E7;
 }
 
-ShaderPort.typeSingle .inactive {
+ShaderPort.typeSingle.inactive {
     /* Same as typeFloat */
     --port-color:#427273;
 }
@@ -273,7 +273,7 @@ ShaderPort.typeDouble {
     --port-color:#84E4E7;
 }
 
-ShaderPort.typeDouble .inactive {
+ShaderPort.typeDouble.inactive {
     /* Same as typeFloat */
     /* todo we might want to differentiate that from float */
     --port-color:#427273;
@@ -283,7 +283,7 @@ ShaderPort.typeFloat2 {
     --port-color:#9AEF92;
 }
 
-ShaderPort.typeFloat2 .inactive {
+ShaderPort.typeFloat2.inactive {
     --port-color:#4D7749;
 }
 
@@ -292,7 +292,7 @@ ShaderPort.typeVector2 {
     --port-color:#9AEF92;
 }
 
-ShaderPort.typeVector2 .inactive {
+ShaderPort.typeVector2.inactive {
     /* Same as typeFloat2 */
     --port-color:#4D7749;
 }
@@ -301,7 +301,7 @@ ShaderPort.typeComponent {
     --port-color:#C9F774;
 }
 
-ShaderPort.typeComponent .inactive {
+ShaderPort.typeComponent.inactive {
     --port-color:#647B3A;
 }
 
@@ -309,7 +309,7 @@ ShaderPort.typeFloat3 {
     --port-color:#F6FF9A;
 }
 
-ShaderPort.typeFloat3 .inactive {
+ShaderPort.typeFloat3.inactive {
     --port-color:#7B7F4D;
 }
 
@@ -318,7 +318,7 @@ ShaderPort.typeVector3 {
     --port-color:#F6FF9A;
 }
 
-ShaderPort.typeVector3 .inactive {
+ShaderPort.typeVector3.inactive {
     /* Same as typeFloat3 */
     --port-color:#7B7F4D;
 }
@@ -327,6 +327,6 @@ ShaderPort.typeString {
     --port-color:#FCD76E;
 }
 
-ShaderPort.typeString .inactive {
+ShaderPort.typeString.inactive {
     --port-color:#7E6B37;
 }
