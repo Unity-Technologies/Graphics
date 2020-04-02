@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ShaderKeyword keyword:
                 {
                     var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.generatePropertyBlock)) ? BlackboardProvider.exposedIcon : null;
-                    var typeText = KeywordUtil.IsBuiltinKeyword(keyword) ? "Built-in Keyword" : keyword.keywordType.ToString();
+                    var typeText = keyword.isBuiltIn ? "Built-in Keyword" : keyword.keywordType.ToString();
                     field = new BlackboardField(icon, keyword.displayName, typeText) { userData = keyword };
                     var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
                     row = new BlackboardRow(field, keywordView);

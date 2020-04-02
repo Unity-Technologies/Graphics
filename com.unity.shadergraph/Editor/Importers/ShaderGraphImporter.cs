@@ -102,28 +102,28 @@ Shader ""Hidden/GraphErrorShader2""
             }
             else
             {
-            var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths,graph);
-            var shader = ShaderUtil.CreateShaderAsset(text, false);
+                var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths,graph);
+                var shader = ShaderUtil.CreateShaderAsset(text, false);
 
-            if (graph != null && graph.messageManager.nodeMessagesChanged)
-            {
-                foreach (var pair in graph.messageManager.GetNodeMessages())
+                if (graph != null && graph.messageManager.nodeMessagesChanged)
                 {
-                    var node = graph.GetNodeFromGuid(pair.Key);
-                    MessageManager.Log(node, path, pair.Value.First(), shader);
+                    foreach (var pair in graph.messageManager.GetNodeMessages())
+                    {
+                        var node = graph.GetNodeFromGuid(pair.Key);
+                        MessageManager.Log(node, path, pair.Value.First(), shader);
+                    }
                 }
-            }
 
-            EditorMaterialUtility.SetShaderDefaults(
-                shader,
-                configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
-                configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
-            EditorMaterialUtility.SetShaderNonModifiableDefaults(
-                shader,
-                configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
-                configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+                EditorMaterialUtility.SetShaderDefaults(
+                    shader,
+                    configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
+                    configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+                EditorMaterialUtility.SetShaderNonModifiableDefaults(
+                    shader,
+                    configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
+                    configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
 
-            mainObject = shader;
+                mainObject = shader;
             }
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon@64");
             ctx.AddObjectToAsset("MainAsset", mainObject, texture);
@@ -148,6 +148,11 @@ Shader ""Hidden/GraphErrorShader2""
 
                 ctx.DependsOnSourceAsset(sourceAssetDependencyPath);
             }
+        }
+
+        internal string GetTestText()
+        {
+            return "Hello, Mr. ShaderGUI. I'm the Shader Graph Importer.";
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, GraphData graph)

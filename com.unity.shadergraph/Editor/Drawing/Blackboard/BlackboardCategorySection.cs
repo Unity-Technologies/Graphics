@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ShaderKeyword keyword:
                 {
                     var icon = (graph.isSubGraph || (keyword.isExposable && keyword.generatePropertyBlock)) ? BlackboardProvider.exposedIcon : null;
-                    var typeText = KeywordUtil.IsBuiltinKeyword(keyword) ? "Built-in Keyword" : keyword.keywordType.ToString();
+                    var typeText = keyword.isBuiltIn ? "Built-in Keyword" : keyword.keywordType.ToString();
                     field = new BlackboardField(null, keyword.displayName, typeText) { userData = keyword };
                     var keywordView = new BlackboardFieldKeywordView(field, graph, keyword);
                     row = new BlackboardRow(field, keywordView);
@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_InputRows[input.guid] = row;
             m_InputRows[input.guid].expanded = SessionState.GetBool(input.guid.ToString(), true);
-            
+
             Debug.Log("I currenlty have ... " + m_InputRows.Count());
         }
 

@@ -392,6 +392,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             UpdateTitle();
+
+            CreateHackweekBullcrapFile(); // TODO: z Hackweek!
         }
 
         public void SaveAs()
@@ -445,7 +447,43 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            CreateHackweekBullcrapFile();  // TODO: z Hackweek!
+
             return false;
+        }
+
+        void CreateHackweekBullcrapFile() // Hackweeeeek!
+        {
+            List<InputCategory> categories = graphObject.graph.categories;
+
+            List<string> tooltips = new List<string>();
+
+            List<string> headers = new List<string>();
+
+
+            foreach (InputCategory category in categories)
+            {
+                int c = category.inputs.Count();
+                for (int x = 0; x < c; x++)
+                {
+                    tooltips.Add(null); //!String.IsNullOrEmpty(category.inputs[x].tooltip) ? category.inputs[x].tooltip : null);
+                    headers.Add(x == 0 ? category.header : null);
+                }
+            }
+
+            string[] tooltipsArray = tooltips.ToArray();
+            string[] headersArray = headers.ToArray();
+
+            //            int d = tooltipsArray.Length;
+            //            for (int x = 0; x < d; x++)
+            //            {
+            //                string t = tooltips[x] == null ? "null tip!" : tooltips[x];
+            //                string h = headers[x] == null ? "null head!" : headers[x];
+            //
+            //                Debug.Log("x(" + x + ") tooltips=" + t + "   headers=" + h);
+            //            }
+
+            HackweekHacks.CreateShaderGUIInfo(tooltipsArray, headersArray);
         }
 
         public void ToSubGraph()
@@ -697,7 +735,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var fromPropertyNode = fromNode as PropertyNode;
                     var fromProperty = fromPropertyNode != null ? materialGraph.properties.FirstOrDefault(p => p.guid == fromPropertyNode.propertyGuid) : null;
                     prop.displayName = fromProperty != null ? fromProperty.displayName : fromSlot.concreteValueType.ToString();
-                    prop.displayName = GraphUtil.SanitizeName(subGraph.addedInputs.Select(p => p.displayName), "{0} ({1})", prop.displayName);
+
+                    // TODO: z name sanitization
+                    // prop.displayName = GraphUtil.SanitizeName(subGraph.addedInputs.Select(p => p.displayName), "{0} ({1})", prop.displayName);
 
                     subGraph.AddShaderInputToDefaultCategory(prop);
                     var propNode = new PropertyNode();

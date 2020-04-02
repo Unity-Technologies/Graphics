@@ -28,7 +28,8 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedCategories = new List<SerializationHelper.JSONSerializedElement>();
 
-        public IEnumerable<InputCategory> categories
+        // TODO: z make this a list
+        public List<InputCategory> categories
         {
             get { return m_Categories; }
         }

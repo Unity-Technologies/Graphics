@@ -14,7 +14,13 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            List<ShaderGraphBlock> myBlocks = GetHeaderBlocks(props);
+            TalkToShaderGraph(materialEditor);
+
+            materialEditor.PropertiesDefaultGUI(props);
+
+//            List<ShaderGraphBlock> myBlocks = GetHeaderBlocks(props);
+
+            // Printing bull
 //            for (int x = 0; x < myBlocks.Count; x++)
 //            {
 //                ShaderGraphBlock theBlock = myBlocks[x];
@@ -28,25 +34,35 @@ namespace UnityEditor.ShaderGraph
 //                }
 //            }
 
-            if (myBlocks == null)
-            {
-                base.OnGUI(materialEditor, props);
-            }
-            else
-            {
-                int push = 1;
-                foreach (ShaderGraphBlock sgb in myBlocks)
-                {
-                    MaterialUIBlockList currentMatBlock = new MaterialUIBlockList();
+//            if (myBlocks == null)
+//            {
+//                base.OnGUI(materialEditor, props);
+//            }
+//            else
+//            {
+//                int push = 1;
+//                foreach (ShaderGraphBlock sgb in myBlocks)
+//                {
+//                    MaterialUIBlockList currentMatBlock = new MaterialUIBlockList();
+//
+//                    // TODO: z let's not keep this hack (what was this even used for? does expanding & collapsing even still work?)
+//                    int hackExpand = 1 << push;
+//                    push++;
+//
+//                    currentMatBlock.Add(new ShaderGraphUIBlock(MaterialUIBlock.Expandable.ShaderGraph, ShaderGraphUIBlock.Features.Unlit));
+//                    currentMatBlock.OnGUI(materialEditor, sgb.properties);
+//                }
+//            }
+        }
 
-                    // TODO: let's not keep this hack
-                    int hackExpand = 1 << push;
-                    push++;
+        void TalkToShaderGraph(MaterialEditor materialEditor)
+        {
+            Material mat = materialEditor.target as Material;
+            var path = AssetDatabase.GetAssetPath(mat.shader);
+            var assetImporter = AssetImporter.GetAtPath(path);
+            var shaderGraphImporter = assetImporter as ShaderGraphImporter;
 
-                    currentMatBlock.Add(new ShaderGraphUIBlock((MaterialUIBlock.Expandable)hackExpand, ShaderGraphUIBlock.Features.Unlit, sgb.header));
-                    currentMatBlock.OnGUI(materialEditor, sgb.properties);
-                }
-            }
+            Debug.Log(shaderGraphImporter.GetTestText());
         }
 
         struct ShaderGraphBlock

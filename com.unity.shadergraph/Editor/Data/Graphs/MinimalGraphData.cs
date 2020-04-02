@@ -19,7 +19,7 @@ using UnityEngine;
     {
         static Dictionary<string, Type> s_MinimalTypeMap = CreateMinimalTypeMap();
 
-         static Dictionary<string, Type> CreateMinimalTypeMap()
+        static Dictionary<string, Type> CreateMinimalTypeMap()
         {
             var types = new Dictionary<string, Type>();
             foreach (var nodeType in TypeCache.GetTypesWithAttribute<HasDependenciesAttribute>())
@@ -42,12 +42,12 @@ using UnityEngine;
             return types;
         }
 
-         [SerializeField]
+        [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
 
-         public List<string> dependencies { get; set; }
+        public List<string> dependencies { get; set; }
 
-         public void OnAfterDeserialize()
+        public void OnAfterDeserialize()
         {
             foreach (var element in m_SerializableNodes)
             {
@@ -60,21 +60,28 @@ using UnityEngine;
             }
         }
 
-         public void OnBeforeSerialize()
+        public void OnBeforeSerialize()
         {
         }
 
-         public static string[] GetDependencyPaths(string assetPath)
+        public static string[] GetDependencyPaths(string assetPath)
         {
             var dependencies = new List<string>();
             GetDependencyPaths(assetPath, dependencies);
             return dependencies.ToArray();
         }
 
-         public static void GetDependencyPaths(string assetPath, List<string> dependencies)
+        public static void GetDependencyPaths(string assetPath, List<string> dependencies)
         {
             var textGraph = File.ReadAllText(assetPath, Encoding.UTF8);
             var minimalGraphData = new MinimalGraphData { dependencies = dependencies };
+            JsonUtility.FromJsonOverwrite(textGraph, minimalGraphData);
+        }
+
+        public static void GatherShaderGUIInfo(string assetPath)
+        {
+            var textGraph = File.ReadAllText(assetPath, Encoding.UTF8);
+            var minimalGraphData = new MinimalGraphData();
             JsonUtility.FromJsonOverwrite(textGraph, minimalGraphData);
         }
     }

@@ -20,11 +20,11 @@ namespace UnityEditor.ShaderGraph
             All = ~0,
         }
 
-        protected static class Styles
-        {
-            public const string header = "Exposed Properties";
-            public static readonly GUIContent bakedEmission = new GUIContent("Baked Emission", "");
-        }
+        // TODO: z make this better
+        public string header = "Exposed Properties";
+
+        public static readonly GUIContent bakedEmission = new GUIContent("Baked Emission", "");
+
 
         Expandable  m_ExpandableBit;
         Features    m_Features;
@@ -39,7 +39,8 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnGUI()
         {
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
+            // TODO: z grab the name of the header!
+            using (var header = new MaterialHeaderScope("Pook", (uint)m_ExpandableBit, materialEditor))
             {
                 if (header.expanded)
                     DrawShaderGraphGUI();
@@ -88,44 +89,45 @@ namespace UnityEditor.ShaderGraph
             return propertyChanged;
         }
 
+        // TODO: z, this is referencing stuff inside of HDStringConstants... I guess we need to break this class up
         void DrawShaderGraphGUI()
         {
             // Filter out properties we don't want to draw:
             PropertiesDefaultGUI(properties);
 
             // If we change a property in a shadergraph, we trigger a material keyword reset
-            // TODO: z
+
 //            if (CheckPropertyChanged(properties))
 //            {
 //                foreach (var material in materials)
 //                    HDShaderUtils.ResetMaterialKeywords(material);
 //            }
 
-            if (properties.Length > 0)
-                EditorGUILayout.Space();
-
-            if ((m_Features & Features.DiffusionProfileAsset) != 0)
-                DrawDiffusionProfileUI();
-
-            if ((m_Features & Features.EnableInstancing) != 0)
-                materialEditor.EnableInstancingField();
-
-            if ((m_Features & Features.DoubleSidedGI) != 0)
-            {
-                // If the shader graph have a double sided flag, then we don't display this field.
-                // The double sided GI value will be synced with the double sided property during the SetupBaseUnlitKeywords()
-                if (!materials[0].HasProperty(kDoubleSidedEnable))
-                    materialEditor.DoubleSidedGIField();
-            }
-
-            if ((m_Features & Features.EmissionGI) != 0)
-                DrawEmissionGI();
-
-            if ((m_Features & Features.MotionVector) != 0)
-                DrawMotionVectorToggle();
-
-            if ((m_Features & Features.ShadowMatte) != 0 && materials[0].HasProperty(kShadowMatteFilter))
-                DrawShadowMatteToggle();
+//            if (properties.Length > 0)
+//                EditorGUILayout.Space();
+//
+//            if ((m_Features & Features.DiffusionProfileAsset) != 0)
+//                DrawDiffusionProfileUI();
+//
+//            if ((m_Features & Features.EnableInstancing) != 0)
+//                materialEditor.EnableInstancingField();
+//
+//            if ((m_Features & Features.DoubleSidedGI) != 0)
+//            {
+//                // If the shader graph have a double sided flag, then we don't display this field.
+//                // The double sided GI value will be synced with the double sided property during the SetupBaseUnlitKeywords()
+//                if (!materials[0].HasProperty(kDoubleSidedEnable))
+//                    materialEditor.DoubleSidedGIField();
+//            }
+//
+//            if ((m_Features & Features.EmissionGI) != 0)
+//                DrawEmissionGI();
+//
+//            if ((m_Features & Features.MotionVector) != 0)
+//                DrawMotionVectorToggle();
+//
+//            if ((m_Features & Features.ShadowMatte) != 0 && materials[0].HasProperty(kShadowMatteFilter))
+//                DrawShadowMatteToggle();
         }
 
         void PropertiesDefaultGUI(MaterialProperty[] properties)
@@ -142,82 +144,82 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void DrawEmissionGI()
-        {
-            EmissionUIBlock.BakedEmissionEnabledProperty(materialEditor);
-        }
-
-        // Track additional velocity state. See SG-ADDITIONALVELOCITY-NOTE
-        bool m_AddPrecomputedVelocity = false;
-
-        void DrawMotionVectorToggle()
-        {
-            // I absolutely don't know what this is meant to do
-            const string materialTag = "MotionVector";
-            foreach (var material in materials)
-            {
-                string tag = material.GetTag(materialTag, false, "Nothing");
-                if (tag == "Nothing")
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
-                    material.SetOverrideTag(materialTag, "User");
-                }
-            }
-
-            // If using multi-select, apply toggled material to all materials.
-            bool enabled = materials[0].GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
-            EditorGUI.BeginChangeCheck();
-            enabled = EditorGUILayout.Toggle("Motion Vector For Vertex Animation", enabled);
-
-            // SG-ADDITIONALVELOCITY-NOTE:
-            // We would like to automatically enable the motion vector pass (handled on material UI side)
-            // in case we add precomputed velocity in a graph. Due to serialization of material, changing
-            // a value in between shadergraph compilations would have no effect on a material, so we instead
-            // inform the motion vector UI via the existence of the property at all and query against that.
-            bool hasPrecomputedVelocity = materials[0].HasProperty(kAddPrecomputedVelocity);
-            if (m_AddPrecomputedVelocity != hasPrecomputedVelocity)
-            {
-                enabled |= hasPrecomputedVelocity;
-                m_AddPrecomputedVelocity = hasPrecomputedVelocity;
-                GUI.changed = true;
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var material in materials)
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
-                }
-            }
-        }
-
-        void DrawShadowMatteToggle()
-        {
-            uint exponent = 0b10000000; // 0 as exponent
-            uint mantissa = 0x007FFFFF;
-
-            float value = materials[0].GetFloat(HDMaterialProperties.kShadowMatteFilter);
-            uint uValue = HDShadowUtils.Asuint(value);
-            uint filter = uValue & mantissa;
-
-            bool shadowFilterPoint  = (filter & (uint)LightFeatureFlags.Punctual)       != 0;
-            bool shadowFilterDir    = (filter & (uint)LightFeatureFlags.Directional)    != 0;
-            bool shadowFilterRect   = (filter & (uint)LightFeatureFlags.Area)           != 0;
-            uint finalFlag = 0x00000000;
-            finalFlag |= EditorGUILayout.Toggle("Point/Spot Shadow",    shadowFilterPoint) ? (uint)LightFeatureFlags.Punctual    : 0x00000000u;
-            finalFlag |= EditorGUILayout.Toggle("Directional Shadow",   shadowFilterDir)   ? (uint)LightFeatureFlags.Directional : 0x00000000u;
-            finalFlag |= EditorGUILayout.Toggle("Area Shadow",          shadowFilterRect)  ? (uint)LightFeatureFlags.Area        : 0x00000000u;
-            finalFlag &= mantissa;
-            finalFlag |= exponent;
-
-            materials[0].SetFloat(HDMaterialProperties.kShadowMatteFilter, HDShadowUtils.Asfloat(finalFlag));
-        }
-
-        void DrawDiffusionProfileUI()
-        {
-            if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
-                DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset"), FindProperty("_DiffusionProfileHash"));
-        }
+//        void DrawEmissionGI()
+//        {
+//            EmissionUIBlock.BakedEmissionEnabledProperty(materialEditor);
+//        }
+//
+//        // Track additional velocity state. See SG-ADDITIONALVELOCITY-NOTE
+//        bool m_AddPrecomputedVelocity = false;
+//
+//        void DrawMotionVectorToggle()
+//        {
+//            // I absolutely don't know what this is meant to do
+//            const string materialTag = "MotionVector";
+//            foreach (var material in materials)
+//            {
+//                string tag = material.GetTag(materialTag, false, "Nothing");
+//                if (tag == "Nothing")
+//                {
+//                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
+//                    material.SetOverrideTag(materialTag, "User");
+//                }
+//            }
+//
+//            // If using multi-select, apply toggled material to all materials.
+//            bool enabled = materials[0].GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
+//            EditorGUI.BeginChangeCheck();
+//            enabled = EditorGUILayout.Toggle("Motion Vector For Vertex Animation", enabled);
+//
+//            // SG-ADDITIONALVELOCITY-NOTE:
+//            // We would like to automatically enable the motion vector pass (handled on material UI side)
+//            // in case we add precomputed velocity in a graph. Due to serialization of material, changing
+//            // a value in between shadergraph compilations would have no effect on a material, so we instead
+//            // inform the motion vector UI via the existence of the property at all and query against that.
+//            bool hasPrecomputedVelocity = materials[0].HasProperty(kAddPrecomputedVelocity);
+//            if (m_AddPrecomputedVelocity != hasPrecomputedVelocity)
+//            {
+//                enabled |= hasPrecomputedVelocity;
+//                m_AddPrecomputedVelocity = hasPrecomputedVelocity;
+//                GUI.changed = true;
+//            }
+//
+//            if (EditorGUI.EndChangeCheck())
+//            {
+//                foreach (var material in materials)
+//                {
+//                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
+//                }
+//            }
+//        }
+//
+//        void DrawShadowMatteToggle()
+//        {
+//            uint exponent = 0b10000000; // 0 as exponent
+//            uint mantissa = 0x007FFFFF;
+//
+//            float value = materials[0].GetFloat(HDMaterialProperties.kShadowMatteFilter);
+//            uint uValue = HDShadowUtils.Asuint(value);
+//            uint filter = uValue & mantissa;
+//
+//            bool shadowFilterPoint  = (filter & (uint)LightFeatureFlags.Punctual)       != 0;
+//            bool shadowFilterDir    = (filter & (uint)LightFeatureFlags.Directional)    != 0;
+//            bool shadowFilterRect   = (filter & (uint)LightFeatureFlags.Area)           != 0;
+//            uint finalFlag = 0x00000000;
+//            finalFlag |= EditorGUILayout.Toggle("Point/Spot Shadow",    shadowFilterPoint) ? (uint)LightFeatureFlags.Punctual    : 0x00000000u;
+//            finalFlag |= EditorGUILayout.Toggle("Directional Shadow",   shadowFilterDir)   ? (uint)LightFeatureFlags.Directional : 0x00000000u;
+//            finalFlag |= EditorGUILayout.Toggle("Area Shadow",          shadowFilterRect)  ? (uint)LightFeatureFlags.Area        : 0x00000000u;
+//            finalFlag &= mantissa;
+//            finalFlag |= exponent;
+//
+//            materials[0].SetFloat(HDMaterialProperties.kShadowMatteFilter, HDShadowUtils.Asfloat(finalFlag));
+//        }
+//
+//        void DrawDiffusionProfileUI()
+//        {
+//            if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
+//                DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset"), FindProperty("_DiffusionProfileHash"));
+//        }
 
 // TODO: z
 //        void DrawEmissionGI()

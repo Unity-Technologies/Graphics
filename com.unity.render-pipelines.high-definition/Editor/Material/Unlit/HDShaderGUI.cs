@@ -51,7 +51,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public sealed override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        // TODO: y I removed the seal on this, is that right?
+        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline))
             {
@@ -80,7 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     throw new ArgumentException("Unknown SurfaceType");
             }
 
-            // Decal doesn't have properties to compute the render queue 
+            // Decal doesn't have properties to compute the render queue
             if (material.HasProperty(kTransparentSortPriority) && material.HasProperty(kAlphaCutoffEnabled))
             {
                 float sortingPriority = material.GetFloat(kTransparentSortPriority);

@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { UniversalPasses.Meta },
                 { UniversalPasses._2D },
             },
-            customEditorOverride = "ShaderGraph.PBRMasterGUI"
+            customEditorOverride = "ShaderGraph.BaseShaderGraphGUI"
         };
 
         public static SubShaderDescriptor DOTSPBR
@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 depthOnly.pragmas = UniversalPragmas.DOTSInstanced;
                 meta.pragmas = UniversalPragmas.DOTSDefault;
                 _2d.pragmas = UniversalPragmas.DOTSDefault;
-                
+
                 return new SubShaderDescriptor()
                 {
                     pipelineTag = kPipelineTag,
@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
             }
         }
-        
+
         public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
         {
             pipelineTag = kPipelineTag,
@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 unlit.pragmas = UniversalPragmas.DOTSForward;
                 shadowCaster.pragmas = UniversalPragmas.DOTSInstanced;
                 depthOnly.pragmas = UniversalPragmas.DOTSInstanced;
-                
+
                 return new SubShaderDescriptor()
                 {
                     pipelineTag = kPipelineTag,

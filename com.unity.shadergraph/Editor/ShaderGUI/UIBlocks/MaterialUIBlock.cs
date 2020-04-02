@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
     {
         protected MaterialEditor        materialEditor;
         protected Material[]            materials;
-        protected MaterialProperty[]    properties;
+        public MaterialProperty[]    properties; // TODO: z: public because HDUnlitGUI wanted it...
 
         protected MaterialUIBlockList   parent;
 
