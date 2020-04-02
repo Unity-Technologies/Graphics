@@ -181,6 +181,37 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
+        internal static void Blit(CommandBuffer cmd,
+            RenderTargetIdentifier source,
+            RenderTargetIdentifier destination,
+            Material material,
+            int passIndex = 0,
+            MaterialPropertyBlock materialProperty = null,
+            bool useDrawProcedureBlit = false,
+            RenderBufferLoadAction colorLoadAction = RenderBufferLoadAction.Load,
+            RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store,
+            RenderBufferLoadAction depthLoadAction = RenderBufferLoadAction.Load,
+            RenderBufferStoreAction depthStoreAction = RenderBufferStoreAction.Store
+        )
+        {
+            cmd.SetGlobalTexture(ShaderPropertyId.blitTex, source);
+            if (useDrawProcedureBlit)
+            {
+                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
+                Vector4 scaleBiasRT = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(ShaderPropertyId.blitScaleBias, scaleBias);
+                cmd.SetGlobalVector(ShaderPropertyId.blitScaleBiasRt, scaleBiasRT);
+                cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
+                    colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
+                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, materialProperty);
+            }
+            else
+            {
+                cmd.SetRenderTarget(destination, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
+                cmd.Blit(source, BuiltinRenderTextureType.CurrentActive, material, passIndex);
+            }
+        }
+
         // This is used to render materials that contain built-in shader passes not compatible with URP. 
         // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]

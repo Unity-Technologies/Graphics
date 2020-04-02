@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return requiresSRGBConversion && m_EnableSRGBConversionIfNeeded;
         }
 
-        internal void PostFXBlit(CommandBuffer cmd,
+        private void PostFXBlit(CommandBuffer cmd,
             RenderTargetIdentifier source,
             RenderTargetIdentifier destination,
             RenderBufferLoadAction colorLoadAction,
@@ -251,12 +251,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             MaterialPropertyBlock materialProperty,
             int passIndex = 0)
         {
-            cmd.SetGlobalTexture(ShaderConstants._BlitTex, source);
+            cmd.SetGlobalTexture(ShaderPropertyId.blitTex, source);
             if (useDrawProcedureBlit)
             {
                 cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
                     colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
-                cmd.SetGlobalTexture(ShaderConstants._BlitTex, source);
                 Vector4 scaleBias = new Vector4(1, 1, 0, 0);
                 Vector4 scaleBiasRT = new Vector4(1, 1, 0, 0);
                 materialProperty.SetVector(ShaderPropertyId.blitScaleBias, scaleBias);
@@ -270,23 +269,22 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        internal void PostFXCmdBlit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool useDrawProcedureBlit, Material material, int passIndex = 0)
+        private void PostFXCmdBlit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool useDrawProcedureBlit, Material material, int passIndex = 0)
         {
-            cmd.SetGlobalTexture(ShaderConstants._BlitTex, source);
+            cmd.SetGlobalTexture(ShaderPropertyId.blitTex, source);
             if (useDrawProcedureBlit)
             {
                 cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
                     RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
-                cmd.SetGlobalTexture(ShaderConstants._BlitTex, source);
                 cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
             }
             else
             {
                 cmd.Blit(source, destination, material, passIndex);
             }
-}
+        }
 
-        internal void PostFXDrawFullscreenMesh(CommandBuffer cmd, bool useDrawProcedureBlit, Material material, int passIndex)
+        private void PostFXDrawFullscreenMesh(CommandBuffer cmd, bool useDrawProcedureBlit, Material material, int passIndex)
         {
             if (useDrawProcedureBlit)
                 cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
@@ -421,7 +419,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
                 // Done with Uber, blit it
-                cmd.SetGlobalTexture(ShaderConstants._BlitTex, GetSource());
+                cmd.SetGlobalTexture(ShaderPropertyId.blitTex, GetSource());
 
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
                 if (m_Destination == RenderTargetHandle.CameraTarget && !cameraData.isDefaultViewport)
@@ -463,7 +461,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // in the pipeline to avoid this extra blit.
                     if (!finishPostProcessOnScreen)
                     {
-                        cmd.SetGlobalTexture("_BlitTex", cameraTarget);
+                        cmd.SetGlobalTexture(ShaderPropertyId.blitTex, cameraTarget);
                         cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source.id, 0, CubemapFace.Unknown, -1),
                             colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                        
@@ -491,7 +489,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // in the pipeline to avoid this extra blit.
                     if (!finishPostProcessOnScreen)
                     {
-                        cmd.SetGlobalTexture("_BlitTex", cameraTarget);
+                        cmd.SetGlobalTexture(ShaderPropertyId.blitTex, cameraTarget);
                         cmd.SetRenderTarget(m_Source.id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     }
@@ -1201,7 +1199,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (RequireSRGBConversionBlitToBackBuffer(cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-            cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
+            cmd.SetGlobalTexture(ShaderPropertyId.blitTex, m_Source.Identifier());
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
@@ -1346,7 +1344,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
 
             public static readonly int _FullscreenProjMat  = Shader.PropertyToID("_FullscreenProjMat");
-            public static readonly int _BlitTex = Shader.PropertyToID("_BlitTex");
 
             public static int[] _BloomMipUp;
             public static int[] _BloomMipDown;
