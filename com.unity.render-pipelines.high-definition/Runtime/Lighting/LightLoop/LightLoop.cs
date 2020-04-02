@@ -691,7 +691,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_ShadowInitParameters = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             m_ShadowManager = HDShadowManager.instance;
-            HDShadowManager.instance.initParams = m_ShadowInitParameters;
             m_ShadowManager.InitShadowManager(
                 defaultResources,
                 m_ShadowInitParameters.directionalShadowsDepthBits,
@@ -2457,8 +2456,9 @@ namespace UnityEngine.Rendering.HighDefinition
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
 
-            m_ShadowManager.m_TMP_TEST.AssignOffsetsInAtlas(m_ShadowInitParameters);
-            m_ShadowManager.m_TMP_TEST.DebugPrintAtlas();
+            HDShadowManager.cachedShadowManager.AssignSlotsInAtlases(m_ShadowInitParameters);
+            HDShadowManager.cachedShadowManager.DebugPrintPunctualLightAtlas();
+
         //    m_ShadowManager.m_TMP_TEST.DebugPrintAtlas();
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU)))
@@ -3935,6 +3935,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         case ShadowMapDebugMode.VisualizePunctualLightAtlas:
                             parameters.shadowManager.DisplayShadowAtlas(atlasTextures.punctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            break;
+                        case ShadowMapDebugMode.VisualizeCachedPunctualLightAtlas:
+                            parameters.shadowManager.DisplayCachedShadowAtlas(atlasTextures.cachedPunctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                             HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                             break;
                         case ShadowMapDebugMode.VisualizeDirectionalLightAtlas:

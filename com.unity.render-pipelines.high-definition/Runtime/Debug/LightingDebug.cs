@@ -146,6 +146,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VisualizeDirectionalLightAtlas,
         /// <summary>Display area lights shadow atlas as an overlay.</summary>
         VisualizeAreaLightAtlas,
+        /// <summary>Display punctual lights cached shadow atlas as an overlay.</summary>
+        VisualizeCachedPunctualLightAtlas,
         /// <summary>Display a single light shadow map as an overlay.</summary>
         VisualizeShadowMap,
         /// <summary>Replace rendering with a black and white view of the shadow of a single light in the scene.</summary>

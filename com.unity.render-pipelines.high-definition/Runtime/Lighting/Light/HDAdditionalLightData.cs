@@ -1327,6 +1327,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShadowUpdateMode == value)
                     return;
 
+                // TODO_FCC: MAKE SURE WE END UP WITH THE CORRECT STATE HERE
+                if (m_ShadowUpdateMode != ShadowUpdateMode.EveryFrame && value == ShadowUpdateMode.EveryFrame)
+                {
+                    if(!mantainCacheShadowSlotUnlessDestroyed)
+                    {
+                        HDShadowManager.cachedShadowManager.EvictLight(this);
+                    }
+                }
+
+
                 m_ShadowUpdateMode = value;
             }
         }
@@ -1445,8 +1455,11 @@ namespace UnityEngine.Rendering.HighDefinition
         bool                m_ShadowMapRenderedSinceLastRequest = false;
 
 
-        // Data for cached shadow maps TODO_FCC: Rename
-        internal int m_LightIdxForCacheSystem = -1; 
+        // Data for cached shadow maps TODO_FCC: Rename and CONSIDER WELL
+        [System.NonSerialized]
+        internal int lightIdxForCachedShadows = -1;
+
+        public bool mantainCacheShadowSlotUnlessDestroyed = false; // MOVE TO A BETTER API
 
         // Data for cached shadow maps.
         Vector2             m_CachedShadowResolution = new Vector2(0,0);
@@ -1560,12 +1573,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDestroy()
         {
-            HDShadowManager.instance.m_TMP_TEST.EvictLight(this);
+            if(name.Contains("PL"))
+                Debug.Log("DESTROYING : " + name);
+
+            HDShadowManager.cachedShadowManager.EvictLight(this);
         }
 
         void OnDisable()
         {
-            HDShadowManager.instance.m_TMP_TEST.EvictLight(this);
+            if (name.Contains("PL"))
+                Debug.Log("DISABLING : " + name);
+
+            if (!mantainCacheShadowSlotUnlessDestroyed)
+            {
+                HDShadowManager.cachedShadowManager.EvictLight(this);
+            }
+
             SetEmissiveMeshRendererEnabled(false);
         }
 
@@ -1818,7 +1841,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Matrix4x4   invViewProjection = Matrix4x4.identity;
                 int         shadowRequestIndex = m_ShadowRequestIndices[index];
 
-                HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, shadowRequestIndex);
+                HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowRequestIndex);
 
                 if (resolutionRequest == null)
                     continue;
@@ -2269,15 +2292,17 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UpdateBounds();
 
+            // TODO_FCC: THIS NEEDS FIXING! But is a bit confusing as it is called super often. LOOK INTO THIS!
+
             // TODO: VERIFY THIS TODO_FCC
-            bool wentThroughCachedShadowSystem = m_LightIdxForCacheSystem >= 0;
-            if(wentThroughCachedShadowSystem)
-                HDShadowManager.instance.m_TMP_TEST.EvictLight(this);
+            bool wentThroughCachedShadowSystem = lightIdxForCachedShadows >= 0;
+            if (wentThroughCachedShadowSystem)
+                HDShadowManager.cachedShadowManager.EvictLight(this);
 
             if (/*wentThroughCachedShadowSystem &&*/ shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
             {
-                if(enabled)
-                    HDShadowManager.instance.m_TMP_TEST.RegisterLight(this);
+                if (enabled)
+                    HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
 
             m_ShadowMapRenderedSinceLastRequest = false;

@@ -182,14 +182,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
-            if(shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
+            if (name.Contains("PL"))
+                Debug.Log("ONENABLING : " + name);
+
+            if (shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
             {
-                // TODO: TEMPORARILY THIS IS ONLY PUNCTUAL LIGHT. TODO TEMP.
-                if (type == HDLightType.Point)
-                {
-                    var cachedAtlas = HDShadowManager.instance.m_TMP_TEST;
-                    cachedAtlas.RegisterLight(this);
-                }
+                HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
 
             if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
