@@ -86,8 +86,13 @@ public class EditorPerformanceTests
     protected void ClearShaderCache()
     {
         // Didn't found any public / internal C# API to clear the shader cache so ...
-        try {
+        try
+        {
             Directory.Delete("Library/ShaderCache", true);
-        } catch {}
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
     }
 }

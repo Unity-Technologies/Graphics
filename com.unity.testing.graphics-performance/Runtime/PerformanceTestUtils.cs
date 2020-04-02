@@ -3,20 +3,51 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using Unity.PerformanceTesting;
+using UnityEngine.Experimental.Rendering;
 
 public static class PerformanceTestUtils
 {
     public static TestSceneAsset testScenesAsset = PerformanceTestSettings.GetTestSceneDescriptionAsset();
 
-    public static IEnumerator SetupTest(string sceneName, RenderPipelineAsset hdAsset)
+    public static IEnumerator LoadScene(string sceneName, RenderPipelineAsset hdAsset)
     {
         if (GraphicsSettings.renderPipelineAsset != hdAsset)
             GraphicsSettings.renderPipelineAsset = hdAsset;
 
         SceneManager.LoadScene(sceneName);
 
-        // Wait one frame for the scene to finish loading:
+        // Wait one frame so the scene finish to load.
         yield return null;
+    }
+
+    public static PerformanceTestSceneSettings SetupTestScene()
+    {
+        var sceneSettings = GameObject.FindObjectOfType<PerformanceTestSceneSettings>();
+        var camera = sceneSettings?.GetComponent<Camera>() ?? GameObject.FindObjectOfType<Camera>();
+
+        if (sceneSettings != null)
+        {
+            RenderTexture tmpCameraRT = new RenderTexture(sceneSettings.cameraWidth, sceneSettings.cameraHeight, 32, (GraphicsFormat)sceneSettings.colorBufferFormat);
+            camera.targetTexture = tmpCameraRT;
+            sceneSettings.testCamera = camera;
+        }
+        else
+        {
+            throw new System.Exception($"No camera test settings detected in the test scene {SceneManager.GetActiveScene().name}. Failed to setup the test camera.");
+        }
+
+        return sceneSettings;
+    }
+
+    public static void CleanupTestSceneIfNeeded()
+    {
+        var settings = GameObject.FindObjectOfType<PerformanceTestSceneSettings>();
+
+        if (settings == null || settings.testCamera == null)
+            return;
+
+        settings.testCamera.targetTexture = null;
+        CoreUtils.Destroy(settings.testCamera.targetTexture);
     }
 
     // Counter example: 0001_LitCube:Small,Memory:Default,RenderTexture

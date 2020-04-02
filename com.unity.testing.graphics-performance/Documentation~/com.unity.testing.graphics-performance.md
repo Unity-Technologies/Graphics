@@ -127,7 +127,10 @@ public class MyRuntimePerformanceTests : PerformanceTests
     public IEnumerator Counters([ValueSource(nameof(GetCounterTests))] CounterTestDescription testDescription)
     {
         // This function will load the scene and assign the SRP asset in parameter.
-        yield return SetupTest(testDescription.sceneData.scene, testDescription.assetData.asset);
+        LoadScene(testDescription.sceneData.scene, testDescription.assetData.asset);
+        // This function setup the camera based on the settings you have in your PerformanceTestSettings MonoBehavior.
+        // It also returns the PerformanceTestSettings MonoBehavior so you can setup additional things.
+        var sceneSettings = SetupTestScene();
 
         // Here you load objects from the scene like the camera if you want to setup the camera rendering resolution for example.
         var camera = GameObject.FindObjectOfType<Camera>();

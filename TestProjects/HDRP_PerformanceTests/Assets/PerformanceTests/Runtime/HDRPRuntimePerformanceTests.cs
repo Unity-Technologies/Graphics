@@ -12,9 +12,7 @@ using Unity.PerformanceTesting;
 public class HDRPRuntimePerformanceTests : PerformanceTests
 {
     const int WarmupCount = 20;
-    const int MeasurementCount = 30;  // Number of frames to measure
     const int GlobalTimeout = 120 * 1000;       // 2 min
-    const int minMemoryReportSize = 128 * 1024; // in bytes
 
     static IEnumerable<CounterTestDescription> GetCounterTests()
     {
@@ -34,12 +32,12 @@ public class HDRPRuntimePerformanceTests : PerformanceTests
     [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Counters([ValueSource(nameof(GetCounterTests))] CounterTestDescription testDescription)
     {
-        yield return SetupTest(testDescription.sceneData.scene, testDescription.assetData.asset);
+        yield return LoadScene(testDescription.sceneData.scene, testDescription.assetData.asset);
+        var sceneSettings = SetupTestScene();
 
-        var camera = GameObject.FindObjectOfType<Camera>();
-        var hdCamera = HDCamera.GetOrCreate(camera, 0); // We don't support XR for now
+        var hdCamera = HDCamera.GetOrCreate(sceneSettings.testCamera, 0); // We don't support XR for now
 
-        yield return MeasureProfilingSamplers(GetAllMarkers(hdCamera), WarmupCount, MeasurementCount);
+        yield return MeasureProfilingSamplers(GetAllMarkers(hdCamera), WarmupCount, sceneSettings.measurementCount);
     }
 
     static IEnumerable<MemoryTestDescription> GetMemoryTests()
@@ -54,6 +52,6 @@ public class HDRPRuntimePerformanceTests : PerformanceTests
     [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Memory([ValueSource(nameof(GetMemoryTests))] MemoryTestDescription testDescription)
     {
-        yield return ReportMemoryUsage(testDescription, minMemoryReportSize);
+        yield return ReportMemoryUsage(testDescription);
     }
 }

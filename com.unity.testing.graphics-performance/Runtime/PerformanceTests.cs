@@ -36,6 +36,10 @@ public class PerformanceTests : IPrebuildSetup
 #endif
     }
 
+    // Auto cleanup when the test exits
+    [TearDown]
+    public void TearDown() => CleanupTestSceneIfNeeded();
+
     protected IEnumerator MeasureProfilingSamplers(IEnumerable<ProfilingSampler> samplers, int warmupFramesCount = 20, int measureFrameCount = 30)
     {
         // Enable all the markers
@@ -93,9 +97,10 @@ public class PerformanceTests : IPrebuildSetup
         yield return typeof(ComputeShader);
     }
 
-    protected IEnumerator ReportMemoryUsage(MemoryTestDescription testDescription, int minMemoryReportSize)
+    protected IEnumerator ReportMemoryUsage(MemoryTestDescription testDescription)
     {
-        yield return SetupTest(testDescription.sceneData.scene, testDescription.assetData.asset);
+        yield return LoadScene(testDescription.sceneData.scene, testDescription.assetData.asset);
+        var sceneSettings = SetupTestScene();
 
         long totalMemory = 0;
         var data = Resources.FindObjectsOfTypeAll(testDescription.assetType);
@@ -108,7 +113,7 @@ public class PerformanceTests : IPrebuildSetup
             long currSize = Profiler.GetRuntimeMemorySizeLong(item);
 
             // There are too many items here so we only keep the one that have a minimun of weight
-            if (currSize > minMemoryReportSize)
+            if (currSize > sceneSettings.minObjectSize)
                 results.Add((name, currSize));
 
             totalMemory += currSize;
