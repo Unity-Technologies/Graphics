@@ -484,6 +484,7 @@ namespace UnityEngine.Rendering.Universal
             gbufferAttachmentDescriptors[1] = new AttachmentDescriptor(GBufferPass.kGBufferFormats[1]);
             gbufferAttachmentDescriptors[2] = new AttachmentDescriptor(GBufferPass.kGBufferFormats[2]);
 
+            gbufferAttachmentDescriptors[3] = new AttachmentDescriptor(renderingData.cameraData.cameraTargetDescriptor.graphicsFormat);
             gbufferAttachmentDescriptors[3].ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), false, true);
 
 #if UNITY_IOS && !UNITY_EDITOR
