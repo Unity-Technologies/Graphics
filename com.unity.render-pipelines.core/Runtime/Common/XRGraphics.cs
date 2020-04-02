@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Stereo Rendering Modes.
         /// </summary>
-        [Obsolete]
         public enum StereoRenderingMode
         {
             /// <summary>Multi Pass.</summary>
@@ -33,7 +32,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Eye texture resolution scale.
         /// </summary>
-        [Obsolete]
         public static float eyeTextureResolutionScale
         {
             get
@@ -56,7 +54,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Render viewport scale.
         /// </summary>
-        [Obsolete]
         public static float renderViewportScale
         {
             get
@@ -72,7 +69,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Try enable.
         /// </summary>
-        [Obsolete]
 #if UNITY_EDITOR
         // TryEnable gets updated before "play" is pressed- we use this for updating GUI only.
         public static bool tryEnable
@@ -91,7 +87,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// SRP should use this to safely determine whether XR is enabled at runtime.
         /// </summary>
-        [Obsolete]
         public static bool enabled
         {
             get
@@ -107,7 +102,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Returns true if the XR device is active.
         /// </summary>
-        [Obsolete]
         public static bool isDeviceActive
         {
             get
@@ -123,7 +117,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Name of the loaded XR device.
         /// </summary>
-        [Obsolete]
         public static string loadedDeviceName
         {
             get
@@ -139,7 +132,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// List of supported XR devices.
         /// </summary>
-        [Obsolete]
         public static string[] supportedDevices
         {
             get
@@ -155,7 +147,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Stereo rendering mode.
         /// </summary>
-        [Obsolete]
         public static StereoRenderingMode stereoRenderingMode
         {
             get
@@ -172,7 +163,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Eye texture descriptor.
         /// </summary>
-        [Obsolete]
         public static RenderTextureDescriptor eyeTextureDesc
         {
             get
@@ -188,7 +178,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Eye texture width.
         /// </summary>
-        [Obsolete]
         public static int eyeTextureWidth
         {
             get
@@ -204,7 +193,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Eye texture height.
         /// </summary>
-        [Obsolete]
         public static int eyeTextureHeight
         {
             get
