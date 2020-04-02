@@ -391,7 +391,7 @@ namespace UnityEditor.VFX
                 {
                     m_Data.OnContextRemoved(this);
                     if (m_Data.owners.Count() == 0)
-                        m_Data.Detach();
+                        m_Data.Detach(notify);
                 }
                 OnDataChanges(m_Data, data);
                 m_Data = data;
