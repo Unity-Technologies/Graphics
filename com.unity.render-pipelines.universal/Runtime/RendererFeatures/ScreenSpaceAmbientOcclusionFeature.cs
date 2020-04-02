@@ -302,7 +302,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         }
 
         /// <inheritdoc/>
-        public override void FrameCleanup(CommandBuffer cmd)
+        public override void OnCameraCleanup(CommandBuffer cmd)
         {
             if (cmd == null)
             {
