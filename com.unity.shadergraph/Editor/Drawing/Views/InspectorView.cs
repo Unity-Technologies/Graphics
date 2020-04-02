@@ -20,8 +20,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PreviewManager = previewManager;
 
             // Styles
-            style.width = 270;
-            style.height = 400;
+            style.width = 400;
+            style.height = 800;
             style.position = Position.Absolute;
             style.right = 0;
             style.top = 0;

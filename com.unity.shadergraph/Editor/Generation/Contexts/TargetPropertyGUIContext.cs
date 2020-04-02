@@ -25,16 +25,36 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, bool condition, EventCallback<ChangeEvent<T>> evt)
+        {
+            if(condition == true)
+            {
+                AddProperty<T>(label, indentLevel, field, evt);
+            }
+        }
+
         public void AddProperty<T>(string label, BaseField<T> field, EventCallback<ChangeEvent<T>> evt)
+        {
+            AddProperty<T>(label, 0, field, evt);
+        }
+
+        public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt)
         {
             if(field is INotifyValueChanged<T> notifyValueChanged)
             {
                 notifyValueChanged.RegisterValueChangedCallback(evt);
             }
 
-            var propertyRow = new PropertyRow(new Label(label));
+            string labelText = "";
+            for (var i = 0; i < indentLevel; i++)
+            {
+                labelText += "    ";
+            }
+            labelText += label;
+
+            var propertyRow = new PropertyRow(new Label(labelText));
             propertyRow.Add(field);
             properties.Add(propertyRow);
-        }
+        }        
     }
 }
