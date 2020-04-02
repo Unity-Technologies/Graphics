@@ -352,6 +352,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 var currCamera = cameraStack[i];
 
+                // XRTODO: Enable the following warning message if multipass is on. We need to add stereo mode to URP asset pipeline so we can query stereo mode here.
+                // if (multipass)
+                //      Debug.LogWarning("Multi pass stereo mode doesn't support Camera Stacking. Overlay cameras will skip rendering.");
+
                 if (!currCamera.isActiveAndEnabled)
                     continue;
 
