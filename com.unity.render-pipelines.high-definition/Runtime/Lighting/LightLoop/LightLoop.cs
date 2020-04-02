@@ -2457,7 +2457,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
 
             HDShadowManager.cachedShadowManager.AssignSlotsInAtlases(m_ShadowInitParameters);
-            HDShadowManager.cachedShadowManager.DebugPrintPunctualLightAtlas();
+         //   HDShadowManager.cachedShadowManager.DebugPrintPunctualLightAtlas();
 
         //    m_ShadowManager.m_TMP_TEST.DebugPrintAtlas();
 

@@ -1462,7 +1462,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool mantainCacheShadowSlotUnlessDestroyed = false; // MOVE TO A BETTER API
 
         // Data for cached shadow maps.
-        Vector2             m_CachedShadowResolution = new Vector2(0,0);
         Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
 
         int[]               m_CachedResolutionRequestIndices = new int[6];
@@ -1729,17 +1728,9 @@ namespace UnityEngine.Rendering.HighDefinition
             viewPortRescaling |= (shadowMapType == ShadowMapType.PunctualAtlas && initParameters.punctualLightShadowAtlas.useDynamicViewportRescale);
             viewPortRescaling |= (shadowMapType == ShadowMapType.AreaLightAtlas && initParameters.areaLightShadowAtlas.useDynamicViewportRescale);
 
-            bool shadowsAreCached = !ShouldRenderShadows();
-            if (shadowsAreCached)
-            {
-                viewportSize = m_CachedShadowResolution;
-            }
-            else
-            {
-                m_CachedShadowResolution = viewportSize;
-            }
+            bool shadowIsInCacheSystem = !ShadowIsUpdatedEveryFrame();
 
-            if (viewPortRescaling && !shadowsAreCached)
+            if (viewPortRescaling && !shadowIsInCacheSystem)
             {
                 // resize viewport size by the normalized size of the light on screen
                 float screenArea = screenRect.width * screenRect.height;
@@ -1758,11 +1749,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, shadowSettings.cascadeShadowSplitCount.value);
 
             int count = GetShadowRequestCount(shadowSettings);
-            bool needsCachedSlotsInAtlas = shadowsAreCached && !(ShadowIsUpdatedEveryFrame() || type == HDLightType.Directional);
+
+
 
             for (int index = 0; index < count; index++)
             {
-                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(needsCachedSlotsInAtlas ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index);
+                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(shadowIsInCacheSystem ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, !shadowIsInCacheSystem);
             }
         }
 
@@ -1825,6 +1817,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3             cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
             shadowRequestCount = 0;
 
+            bool shadowIsInCachedSystem = !ShadowIsUpdatedEveryFrame();
+            bool shadowNeedsRendering = true;
+
             int count = GetShadowRequestCount(shadowSettings);
             bool shadowIsCached = !ShouldRenderShadows() && !lightingDebugSettings.clearShadowAtlas;
             bool isUpdatedEveryFrame = ShadowIsUpdatedEveryFrame();
@@ -1833,6 +1828,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool shouldUseRequestFromCachedList = shadowIsCached;
             bool cachedDataIsValid = shadowIsCached && false; // TODO_FCC: THIS IS FALSE WHILE REFACTORING. OF COURSE REMOVE THIS.
+
+            HDLightType lightType = type;
+            // TMP TODO
+            ShadowMapType shadowMapType = lightType == HDLightType.Area ? ShadowMapType.AreaLightAtlas : ShadowMapType.PunctualAtlas;
 
             for (int index = 0; index < count; index++)
             {
@@ -1843,16 +1842,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowRequestIndex);
 
+
+                int cachedShadowID = lightIdxForCachedShadows + index;
+                // TODO: HERE SHOULD INSTEAD MODIFY THE CACHED.
+                if (shadowIsInCachedSystem)
+                {
+                    HDShadowManager.cachedShadowManager.UpdateResolutionRequest(ref resolutionRequest, cachedShadowID, shadowMapType);
+                    // TODO_FCC: FIXUP DIR CASCADES! THE SHADOW MAP TYPE HERE IS OFF...ALSO SLOW.
+                    shadowNeedsRendering = HDShadowManager.cachedShadowManager.ShadowIsPendingUpdate(cachedShadowID, shadowMapType);
+                }
+
                 if (resolutionRequest == null)
                     continue;
 
                 Vector2 viewportSize = resolutionRequest.resolution;
-                HDLightType lightType = type;
 
                 if (shadowRequestIndex == -1)
                     continue;
 
-                if (shadowIsCached)
+                if (!shadowNeedsRendering)
                 {
                     shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPos;
                     shadowRequest.shouldUseCachedShadow = true;
@@ -1913,8 +1921,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
-                manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest);
-                shadowRequest.shouldUseCachedShadow = shadowRequest.shouldUseCachedShadow && cachedDataIsValid;
+                manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, shadowIsInCachedSystem);
+              //  shadowRequest.shouldUseCachedShadow = shadowRequest.shouldUseCachedShadow && cachedDataIsValid;
+
+                if(shadowIsCached && shadowNeedsRendering)
+                {
+                    // Handshake with the cached shadow manager to notify about the rendering.
+                    // Technically the rendering has not happened yet, but it is scheduled. 
+                    HDShadowManager.cachedShadowManager.MarkShadowAsRendered(cachedShadowID, shadowMapType);
+                }
 
                 // Store the first shadow request id to return it
                 if (firstShadowRequestIndex == -1)

@@ -5,7 +5,8 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    // TODO_FCC: List of optimizations.
+    // TODO_FCC: Big todos list:
+    // - Render graph :( 
 
         // TODO: IMPORTANT!! EXCLUDE CASCADE SHADOW MAPS FROM MOST OF THIS? OR NOT? 
 
@@ -38,8 +39,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_AtlasResolutionInSlots;       // Atlas Resolution / m_MinSlotSize
 
         private bool m_NeedOptimalPacking = true;
-
-        private ShadowMapType shadowMapType = ShadowMapType.PunctualAtlas;
 
         List<bool> m_AtlasSlots;
 
@@ -228,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void EvictLight(HDAdditionalLightData lightData)
         {
-            Debug.Assert(shadowMapType != ShadowMapType.CascadedDirectional);
+            Debug.Assert(lightData.type != HDLightType.Directional);
 
             CachedShadowRecord recordToRemove;
             bool valueFound = m_PlacedShadows.TryGetValue(lightData.lightIdxForCachedShadows, out recordToRemove);
@@ -240,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (valueFound)
             {
-                int numberOfShadows = (shadowMapType == ShadowMapType.PunctualAtlas) ? 6 : 1;
+                int numberOfShadows = (lightData.type == HDLightType.Point) ? 6 : 1;
 
                 int lightIdx = lightData.lightIdxForCachedShadows;
 
@@ -307,28 +306,23 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (var currentLightData in m_RegisteredLightDataPendingPlacement)
             {
                // var resolution = currentLightData.shadowre
-                int resolution;
-               
-                switch (shadowMapType)
-                {
-                    case ShadowMapType.CascadedDirectional:
-                        resolution = Math.Min(currentLightData.shadowResolution.Value(initParameters.shadowResolutionDirectional), initParameters.maxDirectionalShadowMapResolution);
-                        break;
-                    case ShadowMapType.PunctualAtlas:
-                        resolution = Math.Min(currentLightData.shadowResolution.Value(initParameters.shadowResolutionPunctual), initParameters.maxPunctualShadowMapResolution);
-                        break;
-                    case ShadowMapType.AreaLightAtlas:
-                        resolution = Math.Min(currentLightData.shadowResolution.Value(initParameters.shadowResolutionArea), initParameters.maxAreaShadowMapResolution);
-                        break;
-                    default:
-                        resolution = 0;
-                        break;
-                }
+                int resolution = 0;
+
+                // TODO_FCC: This is slow (querying the type) should be passed over or stored maybe? But also this is done very seldom.
+                HDLightType lightType = currentLightData.type;
+
+                if(lightType == HDLightType.Point || lightType == HDLightType.Spot)
+                    resolution = Math.Min(currentLightData.shadowResolution.Value(initParameters.shadowResolutionPunctual), initParameters.maxPunctualShadowMapResolution);
+                else if(lightType == HDLightType.Area)
+                    resolution = Math.Min(currentLightData.shadowResolution.Value(initParameters.shadowResolutionArea), initParameters.maxAreaShadowMapResolution);
+                else if(lightType == HDLightType.Directional)
+                    resolution = Math.Min(currentLightData.shadowResolution.Value(initParameters.shadowResolutionDirectional), initParameters.maxDirectionalShadowMapResolution);
+
 
                 // TODO_FCC Handle this better of course.
-                Debug.Assert(shadowMapType != ShadowMapType.CascadedDirectional);
+                Debug.Assert(lightType != HDLightType.Directional);
 
-                int numberOfShadows = (shadowMapType == ShadowMapType.PunctualAtlas) ? 6 : 1;
+                int numberOfShadows = (lightType == HDLightType.Point) ? 6 : 1;
 
                 for (int i = 0; i<numberOfShadows; ++i)
                 {
@@ -361,12 +355,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (fit)
                 {
                     // Convert offset to atlas offset.
-                    record.offsetInAtlas = new Vector4(x * m_MinSlotSize / m_AtlasResolutionInSlots, y * m_MinSlotSize / m_AtlasResolutionInSlots, x, y);
+                    record.offsetInAtlas = new Vector4(x * m_MinSlotSize, y * m_MinSlotSize, x, y);
 
                     m_ShadowsPendingRendering.Add(record.shadowIndex, record);
                     m_PlacedShadows.Add(record.shadowIndex, record);
                 }
             }
+        }
+
+        internal void UpdateResolutionRequest(ref HDShadowResolutionRequest request, int shadowIdx)
+        {
+            CachedShadowRecord record;
+            bool valueFound = m_PlacedShadows.TryGetValue(shadowIdx, out record);
+
+            Debug.Assert(valueFound, "Trying to render a cached shadow map that doesn't have a slot in the atlas yet.");
+
+            request.atlasViewport = new Rect(record.offsetInAtlas.x, record.offsetInAtlas.y, record.viewportSize, record.viewportSize);
+            request.resolution = new Vector2(record.viewportSize, record.viewportSize);
         }
 
         // ------------------------------------------------------------------------------------------
@@ -397,7 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 // Number of shadows TODO_FCC: AGAIN, HANDLE DIRECTIONAL!
-                int numberOfShadows = (shadowMapType == ShadowMapType.PunctualAtlas) ? 6 : 1;
+                int numberOfShadows = (lightData.type == HDLightType.Point) ? 6 : 1;
                 for (int i = 0; i < numberOfShadows; ++i)
                 {
                     int shadowIdx = lightIdx + i;
@@ -418,6 +423,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Put the record up for rendering
             m_ShadowsPendingRendering.Add(shadowIdx, shadowRecord);
+        }
+
+
+        internal void MarkAsRendered(int shadowIdx)
+        {
+
+            ///// SUPER IMPORTANT TODO_FCC TODO !!!!!!!!! THIS WILL MAKE IT NOT CACHED, HERE TO TEST.
+            //return;
+
+            if(m_ShadowsPendingRendering.ContainsKey(shadowIdx))
+            {
+                m_ShadowsPendingRendering.Remove(shadowIdx);
+            }
         }
 
         // ------------------------------------------------------------------------------------------
