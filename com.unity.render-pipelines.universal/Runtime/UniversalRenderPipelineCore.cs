@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.Universal
         public List<Vector4> bias;
     }
 
-    public static class ShaderPropertyId
+    internal static class ShaderPropertyId
     {
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");

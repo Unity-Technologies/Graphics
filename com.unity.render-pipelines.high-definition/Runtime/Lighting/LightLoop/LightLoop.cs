@@ -6,6 +6,14 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     static class VisibleLightExtensionMethods
     {
+        public struct VisibleLightAxisAndPosition
+        {
+            public Vector3 Position;
+            public Vector3 Forward;
+            public Vector3 Up;
+            public Vector3 Right;
+        }
+
         public static Vector3 GetPosition(this VisibleLight value)
         {
             return value.localToWorldMatrix.GetColumn(3);
@@ -24,6 +32,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public static Vector3 GetRight(this VisibleLight value)
         {
             return value.localToWorldMatrix.GetColumn(0);
+        }
+
+        public static VisibleLightAxisAndPosition GetAxisAndPosition(this VisibleLight value)
+        {
+            var matrix = value.localToWorldMatrix;
+            VisibleLightAxisAndPosition output;
+            output.Position = matrix.GetColumn(3);
+            output.Forward  = matrix.GetColumn(2);
+            output.Up       = matrix.GetColumn(1);
+            output.Right    = matrix.GetColumn(0);
+            return output;
         }
     }
 
@@ -459,8 +478,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var viewMatrix = (hdCamera.xr.enabled ? hdCamera.xr.GetViewMatrix(viewIndex) : hdCamera.camera.worldToCameraMatrix);
 
-            // camera.worldToCameraMatrix is RHS and Unity's transforms are LHS, we need to flip it to work with transforms
-            return s_FlipMatrixLHSRHS * viewMatrix;
+            // camera.worldToCameraMatrix is RHS and Unity's transforms are LHS, we need to flip it to work with transforms.
+            // Note that this is equivalent to s_FlipMatrixLHSRHS * viewMatrix, but faster given that it doesn't need full matrix multiply
+            // However if for some reason s_FlipMatrixLHSRHS changes from Matrix4x4.Scale(new Vector3(1, 1, -1)), this need to change as well.
+            viewMatrix.m20 *= -1;
+            viewMatrix.m21 *= -1;
+            viewMatrix.m22 *= -1;
+            viewMatrix.m23 *= -1;
+
+            return viewMatrix;
         }
 
         // Keep track of the maximum number of XR instanced views
@@ -649,6 +675,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Used to shadow shadow maps with use selection enabled in the debug menu
         int m_DebugSelectedLightShadowIndex;
         int m_DebugSelectedLightShadowCount;
+
+        // Data needed for the PrepareGPULightdata
+        List<Matrix4x4> m_WorldToViewMatrices = new List<Matrix4x4>(ShaderConfig.s_XrMaxViews);
 
         static MaterialPropertyBlock m_LightLoopDebugMaterialProperties = new MaterialPropertyBlock();
 
@@ -930,6 +959,13 @@ namespace UnityEngine.Rendering.HighDefinition
             s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel("TileLightListGen");
 
             m_TextureCaches.NewFrame();
+
+            m_WorldToViewMatrices.Clear();
+            int viewCount = hdCamera.viewCount;
+            for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
+            {
+                m_WorldToViewMatrices.Add(GetWorldToViewMatrix(hdCamera, viewIndex));
+            }
         }
 
         bool LightLoopNeedResize(HDCamera hdCamera, TileAndClusterData tileAndClusterData)
@@ -1249,7 +1285,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal void GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, VisibleLight light, Light lightComponent,
-            int lightIndex, int shadowIndex, ref Vector3 lightDimensions, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot)
+            int lightIndex, int shadowIndex, BoolScalableSetting contactShadowsScalableSetting, ref Vector3 lightDimensions, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot)
         {
             var processedData = m_ProcessedLightData[lightIndex];
             var additionalLightData = processedData.additionalLightData;
@@ -1258,11 +1294,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var lightData = new LightData();
 
+            var visibleLightAxisAndPosition = light.GetAxisAndPosition();
+
             lightData.lightLayers = additionalLightData.GetLightLayers();
 
             lightData.lightType = gpuLightType;
 
-            lightData.positionRWS = light.GetPosition();
+            lightData.positionRWS = visibleLightAxisAndPosition.Position;
 
             bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
 
@@ -1300,9 +1338,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.color = GetLightColor(light);
 
-            lightData.forward = light.GetForward();
-            lightData.up = light.GetUp();
-            lightData.right = light.GetRight();
+            lightData.forward = visibleLightAxisAndPosition.Forward;
+            lightData.up = visibleLightAxisAndPosition.Up;
+            lightData.right = visibleLightAxisAndPosition.Right;
 
             lightDimensions.x = additionalLightData.shapeWidth;
             lightDimensions.y = additionalLightData.shapeHeight;
@@ -1430,7 +1468,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalLightData.shadowFadeDistance));
             lightData.shadowDimmer           = shadowDistanceFade * additionalLightData.shadowDimmer;
             lightData.volumetricShadowDimmer = shadowDistanceFade * additionalLightData.volumetricShadowDimmer;
-            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
+            GetContactShadowMask(additionalLightData, contactShadowsScalableSetting, hdCamera, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
 
             // We want to have a colored penumbra if the flag is on and the color is not gray
             bool penumbraTint = additionalLightData.penumbraTint && ((additionalLightData.shadowTint.r != additionalLightData.shadowTint.g) || (additionalLightData.shadowTint.g != additionalLightData.shadowTint.b));
@@ -1511,10 +1549,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 positionWS = lightData.positionRWS;
             Vector3 positionVS = worldToView.MultiplyPoint(positionWS);
 
-            Matrix4x4 lightToView = worldToView * lightToWorld;
-            Vector3 xAxisVS = lightToView.GetColumn(0);
-            Vector3 yAxisVS = lightToView.GetColumn(1);
-            Vector3 zAxisVS = lightToView.GetColumn(2);
+            Vector3 xAxisVS = worldToView.MultiplyVector(lightToWorld.GetColumn(0));
+            Vector3 yAxisVS = worldToView.MultiplyVector(lightToWorld.GetColumn(1));
+            Vector3 zAxisVS = worldToView.MultiplyVector(lightToWorld.GetColumn(2));
 
             // Fill bounds
             var bound = new SFiniteLightBound();
@@ -2028,7 +2065,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             processedData.additionalLightData = additionalLightData;
             processedData.lightType = additionalLightData.ComputeLightType(lightComponent);
-            processedData.distanceToCamera = (light.GetPosition() - hdCamera.camera.transform.position).magnitude;
+            processedData.distanceToCamera = (additionalLightData.transform.position - hdCamera.camera.transform.position).magnitude;
 
             // Evaluate the types that define the current light
             processedData.lightCategory = LightCategory.Count;
@@ -2165,6 +2202,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // The lightLoop is in charge, not the shadow pass.
             // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
 
+            BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset);
+
             // 2. Go through all lights, convert them to GPU format.
             // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
 
@@ -2228,7 +2267,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
 
                     // Punctual, area, projector lights - the rendering side.
-                    GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, lightIndex, shadowIndex, ref lightDimensions, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot);
+                    GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, lightIndex, shadowIndex, contactShadowScalableSetting, ref lightDimensions, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot);
 
                     switch (lightCategory)
                     {
@@ -2246,8 +2285,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Then culling side. Must be call in this order as we pass the created Light data to the function
                     for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                     {
-                        var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
-                        GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView, viewIndex);
+                        GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, m_WorldToViewMatrices[viewIndex], viewIndex);
                     }
 
                     // We make the light position camera-relative as late as possible in order

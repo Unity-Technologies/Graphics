@@ -95,10 +95,11 @@ android_apis:
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
   skip_checkout: true
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -122,10 +123,11 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     flavor: b1.xlarge
     type: Unity::VM
     image: sdet/gamecode_win10:stable
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -156,10 +158,11 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     {% endif %}
     image: {{ platform.image }}
     flavor: {{ platform.flavor }}
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -191,10 +194,11 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     type: {{ platform.type }}
     image: {{ platform.image }}
     flavor: {{ platform.flavor }}
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -220,10 +224,11 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
       image: buildfarm/mac:stable
       flavor: m1.mac
   skip_checkout: true
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -248,10 +253,11 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     type: Unity::VM::osx
     image: buildfarm/mac:stable
     flavor: m1.mac
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade 
@@ -288,10 +294,11 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     type: {{ platform.type }}
     image: {{ platform.image }}
     flavor: {{ platform.flavor }}
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
 
@@ -339,10 +346,11 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     {% endif %}
     image: {{ platform.image }}
     flavor: {{ platform.flavor }}
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - sudo -H pip install --upgrade pip
     - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -376,10 +384,11 @@ Build_{{ project.name }}_Android_{{ android_api.name }}_{{ editor.version }}:
     type: Unity::VM
     image: {{ platform.image }}
     flavor: {{ platform.flavor }}
-  {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-  {% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
@@ -409,10 +418,11 @@ Build_{{ project.name }}_Android_{{ android_api.name }}_{{ editor.version }}:
     type: {{ platform.type }}
     image: {{ platform.image }}
     flavor: {{ platform.flavor }}
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   skip_checkout: true
   commands:
     - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
