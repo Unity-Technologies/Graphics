@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.Universal
             var m_CameraColorDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
             m_CameraColorDescriptor.ConfigureTarget(m_CameraColorTexture.Identifier(), true, true);
             var m_CameraDepthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
-            m_CameraDepthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), true, false);
+            m_CameraDepthDescriptor.ConfigureTarget(requiresDepthPrepass ? m_CameraDepthTexture.Identifier() : m_CameraDepthAttachment.Identifier(), true, false);
 
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
                 m_ActiveCameraDepthAttachment.Identifier(), m_CameraColorDescriptor, m_CameraDepthDescriptor);
@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (requiresDepthPrepass)
             {
-                m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthAttachment);
+                m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthTexture);
                 EnqueuePass(m_DepthPrepass);
             }
 
@@ -391,7 +391,7 @@ namespace UnityEngine.Rendering.Universal
                     blitAttachment.ConfigureTarget((cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget, false, true);
                     m_FinalBlitPass.ConfigureTarget(blitAttachment);
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
-                    EnqueueRenderPass(m_FinalBlitPass, cameraTargetDescriptor);
+                    EnqueueRenderPass(m_FinalBlitPass, new RenderTextureDescriptor(cameraData.pixelWidth, cameraData.pixelHeight));
                 }
             }
 
@@ -492,7 +492,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             AttachmentDescriptor depthBufferAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
-            depthBufferAttachmentDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), false, true);
+            depthBufferAttachmentDescriptor.ConfigureTarget(hasDepthPrepass ? m_CameraDepthTexture.Identifier() : m_CameraDepthAttachment.Identifier(), hasDepthPrepass, true);
 
             if (!hasDepthPrepass)
                 depthBufferAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
