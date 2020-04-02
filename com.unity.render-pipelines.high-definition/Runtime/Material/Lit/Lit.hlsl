@@ -635,8 +635,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         // Pre-expose lighting buffer
         outGBuffer3 = float4(all(builtinData.emissiveColor == 0.0) ? builtinData.bakeDiffuseLighting : builtinData.emissiveColor * GetCurrentExposureMultiplier(), 0.0);
     }
-#endif
     else
+#endif
     {
         outGBuffer3 = float4(builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor, 0.0);
         // Pre-expose lighting buffer

@@ -456,6 +456,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // But in deferred ambientOcclusion is white so we should use specularOcclusion instead. It is the
         // same case than for Microshadow so we can reuse this function. It should not be apply in forward
         // as in this case the baked AO is correctly apply in PostBSDF()
+        // This is apply only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
         builtinData.bakeDiffuseLighting *= GetAmbientOcclusionForMicroShadowing(bsdfData);
         #endif
 
