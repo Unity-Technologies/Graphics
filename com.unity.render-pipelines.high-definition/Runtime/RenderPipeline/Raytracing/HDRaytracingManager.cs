@@ -68,6 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
         HDRayTracingLights m_RayTracingLights = new HDRayTracingLights();
         bool m_ValidRayTracingState = false;
         bool m_ValidRayTracingCluster = false;
+        bool m_ValidRayTracingClusterCulling = false;
 
         // Denoisers
         HDTemporalFilter m_TemporalFilter = new HDTemporalFilter();
@@ -244,9 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Is the sub material transparent?
                         subMeshTransparentArray[meshIdx] = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
                         || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
-                        && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue)
-                        || (HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.lowerBound <= currentMaterial.renderQueue
-                        && HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.upperBound >= currentMaterial.renderQueue);
+                        && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
 
                         // aggregate the transparency info
                         materialIsOnlyTransparent &= subMeshTransparentArray[meshIdx];
@@ -375,7 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CurrentRAS = new RayTracingAccelerationStructure();
             m_ValidRayTracingState = false;
             m_ValidRayTracingCluster = false;
-
+            m_ValidRayTracingClusterCulling = false;
             bool rayTracedShadow = false;
 
             // fetch all the lights in the scene
@@ -561,8 +560,8 @@ namespace UnityEngine.Rendering.HighDefinition
         #endif
             return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
         }
-
-        internal void BuildRayTracingLightCluster(CommandBuffer cmd, HDCamera hdCamera)
+        
+        internal bool RayTracingLightClusterRequired(HDCamera hdCamera)
         {
             ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
@@ -570,9 +569,35 @@ namespace UnityEngine.Rendering.HighDefinition
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
             SubSurfaceScattering subSurface = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
 
-            if (m_ValidRayTracingState && (reflSettings.rayTracing.value || giSettings.rayTracing.value || recursiveSettings.enable.value || pathTracingSettings.enable.value || subSurface.rayTracing.value))
+            return (m_ValidRayTracingState && (reflSettings.rayTracing.value 
+                                                || giSettings.rayTracing.value 
+                                                || recursiveSettings.enable.value 
+                                                || pathTracingSettings.enable.value 
+                                                || subSurface.rayTracing.value));
+        }
+
+        internal void CullForRayTracing(CommandBuffer cmd, HDCamera hdCamera)
+        {
+            if (m_ValidRayTracingState && RayTracingLightClusterRequired(hdCamera))
             {
-                m_RayTracingLightCluster.EvaluateLightClusters(cmd, hdCamera, m_RayTracingLights);
+                m_RayTracingLightCluster.CullForRayTracing(cmd, hdCamera, m_RayTracingLights);
+                m_ValidRayTracingClusterCulling = true;
+            }
+        }
+
+        internal void ReserveRayTracingCookieAtlasSlots()
+        {
+            if (m_ValidRayTracingState && m_ValidRayTracingClusterCulling)
+            {
+                m_RayTracingLightCluster.ReserveCookieAtlasSlots(m_RayTracingLights);
+            }
+        }
+
+        internal void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera, DebugDisplaySettings debugDisplaySettings)
+        {
+            if (m_ValidRayTracingState && m_ValidRayTracingClusterCulling)
+            {
+                m_RayTracingLightCluster.BuildRayTracingLightData(cmd, hdCamera, m_RayTracingLights, debugDisplaySettings);
                 m_ValidRayTracingCluster = true;
             }
         }

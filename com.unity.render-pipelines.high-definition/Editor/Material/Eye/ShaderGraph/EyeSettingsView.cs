@@ -11,7 +11,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class EyeSettingsView : VisualElement
+    class EyeSettingsView : MasterNodeSettingsView
     {
         EyeMasterNode m_Node;
 
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
-        public EyeSettingsView(EyeMasterNode node)
+        public EyeSettingsView(EyeMasterNode node) : base(node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
@@ -116,26 +116,38 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            if (m_Node.surfaceType == SurfaceType.Transparent && m_Node.alphaTest.isOn)
+            if (m_Node.alphaTest.isOn)
             {
                 ++indentLevel;
-                ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff Depth Prepass", indentLevel)), (row) =>
+                ps.Add(new PropertyRow(CreateLabel("Alpha to Mask", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
-                        toggle.value = m_Node.alphaTestDepthPrepass.isOn;
-                        toggle.OnToggleChanged(ChangeAlphaTestPrepass);
+                        toggle.value = m_Node.alphaToMask.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaToMask);
                     });
                 });
+                
+                if (m_Node.surfaceType == SurfaceType.Transparent)
+                {
+                    ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff Depth Prepass", indentLevel)), (row) =>
+                    {
+                        row.Add(new Toggle(), (toggle) =>
+                        {
+                            toggle.value = m_Node.alphaTestDepthPrepass.isOn;
+                            toggle.OnToggleChanged(ChangeAlphaTestPrepass);
+                        });
+                    });
 
-                ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff Depth Postpass", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
+                    ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff Depth Postpass", indentLevel)), (row) =>
                     {
-                        toggle.value = m_Node.alphaTestDepthPostpass.isOn;
-                        toggle.OnToggleChanged(ChangeAlphaTestPostpass);
+                        row.Add(new Toggle(), (toggle) =>
+                        {
+                            toggle.value = m_Node.alphaTestDepthPostpass.isOn;
+                            toggle.OnToggleChanged(ChangeAlphaTestPostpass);
+                        });
                     });
-                });
+                }
                 --indentLevel;
             }
 
@@ -234,6 +246,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             });
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeSurfaceType(ChangeEvent<Enum> evt)
@@ -324,6 +337,14 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             ToggleData td = m_Node.alphaTest;
             td.isOn = evt.newValue;
             m_Node.alphaTest = td;
+        }
+        
+        void ChangeAlphaToMask(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha to Mask Change");
+            ToggleData td = m_Node.alphaToMask;
+            td.isOn = evt.newValue;
+            m_Node.alphaToMask = td;
         }
 
         void ChangeAlphaTestPrepass(ChangeEvent<bool> evt)

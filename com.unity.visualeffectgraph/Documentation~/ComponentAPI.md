@@ -186,10 +186,10 @@ static readonly ExposedProperty enteredTriggerEvent = "EnteredTrigger"
 
 void Start()
 {
-	visualEffect = GetComponent<VisualEffect>();   
-	// Caches an Event Attribute matching the
-	// visualEffect.visualEffectAsset graph.
-	eventAttribute = visualEffect.CreateVFXEventAttribute();
+    visualEffect = GetComponent<VisualEffect>();
+    // Caches an Event Attribute matching the
+    // visualEffect.visualEffectAsset graph.
+    eventAttribute = visualEffect.CreateVFXEventAttribute();
 }
 
 void OnTriggerEnter()

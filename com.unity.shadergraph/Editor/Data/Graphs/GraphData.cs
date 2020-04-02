@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.MaterialGraph")]
     [FormerName("UnityEditor.ShaderGraph.SubGraph")]
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
-    sealed class GraphData : ISerializationCallbackReceiver
+    sealed partial class GraphData : ISerializationCallbackReceiver
     {
         public GraphObject owner { get; set; }
 
@@ -615,6 +615,20 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var serializableNode in nodes)
             {
+                // Check if it is a Redirect Node
+                // Get the edges and then re-create all Edges
+                // This only works if it has all the edges.
+                // If one edge is already deleted then we can not re-create.
+                if (serializableNode is RedirectNodeData redirectNode)
+                {
+                    redirectNode.GetOutputAndInputSlots(out SlotReference outputSlotRef, out var inputSlotRefs);
+
+                    foreach (SlotReference slot in inputSlotRefs)
+                    {
+                        ConnectNoValidate(outputSlotRef, slot);
+                    }
+                }
+
                 RemoveNodeNoValidate(serializableNode);
             }
 
@@ -752,7 +766,7 @@ namespace UnityEditor.ShaderGraph
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
             m_AddedInputs.Add(input);
         }
 
@@ -780,6 +794,9 @@ namespace UnityEditor.ShaderGraph
             string name = newName.Trim();
             if (string.IsNullOrEmpty(name))
                 return;
+
+            if (Regex.IsMatch(name, @"^\d+"))
+                name = "_" + name;
 
             name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
             switch(input)
@@ -925,13 +942,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void ValidateGraph()
+        public void CleanupGraph()
         {
-            var propertyNodes = GetNodes<PropertyNode>().Where(n => !m_Properties.Any(p => p.guid == n.propertyGuid)).ToArray();
-            foreach (var pNode in propertyNodes)
-                ReplacePropertyNodeWithConcreteNodeNoValidate(pNode);
-
-            messageManager?.ClearAllFromProvider(this);
             //First validate edges, remove any
             //orphans. This can happen if a user
             //manually modifies serialized data
@@ -959,56 +971,15 @@ namespace UnityEditor.ShaderGraph
                     RemoveEdgeNoValidate(edge);
                 }
             }
+        }
 
-            var temporaryMarks = PooledHashSet<Guid>.Get();
-            var permanentMarks = PooledHashSet<Guid>.Get();
-            var slots = ListPool<MaterialSlot>.Get();
-
-            // Make sure we process a node's children before the node itself.
-            var stack = StackPool<AbstractMaterialNode>.Get();
-            foreach (var node in GetNodes<AbstractMaterialNode>())
-            {
-                stack.Push(node);
-            }
-            while (stack.Count > 0)
-            {
-                var node = stack.Pop();
-                if (permanentMarks.Contains(node.guid))
-                {
-                    continue;
-                }
-
-                if (temporaryMarks.Contains(node.guid))
-                {
-                    node.ValidateNode();
-                    permanentMarks.Add(node.guid);
-                }
-                else
-                {
-                    temporaryMarks.Add(node.guid);
-                    stack.Push(node);
-                    node.GetInputSlots(slots);
-                    foreach (var inputSlot in slots)
-                    {
-                        var nodeEdges = GetEdges(inputSlot.slotReference);
-                        foreach (var edge in nodeEdges)
-                        {
-                            var fromSocketRef = edge.outputSlot;
-                            var childNode = GetNodeFromGuid(fromSocketRef.nodeGuid);
-                            if (childNode != null)
-                            {
-                                stack.Push(childNode);
-                            }
-                        }
-                    }
-                    slots.Clear();
-                }
-            }
-
-            StackPool<AbstractMaterialNode>.Release(stack);
-            ListPool<MaterialSlot>.Release(slots);
-            temporaryMarks.Dispose();
-            permanentMarks.Dispose();
+        public void ValidateGraph()
+        {
+            messageManager?.ClearAllFromProvider(this);
+            CleanupGraph();
+            GraphSetup.SetupGraph(this);
+            GraphConcretization.ConcretizeGraph(this);
+            GraphValidation.ValidateGraph(this);
 
             foreach (var edge in m_AddedEdges.ToList())
             {
@@ -1036,7 +1007,19 @@ namespace UnityEditor.ShaderGraph
         public void AddValidationError(Guid id, string errorMessage,
             ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
-            messageManager?.AddOrAppendError(this, id, new ShaderMessage(errorMessage, severity));
+            messageManager?.AddOrAppendError(this, id, new ShaderMessage("Validation: " + errorMessage, severity));
+        }
+
+        public void AddSetupError(Guid id, string errorMessage,
+            ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
+        {
+            messageManager?.AddOrAppendError(this, id, new ShaderMessage("Setup: " + errorMessage, severity));
+        }
+
+        public void AddConcretizationError(Guid id, string errorMessage,
+            ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
+        {
+            messageManager?.AddOrAppendError(this, id, new ShaderMessage("Concretization: " + errorMessage, severity));
         }
 
         public void ClearErrorsForNode(AbstractMaterialNode node)
@@ -1394,7 +1377,7 @@ namespace UnityEditor.ShaderGraph
 
             m_ValidTargets = foundTargets;
             m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
-            
+
         }
     }
 

@@ -47,10 +47,6 @@ Pass
     $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
     $splice(GraphDefines)
 
-    #ifdef DEBUG_DISPLAY
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-    #endif
-
     $splice(HybridV1InjectedBuiltinProperties)
 
     // Includes
