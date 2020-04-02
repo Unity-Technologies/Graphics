@@ -132,7 +132,6 @@ namespace UnityEngine.Rendering.Universal
 
         public SortingCriteria defaultOpaqueSortFlags;
 
-        public bool isStereoEnabled;
         internal XRPass xr;
 
         public float maxShadowDistance;
@@ -277,17 +276,13 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="camera">Camera to check state from.</param>
         /// <returns>Returns true if the given camera is rendering in stereo mode, false otherwise.</returns>
+        [Obsolete]
         public static bool IsStereoEnabled(Camera camera)
         {
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
-            bool isGameCamera = IsGameCamera(camera);
-            bool isCompatWithXRDimension = true;
-#if ENABLE_VR && ENABLE_VR_MODULE
-            isCompatWithXRDimension &= (camera.targetTexture ? camera.targetTexture.dimension == UnityEngine.XR.XRSettings.deviceEyeTextureDimension : true);
-#endif
-            return isGameCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both) && (isCompatWithXRDimension || XRSystem.automatedTestRunning);
+            return IsGameCamera(camera) && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
 
         /// <summary>
@@ -304,16 +299,13 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="camera">Camera to check state from.</param>
         /// <returns>Returns true if the given camera is rendering in multi pass stereo mode, false otherwise.</returns>
+        [Obsolete]
         static bool IsMultiPassStereoEnabled(Camera camera)
         {
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
-#if ENABLE_VR && ENABLE_VR_MODULE
-            return IsStereoEnabled(camera) && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass;
-#else
             return false;
-#endif
         }
 
         void SortCameras(Camera[] cameras)
