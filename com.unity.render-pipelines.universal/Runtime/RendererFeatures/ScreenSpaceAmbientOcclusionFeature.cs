@@ -167,8 +167,9 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                &&  m_FeatureSettings.SampleCount > 0;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
+            RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
             int downsampleDivider = m_FeatureSettings.Downsample ? 2 : 1;
 
             // Material settings
@@ -203,7 +204,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             }
 
             // Setup descriptors
-            m_Descriptor = cameraTextureDescriptor;
+            m_Descriptor = cameraTargetDescriptor;
             m_Descriptor.msaaSamples = 1;
             m_Descriptor.depthBufferBits = 0;
             m_Descriptor.width = m_Descriptor.width / downsampleDivider;
@@ -211,7 +212,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             m_Descriptor.colorFormat = RenderTextureFormat.R8;
 
             // Get temporary render textures
-            var desc = GetStereoCompatibleDescriptor(cameraTextureDescriptor.width, cameraTextureDescriptor.height, GraphicsFormat.R8G8B8A8_UNorm);
+            var desc = GetStereoCompatibleDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, GraphicsFormat.R8G8B8A8_UNorm);
             cmd.GetTemporaryRT(m_SSAOTextureHandle.id, m_Descriptor, FilterMode.Point);
 
             FilterMode filterMode = m_FeatureSettings.Downsample ? FilterMode.Bilinear : FilterMode.Point;
