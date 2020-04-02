@@ -35,7 +35,7 @@ namespace UnityEditor.VFX.UI
 
             for(long i = 0; i < enumValues.Length; ++i)
             {
-                menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(enumValues[i])), i == m_Value, ChangeValue, i);
+                menu.AddItem(new GUIContent(enumValues[i]), i == m_Value, ChangeValue, i);
             }
             menu.DropDown(m_DropDownButton.worldBound);
         }
