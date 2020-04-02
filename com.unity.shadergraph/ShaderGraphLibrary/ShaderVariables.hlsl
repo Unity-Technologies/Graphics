@@ -14,7 +14,7 @@
     #define USING_DIRECTIONAL_LIGHT
 #endif
 
-#if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
     #define USING_STEREO_MATRICES
 #endif
 
@@ -163,10 +163,6 @@ CBUFFER_END
     UNITY_DECLARE_MULTIVIEW(2);
 #elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
     static uint unity_StereoEyeIndex;
-#elif defined(UNITY_SINGLE_PASS_STEREO)
-    CBUFFER_START(UnityStereoEyeIndex)
-        int unity_StereoEyeIndex;
-    CBUFFER_END
 #endif
 
 CBUFFER_START(UnityPerDrawRare)

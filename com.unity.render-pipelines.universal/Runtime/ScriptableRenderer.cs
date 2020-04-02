@@ -544,7 +544,6 @@ namespace UnityEngine.Rendering.Universal
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
-            renderPass.eyeIndex = cameraData.xr.multipassId;
 
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
@@ -702,7 +701,7 @@ namespace UnityEngine.Rendering.Universal
                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
                 {
                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, passAttachmentDimension);
-                    if (cameraData.xr.singlePassEnabled)
+                    if (cameraData.xr.enabled)
                     {
                         // SetRenderTarget might alter the internal device state(winding order).
                         // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.

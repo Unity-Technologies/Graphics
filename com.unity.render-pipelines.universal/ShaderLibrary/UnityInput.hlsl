@@ -11,13 +11,12 @@
     #define UNITY_STEREO_MULTIVIEW_ENABLED
 #endif
 
-#if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 #define USING_STEREO_MATRICES
 #endif
 
 #if defined(UNITY_SINGLE_PASS_STEREO)
-// XRTODO: enable this error message for 2020.2
-//#error Single-pass (double-wide) is deprecated in URP. Use SPI/multiview/multipass insteaed
+    #error Single-pass stereo (double-wide) is deprecated in URP. Use single-pass instancing, multiview or multipass instead.
 #endif
 
 #if defined(USING_STEREO_MATRICES)
@@ -126,7 +125,7 @@ real4 unity_SHBb;
 real4 unity_SHC;
 CBUFFER_END
 
-#if defined(UNITY_STEREO_MULTIVIEW_ENABLED) || ((defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED)) && (defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)))
+#if defined(UNITY_STEREO_MULTIVIEW_ENABLED) || (defined(UNITY_STEREO_INSTANCING_ENABLED) && (defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)))
     #define GLOBAL_CBUFFER_START(name)    cbuffer name {
     #define GLOBAL_CBUFFER_END            }
 #else
@@ -166,10 +165,6 @@ GLOBAL_CBUFFER_END
 UNITY_DECLARE_MULTIVIEW(2);
 #elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 static uint unity_StereoEyeIndex;
-#elif defined(UNITY_SINGLE_PASS_STEREO)
-GLOBAL_CBUFFER_START(UnityStereoEyeIndex)
-int unity_StereoEyeIndex;
-GLOBAL_CBUFFER_END
 #endif
 
 float4x4 glstate_matrix_transpose_modelview0;

@@ -134,6 +134,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal XRPass xr;
 
+        [Obsolete]
+        public bool isStereoEnabled { get => xr != null && xr.enabled; }
+
         public float maxShadowDistance;
         public bool postProcessEnabled;
 
