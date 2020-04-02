@@ -456,8 +456,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             string sessionStateResult = SessionState.GetString(k_PrevSubGraphPathKey, k_PrevSubGraphPathDefaultValue);
             string pathToOriginSG = Path.GetDirectoryName(AssetDatabase.GUIDToAssetPath(selectedGuid));
 
-            
-
             if (!sessionStateResult.Equals(k_PrevSubGraphPathDefaultValue))
             {
                 path = sessionStateResult;

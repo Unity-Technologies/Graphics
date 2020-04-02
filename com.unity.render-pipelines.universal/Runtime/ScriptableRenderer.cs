@@ -345,6 +345,7 @@ namespace UnityEngine.Rendering.Universal
             bool stereoEnabled = cameraData.isStereoEnabled;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraRenderStateTag);
+            InternalStartRendering(context, ref renderingData);
 
             // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
             // For now we set the time variables per camera, as we plan to remove `SetupCameraProperties`.
@@ -859,12 +860,23 @@ namespace UnityEngine.Rendering.Universal
             blockRanges[currRangeIndex] = m_ActiveRenderPassQueue.Count;
         }
 
+        void InternalStartRendering(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get(k_ReleaseResourcesTag);
+            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+            {
+                m_ActiveRenderPassQueue[i].OnCameraSetup(cmd, ref renderingData);
+            }
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
         void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_ReleaseResourcesTag);
 
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
+                m_ActiveRenderPassQueue[i].OnCameraCleanup(cmd);
 
             // Happens when rendering the last camera in the camera stack.
             if (resolveFinalTarget)
