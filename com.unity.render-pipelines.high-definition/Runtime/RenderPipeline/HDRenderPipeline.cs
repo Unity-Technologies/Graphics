@@ -1787,7 +1787,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Render XR mirror view once all render requests have been completed
                             if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
                             {
-                                m_XRSystem.RenderMirrorView(cmd);
+                                HDAdditionalCameraData acd;
+                                if (renderRequest.hdCamera.camera.TryGetComponent<HDAdditionalCameraData>(out acd) && acd.xrRendering)
+                                {
+                                    m_XRSystem.RenderMirrorView(cmd);
+                                }
                             }
 
                             // Now that all cameras have been rendered, let's propagate the data required for screen space shadows
@@ -2008,7 +2012,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SharedRTManager.BindNormalBuffer(cmd);
 
             // After Depth and Normals/roughness including decals
-            RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
+            bool depthBufferModified = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
+
+            // If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth. 
+            if (depthBufferModified)
+                m_IsDepthBufferCopyValid = false;
 
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
             GenerateDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid);
