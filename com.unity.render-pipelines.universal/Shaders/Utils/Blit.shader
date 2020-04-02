@@ -36,7 +36,6 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             };
             uniform float4 _BlitScaleBias;
             uniform float4 _BlitScaleBiasRt;
-            uniform int _BlitTexArraySlice;
 #else
             struct Attributes
             {
@@ -51,6 +50,10 @@ Shader "Hidden/Universal Render Pipeline/Blit"
                 half2 uv            : TEXCOORD0;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
+
+#if defined(BLIT_SINGLE_SLICE)
+            uniform int _BlitTexArraySlice;
+#endif
 
             TEXTURE2D_X(_BlitTex);
             SAMPLER(sampler_BlitTex);
@@ -77,7 +80,6 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 
-
 #if defined(BLIT_SINGLE_SLICE)
                 half4 col = SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTex, sampler_BlitTex, input.uv, _BlitTexArraySlice, 0);
 #else
