@@ -54,8 +54,6 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
-            public static readonly GUIContent cameraStackNotSupportedMessage = EditorGUIUtility.TrTextContent("Camera Stacking not supported.", "The renderer used by this camera doesn't support camera stacking.");
-
             public static readonly string hdrDisabledWarning = "HDR rendering is disabled in the Universal Render Pipeline asset.";
             public static readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Universal Render Pipeline asset.";
 
@@ -71,16 +69,6 @@ namespace UnityEditor.Rendering.Universal
 
             public static int[] cameraBackgroundValues = { 0, 1, 2};
 
-            // This is for adding more data like Pipeline Asset option
-            public static GUIContent[] displayedAdditionalDataOptions =
-            {
-                new GUIContent("Off"),
-                new GUIContent("On"),
-                new GUIContent("Use Pipeline Settings"),
-            };
-
-            public static int[] additionalDataOptions = Enum.GetValues(typeof(CameraOverrideOption)).Cast<int>().ToArray();
-
             // Using the pipeline Settings
             public static GUIContent[] displayedCameraOptions =
             {
@@ -93,9 +81,8 @@ namespace UnityEditor.Rendering.Universal
             // Camera Types
             public static List<GUIContent> m_CameraTypeNames = null;
             public static readonly string[] cameraTypeNames = Enum.GetNames(typeof(CameraRenderType));
-            public static int[] additionalDataCameraTypeOptions = Enum.GetValues(typeof(CameraRenderType)) as int[];
 
-			// Beautified anti-aliasing options
+            // Beautified anti-aliasing options
             public static GUIContent[] antialiasingOptions =
             {
                 new GUIContent("None"),
@@ -126,8 +113,6 @@ namespace UnityEditor.Rendering.Universal
         // Animation Properties
         public bool isSameClearFlags { get { return !settings.clearFlags.hasMultipleDifferentValues; } }
         public bool isSameOrthographic { get { return !settings.orthographic.hasMultipleDifferentValues; } }
-
-        static readonly int[] s_RenderingPathValues = {0};
 
         UniversalRenderPipelineAsset m_UniversalRenderPipeline;
         Dictionary<Object, UniversalAdditionalCameraData> m_AdditionalCameraDatas = new Dictionary<Object, UniversalAdditionalCameraData>();
@@ -183,7 +168,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
         }
-        
+
         public new void OnEnable()
         {
             base.OnEnable();
@@ -194,7 +179,7 @@ namespace UnityEditor.Rendering.Universal
             m_OutputSettingsFoldout = new SavedBool($"{target.GetType()}.OutputSettingsFoldout", false);
             m_RenderingSettingsFoldout = new SavedBool($"{target.GetType()}.RenderingSettingsFoldout", false);
             m_StackSettingsFoldout = new SavedBool($"{target.GetType()}.StackSettingsFoldout", false);
-            // MTT
+
             var additionalCameraList = new List<Object>();
             foreach (var cameraTarget in targets)
             {
@@ -369,7 +354,6 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalCameraDataCameras.serializedObject.ApplyModifiedProperties();
         }
 
-
         void init(List<Object> additionalCameraData)
         {
             if(additionalCameraData == null)
@@ -476,9 +460,6 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawStackSettings()
         {
-            // MTT not multi editing so passing in just target as the key
-            // Message needs to be made here
-
             m_StackSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_StackSettingsFoldout.value, Styles.stackSettingsText);
             if (m_AdditionalCameraDataCameras.hasMultipleDifferentValues)
             {
@@ -632,7 +613,6 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawCameraType()
         {
-            // MTT prop
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_AdditionalCameraDataCameraTypeProp, Styles.cameraType);
             if (EditorGUI.EndChangeCheck())
@@ -675,8 +655,7 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawPriority()
         {
-            Rect controlRect = EditorGUILayout.GetControlRect(true);
-            EditorGUI.PropertyField(controlRect, settings.depth, Styles.priority);
+            EditorGUILayout.PropertyField(settings.depth, Styles.priority);
         }
 
         void DrawHDR()
@@ -729,7 +708,6 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                //m_AdditionalCameraDataSO.Update();
                 selectedVolumeLayerMask = m_AdditionalCameraDataVolumeLayerMask.intValue;
                 selectedVolumeTrigger = (Transform)m_AdditionalCameraDataVolumeTrigger.objectReferenceValue;
             }
@@ -826,7 +804,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         bool DrawObjectField<T>(SerializedProperty prop, ref T value, GUIContent style)
-            where T : UnityEngine.Object
+            where T : Object
         {
             var defaultVal = value;
             bool hasChanged = false;
@@ -845,12 +823,12 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawDepthTexture()
         {
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderDepthProp);
+            EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderDepthProp, Styles.requireDepthTexture);
         }
 
         void DrawOpaqueTexture()
         {
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderOpaqueProp);
+            EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderOpaqueProp, Styles.requireOpaqueTexture);
         }
 
         void DrawIntPopup(SerializedProperty prop, GUIContent style, GUIContent[] optionNames, int[] optionValues)
@@ -870,14 +848,13 @@ namespace UnityEditor.Rendering.Universal
         Rect BeginProperty(SerializedProperty prop, GUIContent style)
         {
             var controlRect = EditorGUILayout.GetControlRect(true);
-            //if (m_AdditionalCameraDataSO != null)
-                EditorGUI.BeginProperty(controlRect, style, prop);
+            EditorGUI.BeginProperty(controlRect, style, prop);
             return controlRect;
 		}
 
         void DrawRenderShadows()
         {
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderShadowsProp);
+            EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderShadowsProp, Styles.renderingShadows);
         }
 
         void DrawVRSettings()
@@ -903,7 +880,7 @@ namespace UnityEditor.Rendering.Universal
         {
             // do not use keyword is to remove the additional data. It will not work
             dependencies = dependencies.Where(c => c.GetType() != typeof(UniversalAdditionalCameraData));
-            if (dependencies.Count() > 0)
+            if (dependencies.Any())
             {
                 EditorUtility.DisplayDialog("Can't remove component", $"Can't remove Camera because {dependencies.First().GetType().Name} depends on it.", "Ok");
                 return;
