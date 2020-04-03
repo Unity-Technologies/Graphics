@@ -12,28 +12,28 @@ namespace UnityEngine.Rendering
         ComputeBuffer                   m_GPUConstantBuffer = null;
         static ConstantBuffer<CBType>   m_TypedConstantBuffer = new ConstantBuffer<CBType>();
 
-        internal ConstantBuffer()
+        ConstantBuffer()
         {
             m_GPUConstantBuffer = new ComputeBuffer(1, UnsafeUtility.SizeOf<CBType>(), ComputeBufferType.Constant);
         }
 
-        internal void UpdateDataInternal(CommandBuffer cmd, in CBType data)
+        void UpdateDataInternal(CommandBuffer cmd, in CBType data)
         {
             m_Data[0] = data;
             cmd.SetComputeBufferData(m_GPUConstantBuffer, m_Data);
         }
 
-        internal void SetGlobalInternal(CommandBuffer cmd, int shaderId)
+        void SetGlobalInternal(CommandBuffer cmd, int shaderId)
         {
             cmd.SetGlobalConstantBuffer(m_GPUConstantBuffer, shaderId, 0, m_GPUConstantBuffer.stride);
         }
 
-        internal void SetInternal(CommandBuffer cmd, ComputeShader cs, int shaderId)
+        void SetInternal(CommandBuffer cmd, ComputeShader cs, int shaderId)
         {
             cmd.SetComputeConstantBufferParam(cs, shaderId, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
         }
 
-        internal void SetInternal(Material mat, int shaderId)
+        void SetInternal(Material mat, int shaderId)
         {
             // This isn't done via command buffer because as long as the buffer itself is not destroyed,
             // the binding stays valid. Only the commit of data needs to go through the command buffer.
@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering
             mat.SetConstantBuffer(shaderId, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
         }
 
-        internal void Release()
+        void Release()
         {
             CoreUtils.SafeRelease(m_GPUConstantBuffer);
         }
