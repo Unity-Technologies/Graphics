@@ -536,6 +536,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             // kick the rest
                             Debug.Log("PASS WEIRDNESS DETECTED, RECOMPILING PASSES: (was " + shaderData.passesCompiling + ", now " + shaderData.mat.passCount + "node: " + node.name + ")");
+
+                            // Force async compile on
+                            var prevAsyncAllowed = ShaderUtil.allowAsyncCompilation;
+                            ShaderUtil.allowAsyncCompilation = true;
+
                             for (var i = 0; i < shaderData.mat.passCount; i++)
                             {
                                 using (CompilePassMarker.Auto())
@@ -544,6 +549,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 }
                             }
                             shaderData.passesCompiling = shaderData.mat.passCount;
+
+                            ShaderUtil.allowAsyncCompilation = prevAsyncAllowed;
                         }
 
                         // check that all passes have compiled
