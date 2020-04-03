@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed drag area width at left of Light's intensity field in Inspector.
 - Fix for issue that prevented scene from being completely saved when baked reflection probes are present and lighting is set to auto generate.
 - Fixed the depth buffer copy made before custom pass after opaque and normal injection point.
+- Fixed a weird behavior in the scalable settings drawing when the space becomes tiny (1212045).
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
