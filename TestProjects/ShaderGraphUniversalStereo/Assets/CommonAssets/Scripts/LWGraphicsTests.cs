@@ -57,7 +57,7 @@ public class LWGraphicsTests
         // ScreenCapture.CaptureScreenshotAsTexture --> does not work since colorspace is wrong, would need colorspace change and thus color compression
         // ScreenCapture.CaptureScreenshotIntoRenderTexture --> does not work since texture is flipped, would need another pass
         // so we need to capture and reload the resulting file.
-        ScreenCapture.CaptureScreenshot(tempScreenshotFile);
+        ScreenCapture.CaptureScreenshot(tempScreenshotFile, ScreenCapture.StereoScreenCaptureMode.BothEyes);
         
         // NOTE: there's discussions around whether Unity has actually documented this correctly. 
         // Unity says: next frame MUST have the file ready
