@@ -156,20 +156,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public int      _DirectionalShadowIndex;
         public uint     _EnableLightLayers;
 
-        public float    _ReplaceDiffuseForIndirect;
         public uint     _EnableSkyReflection;
         public uint     _EnableSSRefraction;
-        public float    _MicroShadowOpacity;
+        public float    _SSRefractionInvScreenWeightDistance; // Distance for screen space smoothstep with fallback
+        public float    _ColorPyramidLodCount;
 
         public float    _DirectionalTransmissionMultiplier;
         public float    _ProbeExposureScale;
         public float    _ContactShadowOpacity;
-        public float    _ColorPyramidLodCount;
+        public float    _ReplaceDiffuseForIndirect;
 
         public Vector4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
         public Vector4 _IndirectLightingMultiplier; // .x indirect diffuse multiplier (use with indirect lighting volume controler)
 
-        public float _SSRefractionInvScreenWeightDistance; // Distance for screen space smoothstep with fallback
+        public float _MicroShadowOpacity;
         public float _Pad3;
         public float _Pad4;
         public float _Pad5;
