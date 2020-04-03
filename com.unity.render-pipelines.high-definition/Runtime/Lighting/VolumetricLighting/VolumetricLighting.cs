@@ -737,7 +737,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct VolumetricLightingParameters
         {
             public ComputeShader                volumetricLightingCS;
-			public ComputeShader    			volumetricLightingFilteringCS;
+            public ComputeShader                volumetricLightingFilteringCS;
             public int                          volumetricLightingKernel;
             public int                          volumetricFilteringKernelX;
             public int                          volumetricFilteringKernelY;
