@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that caused the QualitySettings anti-aliasing changing without user interaction. [case 1195272](https://issuetracker.unity3d.com/issues/lwrp-the-anti-alias-quality-settings-value-is-changing-without-user-interaction)
 - Fixed a shader issue that caused the Color in Sprite Shape to work improperly.
 - Fixed shader compilation errors when using multiple lights in DX10 level GPU. [case 1222302](https://issuetracker.unity3d.com/issues/urp-no-materials-apart-from-ui-are-rendered-when-using-direct3d11-graphics-api-on-a-dx10-gpu)
+- Fixed an issue that caused depth texture to be flipped when sampling from shaders [case 1225362](https://issuetracker.unity3d.com/issues/game-object-is-rendered-incorrectly-in-the-game-view-when-sampling-depth-texture)
 
 ## [7.3.0] - 2020-03-11
 

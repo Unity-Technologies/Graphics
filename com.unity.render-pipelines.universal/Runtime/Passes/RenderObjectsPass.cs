@@ -89,29 +89,31 @@ namespace UnityEngine.Experimental.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+                if (m_CameraSettings.overrideCamera && cameraData.isStereoEnabled)
+                    Debug.LogWarning("RenderObjects pass is configured to override camera matrices. While rendering in stereo camera matrices cannot be overriden.");
 
-                if (m_CameraSettings.overrideCamera)
+                if (m_CameraSettings.overrideCamera && !cameraData.isStereoEnabled)
                 {
                     Matrix4x4 projectionMatrix = Matrix4x4.Perspective(m_CameraSettings.cameraFieldOfView, cameraAspect,
                         camera.nearClipPlane, camera.farClipPlane);
+                    projectionMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, cameraData.IsCameraProjectionMatrixFlipped());
 
-                    Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+                    Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
                     Vector4 cameraTranslation = viewMatrix.GetColumn(3);
                     viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
 
-                    cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-                    context.ExecuteCommandBuffer(cmd);
+                    RenderingUtils.SetViewAndProjectionMatrices(cmd, viewMatrix, projectionMatrix, false);
                 }
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings,
                     ref m_RenderStateBlock);
 
-                if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera)
+                if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera && !cameraData.isStereoEnabled)
                 {
-                    cmd.Clear();
-                    cmd.SetViewProjectionMatrices(cameraData.viewMatrix, cameraData.projectionMatrix);
+                    RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.GetViewMatrix(), cameraData.GetGPUProjectionMatrix(), false);
                 }
             }
             context.ExecuteCommandBuffer(cmd);
