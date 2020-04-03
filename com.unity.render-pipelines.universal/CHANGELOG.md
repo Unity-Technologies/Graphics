@@ -20,11 +20,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the option to specify the maximum number of visible lights. If you set a value, lights are sorted based on their distance from the Camera.
 - Added the option to control the transparent layer separately in the Forward Renderer.
 - Added the ability to set individual RendererFeatures to be active or not, use `ScriptableRendererFeature.SetActive(bool)` to set whether a Renderer Feature will execute,  `ScriptableRendererFeature.isActive` can be used to check the current active state of the Renderer Feature.
+ additional steps to the 2D Renderer setup page for quality and platform settings.
 - If Unity Editor Analytics are enabled, Universal collects anonymous data about usage of Universal. This helps the Universal team focus our efforts on the most common scenarios, and better understand the needs of our customers.
 - Added a OnCameraSetup() function to the ScriptableRenderPass API, that gets called by the renderer before rendering each camera
 - Added a OnCameraCleanup() function to the ScriptableRenderPass API, that gets called by the renderer after rendering each camera
+- Added Default Material Type options to the 2D Renderer Data Asset property settings.
+- Added additional steps to the 2D Renderer setup page for quality and platform settings.
 
 ### Changed
+
 - Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
 - Eliminated some GC allocations from the 2D Renderer.
 - Added SceneSelection pass for TerrainLit shader.
