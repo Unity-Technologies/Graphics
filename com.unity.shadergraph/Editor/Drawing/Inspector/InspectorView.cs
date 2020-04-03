@@ -22,20 +22,14 @@ namespace Drawing.Inspector
         readonly GraphData m_GraphData;
         readonly IList<Type> m_PropertyDrawerList = new List<Type>();
 
-        // Used to handle drawing the default settings of the graph that the Inspector is targeting
-        private Type m_GraphSettingsPropertyDrawerType = null;
-        private object m_defaultSettingsData;
-
         public int currentlyDisplayedPropertyCount { get; private set; } = 0;
 
         protected override string windowTitle => "Inspector";
         protected override string elementName => "InspectorView";
         protected override string styleName => "InspectorView";
 
-        public InspectorView(object defaultSettingsData, GraphView graphView) : base(graphView)
+        public InspectorView(GraphView graphView) : base(graphView)
         {
-            m_defaultSettingsData = defaultSettingsData;
-
             // Register property drawer types here
             RegisterPropertyDrawer(typeof(BoolPropertyDrawer));
             RegisterPropertyDrawer(typeof(EnumPropertyDrawer));
@@ -52,11 +46,6 @@ namespace Drawing.Inspector
             RegisterPropertyDrawer(typeof(CubemapPropertyDrawer));
             RegisterPropertyDrawer(typeof(ShaderInputPropertyDrawer));
             RegisterPropertyDrawer(typeof(GraphDataPropertyDrawer));
-
-            if (IsPropertyTypeHandled(defaultSettingsData.GetType(), out var propertyDrawerToUse))
-            {
-                m_GraphSettingsPropertyDrawerType = propertyDrawerToUse;
-            }
         }
 
 #region PropertyDrawing
@@ -117,7 +106,6 @@ namespace Drawing.Inspector
             if(selection.Count == 0)
             {
                 ShowGraphSettings(propertySheet);
-                return;
             }
 
             if(selection.Count > 1)
@@ -144,15 +132,10 @@ namespace Drawing.Inspector
 
         private void DrawSelection(ISelectable selectable, PropertySheet propertySheet)
         {
-            object dataObject = null;
-            var inspectable = (IInspectable) selectable;
-            if (inspectable == null)
+            if(selectable is IInspectable inspectable)
             {
-                throw new InvalidCastException("Failed to cast selection to Inspectable in the inspector. Please make sure that your selection is also implementing the IInspectable interface!");
-                return;
+                DrawInspectable(propertySheet, inspectable);
             }
-
-            DrawInspectable(propertySheet, inspectable);
         }
 
         private void DrawInspectable(PropertySheet propertySheet, IInspectable inspectable)
@@ -195,33 +178,6 @@ namespace Drawing.Inspector
             subTitle = $"{graphEditorView.assetName} (Graph)";
 
             DrawInspectable(propertySheet, (IInspectable)graphView);
-
-            // #TODO - Refactor, shouldn't this just be a property on the graph data object itself?
-            var precisionField = new EnumField((Enum)m_GraphData.concretePrecision);
-            precisionField.RegisterValueChangedCallback(evt =>
-            {
-                m_GraphData.owner.RegisterCompleteObjectUndo("Change Precision");
-                if (m_GraphData.concretePrecision == (ConcretePrecision)evt.newValue)
-                    return;
-
-                m_GraphData.concretePrecision = (ConcretePrecision)evt.newValue;
-                var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-                graphEditorView.colorManager.SetNodesDirty(nodeList);
-
-                m_GraphData.ValidateGraph();
-                graphEditorView.colorManager.UpdateNodeViews(nodeList);
-                foreach (var node in m_GraphData.GetNodes<AbstractMaterialNode>())
-                {
-                    node.Dirty(ModificationScope.Graph);
-                }
-            });
-
-            var sheet = new PropertySheet();
-            sheet.Add(new PropertyRow(new Label("Precision")), (row) =>
-            {
-                row.Add(precisionField);
-            });
-            m_ContentContainer.Add(sheet);
         }
 #endregion
     }

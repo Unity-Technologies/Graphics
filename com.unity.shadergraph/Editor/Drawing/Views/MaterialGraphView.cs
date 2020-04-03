@@ -46,11 +46,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCopyNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
         }
 
-        public MaterialGraphView(GraphData graph) : this()
+        public MaterialGraphView(GraphData graph, Action previewUpdateCallback) : this()
         {
             this.graph = graph;
+            this.m_PreviewUpdateDelegate = previewUpdateCallback;
         }
 
+        [Inspectable("GraphData", null)]
         public GraphData graph { get; private set; }
 
         public string displayName => this.graph.path;
@@ -67,8 +69,44 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
-            throw new NotImplementedException();
+            m_InspectorUpdateDelegate = inspectorUpdateDelegate;
+            if (propertyDrawer is GraphDataPropertyDrawer graphDataPropertyDrawer)
+            {
+                graphDataPropertyDrawer.GetPropertyData(this.ChangeTargetSettings, ChangeConcretePrecision);
+            }
         }
+
+        void ChangeTargetSettings(bool updateInspector = false)
+        {
+            graph.UpdateActiveBlocks();
+            this.m_PreviewUpdateDelegate();
+            if(updateInspector)
+                this.m_InspectorUpdateDelegate();
+        }
+        void ChangeConcretePrecision(ConcretePrecision newValue)
+        {
+            var graphEditorView = this.GetFirstAncestorOfType<GraphEditorView>();
+            if(graphEditorView == null)
+                return;
+
+            graph.owner.RegisterCompleteObjectUndo("Change Precision");
+            if (graph.concretePrecision == newValue)
+                return;
+
+            graph.concretePrecision = newValue;
+            var nodeList = this.Query<MaterialNodeView>().ToList();
+            graphEditorView.colorManager.SetNodesDirty(nodeList);
+
+            graph.ValidateGraph();
+            graphEditorView.colorManager.UpdateNodeViews(nodeList);
+            foreach (var node in graph.GetNodes<AbstractMaterialNode>())
+            {
+                node.Dirty(ModificationScope.Graph);
+            }
+        }
+
+        private Action m_InspectorUpdateDelegate;
+        private Action m_PreviewUpdateDelegate;
 
         public Action onConvertToSubgraphClick { get; set; }
         public Vector2 cachedMousePosition { get; private set; }

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Data.Interfaces;
+using Drawing.Inspector;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing;
@@ -9,7 +12,7 @@ using UnityEditor.Graphing.Util;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    sealed class GenerationTarget : ISerializationCallbackReceiver
+    sealed class GenerationTarget : ISerializationCallbackReceiver, IInspectable
     {
         [SerializeField]
         string m_SerializedTarget;
@@ -20,19 +23,24 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         int m_ActiveImplementationBitmask;
 
+        public int activeImplementationBitmask
+        {
+            get => m_ActiveImplementationBitmask;
+            set => m_ActiveImplementationBitmask = value;
+        }
+
         ITarget m_Target;
         List<ITargetImplementation> m_Implementations;
+        public List<ITargetImplementation> Implementations => m_Implementations;
+
         List<ITargetImplementation> m_ActiveImplementations;
-        string[] m_ImplementationNames;
-        Dictionary<ITargetImplementation, bool> m_ImplementationFoldouts;
 
         GenerationTarget()
         {
             m_ActiveImplementations = new List<ITargetImplementation>();
-            m_ImplementationFoldouts = new Dictionary<ITargetImplementation, bool>();
         }
 
-        public GenerationTarget(ITarget target) : base()
+        public GenerationTarget(ITarget target, Action updateTargetSettingsCallback) : base()
         {
             // Set data
             m_Target = target;
@@ -55,7 +63,6 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Update state
-            UpdateImplementationNames();
             UpdateActiveImplementations();
         }
 
@@ -63,15 +70,36 @@ namespace UnityEditor.ShaderGraph
         public List<ITargetImplementation> implementations => m_Implementations;
         public List<ITargetImplementation> activeImplementations => m_ActiveImplementations;
 
-        void UpdateImplementationNames()
+        public string[] GetImplementationNames()
         {
             // Get TargetImplementation names
             // This is used for Target Settings object
             var implementationCount = m_Implementations.Count;
-            m_ImplementationNames = new string[implementationCount];
+            var implementationNames = new string[implementationCount];
             for(int i = 0; i < implementationCount; i++)
             {
-                m_ImplementationNames[i] = m_Implementations[i].displayName;
+                implementationNames[i] = m_Implementations[i].displayName;
+            }
+            return implementationNames;
+        }
+
+        public string displayName => "GenerationTarget";
+
+        public object GetObjectToInspect()
+        {
+            return this;
+        }
+
+        public PropertyInfo[] GetPropertyInfo()
+        {
+            return this.GetType().GetProperties();
+        }
+
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        {
+            if (propertyDrawer is GenerationTargetPropertyDrawer generationTargetPropertyDrawer)
+            {
+                generationTargetPropertyDrawer.GetPropertyData(GetImplementationNames(), UpdateActiveImplementations);
             }
         }
 
@@ -87,10 +115,9 @@ namespace UnityEditor.ShaderGraph
                     if(((1 << i) & m_ActiveImplementationBitmask) == (1 << i))
                     {
                         m_ActiveImplementations.Add(m_Implementations[i]);
-                    }   
+                    }
                 }
             }
-            
         }
 
         void UpdateDeserializedImplementations()
@@ -125,16 +152,15 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Update state
-            UpdateImplementationNames();
             UpdateActiveImplementations();
         }
 
-        public VisualElement GetSettings(Action onChange)
+        /*public VisualElement GetSettings(Action onChange)
         {
-            var element = new VisualElement() { name = "targetSettings" };
+            var element = new VisualElement() { name = "implementationSettings" };
 
             // Title
-            var title = new Label("Target Settings") { name = "titleLabel" };
+            var title = new Label("Implementation Settings") { name = "titleLabel" };
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
             element.Add(new Drawing.PropertyRow(title));
 
@@ -165,14 +191,14 @@ namespace UnityEditor.ShaderGraph
                 // Create foldout
                 var foldout = new Foldout() { text = implementation.displayName, value = foldoutActive };
                 element.Add(foldout);
-                foldout.RegisterValueChangedCallback(evt => 
+                foldout.RegisterValueChangedCallback(evt =>
                 {
                     // Update foldout value and rebuild
                     m_ImplementationFoldouts[implementation] = evt.newValue;
                     foldout.value = evt.newValue;
                     onChange();
                 });
-                
+
                 if(foldout.value)
                 {
                     // Get settings for TargetImplementation
@@ -187,7 +213,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             return element;
-        }
+        }*/
 
         public void OnBeforeSerialize()
         {

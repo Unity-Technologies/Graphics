@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Data.Interfaces;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -313,7 +314,15 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         int m_ActiveTargetIndex = 0;
 
+        public int activeTargetIndex
+        {
+            get => m_ActiveTargetIndex;
+            set => m_ActiveTargetIndex = value;
+        }
+
         List<GenerationTarget> m_GenerationTargets = new List<GenerationTarget>();
+
+        public List<GenerationTarget> generationTargets => m_GenerationTargets;
 
         // TODO: We should hand in the GenerationTarget during ctor
         // TODO: But this requires preview refactors
@@ -372,7 +381,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     // Instantiate and add TargetImplementation
                     var target = Activator.CreateInstance(type) as ITarget;
-                    var generationTarget = new GenerationTarget(target);
+                    var generationTarget = new GenerationTarget(target, this.UpdateActiveBlocks);
 
                     if(generationTarget.implementations.Count != 0)
                     {
@@ -385,7 +394,7 @@ namespace UnityEditor.ShaderGraph
         // TODO: We should not have any View code here
         // TODO: However, for now we dont know how the InspectorView will work
         // TODO: So for now leave it here and dont spill the assemblies outside the method
-        public UnityEngine.UIElements.VisualElement GetSettings(Action onChange)
+        /*public UnityEngine.UIElements.VisualElement GetSettings(Action onChange)
         {
             var element = new UnityEngine.UIElements.VisualElement() { name = "graphSettings" };
 
@@ -399,7 +408,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     row.Add(new UnityEngine.UIElements.IMGUIContainer(() => {
                         EditorGUI.BeginChangeCheck();
-                        m_ActiveTargetIndex = EditorGUILayout.Popup(m_ActiveTargetIndex, 
+                        m_ActiveTargetIndex = EditorGUILayout.Popup(m_ActiveTargetIndex,
                             m_GenerationTargets.Select(x => x.target.displayName).ToArray(), GUILayout.Width(100f));
                         if (EditorGUI.EndChangeCheck())
                         {
@@ -408,7 +417,7 @@ namespace UnityEditor.ShaderGraph
                         }
                     }));
                 });
-            
+
             // Add a space
             element.Add(new Drawing.PropertyRow(new UnityEngine.UIElements.Label("")));
 
@@ -420,7 +429,7 @@ namespace UnityEditor.ShaderGraph
                 }));
 
             return element;
-        }
+        }*/
 
         public void ClearChanges()
         {
@@ -597,7 +606,7 @@ namespace UnityEditor.ShaderGraph
             // Set BlockNode properties
             blockNode.index = index;
             blockNode.contextData = contextData;
-            
+
             // Add to ContextData
             if(index == -1 || index >= contextData.blocks.Count)
             {
@@ -907,7 +916,7 @@ namespace UnityEditor.ShaderGraph
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
             m_AddedInputs.Add(input);
         }
 

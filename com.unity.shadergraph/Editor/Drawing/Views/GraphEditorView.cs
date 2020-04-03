@@ -235,7 +235,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var content = new VisualElement { name = "content" };
             {
-                m_GraphView = new MaterialGraphView(graph) { name = "GraphView", viewDataKey = "MaterialGraphView" };
+                m_GraphView = new MaterialGraphView(graph, () => previewManager.UpdateMasterPreview(ModificationScope.Topological)) { name = "GraphView", viewDataKey = "MaterialGraphView" };
                 m_GraphView.SetupZoom(0.05f, 8);
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new SelectionDragger());
@@ -389,7 +389,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CreateInspector()
         {
-            m_InspectorView = new InspectorView(m_Graph, m_GraphView);
+            m_InspectorView = new InspectorView(m_GraphView);
             m_InspectorView.visible = m_UserViewSettings.isInspectorVisible;
             m_GraphView.Add(m_InspectorView);
             m_GraphView.OnSelectionChange += selectedObjects => m_InspectorView.Update();

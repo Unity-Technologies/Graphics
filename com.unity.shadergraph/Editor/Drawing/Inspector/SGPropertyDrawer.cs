@@ -154,6 +154,44 @@ namespace Drawing.Inspector
         }
     }
 
+    /*[SGPropertyDrawer(typeof(string[]))]
+    class TextArrayPropertyDrawer : IPropertyDrawer
+    {
+        internal delegate void ValueChangedCallback(int newValue);
+
+        internal VisualElement CreateGUIForField(
+            ValueChangedCallback valueChangedCallback,
+            string[] fieldToDraw,
+            int selectedIndex,
+            string labelName)
+        {
+            var propertyRow = new PropertyRow(new Label(labelName));
+
+            propertyRow.Add(new IMGUIContainer(() => {
+                EditorGUI.BeginChangeCheck();
+                var selectedItem = EditorGUILayout.Popup(selectedIndex,
+                    fieldToDraw, GUILayout.Width(100f));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    valueChangedCallback?.Invoke(selectedItem);
+                }
+            }));
+
+            propertyRow.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyRow"));
+            return propertyRow;
+        }
+
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        {
+            return this.CreateGUIForField(
+                // Use the setter from the provided property as the callback
+                newStringValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newStringValue}),
+                (string[]) propertyInfo.GetValue(actualObject),
+
+                attribute.labelName);
+        }
+    }*/
+
     [SGPropertyDrawer(typeof(int))]
     class IntegerPropertyDrawer : IPropertyDrawer
     {
