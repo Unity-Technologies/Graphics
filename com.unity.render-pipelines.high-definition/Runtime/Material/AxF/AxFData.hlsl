@@ -63,6 +63,24 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float alpha = 1.0;
 
+    surfaceData.ambientOcclusion = 1.0;
+    surfaceData.specularOcclusion = 1.0;
+
+//#ifdef _AXF_USE_VERTEX_COLOR_RGBM_AO
+    if (_MeshVertexBakedAODecodeOp == AXFVERTEXAODECODEOP_RGBM8)
+    {
+        float rgbmScale = 8.0;
+        float3 vertColor = input.color.rgb * input.color.a * rgbmScale;
+        vertColor = vertColor * vertColor; // approximate gamma to linear
+        float vertAO = vertColor.x;
+        surfaceData.ambientOcclusion = 1.0 - (1.0 - vertAO) * _VertexAOScale;
+    }
+    else if (_MeshVertexBakedAODecodeOp == AXFVERTEXAODECODEOP_PASSTHROUGH)
+    {
+        surfaceData.ambientOcclusion = 1.0 - (1.0 - input.color.r) * _VertexAOScale;
+    }
+//#endif
+
     surfaceData.specularLobe = 0;
 
 #ifdef _AXF_BRDF_TYPE_SVBRDF
