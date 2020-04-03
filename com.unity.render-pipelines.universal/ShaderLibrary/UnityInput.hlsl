@@ -208,8 +208,8 @@ SAMPLER(samplerunity_Lightmap);
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
 TEXTURE2D(unity_LightmapInd);
 
-// We can have shadowMask only if we have lightmap, so no sampler
 TEXTURE2D(unity_ShadowMask);
+SAMPLER(samplerunity_ShadowMask);
 
 // ----------------------------------------------------------------------------
 

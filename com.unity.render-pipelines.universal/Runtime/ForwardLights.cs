@@ -91,6 +91,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive,
                 renderingData.lightData.supportsMixedLighting &&
                 m_MixedLightingSetup == MixedLightingSetup.Subtractive);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingShadowmask, 
+                renderingData.lightData.supportsMixedLighting &&
+                m_MixedLightingSetup == MixedLightingSetup.ShadowMask);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -190,14 +193,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             // input to one. We then, in the shader max with the second value for non-occluded lights.
             lightOcclusionProbeChannel.x = occlusionProbeChannel == -1 ? 0f : occlusionProbeChannel;
             lightOcclusionProbeChannel.y = occlusionProbeChannel == -1 ? 1f : 0f;
-
-            // TODO: Add support to shadow mask
+            
             if (light != null && light.bakingOutput.mixedLightingMode == MixedLightingMode.Subtractive && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
             {
                 if (m_MixedLightingSetup == MixedLightingSetup.None && lightData.light.shadows != LightShadows.None)
                 {
                     m_MixedLightingSetup = MixedLightingSetup.Subtractive;
                 }
+            }
+            if (light.bakingOutput.mixedLightingMode == MixedLightingMode.Shadowmask && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+            {
+                if (lightData.light.shadows != LightShadows.None)
+                {
+                    m_MixedLightingSetup = MixedLightingSetup.ShadowMask;
+                }
+                int channel = light.bakingOutput.occlusionMaskChannel;
+                //light index is baked in the alpha channel of the light's direction
+                lightSpotDir.w = channel + 1;
             }
         }
 

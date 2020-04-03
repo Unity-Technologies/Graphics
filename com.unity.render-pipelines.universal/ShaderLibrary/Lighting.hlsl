@@ -229,6 +229,15 @@ Light GetAdditionalLight(uint i, float3 positionWS)
     return GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
 }
 
+Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowmask)
+{
+    int perObjectLightIndex = GetPerObjectLightIndex(i);
+    Light light = GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
+    half bakedshadow = AdditionalLightBakedShadow(perObjectLightIndex, shadowmask);
+    light.shadowAttenuation = min(light.shadowAttenuation, bakedshadow);
+    return light;
+}
+
 int GetAdditionalLightsCount()
 {
     // TODO: we need to expose in SRP api an ability for the pipeline cap the amount of lights
@@ -526,6 +535,11 @@ void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedG
 #if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
 #endif
+#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    half bakedShadow = shadowMask.r;
+    bakedShadow =  LerpWhiteTo(bakedShadow, GetMainLightShadowStrength());
+    light.shadowAttenuation = min(light.shadowAttenuation, bakedShadow);
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -586,7 +600,11 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
     
     Light mainLight = GetMainLight(inputData.shadowCoord);
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+    half4 shadowmask = half4(0, 0, 0, 0);
+#if defined(LIGHTMAP_ON) && defined(SHADOWS_SHADOWMASK)
+    shadowmask = inputData.bakedAtten;
+#endif
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, shadowmask);
 
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
@@ -595,7 +613,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     uint pixelLightCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
-        Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowmask);
         color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
     }
 #endif
@@ -611,7 +629,11 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
     Light mainLight = GetMainLight(inputData.shadowCoord);
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+    half4 shadowmask = half4(0, 0, 0, 0);
+#if defined(LIGHTMAP_ON) && defined(SHADOWS_SHADOWMASK)
+    shadowmask = inputData.bakedAtten;
+#endif
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, shadowmask);
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
     half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
@@ -621,7 +643,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     uint pixelLightCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
-        Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowmask);
         half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
