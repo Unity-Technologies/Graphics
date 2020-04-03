@@ -115,8 +115,6 @@ CBUFFER_START(UnityPerMaterial)
 
 
     //////////////////////////////////////////////////////////////////////////////
-float _MeshHasVertexBakedAO;
-float _VertexAOScale;
 
 float _AlphaCutoff;
 float _UseShadowThreshold;
