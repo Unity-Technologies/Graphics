@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if !USING_STEREO_MATRICES
         public Vector3 _WorldSpaceCameraPos_Internal;
         public float   _Pad0;
-        public Vector3 _PrevCamPosRWS_Internal; // $$$
+        public Vector3 _PrevCamPosRWS_Internal;
         public float _Pad1;
 #endif
         public Vector4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // y = height
         // z = 1 + 1.0/width
         // w = 1 + 1.0/height
-        public Vector4 _ScreenParams; // $$$ used only by vfx?
+        public Vector4 _ScreenParams;
 
         [HLSLArray(6, typeof(Vector4))]
         public fixed float _FrustumPlanes[6 * 4]; // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
