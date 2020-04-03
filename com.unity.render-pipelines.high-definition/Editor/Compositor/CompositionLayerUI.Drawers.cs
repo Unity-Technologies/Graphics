@@ -38,8 +38,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             // Compute the desired indentation 
             {
-                rect.x = isCameraStack ? rect.x + CompositorStyle.k_ListItemStackPading + 2 : rect.x + 2;
-                rect.width = isCameraStack ? rect.width - CompositorStyle.k_ListItemStackPading : rect.width;
+                const float listBorder = 2.0f;
+                rect.x = isCameraStack ? rect.x + CompositorStyle.k_ListItemStackPading + listBorder : rect.x + listBorder;
+                rect.width = isCameraStack ? rect.width - CompositorStyle.k_ListItemStackPading - listBorder : rect.width - listBorder;
                 rect.y += CompositorStyle.k_ListItemPading;
                 rect.height = EditorGUIUtility.singleLineHeight;
             }
@@ -47,16 +48,16 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             if (thumbnail)
             {
                 Rect newRect = rect;
-                newRect.width = 20;
+                newRect.width = EditorGUIUtility.singleLineHeight;
                 EditorGUI.PropertyField(newRect, serialized.Show, GUIContent.none);
-                rect.x += 20;
+                rect.x += CompositorStyle.k_CheckboxSpacing;
                 Rect previewRect = rect;
                 previewRect.width = CompositorStyle.k_ThumbnailSize * aspectRatio;
                 previewRect.height = CompositorStyle.k_ThumbnailSize;
                 EditorGUI.DrawPreviewTexture(previewRect, thumbnail);
-                previewRect.x += previewRect.width + 5;
-                rect.x += previewRect.width + 12;
-                rect.width -= previewRect.width + 12;
+                previewRect.x += previewRect.width + CompositorStyle.k_ThumbnailDivider;
+                rect.x += previewRect.width + CompositorStyle.k_ThumbnailSpacing;
+                rect.width -= previewRect.width + CompositorStyle.k_ThumbnailSpacing;
 
                 if (isAlphaEnbaled
                     && (thumbnail.format == RenderTextureFormat.ARGBHalf
@@ -64,25 +65,25 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                     || thumbnail.format == RenderTextureFormat.ARGB64))
                 {
                     EditorGUI.DrawTextureAlpha(previewRect, thumbnail);
-                    rect.x += previewRect.width + 12;
-                    rect.width -= previewRect.width + 12;
+                    rect.x += previewRect.width + CompositorStyle.k_ThumbnailSpacing;
+                    rect.width -= previewRect.width + CompositorStyle.k_ThumbnailSpacing;
                 }
 
-                rect.y += 6;
+                rect.y += CompositorStyle.k_LabelVerticalOffset;
                 EditorGUI.LabelField(rect, serialized.LayerName.stringValue);
             }
             else
             {
                 Rect newRect = rect;
-                newRect.width = 20;
+                newRect.width = EditorGUIUtility.singleLineHeight;
                 EditorGUI.PropertyField(newRect, serialized.Show, GUIContent.none);
-                newRect.x += 20;
+                newRect.x += CompositorStyle.k_CheckboxSpacing;
                 if (isCameraStack)
                 {
                     Rect iconRect = newRect;
                     iconRect.width = CompositorStyle.k_IconSize;
                     iconRect.height = CompositorStyle.k_IconSize;
-                    iconRect.y -= 5;
+                    iconRect.y -= CompositorStyle.k_IconVerticalOffset;
                     switch (serialized.InputLayerType.enumValueIndex)
                     {
                         case (int)CompositorLayer.LayerType.Camera:
@@ -99,12 +100,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                             Debug.Log("Unknown layer type: Please add code here to draw this type of layer.");
                             break;
                     }
-                    newRect.x += CompositorStyle.k_IconSize + 5;
+                    newRect.x += CompositorStyle.k_IconSize + CompositorStyle.k_IconSpacing;
                 }
 
-                newRect.width = rect.width - 60 - 20;
+                newRect.width = rect.width - newRect.x;
                 EditorGUI.LabelField(newRect, serialized.LayerName.stringValue);
-                rect.y += rect.height;
             }
         }
 

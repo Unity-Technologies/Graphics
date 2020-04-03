@@ -5,7 +5,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition.Compositor
 {
-    [Serializable, VolumeComponentMenu("Post-processing/Custom/AlphaIjection")]
+    [Serializable, VolumeComponentMenu("Post-processing/Custom/AlphaInjection")]
     internal sealed class AlphaInjection : CustomPostProcessVolumeComponent, IPostProcessComponent
     {
         internal class ShaderIDs

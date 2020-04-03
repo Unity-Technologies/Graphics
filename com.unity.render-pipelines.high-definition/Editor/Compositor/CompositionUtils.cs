@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             {
                 if (compositor.layers[i].outputTarget == CompositorLayer.OutputTarget.CompositorLayer)
                 {
-                    if ( (i+i < compositor.numLayers - 1) && (compositor.layers[i+1].outputTarget == CompositorLayer.OutputTarget.CameraStack))
+                    if ((i+i < compositor.numLayers - 1) && (compositor.layers[i+1].outputTarget == CompositorLayer.OutputTarget.CameraStack))
                     {
                         continue;
                     }
@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
                 newProfile = ScriptableObject.CreateInstance<CompositionProfile>();
 
-                // path = AssetDatabase.GenerateUniqueAssetPath(path);
+                //Note: no need to GenerateUniqueAssetPath(path), since we know that LoadAssetAtPath failed at this path
                 AssetDatabase.CreateAsset(newProfile, path);
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();

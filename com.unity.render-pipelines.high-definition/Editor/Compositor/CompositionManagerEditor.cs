@@ -181,7 +181,6 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
                 m_layerList.drawHeaderCallback = (Rect rect) =>
                 {
-                //EditorGUI.LabelField(rect, "Render Schedule", EditorStyles.largeLabel);
                 };
 
                 m_layerList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
