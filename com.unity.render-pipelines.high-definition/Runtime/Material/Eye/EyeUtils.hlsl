@@ -31,7 +31,7 @@ void CirclePupilAnimation_float(float2 irusUV, float pupilRadius, float pupilApe
     float localIrisRadius = length(irisUVCentered);
 
     // Define the relative position of the point w/r to the pupil position
-    //float relativePointPosition = localIrisRadius > pupilRadius ? (localIrisRadius - pupilRadius) / (1.0 - pupilRadius) : (pupilRadius - localIrisRadius) / (pupilRadius);
+    // float relativePointPosition = localIrisRadius > pupilRadius ? (localIrisRadius - pupilRadius) / (1.0 - pupilRadius) : (pupilRadius - localIrisRadius) / (pupilRadius);
 
     // First based on the pupil aperture, let's define the new position of the pupil
     float newPupilRadius = pupilAperture > 0.5 ? lerp(pupilRadius, maximalPupilAperture, (pupilAperture - 0.5) * 2.0) : lerp(minimalPupilAperture, pupilRadius, pupilAperture * 2.0);
@@ -52,7 +52,7 @@ void CirclePupilAnimation_float(float2 irusUV, float pupilRadius, float pupilApe
     animatedIrisUV = (animatedIrisUV * 0.5 + float2(0.5, 0.5));
 }
 
-void CorneaRefraction_float(float3 positionOS, float3 corneaNormalOS, float corneaIOR, out float2 refractedPositionOS)
+void CorneaRefraction_float(float3 positionOS, float3 corneaNormalOS, float corneaIOR, out float3 refractedPositionOS)
 {
     // Compute the refracted 
     float3 viewPositionOS = TransformWorldToObject(GetCameraRelativePositionWS(_WorldSpaceCameraPos));
