@@ -14,10 +14,7 @@ namespace UnityEditor.VFX
         public OpaqueRenderQueue opaqueRenderQueue = OpaqueRenderQueue.Default;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("HDRP"), Tooltip("Specifies when in the render queue particles are drawn. This is useful for drawing particles behind refractive surfaces like frosted glass, for performance gains by rendering them in low resolution, or to draw particles after post processing so they are not affected by effects such as Depth of Field.")]
-        public TransparentRenderQueue transparentRenderQueue = TransparentRenderQueue.Default;
-
-
-        
+        public TransparentRenderQueue transparentRenderQueue = TransparentRenderQueue.Default;       
 
         // Caps
         public override bool supportsExposure { get { return true; } } 
@@ -37,29 +34,57 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (owner.isBlendModeOpaque)
+                if (!supportsQueueSelection)
+                {
+                    yield return "transparentRenderQueue";
+                    yield return "opaqueRenderQueue";
+                }
+                else if (owner.isBlendModeOpaque)
                     yield return "transparentRenderQueue";
                 else
                     yield return "opaqueRenderQueue";
             }
         }
 
-        public override IEnumerable<int> GetFilteredOutEnumerators(string name)
+        protected override void OnSettingModified(VFXSetting setting)
         {
+            base.OnSettingModified(setting);
+            // Reset to default if render queue is invalid
+            if (setting.name == "transparentRenderQueue")
+            {               
+                if (!supportsQueueSelection || (isLit && transparentRenderQueue == TransparentRenderQueue.AfterPostProcessing))
+                    transparentRenderQueue = TransparentRenderQueue.Default;
+            }
+            else if (setting.name == "opaqueRenderQueue")
+            {
+                if (!supportsQueueSelection || (isLit && opaqueRenderQueue == OpaqueRenderQueue.AfterPostProcessing))
+                    opaqueRenderQueue = OpaqueRenderQueue.Default;
+            }
+        }
+
+        protected bool isLit => owner is VFXAbstractParticleHDRPLitOutput;
+        protected bool supportsQueueSelection => !(owner is VFXAbstractDistortionOutput); // TODO Should be made in a more abstract way
+
+        public override IEnumerable<int> GetFilteredOutEnumerators(string name)
+        { 
             switch (name)
             {
                 case "opaqueRenderQueue":
-                    return new int[] { (int)OpaqueRenderQueue.Raytracing };
+                    yield return (int)OpaqueRenderQueue.Raytracing;
+                    if (isLit)
+                        yield return (int)OpaqueRenderQueue.AfterPostProcessing;
+                    break;
                 case "transparentRenderQueue":
-                    return new int[] { (int)TransparentRenderQueue.Raytracing };
-            }
-            return null;
+                    yield return (int)TransparentRenderQueue.Raytracing;
+                    if (isLit)
+                        yield return (int)TransparentRenderQueue.AfterPostProcessing;
+                    break;
+           }
         }
-
+        
         public override string GetBlendModeStr()
         {
             bool isOffscreen = transparentRenderQueue == TransparentRenderQueue.LowResolution || transparentRenderQueue == TransparentRenderQueue.AfterPostProcessing;
-            bool isLit = owner is VFXAbstractParticleHDRPLitOutput;
             switch (owner.blendMode)
             {
                 case BlendMode.Additive:

@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+- VFX: Removed irrelevant queues in render queue selection from HDRP outputs
+
+## [7.3.0] - 2020-03-11
+
 ### Added
 - Add XR setting to control camera jitter for temporal effects #6259
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
