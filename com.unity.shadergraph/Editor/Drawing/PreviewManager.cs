@@ -611,6 +611,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // select some nodes to start async compile, by populating m_NodeToCompile
                 m_NodesToCompile.Clear();
 
+                // master node compile is first in the priority list, as it takes longer than the other previews
+                if ((m_NodesCompiling.Count + m_NodesToCompile.Count < m_MaxNodesCompiling) &&
+                     m_NodesNeedsRecompile.Contains(m_MasterRenderData.shaderData.node) &&
+                     !m_NodesCompiling.Contains(m_MasterRenderData.shaderData.node))
+                {
+                    Debug.Log("Kicking preview shader compile for master node: " + m_MasterRenderData.shaderData.node.name);
+                    m_NodesToCompile.Add(m_MasterRenderData.shaderData.node);
+                }
+
                 // add each node to compile list if it needs a preview, is not already compiling, and we have room
                 // (we don't want to double kick compiles, wait for the first one to get back before kicking another)
                 if (m_NodesCompiling.Count + m_NodesToCompile.Count < m_MaxNodesCompiling)
@@ -624,15 +633,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                             if (m_NodesCompiling.Count + m_NodesToCompile.Count >= m_MaxNodesCompiling)
                                 break;
                         }
-                    }
-
-                    // master node compile is last in the priority list, as it takes longer than the other previews
-                    if ((m_NodesCompiling.Count + m_NodesToCompile.Count < m_MaxNodesCompiling) &&
-                         m_NodesNeedsRecompile.Contains(m_MasterRenderData.shaderData.node) &&
-                         !m_NodesCompiling.Contains(m_MasterRenderData.shaderData.node))
-                    {
-                        Debug.Log("Kicking preview shader compile for master node: " + m_MasterRenderData.shaderData.node.name);
-                        m_NodesToCompile.Add(m_MasterRenderData.shaderData.node);
                     }
                 }
 

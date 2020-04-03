@@ -947,10 +947,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             BuildVisualNodeMap();
             foreach (IEdge edge in edges)
             {
-                AddEdgeUsingVisualNodeMapNoUpdate(edge);
+                AddEdge(edge, true, false);
             }
 
-            // apply the update on every node
+            // apply the port update on every node
             foreach (IShaderNodeView nodeView in visualNodeMap.Values)
             {
                 nodeView.gvNode.RefreshPorts();
@@ -961,7 +961,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             visualNodeMap.Clear();
         }
 
-        Edge AddEdgeUsingVisualNodeMapNoUpdate(IEdge edge)
+        Edge AddEdge(IEdge edge, bool useVisualNodeMap = false, bool updateNodePorts = true)
         {
             var sourceNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
             if (sourceNode == null)
@@ -980,13 +980,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             var targetSlot = targetNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
 
             IShaderNodeView sourceNodeView;
-            visualNodeMap.TryGetValue(sourceNode, out sourceNodeView);
+            if (useVisualNodeMap)
+                visualNodeMap.TryGetValue(sourceNode, out sourceNodeView);
+            else
+                sourceNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().FirstOrDefault(x => x.node == sourceNode);
+
             if (sourceNodeView != null)
             {
                 var sourceAnchor = sourceNodeView.gvNode.outputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(sourceSlot));
 
                 IShaderNodeView targetNodeView;
-                visualNodeMap.TryGetValue(targetNode, out targetNodeView);
+                if (useVisualNodeMap)
+                    visualNodeMap.TryGetValue(targetNode, out targetNodeView);
+                else
+                    targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
 
                 var targetAnchor = targetNodeView.gvNode.inputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(targetSlot));
 
@@ -999,50 +1006,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
                 m_GraphView.AddElement(edgeView);
-                return edgeView;
-            }
-            return null;
-        }
 
-        Edge AddEdge(IEdge edge)
-        {
-            var sourceNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-            if (sourceNode == null)
-            {
-                Debug.LogWarning("Source node is null");
-                return null;
-            }
-            var sourceSlot = sourceNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
-
-            var targetNode = m_Graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
-            if (targetNode == null)
-            {
-                Debug.LogWarning("Target node is null");
-                return null;
-            }
-            var targetSlot = targetNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
-
-            var sourceNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().FirstOrDefault(x => x.node == sourceNode);
-            if (sourceNodeView != null)
-            {
-                var sourceAnchor = sourceNodeView.gvNode.outputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(sourceSlot));
-
-                var targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
-                var targetAnchor = targetNodeView.gvNode.inputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(targetSlot));
-
-                var edgeView = new Edge
+                if (updateNodePorts)
                 {
-                    userData = edge,
-                    output = sourceAnchor,
-                    input = targetAnchor
-                };
-                edgeView.output.Connect(edgeView);
-                edgeView.input.Connect(edgeView);
-                m_GraphView.AddElement(edgeView);
-                sourceNodeView.gvNode.RefreshPorts();
-                targetNodeView.gvNode.RefreshPorts();
-                sourceNodeView.UpdatePortInputTypes();
-                targetNodeView.UpdatePortInputTypes();
+                    sourceNodeView.gvNode.RefreshPorts();
+                    targetNodeView.gvNode.RefreshPorts();
+                    sourceNodeView.UpdatePortInputTypes();
+                    targetNodeView.UpdatePortInputTypes();
+                }
 
                 return edgeView;
             }
