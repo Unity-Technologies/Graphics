@@ -10,10 +10,10 @@ Shader "Hidden/HDRP/CustomClear"
         TEXTURE2D(_BlitTexture);
         SamplerState sampler_PointClamp;
         SamplerState sampler_LinearClamp;
-        uniform float4 _BlitScaleBias;
-        uniform float4 _BlitScaleBiasRt;
-        uniform float _BlitMipLevel;
-        uniform int _ClearAlpha;
+        float4 _BlitScaleBias;
+        float4 _BlitScaleBiasRt;
+        float _BlitMipLevel;
+        int _ClearAlpha;
 
         struct Attributes
         {
@@ -45,24 +45,19 @@ Shader "Hidden/HDRP/CustomClear"
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
             output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
-			output.texcoord = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+            output.texcoord = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
             return output;
         }
 
-        float4 Frag(Varyings input, SamplerState s)
-        {
-            float4 color = SAMPLE_TEXTURE2D_LOD(_BlitTexture, s, input.texcoord.xy, _BlitMipLevel);
-            return float4(color.xyz, _ClearAlpha == 0 ? color.w : 0.0f);
-        }
-
-        float4 FragNearest(Varyings input) : SV_Target
+        float4 ClearColorAndAlphaToZero(Varyings input) : SV_Target
         {
             return float4(0.0f, 0.0f, 0.0f, 0.0f);
         }
 
-        float4 FragBilinear(Varyings input) : SV_Target
+        float4 ClearUsingTexture(Varyings input) : SV_Target
         {
-            return Frag(input, sampler_LinearClamp);
+            float4 color = SAMPLE_TEXTURE2D_LOD(_BlitTexture, sampler_LinearClamp, input.texcoord.xy, _BlitMipLevel);
+            return float4(color.xyz, _ClearAlpha == 0 ? color.w : 0.0f);
         }
 
     ENDHLSL
@@ -71,7 +66,7 @@ Shader "Hidden/HDRP/CustomClear"
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline" }
 
-        // 0: Nearest
+        // 0: Clear color, alpha and stencil to zero
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
@@ -85,11 +80,11 @@ Shader "Hidden/HDRP/CustomClear"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment FragNearest
+                #pragma fragment ClearColorAndAlphaToZero
             ENDHLSL
         }
 
-        // 1: Bilinear quad and clear stencil
+        // 1: Clears the color using the input texture and clears stencil to zero
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
@@ -103,7 +98,7 @@ Shader "Hidden/HDRP/CustomClear"
 
             HLSLPROGRAM
                 #pragma vertex VertQuad
-                #pragma fragment FragBilinear
+                #pragma fragment ClearUsingTexture
             ENDHLSL
         }
 
