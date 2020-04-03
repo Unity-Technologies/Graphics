@@ -216,7 +216,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         subGraphNode.Reload(m_ChangedFileDependencies);
                     }
-                    if (subGraphNodes.Count() > 0)
+                    if(subGraphNodes.Count() > 0)
                     {
                         // Keywords always need to be updated to test against variant limit
                         // No Keywords may indicate removal and this may have now made the Graph valid again
@@ -802,7 +802,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private static readonly ProfilerMarker GraphLoadMarker = new ProfilerMarker("GraphLoad");
         private static readonly ProfilerMarker CreateGraphEditorViewMarker = new ProfilerMarker("CreateGraphEditorView");
-
         private static readonly ProfilerMarker RepaintMarker = new ProfilerMarker("Repaint");
 
         public void Initialize(string assetGuid)

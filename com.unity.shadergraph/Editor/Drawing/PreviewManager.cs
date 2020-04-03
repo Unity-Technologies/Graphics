@@ -26,15 +26,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         Dictionary<Guid, PreviewRenderData> m_RenderDatas = new Dictionary<Guid, PreviewRenderData>();      // stores all of the PreviewRendererData, mapped by node GUID
         PreviewRenderData m_MasterRenderData;                                                               // cache ref to preview renderer data for the master node
 
-        HashSet<AbstractMaterialNode> m_NodesShaderChanged = new HashSet<AbstractMaterialNode>();           // nodes whose shader code has changed
-        HashSet<AbstractMaterialNode> m_NodesToUpdate = new HashSet<AbstractMaterialNode>();                // nodes we need to rebuild the preview shader for (may be downstream from node with a shader change)
-        HashSet<AbstractMaterialNode> m_NodesToCompile = new HashSet<AbstractMaterialNode>();               // temporary list used to track nodes we are kicking off async compiles for RIGHT NOW
-        int m_NodesCompiling = 0;                                                                           // number of node preview shaders currently being async compiled
-        int m_MaxNodesCompiling = 1;                                                                        // max preview shaders we want to async compile at once
-        // nodes that are compiling are just flagged in their m_RenderDatas..  once we detect the compile is complete, we pass them to m_NodesToDraw
+        int m_MaxNodesCompiling = 4;                                                                        // max preview shaders we want to async compile at once
+
+        // state trackers
+        HashSet<AbstractMaterialNode> m_NodesShaderChanged = new HashSet<AbstractMaterialNode>();           // nodes whose shader code has changed, this node and nodes that read from it are put into NeedRecompile
+        HashSet<AbstractMaterialNode> m_NodesNeedsRecompile = new HashSet<AbstractMaterialNode>();           // nodes we need to recompile the preview shader
+        HashSet<AbstractMaterialNode> m_NodesToCompile = new HashSet<AbstractMaterialNode>();               // TEMPORARY list of nodes we are kicking off async compiles for RIGHT NOW
+        HashSet<AbstractMaterialNode> m_NodesCompiling = new HashSet<AbstractMaterialNode>();               // nodes currently being compiled
+        HashSet<AbstractMaterialNode> m_NodesCompiled = new HashSet<AbstractMaterialNode>();                // TEMPORARY list of nodes that completed compilation JUST NOW
         HashSet<AbstractMaterialNode> m_NodesToDraw = new HashSet<AbstractMaterialNode>();                  // nodes to rebuild the texture for
         HashSet<AbstractMaterialNode> m_TimedNodes = new HashSet<AbstractMaterialNode>();                   // nodes that are dependent on a time node -- i.e. animated -- need to redraw every frame
-        bool m_RefreshTimedNodes;                                                                           // rebuild the list of timed nodes
+        bool m_RefreshTimedNodes;                                                                           // flag to trigger rebuilding the list of timed nodes
 
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
@@ -114,7 +116,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var shaderData = new PreviewShaderData
             {
                 node = node,
-                isCompiling = false,
+                passesCompiling = 0,
                 isOutOfDate = true,
                 hasError = false,
             };
@@ -133,7 +135,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 onPrimaryMasterChanged();
             }
 
-            m_NodesShaderChanged.Add(node);
+            m_NodesNeedsRecompile.Add(node);
         }
 
         void OnNodeModified(AbstractMaterialNode node, ModificationScope scope)
@@ -270,8 +272,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void GetConnectedNodes<T>(AbstractMaterialNode node, PropagationDirection dir, T connections) where T : ICollection<AbstractMaterialNode>
         {
-            // TODO: use ForeachConnectedNode ?
-
             // Loop through all nodes that the node feeds into.
             m_Slots.Clear();
             if (dir == PropagationDirection.Downstream)
@@ -314,11 +314,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.removedNodes)
             {
                 DestroyPreview(node.guid);
-                m_NodesShaderChanged.Remove(node);
-                m_NodesToUpdate.Remove(node);
-                m_NodesToDraw.Remove(node);
                 m_RefreshTimedNodes = true;
             }
+
+            // remove the nodes from the state trackers
+            m_NodesShaderChanged.ExceptWith(m_Graph.removedNodes);
+            m_NodesNeedsRecompile.ExceptWith(m_Graph.removedNodes);
+            m_NodesToCompile.ExceptWith(m_Graph.removedNodes);
+            m_NodesCompiling.ExceptWith(m_Graph.removedNodes);
+            m_NodesCompiled.ExceptWith(m_Graph.removedNodes);
+            m_NodesToDraw.ExceptWith(m_Graph.removedNodes);
+            m_TimedNodes.ExceptWith(m_Graph.removedNodes);
 
             m_Messenger.ClearNodesFromProvider(this, m_Graph.removedNodes);
 
@@ -347,8 +353,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            // TODO: what exactly does this bool return control??
-            return (m_NodesToUpdate.Count > 0) || (m_NodesShaderChanged.Count > 0);
+            // TODO: what exactly does this bool return control??       Seems to only control whether we rebuild colors or not...
+            return (m_NodesNeedsRecompile.Count > 0) || (m_NodesShaderChanged.Count > 0);
         }
 
         List<PreviewProperty> m_PreviewProperties = new List<PreviewProperty>();
@@ -386,13 +392,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (requestShaders)
                     UpdateShaders();
-
                 UpdateTimedNodeList();
 
                 PropagateNodeList(m_NodesToDraw, PropagationDirection.Downstream);
                 m_NodesToDraw.UnionWith(m_TimedNodes);
-
-                // TODO: intersect NodesToDraw with visible previews?  or at least take preview visibility into account earlier in the pipeline...
 
                 var time = Time.realtimeSinceStartup;
                 var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
@@ -408,7 +411,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         if (renderData.texture != null)     // avoid calling this all the time if the view already knows
                         {
-                            Debug.Log("NULL SHADER OR MATERIAL");
+                            // TODO: pretty sure this code is never hit?
                             renderData.texture = null;
                             renderData.NotifyPreviewChanged();      // force redraw node -- 
                         }
@@ -506,14 +509,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var data in m_RenderDatas.Values)
             {
-                m_NodesToUpdate.Add(data.shaderData.node);
+                m_NodesNeedsRecompile.Add(data.shaderData.node);
             }
         }
 
         private static readonly ProfilerMarker UpdateShadersMarker = new ProfilerMarker("UpdateShaders");
         private static readonly ProfilerMarker CheckCompleteMarker = new ProfilerMarker("CheckComplete");
         private static readonly ProfilerMarker DirtyNodePropMarker = new ProfilerMarker("DirtyNodeProp");
-        private static readonly ProfilerMarker ClearNodesFromProviderMarker = new ProfilerMarker("ClearNodesFromProvider");
         private static readonly ProfilerMarker GeneratorMarker = new ProfilerMarker("Generator");
         void UpdateShaders()
         {
@@ -522,103 +524,138 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // Check for shaders that finished compiling and set them to redraw
                 using (CheckCompleteMarker.Auto())
                 {
-                    foreach (var renderData in m_RenderDatas.Values)
+                    m_NodesCompiled.Clear();
+                    foreach (var node in m_NodesCompiling)
                     {
-                        if (renderData.shaderData.isCompiling)
+                        PreviewRenderData renderData = m_RenderDatas[node.guid];
+                        PreviewShaderData shaderData = renderData.shaderData;
+                        Assert.IsTrue(shaderData.passesCompiling > 0);
+
+                        // sometimes there's more passes discovered after we kick the first compile
+                        if (shaderData.passesCompiling < shaderData.mat.passCount)
                         {
-                            // check that all passes have compiled
-                            var allPassesCompiled = true;
-                            for (var i = 0; i < renderData.shaderData.mat.passCount; i++)
+                            // kick the rest
+                            Debug.Log("PASS WEIRDNESS DETECTED, RECOMPILING PASSES: (was " + shaderData.passesCompiling + ", now " + shaderData.mat.passCount + "node: " + node.name + ")");
+                            for (var i = 0; i < shaderData.mat.passCount; i++)
                             {
-                                if (!ShaderUtil.IsPassCompiled(renderData.shaderData.mat, i))
+                                using (CompilePassMarker.Auto())
                                 {
-                                    allPassesCompiled = false;
-                                    break;
+                                    ShaderUtil.CompilePass(shaderData.mat, i);
                                 }
                             }
+                            shaderData.passesCompiling = shaderData.mat.passCount;
+                        }
 
-                            if (!allPassesCompiled)
+                        // check that all passes have compiled
+                        var allPassesCompiled = true;
+                        for (var i = 0; i < renderData.shaderData.mat.passCount; i++)
+                        {
+                            if (!ShaderUtil.IsPassCompiled(renderData.shaderData.mat, i))
                             {
-                                continue;
+                                allPassesCompiled = false;
+                                break;
                             }
+                        }
 
-                            // Force the material to re-generate all it's shader properties.  (by reassigning the shader?)
-                            renderData.shaderData.mat.shader = renderData.shaderData.shader;
-                            renderData.shaderData.isCompiling = false;
-                            renderData.shaderData.isOutOfDate = false;
-                            CheckForErrors(renderData.shaderData);
-                            m_NodesCompiling--;
-                            Assert.IsTrue(m_NodesCompiling >= 0);
+                        if (!allPassesCompiled)
+                        {
+                            continue;
+                        }
 
-                            // now schedule the node to be redrawn
-                            m_NodesToDraw.Add(renderData.shaderData.node);
+                        // Force the material to re-generate all it's shader properties, by reassigning the shader
+                        // Debug.Log("Compile complete for: " + node.name);
+                        renderData.shaderData.mat.shader = renderData.shaderData.shader;
+                        renderData.shaderData.passesCompiling = 0;
+                        renderData.shaderData.isOutOfDate = false;
+                        CheckForErrors(renderData.shaderData);
 
-                            var masterNode = renderData.shaderData.node as IMasterNode;
-                            masterNode?.ProcessPreviewMaterial(renderData.shaderData.mat);
+                        m_NodesCompiled.Add(renderData.shaderData.node);
+
+                        var masterNode = renderData.shaderData.node as IMasterNode;
+                        if (masterNode != null)
+                        {
+                            Debug.Log("Master Node Complete: " + node.name + " passes: " + renderData.shaderData.mat.passCount);
+                            masterNode.ProcessPreviewMaterial(renderData.shaderData.mat);
                         }
                     }
+
+                    // removed compiled nodes from compiling list
+                    m_NodesCompiling.ExceptWith(m_NodesCompiled);
+
+                    // and add them to the draw list
+                    m_NodesToDraw.UnionWith(m_NodesCompiled);
                 }
 
                 if (m_NodesShaderChanged.Count > 0)
                 {
-                    // nodes with shader changes cause all downstream nodes to update
-                    PropagateNodes(m_NodesShaderChanged, PropagationDirection.Downstream, m_NodesToUpdate);
+                    // nodes with shader changes cause all downstream nodes to need recompilation
+                    PropagateNodes(m_NodesShaderChanged, PropagationDirection.Downstream, m_NodesNeedsRecompile);
                     m_NodesShaderChanged.Clear();
                 }
 
                 // if there's nothing to update, or if too many nodes are still compiling, then just return
-                if ((m_NodesToUpdate.Count == 0) || (m_NodesCompiling >= m_MaxNodesCompiling))
+                if ((m_NodesNeedsRecompile.Count == 0) || (m_NodesCompiling.Count >= m_MaxNodesCompiling))
                     return;
 
-                // select some nodes to start async compile, first let's figure out how many we want to start
-                int remainingCompiles = m_MaxNodesCompiling - m_NodesCompiling;
-                m_NodesToCompile.Clear();
-                foreach (var node in m_NodesToUpdate)
-                {
-                    Assert.IsTrue(node != null);
-                    // if (node == null) continue;
-
-                    // flag all nodes in m_NodesToUpdate as having out of date textures
+                // flag all nodes in m_NodesNeedRecompile as having out of date textures, and redraw them
+                foreach (var node in m_NodesNeedsRecompile)
+                {                    
                     PreviewRenderData previewRendererData = m_RenderDatas[node.guid];
                     if (!previewRendererData.shaderData.isOutOfDate)
                     {
                         previewRendererData.shaderData.isOutOfDate = true;
-                        previewRendererData.NotifyPreviewChanged();      // flag node to redraw with out-of-date appearance
-                    }
-
-                    // add to compile list if it needs a preview and we have room
-                    if (node.hasPreview && node.previewExpanded && (remainingCompiles > 0))
-                    {
-                        m_NodesToCompile.Add(node);
-                        remainingCompiles--;
+                        previewRendererData.NotifyPreviewChanged();
                     }
                 }
 
-                // remove the selected nodes from the update list
-                m_NodesToUpdate.ExceptWith(m_NodesToCompile);
+                // select some nodes to start async compile, by populating m_NodeToCompile
+                m_NodesToCompile.Clear();
+
+                // add each node to compile list if it needs a preview, is not already compiling, and we have room
+                // (we don't want to double kick compiles, wait for the first one to get back before kicking another)
+                if (m_NodesCompiling.Count + m_NodesToCompile.Count < m_MaxNodesCompiling)
+                {
+                    foreach (var node in m_NodesNeedsRecompile)
+                    {
+                        if (node.hasPreview && node.previewExpanded && !m_NodesCompiling.Contains(node))
+                        {
+                            // Debug.Log("Kicking preview shader compile for: " + node.name);
+                            m_NodesToCompile.Add(node);
+                            if (m_NodesCompiling.Count + m_NodesToCompile.Count >= m_MaxNodesCompiling)
+                                break;
+                        }
+                    }
+
+                    // master node compile is last in the priority list, as it takes longer than the other previews
+                    if ((m_NodesCompiling.Count + m_NodesToCompile.Count < m_MaxNodesCompiling) &&
+                         m_NodesNeedsRecompile.Contains(m_MasterRenderData.shaderData.node) &&
+                         !m_NodesCompiling.Contains(m_MasterRenderData.shaderData.node))
+                    {
+                        Debug.Log("Kicking preview shader compile for master node: " + m_MasterRenderData.shaderData.node.name);
+                        m_NodesToCompile.Add(m_MasterRenderData.shaderData.node);
+                    }
+                }
+
+                // remove the selected nodes from the recompile list
+                m_NodesNeedsRecompile.ExceptWith(m_NodesToCompile);
 
                 // Reset error states for the UI, the shader, and all render data for nodes we're recompiling
-                using (ClearNodesFromProviderMarker.Auto())
-                {
-                    m_Messenger.ClearNodesFromProvider(this, m_NodesToCompile);
-                }
+                m_Messenger.ClearNodesFromProvider(this, m_NodesToCompile);
 
                 // Force async compile on
                 var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
                 ShaderUtil.allowAsyncCompilation = true;
 
-                int compileRequestedCount = 0;
+                // kick async compiles for all nodes in m_NodeToCompile
                 foreach (var node in m_NodesToCompile)
                 {
                     if (node is IMasterNode && node == masterRenderData.shaderData.node && !(node is VfxMasterNode))
                     {
                         UpdateMasterNodeShader();
-                        compileRequestedCount++;
                         continue;
                     }
 
-                    if (!node.hasPreview && !(node is SubGraphOutputNode || node is VfxMasterNode))
-                        continue;
+                    Assert.IsFalse(!node.hasPreview && !(node is SubGraphOutputNode || node is VfxMasterNode));
 
                     var renderData = m_RenderDatas[node.guid];
                     if (renderData == null)
@@ -633,7 +670,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
                     }
                     BeginCompile(renderData, generator.generatedShader);
-                    compileRequestedCount++;
 
                     // TODO: Can we move this somewhere more relevant?  seems more preview rendering related
                     // Calculate the PreviewMode from upstream nodes
@@ -651,9 +687,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
 
-//                if ((compileRequestedCount > 0) || (m_NodesToCompile.Count > 0))
-//                    Debug.Log("Kicked " + compileRequestedCount + "/" + m_NodesToCompile.Count + " shader compiles");
-
                 ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
                 m_NodesToCompile.Clear();
             }
@@ -663,12 +696,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         private static readonly ProfilerMarker UpdateShaderAssetMarker = new ProfilerMarker("UpdateShaderAsset");
         private static readonly ProfilerMarker CompilePassMarker = new ProfilerMarker("CompilePass");
         private static readonly ProfilerMarker CreateShaderAssetMarker = new ProfilerMarker("CreateShaderAsset");
-        void BeginCompile(PreviewRenderData renderData, string shaderStr)
+        void BeginCompile(PreviewRenderData renderData, string shaderStr, bool debug = false)
         {
             using (BeginCompileMarker.Auto())
             {
                 var shaderData = renderData.shaderData;
-                Assert.IsFalse(shaderData.isCompiling);     // not sure what happens if we double-launch a compile.. at the very least it is double work, possibly gets confused
+                Assert.IsTrue(shaderData.passesCompiling == 0);     // not sure what happens if we double-launch a compile.. at the very least it is double work, possibly gets confused
 
                 if (shaderData.shader == null)
                 {
@@ -692,6 +725,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     shaderData.mat = new Material(shaderData.shader) { hideFlags = HideFlags.HideAndDontSave };
                 }
 
+                if (debug)
+                {
+                    Debug.Log("Master Node BeginCompile, passes = " + shaderData.mat.passCount);
+                }
+
+                shaderData.passesCompiling = shaderData.mat.passCount;
                 for (var i = 0; i < shaderData.mat.passCount; i++)
                 {
                     using (CompilePassMarker.Auto())
@@ -699,9 +738,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         ShaderUtil.CompilePass(shaderData.mat, i);
                     }
                 }
-                shaderData.isCompiling = true;
-                Assert.IsTrue(m_NodesCompiling >= 0);
-                m_NodesCompiling++;
+                m_NodesCompiling.Add(shaderData.node);
             }
         }
 
@@ -789,7 +826,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            BeginCompile(masterRenderData, shaderData.shaderString);
+            BeginCompile(masterRenderData, shaderData.shaderString, true);
         }
 
         void DestroyRenderData(PreviewRenderData renderData)
@@ -874,7 +911,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Shader shader { get; set; }
         public Material mat { get; set; }
         public string shaderString { get; set; }
-        public bool isCompiling { get; set; }
+        public int passesCompiling { get; set; }
         public bool isOutOfDate { get; set; }
         public bool hasError { get; set; }
     }
