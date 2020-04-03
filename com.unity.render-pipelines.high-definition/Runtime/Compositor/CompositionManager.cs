@@ -205,6 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
             return false;
         }
+
         bool ValidateCompositionShader()
         {
             if (m_Shader == null)
@@ -311,7 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public void Init()
         {
-            if ( ValidateCompositionShader() && ValidateProfile() && ValidateMainCompositorCamera())
+            if (ValidateCompositionShader() && ValidateProfile() && ValidateMainCompositorCamera())
             {
                 UpdateDisplayNumber();
 

@@ -169,20 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         static float EnumToScale(ResolutionScale scale)
         {
-            float resScale = 1.0f;// / (int)m_ResolutionScale;
-            switch (scale)
-            {
-                case ResolutionScale.Half:
-                    resScale = 0.5f;
-                    break;
-                case ResolutionScale.Quarter:
-                    resScale = 0.25f;
-                    break;
-                default:
-                    resScale = 1.0f;
-                    break;
-            }
-            return resScale;
+            return 1.0f / (int)scale;
         }
 
         public int pixelWidth
@@ -325,7 +312,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 var layerData = m_LayerCamera.GetComponent<AdditionalCompositorData>();
                 {
                     // create the component if it is required and does not exist
-                    //bool requiresAdditionalData = (m_AlphaMask || m_ChromaKeying || m_Type == LayerType.Image);
                     if (layerData == null)
                     {
                         layerData = m_LayerCamera.gameObject.AddComponent<AdditionalCompositorData>();

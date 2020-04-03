@@ -34,17 +34,15 @@
         return output;
     }
 
-    // List of properties to control your post process effect
-
-	TEXTURE2D_X(_InputTexture);
+    TEXTURE2D_X(_InputTexture);
     TEXTURE2D(_AlphaTexture);
-	
+    
     float4 CustomPostProcess(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         uint2 positionSS = input.texcoord * _ScreenSize.xy;
-		float3 color = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz;
+        float3 color = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz;
         float outAlpha = LOAD_TEXTURE2D(_AlphaTexture, positionSS).w;
         return float4(color, outAlpha);
     }
@@ -59,7 +57,7 @@
 
             ZWrite Off
             ZTest Always
-			Blend Off
+            Blend Off
             Cull Off
 
             HLSLPROGRAM
