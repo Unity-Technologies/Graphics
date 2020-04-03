@@ -217,18 +217,16 @@ namespace UnityEditor.ShaderGraph
             }
             else if(m_OutputNode is SubGraphOutputNode)
             {
-                pixelSlots = new List<MaterialSlot>()
-                {
-                    m_OutputNode.GetInputSlots<MaterialSlot>().FirstOrDefault(),
-                };
+                var slot = m_OutputNode.GetInputSlots<MaterialSlot>().FirstOrDefault();
+                if(slot != null)
+                    pixelSlots = new List<MaterialSlot>() { slot };
+                else
+                    pixelSlots = new List<MaterialSlot>();
                 vertexSlots = new List<MaterialSlot>();
             }
             else
             {
-                pixelSlots = new List<MaterialSlot>()
-                {
-                    new Vector4MaterialSlot(0, "Out", "Out", SlotType.Output, Vector4.zero) { owner = m_OutputNode },
-                };
+                pixelSlots = new List<MaterialSlot>() { new Vector4MaterialSlot(0, "Out", "Out", SlotType.Output, Vector4.zero) { owner = m_OutputNode } };
                 vertexSlots = new List<MaterialSlot>();
             }
 
