@@ -263,6 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
         DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
+        Material m_VTDebugBlit;
         /// <summary>
         /// Debug display settings.
         /// </summary>
@@ -1213,6 +1214,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Raise or remove the depth msaa flag based on the frame setting
             CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+
+#if UNITY_EDITOR
+            //Set VTDebug mode based on useTexArray
+            m_VTDebugBlit = new Material(Shader.Find("Hidden/DebugVTBlit"));
+            if (m_VTDebugBlit)
+            {
+                if (TextureXR.useTexArray) m_VTDebugBlit.EnableKeyword("USE_TEXARRAY");
+                else m_VTDebugBlit.DisableKeyword("USE_TEXARRAY");
+            }
+#endif
         }
 
         struct RenderRequest
@@ -2417,6 +2428,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
             m_VtBufferManager.Resolve(cmd, m_GbufferManager.GetVTFeedbackBuffer(), hdCamera.actualWidth, hdCamera.actualHeight);
             VirtualTexturing.System.Update();
+#if UNITY_EDITOR
+            if(m_VTDebugBlit != null)
+            {
+                PushFullScreenDebugTexture(cmd, GetVTFeedbackBufferForForward(hdCamera), FullScreenDebugMode.VirtualTexturingFeedback, m_VTDebugBlit);
+                m_DebugFullScreenPropertyBlock.SetFloat(HDShaderIDs._VTFocusMips, (int)m_DebugDisplaySettings.data.VTFeedbackMode);
+            }
+            
+#endif
 #endif
 
             // At this point, m_CameraColorBuffer has been filled by either debug views are regular rendering so we can push it here.
@@ -4257,6 +4276,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDUtils.BlitCameraTexture(cmd, textureID, m_DebugFullScreenTempBuffer);
             }
         }
+
+        void PushFullScreenDebugTexture(CommandBuffer cmd, RTHandle textureID, FullScreenDebugMode debugMode, Material shader)
+        {
+            if(debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+            {
+                m_FullScreenDebugPushed = true;
+                var stringsz = shader.GetTexturePropertyNames();
+                shader.SetTexture("_MainTex", textureID);
+                cmd.SetGlobalTexture("_MainTex", textureID);
+                cmd.Blit(textureID, m_DebugFullScreenTempBuffer, shader,0);
+            }
+        }
+
 
         void PushFullScreenDebugTextureMip(HDCamera hdCamera, CommandBuffer cmd, RTHandle texture, int lodCount, Vector4 scaleBias, FullScreenDebugMode debugMode)
         {

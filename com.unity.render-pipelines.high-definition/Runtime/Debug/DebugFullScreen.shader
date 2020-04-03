@@ -29,6 +29,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
             float _TransparencyOverdrawMaxPixelCost;
+            float _VTFocusMips;
             CBUFFER_END
 
             TEXTURE2D_X(_DebugFullScreenTexture);
@@ -55,6 +56,23 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
                 return output;
             }
+
+            static float4 VTDebugColors[] = {
+                float4(1.0f, 1.0f, 1.0f, 1.0f),
+                float4(1.0f, 1.0f, 0.0f, 1.0f),
+                float4(0.0f, 1.0f, 1.0f, 1.0f),
+                float4(0.0f, 1.0f, 0.0f, 1.0f),
+                float4(1.0f, 0.0f, 1.0f, 1.0f),
+                float4(1.0f, 0.0f, 0.0f, 1.0f),
+                float4(0.0f, 0.0f, 1.0f, 1.0f),
+                float4(0.5f, 0.5f, 0.5f, 1.0f),
+                float4(0.5f, 0.5f, 0.0f, 1.0f),
+                float4(0.0f, 0.5f, 0.5f, 1.0f),
+                float4(0.0f, 0.5f, 0.0f, 1.0f),
+                float4(0.5f, 0.0f, 0.5f, 1.0f),
+                float4(0.5f, 0.0f, 0.0f, 1.0f),
+                float4(0.0f, 0.0f, 0.5f, 1.0f)
+            };
 
             // Motion vector debug utilities
             float DistanceToLine(float2 p, float2 p1, float2 p2)
@@ -310,6 +328,56 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     return color;
                 }
 
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VIRTUAL_TEXTURING_FEEDBACK)
+                {
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    if (color.r == 0 && color.g == 0 && color.b == 0 && color.a == 0) return float4(0, 0, 0, 0);
+
+                    float4 swiz;
+                    swiz = color;
+                    swiz *= 255.0f;
+
+                    float tileX = color.r;
+                    float tileY = color.g;
+                    float level = color.b;
+                    float tex = color.a;
+
+                    float h = 0;
+                    if (_VTFocusMips == 1)
+                    {
+                        if (tex < 8.0f) h = ((uint)tex % 8) * 45.0f;
+                        else if (tex < 16.0f) h = ((uint) tex % 8) * 45.0f + 22.5f;
+                        else if (tex < 32.0f) h = ((uint) tex % 8) * 45.0f + 11.25f;
+
+                        h /= 360.0f;
+
+                        float s = 1.0f;
+                        float v = 1.0f;
+                        v = ((uint)tileY % 5) / 10.0f + 0.25f;
+                        s = ((uint)tileX % 5) / 10.0f + 0.25f;
+                        s = 1.0f - s;
+                        
+                        return float4(HsvToRgb(float3(h, s, v)), 1.0f);
+                    }
+                    else
+                    {
+                        float3 hsv = RgbToHsv(VTDebugColors[level].rgb);
+                        //dont adjust hue/saturation when trying to show white or grey (on mips 0 and 7)
+                        if (level == 0 || level == 7)
+                        {
+                            hsv.z = ((uint)tileY % 5) / 5.0f + 1.0f - (((uint)tileX % 5) / 5.0f);
+                            hsv.z /= 2.0f;
+                            hsv.x = 0.0f;
+                            hsv.y = 0.0f;
+                        }
+                        else
+                        {
+                            hsv.y = ((uint)tileY % 5) / 10.0f + 0.5f;
+                            hsv.z = 1.0f - (((uint)tileX % 5) / 10.0f + 0.5f);
+                        }
+                        return float4(HsvToRgb(hsv), 1.0f);
+                    }
+                }
                 return float4(0.0, 0.0, 0.0, 0.0);
             }
 

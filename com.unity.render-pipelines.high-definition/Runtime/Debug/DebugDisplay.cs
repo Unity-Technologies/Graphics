@@ -61,6 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldCoc,
         /// <summary>Display Transparency Overdraw.</summary>
         TransparencyOverdraw,
+        /// <summary>Display Virtual Texturing resolver feedback.</summary>
+        VirtualTexturingFeedback,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
@@ -75,6 +77,11 @@ namespace UnityEngine.Rendering.HighDefinition
         MaxMaterialFullScreenDebug
     }
 
+    public enum VirtualTexturingFeedbackMode
+    {
+        HighlightMips = 0,
+        HighlightStackConfiguration = 1
+    }
     /// <summary>
     /// Class managing debug display in HDRP.
     /// </summary>
@@ -157,6 +164,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint screenSpaceShadowIndex = 0;
             /// <summary>Display ray tracing ray count per frame.</summary>
             public bool countRays = false;
+            /// <summary>Toggle focus on mips vs VT tilesets</summary>
+            public VirtualTexturingFeedbackMode VTFeedbackMode = VirtualTexturingFeedbackMode.HighlightMips;
 
             /// <summary>Index of the camera to freeze for visibility.</summary>
             public int debugCameraToFreeze = 0;
@@ -178,6 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int tileClusterDebugByCategoryEnumIndex;
             internal int lightVolumeDebugTypeEnumIndex;
             internal int renderingFulscreenDebugModeEnumIndex;
+            internal int vtFeedbackEnumIndex;
             internal int terrainTextureEnumIndex;
             internal int colorPickerDebugModeEnumIndex;
             internal int msaaSampleDebugModeEnumIndex;
@@ -1336,6 +1346,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebugUI.FloatField {displayName = "Max Pixel Cost", getter = () => data.transparencyDebugSettings.maxPixelCost, setter = value => data.transparencyDebugSettings.maxPixelCost = value, min = () => 0.25f, max = () => 2048.0f}
                     }
                 });
+            }
+
+            if (data.fullScreenDebugMode == FullScreenDebugMode.VirtualTexturingFeedback)
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.EnumField {displayName = "Debug mode ", getter = () => (int)data.VTFeedbackMode, setter = value => data.VTFeedbackMode = (VirtualTexturingFeedbackMode)value, autoEnum = typeof(VirtualTexturingFeedbackMode), getIndex = () => data.vtFeedbackEnumIndex, setIndex = value => data.vtFeedbackEnumIndex = value}
+                    }
+                })
+                ;
             }
 
             widgetList.AddRange(new DebugUI.Widget[]
