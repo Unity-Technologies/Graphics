@@ -507,6 +507,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed drag area width at left of Light's intensity field in Inspector.
 - Fixed light type resolution when performing a reset on HDAdditionalLightData (case 1220931)
 - Fixed an usage of a a compute buffer not bound (1229964)
+- Fixed an issue where changing the default volume profile from another inspector would not update the default volume editor.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
