@@ -594,7 +594,7 @@ namespace UnityEngine.Rendering.Universal
                     return;
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
                 //The old path
-                if (!renderPass.useNativeRenderPass || renderingData.cameraData.camera.cameraType != CameraType.Game)
+                if (!renderPass.useNativeRenderPass)
                 {
                     if (renderPassStarted)
                     {
