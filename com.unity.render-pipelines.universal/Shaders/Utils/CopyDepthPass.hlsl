@@ -17,7 +17,7 @@ half4 _ScaleBiasRT;
 
 struct Attributes
 {
-    float4 positionOS   : POSITION;
+    float4 positionHCS   : POSITION;
     float2 uv           : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -36,8 +36,24 @@ Varyings vert(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.uv = input.uv;
-    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+    output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
+
+    // Note: CopyDepth pass is setup with a mesh already in CS
+    // Therefore, we can just output vertex position
+
+    // We need to handle y-flip in a way that all existing shaders using _ProjectionParams.x work. 
+    // Otherwise we get flipping issues like this one (case https://issuetracker.unity3d.com/issues/lwrp-depth-texture-flipy)
+
+    // Unity flips projection matrix in non-OpenGL platforms and when rendering to a render texture.
+    // If URP is rendering to RT:
+    //  - Source Depth is upside down. We need to copy depth by using a shader that has flipped matrix as well so we have same orientaiton for source and copy depth.
+    //  - This also guarantess to be standard across if we are using a depth prepass.
+    //  - When shaders (including shader graph) render objects that sample depth they adjust uv sign with  _ProjectionParams.x. (https://docs.unity3d.com/Manual/SL-PlatformDifferences.html)
+    //  - All good.
+    // If URP is NOT rendering to RT neither rendering with OpenGL:
+    //  - Source Depth is NOT fliped. We CANNOT flip when copying depth and don't flip when sampling. (ProjectionParams.x == 1)
+    output.positionCS = float4(input.positionHCS.xyz, 1.0);
+    output.positionCS.y *= _ScaleBiasRT.x;
     return output;
 }
 
@@ -71,7 +87,7 @@ Varyings vert(Attributes input)
 
 float SampleDepth(float2 uv)
 {
-#ifdef _DEPTH_NO_MSAA
+#if MSAA_SAMPLES == 1
     return SAMPLE(uv);
 #else
     int2 coord = int2(uv * _CameraDepthAttachment_TexelSize.zw);
