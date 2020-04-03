@@ -632,6 +632,10 @@ namespace UnityEngine.Rendering.Universal
                                     && rp.colorAttachmentDescriptors[i].storeAction != RenderBufferStoreAction.DontCare //This also checks whether it's a transient texture
                                     && rp.colorAttachmentDescriptors[i].loadAction != RenderBufferLoadAction.DontCare)
                                     break;
+
+                                if (rp.colorAttachmentDescriptors[i] == m_CameraColorTargetAttachment)
+                                    m_FirstTimeCameraColorTargetIsBound = false;
+
                                 attachmentSet.Add(rp.colorAttachmentDescriptors[i]);
                             }
 
@@ -646,6 +650,10 @@ namespace UnityEngine.Rendering.Universal
                             if (rp.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None && depthAttachmentIdx == -1)
                             {
                                 attachmentSet.Add(rp.depthAttachmentDescriptor);
+
+                                if (rp.depthAttachmentDescriptor == m_CameraDepthTargetAttachment)
+                                    m_FirstTimeCameraDepthTargetIsBound = false;
+
                                 for (int i = 0; i < attachmentSet.Count; i++)
                                 {
                                     if (rp.depthAttachmentDescriptor == attachmentSet.ElementAt(i))
@@ -928,7 +936,6 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
 
             int cameraColorTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, m_CameraColorTarget);
-            m_FirstTimeCameraColorTargetIsBound = false;
             if (cameraColorTargetIndex != -1 && (m_FirstTimeCameraColorTargetIsBound || (cameraData.isXRMultipass && m_XRRenderTargetNeedsClear) ))
             {
                 //Leaving this like that atm, cause i guess we could just clear with load action on first render pass
