@@ -326,3 +326,35 @@ Here's the scheme of the database, every field should be populated automatically
 | TestProject                                       | STRING    | NULLABLE |             |
 
 Note: Record type mean that it's an array so you need to `UNNEST` it before accessing it's value
+
+### Naming convention
+
+Because we can only pair one sample name to one metric when reporting data, we need to have a well defined convention to pack the information we need into the sample group name.
+
+The `PerformanceTestUtils` class contains functions to help you format the data in a way that can easily be parsed in grafana using regex:
+
+- `FormatTestName` will format the name of the test, packing the data type, it's category, the settings (generally the SRP asset name alias), the settings category and the test name. Here's an example of the generated format for our memory test: `0001_LitCube:Small,Deferred_SRP:Default,RenderTexture`
+- `FormatSampleGroupName` will format the name of the samplegroup used to send a metric value. It contains the metric name, it's category and the data name. Example with Counter test: `Timing,GPU,Gbuffer`
+
+On the grafana side, you can use [REGEXP_CONTAINS](https://cloud.google.com/bigquery/docs/reference/standard-sql/functions-and-operators#regexp_contains) to match a certain format and [REGEXP_EXTRACT](https://cloud.google.com/bigquery/docs/reference/standard-sql/functions-and-operators#regexp_extract) to extract a certain part of the name.
+For example in this query with use both of these functions to filter timings and display only the name of the counter:
+```SQL
+#standardSQL
+SELECT
+    AVG(sampleGroup.Median) as median, run.EndTime as time,
+    REGEXP_EXTRACT(sampleGroup.Definition.Name, 'Timing,\\w+,(.*)') as metric
+FROM
+perf_test_results.run,
+    UNNEST(Results) AS result,
+    UNNEST(ProjectVersions) as pv,
+    UNNEST(result.SampleGroups) AS sampleGroup
+WHERE
+    pv.ProjectName = 'HDRP' AND BuildSettings.Platform = "PS4" AND PlayerSystemInfo.DeviceModel = '$ps4_config' -- Mandatory filters, ensure we use the good project, test suite and time window
+    AND run.EndTime BETWEEN TIMESTAMP_MILLIS($__from) AND TIMESTAMP_MILLIS($__to) -- Workaround for the $__timeFilter which doens't work for google big query datasource
+    AND pv.Branch = '$Git_branch_name'
+    AND result.TestName LIKE '%PerformanceTests.Counters%$HDRP_asset_config%'
+    AND REGEXP_CONTAINS(sampleGroup.Definition.Name, 'Timing,CPU,${Selected_counter:regex}') -- Test suite filters
+GROUP BY time, sampleGroup.Definition.Name
+HAVING median <> 0
+ORDER BY time, metric
+```
