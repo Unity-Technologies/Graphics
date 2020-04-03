@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the texture curve being destroyed from another thread than main (case 1211754)
 - Fixed unreachable code in TextureXR.useTexArray
 - Fixed GC pressure caused by `VolumeParameter<T>.GetHashCode()`
+- Fixed issue with the shader TransformWorldToHClipDir function computing the wrong result.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
