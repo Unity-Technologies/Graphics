@@ -16,6 +16,13 @@
 #define FEATUREFLAGS_AXF_HONOR_MIN_ROUGHNESS_COAT (512)
 
 //
+// UnityEngine.Rendering.HighDefinition.AxF+AxFVertexAODecodeOp:  static fields
+//
+#define AXFVERTEXAODECODEOP_NONE (0)
+#define AXFVERTEXAODECODEOP_RGBM8 (1)
+#define AXFVERTEXAODECODEOP_PASSTHROUGH (2)
+
+//
 // UnityEngine.Rendering.HighDefinition.AxF+SurfaceData:  static fields
 //
 #define DEBUGVIEW_AXF_SURFACEDATA_AMBIENT_OCCLUSION (1200)

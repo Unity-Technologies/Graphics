@@ -36,6 +36,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // use float property/uniform and bitcast in hlsl code asuint()
         };
 
+        // Make sure these matches the .shader enum:
+        [GenerateHLSL(PackingRules.Exact)]
+        public enum AxFVertexAODecodeOp
+        {
+            None,
+            RGBM8,       // From Bakery, scale = 8, gamma = 1/2 
+            Passthrough, // Take vertex value as is
+        }
+
         //-----------------------------------------------------------------------------
         // SurfaceData
         //-----------------------------------------------------------------------------

@@ -66,6 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent    clearcoatNormalMapText = new GUIContent("Clearcoat Normal");
             public static GUIContent    clearcoatIORMapText = new GUIContent("Clearcoat IOR");
 
+            public static GUIContent    meshVertexBakedAODecodeOp = new GUIContent("Mesh Vertex Baked AO Decoding", "Enable by choosing a deoding format other than none");
         }
 
         static readonly string[]    AxfBrdfTypeNames = Enum.GetNames(typeof(AxfBrdfType));
@@ -123,6 +124,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static string               m_FlagsText = "_Flags";
         MaterialProperty  m_Flags;
+
+        static string               m_MeshVertexBakedAODecodeOpText = "_MeshVertexBakedAODecodeOp";
+        MaterialProperty  m_MeshVertexBakedAODecodeOp;
+
+        static string               m_VertexAOScaleText = "_VertexAOScale";
+        MaterialProperty  m_VertexAOScale;
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // SVBRDF Parameters
@@ -231,6 +238,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_Flags = FindProperty(m_FlagsText);
 
+            m_VertexAOScale = FindProperty(m_VertexAOScaleText);
+            m_MeshVertexBakedAODecodeOp = FindProperty(m_MeshVertexBakedAODecodeOpText);
+
             //////////////////////////////////////////////////////////////////////////
             // SVBRDF
             m_SVBRDF_BRDFType = FindProperty(m_SVBRDF_BRDFTypeText);
@@ -323,6 +333,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawAxfSurfaceOptionsGUI()
         {
+            if (m_MeshVertexBakedAODecodeOp != null)
+            {
+                materialEditor.ShaderProperty(m_MeshVertexBakedAODecodeOp, Styles.meshVertexBakedAODecodeOp);
+                var vertexAODecode = (AxF.AxFVertexAODecodeOp) m_MeshVertexBakedAODecodeOp.floatValue;
+
+                if (vertexAODecode != AxF.AxFVertexAODecodeOp.None && m_VertexAOScale != null)
+                {
+                    materialEditor.ShaderProperty(m_VertexAOScale, "Vertex AO Scale");
+                }
+            }
+
             materialEditor.ShaderProperty(m_MaterialTilingU, "Material Tiling U");
             materialEditor.ShaderProperty(m_MaterialTilingV, "Material Tiling V");
 
