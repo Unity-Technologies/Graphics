@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxShadowRequests = maxShadowRequests;
 
             // TODO_FCC: BETTER HANDLING HERE
-            int sizeOfCachedPunctual = 1024;
+            int sizeOfCachedPunctual = 2048;
             int sizeOfCachedArea = 256;
             s_CachedShadowManager.InitPunctualShadowAtlas(renderPipelineResources, sizeOfCachedPunctual, sizeOfCachedPunctual, HDShaderIDs._CachedShadowmapAtlas, HDShaderIDs._CachedShadowAtlasSize, clearMaterial, maxShadowRequests, depthBufferBits: punctualLightAtlasInfo.shadowAtlasDepthBits, name: "Cached Shadow Map Atlas");
             if (ShaderConfig.s_AreaLights == 1)

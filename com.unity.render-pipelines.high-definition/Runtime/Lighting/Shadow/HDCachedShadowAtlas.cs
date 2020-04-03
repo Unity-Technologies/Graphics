@@ -44,25 +44,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // TODO: My guess is that these two can be simple vectors, not sure we need the dictionary at all...
         private Dictionary<int, CachedShadowRecord> m_PlacedShadows;
-
         private Dictionary<int, CachedShadowRecord> m_ShadowsPendingRendering;
-
-
         private List<HDAdditionalLightData> m_RegisteredLightDataPendingPlacement;
-
-
         private List<string> DBG_NAMES_LIGHT;
-
-
         private List<CachedShadowRecord> m_TempListForPlacement;
 
         // Have a pending rendering list?
         // A shadow will check here if it is pending a rendering call.
 
+        private ShadowMapType m_ShadowType;
+
         // ------------------------------------------------------------------------------------------
         //                                      Init Functions
         // ------------------------------------------------------------------------------------------
-        public HDCachedShadowAtlas()
+        public HDCachedShadowAtlas(ShadowMapType type)
         {
             // Assuming it'll be filled with 128 shadow maps
             m_PlacedShadows = new Dictionary<int, CachedShadowRecord>(s_InitialCapacity);
@@ -73,6 +68,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RegisteredLightDataPendingPlacement = new List<HDAdditionalLightData>(s_InitialCapacity);
 
             DBG_NAMES_LIGHT = new List<string>();
+
+            m_ShadowType = type;
         }
 
         public override void InitAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, int atlasSizeShaderID, Material clearMaterial, int maxShadowRequests, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
@@ -137,17 +134,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        internal bool GetSlotInAtlas(int resolution, out int x, out int y)
+        internal bool FindSlotInAtlas(int resolution, out int x, out int y)
         {
             int numEntries = HDUtils.DivRoundUp(resolution, m_MinSlotSize);
 
-            for (int j=0; j < m_AtlasResolutionInSlots; ++j)
+            for (int j = 0; j < m_AtlasResolutionInSlots; ++j)
             {
-                for(int i = 0; i < m_AtlasResolutionInSlots; ++i)
+                for (int i = 0; i < m_AtlasResolutionInSlots; ++i)
                 {
-                    if(CheckSlotAvailability(i, j, numEntries))
+                    if (CheckSlotAvailability(i, j, numEntries))
                     {
-                        FillEntries(i, j, numEntries);
                         x = i;
                         y = j;
                         return true;
@@ -157,6 +153,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             x = 0;
             y = 0;
+            return false;
+        }
+
+        internal bool GetSlotInAtlas(int resolution, out int x, out int y)
+        {
+            if(FindSlotInAtlas(resolution, out x, out y))
+            {
+                int numEntries = HDUtils.DivRoundUp(resolution, m_MinSlotSize);
+                FillEntries(x, y, numEntries);
+                return true;
+            }
+
             return false;
         }
         // ---------------------------------------------------------------------------------------       
@@ -309,16 +317,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 int resolution = 0;
 
                 // TODO_FCC: This is slow (querying the type) should be passed over or stored maybe? But also this is done very seldom.
+                resolution = currentLightData.GetResolutionFromSettings(m_ShadowType, initParameters);
+
                 HDLightType lightType = currentLightData.type;
-
-                if(lightType == HDLightType.Point || lightType == HDLightType.Spot)
-                    resolution = Math.Min(currentLightData.shadowResolution.Value(initParameters.shadowResolutionPunctual), initParameters.maxPunctualShadowMapResolution);
-                else if(lightType == HDLightType.Area)
-                    resolution = Math.Min(currentLightData.shadowResolution.Value(initParameters.shadowResolutionArea), initParameters.maxAreaShadowMapResolution);
-                else if(lightType == HDLightType.Directional)
-                    resolution = Math.Min(currentLightData.shadowResolution.Value(initParameters.shadowResolutionDirectional), initParameters.maxDirectionalShadowMapResolution);
-
-
                 // TODO_FCC Handle this better of course.
                 Debug.Assert(lightType != HDLightType.Directional);
 

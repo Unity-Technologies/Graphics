@@ -9,17 +9,43 @@ namespace UnityEngine.Rendering.HighDefinition
 
 //  TODO_FCC: SUPER IMPORTANT! CONSIDER THE CONFIG FILE FOR AREA LIGHT SHADOWS.
 
-    public class HDCachedShadowManager
+    
+    class HDCachedShadowManager
     {
+        // TODO_FCC: TODO Need to make it public somehow. Think later how. 
+        static bool WouldFitInAtlas(int shadowResolution, HDLightType lightType)
+        {
+            bool fits = true;
+            int x, y;
+
+            if (lightType == HDLightType.Point)
+            {
+                for(int i=0; i < 6; ++i)
+                {
+                    fits = fits && HDShadowManager.cachedShadowManager.punctualShadowAtlas.FindSlotInAtlas(shadowResolution, out x, out y);
+                }
+            }
+
+            if(lightType == HDLightType.Spot)
+                fits = fits && HDShadowManager.cachedShadowManager.punctualShadowAtlas.FindSlotInAtlas(shadowResolution, out x, out y);
+
+            if(lightType == HDLightType.Area)
+                fits = fits && HDShadowManager.cachedShadowManager.areaShadowAtlas.FindSlotInAtlas(shadowResolution, out x, out y);
+
+            return fits;
+        }
+
         // TODO: MAKE THIS NOT PUBLIC OR INTERNAL AGAIN.
         internal HDCachedShadowAtlas punctualShadowAtlas;
         internal HDCachedShadowAtlas areaShadowAtlas;
 
+        private HDShadowInitParameters m_initParams;        // Cache here to be able to compute resolutions. 
+
 
         internal HDCachedShadowManager()
         {
-            punctualShadowAtlas = new HDCachedShadowAtlas();
-            areaShadowAtlas = new HDCachedShadowAtlas();
+            punctualShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.PunctualAtlas);
+            areaShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.AreaLightAtlas);
         }
 
         internal void InitPunctualShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, int atlasSizeShaderID, Material clearMaterial, int maxShadowRequests, HDShadowAtlas.BlurAlgorithm blurAlgorithm = HDShadowAtlas.BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
@@ -64,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void AssignSlotsInAtlases(HDShadowInitParameters initParams)
         {
+            m_initParams = initParams;
             punctualShadowAtlas.AssignOffsetsInAtlas(initParams);
             areaShadowAtlas.AssignOffsetsInAtlas(initParams);
         }

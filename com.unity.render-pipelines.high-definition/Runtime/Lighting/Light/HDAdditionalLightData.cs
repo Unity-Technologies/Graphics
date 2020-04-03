@@ -1685,7 +1685,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
+        internal int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
         {
             switch (shadowMapType)
             {
@@ -2306,8 +2306,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnValidate()
         {
             UpdateBounds();
-
-            // TODO_FCC: THIS NEEDS FIXING! But is a bit confusing as it is called super often. LOOK INTO THIS!
 
             // TODO: VERIFY THIS TODO_FCC
             bool wentThroughCachedShadowSystem = lightIdxForCachedShadows >= 0;
