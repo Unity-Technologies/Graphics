@@ -4,12 +4,12 @@ using System.Linq;
 using System.Reflection;
 using Data.Interfaces;
 using UnityEditor;
+using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.Graphing.Util;
-using UnityEditor.ShaderGraph.Internal;
 
 namespace Drawing.Inspector
 {
@@ -21,6 +21,10 @@ namespace Drawing.Inspector
 
         private PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
         private ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
+
+        // Targets have persistent data that needs to be maintained between interactions
+        // Hence we are storing a reference to this particular property drawer to continue using it
+        private TargetPropertyDrawer m_TargetPropertyDrawer = new TargetPropertyDrawer();
 
         public void GetPropertyData(
             PostTargetSettingsChangedCallback postChangeValueCallback,
@@ -69,10 +73,9 @@ namespace Drawing.Inspector
             // Add a space
             propertySheet.Add(new PropertyRow(new Label("")));
 
-            var generationTargetPropertyDrawer = new GenerationTargetPropertyDrawer();
-            graphData.activeGenerationTarget.SupplyDataToPropertyDrawer(generationTargetPropertyDrawer, null);
+            graphData.activeGenerationTarget.SupplyDataToPropertyDrawer(m_TargetPropertyDrawer, null);
             propertySheet.Add(
-                generationTargetPropertyDrawer.CreateGUIForField((updateInspector) =>
+                m_TargetPropertyDrawer.CreateGUIForField((updateInspector) =>
                 {
                     m_postChangeTargetSettingsCallback(updateInspector);
                 },
@@ -88,39 +91,39 @@ namespace Drawing.Inspector
         }
     }
 
-    [SGPropertyDrawer(typeof(GenerationTarget))]
-    public class GenerationTargetPropertyDrawer : IPropertyDrawer
+    [SGPropertyDrawer(typeof(Target))]
+    public class TargetPropertyDrawer : IPropertyDrawer
     {
         private Action m_postChangeActiveImplementationsCallback;
 
-        string[] m_implementationNames { get; set; }
+        string[] m_TargetNames { get; set; }
 
-        Dictionary<ITargetImplementation, bool> m_ImplementationFoldouts = new Dictionary<ITargetImplementation, bool>();
+        Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
 
         public void GetPropertyData(
-            string[] implementationNames,
+            string[] targetNames,
             Action postChangeActiveImplementationsCallback)
         {
-            m_implementationNames = implementationNames;
+            m_TargetNames = targetNames;
             m_postChangeActiveImplementationsCallback = postChangeActiveImplementationsCallback;
         }
 
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
         {
-            var generationTarget = (GenerationTarget) actualObject;
-            if (generationTarget == null)
+            var target = (Target) actualObject;
+            if (target == null)
                 throw new InvalidCastException(
-                    "Attempting to draw something that isn't of type GenerationTarget with a GenerationTargetPropertyDrawer");
+                    "Attempting to draw something that isn't of type Target with a TargetPropertyDrawer");
 
             return CreateGUIForField((updateInspector) =>
                 {
                     propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {updateInspector});
                 },
-                generationTarget,
+                target,
                 out var implementationPropertyVisualElement);
         }
 
-        internal VisualElement CreateGUIForField(GraphDataPropertyDrawer.PostTargetSettingsChangedCallback postSettingsChangedCallback, GenerationTarget generationTarget, out VisualElement element)
+        internal VisualElement CreateGUIForField(GraphDataPropertyDrawer.PostTargetSettingsChangedCallback postSettingsChangedCallback, Target target, out VisualElement element)
         {
             var visualElement = new VisualElement() {name = "implementationSettings"};
 
@@ -135,8 +138,8 @@ namespace Drawing.Inspector
                 row.Add(new IMGUIContainer(() =>
                 {
                     EditorGUI.BeginChangeCheck();
-                    generationTarget.activeImplementationBitmask = EditorGUILayout.MaskField(
-                        generationTarget.activeImplementationBitmask, m_implementationNames, GUILayout.Width(100f));
+                    target.activeImplementationBitmask = EditorGUILayout.MaskField(
+                        target.activeImplementationBitmask, m_TargetNames, GUILayout.Width(100f));
                     if (EditorGUI.EndChangeCheck())
                     {
                         m_postChangeActiveImplementationsCallback();
@@ -146,13 +149,13 @@ namespace Drawing.Inspector
             });
 
             // Iterate active TargetImplementations
-            foreach (var implementation in generationTarget.Implementations)
+            foreach (var implementation in target.Implementations)
             {
                 // Ensure enabled state is being tracked and get value
                 bool foldoutActive = true;
-                if (!m_ImplementationFoldouts.TryGetValue(implementation, out foldoutActive))
+                if (!m_TargetFoldouts.TryGetValue(implementation, out foldoutActive))
                 {
-                    m_ImplementationFoldouts.Add(implementation, foldoutActive);
+                    m_TargetFoldouts.Add(implementation, foldoutActive);
                 }
 
                 // Create foldout
@@ -161,24 +164,23 @@ namespace Drawing.Inspector
                 foldout.RegisterValueChangedCallback(evt =>
                 {
                     // Update foldout value and rebuild
-                    m_ImplementationFoldouts[implementation] = evt.newValue;
+                    m_TargetFoldouts[implementation] = evt.newValue;
                     foldout.value = evt.newValue;
-                    if (foldout.value)
-                    {
-                        // Get settings for TargetImplementation
-                        var implementationSettings = implementation.GetSettings(() => postSettingsChangedCallback(true));
-
-                        // Virtual method returns null
-                        // Settings are only added if this is overriden
-                        if (implementationSettings != null)
-                        {
-                            visualElement.Add(implementationSettings);
-                        }
-                    }
-                    postSettingsChangedCallback(false);
+                    postSettingsChangedCallback(true);
                 });
 
+                if (foldout.value)
+                {
+                    // Get settings for TargetImplementation
+                    var implementationSettings = implementation.GetSettings(() => postSettingsChangedCallback(true));
 
+                    // Virtual method returns null
+                    // Settings are only added if this is overriden
+                    if (implementationSettings != null)
+                    {
+                        visualElement.Add(implementationSettings);
+                    }
+                }
             }
 
             element = visualElement;

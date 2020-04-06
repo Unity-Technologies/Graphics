@@ -1,26 +1,21 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Data.Interfaces;
 using Drawing.Views;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.Graphing;
-using UnityEditor.Graphing.Util;
-using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Drawing;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.UIElements;
-using UnityEngine.UIElements;
+ using UnityEditor.ShaderGraph.Drawing;
 
 namespace Drawing.Inspector
 {
     class InspectorView : GraphSubWindow
     {
         // References
-        // #TODO: Remove concrete reference to SG GraphData object
-        readonly GraphData m_GraphData;
         readonly IList<Type> m_PropertyDrawerList = new List<Type>();
+
+        // There's persistent data that is stored in the graph settings property drawer that we need to hold onto between interactions
+        private IPropertyDrawer m_graphSettingsPropertyDrawer = null;
 
         public int currentlyDisplayedPropertyCount { get; private set; } = 0;
 
@@ -138,7 +133,7 @@ namespace Drawing.Inspector
             }
         }
 
-        private void DrawInspectable(PropertySheet propertySheet, IInspectable inspectable)
+        private IPropertyDrawer DrawInspectable(PropertySheet propertySheet, IInspectable inspectable, IPropertyDrawer propertyDrawerToUse = null)
         {
             var dataObject = inspectable.GetObjectToInspect();
             if (dataObject == null)
@@ -158,13 +153,16 @@ namespace Drawing.Inspector
 
                 if (IsPropertyTypeHandled(propertyType, out var propertyDrawerTypeToUse))
                 {
-                    var propertyDrawerInstance = (IPropertyDrawer) Activator.CreateInstance(propertyDrawerTypeToUse);
+                    var propertyDrawerInstance = propertyDrawerToUse ?? (IPropertyDrawer) Activator.CreateInstance(propertyDrawerTypeToUse);
                     // Supply any required data to this particular kind of property drawer
                     inspectable.SupplyDataToPropertyDrawer(propertyDrawerInstance, this.Update);
                     var propertyGUI = propertyDrawerInstance.DrawProperty(propertyInfo, dataObject, attribute);
                     propertySheet.Add(propertyGUI);
+
+                    return propertyDrawerInstance;
                 }
             }
+            return null;
         }
 
         // This should be implemented by any inspector class that wants to define its own GraphSettings
@@ -177,7 +175,7 @@ namespace Drawing.Inspector
 
             subTitle = $"{graphEditorView.assetName} (Graph)";
 
-            DrawInspectable(propertySheet, (IInspectable)graphView);
+            m_graphSettingsPropertyDrawer = DrawInspectable(propertySheet, (IInspectable)graphView, m_graphSettingsPropertyDrawer);
         }
 #endregion
     }
