@@ -27,6 +27,6 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #endif
 
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
-    color *= unpacked.color;
+    color *= unpacked.color * _RendererColor;
     return color;
 }

@@ -94,7 +94,8 @@ Shader ""Hidden/GraphErrorShader2""
             graph.OnEnable();
             graph.ValidateGraph();
 
-            if (graph.activeGenerationTarget.target.GetType() == typeof(VFXTarget))
+            // TODO: How to handle this?
+            if (graph.isVFXTarget)
             {
                 var vfxAsset = GenerateVfxShaderGraphAsset(graph);
                 mainObject = vfxAsset;
@@ -205,8 +206,8 @@ Shader ""Hidden/GraphErrorShader2""
         // TODO: Fix this
         static ShaderGraphVfxAsset GenerateVfxShaderGraphAsset(GraphData graph)
         {
-            var implementation = graph.activeGenerationTarget.activeImplementations.FirstOrDefault(x => x is DefaultVFXTarget) as DefaultVFXTarget;
-            if(implementation == null)
+            var target = graph.activeTargets.FirstOrDefault(x => x is VFXTarget) as VFXTarget;
+            if(target == null)
                 return null;
 
             var nl = Environment.NewLine;
@@ -215,7 +216,7 @@ Shader ""Hidden/GraphErrorShader2""
             var result = asset.compilationResult = new GraphCompilationResult();
             var mode = GenerationMode.ForReals;
 
-            asset.lit = implementation.lit;
+            asset.lit = target.lit;
 
             var assetGuid = graph.assetGuid;
             var assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);

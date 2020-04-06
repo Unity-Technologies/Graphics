@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
 
         GraphData m_GraphData;
         AbstractMaterialNode m_OutputNode;
-        ITargetImplementation[] m_TargetImplementations;
+        Target[] m_Targets;
         List<BlockNode> m_Blocks;
         GenerationMode m_Mode;
         string m_Name;
@@ -49,17 +49,17 @@ namespace UnityEditor.ShaderGraph
         {
             if(m_OutputNode == null)
             {
-                m_TargetImplementations = m_GraphData.activeGenerationTarget.activeImplementations.ToArray();
+                m_Targets = m_GraphData.validTargets.ToArray();
             }
             else
             {
-                m_TargetImplementations = new ITargetImplementation[] { new DefaultPreviewTarget() };
+                m_Targets = new Target[] { new PreviewTarget() };
             }
         }
 
         void GetBlocksFromStack()
         {
-            m_Blocks = ListPool<BlockNode>.Get();
+            m_Blocks = Graphing.ListPool<BlockNode>.Get();
             foreach(var vertexBlock in m_GraphData.vertexContext.blocks)
             {
                 m_Blocks.Add(vertexBlock);
@@ -78,12 +78,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<BlockFieldDescriptor> blocks, ITargetImplementation targetImplementation)
+        public ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<BlockFieldDescriptor> blocks, Target target)
         {
             var activeFields = new ActiveFields();
             if(outputNode == null)
             {
-                var fields = GenerationUtils.GetActiveFieldsFromConditionals(targetImplementation.GetConditionalFields(pass, blocks));
+                var context = new TargetFieldContext(pass, blocks);
+                target.GetFields(ref context);
+                var fields = GenerationUtils.GetActiveFieldsFromConditionals(context.conditionalFields.ToArray());
                 foreach(FieldDescriptor field in fields)
                     activeFields.baseInstance.Add(field);
             }
@@ -97,7 +99,11 @@ namespace UnityEditor.ShaderGraph
 
         void BuildShader()
         {
+<<<<<<< HEAD
             var activeNodeList = ListPool<AbstractMaterialNode>.Get();
+=======
+            var activeNodeList = Graphing.ListPool<AbstractMaterialNode>.Get();
+>>>>>>> sg/stack-master-v2
             if(m_OutputNode == null)
             {
                 foreach(var block in m_Blocks)
@@ -132,9 +138,9 @@ namespace UnityEditor.ShaderGraph
                 activeNode.CollectShaderProperties(shaderProperties, m_Mode);
 
             // Collect excess shader properties from the TargetImplementation
-            foreach(var implementation in m_TargetImplementations)
+            foreach(var target in m_Targets)
             {
-                implementation.CollectShaderProperties(shaderProperties, m_Mode);
+                target.CollectShaderProperties(shaderProperties, m_Mode);
             }
 
             m_Builder.AppendLine(@"Shader ""{0}""", m_Name);
@@ -142,16 +148,31 @@ namespace UnityEditor.ShaderGraph
             {
                 GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
 
-                for(int i = 0; i < m_TargetImplementations.Length; i++)
+                for(int i = 0; i < m_Targets.Length; i++)
                 {
                     TargetSetupContext context = new TargetSetupContext();
+<<<<<<< HEAD
                     m_TargetImplementations[i].SetupTarget(ref context); 
+=======
+
+                    // Instead of setup target, we can also just do get context
+                    m_Targets[i].Setup(ref context);
+>>>>>>> sg/stack-master-v2
                     GetAssetDependencyPaths(context);
 
                     foreach(var subShader in context.subShaders)
                     {
                         GenerateSubShader(i, subShader);
                     }
+<<<<<<< HEAD
+=======
+                    
+                    var customEditor = context.defaultShaderGUI;
+                    if (customEditor != null)
+                    {
+                        m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
+                    }
+>>>>>>> sg/stack-master-v2
                 }
 
                 if(m_Mode != GenerationMode.Preview)
@@ -175,14 +196,14 @@ namespace UnityEditor.ShaderGraph
             m_Builder.AppendLine("SubShader");
             using(m_Builder.BlockScope())
             {
-                GenerationUtils.GenerateSubShaderTags(m_TargetImplementations[targetIndex], descriptor, m_Builder);
+                GenerationUtils.GenerateSubShaderTags(m_Targets[targetIndex], descriptor, m_Builder);
 
                 // Get block descriptor list here as we will add temporary blocks to m_Blocks during pass evaluations
                 var blockFieldDescriptors = m_Blocks.Select(x => x.descriptor).ToList();
 
                 foreach(PassCollection.Item pass in descriptor.passes)
                 {
-                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, blockFieldDescriptors, m_TargetImplementations[targetIndex]);
+                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, blockFieldDescriptors, m_Targets[targetIndex]);
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
                     if(m_Mode == GenerationMode.Preview)
@@ -231,8 +252,8 @@ namespace UnityEditor.ShaderGraph
             if(m_OutputNode == null)
             {
                 // Update supported block list for current target implementation
-                var activeBlocks = ListPool<BlockFieldDescriptor>.Get();
-                m_TargetImplementations[targetIndex].SetActiveBlocks(ref activeBlocks);
+                var activeBlockContext = new TargetActiveBlockContext();
+                m_Targets[targetIndex].GetActiveBlocks(ref activeBlockContext);
 
                 void ProcessStackForPass(ContextData contextData, BlockFieldDescriptor[] passBlockMask,
                     List<AbstractMaterialNode> nodeList, List<MaterialSlot> slotList)
@@ -244,7 +265,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         // Mask blocks on active state
                         // TODO: Can we merge these?
-                        if(!activeBlocks.Contains(blockFieldDescriptor))
+                        if(!activeBlockContext.blocks.Contains(blockFieldDescriptor))
                             continue;
                         
                         // Attempt to get BlockNode from the stack
@@ -284,7 +305,7 @@ namespace UnityEditor.ShaderGraph
                 ProcessStackForPass(m_GraphData.fragmentContext, pass.pixelBlocks, pixelNodes, pixelSlots);
 
                 // Collect excess shader properties from the TargetImplementation
-                m_TargetImplementations[targetIndex].CollectShaderProperties(propertyCollector, m_Mode);
+                m_Targets[targetIndex].CollectShaderProperties(propertyCollector, m_Mode);
             }
             else if(m_OutputNode is SubGraphOutputNode)
             {
@@ -777,18 +798,10 @@ namespace UnityEditor.ShaderGraph
             // Finalize
 
             // Pass Template
-            string passTemplatePath;
-            if(!string.IsNullOrEmpty(pass.passTemplatePath))
-                passTemplatePath = pass.passTemplatePath;
-            else
-                passTemplatePath = m_TargetImplementations[targetIndex].passTemplatePath;
+            string passTemplatePath = pass.passTemplatePath;
 
             // Shared Templates
-            string sharedTemplateDirectory;
-            if(!string.IsNullOrEmpty(pass.sharedTemplateDirectory))
-                sharedTemplateDirectory = pass.sharedTemplateDirectory;
-            else
-                sharedTemplateDirectory = m_TargetImplementations[targetIndex].sharedTemplateDirectory;
+            string sharedTemplateDirectory = pass.sharedTemplateDirectory;
 
             if (!File.Exists(passTemplatePath))
                 return;

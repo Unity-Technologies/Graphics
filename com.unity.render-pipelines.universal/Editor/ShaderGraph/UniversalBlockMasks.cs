@@ -19,7 +19,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static BlockFieldDescriptor[] LitForward = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.Normal,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
                 BlockFields.SurfaceDescription.Emission,
                 BlockFields.SurfaceDescription.Metallic,
                 BlockFields.SurfaceDescription.Specular,
@@ -60,7 +62,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static BlockFieldDescriptor[] SpriteNormal = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.Normal,
+                BlockFields.SurfaceDescription.NormalTS,
                 BlockFields.SurfaceDescription.Alpha,
             };
 

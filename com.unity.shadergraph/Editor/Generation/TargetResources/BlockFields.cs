@@ -23,8 +23,12 @@ namespace UnityEditor.ShaderGraph
             public static string name = "SurfaceDescription";
             public static BlockFieldDescriptor BaseColor     = new BlockFieldDescriptor(SurfaceDescription.name, "BaseColor", "SURFACEDESCRIPTION_BASECOLOR",
                 new ColorControl(UnityEngine.Color.grey, false), ShaderStage.Fragment);
-            public static BlockFieldDescriptor Normal        = new BlockFieldDescriptor(SurfaceDescription.name, "Normal", "SURFACEDESCRIPTION_NORMAL",
+            public static BlockFieldDescriptor NormalTS      = new BlockFieldDescriptor(SurfaceDescription.name, "Normal", "SURFACEDESCRIPTION_NORMAL",
                 new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
+            public static BlockFieldDescriptor NormalOS      = new BlockFieldDescriptor(SurfaceDescription.name, "Normal", "SURFACEDESCRIPTION_NORMAL",
+                new NormalControl(CoordinateSpace.Object), ShaderStage.Fragment);
+            public static BlockFieldDescriptor NormalWS      = new BlockFieldDescriptor(SurfaceDescription.name, "Normal", "SURFACEDESCRIPTION_NORMAL",
+                new NormalControl(CoordinateSpace.World), ShaderStage.Fragment);
             public static BlockFieldDescriptor Metallic      = new BlockFieldDescriptor(SurfaceDescription.name, "Metallic", "SURFACEDESCRIPTION_METALLIC", 
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor Specular      = new BlockFieldDescriptor(SurfaceDescription.name, "Specular", "SURFACEDESCRIPTION_SPECULAR",

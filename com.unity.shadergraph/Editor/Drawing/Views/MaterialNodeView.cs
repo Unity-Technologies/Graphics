@@ -164,7 +164,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_TitleContainer.RemoveFromHierarchy();
             }
             else
-                {
+            {
                 SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
             }
 
@@ -248,11 +248,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void ClearMessage()
         {
             var badge = this.Q<IconBadge>();
-            if(badge != null)
-            {
-                badge.Detach();
-                badge.RemoveFromHierarchy();
-            }
+            badge?.Detach();
+            badge?.RemoveFromHierarchy();
         }
 
         public VisualElement colorElement

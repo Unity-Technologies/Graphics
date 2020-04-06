@@ -1,4 +1,6 @@
 PropertyRow EnumField,
+PropertyRow PopupField,
+PropertyRow TextField,
 PropertyRow Label,
 PropertyRow Toggle,
 PropertyRow IntegerField,
@@ -17,7 +19,7 @@ PropertyRow > #container{
 }
 
 PropertyRow > #container > #label {
-    width: 150px;
+    width: 200px;
     height: 24px;
     justify-content: center;
 }

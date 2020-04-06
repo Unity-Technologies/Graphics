@@ -145,7 +145,7 @@ Pass
         // however specularOcclusion can come from the graph, so need to be init here so it can be override.
         surfaceData.specularOcclusion = 1.0;
 
-        $SurfaceDescription.Albedo:                     surfaceData.baseColor =                 surfaceDescription.Albedo;
+        $SurfaceDescription.BaseColor:                  surfaceData.baseColor =                 surfaceDescription.BaseColor;
         $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      surfaceDescription.Smoothness;
         $SurfaceDescription.Occlusion:                  surfaceData.ambientOcclusion =          surfaceDescription.Occlusion;
         $SurfaceDescription.SpecularOcclusion:          surfaceData.specularOcclusion =         surfaceDescription.SpecularOcclusion;
@@ -241,8 +241,11 @@ Pass
         #if HAVE_DECALS
             if (_EnableDecals)
             {
+                float alpha = 1.0;
+                $SurfaceDescription.Alpha: alpha = surfaceDescription.Alpha;
+
                 // Both uses and modifies 'surfaceData.normalWS'.
-                DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
+                DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
                 ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
             }
         #endif
@@ -298,13 +301,16 @@ Pass
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
+        float alpha = 1;
+        $SurfaceDescription.Alpha: alpha = surfaceDescription.Alpha;
+
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
         #ifdef _ALPHATEST_ON
-            $DoAlphaTest:         GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
-            $DoAlphaTestPrepass:  GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
-            $DoAlphaTestPostpass: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
-            $DoAlphaTestShadow:   GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
+            $DoAlphaTest:         GENERIC_ALPHA_TEST(alpha, surfaceDescription.AlphaClipThreshold);
+            $DoAlphaTestPrepass:  GENERIC_ALPHA_TEST(alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
+            $DoAlphaTestPostpass: GENERIC_ALPHA_TEST(alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
+            $DoAlphaTestShadow:   GENERIC_ALPHA_TEST(alpha, surfaceDescription.AlphaClipThresholdShadow);
         #endif
 
         $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
@@ -314,7 +320,7 @@ Pass
 
         // Builtin Data
         // For back lighting we use the oposite vertex normal
-        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        InitBuiltinData(posInput, alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;

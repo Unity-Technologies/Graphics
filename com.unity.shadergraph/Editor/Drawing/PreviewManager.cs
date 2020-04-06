@@ -525,9 +525,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_NodesToDraw.Add(renderData.shaderData.node);
 
                     // Process preview materials
-                    foreach(var implementation in m_Graph.activeGenerationTarget.activeImplementations)
+                    foreach(var target in m_Graph.activeTargets)
                     {
-                        implementation.ProcessPreviewMaterial(renderData.shaderData.mat);
+                        if(target.IsActive())
+                        {
+                            target.ProcessPreviewMaterial(renderData.shaderData.mat);
+                        }
                     }
                 }
             }
@@ -640,7 +643,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Mesh is invalid for VFXTarget
             // We should handle this more gracefully
-            if(m_Graph.activeGenerationTarget.target.GetType() != typeof(VFXTarget))
+            if(!m_Graph.isVFXTarget)
             {
                 m_SceneResources.camera.targetTexture = temp;
                 Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, null, ShadowCastingMode.Off, false, null, false);
@@ -680,7 +683,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var shaderData = masterRenderData?.shaderData;
             
             // Skip generation for VFXTarget
-            if(m_Graph.activeGenerationTarget.target.GetType() != typeof(VFXTarget))
+            if(!m_Graph.isVFXTarget)
             {
                 var generator = new Generator(m_Graph, shaderData?.node, GenerationMode.Preview, "Master");
                 shaderData.shaderString = generator.generatedShader;
