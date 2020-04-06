@@ -167,13 +167,5 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas.Clear();
         }
-
-        // DEBUG FUNCTIONS DELETE
-        internal void DebugPrintPunctualLightAtlas()
-        {
-            punctualShadowAtlas.DebugPrintAtlas();
-        }
-
-
     }
 }
