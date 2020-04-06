@@ -1825,8 +1825,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // TODO_FCC: FIXUP DIR CASCADES! THE SHADOW MAP TYPE HERE IS OFF...ALSO SLOW.
                     shadowNeedsRendering = HDShadowManager.cachedShadowManager.ShadowIsPendingUpdate(cachedShadowID, shadowMapType);
-                    if(shadowNeedsRendering)
-                        HDShadowManager.cachedShadowManager.UpdateResolutionRequest(ref resolutionRequest, cachedShadowID, shadowMapType);
+                    HDShadowManager.cachedShadowManager.UpdateResolutionRequest(ref resolutionRequest, cachedShadowID, shadowMapType);
                 }
                 shadowRequest.isInCachedAtlas = shadowIsInCachedSystem;
 

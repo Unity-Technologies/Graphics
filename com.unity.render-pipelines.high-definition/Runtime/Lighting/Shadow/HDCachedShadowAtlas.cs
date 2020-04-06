@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private Dictionary<int, CachedShadowRecord> m_PlacedShadows;
         private Dictionary<int, CachedShadowRecord> m_ShadowsPendingRendering;
         private Dictionary<int, HDAdditionalLightData> m_RegisteredLightDataPendingPlacement;
-        private List<string> DBG_NAMES_LIGHT;
+        private List<(string, int)> DBG_NAMES_LIGHT;
         private List<CachedShadowRecord> m_TempListForPlacement;
 
         // Have a pending rendering list?
@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RegisteredLightDataPendingPlacement = new Dictionary<int, HDAdditionalLightData>(s_InitialCapacity);
 
-            DBG_NAMES_LIGHT = new List<string>();
+            DBG_NAMES_LIGHT = new List<(string, int)>();
 
             m_ShadowType = type;
         }
@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.lightIdxForCachedShadows = GetNextLightIdentifier();
 
                 // Debug.Log("Registering " + lightData.lightIdxForCachedShadows);
-                DBG_NAMES_LIGHT.Add(lightData.name);
+                DBG_NAMES_LIGHT.Add((lightData.name, lightData.lightIdxForCachedShadows));
 
                 m_RegisteredLightDataPendingPlacement.Add(lightData.lightIdxForCachedShadows, lightData);
                 m_CanTryPlacement = true;
@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CachedShadowRecord recordToRemove;
             bool valueFound = m_PlacedShadows.TryGetValue(lightData.lightIdxForCachedShadows, out recordToRemove);
 
-            DBG_NAMES_LIGHT.RemoveAll(x => x == lightData.name);
+            DBG_NAMES_LIGHT.RemoveAll(x => x.Item1 == lightData.name);
 
             // todo is it here the right place?
             m_RegisteredLightDataPendingPlacement.Remove(lightData.lightIdxForCachedShadows);
@@ -312,6 +312,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             foreach (var currentLightData in lightList.Values)
             {
+                // This can happen under very extreme circumstances (light set to maintain data upon disabling enters a domain reload while disabled) 
+                if (currentLightData == null) continue;
+
                 // var resolution = currentLightData.shadowre
                 int resolution = 0;
 

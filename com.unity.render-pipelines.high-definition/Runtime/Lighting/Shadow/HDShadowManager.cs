@@ -540,6 +540,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(m_ShadowRequests[i] != null);
 
                 HDShadowAtlas atlas = m_Atlas;
+                if(m_ShadowRequests[i].isInCachedAtlas)
+                {
+                    atlas = cachedShadowManager.punctualShadowAtlas;
+                }
+
                 if (m_ShadowRequests[i].shadowMapType == ShadowMapType.CascadedDirectional)
                 {
                     atlas = m_CascadeAtlas;
@@ -547,6 +552,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 else if (m_ShadowRequests[i].shadowMapType == ShadowMapType.AreaLightAtlas)
                 {
                     atlas = m_AreaLightShadowAtlas;
+                    if(m_ShadowRequests[i].isInCachedAtlas)
+                    {
+                        atlas = cachedShadowManager.areaShadowAtlas;
+                    }
                 }
 
                 HDShadowData shadowData;
