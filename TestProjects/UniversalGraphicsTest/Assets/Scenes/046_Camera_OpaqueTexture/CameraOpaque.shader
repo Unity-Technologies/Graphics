@@ -20,6 +20,7 @@
 			#pragma multi_compile_fog
 
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
 
 			struct appdata
 			{
@@ -36,9 +37,6 @@
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
-			TEXTURE2D_X(_CameraOpaqueTexture);
-			SAMPLER(sampler_CameraOpaqueTexture_linear_clamp);
-
 			v2f vert (appdata v)
 			{
 				v2f o;
@@ -52,15 +50,15 @@
 
 			half4 frag (v2f i) : SV_Target
 			{
-				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i)
+				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 				// sample the texture
 				half2 screenUV = i.screenUV.xy / i.screenUV.w;
 				half v = 0.05;
 				screenUV += (frac(screenUV * 80) * v) - v * 0.5;
 				half4 col = half4(-0.05, 0, -0.05, 1);
-				col.r += SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture_linear_clamp, ((screenUV - 0.5) * 1.1) + 0.5).r;
-				col.g += SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture_linear_clamp, screenUV).g;
-				col.b += SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture_linear_clamp, ((screenUV - 0.5) * 0.9) + 0.5).b;
+				col.r += SampleSceneColor(((screenUV - 0.5) * 1.1) + 0.5).r;
+				col.g += SampleSceneColor(screenUV).g;
+				col.b += SampleSceneColor(((screenUV - 0.5) * 0.9) + 0.5).b;
 				return col;
 			}
 			ENDHLSL
