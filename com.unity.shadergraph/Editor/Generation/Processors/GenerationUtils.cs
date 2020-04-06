@@ -435,6 +435,10 @@ namespace UnityEditor.ShaderGraph
 
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneWeights,              requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndices,              requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.VertexDescriptionInputs.VertexID,                 requirements.requiresVertexID),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneWeights,             requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneIndices,             requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexID,                requirements.requiresVertexID),
             };
         }
 
@@ -659,6 +663,17 @@ namespace UnityEditor.ShaderGraph
                 {
                     sb.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
                 }
+
+                if (requirements.requiresVertexSkinning)
+                {
+                    sb.AppendLine("uint4 {0};", ShaderGeneratorNames.BoneIndices);
+                    sb.AppendLine("float4 {0};", ShaderGeneratorNames.BoneWeights);
+                }
+
+                if (requirements.requiresVertexID)
+                {
+                    sb.AppendLine("uint {0};", ShaderGeneratorNames.VertexID);
+                }
             }
         }
 
@@ -687,6 +702,17 @@ namespace UnityEditor.ShaderGraph
             if (requirements.requiresTime)
             {
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.TimeParameters} = IN.{ShaderGeneratorNames.TimeParameters};");
+            }
+
+            if (requirements.requiresVertexSkinning)
+            {
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.BoneIndices} = IN.{ShaderGeneratorNames.BoneIndices};");
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.BoneWeights} = IN.{ShaderGeneratorNames.BoneWeights};");
+            }
+
+            if (requirements.requiresVertexID)
+            {
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.VertexID} = IN.{ShaderGeneratorNames.VertexID};");
             }
         }
 
