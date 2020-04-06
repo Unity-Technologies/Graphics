@@ -21,7 +21,6 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             #pragma fragment Fragment
             #pragma multi_compile _ _LINEAR_TO_SRGB_CONVERSION
             #pragma multi_compile _ _DRAW_PROCEDURE_QUAD_BLIT
-            #pragma multi_compile _ BLIT_SINGLE_SLICE
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #ifdef _LINEAR_TO_SRGB_CONVERSION
@@ -51,10 +50,6 @@ Shader "Hidden/Universal Render Pipeline/Blit"
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
-#if defined(BLIT_SINGLE_SLICE)
-            uniform int _BlitTexArraySlice;
-#endif
-
             TEXTURE2D_X(_BlitTex);
             SAMPLER(sampler_BlitTex);
 
@@ -80,11 +75,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 
-#if defined(BLIT_SINGLE_SLICE)
-                half4 col = SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTex, sampler_BlitTex, input.uv, _BlitTexArraySlice, 0);
-#else
                 half4 col = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_BlitTex, input.uv);
-#endif
 
                 #ifdef _LINEAR_TO_SRGB_CONVERSION
                 col = LinearToSRGB(col);
