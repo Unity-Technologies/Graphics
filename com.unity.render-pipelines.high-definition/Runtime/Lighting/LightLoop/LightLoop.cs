@@ -233,6 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int          _DecalIndexShift;
 
         public int          _DensityVolumeIndexShift;
+        public int          _ProbeVolumeIndexShift;
     }
 
     internal struct ProcessedLightData
@@ -2383,7 +2384,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Allocate a light data
                     LightData lightData = new LightData();
-                    
+
                     // Punctual, area, projector lights - the rendering side.
                     GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, in m_ProcessedLightData[lightIndex], shadowIndex, contactShadowScalableSetting, isRasterization: true, ref lightDimensions, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot, ref lightData);
 
@@ -2763,11 +2764,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 UpdateDataBuffers();
-
-                int probeVolumeIndexShift = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)
-                    ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount)
-                    : 0;
-                cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeIndexShift, probeVolumeIndexShift);
             }
 
             m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
@@ -3228,9 +3224,16 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DecalIndexShift = m_lightList.lights.Count + m_lightList.envLights.Count;
             cb._DensityVolumeIndexShift = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount;
 
+            int probeVolumeIndexShift = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)
+                    ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount)
+                    : 0;
+            cb._ProbeVolumeIndexShift = probeVolumeIndexShift;
+
             parameters.lightListCB = m_ShaderVariablesLightListCB;
             parameters.runLightList = m_TotalLightCount > 0;
             parameters.clearLightLists = false;
+            parameters.probeVolumesRunLightList = (m_ProbeVolumeList.bounds != null && m_ProbeVolumeList.bounds.Count > 0) ? true : false;
+            parameters.probeVolumesClearLightLists = false;
 
             // Always build the light list in XR mode to avoid issues with multi-pass
             if (hdCamera.xr.enabled)
@@ -3241,6 +3244,16 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 parameters.clearLightLists = true;
             }
+
+            if (hdCamera.xr.enabled)
+            {
+                parameters.probeVolumesRunLightList = true;
+            }
+            else if (!parameters.probeVolumesRunLightList && !m_TileAndClusterData.probeVolumesListsAreClear)
+            {
+                parameters.probeVolumesClearLightLists = true;
+            }
+
             parameters.totalLightCount = m_TotalLightCount;
             parameters.viewCount = hdCamera.viewCount;
             parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings);
@@ -3340,18 +3353,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(param.hdCamera));
 
-                cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredX, GetNumTileClusteredX(param.hdCamera));
-                cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredY, GetNumTileClusteredY(param.hdCamera));
-
                 if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, param.tileAndClusterData.probeVolumesBigTileLightList);
-
-                cmd.SetGlobalFloat(HDShaderIDs.g_fClustScale, param.clusterScale);
-                cmd.SetGlobalFloat(HDShaderIDs.g_fClustBase, k_ClustLogBase);
-                cmd.SetGlobalFloat(HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
-                cmd.SetGlobalFloat(HDShaderIDs.g_fFarPlane, camera.farClipPlane);
-                cmd.SetGlobalInt(HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
-
 
                 // int useDepthBuffer = 0;
                 // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
@@ -3423,15 +3426,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var tileAndCluster = resources.tileAndClusterData;
 
-                cmd.SetComputeIntParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
-
                 // With XR single-pass, we have one set of light bounds per view to iterate over (bounds are in view space for each view)
-                cmd.SetComputeIntParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_iNrVisibLights, probeVolumesCount);
                 cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, tileAndCluster.probeVolumesConvexBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.probeVolumesAABBBoundsBuffer);
-
-                cmd.SetComputeMatrixArrayParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_mProjectionArr, parameters.lightListProjHMatrices);
-                cmd.SetComputeMatrixArrayParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_mInvProjectionArr, parameters.lightListInvProjHMatrices);
 
                 cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, (probeVolumesCount + 7) / 8, parameters.viewCount, 1);
             }
@@ -3448,19 +3445,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var tileAndCluster = resources.tileAndClusterData;
 
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs.g_iNrVisibLights, probeVolumesCount);
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(parameters.bigTilePrepassShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
-
-                // TODO: These two aren't actually used...
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.lights.Count);
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._DecalIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count);
-
-                cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
-                cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
-
-                cmd.SetComputeFloatParam(parameters.bigTilePrepassShader, HDShaderIDs.g_fNearPlane, parameters.nearClipPlane);
-                cmd.SetComputeFloatParam(parameters.bigTilePrepassShader, HDShaderIDs.g_fFarPlane, parameters.farClipPlane);
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vLightList, tileAndCluster.probeVolumesBigTileLightList);
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.probeVolumesAABBBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs._LightVolumeData, tileAndCluster.probeVolumesLightVolumeDataBuffer);
@@ -3486,21 +3470,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(parameters.clearClusterAtomicIndexShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
 
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, tileAndCluster.probeVolumesGlobalLightListAtomic);
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iNrVisibLights, probeVolumesCount);
-                cmd.SetComputeMatrixArrayParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
-                cmd.SetComputeMatrixArrayParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
-
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
-
-                cmd.SetComputeVectorParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_screenSize, parameters.screenSize);
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iNumSamplesMSAA, parameters.msaaSamples);
-
-                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fNearPlane, parameters.nearClipPlane);
-                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fFarPlane, parameters.farClipPlane);
-
-                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fClustScale, parameters.clusterScale);
-                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fClustBase, k_ClustLogBase);
 
                 cmd.SetComputeTextureParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs.g_depth_tex, BuiltinRenderTextureType.None);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs.g_vLayeredLightList, tileAndCluster.probeVolumesPerVoxelLightLists);
@@ -3518,7 +3487,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs._LightVolumeData, tileAndCluster.probeVolumesLightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs.g_data, tileAndCluster.probeVolumesConvexBoundsBuffer);
 
-                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs._ProbeVolumeIndexShift, 0); // HACK: Fixme?
+                //cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs._ProbeVolumeIndexShift, 0); // HACK: Fixme?
 
                 cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, parameters.numTilesClusterX, parameters.numTilesClusterY, parameters.viewCount);
             }

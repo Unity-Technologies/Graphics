@@ -98,9 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _BlurWeightsStorage = Shader.PropertyToID("_BlurWeightsStorage");
 
         public static readonly int g_LayeredSingleIdxBuffer = Shader.PropertyToID("g_LayeredSingleIdxBuffer");
-        public static readonly int _ProbeVolumeIndexShift = Shader.PropertyToID("_ProbeVolumeIndexShift");
         public static readonly int _DebugProbeVolumeMode = Shader.PropertyToID("_DebugProbeVolumeMode");
-
 
         public static readonly int g_depth_tex = Shader.PropertyToID("g_depth_tex");
         public static readonly int g_vLayeredLightList = Shader.PropertyToID("g_vLayeredLightList");
@@ -132,7 +130,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");
-        public static readonly int _ProbeVolumeCount = Shader.PropertyToID("_ProbeVolumeCount");
         public static readonly int g_vProbeVolumesLayeredOffsetsBuffer = Shader.PropertyToID("g_vProbeVolumesLayeredOffsetsBuffer");
         public static readonly int g_vProbeVolumesLightListGlobal = Shader.PropertyToID("g_vProbeVolumesLightListGlobal");
 
@@ -434,8 +431,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VolumeBounds                      = Shader.PropertyToID("_VolumeBounds");
         public static readonly int _VolumeData                        = Shader.PropertyToID("_VolumeData");
         public static readonly int _VolumeMaskAtlas                   = Shader.PropertyToID("_VolumeMaskAtlas");
-
-		public static readonly int _EnableProbeVolumes             	  = Shader.PropertyToID("_EnableProbeVolumes");
 
         public static readonly int _GroundIrradianceTexture           = Shader.PropertyToID("_GroundIrradianceTexture");
         public static readonly int _GroundIrradianceTable             = Shader.PropertyToID("_GroundIrradianceTable");
@@ -824,14 +819,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Probe Volumes
         public static readonly int _ProbeVolumeAtlasSH             = Shader.PropertyToID("_ProbeVolumeAtlasSH");
-        public static readonly int _ProbeVolumeAtlasResolutionAndSliceCount = Shader.PropertyToID("_ProbeVolumeAtlasResolutionAndSliceCount");
-        public static readonly int _ProbeVolumeAtlasResolutionAndSliceCountInverse = Shader.PropertyToID("_ProbeVolumeAtlasResolutionAndSliceCountInverse");
         public static readonly int _ProbeVolumeAtlasOctahedralDepth = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepth");
-        public static readonly int _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthResolutionAndInverse");
-        public static readonly int _ProbeVolumeLeakMitigationMode  = Shader.PropertyToID("_ProbeVolumeLeakMitigationMode");
-        public static readonly int _ProbeVolumeNormalBiasWS        = Shader.PropertyToID("_ProbeVolumeNormalBiasWS");
-        public static readonly int _ProbeVolumeBilateralFilterWeightMin = Shader.PropertyToID("_ProbeVolumeBilateralFilterWeightMin");
-        public static readonly int _ProbeVolumeBilateralFilterWeight = Shader.PropertyToID("_ProbeVolumeBilateralFilterWeight");
         public static readonly int _ProbeVolumeResolution          = Shader.PropertyToID("_ProbeVolumeResolution");
         public static readonly int _ProbeVolumeResolutionInverse   = Shader.PropertyToID("_ProbeVolumeResolutionInverse");
         public static readonly int _ProbeVolumeAtlasScale          = Shader.PropertyToID("_ProbeVolumeAtlasScale");
@@ -856,9 +844,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AtlasTextureOctahedralDepthScaleBias = Shader.PropertyToID("_AtlasTextureOctahedralDepthScaleBias");
         public static readonly int _ValidRange                     = Shader.PropertyToID("_ValidRange");
         public static readonly int _ProbeVolumeAtlasSliceMode      = Shader.PropertyToID("_ProbeVolumeAtlasSliceMode");
-        public static readonly int _ProbeVolumeAmbientProbeFallbackPackedCoeffs  = Shader.PropertyToID("_ProbeVolumeAmbientProbeFallbackPackedCoeffs");
-
-
     }
 
     // Shared material property names

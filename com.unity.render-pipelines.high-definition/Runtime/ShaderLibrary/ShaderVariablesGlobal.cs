@@ -170,8 +170,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _IndirectLightingMultiplier; // .x indirect diffuse multiplier (use with indirect lighting volume controler)
 
         public float _MicroShadowOpacity;
-        public float _Pad3;
-        public float _Pad4;
+        public uint  _EnableProbeVolumes;
+        public uint  _ProbeVolumeCount;
         public float _Pad5;
 
         public Vector4  _CookieAtlasSize;
@@ -229,5 +229,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public int      _UseRayTracedReflections;
         public int      _RaytracingFrameIndex;  // Index of the current frame [0, 7]
         public uint     _EnableRecursiveRayTracing;
+
+        // Probe Volumes
+        public Vector4  _ProbeVolumeAtlasResolutionAndSliceCount;
+        public Vector4  _ProbeVolumeAtlasResolutionAndSliceCountInverse;
+        public Vector4  _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
+
+        public int      _ProbeVolumeLeakMitigationMode;
+        public float    _ProbeVolumeNormalBiasWS;
+        public float    _ProbeVolumeBilateralFilterWeightMin;
+        public float    _ProbeVolumeBilateralFilterWeight;
+
+        [HLSLArray(7, typeof(Vector4))]
+        public fixed float _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7 * 4]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
     }
 }

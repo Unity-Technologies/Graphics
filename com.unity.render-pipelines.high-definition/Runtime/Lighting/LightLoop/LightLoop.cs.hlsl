@@ -106,6 +106,7 @@ CBUFFER_START(ShaderVariablesLightList)
     int _EnvLightIndexShift;
     int _DecalIndexShift;
     int _DensityVolumeIndexShift;
+    int _ProbeVolumeIndexShift;
 CBUFFER_END
 
 //

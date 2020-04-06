@@ -993,6 +993,8 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateShaderVariablesGlobalVolumetrics(ref m_ShaderVariablesGlobalCB, RTHandles.rtHandleProperties, hdCamera);
             m_ShadowManager.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
             UpdateShaderVariablesGlobalLightLoop(ref m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesGlobalProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera);
+            PushProbeVolumesGlobalParams(hdCamera, cmd, m_FrameCount);
             m_AmbientOcclusionSystem.UpdateShaderVariableGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
 
             // Misc
@@ -1011,9 +1013,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesGlobalCB._ReplaceDiffuseForIndirect = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReplaceDiffuseForIndirect) ? 1.0f : 0.0f;
             m_ShaderVariablesGlobalCB._EnableSkyReflection = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SkyReflection) ? 1u : 0u;
             m_ShaderVariablesGlobalCB._ContactShadowOpacity = m_ContactShadows.opacity.value;
-
-            PushProbeVolumesGlobalParams(hdCamera, cmd, m_FrameCount);
-
 
             int coarseStencilWidth = HDUtils.DivRoundUp(hdCamera.actualWidth, 8);
             int coarseStencilHeight = HDUtils.DivRoundUp(hdCamera.actualHeight, 8);
@@ -1046,6 +1045,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushGlobalParameters)))
             {
                 PushVolumetricLightingGlobalParams(hdCamera, cmd, m_FrameCount);
+                PushProbeVolumesGlobalParams(hdCamera, cmd, m_FrameCount);
 
                 // Set up UnityPerView CBuffer.
                 hdCamera.SetupGlobalParams(cmd, m_FrameCount);
@@ -2138,7 +2138,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // After Depth and Normals/roughness including decals
             bool depthBufferModified = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
 
-            // If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth. 
+            // If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth.
             if (depthBufferModified)
                 m_IsDepthBufferCopyValid = false;
 
@@ -3803,7 +3803,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
                 // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
                 cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? (int)ColorWriteMask.All : 0);
-                
+
                 RenderStateBlock? stateBlock = null;
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
                     stateBlock = m_AlphaToMaskBlock;

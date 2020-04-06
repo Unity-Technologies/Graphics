@@ -90,8 +90,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _AmbientOcclusionParam;
     float4 _IndirectLightingMultiplier;
     float _MicroShadowOpacity;
-    float _Pad3;
-    float _Pad4;
+    uint _EnableProbeVolumes;
+    uint _ProbeVolumeCount;
     float _Pad5;
     float4 _CookieAtlasSize;
     float4 _CookieAtlasData;
@@ -128,6 +128,14 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _UseRayTracedReflections;
     int _RaytracingFrameIndex;
     uint _EnableRecursiveRayTracing;
+    float4 _ProbeVolumeAtlasResolutionAndSliceCount;
+    float4 _ProbeVolumeAtlasResolutionAndSliceCountInverse;
+    float4 _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
+    int _ProbeVolumeLeakMitigationMode;
+    float _ProbeVolumeNormalBiasWS;
+    float _ProbeVolumeBilateralFilterWeightMin;
+    float _ProbeVolumeBilateralFilterWeight;
+    float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
 CBUFFER_END
 
 
