@@ -511,6 +511,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issues in the post process system with RenderTexture being invalid in some cases, causing rendering problems.
 - Fixed an issue where unncessarily serialized members in StaticLightingSky component would change each time the scene is changed.
 - Fixed a weird behavior in the scalable settings drawing when the space becomes tiny (1212045).
+- Fix for range compression factor for probes going negative (now clamped to positive values).
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
