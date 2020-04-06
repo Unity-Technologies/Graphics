@@ -130,6 +130,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipeline m_HDInstance;
 
+        void FillEmptyExposureTexture()
+        {
+            var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
+            tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
+            tex.Apply();
+            Graphics.Blit(tex, m_EmptyExposureTexture);
+            CoreUtils.Destroy(tex);
+        }
+
         public PostProcessSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             m_Resources = defaultResources;
@@ -180,11 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Write a version that uses structured buffer instead of texture to do atomic as Metal doesn't support atomics on textures.
             m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal);
 
-            var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
-            tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
-            tex.Apply();
-            Graphics.Blit(tex, m_EmptyExposureTexture);
-            CoreUtils.Destroy(tex);
+            FillEmptyExposureTexture();
 
             // Initialize our target pool to ease RT management
             m_Pool = new TargetPool();
@@ -261,6 +266,23 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FarBokehTileList          = null;
         }
 
+        // In some cases, the internal buffer of render textures might be invalid.
+        // Usually when using these textures with API such as SetRenderTarget, they are recreated internally.
+        // This is not the case when these textures are used exclusively with Compute Shaders. So to make sure they work in this case, we recreate them here.
+        void CheckRenderTexturesValidity()
+        {
+            if (!m_EmptyExposureTexture.rt.IsCreated())
+                FillEmptyExposureTexture();
+
+            HDUtils.CheckRTCreated(m_InternalLogLut.rt);
+            HDUtils.CheckRTCreated(m_TempTexture1024.rt);
+            HDUtils.CheckRTCreated(m_TempTexture32.rt);
+            if (m_KeepAlpha)
+            {
+                HDUtils.CheckRTCreated(m_AlphaTexture.rt);
+            }
+        }
+
         public void BeginFrame(CommandBuffer cmd, HDCamera camera, HDRenderPipeline hdInstance)
         {
             m_HDInstance = hdInstance;
@@ -309,6 +331,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+
+            CheckRenderTexturesValidity();
 
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
             if (!m_ExposureControlFS)
@@ -929,7 +953,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float minAntiflicker = 0.0f;
             float maxAntiflicker = 3.5f;
-            float motionRejectionMultiplier = Mathf.Lerp(0.0f, 250.0f, camera.taaMotionVectorRejection * camera.taaMotionVectorRejection * camera.taaMotionVectorRejection); 
+            float motionRejectionMultiplier = Mathf.Lerp(0.0f, 250.0f, camera.taaMotionVectorRejection * camera.taaMotionVectorRejection * camera.taaMotionVectorRejection);
 
             var taaParameters = new Vector4(camera.taaHistorySharpening, Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, 0.0f);
             Vector2 historySize = new Vector2(prevHistory.referenceSize.x * prevHistory.scaleFactor.x,
@@ -937,7 +961,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
             var taaHistorySize = new Vector4(historySize.x, historySize.y, 1.0f / historySize.x, 1.0f / historySize.y);
 
-            // Precompute weights used for the Blackman-Harris filter. TODO: Note that these are slightly wrong as they don't take into account the jitter size. This needs to be fixed at some point. 
+            // Precompute weights used for the Blackman-Harris filter. TODO: Note that these are slightly wrong as they don't take into account the jitter size. This needs to be fixed at some point.
             float crossWeights = Mathf.Exp(-2.29f * 2);
             float plusWeights = Mathf.Exp(-2.29f);
             float centerWeight = 1;
@@ -2826,7 +2850,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hashCode = ComputeHashCode(scaleFactor.x, scaleFactor.y, (int)format, mipmap);
 
                 if (m_Targets.TryGetValue(hashCode, out var stack) && stack.Count > 0)
-                    return stack.Pop();
+                {
+                    var tex = stack.Pop();
+                    HDUtils.CheckRTCreated(tex.rt);
+                    return tex;
+                }
 
                 var rt = RTHandles.Alloc(
                     scaleFactor, TextureXR.slices, DepthBits.None, colorFormat: format, dimension: TextureXR.dimension,
