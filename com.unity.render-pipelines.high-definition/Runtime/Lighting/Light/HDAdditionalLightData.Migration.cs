@@ -182,9 +182,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
-            if (name.Contains("PL"))
-                Debug.Log("ONENABLING : " + name);
-
             if (shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
             {
                 HDShadowManager.cachedShadowManager.RegisterLight(this);

@@ -1801,14 +1801,21 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3             cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
             shadowRequestCount = 0;
 
+            HDLightType lightType = type;
+            ShadowMapType shadowMapType = lightType == HDLightType.Area ? ShadowMapType.AreaLightAtlas : ShadowMapType.PunctualAtlas;
+
             bool shadowIsInCachedSystem = !ShadowIsUpdatedEveryFrame();
             bool shadowNeedsRendering = true;
+            bool shadowDoesntHavePlacement = false;
+
+            // Note if we are in cached system, but if a placement has not been found by this point we bail out shadows
+            if(shadowIsInCachedSystem && HDShadowManager.cachedShadowManager.LightIsPendingPlacement(this, shadowMapType))
+            {
+                shadowNeedsRendering = false;
+                shadowDoesntHavePlacement = true;
+            }
 
             int count = GetShadowRequestCount(shadowSettings);
-
-            HDLightType lightType = type;
-            // TMP TODO
-            ShadowMapType shadowMapType = lightType == HDLightType.Area ? ShadowMapType.AreaLightAtlas : ShadowMapType.PunctualAtlas;
 
             for (int index = 0; index < count; index++)
             {
@@ -1821,10 +1828,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int cachedShadowID = lightIdxForCachedShadows + index;
 
-                if (shadowIsInCachedSystem)
+                if (shadowIsInCachedSystem && !shadowDoesntHavePlacement)
                 {
                     // TODO_FCC: FIXUP DIR CASCADES! THE SHADOW MAP TYPE HERE IS OFF...ALSO SLOW.
-                    shadowNeedsRendering = HDShadowManager.cachedShadowManager.ShadowIsPendingUpdate(cachedShadowID, shadowMapType);
+                    shadowNeedsRendering = shadowNeedsRendering && HDShadowManager.cachedShadowManager.ShadowIsPendingUpdate(cachedShadowID, shadowMapType);
                     HDShadowManager.cachedShadowManager.UpdateResolutionRequest(ref resolutionRequest, cachedShadowID, shadowMapType);
                 }
                 shadowRequest.isInCachedAtlas = shadowIsInCachedSystem;
@@ -1913,7 +1920,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowRequestCount++;
             }
 
-            return firstShadowRequestIndex;
+            return shadowDoesntHavePlacement ? -1 : firstShadowRequestIndex;
         }
 
         void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 viewProjection, Vector2 viewportSize, int lightIndex)
@@ -2288,8 +2295,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
             {
-                if (enabled)
-                    HDShadowManager.cachedShadowManager.RegisterLight(this);
+                HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
 
 #if UNITY_EDITOR

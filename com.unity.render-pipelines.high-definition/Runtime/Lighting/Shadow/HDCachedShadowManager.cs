@@ -147,6 +147,20 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(typeLight != HDLightType.Directional); // FOR NOW NOT SUPPORTED TODO.
         }
 
+        internal bool LightIsPendingPlacement(HDAdditionalLightData light, ShadowMapType shadowMapType)
+        {
+            if (shadowMapType == ShadowMapType.PunctualAtlas)
+                return punctualShadowAtlas.LightIsPendingPlacement(light);
+            if (shadowMapType == ShadowMapType.AreaLightAtlas)
+                return areaShadowAtlas.LightIsPendingPlacement(light);
+            if (shadowMapType == ShadowMapType.CascadedDirectional)
+            {
+                Debug.Assert(false, "NOT SUPPORTED CASCADE DIRECTIONAL YET, PLS FIX"); // Not supported yet....
+            }
+
+            return false;
+        }
+
         internal void ClearShadowRequests()
         {
             punctualShadowAtlas.Clear();

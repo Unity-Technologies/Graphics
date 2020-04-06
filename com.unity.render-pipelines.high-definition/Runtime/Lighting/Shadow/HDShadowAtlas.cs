@@ -259,6 +259,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 int requestIdx = 0;
                 foreach (var shadowRequest in parameters.shadowRequests)
                 {
+                    if (shadowRequest.shouldUseCachedShadow)
+                        continue;
+
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderEVSMShadowMapsBlur)))
                     {
                         int downsampledWidth = Mathf.CeilToInt(shadowRequest.atlasViewport.width * 0.5f);
