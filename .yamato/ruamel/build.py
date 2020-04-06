@@ -1,5 +1,4 @@
 import ruamel
-from jobs import project_all as pa
 from jobs import project_test as pt
 from jobs import editor_priming as ep
 from jobs.helpers.namer import file_path, file_path_all
@@ -55,7 +54,7 @@ def create_yml_all(project_metafile):
     yml = {}
     for editor in metafile['editors']:
         job_id = f'All_{project_name}_{editor["version"]}'
-        yml[job_id] = pa.project_all(project_name, editor, metafile["dependencies_in_all"])
+        yml[job_id] = pt.project_all(project_name, editor, metafile["dependencies_in_all"])
 
     yml_file = file_path_all(project_name)
     dump_yml(yml_file, yml)
