@@ -168,7 +168,7 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
     /* get shadowmap texcoords */
     float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _AreaShadowAtlasSize.zw, positionWS, perspective);
 
-    int blurPassesScale = (1 + min(4, sd.shadowFilterParams0.w) * 4.0f);// This is needed as blurring might cause some leaks. It might be overclipping, but empirically is a good value. 
+    int blurPassesScale = (1 + min(4, sd.shadowFilterParams0.w) * 4.0f);// This is needed as blurring might cause some leaks. It might be overclipping, but empirically is a good value.
     float2 maxCoord = (sd.shadowMapSize.xy - 0.5f * blurPassesScale) * _AreaShadowAtlasSize.zw + sd.atlasOffset;
     float2 minCoord = sd.atlasOffset + _AreaShadowAtlasSize.zw * blurPassesScale;
 
@@ -179,10 +179,9 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
     else
     {
         float2 exponents = sd.shadowFilterParams0.xx;
-        float lightLeakBias = sd.shadowFilterParams0.y; 
+        float lightLeakBias = sd.shadowFilterParams0.y;
         float varianceBias = sd.shadowFilterParams0.z;
         return SampleShadow_EVSM_1tap(posTC, lightLeakBias, varianceBias, exponents, false, tex, s_linear_clamp_sampler);
-
     }
 }
 
@@ -236,7 +235,10 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
     sd.pos = shadowContext.shadowDatas[index].pos;
     sd.worldTexelSize = shadowContext.shadowDatas[index].worldTexelSize;
     sd.atlasOffset = shadowContext.shadowDatas[index].atlasOffset;
+#if defined(SHADOW_HIGH)
     sd.shadowFilterParams0.x = shadowContext.shadowDatas[index].shadowFilterParams0.x;
+    sd.zBufferParam = shadowContext.shadowDatas[index].zBufferParam;
+#endif
 }
 
 float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
@@ -262,18 +264,18 @@ float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D te
         /* evalute the first cascade */
         shadow = DIRECTIONAL_FILTER_ALGORITHM(sd, positionSS, posTC, tex, samp, FIXED_UNIFORM_BIAS);
         float  shadow1    = 1.0;
-    
+
         shadowSplitIndex++;
         if (shadowSplitIndex < cascadeCount)
         {
             shadow1 = shadow;
-    
+
             if (alpha > 0.0)
             {
                 LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
                 float3 posNDC;
                 posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, positionWS, posNDC, false);
-                /* sample the texture */    
+                /* sample the texture */
                 UNITY_BRANCH
                 if (all(abs(posNDC.xy) <= (1.0 - sd.shadowMapSize.zw * 0.5)))
                     shadow1 = DIRECTIONAL_FILTER_ALGORITHM(sd, positionSS, posTC, tex, samp, FIXED_UNIFORM_BIAS);

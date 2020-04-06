@@ -48,7 +48,7 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
     bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
     bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
     bool overrideNormal = _DebugLightingNormal.x != 0.0;
-    bool overrideAO = _DebugLightingAmbientOcclusion.x != 0.0;    
+    bool overrideAO = _DebugLightingAmbientOcclusion.x != 0.0;
 
     if (overrideAlbedo)
     {
@@ -135,7 +135,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.diffuseNormalWS = surfaceData.irisNormalWS;
     bsdfData.geomNormalWS = surfaceData.geomNormalWS;
 
-    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness); 
+    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     bsdfData.fresnel0 = IorToFresnel0(surfaceData.IOR).xxx;
     bsdfData.IOR = surfaceData.IOR;
@@ -317,13 +317,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 // This define allow to say that we implement a ModifyBakedDiffuseLighting function to be call in PostInitBuiltinData
 #define MODIFY_BAKED_DIFFUSE_LIGHTING
 
-void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
+void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)
 {
-    // To get the data we need to do the whole process - compiler should optimize everything
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
-    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
-
-    // For SSS we need to take into account the state of diffuseColor 
+    // For SSS we need to take into account the state of diffuseColor
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_SUBSURFACE_SCATTERING))
     {
         bsdfData.diffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
@@ -619,11 +615,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             ltcValue *= lightData.diffuseDimmer;
 
              // Only apply cookie if there is one
-            if (lightData.cookieIndex >= 0)
+            if (lightData.cookieMode != COOKIEMODE_NONE)
             {
                 // Compute the cookie data for the diffuse term
                 float3 formFactorD = PolygonFormFactor(LD);
-                ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LD, formFactorD);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LD, formFactorD);
             }
 
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
@@ -639,11 +635,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             ltcValue *= lightData.specularDimmer;
 
             // Only apply cookie if there is one
-            if (lightData.cookieIndex >= 0)
+            if (lightData.cookieMode != COOKIEMODE_NONE)
             {
                 // Compute the cookie data for the specular term
                 float3 formFactorS = PolygonFormFactor(LS);
-                ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LS, formFactorS);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
             }
 
             // We need to multiply by the magnitude of the integral of the BRDF
@@ -742,9 +738,11 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
     InversePreExposeSsrLighting(ssrLighting);
 
-    // Note: RGB is already premultiplied by A.
+    // Apply the weight on the ssr contribution (if required)
+    ApplyScreenSpaceReflectionWeight(ssrLighting);
+
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
-    lighting.specularReflected = ssrLighting.rgb /* * ssrLighting.a */ * preLightData.specularFGD;
+    lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
     reflectionHierarchyWeight = ssrLighting.a;
 
     return lighting;

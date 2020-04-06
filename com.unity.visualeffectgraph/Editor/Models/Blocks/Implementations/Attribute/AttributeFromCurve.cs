@@ -177,7 +177,6 @@ namespace UnityEditor.VFX.Block
 
                     default:
                         break;
-
                 }
             }
         }
@@ -360,7 +359,7 @@ namespace UnityEditor.VFX.Block
                 }
 
                 if (SampleMode == CurveSampleMode.BySpeed)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "SpeedRange", new VFXPropertyAttribute[] { new VFXPropertyAttribute(VFXPropertyAttribute.Type.kMin, 0.0f) }));
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "SpeedRange", VFXPropertyAttribute.Create(new MinAttribute(0.0f))), new Vector2(0.0f, 1.0f));
                 else if (SampleMode == CurveSampleMode.Custom)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "SampleTime"));
                 else if (SampleMode == CurveSampleMode.RandomConstantPerParticle)
@@ -387,7 +386,10 @@ namespace UnityEditor.VFX.Block
                 if (SampleMode == CurveSampleMode.BySpeed)
                 {
                     var speedRangeComponents = VFXOperatorUtility.ExtractComponents(speedRange).ToArray();
-                    speedRangeComponents[1] = VFXOperatorUtility.OneExpression[VFXValueType.Float] / (speedRangeComponents[1] - speedRangeComponents[0]);
+                    // speedRange.y = 1 / (sign(speedRange.y - speedRange.y) * max(epsilon, abs(speedRange.y - speedRange.y))
+                    var speedRangeDelta = speedRangeComponents[1] - speedRangeComponents[0];
+                    var denom = new VFXExpressionSign(speedRangeDelta) * new VFXExpressionMax(VFXOperatorUtility.EpsilonExpression[VFXValueType.Float], new VFXExpressionAbs(speedRangeDelta));
+                    speedRangeComponents[1] = VFXOperatorUtility.OneExpression[VFXValueType.Float] / denom;
                     yield return new VFXNamedExpression(new VFXExpressionCombine(speedRangeComponents), "SpeedRange");
                 }
             }

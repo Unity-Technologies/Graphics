@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -46,7 +48,10 @@ namespace UnityEditor.VFX
 
         public static VFXPropertyAttribute[] Create(params object[] attributes)
         {
-            return attributes.SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
+            if (attributes.Any(a => !(a is Attribute)))
+                throw new ArgumentException("Only C# attributes are allowed to be passed to this method");
+
+            return attributes.Where(t => t != null).SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
                 .Select(o => o.Value(a))).ToArray();
         }
 
@@ -59,10 +64,42 @@ namespace UnityEditor.VFX
                     switch (attribute.m_Type)
                     {
                         case Type.kRange:
-                            exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant(attribute.m_Min), VFXValue.Constant(attribute.m_Max));
+                            switch (exp.valueType)
+                            {
+                                case VFXValueType.Int32:
+                                    exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant((int)attribute.m_Min), VFXValue.Constant((int)attribute.m_Max), false);
+                                    break;
+                                case VFXValueType.Uint32:
+                                    exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant((uint)attribute.m_Min), VFXValue.Constant((uint)attribute.m_Max), false);
+                                    break;
+                                case VFXValueType.Float:
+                                case VFXValueType.Float2:
+                                case VFXValueType.Float3:
+                                case VFXValueType.Float4:
+                                    exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant(attribute.m_Min), VFXValue.Constant(attribute.m_Max));
+                                    break;
+                                default:
+                                    throw new NotImplementedException(string.Format("Cannot use RangeAttribute on value of type: {0}", exp.valueType));
+                            }
                             break;
                         case Type.kMin:
-                            exp = new VFXExpressionMax(exp, VFXOperatorUtility.CastFloat(VFXValue.Constant(attribute.m_Min), exp.valueType));
+                            switch (exp.valueType)
+                            {
+                                case VFXValueType.Int32:
+                                    exp = new VFXExpressionMax(exp, VFXValue.Constant((int)attribute.m_Min));
+                                    break;
+                                case VFXValueType.Uint32:
+                                    exp = new VFXExpressionMax(exp, VFXValue.Constant((uint)attribute.m_Min));
+                                    break;
+                                case VFXValueType.Float:
+                                case VFXValueType.Float2:
+                                case VFXValueType.Float3:
+                                case VFXValueType.Float4:
+                                    exp = new VFXExpressionMax(exp, VFXOperatorUtility.CastFloat(VFXValue.Constant(attribute.m_Min), exp.valueType));
+                                    break;
+                                default:
+                                    throw new NotImplementedException(string.Format("Cannot use MinAttribute on value of type: {0}", exp.valueType));
+                            }
                             break;
                         case Type.kNormalize:
                             exp = VFXOperatorUtility.Normalize(exp);
@@ -85,6 +122,7 @@ namespace UnityEditor.VFX
 
         public static void ApplyToGUI(VFXPropertyAttribute[] attributes, ref string label, ref string tooltip)
         {
+            string tooltipAddon = "";
             if (attributes != null)
             {
                 foreach (VFXPropertyAttribute attribute in attributes)
@@ -94,16 +132,16 @@ namespace UnityEditor.VFX
                         case Type.kRange:
                             break;
                         case Type.kMin:
-                            label += " (Min: " + attribute.m_Min + ")";
+                            tooltipAddon += string.Format(CultureInfo.InvariantCulture, " (Min: {0})", attribute.m_Min);
                             break;
                         case Type.kNormalize:
-                            label += " (Normalized)";
+                            tooltipAddon += " (Normalized)";
                             break;
                         case Type.kTooltip:
                             tooltip = attribute.m_Tooltip;
                             break;
                         case Type.kAngle:
-                            label += " (Angle)";
+                            tooltipAddon += " (Angle)";
                             break;
                         case Type.kColor:
                         case Type.kRegex:
@@ -115,6 +153,11 @@ namespace UnityEditor.VFX
                     }
                 }
             }
+
+            if (string.IsNullOrEmpty(tooltip))
+                tooltip = label;
+
+            tooltip = tooltip + tooltipAddon;
         }
 
         public static Vector2 FindRange(VFXPropertyAttribute[] attributes)

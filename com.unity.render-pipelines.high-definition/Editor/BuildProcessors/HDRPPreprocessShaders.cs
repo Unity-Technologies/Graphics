@@ -61,6 +61,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (isTransparentPostpass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentDepthPostpass)
                 return true;
 
+            bool isRayTracingPrepass = snippet.passName == "RayTracingPrepass";
+            if (isRayTracingPrepass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                return true;
+
             // If we are in a release build, don't compile debug display variant
             // Also don't compile it if not requested by the render pipeline settings
             if ((!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))

@@ -6,14 +6,14 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
 
         // Stencil state
         // Forward
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
-        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 3 // StencilMask.Lighting
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 0  // StencilUsage.Clear
+        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 3 // StencilUsage.RequiresDeferredLighting | StencilUsage.SubsurfaceScattering
         // GBuffer
-        [HideInInspector] _StencilRefGBuffer("_StencilRefGBuffer", Int) = 2 // StencilLightingUsage.RegularLighting
-        [HideInInspector] _StencilWriteMaskGBuffer("_StencilWriteMaskGBuffer", Int) = 3 // StencilMask.Lighting
+        [HideInInspector] _StencilRefGBuffer("_StencilRefGBuffer", Int) = 2 // StencilUsage.RequiresDeferredLighting
+        [HideInInspector] _StencilWriteMaskGBuffer("_StencilWriteMaskGBuffer", Int) = 3 // StencilUsage.RequiresDeferredLighting | StencilUsage.SubsurfaceScattering
         // Depth prepass
         [HideInInspector] _StencilRefDepth("_StencilRefDepth", Int) = 0 // Nothing
-        [HideInInspector] _StencilWriteMaskDepth("_StencilWriteMaskDepth", Int) = 32 // DoesntReceiveSSR
+        [HideInInspector] _StencilWriteMaskDepth("_StencilWriteMaskDepth", Int) = 8 // StencilUsage.TraceReflectionRay
 
         // Blending state
         [HideInInspector] _ZWrite ("__zw", Float) = 1.0
@@ -42,7 +42,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL

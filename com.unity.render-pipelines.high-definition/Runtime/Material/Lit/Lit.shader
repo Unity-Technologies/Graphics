@@ -2,9 +2,6 @@ Shader "HDRP/Lit"
 {
     Properties
     {
-        // Versioning of material to help for upgrading
-        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
-
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
@@ -131,20 +128,20 @@ Shader "HDRP/Lit"
         // Stencil state
 
         // Forward
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
-        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 3 // StencilMask.Lighting
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 0 // StencilUsage.Clear
+        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 3 // StencilUsage.RequiresDeferredLighting | StencilUsage.SubsurfaceScattering
         // GBuffer
-        [HideInInspector] _StencilRefGBuffer("_StencilRefGBuffer", Int) = 2 // StencilLightingUsage.RegularLighting
-        [HideInInspector] _StencilWriteMaskGBuffer("_StencilWriteMaskGBuffer", Int) = 3 // StencilMask.Lighting
+        [HideInInspector] _StencilRefGBuffer("_StencilRefGBuffer", Int) = 2 // StencilUsage.RequiresDeferredLighting
+        [HideInInspector] _StencilWriteMaskGBuffer("_StencilWriteMaskGBuffer", Int) = 3 // StencilUsage.RequiresDeferredLighting | StencilUsage.SubsurfaceScattering
         // Depth prepass
         [HideInInspector] _StencilRefDepth("_StencilRefDepth", Int) = 0 // Nothing
-        [HideInInspector] _StencilWriteMaskDepth("_StencilWriteMaskDepth", Int) = 32 // DoesntReceiveSSR
+        [HideInInspector] _StencilWriteMaskDepth("_StencilWriteMaskDepth", Int) = 8 // StencilUsage.TraceReflectionRay
         // Motion vector pass
-        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilBitMask.ObjectMotionVectors
-        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilBitMask.ObjectMotionVectors
+        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 32 // StencilUsage.ObjectMotionVector
+        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 32 // StencilUsage.ObjectMotionVector
         // Distortion vector pass
-        [HideInInspector] _StencilRefDistortionVec("_StencilRefDistortionVec", Int) = 64 // StencilBitMask.DistortionVectors
-        [HideInInspector] _StencilWriteMaskDistortionVec("_StencilWriteMaskDistortionVec", Int) = 64 // StencilBitMask.DistortionVectors
+        [HideInInspector] _StencilRefDistortionVec("_StencilRefDistortionVec", Int) = 4 // StencilUsage.DistortionVectors
+        [HideInInspector] _StencilWriteMaskDistortionVec("_StencilWriteMaskDistortionVec", Int) = 4 // StencilUsage.DistortionVectors
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -153,7 +150,9 @@ Shader "HDRP/Lit"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
         [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
+        [HideInInspector][ToggleUI]_AlphaToMask("__alphaToMask", Float) = 0
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
+        [HideInInspector][ToggleUI] _TransparentZWrite("_TransparentZWrite", Float) = 0.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _CullModeForward("__cullmodeForward", Float) = 2.0 // This mode is dedicated to Forward to correctly handle backface then front face rendering thin transparent
         [Enum(UnityEditor.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
@@ -219,7 +218,11 @@ Shader "HDRP/Lit"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
+        [ToggleUI] _ReceivesSSRTransparent("Receives SSR Transparent", Float) = 0.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
+
+        // Ray Tracing
+        [ToggleUI] _RayTracing("Ray Tracing (Preview)", Float) = 0
 
         [HideInInspector] _DiffusionProfile("Obsolete, kept for migration purpose", Int) = 0
         [HideInInspector] _DiffusionProfileAsset("Diffusion Profile Asset", Vector) = (0, 0, 0, 0)
@@ -229,20 +232,20 @@ Shader "HDRP/Lit"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature_local _ALPHATEST_ON
+    #pragma shader_feature_local _ALPHATOMASK_ON
     #pragma shader_feature_local _DEPTHOFFSET_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
     #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
     #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature_local _ _REFRACTION_PLANE _REFRACTION_SPHERE
+    #pragma shader_feature_local _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
 
     #pragma shader_feature_local _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
     #pragma shader_feature_local _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
@@ -275,6 +278,7 @@ Shader "HDRP/Lit"
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
+    #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
@@ -297,13 +301,12 @@ Shader "HDRP/Lit"
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-    //enable GPU instancing support
-    #pragma multi_compile_instancing
-    #pragma instancing_options renderinglayer
-
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
+
+    // This shader support recursive rendering for raytracing
+    #define HAVE_RECURSIVE_RENDERING
 
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
@@ -355,6 +358,12 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
             // Note: Require _ObjectId and _PassValue variables
 
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
@@ -392,6 +401,12 @@ Shader "HDRP/Lit"
             }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -436,6 +451,12 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
@@ -468,6 +489,12 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
@@ -487,6 +514,7 @@ Shader "HDRP/Lit"
             Tags{ "LightMode" = "DepthOnly" }
 
             Cull[_CullMode]
+            AlphaToMask [_AlphaToMask]
 
             // To be able to tag stencil with disableSSR information for forward
             Stencil
@@ -500,6 +528,12 @@ Shader "HDRP/Lit"
             ZWrite On
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
@@ -540,10 +574,18 @@ Shader "HDRP/Lit"
             }
 
             Cull[_CullMode]
+            AlphaToMask [_AlphaToMask]
 
             ZWrite On
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
@@ -585,6 +627,12 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
             #define SHADERPASS SHADERPASS_DISTORTION
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
@@ -603,17 +651,41 @@ Shader "HDRP/Lit"
             Name "TransparentDepthPrepass"
             Tags{ "LightMode" = "TransparentDepthPrepass" }
 
+            // To be able to tag stencil with disableSSR information for transparentObjects
+            Stencil
+            {
+                WriteMask [_StencilWriteMaskDepth]
+                Ref [_StencilRefDepth]
+                Comp Always
+                Pass Replace
+            }
+
             Cull[_CullMode]
             ZWrite On
-            ColorMask 0
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define CUTOFF_TRANSPARENT_DEPTH_PREPASS
+
+            // If the transparent surface should have reflections, then we should output normal
+            #if !defined(_DISABLE_SSR_TRANSPARENT)
+                #define WRITE_NORMAL_BUFFER
+            #endif
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
+            #else
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
+            #endif
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -636,6 +708,12 @@ Shader "HDRP/Lit"
             ZTest [_ZTestTransparent]
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -703,6 +781,12 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
@@ -762,6 +846,13 @@ Shader "HDRP/Lit"
             ColorMask 0
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define CUTOFF_TRANSPARENT_DEPTH_POSTPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -769,6 +860,33 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "RayTracingPrepass"
+            Tags{ "LightMode" = "RayTracingPrepass" }
+
+            Cull[_CullMode]
+
+            ZWrite On
+            ZTest LEqual // If the object have already been render in depth prepass, it will re-render to tag stencil
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            #define SHADERPASS SHADERPASS_CONSTANT
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitConstantPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -787,7 +905,8 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
-            #pragma raytracing test
+            #pragma only_renderers d3d11
+            #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -817,7 +936,8 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracingData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl"
 
             ENDHLSL
@@ -830,7 +950,8 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
-            #pragma raytracing test
+            #pragma only_renderers d3d11
+            #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -856,7 +977,8 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracingData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingForward.hlsl"
 
             ENDHLSL
@@ -869,7 +991,8 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
-            #pragma raytracing test
+            #pragma only_renderers d3d11
+            #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -890,7 +1013,8 @@ Shader "HDRP/Lit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracingData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl"
 
@@ -904,7 +1028,8 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
-            #pragma raytracing test
+            #pragma only_renderers d3d11
+            #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
@@ -917,8 +1042,42 @@ Shader "HDRP/Lit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracingData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingVisibility.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "SubSurfaceDXR"
+            Tags{ "LightMode" = "SubSurfaceDXR" }
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11
+            #pragma raytracing surface_shader
+
+            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ DIFFUSE_LIGHTING_ONLY
+
+            #define SHADERPASS SHADERPASS_RAYTRACING_SUB_SURFACE
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface/RaytracingIntersectionSubSurface.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingSubSurface.hlsl"
 
             ENDHLSL
         }
@@ -930,7 +1089,8 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
-            #pragma raytracing test
+            #pragma only_renderers d3d11
+            #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
 
@@ -953,7 +1113,8 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracingData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl"
 
             ENDHLSL

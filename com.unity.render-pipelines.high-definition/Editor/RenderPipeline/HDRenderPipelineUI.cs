@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System.Text;
-using Utilities;
+using UnityEngine.Experimental.Rendering;
 using static UnityEngine.Rendering.HighDefinition.RenderPipelineSettings;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
             if (hdrp != null && hdrp.rayTracingSupported)
-            EditorGUILayout.PropertyField(serialized.renderPipelineRayTracingResources, Styles.GeneralSection.renderPipelineRayTracingResourcesContent);
+                EditorGUILayout.PropertyField(serialized.renderPipelineRayTracingResources, Styles.GeneralSection.renderPipelineRayTracingResourcesContent);
 
             // Not serialized as editor only datas... Retrieve them in data
             EditorGUI.showMixedValue = serialized.editorResourceHasMultipleDifferentValues;
@@ -212,19 +212,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionCookies(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.cookieSize, Styles.cookieSizeContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.cookieAtlasSize, Styles.cookieAtlasSizeContent);
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.cookieTexArraySize, Styles.cookieTextureArraySizeContent);
-            if (EditorGUI.EndChangeCheck())
-                serialized.renderPipelineSettings.lightLoopSettings.cookieTexArraySize.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.cookieTexArraySize.intValue, 1, TextureCache.k_MaxSupported);
-            if (serialized.renderPipelineSettings.lightLoopSettings.cookieTexArraySize.hasMultipleDifferentValues)
+            if (serialized.renderPipelineSettings.lightLoopSettings.cookieAtlasSize.hasMultipleDifferentValues)
                 EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
             else
             {
-                long currentCache = TextureCache2D.GetApproxCacheSizeInByte(serialized.renderPipelineSettings.lightLoopSettings.cookieTexArraySize.intValue, serialized.renderPipelineSettings.lightLoopSettings.cookieSize.intValue, 1);
+                GraphicsFormat cookieFormat = (GraphicsFormat)serialized.renderPipelineSettings.lightLoopSettings.cookieFormat.intValue;
+                long currentCache = PowerOfTwoTextureAtlas.GetApproxCacheSizeInByte(1, serialized.renderPipelineSettings.lightLoopSettings.cookieAtlasSize.intValue, true, cookieFormat);
                 if (currentCache > HDRenderPipeline.k_MaxCacheSize)
                 {
-                    int reserved = TextureCache2D.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, serialized.renderPipelineSettings.lightLoopSettings.cookieSize.intValue, 1);
+                    int reserved = PowerOfTwoTextureAtlas.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, true, cookieFormat);
                     string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
                     EditorGUILayout.HelpBox(message, MessageType.Error);
                 }
@@ -234,6 +232,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(message, MessageType.Info);
                 }
             }
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.cookieAtlasLastValidMip, Styles.cookieAtlasLastValidMipContent);
+            if (EditorGUI.EndChangeCheck())
+                serialized.renderPipelineSettings.lightLoopSettings.cookieAtlasLastValidMip.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.cookieAtlasLastValidMip.intValue, 0, Texture2DAtlas.maxMipLevelPadding);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.cookieFormat, Styles.cookieAtlasFormatContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.pointCookieSize, Styles.pointCoockieSizeContent);
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize, Styles.pointCookieTextureArraySizeContent);
@@ -261,6 +264,10 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionReflection(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSR, Styles.supportSSRContent);
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportSSR.boolValue))
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSRTransparent, Styles.supportSSRTransparentContent);
+            }
 
             EditorGUILayout.Space();
 
@@ -291,19 +298,15 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.Space();
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.planarReflectionCacheCompressed, Styles.compressPlanarProbeCacheContent);
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.planarReflectionCubemapSize, Styles.planarTextureSizeContent);
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize, Styles.planarProbeCacheSizeContent);
-            if (EditorGUI.EndChangeCheck())
-                serialized.renderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize.intValue, 1, TextureCache.k_MaxSupported);
-            if (serialized.renderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize.hasMultipleDifferentValues)
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize, Styles.planarAtlasSizeContent);
+            if (serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize.hasMultipleDifferentValues)
                 EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
             else
             {
-                long currentCache = PlanarReflectionProbeCache.GetApproxCacheSizeInByte(serialized.renderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.planarReflectionCubemapSize.intValue, 1);
+                long currentCache = PlanarReflectionProbeCache.GetApproxCacheSizeInByte(1, serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize.intValue, GraphicsFormat.R16G16B16A16_UNorm);
                 if (currentCache > HDRenderPipeline.k_MaxCacheSize)
                 {
-                    int reserved = PlanarReflectionProbeCache.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, serialized.renderPipelineSettings.lightLoopSettings.planarReflectionCubemapSize.intValue, 1);
+                    int reserved = PlanarReflectionProbeCache.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, GraphicsFormat.R16G16B16A16_UNorm);
                     string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
                     EditorGUILayout.HelpBox(message, MessageType.Error);
                 }
@@ -313,6 +316,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(message, MessageType.Info);
                 }
             }
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen, Styles.maxPlanarReflectionOnScreen);
 
             EditorGUILayout.Space();
 
@@ -568,6 +572,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.singlePass, Styles.XRSinglePass);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.occlusionMesh, Styles.XROcclusionMesh);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.cameraJitter, Styles.XRCameraJitter);
         }
 
         static private bool m_ShowDoFLowQualitySection = false;
@@ -844,7 +849,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.HelpBox(Styles.rayTracingUnsupportedWarning.text, MessageType.Warning, wide: true);
                 }
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRaytracingTier, Styles.raytracingTier);
             }
 
             serialized.renderPipelineSettings.lodBias.ValueGUI<float>(Styles.LODBias);
@@ -866,6 +870,52 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
+            {
+                ++EditorGUI.indentLevel;
+
+                if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
+                    EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth, Styles.probeVolumeAtlasWidth);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth.intValue, 0);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight, Styles.probeVolumeAtlasHeight);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue, 0);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth, Styles.probeVolumeAtlasDepth);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue, 0);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth, Styles.probeVolumeAtlasOctahedralDepthWidth);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth.intValue, 0);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight, Styles.probeVolumeAtlasOctahedralDepthHeight);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight.intValue, 0);
+
+                if (serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue <= 0)
+                {
+                    // Detected legacy 2D probe volume atlas (degenerate Z axis resolution).
+                    // Initialize with default 3D atlas values.
+                    // TODO: (Nick) This can be removed in release. It's currently here to reduce user pain on internal projects actively using this WIP tech.
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth.intValue = GlobalProbeVolumeSettings.@default.atlasWidth;
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue = GlobalProbeVolumeSettings.@default.atlasHeight;
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue = GlobalProbeVolumeSettings.@default.atlasDepth;
+                }
+
+                --EditorGUI.indentLevel;
+            }
+
             EditorGUILayout.Space(); //to separate with following sub sections
         }
 
@@ -882,7 +932,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 || !serialized.renderPipelineSettings.supportSubsurfaceScattering.boolValue))
             {
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.increaseSssSampleCount, Styles.SSSSampleCountContent);
+                serialized.renderPipelineSettings.sssSampleBudget.ValueGUI<int>(Styles.sssSampleBudget);
                 --EditorGUI.indentLevel;
             }
 
@@ -960,6 +1010,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPrepass, Styles.supportTransparentDepthPrepass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, Styles.supportTransparentDepthPostpass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
+            AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);
         }

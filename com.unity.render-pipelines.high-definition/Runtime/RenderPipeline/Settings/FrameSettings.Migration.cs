@@ -4,7 +4,7 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Obsolete("For data migration")]
-    public enum ObsoleteLitShaderMode
+    enum ObsoleteLitShaderMode
     {
         Forward,
         Deferred
@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
             oldFrameSettingsFormat = null;
         }
 #pragma warning restore 618 // Type or member is obsolete
-        
+
         internal static void MigrateToCustomPostprocessAndCustomPass(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.CustomPass, true);
@@ -364,7 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, false);
             cameraFrameSettings.SetEnabled(FrameSettingsField.SkyReflection, true);
         }
-        
+
         internal static void MigrateToNoReflectionRealtimeSettings(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReflectionProbe, true);
@@ -415,6 +415,16 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static void MigrateToSeparateColorGradingAndTonemapping(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.Tonemapping, true);
+        }
+
+        internal static void MigrateSubsurfaceParams(ref FrameSettings fs, bool previouslyHighQuality)
+        {
+            // SSS moved from 25 to 46.
+            fs.SetEnabled(FrameSettingsField.SubsurfaceScattering, fs.bitDatas[25]);
+            // Set the defaults.
+            fs.sssQualityMode        = previouslyHighQuality ? SssQualityMode.OverrideQualitySettings : SssQualityMode.FromQualitySettings;
+            fs.sssQualityLevel       = 0;
+            fs.sssCustomSampleBudget = previouslyHighQuality ? 55 : (int)DefaultSssSampleBudgetForQualityLevel.Low;
         }
     }
 }

@@ -2,9 +2,9 @@ Shader "Hidden/HDRP/DeferredTile"
 {
     Properties
     {
-        [HideInInspector] _StencilMask("_StencilMask", Int) = 7
-        [HideInInspector] _StencilRef("", Int) = 0
-        [HideInInspector] _StencilCmp("", Int) = 3
+        [HideInInspector] _StencilMask("_StencilMask", Int) = 6 // StencilUsage.RequiresDeferredLighting | StencilUsage.SubsurfaceScattering
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 0
+        [HideInInspector] _StencilCmp("_StencilCmp", Int) = 3
     }
 
     SubShader
@@ -31,7 +31,7 @@ Shader "Hidden/HDRP/DeferredTile"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -293,7 +293,7 @@ Shader "Hidden/HDRP/DeferredTile"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag

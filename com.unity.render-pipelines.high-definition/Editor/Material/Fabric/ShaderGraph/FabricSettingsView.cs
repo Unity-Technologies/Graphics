@@ -11,7 +11,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class FabricSettingsView : VisualElement
+    class FabricSettingsView : MasterNodeSettingsView
     {
         FabricMasterNode m_Node;
 
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
-        public FabricSettingsView(FabricMasterNode node)
+        public FabricSettingsView(FabricMasterNode node) : base(node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
@@ -116,24 +116,15 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            if (m_Node.surfaceType == SurfaceType.Transparent && m_Node.alphaTest.isOn)
+            if (m_Node.alphaTest.isOn)
             {
                 ++indentLevel;
-                ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff Depth Prepass", indentLevel)), (row) =>
+                ps.Add(new PropertyRow(CreateLabel("Alpha to Mask", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
-                        toggle.value = m_Node.alphaTestDepthPrepass.isOn;
-                        toggle.OnToggleChanged(ChangeAlphaTestPrepass);
-                    });
-                });
-
-                ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff Depth Postpass", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.alphaTestDepthPostpass.isOn;
-                        toggle.OnToggleChanged(ChangeAlphaTestPostpass);
+                        toggle.value = m_Node.alphaToMask.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaToMask);
                     });
                 });
                 --indentLevel;
@@ -251,6 +242,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             });
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeSurfaceType(ChangeEvent<Enum> evt)
@@ -351,20 +343,12 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             m_Node.alphaTest = td;
         }
 
-        void ChangeAlphaTestPrepass(ChangeEvent<bool> evt)
+        void ChangeAlphaToMask(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Prepass Change");
-            ToggleData td = m_Node.alphaTestDepthPrepass;
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha to Mask Change");
+            ToggleData td = m_Node.alphaToMask;
             td.isOn = evt.newValue;
-            m_Node.alphaTestDepthPrepass = td;
-        }
-
-        void ChangeAlphaTestPostpass(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Postpass Change");
-            ToggleData td = m_Node.alphaTestDepthPostpass;
-            td.isOn = evt.newValue;
-            m_Node.alphaTestDepthPostpass = td;
+            m_Node.alphaToMask = td;
         }
 
         void ChangeDecal(ChangeEvent<bool> evt)

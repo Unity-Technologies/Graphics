@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PushGlobalParameters,
         CopyDepthBuffer,
         CopyDepthInTargetTexture,
+        CoarseStencilGeneration,
         HTileForSSS,
         RenderSSAO,
         ResolveStencilBuffer,
@@ -35,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SubsurfaceScattering,
         SsrTracing,
         SsrReprojection,
+        PrepareForTransparentSsr,
         ForwardEmissive,
         ForwardOpaque,
         ForwardOpaqueDebug,
@@ -55,6 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DisplayLightVolume,
         ClearBuffers,
         ClearDepthStencil,
+        ClearStencil,
         ClearSssLightingBuffer,
         ClearSSSFilteringTarget,
         ClearAndCopyStencilTexture,
@@ -69,6 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
         UpdateStencilCopyForSSRExclusion,
         GizmosPrePostprocess,
         Gizmos,
+        DisplayCookieAtlas,
         RenderWireFrame,
         PushToColorPicker,
         ResolveMSAAColor,
@@ -78,6 +82,10 @@ namespace UnityEngine.Rendering.HighDefinition
         PreIntegradeWardCookTorrance,
         FilterCubemapCharlie,
         FilterCubemapGGX,
+        DisplayPointLightCookieArray,
+        DisplayPlanarReflectionProbeAtlas,
+        BlitTextureInPotAtlas,
+        AreaLightCookieConvolution,
 
         UpdateSkyEnvironmentConvolution,
         RenderSkyToCubemap,
@@ -104,6 +112,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingIntegrateIndirectDiffuse,
         RaytracingFilterIndirectDiffuse,
         RaytracingDebugOverlay,
+        RayTracingRecursiveRendering,
+        RayTracingPrepass,
 
         // Profile sampler for prepare light for GPU
         PrepareLightsForGPU,
@@ -133,6 +143,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Misc
         VolumeUpdate,
         CustomPassVolumeUpdate,
+
+        // XR
         XROcclusionMesh,
         XRMirrorView,
         XRCustomMirrorView,
@@ -177,5 +189,9 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
         ContrastAdaptiveSharpen,
+        PrepareProbeVolumeList,
+        ProbeVolumeDebug,
+        BuildGPULightListProbeVolumes,
+        PushProbeVolumeLightListGlobalParameters,
     }
 }

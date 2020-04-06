@@ -26,10 +26,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
+    /// <summary>
+    /// HDRP Additional light data component. It contains the light API and fields used by HDRP.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
-    public partial class HDAdditionalLightData : MonoBehaviour
+    public partial class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
     {
         internal static class ScalableSettings
         {
@@ -192,11 +195,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public float innerSpotPercent01 => innerSpotPercent / 100f;
 
-        [Range(0.0f, 1.0f)]
+        [Range(0.0f, 16.0f)]
         [SerializeField, FormerlySerializedAs("lightDimmer")]
         float m_LightDimmer = 1.0f;
         /// <summary>
-        /// Get/Set the light dimmer.
+        /// Get/Set the light dimmer / multiplier, between 0 and 16. 
         /// </summary>
         public float lightDimmer
         {
@@ -206,14 +209,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_LightDimmer == value)
                     return;
 
-                m_LightDimmer = Mathf.Clamp01(value);
+                m_LightDimmer = Mathf.Clamp(value, 0.0f, 16.0f);
             }
         }
 
-        [Range(0.0f, 1.0f), SerializeField, FormerlySerializedAs("volumetricDimmer")]
+        [Range(0.0f, 16.0f), SerializeField, FormerlySerializedAs("volumetricDimmer")]
         float m_VolumetricDimmer = 1.0f;
         /// <summary>
-        /// Get/Set the light dimmer on volumetric effects, between 0 and 1.
+        /// Get/Set the light dimmer / multiplier on volumetric effects, between 0 and 16.
         /// </summary>
         public float volumetricDimmer
         {
@@ -223,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_VolumetricDimmer == value)
                     return;
 
-                m_VolumetricDimmer = Mathf.Clamp01(value);
+                m_VolumetricDimmer = Mathf.Clamp(value, 0.0f, 16.0f);
             }
         }
 
@@ -822,9 +825,26 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_SemiTransparentShadow = false;
+        /// <summary>
+        /// Enable semi-transparent shadows on the light.
+        /// </summary>
+        public bool semiTransparentShadow
+        {
+            get => m_SemiTransparentShadow;
+            set
+            {
+                if (m_SemiTransparentShadow == value)
+                    return;
+
+                m_SemiTransparentShadow = value;
+            }
+        }
+
+        [SerializeField]
         bool m_ColorShadow = true;
         /// <summary>
-        /// Toggle the filtering of ray traced shadows.
+        /// Enable color shadows on the light.
         /// </summary>
         public bool colorShadow
         {
@@ -835,6 +855,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_ColorShadow = value;
+            }
+        }
+
+        [SerializeField]
+        bool m_DistanceBasedFiltering = false;
+        /// <summary>
+        /// Uses the distance to the occluder to improve the shadow denoising.
+        /// </summary>
+        internal bool distanceBasedFiltering
+        {
+            get => m_DistanceBasedFiltering;
+            set
+            {
+                if (m_DistanceBasedFiltering == value)
+                    return;
+
+                m_DistanceBasedFiltering = value;
             }
         }
 
@@ -947,6 +984,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint GetLightLayers()
         {
             int value = (int)lightlayersMask;
+            return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
+        }
+
+        /// <summary>
+        /// Returns a mask of shadow light layers as uint and handle the case of Everything as being 0xFF and not -1
+        /// </summary>
+        /// <returns></returns>
+        public uint GetShadowLayers()
+        {
+            int value = RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask);
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 
@@ -1111,6 +1158,10 @@ namespace UnityEngine.Rendering.HighDefinition
             @override = k_DefaultShadowResolution,
             useOverride = true,
         };
+
+        /// <summary>
+        /// Retrieve the scalable setting for shadow resolution. Use the SetShadowResolution function to set a custom resolution.
+        /// </summary>
         public IntScalableSettingValue shadowResolution => m_ShadowResolution;
 
         [Range(0.0f, 1.0f)]
@@ -1168,6 +1219,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         BoolScalableSettingValue m_UseContactShadow = new BoolScalableSettingValue { useOverride = true };
+
+        /// <summary>
+        /// Retrieve the scalable setting to use/ignore contact shadows. Toggle the use contact shadow using @override property of the ScalableSetting.
+        /// </summary>
         public BoolScalableSettingValue useContactShadow => m_UseContactShadow;
 
         [SerializeField]
@@ -1315,6 +1370,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// True if the light affects volumetric fog, false otherwise 
+        /// </summary>
+        public bool affectsVolumetric
+        {
+            get => useVolumetric;
+            set => useVolumetric = value;
+        }
+
 #endregion
 
 #region Internal API for moving shadow datas from AdditionalShadowData to HDAdditionalLightData
@@ -1393,11 +1457,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
 
         // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
-        [System.NonSerialized] internal Matrix4x4 previousTransform = new Matrix4x4();
+        [System.NonSerialized] internal Matrix4x4 previousTransform = Matrix4x4.identity;
         // Temporary index that stores the current shadow index for the light
-        [System.NonSerialized] internal int shadowIndex;
-        [System.NonSerialized] internal int screenSpaceShadowSlot;
-        [System.NonSerialized] internal int screenSpaceShadowIndex;
+        [System.NonSerialized] internal int shadowIndex = -1;
 
         // Runtime datas used to compute light intensity
         Light m_Light;
@@ -1405,39 +1467,99 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                TryGetComponent<Light>(out m_Light);
+                // Calling TryGetComponent only when needed is faster than letting the null check happen inside TryGetComponent
+                if (m_Light == null)
+                    TryGetComponent<Light>(out m_Light);
+
                 return m_Light;
             }
         }
 
-        MeshRenderer m_EmissiveMeshRenderer;
-        internal MeshRenderer emissiveMeshRenderer
-        {
-            get
-            {
-                if (m_EmissiveMeshRenderer == null)
-                {
-                    TryGetComponent<MeshRenderer>(out m_EmissiveMeshRenderer);
-                }
+        const string k_EmissiveMeshViewerName = "EmissiveMeshViewer";
 
-                return m_EmissiveMeshRenderer;
-            }
-        }
-
+        GameObject m_ChildEmissiveMeshViewer;
         MeshFilter m_EmissiveMeshFilter;
-        internal MeshFilter emissiveMeshFilter
-        {
-            get
-            {
-                if (m_EmissiveMeshFilter == null)
-                {
-                    TryGetComponent<MeshFilter>(out m_EmissiveMeshFilter);
-                }
+        internal MeshRenderer emissiveMeshRenderer { get; private set; }
 
-                return m_EmissiveMeshFilter;
+#if UNITY_EDITOR
+        bool needRefreshPrefabInstanceEmissiveMeshes = false;
+#endif
+        bool needRefreshEmissiveMeshesFromTimeLineUpdate = false;
+
+        void CreateChildEmissiveMeshViewerIfNeeded()
+        {
+#if UNITY_EDITOR
+            if (PrefabUtility.IsPartOfPrefabAsset(this))
+                    return;
+#endif
+
+            //if not here, create it
+            if (m_ChildEmissiveMeshViewer == null || m_ChildEmissiveMeshViewer.Equals(null))
+            {
+                m_ChildEmissiveMeshViewer = new GameObject(k_EmissiveMeshViewerName, typeof(MeshFilter), typeof(MeshRenderer));
+                m_ChildEmissiveMeshViewer.hideFlags = HideFlags.NotEditable | HideFlags.DontSaveInBuild | HideFlags.DontSaveInEditor;
+                m_ChildEmissiveMeshViewer.transform.SetParent(transform);
+                m_ChildEmissiveMeshViewer.transform.localPosition = Vector3.zero;
+                m_ChildEmissiveMeshViewer.transform.localRotation = Quaternion.identity;
+                m_ChildEmissiveMeshViewer.transform.localScale = Vector3.one;
+
+                m_EmissiveMeshFilter = m_ChildEmissiveMeshViewer.GetComponent<MeshFilter>();
+                emissiveMeshRenderer = m_ChildEmissiveMeshViewer.GetComponent<MeshRenderer>();
+                emissiveMeshRenderer.shadowCastingMode = m_AreaLightEmissiveMeshShadowCastingMode;
+                emissiveMeshRenderer.motionVectorGenerationMode = m_AreaLightEmissiveMeshMotionVectorGenerationMode;
             }
         }
 
+        void DestroyChildEmissiveMeshViewer()
+        {
+            m_EmissiveMeshFilter = null;
+
+            emissiveMeshRenderer.enabled = false;
+            emissiveMeshRenderer = null;
+
+            CoreUtils.Destroy(m_ChildEmissiveMeshViewer);
+            m_ChildEmissiveMeshViewer = null;
+        }
+        
+        [SerializeField]
+        ShadowCastingMode m_AreaLightEmissiveMeshShadowCastingMode = ShadowCastingMode.Off;
+        [SerializeField]
+        MotionVectorGenerationMode m_AreaLightEmissiveMeshMotionVectorGenerationMode;
+
+        /// <summary> Change the Shadow Casting Mode of the generated emissive mesh for Area Light </summary>
+        public ShadowCastingMode areaLightEmissiveMeshShadowCastingMode
+        {
+            get => m_AreaLightEmissiveMeshShadowCastingMode;
+            set
+            {
+                if (m_AreaLightEmissiveMeshShadowCastingMode == value)
+                    return;
+
+                m_AreaLightEmissiveMeshShadowCastingMode = value;
+                if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+                {
+                    emissiveMeshRenderer.shadowCastingMode = m_AreaLightEmissiveMeshShadowCastingMode;
+                }
+            }
+        }
+
+        /// <summary> Change the Motion Vector Generation Mode of the generated emissive mesh for Area Light </summary>
+        public MotionVectorGenerationMode areaLightEmissiveMeshMotionVectorGenerationMode
+        {
+            get => m_AreaLightEmissiveMeshMotionVectorGenerationMode;
+            set
+            {
+                if (m_AreaLightEmissiveMeshMotionVectorGenerationMode == value)
+                    return;
+
+                m_AreaLightEmissiveMeshMotionVectorGenerationMode = value;
+                if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+                {
+                    emissiveMeshRenderer.motionVectorGenerationMode = m_AreaLightEmissiveMeshMotionVectorGenerationMode;
+                }
+            }
+        }
+        
         private void DisableCachedShadowSlot()
         {
             if (WillRenderShadowMap() && !ShadowIsUpdatedEveryFrame())
@@ -1514,7 +1636,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
             m_WillRenderShadowMap &= shadowDimmer > 0;
             // If the shadow is too far away, we don't render it
-            m_WillRenderShadowMap &= type == HDLightType.Directional || processedLight.distanceToCamera < shadowFadeDistance;
+            m_WillRenderShadowMap &= processedLight.lightType == HDLightType.Directional || processedLight.distanceToCamera < shadowFadeDistance;
 
             // First we reset the ray tracing and screen space shadow data
             m_WillRenderScreenSpaceShadow = false;
@@ -1528,12 +1650,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (frameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_UseRayTracedShadows)
             {
                 bool validShadow = false;
-                if (processedLight.gpuLightType == GPULightType.Rectangle && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
-                {
-                    // For area light shadows, we only support them  when in deferred mode
-                    validShadow = true;
-                }
-                else if (processedLight.gpuLightType == GPULightType.Point || (processedLight.gpuLightType == GPULightType.Spot && processedLight.lightVolumeType == LightVolumeType.Cone))
+                if (processedLight.gpuLightType == GPULightType.Point
+                        || processedLight.gpuLightType == GPULightType.Rectangle
+                        || (processedLight.gpuLightType == GPULightType.Spot && processedLight.lightVolumeType == LightVolumeType.Cone))
                 {
                     validShadow = true;
                 }
@@ -1781,7 +1900,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                     // Assign all setting common to every lights
-                    SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
+                    SetCommonShadowRequestSettings(shadowRequest, visibleLight, cameraPos, invViewProjection, viewportSize, lightIndex);
                 }
 
                 shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
@@ -1801,7 +1920,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return firstShadowRequestIndex;
         }
 
-        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, Vector3 cameraPos, Matrix4x4 invViewProjection, Matrix4x4 viewProjection, Vector2 viewportSize, int lightIndex)
+        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex)
         {
             // zBuffer param to reconstruct depth position (for transmission)
             float f = legacyLight.range;
@@ -1825,7 +1944,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightType == HDLightType.Directional || lightType == HDLightType.Spot && spotLightShape == SpotLightShape.Box)
                 shadowRequest.position = new Vector3(shadowRequest.view.m03, shadowRequest.view.m13, shadowRequest.view.m23);
             else
-                shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? transform.position - cameraPos : transform.position;
+                shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? visibleLight.GetPosition() - cameraPos : visibleLight.GetPosition();
 
             shadowRequest.shadowToWorld = invViewProjection.transpose;
             shadowRequest.zClip = (lightType != HDLightType.Directional);
@@ -1845,7 +1964,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // shadow clip planes (used for tessellation clipping)
-            GeometryUtility.CalculateFrustumPlanes(viewProjection, m_ShadowFrustumPlanes);
+            GeometryUtility.CalculateFrustumPlanes(shadowRequest.deviceProjectionYFlip * shadowRequest.view, m_ShadowFrustumPlanes);
             if (shadowRequest.frustumPlanes?.Length != 6)
                 shadowRequest.frustumPlanes = new Vector4[6];
             // Left, right, top, bottom, near, far.
@@ -1863,22 +1982,17 @@ namespace UnityEngine.Rendering.HighDefinition
             float softness = 0.0f;
             if (lightType == HDLightType.Directional)
             {
-
                 var devProj = shadowRequest.deviceProjection;
-                Vector3 frustumExtents = new Vector3(
-                    2.0f * (devProj.m00 * devProj.m33 - devProj.m03 * devProj.m30) /
-                         (devProj.m00 * devProj.m00 - devProj.m30 * devProj.m30),
-                    2.0f * (devProj.m11 * devProj.m33 - devProj.m13 * devProj.m31) /
-                         (devProj.m11 * devProj.m11 - devProj.m31 * devProj.m31),
-                    Vector4.Dot(new Vector4(devProj.m32, -devProj.m32, -devProj.m22, devProj.m22), new Vector4(devProj.m22, devProj.m32, devProj.m23, devProj.m33)) /
-                        (devProj.m22 * (devProj.m22 - devProj.m32))
-                );
+                float frustumExtentZ = Vector4.Dot(new Vector4(devProj.m32, -devProj.m32, -devProj.m22, devProj.m22), new Vector4(devProj.m22, devProj.m32, devProj.m23, devProj.m33)) /
+                        (devProj.m22 * (devProj.m22 - devProj.m32));
+
                 // We use the light view frustum derived from view projection matrix and angular diameter to work out a filter size in
                 // shadow map space, essentially figuring out the footprint of the cone subtended by the light on the shadow map
-                float halfAngleTan = 0.5f * Mathf.Tan(0.5f * Mathf.Deg2Rad * (softnessScale * m_AngularDiameter) / 2);
-                float lightFactor1 = halfAngleTan * frustumExtents.z / frustumExtents.x;
-                float lightFactor2 = halfAngleTan * frustumExtents.z / frustumExtents.y;
-                softness = Mathf.Sqrt(lightFactor1 * lightFactor1 + lightFactor2 * lightFactor2);
+                float halfAngleTan = Mathf.Tan(0.5f * Mathf.Deg2Rad * (softnessScale * m_AngularDiameter) / 2);
+                softness = Mathf.Abs(halfAngleTan * frustumExtentZ / (2.0f * shadowRequest.splitData.cullingSphere.w));
+                float range = 2.0f * (1.0f / devProj.m22);
+                float rangeScale = Mathf.Abs(range)  / 100.0f;
+                shadowRequest.zBufferParam.x = rangeScale;
             }
             else
             {
@@ -1886,9 +2000,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 float x = m_ShapeRadius * softnessScale;
                 float x2 = x * x;
                 softness = 0.02403461f + 3.452916f * x - 1.362672f * x2 + 0.6700115f * x2 * x + 0.2159474f * x2 * x2;
-                softness *= (shadowRequest.atlasViewport.width / 512);  // Make it resolution independent whereas the baseline is 512
                 softness /= 100.0f;
             }
+
+            softness *= (shadowRequest.atlasViewport.width / 512);  // Make it resolution independent whereas the baseline is 512
 
             // Bias
             // This base bias is a good value if we expose a [0..1] since values within [0..5] are empirically shown to be sensible for the slope-scale bias with the width of our PCF.
@@ -1990,10 +2105,30 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
         void LateUpdate()
         {
-// We force the animation in the editor and in play mode when there is an animator component attached to the light
+            // We force the animation in the editor and in play mode when there is an animator component attached to the light
 #if !UNITY_EDITOR
             if (!m_Animated)
                 return;
+#endif
+
+            // Delayed cleanup when removing emissive mesh from timeline
+            if (needRefreshEmissiveMeshesFromTimeLineUpdate)
+            {
+                needRefreshEmissiveMeshesFromTimeLineUpdate = false;
+                UpdateAreaLightEmissiveMesh();
+            }
+
+#if UNITY_EDITOR
+            // Prefab instance child emissive mesh update
+            if (needRefreshPrefabInstanceEmissiveMeshes)
+            {
+                // We must not call the update on Prefab Asset that are already updated or we will enter infinite loop
+                if (!PrefabUtility.IsPartOfPrefabAsset(this))
+                {
+                    UpdateAreaLightEmissiveMesh();
+                }
+                needRefreshPrefabInstanceEmissiveMeshes = false;
+            }
 #endif
 
             Vector3 shape = new Vector3(shapeWidth, m_ShapeHeight, shapeRadius);
@@ -2035,10 +2170,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
             }
         }
-
+        
         void OnDidApplyAnimationProperties()
         {
-            UpdateAllLightValues();
+            UpdateAllLightValues(fromTimeLine: true);
         }
 
         /// <summary>
@@ -2152,6 +2287,16 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateBounds();
             DisableCachedShadowSlot();
             m_ShadowMapRenderedSinceLastRequest = false;
+
+#if UNITY_EDITOR
+            // If modification are due to change on prefab asset that are non overridden on this prefab instance
+            if (PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
+            {
+                // As we cannot Create/Destroy in OnValidate, delay call to next Update
+                // To do this, wo set the same flag on prefab instances
+                needRefreshPrefabInstanceEmissiveMeshes = true;
+            }
+#endif
         }
 
 #region Update functions to patch values in the Light component when we change properties inside HDAdditionalLightData
@@ -2239,65 +2384,83 @@ namespace UnityEngine.Rendering.HighDefinition
             legacyLight.SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
 #endif
         }
-
-        internal void UpdateAreaLightEmissiveMesh()
+        
+        void Awake()
         {
-            bool displayEmissiveMesh = type == HDLightType.Area && displayAreaLightEmissiveMesh;
+            Migrate();
 
-            // Ensure that the emissive mesh components are here
-            if (displayEmissiveMesh)
+            // We need to reconstruct the emissive mesh at Light creation if needed due to not beeing able to change hierarchy in prefab asset.
+            // This is especially true at Tuntime as there is no code path that will trigger the rebuild of emissive mesh until one of the property modifying it is changed.
+            UpdateAreaLightEmissiveMesh();
+        }
+
+        internal void UpdateAreaLightEmissiveMesh(bool fromTimeLine = false)
+        {
+            bool isAreaLight = type == HDLightType.Area;
+            bool displayEmissiveMesh = isAreaLight && displayAreaLightEmissiveMesh;
+
+            // Only show childEmissiveMeshViewer if type is Area and requested
+            if (!isAreaLight || !displayEmissiveMesh)
             {
-                if (emissiveMeshRenderer == null)
-                    m_EmissiveMeshRenderer = gameObject.AddComponent<MeshRenderer>();
-                if (emissiveMeshFilter == null)
-                    m_EmissiveMeshFilter = gameObject.AddComponent<MeshFilter>();
-            }
-            else // Or remove them if the option is disabled
-            {
-                if (emissiveMeshRenderer != null)
-                    CoreUtils.Destroy(emissiveMeshRenderer);
-                if (emissiveMeshFilter != null)
-                    CoreUtils.Destroy(emissiveMeshFilter);
+                if (m_ChildEmissiveMeshViewer)
+                {
+                    if (fromTimeLine)
+                    {
+                        // Cannot perform destroy in OnDidApplyAnimationProperties
+                        // So shut down rendering instead and set up a flag for cleaning later
+                        emissiveMeshRenderer.enabled = false;
+                        needRefreshEmissiveMeshesFromTimeLineUpdate = true;
+                    }
+                    else
+                        DestroyChildEmissiveMeshViewer();
+                }
 
                 // We don't have anything to do left if the dislay emissive mesh option is disabled
                 return;
             }
-
-            Vector3 lightSize;
-
-            // Update light area size from GameObject transform scale if the transform have changed
-            // else we update the light size from the shape fields
-            if (timelineWorkaround.oldLossyScale != transform.lossyScale)
-                lightSize = transform.lossyScale;
-            else
-                lightSize = new Vector3(m_ShapeWidth, m_ShapeHeight, transform.localScale.z);
-
-            if (areaLightShape == AreaLightShape.Tube)
-                lightSize.y = k_MinAreaWidth;
-            lightSize.z = k_MinAreaWidth;
-
-            lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
 #if UNITY_EDITOR
-            legacyLight.areaSize = lightSize;
-
-            // When we're inside the editor, and the scale of the transform will change
-            // then we must record it with inside the undo
-            if (legacyLight.transform.localScale != lightSize)
+            else if (PrefabUtility.IsPartOfPrefabAsset(this))
             {
-                Undo.RecordObject(transform, "Light Scale changed");
+                // Child emissive mesh should not be handled in asset but we must trigger every instance to update themselves. Will be done in OnValidate
+                needRefreshPrefabInstanceEmissiveMeshes = true;
+
+                // We don't have anything to do left as the child will never appear while editing the prefab asset
+                return;
             }
 #endif
-
-            Vector3 lossyToLocalScale = lightSize;
-            if (transform.parent != null)
+            else
             {
-                lossyToLocalScale = new Vector3(
-                    lightSize.x / transform.parent.lossyScale.x,
-                    lightSize.y / transform.parent.lossyScale.y,
-                    lightSize.z / transform.parent.lossyScale.z
-                );
+                CreateChildEmissiveMeshViewerIfNeeded();
+
+#if UNITY_EDITOR
+                // In Prefab Instance, as we can be called from OnValidate due to Prefab Asset modification, we need to refresh modification on child emissive mesh
+                if (needRefreshPrefabInstanceEmissiveMeshes && PrefabUtility.IsPartOfPrefabInstance(this))
+                {
+                    emissiveMeshRenderer.shadowCastingMode = m_AreaLightEmissiveMeshShadowCastingMode;
+                    emissiveMeshRenderer.motionVectorGenerationMode = m_AreaLightEmissiveMeshMotionVectorGenerationMode;
+                }
+#endif
             }
-            legacyLight.transform.localScale = lossyToLocalScale;
+
+            // Update Mesh
+            switch (areaLightShape)
+            {
+                case AreaLightShape.Tube:
+                    if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveCylinderMesh)
+                        m_EmissiveMeshFilter.sharedMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveCylinderMesh;
+                    break;
+                case AreaLightShape.Rectangle:
+                default:
+                    if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveQuadMesh)
+                        m_EmissiveMeshFilter.sharedMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveQuadMesh;
+                    break;
+            }
+
+            // Update light area size with clamping
+            Vector3 lightSize = new Vector3(m_ShapeWidth, m_ShapeHeight, 0);
+            if (areaLightShape == AreaLightShape.Tube)
+                lightSize.y = 0;
+            lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
 
             switch (areaLightShape)
             {
@@ -2311,6 +2474,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     break;
             }
+
+#if UNITY_EDITOR
+            legacyLight.areaSize = lightSize;
+#endif
+
+            // Update child emissive mesh scale
+            Vector3 lossyScale = emissiveMeshRenderer.transform.localRotation * transform.lossyScale;
+            emissiveMeshRenderer.transform.localScale = new Vector3(lightSize.x / lossyScale.x, lightSize.y / lossyScale.y, k_MinAreaWidth / lossyScale.z);
 
             // NOTE: When the user duplicates a light in the editor, the material is not duplicated and when changing the properties of one of them (source or duplication)
             // It either overrides both or is overriden. Given that when we duplicate an object the name changes, this approach works. When the name of the game object is then changed again
@@ -2434,6 +2605,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public void UpdateAllLightValues()
         {
+            UpdateAllLightValues(false);
+        }
+
+        internal void UpdateAllLightValues(bool fromTimeLine)
+        {
             UpdateShapeSize();
 
             // Update light intensity
@@ -2442,8 +2618,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Patch bounds
             UpdateBounds();
 
-            UpdateAreaLightEmissiveMesh();
-            // TODO: synch emissive quad
+            UpdateAreaLightEmissiveMesh(fromTimeLine: fromTimeLine);
         }
 
 #endregion
@@ -2469,7 +2644,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Toggle the usage of color temperature.
         /// </summary>
-        /// <param name="hdLight"></param>
         /// <param name="enable"></param>
         public void EnableColorTemperature(bool enable)
         {
@@ -2506,9 +2680,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Set light cookie.
+        /// Set light cookie. Note that the texture must have a power of two size.
         /// </summary>
-        /// <param name="cookie2D">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
+        /// <param name="cookie">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
         /// <param name="directionalLightCookieSize">area light </param>
         public void SetCookie(Texture cookie, Vector2 directionalLightCookieSize)
         {
@@ -2546,7 +2720,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set light cookie.
         /// </summary>
-        /// <param name="cookie2D">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
+        /// <param name="cookie">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
         public void SetCookie(Texture cookie) => SetCookie(cookie, Vector2.zero);
 
         /// <summary>
@@ -2563,8 +2737,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the dimmer for light and volumetric light.
         /// </summary>
-        /// <param name="dimmer"></param>
-        /// <param name="volumetricLightDimmer"></param>
+        /// <param name="dimmer">Dimmer for the light</param>
+        /// <param name="volumetricDimmer">Dimmer for the volumetrics</param>
         public void SetLightDimmer(float dimmer = 1, float volumetricDimmer = 1)
         {
             this.lightDimmer = dimmer;
@@ -2574,7 +2748,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the light unit.
         /// </summary>
-        /// <param name="unit"></param>
+        /// <param name="unit">Unit of the light</param>
         public void SetLightUnit(LightUnit unit) => lightUnit = unit;
 
         /// <summary>
@@ -2598,7 +2772,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set whether the shadow resolution use the override value.
         /// </summary>
-        /// <param name="@override">True to use the override value, false otherwise.</param>
+        /// <param name="useOverride">True to use the override value, false otherwise.</param>
         public void SetShadowResolutionOverride(bool useOverride) => shadowResolution.useOverride = useOverride;
 
         /// <summary>
@@ -2625,8 +2799,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the light layer and shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
         /// </summary>
-        /// <param name="lightLayerMask"></param>
-        /// <param name="shadowLightLayerMask"></param>
+        /// <param name="lightLayerMask">Layer mask for receiving light</param>
+        /// <param name="shadowLayerMask">Layer mask for shadow rendering</param>
         public void SetLightLayer(LightLayerEnum lightLayerMask, LightLayerEnum shadowLayerMask)
         {
             // disable the shadow / light layer link
@@ -2676,7 +2850,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
         /// </summary>
-        /// <param name="lightLayerMask"></param>
+        /// <param name="shadowLayerMask"></param>
         public void SetShadowLightLayer(LightLayerEnum shadowLayerMask) => legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)shadowLayerMask, (int)legacyLight.renderingLayerMask);
 
         /// <summary>
@@ -2725,6 +2899,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if UNITY_EDITOR
+        /// <summary> [Editor Only] Set the lightmap bake type. </summary>
+        public LightmapBakeType lightmapBakeType
+        {
+            get => legacyLight.lightmapBakeType;
+            set => legacyLight.lightmapBakeType = value;
+        }
+#endif
+
 #endregion
 
         /// <summary>
@@ -2760,5 +2943,32 @@ namespace UnityEngine.Rendering.HighDefinition
             : type != HDLightType.Directional
                 ? ShadowMapType.PunctualAtlas
                 : ShadowMapType.CascadedDirectional;
+
+        void OnEnable()
+        {
+            if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
+                m_ShadowMapRenderedSinceLastRequest = false;
+            SetEmissiveMeshRendererEnabled(true);
+        }
+
+        /// <summary>
+        /// Deserialization callback
+        /// </summary>
+        void ISerializationCallbackReceiver.OnAfterDeserialize() { }
+
+        /// <summary>
+        /// Serialization callback
+        /// </summary>
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            // When reseting, Light component can be not available (will be called later in Reset)
+            if (m_Light == null || m_Light.Equals(null))
+                return;
+
+            UpdateBounds();
+        }
+
+        void Reset()
+            => UpdateBounds();
     }
 }

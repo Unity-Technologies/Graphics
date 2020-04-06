@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/DebugColorPicker"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -20,7 +20,7 @@ Shader "Hidden/HDRP/DebugColorPicker"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.cs.hlsl"
+            #define DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
             TEXTURE2D(_DebugColorPickerTexture);

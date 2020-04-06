@@ -6,13 +6,13 @@ The Unlit Shader lets you create Materials that are not affected by lighting. It
 
 ## Creating an Unlit Material
 
-New Materials in HDRP use the [Lit Shader](Lit-Shader.html) by default. To create an Unlit Shader, you need to create a Material and then make it use the Unlit Shader. To do this:
+New Materials in HDRP use the [Lit Shader](Lit-Shader.html) by default. To create an Unlit Material, you need to create a new Material then make it use the Unlit Shader. To do this:
 
 1. In the Unity Editor, navigate to your Project's Asset window.
 
 2. Right-click the Asset Window and select __Create > Material__. This adds a new Material to your Unity Project’s Asset folder. 
 
-3. Click the __Shader__ drop-down at the top of the Material Inspector, and select to __HDRP > Unlit__.
+3. Click the __Shader__ drop-down at the top of the Material Inspector, and select __HDRP > Unlit__.
 
 ![](Images/UnlitShader1.png)
 
@@ -27,7 +27,7 @@ Surface options control the overall look of your Material's surface and how Unit
 | **Surface type** | Use the drop-down to define whether your Material supports transparency or not. Materials with a **Transparent Surface Type** are more resource intensive to render than Materials with an **Opaque** **Surface Type**. HDRP exposes more properties, depending on the **Surface Type** you select. For more information about the feature and for the list of properties each **Surface Type** exposes, see the [Surface Type documentation](Surface-Type.html). |
 | **- Render Pass** | Use the drop-down to set the rendering pass that HDRP processes this Material in. For information on this property, see the [Surface Type documentation](Surface-Type.html). |
 | **Double-Sided**   | Enable the checkbox to make HDRP render both faces of the polygons in your geometry. For more information about the feature and for the  list of properties this feature exposes, see the [Double-Sided documentation](Double-Sided.html). |
-| **Alpha Clipping** | Enable the checkbox to make this Material act like a Cutout Shader. Enabling this feature exposes more properties. For more information about the feature and for the  list of properties this feature exposes, see the [Double-Sided documentation](Double-Sided.html). |
+| **Alpha Clipping** | Enable the checkbox to make this Material act like a [Cutout Shader](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html). Enabling this feature exposes more properties. For more information about the feature and for the  list of properties this feature exposes, see the [Alpha Clipping documentation](Alpha-Clipping.html). |
 
 
 ### Surface Inputs

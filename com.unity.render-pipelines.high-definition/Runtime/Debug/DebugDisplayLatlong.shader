@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/DebugDisplayLatlong"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -20,11 +20,13 @@ Shader "Hidden/HDRP/DebugDisplayLatlong"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #define DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
             TEXTURECUBE_ARRAY(_InputCubemap);
             SAMPLER(sampler_InputCubemap);
             float _Mipmap;
+            float _SliceIndex;
 
             struct Attributes
             {
@@ -50,11 +52,10 @@ Shader "Hidden/HDRP/DebugDisplayLatlong"
             {
                 uint width, height, depth, mipCount;
                 width = height = depth = mipCount = 0;
-                uint sliceIndex = 0;
-                _InputCubemap.GetDimensions(sliceIndex, width, height, depth, mipCount);
+                _InputCubemap.GetDimensions(0, width, height, depth, mipCount);
                 mipCount = clamp(mipCount, 0, UNITY_SPECCUBE_LOD_STEPS);
 
-                return SAMPLE_TEXTURECUBE_ARRAY_LOD(_InputCubemap, sampler_InputCubemap, LatlongToDirectionCoordinate(input.texcoord.xy), sliceIndex, _Mipmap * mipCount) * exp2(_DebugExposure);
+                return SAMPLE_TEXTURECUBE_ARRAY_LOD(_InputCubemap, sampler_InputCubemap, LatlongToDirectionCoordinate(input.texcoord.xy), _SliceIndex, _Mipmap * mipCount) * exp2(_DebugExposure);
             }
 
             ENDHLSL

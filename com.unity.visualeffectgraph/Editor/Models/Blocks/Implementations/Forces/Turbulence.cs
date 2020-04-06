@@ -54,16 +54,11 @@ namespace UnityEditor.VFX.Block
             {
                 foreach (var input in GetExpressionsFromSlots(this))
                 {
-                    if (input.name == "octaves") continue;
-
                     if (input.name == "FieldTransform")
                         yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(input.exp), "InvFieldTransform");
                     yield return input;
                 }
 
-                // Clamp (1..10) for octaves (TODO: Add a Range attribute that works with int instead of doing that
-                VFXSlot octaveSlot = inputSlots[Mode == ForceMode.Relative ? 4 : 3];
-                yield return new VFXNamedExpression(new VFXExpressionCastFloatToInt(VFXOperatorUtility.Clamp(new VFXExpressionCastIntToFloat(octaveSlot.GetExpression()), VFXValue.Constant(1.0f), VFXValue.Constant(10.0f))), "octaves");
                 yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
             }
         }
@@ -72,8 +67,8 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return 
- $@"float3 vectorFieldCoord = mul(InvFieldTransform, float4(position,1.0f)).xyz;
+                return
+                    $@"float3 vectorFieldCoord = mul(InvFieldTransform, float4(position,1.0f)).xyz;
 
 float3 value = Generate{NoiseType.ToString()}CurlNoise(vectorFieldCoord + 0.5f, frequency, octaves, roughness, lacunarity);
 value = mul(FieldTransform,float4(value,0.0f)).xyz * Intensity;

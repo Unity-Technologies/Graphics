@@ -155,7 +155,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // Kajiya kay
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
-        bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);        
+        bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);
         bsdfData.specularTint = surfaceData.specularTint;
         bsdfData.secondarySpecularTint = surfaceData.secondarySpecularTint;
         bsdfData.specularShift = surfaceData.specularShift;
@@ -301,12 +301,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 // This define allow to say that we implement a ModifyBakedDiffuseLighting function to be call in PostInitBuiltinData
 #define MODIFY_BAKED_DIFFUSE_LIGHTING
 
-void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
+void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)
 {
-    // To get the data we need to do the whole process - compiler should optimize everything
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
-    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
-
     // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR)
     {
         // TODO: disabled until further notice (not clear how to handle occlusion).
@@ -509,9 +505,11 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
     InversePreExposeSsrLighting(ssrLighting);
 
-    // Note: RGB is already premultiplied by A.
+    // Apply the weight on the ssr contribution (if required)
+    ApplyScreenSpaceReflectionWeight(ssrLighting);
+
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
-    lighting.specularReflected = ssrLighting.rgb /* * ssrLighting.a */ * preLightData.specularFGD;
+    lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
     reflectionHierarchyWeight = ssrLighting.a;
 
     return lighting;

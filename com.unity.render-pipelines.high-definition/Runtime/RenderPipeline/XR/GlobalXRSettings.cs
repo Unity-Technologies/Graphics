@@ -2,20 +2,24 @@ using System;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Global XR Settings.
+    /// </summary>
     [Serializable]
     public struct GlobalXRSettings
     {
-        /// <summary>Default GlobalXRSettings</summary>
-        [Obsolete("Since 2019.3, use GlobalXRSettings.NewDefault() instead.")]
-        public static readonly GlobalXRSettings @default = default;
-        /// <summary>Default GlobalXRSettings</summary>
-        public static GlobalXRSettings NewDefault() => new GlobalXRSettings()
+        internal static GlobalXRSettings NewDefault() => new GlobalXRSettings()
         {
             singlePass = true,
-            occlusionMesh = true
+            occlusionMesh = true,
+            cameraJitter = false
         };
 
+        /// <summary>Use single pass.</summary>
         public bool singlePass;
+        /// <summary>Use occlusion mesh.</summary>
         public bool occlusionMesh;
+        /// <summary>Add jitter to camera for temporal effects.</summary>
+        public bool cameraJitter;
     }
 }

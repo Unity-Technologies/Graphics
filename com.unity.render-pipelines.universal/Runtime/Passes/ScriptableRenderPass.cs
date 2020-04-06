@@ -153,6 +153,19 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// This method is called by the renderer before rendering a camera
+        /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
+        /// If a render pass doesn't override this method, this render pass renders to the active Camera's render target.
+        /// You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to enqueue rendering commands. This will be executed by the pipeline.</param>
+        /// <param name="renderingData">Current rendering state information</param>
+        /// <seealso cref="ConfigureTarget"/>
+        /// <seealso cref="ConfigureClear"/>
+        public virtual void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {}
+
+        /// <summary>
         /// This method is called by the renderer before executing the render pass.
         /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
         /// If a render pass doesn't override this method, this render pass renders to the active Camera's render target.
@@ -165,6 +178,7 @@ namespace UnityEngine.Rendering.Universal
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {}
 
+
         /// <summary>
         /// Called upon finish rendering a camera. You can use this callback to release any resources created
         /// by this render
@@ -172,8 +186,10 @@ namespace UnityEngine.Rendering.Universal
         /// This method be called for all cameras in a camera stack.
         /// </summary>
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
-        public virtual void FrameCleanup(CommandBuffer cmd)
-        {}
+        public virtual void OnCameraCleanup(CommandBuffer cmd)
+        {
+
+        }
 
         /// <summary>
         /// Called upon finish rendering a camera stack. You can use this callback to release any resources created
@@ -208,23 +224,6 @@ namespace UnityEngine.Rendering.Universal
             ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
             cmd.Blit(source, destination, material, passIndex);
         }
-
-        /// <summary>
-        /// Adds a Render Post-processing command for execution. This changes the active render target in the ScriptableRenderer to destination.
-        /// </summary>
-        /// <param name="cmd">Command buffer to record command for execution.</param>
-        /// <param name="cameraData">Camera rendering data.</param>
-        /// <param name="sourceDescriptor">Render texture descriptor for source.</param>
-        /// <param name="source">Source texture or render target identifier.</param>
-        /// <param name="destination">Destination texture or render target identifier.</param>
-        /// <param name="opaqueOnly">If true, only renders opaque post-processing effects. Otherwise, renders before and after stack post-processing effects.</param>
-        /// <param name="flip">If true, flips image vertically.</param>
-#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
-        [Obsolete("The use of the Post-processing Stack V2 is deprecated in the Universal Render Pipeline. Use the builtin post-processing effects instead.")]
-        public void RenderPostProcessing(CommandBuffer cmd, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
-        {
-        }
-#endif
 
         /// <summary>
         /// Creates <c>DrawingSettings</c> based on current the rendering state.
@@ -298,5 +297,13 @@ namespace UnityEngine.Rendering.Universal
             else
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
+
+
+        #region Obsolete
+
+        [Obsolete("This method is obsolete. Please use OnCameraCleanup()", false)]
+        public virtual void FrameCleanup(CommandBuffer cmd) => OnCameraCleanup(cmd);
+
+        #endregion
     }
 }
