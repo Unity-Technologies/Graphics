@@ -163,14 +163,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
-            if (renderingData.cameraData.xr.enabled)
-                renderingData.cameraData.xr.StopSinglePass(cmd);
+            renderingData.cameraData.xr.StopSinglePass(cmd);
 
             // Render the lut
             Blit(cmd, m_InternalLut.id, m_InternalLut.id, material);
 
-            if (renderingData.cameraData.xr.enabled)
-                renderingData.cameraData.xr.StartSinglePass(cmd);
+            renderingData.cameraData.xr.StartSinglePass(cmd);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

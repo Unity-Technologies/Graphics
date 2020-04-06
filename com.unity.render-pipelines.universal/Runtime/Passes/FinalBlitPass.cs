@@ -12,7 +12,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         const string m_ProfilerTag = "Final Blit Pass";
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
-        TextureDimension m_TargetDimension;
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
@@ -28,7 +27,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
             m_Source = colorHandle;
-            m_TargetDimension = baseDescriptor.dimension;
         }
 
         /// <inheritdoc/>
@@ -48,9 +46,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool requiresSRGBConversion = Display.main.requiresSrgbBlitToBackbuffer;
 
             // For stereo case, eye texture always want color data in sRGB space.
-            // If eye texture color format is linear, we do explicit sRGB convertion
+            // If eye texture color format is linear, we do explicit sRGB conversion
 #if ENABLE_VR && ENABLE_VR_MODULE
-            if (cameraData.xr.enabled && cameraData.camera.targetTexture == null)
+            if (cameraData.xr.enabled)
                 requiresSRGBConversion = !cameraData.xr.renderTargetDesc.sRGB;
 #endif
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
@@ -61,33 +59,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (cameraData.xr.enabled)
             {
-                RenderTargetIdentifier blitTarget;
-
-                bool xrTestActive = XRSystem.automatedTestRunning && cameraData.camera.targetTexture;
-                if (xrTestActive)
-                {
-                    blitTarget = new RenderTargetIdentifier(cameraData.camera.targetTexture);
-                }
-                else
-                {
-                    int depthSlice = cameraData.xr.singlePassEnabled ? -1 : cameraData.xr.GetTextureArraySlice(0); // XRTODO: Should be multipass eye id here?
-                    blitTarget = new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, depthSlice);
-                }
+                int depthSlice = cameraData.xr.singlePassEnabled ? -1 : cameraData.xr.GetTextureArraySlice(0); // XRTODO: Should be multipass eye id here?
+                cameraTarget = new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, depthSlice);
 
                 SetRenderTarget(
                     cmd,
-                    blitTarget,
+                    cameraTarget,
                     RenderBufferLoadAction.Load,
                     RenderBufferStoreAction.Store,
                     ClearFlag.None,
-                    Color.black,
-                    m_TargetDimension);
+                    Color.black);
 
                 cmd.SetViewport(cameraData.xr.GetViewport());
-
-                CoreUtils.SetKeyword(cmd, "BLIT_SINGLE_SLICE", xrTestActive);
-                if (xrTestActive)
-                    cmd.SetGlobalInt("_BlitTexArraySlice", 1);
 
                 // We f-flip if
                 // 1) we are bliting from render texture to back buffer(UV starts at bottom) and
@@ -99,9 +82,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderPropertyId.blitScaleBiasRt, scaleBiasRT);
 
                 cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
-
-                if (xrTestActive)
-                    cmd.DisableShaderKeyword("BLIT_SINGLE_SLICE");
             }
             else if (cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
             {
@@ -122,8 +102,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     RenderBufferLoadAction.Load,
                     RenderBufferStoreAction.Store,
                     ClearFlag.None,
-                    Color.black,
-                    m_TargetDimension);
+                    Color.black);
 
                 Camera camera = cameraData.camera;
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);

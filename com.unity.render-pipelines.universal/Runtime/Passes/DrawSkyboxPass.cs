@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
                     renderingData.cameraData.camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.xr.GetViewMatrix(1));
 
                     // Use legacy stereo instancing mode to have legacy XR code path configured
-                    cmd.SetSinglePassStereo(SinglePassStereoMode.Instancing);
+                    cmd.SetSinglePassStereo(Application.platform == RuntimePlatform.Android ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
 
@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    // Setup legacy XR before calling into skybox. 
+                    // Setup legacy XR before calling into skybox.
                     // This is required because XR overrides camera's fov/aspect ratio
                     UniversalRenderPipeline.m_XRSystem.MountShimLayer();
                     // Use legacy stereo none mode for legacy multi pass

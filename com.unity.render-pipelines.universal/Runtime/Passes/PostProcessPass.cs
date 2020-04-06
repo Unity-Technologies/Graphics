@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
                 // Note: We rendering to "camera target" we need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-                RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetHandle.Identifier();
+                RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null && !cameraData.xr.enabled) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetHandle.Identifier();
                 cameraTarget = (m_Destination == RenderTargetHandle.CameraTarget) ? cameraTarget : m_Destination.Identifier();
 
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
@@ -1204,16 +1204,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             RenderTargetHandle cameraTargetHandle = RenderTargetHandle.CameraTarget;
-#if ENABLE_VR && ENABLE_VR_MODULE
-            if(cameraData.xr.enabled)
-                cameraTargetHandle.Init(cameraData.xr.renderTarget);
-#endif
-            // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
-            // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-            RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetHandle.Identifier();
 
+#if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.xr.enabled)
             {
+                cameraTargetHandle.Init(cameraData.xr.renderTarget);
+                RenderTargetIdentifier cameraTarget = cameraTargetHandle.Identifier();
+
                 //Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
                 bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
                 // We y-flip if
@@ -1231,7 +1228,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
             }
             else
+#endif
             {
+                // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
+                // Overlay cameras need to output to the target described in the base camera while doing camera stack.
+                RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetHandle.Identifier();
+
                 cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(cameraData.pixelRect);

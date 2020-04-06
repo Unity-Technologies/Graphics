@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            var xrPasses = m_XRSystem.SetupFrame(ref cameraData, /*XRTODO XR single pass settings in urp asset pipeline*/ true, /*XRTODO: test mode*/ false);
+            var xrPasses = m_XRSystem.SetupFrame(ref cameraData);
             foreach (XRPass xrPass in xrPasses)
             {
                 cameraData.xr = xrPass;
@@ -253,13 +253,15 @@ namespace UnityEngine.Rendering.Universal
                     renderer.Setup(context, ref renderingData);
                     renderer.Execute(context, ref renderingData);
                 }
+
+                cameraData.xr.EndCamera(cmd, camera);
+                cameraData.xr = null;
+
                 context.ExecuteCommandBuffer(cmd);
-                // context submit is required here. Shadow pass is executed out of order 
+                // context submit is required here. Shadow pass is executed out of order
                 // and we need to ensure we submit the shadow pass work before starting the next shadow pass.
                 context.Submit();
                 CommandBufferPool.Release(cmd);
-
-                cameraData.xr = null;
             }
 
             // Render XR mirror view once all xr passes have been completed

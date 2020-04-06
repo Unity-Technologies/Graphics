@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        internal List<XRPass> SetupFrame(ref CameraData cameraData, bool singlePassAllowed, bool singlePassTestModeActive)
+        internal List<XRPass> SetupFrame(ref CameraData cameraData)
         {
             Camera camera = cameraData.camera;
             bool xrEnabled = RefreshXrSdk();
@@ -164,14 +164,14 @@ namespace UnityEngine.Rendering.Universal
             bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
             bool xrSupported = isGameCamera && camera.targetTexture == null;
 
-            if (testModeEnabled && automatedTestRunning && LayoutSinglePassTestMode(ref cameraData, new XRLayout() { camera = camera, xrSystem = this }))
+            if (testModeEnabled && automatedTestRunning && isGameCamera && LayoutSinglePassTestMode(ref cameraData, new XRLayout() { camera = camera, xrSystem = this }))
             {
                 // test layout in used
             }
             else if (xrEnabled && xrSupported)
             {
                 // XRTODO: handle camera.stereoTargetEye here ?
-                CreateLayoutFromXrSdk(camera, singlePassAllowed);
+                CreateLayoutFromXrSdk(camera, singlePassAllowed: true);
             }
             else
             {
@@ -354,7 +354,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = frameLayout.camera;
 
-            if (camera == null || camera.targetTexture == null || camera.cameraType != CameraType.Game)
+            if (camera == null || camera.targetTexture == null || camera != Camera.main)
                 return false;
 
             if (camera.TryGetCullingParameters(false, out var cullingParams))
@@ -372,6 +372,23 @@ namespace UnityEngine.Rendering.Universal
                     testRenderTexture = RenderTexture.GetTemporary(rtDesc);
                 }
 
+                void copyToTestRenderTexture(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport)
+                {
+                    cmd.SetViewport(viewport);
+                    cmd.SetRenderTarget(rt);
+
+                    Vector4 scaleBias   = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+                    Vector4 scaleBiasRT = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+
+                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (rt.sRGB && !testRenderTexture.sRGB) ? 1 : 0);
+                    mirrorViewMaterialProperty.SetTexture(XRShaderIDs._BlitTexture, testRenderTexture);
+                    mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBias, scaleBias);
+                    mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._BlitTexArraySlice, 1);
+
+                    cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, 1, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
+                }
+
                 var passInfo = new XRPassCreateInfo
                 {
                     multipassId = 0,
@@ -379,7 +396,7 @@ namespace UnityEngine.Rendering.Universal
                     cullingParameters = cullingParams,
                     renderTarget = testRenderTexture,
                     renderTargetIsRenderTexture = true,
-                    customMirrorView = null
+                    customMirrorView = copyToTestRenderTexture
                 };
 
                 var viewInfo2 = new XRViewCreateInfo

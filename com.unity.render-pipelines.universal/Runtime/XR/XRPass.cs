@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (createInfo.renderTarget != null)
             {
-                passInfo.renderTarget = new RenderTargetIdentifier(createInfo.renderTarget);
+                passInfo.renderTarget = new RenderTargetIdentifier(createInfo.renderTarget, 0, CubemapFace.Unknown, -1);
                 passInfo.renderTargetDesc = createInfo.renderTarget.descriptor;
                 passInfo.renderTargetIsRenderTexture = createInfo.renderTargetIsRenderTexture;
             }
@@ -163,6 +163,7 @@ namespace UnityEngine.Rendering.Universal
             rtDesc.dimension = xrRenderPass.renderTargetDesc.dimension;
             rtDesc.volumeDepth = xrRenderPass.renderTargetDesc.volumeDepth;
             rtDesc.vrUsage = xrRenderPass.renderTargetDesc.vrUsage;
+            rtDesc.sRGB = xrRenderPass.renderTargetDesc.sRGB;
 
             // XRTODO: check other descriptor field
             // Can't use xr descriptor directly as its descriptor force off y-flip cap
@@ -207,6 +208,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        Vector4[] stereoEyeIndices = new Vector4[2] { Vector4.zero , Vector4.one };
+
         internal void StartSinglePass(CommandBuffer cmd)
         {
             if (enabled)
@@ -219,6 +222,7 @@ namespace UnityEngine.Rendering.Universal
                         if (Application.platform == RuntimePlatform.Android)
                         {
                             cmd.EnableShaderKeyword("STEREO_MULTIVIEW_ON");
+                            cmd.SetGlobalVectorArray("unity_StereoEyeIndices", stereoEyeIndices);
                         }
                         else
                         {
@@ -253,7 +257,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void EndCamera(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
+        internal void EndCamera(CommandBuffer cmd, Camera camera)
         {
             if (!enabled)
                 return;

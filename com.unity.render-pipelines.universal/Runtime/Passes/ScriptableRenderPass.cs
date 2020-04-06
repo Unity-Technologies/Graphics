@@ -138,24 +138,6 @@ namespace UnityEngine.Rendering.Universal
         /// This method should be called inside Configure.
         /// </summary>
         /// <param name="colorAttachment">Color attachment identifier.</param>
-        /// <param name="dimension">Color attachment dimension.</param>
-        /// <seealso cref="Configure"/>
-        public void ConfigureTarget(RenderTargetIdentifier colorAttachment, TextureDimension dimension)
-        {
-            overrideCameraTarget = true;
-
-            m_ColorAttachments[0] = colorAttachment;
-            for (int i = 1; i < m_ColorAttachments.Length; ++i)
-                m_ColorAttachments[i] = 0;
-
-            m_AttachmentDimension = dimension;
-        }
-
-        /// <summary>
-        /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
-        /// This method should be called inside Configure.
-        /// </summary>
-        /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
@@ -295,12 +277,8 @@ namespace UnityEngine.Rendering.Universal
             RenderBufferLoadAction colorLoadAction,
             RenderBufferStoreAction colorStoreAction,
             ClearFlag clearFlags,
-            Color clearColor,
-            TextureDimension dimension)
+            Color clearColor)
         {
-            if (dimension == TextureDimension.Tex2DArray)
-                colorAttachment = new RenderTargetIdentifier(colorAttachment, 0, CubemapFace.Unknown, -1);
-
             CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
     }

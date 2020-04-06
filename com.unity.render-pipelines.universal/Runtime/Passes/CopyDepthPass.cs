@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.msaaSamples = 1;
             cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
-            ConfigureTarget(destination.Identifier(), descriptor.dimension);
+            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
         }
 
         /// <inheritdoc/>

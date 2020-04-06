@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
-            ref RenderTextureDescriptor cameraTargetDescriptor = ref renderingData.cameraData.cameraTargetDescriptor;
+            RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.xr.enabled)
             {
@@ -174,11 +174,6 @@ namespace UnityEngine.Rendering.Universal
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
             m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing || isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
 
-            // TODO: CopyDepth pass is disabled in XR due to required work to handle camera matrices in URP.
-            // IF this condition is removed make sure the CopyDepthPass.cs is working properly on all XR modes. This requires PureXR SDK integration.
-            if (cameraData.xr.enabled && requiresDepthTexture)
-                requiresDepthPrepass = true;
-
             bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
@@ -219,7 +214,18 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // XRTODO: ConfigureCameraTarget Should also support depthslice. In XR, camera target could be texture2DArray type and multipass rendering need to be able to render to depthslide 0/1 separately
-            ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier(), cameraTargetDescriptor.dimension);
+            {
+                var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
+                var activeDepthRenderTargetId = m_ActiveCameraDepthAttachment.Identifier();
+
+                if (cameraData.xr.singlePassEnabled)
+                {
+                    activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
+                    activeDepthRenderTargetId = new RenderTargetIdentifier(activeDepthRenderTargetId, 0, CubemapFace.Unknown, -1);
+                }
+
+                ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
+            }
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {

@@ -16,7 +16,7 @@
 #endif
 
 #if defined(UNITY_SINGLE_PASS_STEREO)
-    #error Single-pass stereo (double-wide) is deprecated in URP. Use single-pass instancing, multiview or multipass instead.
+    #pragma message "Single-pass stereo (double-wide) is deprecated in URP. Use single-pass instancing, multiview or multipass instead."
 #endif
 
 #if defined(USING_STEREO_MATRICES)
@@ -125,14 +125,6 @@ real4 unity_SHBb;
 real4 unity_SHC;
 CBUFFER_END
 
-#if defined(UNITY_STEREO_MULTIVIEW_ENABLED) || (defined(UNITY_STEREO_INSTANCING_ENABLED) && (defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)))
-    #define GLOBAL_CBUFFER_START(name)    cbuffer name {
-    #define GLOBAL_CBUFFER_END            }
-#else
-    #define GLOBAL_CBUFFER_START(name)    CBUFFER_START(name)
-    #define GLOBAL_CBUFFER_END            CBUFFER_END
-#endif
-
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoViewBuffer)
 float4x4 unity_StereoMatrixP[2];
@@ -146,9 +138,9 @@ CBUFFER_END
 #endif
 
 #if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-GLOBAL_CBUFFER_START(UnityStereoEyeIndices)
+CBUFFER_START(UnityStereoEyeIndices)
     float4 unity_StereoEyeIndices[2];
-GLOBAL_CBUFFER_END
+CBUFFER_END
 #endif
 
 #if defined(UNITY_STEREO_MULTIVIEW_ENABLED) && defined(SHADER_STAGE_VERTEX)
