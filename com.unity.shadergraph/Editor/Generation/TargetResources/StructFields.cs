@@ -27,6 +27,8 @@
                 "COLOR", subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(Attributes.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+            public static FieldDescriptor vertexID = new FieldDescriptor(Attributes.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint,
+                "VERTEXID", subscriptOptions: StructFieldOptions.Optional);
         }
 
         public struct Varyings
@@ -129,6 +131,9 @@
 
             public static FieldDescriptor BoneIndices = new FieldDescriptor(VertexDescriptionInputs.name, "BoneIndices", "", ShaderValueType.Uint4,
                 subscriptOptions : StructFieldOptions.Optional);
+
+            public static FieldDescriptor VertexID = new FieldDescriptor(VertexDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint4,
+                subscriptOptions: StructFieldOptions.Optional);
         }
 
         public struct SurfaceDescriptionInputs
@@ -197,6 +202,12 @@
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor FaceSign = new FieldDescriptor(SurfaceDescriptionInputs.name, "FaceSign", "", ShaderValueType.Float,
                 subscriptOptions : StructFieldOptions.Optional);
+            public static FieldDescriptor BoneWeights = new FieldDescriptor(SurfaceDescriptionInputs.name, "BoneWeights", "", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor BoneIndices = new FieldDescriptor(SurfaceDescriptionInputs.name, "BoneIndices", "", ShaderValueType.Uint4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor VertexID = new FieldDescriptor(SurfaceDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint4,
+                subscriptOptions: StructFieldOptions.Optional);
         }
     }
 }
