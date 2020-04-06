@@ -71,7 +71,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 
             GetPropertiesDataDebug(indexMaterialProperty, result, needLinearToSRGB);
             GetVaryingsDataDebug(indexMaterialProperty, input, result, needLinearToSRGB);
-            GetBuiltinDataDebug(indexMaterialProperty, builtinData, result, needLinearToSRGB);
+            GetBuiltinDataDebug(indexMaterialProperty, builtinData, posInput, result, needLinearToSRGB);
             GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
             GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
             

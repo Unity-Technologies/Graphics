@@ -29,9 +29,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/008_AssetBundle.unity
     guid: 3144ec9758afdcf4482416ecbc5c193c
-  - enabled: 0
-    path: Assets/AllTests/VFXTests/GraphicsTests/05_MotionVectors.unity
-    guid: 24824e132e4c94b43818ee0460ae321c
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/009_MultiCamera.unity
+    guid: 6d090a604691ff048bb6cd282208c7bd
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/009_MultiCamera_MotionVector.unity
+    guid: c3aad03df123b0b4fa26a6480fcbe297
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/06_LineOutput.unity
     guid: ad1aa14fb546a3744b989a07c0415a94
@@ -57,9 +60,6 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/12_LocalTransformations.unity
     guid: 0dc03e6162787ab44850cd91de701789
   - enabled: 1
-    path: Assets/AllTests/VFXTests/GraphicsTests/13_Decals.unity
-    guid: 94a6fc38ce3a3844c97c3cb7f0e46508
-  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/14_DecalsFlipBook.unity
     guid: 09e42fbbdc517b240bfa5ca6243ee42a
   - enabled: 1
@@ -83,7 +83,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/20_SpawnerChainingAndLoop.unity
     guid: e0c50bd7286de7b4b9c97f3f962b0933
-  - enabled: 0
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/21_DepthModules.unity
     guid: 810f6e5fbd289164eb3fe0ba8eb32588
   - enabled: 1
@@ -116,7 +116,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/HDRPFog.unity
     guid: 0379b72b85eee8045afdaec3b1362957
-  - enabled: 0
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/HDRPFogVolumetric.unity
     guid: 2744a8931e888734bae7f74874fefdf5
   - enabled: 1
@@ -146,7 +146,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/SubgraphEventTransmission/SubgraphEventTransmission.unity
     guid: b6ef817208636da4bb6878ac1e08ffd8
-  - enabled: 0
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/PositionDepthOperator.unity
     guid: 5c9aadab8d20ed14b827e43d12fc0b7c
   - enabled: 1
@@ -170,7 +170,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/SampleScene/ShadergraphSampleScene.unity
     guid: c728f3824d066e24a8eba25cde029b41
+  - enabled: 0
+    path: Assets/AllTests/VFXTests/GraphicsTests/SubgraphContexts.unity
+    guid: df4a078e6e8404b4d953f8cdc87c0aa8
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/SubgraphContextWithSubgraphBlock/SubgraphContextWithSubgraphBlock.unity
     guid: c0966123a38e92644b1aa4482c8950c5
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/SubgraphContexts.unity
+    guid: df4a078e6e8404b4d953f8cdc87c0aa8
   m_configObjects: {}

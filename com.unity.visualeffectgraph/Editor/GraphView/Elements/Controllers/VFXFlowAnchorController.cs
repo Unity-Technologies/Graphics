@@ -96,7 +96,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (owner is VFXBasicSpawner)
                 {
-                    switch(slotIndex)
+                    switch (slotIndex)
                     {
                         case 0:
                             return "Start";

@@ -141,7 +141,7 @@ namespace UnityEditor.VFX.Test
             }
 
 
-            return VisualEffectAssetEditorUtility.CreateNewAsset(filePath);  
+            return VisualEffectAssetEditorUtility.CreateNewAsset(filePath);
         }
 
         private void EditTestAsset(int assetIndex)

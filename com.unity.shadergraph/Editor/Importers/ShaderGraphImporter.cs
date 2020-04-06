@@ -13,7 +13,8 @@ using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(31, Extension, 3)]
+    [ExcludeFromPreset]
+    [ScriptedImporter(32, Extension, 3)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -59,7 +60,7 @@ Shader ""Hidden/GraphErrorShader2""
     }
     Fallback Off
 }";
-        
+
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
@@ -96,7 +97,7 @@ Shader ""Hidden/GraphErrorShader2""
             if (graph.outputNode is VfxMasterNode vfxMasterNode)
             {
                 var vfxAsset = GenerateVfxShaderGraphAsset(vfxMasterNode);
-                
+
                 mainObject = vfxAsset;
             }
             else
@@ -108,7 +109,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 foreach (var pair in graph.messageManager.GetNodeMessages())
                 {
-                    var node = graph.GetNodeFromTempId(pair.Key);
+                    var node = graph.GetNodeFromGuid(pair.Key);
                     MessageManager.Log(node, path, pair.Value.First(), shader);
                 }
             }
@@ -157,7 +158,10 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
-                shaderString = ((IMasterNode)graph.outputNode).GetShader(GenerationMode.ForReals, shaderName, out configuredTextures, sourceAssetDependencyPaths);
+                var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, shaderName);
+                shaderString = generator.generatedShader;
+                configuredTextures = generator.configuredTextures;
+                sourceAssetDependencyPaths = generator.assetDependencyPaths;
 
                 if (graph.messageManager.nodeMessagesChanged)
                 {

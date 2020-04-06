@@ -1,3 +1,5 @@
+#ifdef DEBUG_DISPLAY // Guard define here to be compliant with how shader graph generate code for include
+
 #ifndef UNITY_DEBUG_DISPLAY_INCLUDED
 #define UNITY_DEBUG_DISPLAY_INCLUDED
 
@@ -12,11 +14,14 @@
 CBUFFER_START(UnityDebugDisplay)
 // Set of parameters available when switching to debug shader mode
 int _DebugLightingMode; // Match enum DebugLightingMode
+int _DebugLightLayersMask;
+float4 _DebugRenderingLayersColors[32];
 int _DebugShadowMapMode;
 float _DebugViewMaterialArray[11]; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
 int _DebugMipMapMode; // Match enum DebugMipMapMode
 int _DebugMipMapModeTerrainTexture; // Match enum DebugMipMapModeTerrainTexture
 int _ColorPickerMode; // Match enum ColorPickerDebugMode
+int _DebugProbeVolumeMode; // Match enum ProbeVolumeDebugMode
 int _DebugStep;
 int _DebugDepthPyramidMip;
 int _DebugFullScreenMode;
@@ -271,3 +276,5 @@ bool ShouldFlipDebugTexture()
 }
 
 #endif
+
+#endif // DEBUG_DISPLAY
