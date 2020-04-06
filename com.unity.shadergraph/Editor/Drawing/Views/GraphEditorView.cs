@@ -667,6 +667,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var nodesToUpdate = m_NodeViewHashSet;
             nodesToUpdate.Clear();
+            PooledHashSet<AbstractMaterialNode> asmToUpdate = PooledHashSet<AbstractMaterialNode>.Get();
 
             foreach (var edge in m_Graph.removedEdges)
             {
@@ -680,7 +681,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         nodesToUpdate.Add(nodeView);
                         AbstractMaterialNode n = nodeView.node;
                         // Update active state for connected Nodes
-                        NodeUtils.UpdateNodeActiveOnEdgeChange(n);
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(n, asmToUpdate);
                     }
                     var nodeViewInput = (IShaderNodeView)edgeView.input.node;
                     if(nodeViewInput?.node != null)
@@ -688,7 +689,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         nodesToUpdate.Add(nodeViewInput);
                         AbstractMaterialNode n = nodeViewInput.node;
 
-                        NodeUtils.UpdateNodeActiveOnEdgeChange(n);
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(n, asmToUpdate);
                     }
 
                     edgeView.output.Disconnect(edgeView);
@@ -712,7 +713,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         nodesToUpdate.Add(nodeView);
                         AbstractMaterialNode n = nodeView.node;
                         // Update active state for connected Nodes
-                        NodeUtils.UpdateNodeActiveOnEdgeChange(n);
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(n, asmToUpdate);
                     }
                     var nodeViewInput = (IShaderNodeView)edgeView.input.node;
                     if(nodeViewInput?.node != null)
@@ -720,10 +721,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                         nodesToUpdate.Add(nodeViewInput);
                         AbstractMaterialNode n = nodeViewInput.node;
 
-                        NodeUtils.UpdateNodeActiveOnEdgeChange(n);
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(n, asmToUpdate);
                     }
                 }
             }
+
+            foreach(var asm in asmToUpdate)
+            {
+                if (graphView.GetNodeByGuid(asm.guid.ToString()) is MaterialNodeView nodeView)
+                {
+                    nodesToUpdate.Add(nodeView);
+                }
+            }
+            asmToUpdate.Dispose();
 
             foreach (var node in nodesToUpdate)
             {

@@ -226,24 +226,32 @@ namespace UnityEditor.Graphing
         // NOTE: I cannot think if there is any case where the entirety of the connected graph would need to change, but if there are bugs
         // on certain nodes farther away from the node not updating correctly, a possible solution may be to get the entirety of the connected
         // graph instead of just what I have declared as the "local" connected graph
-        public static void UpdateNodeActiveOnEdgeChange(AbstractMaterialNode node)
+        public static void UpdateNodeActiveOnEdgeChange(AbstractMaterialNode node, PooledHashSet<AbstractMaterialNode> changedNodes = null)
         {
             bool originalyActive = node.isActive;
             ValidTreeExists(node, out bool validLeaf, out bool validRoot, out bool validTree);
             if ((validTree && !originalyActive) || (!validTree && originalyActive)) 
             {
-                UpdateForrest(node, validLeaf, validRoot, validTree);
+                UpdateForrest(node, validLeaf, validRoot, validTree, changedNodes, changedNodes != null);
             }
 
         }
 
-        private static void UpdateForrest(AbstractMaterialNode node, bool validLeaf, bool validRoot, bool validTree)
+        private static void UpdateForrest(AbstractMaterialNode node, bool validLeaf, bool validRoot, bool validTree, PooledHashSet<AbstractMaterialNode> changedNodes, bool getChangedNodes)
         {
+            if (getChangedNodes)
+            {
+                changedNodes.Add(node);
+            }
             List<AbstractMaterialNode> forrest = GetForrest(node);
             foreach(AbstractMaterialNode n in forrest)
             {
                 ValidTreeExists(n, out bool vl, out bool vr, out bool vt);
-                n.isActive = vt;
+                if(n.isActive != vt && getChangedNodes)
+                {
+                    changedNodes.Add(n);
+                    n.isActive = vt;
+                }
             }
         }
 
