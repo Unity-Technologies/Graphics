@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
                 // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
                 // meanwhile we set to load so split screen case works.
-                if (!useNativeRenderPass)
+                if (!useNativeRenderPass || cameraData.camera.cameraType == CameraType.Preview)
                 {
                     SetRenderTarget(
                         cmd,
