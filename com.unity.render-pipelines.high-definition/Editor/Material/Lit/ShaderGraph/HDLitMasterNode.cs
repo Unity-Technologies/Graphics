@@ -803,6 +803,24 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_AlphaToMask = false;
+
+        public ToggleData alphaToMask
+        {
+            get { return new ToggleData(m_AlphaToMask); }
+            set
+            {
+                if (m_AlphaToMask == value.isOn)
+                    return;
+
+                m_AlphaToMask = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+
+
+        [SerializeField]
         int m_MaterialNeedsUpdateHash = 0;
 
         int ComputeMaterialNeedsUpdateHash()
@@ -1104,7 +1122,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+                                                                                !pass.Equals(HDLitSubTarget.LitPasses.MotionVectors)),
 
                 // Dots
                 new ConditionalField(HDFields.DotsInstancing,               dotsInstancing.isOn),
@@ -1134,9 +1152,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Double Sided
                 new ConditionalField(HDFields.DoubleSided,                  doubleSidedMode != DoubleSidedMode.Disabled),
                 new ConditionalField(HDFields.DoubleSidedFlip,              doubleSidedMode == DoubleSidedMode.FlippedNormals &&
-                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+                                                                                !pass.Equals(HDLitSubTarget.LitPasses.MotionVectors)),
                 new ConditionalField(HDFields.DoubleSidedMirror,            doubleSidedMode == DoubleSidedMode.MirroredNormals &&
-                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+                                                                                !pass.Equals(HDLitSubTarget.LitPasses.MotionVectors)),
 
                 // Specular Occlusion
                 new ConditionalField(HDFields.SpecularOcclusionFromAO,      specularOcclusionMode == SpecularOcclusionMode.FromAO),
@@ -1172,6 +1190,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.DoAlphaTestShadow,            alphaTest.isOn && alphaTestShadow.isOn && pass.pixelPorts.Contains(AlphaThresholdShadowSlotId)),
                 new ConditionalField(HDFields.DoAlphaTestPrepass,           alphaTest.isOn && alphaTestDepthPrepass.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId)),
                 new ConditionalField(HDFields.DoAlphaTestPostpass,          alphaTest.isOn && alphaTestDepthPostpass.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId)),
+                new ConditionalField(Fields.AlphaToMask,                    alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId) && alphaToMask.isOn),
                 new ConditionalField(HDFields.AlphaFog,                     surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
                 new ConditionalField(HDFields.BlendPreserveSpecular,        surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
                 new ConditionalField(HDFields.TransparentWritesMotionVec,   surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
@@ -1327,6 +1346,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 surfaceType,
                 HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode),
                 sortPriority,
+                alphaToMask.isOn,
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,

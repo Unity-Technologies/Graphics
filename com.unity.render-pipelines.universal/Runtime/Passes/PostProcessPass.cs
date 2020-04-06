@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_Destination == RenderTargetHandle.CameraTarget)
                 return;
 
-            // If RTHandle already has valid render target identifier, we shoudn't create a temp
+            // If RenderTargetHandle already has valid render target identifier, we shoudn't create a temp
             if (m_Destination.id == -2)
                 return;
 

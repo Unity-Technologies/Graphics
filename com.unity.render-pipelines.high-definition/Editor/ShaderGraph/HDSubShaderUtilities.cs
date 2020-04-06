@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void AddBlendingStatesShaderProperties(
             PropertyCollector collector, SurfaceType surface, BlendMode blend, int sortingPriority,
-            bool zWrite, TransparentCullMode transparentCullMode, CompareFunction zTest,
+            bool alphaToMask, bool zWrite, TransparentCullMode transparentCullMode, CompareFunction zTest,
             bool backThenFrontRendering, bool fogOnTransparent)
         {
             collector.AddFloatProperty("_SurfaceType", (int)surface);
@@ -108,6 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddFloatProperty("_DstBlend", 0.0f);
             collector.AddFloatProperty("_AlphaSrcBlend", 1.0f);
             collector.AddFloatProperty("_AlphaDstBlend", 0.0f);
+            collector.AddToggleProperty("_AlphaToMask", alphaToMask);
             collector.AddToggleProperty(kZWrite, (surface == SurfaceType.Transparent) ? zWrite : true);
             collector.AddToggleProperty(kTransparentZWrite, zWrite);
             collector.AddFloatProperty("_CullMode", (int)CullMode.Back);

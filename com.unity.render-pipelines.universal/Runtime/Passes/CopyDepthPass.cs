@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Copy the given depth buffer into the given destination depth buffer.
-    /// 
+    ///
     /// You can use this pass to copy a depth buffer to a destination,
     /// so you can use it later in rendering. If the source texture has MSAA
     /// enabled, the pass uses a custom MSAA resolve. If the source texture
@@ -37,9 +37,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.destination = destination;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            var descriptor = cameraTextureDescriptor;
+            var descriptor = renderingData.cameraData.cameraTargetDescriptor;
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int cameraSamples = descriptor.msaaSamples;
 
             CameraData cameraData = renderingData.cameraData;
-            
+
             switch (cameraSamples)
             {
                 case 8:
@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
-        public override void FrameCleanup(CommandBuffer cmd)
+        public override void OnCameraCleanup(CommandBuffer cmd)
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
