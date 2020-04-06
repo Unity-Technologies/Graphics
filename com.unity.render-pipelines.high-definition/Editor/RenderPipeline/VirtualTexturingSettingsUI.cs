@@ -49,13 +49,13 @@ namespace UnityEditor.Rendering.HighDefinition
             serialized.serializedObject.ApplyModifiedProperties();
         }
 
-        VirtualTexturingGPUCacheSetting[] GetGPUCacheSizeOverrideArrayFromProperty(SerializedProperty property)
+        GPUCacheSetting[] GetGPUCacheSizeOverrideArrayFromProperty(SerializedProperty property)
         {
-            List<VirtualTexturingGPUCacheSetting> settings = new List<VirtualTexturingGPUCacheSetting>();
+            List<GPUCacheSetting> settings = new List<GPUCacheSetting>();
             for (int i = 0; i < property.arraySize; ++i)
             {
                 SerializedProperty settingProperty = property.GetArrayElementAtIndex(i);
-                settings.Add(new VirtualTexturingGPUCacheSetting()
+                settings.Add(new GPUCacheSetting()
                     { format = (GraphicsFormat)settingProperty.FindPropertyRelative("format").intValue, sizeInMegaBytes = (uint)settingProperty.FindPropertyRelative("sizeInMegaBytes").intValue });
             }
 
@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     List<GraphicsFormat> availableFormats = new List<GraphicsFormat>(EditorHelpers.QuerySupportedFormats());
 
                     // We can't just pass in existing settings as a parameter to CreateGPUCacheSizeOverrideList() because lambdas can't capture ref params.
-                    VirtualTexturingGPUCacheSetting[] existingSettings = GetGPUCacheSizeOverrideArrayFromProperty(serializedRPAsset.virtualTexturingSettings.streamingGpuCacheSettings);
+                    GPUCacheSetting[] existingSettings = GetGPUCacheSizeOverrideArrayFromProperty(serializedRPAsset.virtualTexturingSettings.streamingGpuCacheSettings);
                     RemoveOverriddenFormats(availableFormats, existingSettings);
 
                     int index = property.arraySize;
@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return (GraphicsFormat)Enum.Parse(typeof(GraphicsFormat), $"{format}_{channelTransform}");
             }
 
-            void RemoveOverriddenFormats(List<GraphicsFormat> formats, VirtualTexturingGPUCacheSetting[] settings)
+            void RemoveOverriddenFormats(List<GraphicsFormat> formats, GPUCacheSetting[] settings)
             {
                 foreach (var existingCacheSizeOverride in settings)
                 {
@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            void GPUCacheSizeOverridesGUI(Rect rect, int settingIdx, SerializedProperty settingListProperty, VirtualTexturingGPUCacheSetting[] settingList)
+            void GPUCacheSizeOverridesGUI(Rect rect, int settingIdx, SerializedProperty settingListProperty, GPUCacheSetting[] settingList)
             {
                 var cacheSizeOverrideProperty = settingListProperty.GetArrayElementAtIndex(settingIdx);
                 var cacheSizeOverride = settingList[settingIdx];
