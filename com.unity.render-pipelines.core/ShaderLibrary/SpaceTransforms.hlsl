@@ -119,7 +119,7 @@ real3 TransformWorldToViewDir(real3 dirWS, bool doNormalize = false)
 // Tranforms vector from world space to homogenous space
 real3 TransformWorldToHClipDir(real3 directionWS, bool doNormalize = false)
 {
-    float dirHCS = mul((real3x3)GetWorldToHClipMatrix(), directionWS);
+    float3 dirHCS = mul((real3x3)GetWorldToHClipMatrix(), directionWS).xyz;
     if (doNormalize)
         return normalize(dirHCS);
 

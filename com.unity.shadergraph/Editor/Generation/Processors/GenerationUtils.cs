@@ -952,11 +952,7 @@ namespace UnityEditor.ShaderGraph
         // Note that it's okay to add an "invalid" ShaderGUI (no class found) as Unity will simply take no action if that's the case, unless if its BaseShaderGUI.
         public static string FinalCustomEditorString(ICanChangeShaderGUI canChangeShaderGUI)
         {
-            if (!canChangeShaderGUI.OverrideEnabled)
-                return GraphUtil.CurrentPipelinePreferredShaderGUI(canChangeShaderGUI as IMasterNode);
-
             string finalOverrideName = canChangeShaderGUI.ShaderGUIOverride;
-
             if (string.IsNullOrEmpty(finalOverrideName))
                 return null;
 
