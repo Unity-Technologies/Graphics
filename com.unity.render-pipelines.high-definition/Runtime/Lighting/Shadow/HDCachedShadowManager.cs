@@ -7,9 +7,9 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     // Dispose
 
-//  TODO_FCC: SUPER IMPORTANT! CONSIDER THE CONFIG FILE FOR AREA LIGHT SHADOWS.
+    //  TODO_FCC: SUPER IMPORTANT! CONSIDER THE CONFIG FILE FOR AREA LIGHT SHADOWS.
 
-    
+
     class HDCachedShadowManager
     {
         // TODO_FCC: TODO Need to make it public somehow. Think later how. 
@@ -20,16 +20,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (lightType == HDLightType.Point)
             {
-                for(int i=0; i < 6; ++i)
+                for (int i = 0; i < 6; ++i)
                 {
                     fits = fits && HDShadowManager.cachedShadowManager.punctualShadowAtlas.FindSlotInAtlas(shadowResolution, out x, out y);
                 }
             }
 
-            if(lightType == HDLightType.Spot)
+            if (lightType == HDLightType.Spot)
                 fits = fits && HDShadowManager.cachedShadowManager.punctualShadowAtlas.FindSlotInAtlas(shadowResolution, out x, out y);
 
-            if(lightType == HDLightType.Area)
+            if (lightType == HDLightType.Area)
                 fits = fits && HDShadowManager.cachedShadowManager.areaShadowAtlas.FindSlotInAtlas(shadowResolution, out x, out y);
 
             return fits;
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDLightType lightType = lightData.type;
             Debug.Log(lightType != HDLightType.Directional); // TODO_FCC: HANDLE DIRECTIONAL!!
 
-            if(lightType == HDLightType.Area)
+            if (lightType == HDLightType.Area)
             {
                 areaShadowAtlas.RegisterLight(lightData);
             }
@@ -77,7 +77,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             HDLightType lightType = lightData.type;
 
-            Debug.Assert(lightData.type != HDLightType.Directional); // TODO_FCC: HANDLE DIRECTIONAL!!
             if (lightType == HDLightType.Area)
             {
                 areaShadowAtlas.EvictLight(lightData);
@@ -137,13 +136,24 @@ namespace UnityEngine.Rendering.HighDefinition
             areaShadowAtlas.UpdateDebugSettings(lightingDebugSettings);
         }
 
+        internal void ScheduleShadowUpdate(HDAdditionalLightData light)
+        {
+            var typeLight = light.type;
+            if (typeLight == HDLightType.Point || typeLight == HDLightType.Spot)
+                punctualShadowAtlas.ScheduleShadowUpdate(light);
+            else if (typeLight == HDLightType.Area)
+                areaShadowAtlas.ScheduleShadowUpdate(light);
+
+            Debug.Assert(typeLight != HDLightType.Directional); // FOR NOW NOT SUPPORTED TODO.
+        }
+
         internal void ClearShadowRequests()
         {
             punctualShadowAtlas.Clear();
             if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas.Clear();
         }
-        
+
         // DEBUG FUNCTIONS DELETE
         internal void DebugPrintPunctualLightAtlas()
         {

@@ -1327,7 +1327,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShadowUpdateMode == value)
                     return;
 
-                // TODO_FCC: MAKE SURE WE END UP WITH THE CORRECT STATE HERE
                 if (m_ShadowUpdateMode != ShadowUpdateMode.EveryFrame && value == ShadowUpdateMode.EveryFrame)
                 {
                     if(!mantainCacheShadowSlotUnlessDestroyed)
@@ -1335,7 +1334,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         HDShadowManager.cachedShadowManager.EvictLight(this);
                     }
                 }
-
+                else if(legacyLight.shadows != LightShadows.None && m_ShadowUpdateMode == ShadowUpdateMode.EveryFrame && value != ShadowUpdateMode.EveryFrame)
+                {
+                    HDShadowManager.cachedShadowManager.RegisterLight(this);
+                }
 
                 m_ShadowUpdateMode = value;
             }
@@ -1452,7 +1454,6 @@ namespace UnityEngine.Rendering.HighDefinition
         bool                m_WillRenderScreenSpaceShadow;
         bool                m_WillRenderRayTracedShadow;
         int[]               m_ShadowRequestIndices;
-        bool                m_ShadowMapRenderedSinceLastRequest = false;
 
 
         // Data for cached shadow maps TODO_FCC: Rename and CONSIDER WELL
@@ -1572,18 +1573,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDestroy()
         {
-            if(name.Contains("PL"))
-                Debug.Log("DESTROYING : " + name);
-
-            HDShadowManager.cachedShadowManager.EvictLight(this);
+            if(lightIdxForCachedShadows >= 0) // If it is within the cached system we need to evict it.
+                HDShadowManager.cachedShadowManager.EvictLight(this);
         }
 
         void OnDisable()
         {
-            if (name.Contains("PL"))
-                Debug.Log("DISABLING : " + name);
-
-            if (!mantainCacheShadowSlotUnlessDestroyed)
+            // If it is within the cached system we need to evict it, unless user explicitly requires not to.
+            if (!mantainCacheShadowSlotUnlessDestroyed && lightIdxForCachedShadows >= 0) 
             {
                 HDShadowManager.cachedShadowManager.EvictLight(this);
             }
@@ -1615,20 +1612,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void RequestShadowMapRendering()
         {
             if(shadowUpdateMode == ShadowUpdateMode.OnDemand)
-                m_ShadowMapRenderedSinceLastRequest = false;
-        }
-        internal bool ShouldRenderShadows()
-        {
-            switch (shadowUpdateMode)
-            {
-                case ShadowUpdateMode.EveryFrame:
-                    return true;
-                case ShadowUpdateMode.OnDemand:
-                    return !m_ShadowMapRenderedSinceLastRequest;
-                case ShadowUpdateMode.OnEnable:
-                    return !m_ShadowMapRenderedSinceLastRequest;
-            }
-            return true;
+                HDShadowManager.cachedShadowManager.ScheduleShadowUpdate(this);
         }
 
         internal bool ShadowIsUpdatedEveryFrame()
@@ -1821,13 +1805,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bool shadowNeedsRendering = true;
 
             int count = GetShadowRequestCount(shadowSettings);
-            bool shadowIsCached = !ShouldRenderShadows() && !lightingDebugSettings.clearShadowAtlas;
-            bool isUpdatedEveryFrame = ShadowIsUpdatedEveryFrame();
-
-            bool hasCachedSlotInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
-
-            bool shouldUseRequestFromCachedList = shadowIsCached;
-            bool cachedDataIsValid = shadowIsCached && false; // TODO_FCC: THIS IS FALSE WHILE REFACTORING. OF COURSE REMOVE THIS.
 
             HDLightType lightType = type;
             // TMP TODO
@@ -1842,15 +1819,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowRequestIndex);
 
-
                 int cachedShadowID = lightIdxForCachedShadows + index;
-                // TODO: HERE SHOULD INSTEAD MODIFY THE CACHED.
+
                 if (shadowIsInCachedSystem)
                 {
-                    HDShadowManager.cachedShadowManager.UpdateResolutionRequest(ref resolutionRequest, cachedShadowID, shadowMapType);
                     // TODO_FCC: FIXUP DIR CASCADES! THE SHADOW MAP TYPE HERE IS OFF...ALSO SLOW.
                     shadowNeedsRendering = HDShadowManager.cachedShadowManager.ShadowIsPendingUpdate(cachedShadowID, shadowMapType);
+                    if(shadowNeedsRendering)
+                        HDShadowManager.cachedShadowManager.UpdateResolutionRequest(ref resolutionRequest, cachedShadowID, shadowMapType);
                 }
+                shadowRequest.isInCachedAtlas = shadowIsInCachedSystem;
 
                 if (resolutionRequest == null)
                     continue;
@@ -1873,7 +1851,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     m_CachedViewPos = cameraPos;
                     shadowRequest.shouldUseCachedShadow = false;
-                    m_ShadowMapRenderedSinceLastRequest = true;
 
                     // Write per light type matrices, splitDatas and culling parameters
                     switch (lightType)
@@ -1922,9 +1899,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, shadowIsInCachedSystem);
-              //  shadowRequest.shouldUseCachedShadow = shadowRequest.shouldUseCachedShadow && cachedDataIsValid;
 
-                if(shadowIsCached && shadowNeedsRendering)
+                if(shadowIsInCachedSystem && shadowNeedsRendering)
                 {
                     // Handshake with the cached shadow manager to notify about the rendering.
                     // Technically the rendering has not happened yet, but it is scheduled. 
@@ -2307,18 +2283,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UpdateBounds();
 
-            // TODO: VERIFY THIS TODO_FCC
             bool wentThroughCachedShadowSystem = lightIdxForCachedShadows >= 0;
             if (wentThroughCachedShadowSystem)
                 HDShadowManager.cachedShadowManager.EvictLight(this);
 
-            if (/*wentThroughCachedShadowSystem &&*/ shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
+            if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
             {
                 if (enabled)
                     HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
-
-            m_ShadowMapRenderedSinceLastRequest = false;
 
 #if UNITY_EDITOR
             // If modification are due to change on prefab asset that are non overridden on this prefab instance

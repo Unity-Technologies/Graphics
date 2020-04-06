@@ -19,6 +19,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(s_MaxEnv2DLight, typeof(Vector4))]
         public fixed float _Env2DAtlasScaleOffset[s_MaxEnv2DLight * 3];
 
+        public Vector4 _CachedShadowAtlasSize;
+        public Vector4 _CachedAreaShadowAtlasSize;
+
         public uint _DirectionalLightCount;
 
         public uint _PunctualLightCount;

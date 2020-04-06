@@ -17,6 +17,8 @@
     float4x4 _Env2DCaptureVP[32];
     float _Env2DCaptureForward[96];
     float4 _Env2DAtlasScaleOffset[32];
+    float4 _CachedShadowAtlasSize;
+    float4 _CachedAreaShadowAtlasSize;
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;

@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4      shadowFilterParams0;
 
         public Vector3      cacheTranslationDelta;
-        public float         _pad0;
+        public float        isInCachedAtlas;
 
         public Matrix4x4    shadowToWorld;
     }
@@ -101,6 +101,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool         shouldUseCachedShadow = false;
         public HDShadowData cachedShadowData;
+
+        public bool         isInCachedAtlas;
     }
 
     enum DirectionalShadowAlgorithm
@@ -476,6 +478,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.shadowFilterParams0 = shadowRequest.evsmParams;
             }
 
+            data.isInCachedAtlas = shadowRequest.isInCachedAtlas ? 1.0f : 0.0f;
+
             return data;
         }
 
@@ -636,6 +640,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_Atlas.BindResources(cmd);
             m_CascadeAtlas.BindResources(cmd);
+            cachedShadowManager.punctualShadowAtlas.BindResources(cmd);
+            cachedShadowManager.areaShadowAtlas.BindResources(cmd);
             if (ShaderConfig.s_AreaLights == 1)
                 m_AreaLightShadowAtlas.BindResources(cmd);
         }
@@ -743,6 +749,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_AreaLights == 1)
                 m_AreaLightShadowAtlas.Release();
             m_CascadeAtlas.Release();
+
+            cachedShadowManager.punctualShadowAtlas.Release();
+            cachedShadowManager.areaShadowAtlas.Release();
         }
     }
 }

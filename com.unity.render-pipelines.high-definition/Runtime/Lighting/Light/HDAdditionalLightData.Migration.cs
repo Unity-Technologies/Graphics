@@ -190,8 +190,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
 
-            if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
-                m_ShadowMapRenderedSinceLastRequest = false;
             SetEmissiveMeshRendererEnabled(true);
         }
 
