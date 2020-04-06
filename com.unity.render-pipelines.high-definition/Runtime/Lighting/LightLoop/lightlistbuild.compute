@@ -321,8 +321,10 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     // to make it work correctly
     int shiftIndex[CATEGORY_LIST_SIZE];
     ZERO_INITIALIZE_ARRAY(int, shiftIndex, CATEGORY_LIST_SIZE);
-    shiftIndex[CATEGORY_LIST_SIZE - 2] = _EnvLightIndexShift;
-    shiftIndex[CATEGORY_LIST_SIZE - 1] = _DecalIndexShift;
+
+    shiftIndex[LIGHTCATEGORY_ENV] = _EnvLightIndexShift;
+    shiftIndex[LIGHTCATEGORY_DECAL] = _DecalIndexShift;
+    shiftIndex[LIGHTCATEGORY_PROBE_VOLUME] = _ProbeVolumeIndexShift;
 
     for(int category=0; category<CATEGORY_LIST_SIZE; category++)
     {

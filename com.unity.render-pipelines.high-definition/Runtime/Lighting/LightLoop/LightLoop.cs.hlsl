@@ -18,9 +18,10 @@
 #define LIGHTCATEGORY_PUNCTUAL (0)
 #define LIGHTCATEGORY_AREA (1)
 #define LIGHTCATEGORY_ENV (2)
-#define LIGHTCATEGORY_DECAL (3)
-#define LIGHTCATEGORY_DENSITY_VOLUME (4)
-#define LIGHTCATEGORY_COUNT (5)
+#define LIGHTCATEGORY_PROBE_VOLUME (3)
+#define LIGHTCATEGORY_DECAL (4)
+#define LIGHTCATEGORY_DENSITY_VOLUME (5)
+#define LIGHTCATEGORY_COUNT (6)
 
 //
 // UnityEngine.Rendering.HighDefinition.LightFeatureFlags:  static fields
@@ -32,6 +33,7 @@
 #define LIGHTFEATUREFLAGS_SKY (65536)
 #define LIGHTFEATUREFLAGS_SSREFRACTION (131072)
 #define LIGHTFEATUREFLAGS_SSREFLECTION (262144)
+#define LIGHTFEATUREFLAGS_PROBE_VOLUME (524288)
 
 //
 // UnityEngine.Rendering.HighDefinition.LightDefinitions:  static fields
