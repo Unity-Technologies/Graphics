@@ -21,6 +21,7 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField] bool m_RequiresCameraOpaqueTexture;
         [SerializeField] bool m_RequiresTime;
         [SerializeField] bool m_RequiresVertexSkinning;
+        [SerializeField] bool m_RequiresVertexID;
 
         internal static ShaderGraphRequirements none
         {
@@ -111,6 +112,12 @@ namespace UnityEditor.ShaderGraph.Internal
             internal set { m_RequiresVertexSkinning = value; }
         }
 
+        public bool requiresVertexID
+        {
+            get { return m_RequiresVertexID; }
+            internal set { m_RequiresVertexID = value; }
+        }
+
         internal bool NeedsTangentSpace()
         {
             var compoundSpaces = m_RequiresBitangent | m_RequiresNormal | m_RequiresPosition
@@ -160,6 +167,7 @@ namespace UnityEditor.ShaderGraph.Internal
             bool requiresCameraOpaqueTexture = nodes.OfType<IMayRequireCameraOpaqueTexture>().Any(x => x.RequiresCameraOpaqueTexture());
             bool requiresTime = nodes.Any(x => x.RequiresTime());
             bool requiresVertexSkinning = nodes.OfType<IMayRequireVertexSkinning>().Any(x => x.RequiresVertexSkinning(stageCapability));
+            bool requiresVertexID = nodes.OfType<IMayRequireVertexID>().Any(x => x.RequiresVertexID(stageCapability));
 
             var meshUV = new List<UVChannel>();
             for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
@@ -200,7 +208,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 m_RequiresDepthTexture = requiresDepthTexture,
                 m_RequiresCameraOpaqueTexture = requiresCameraOpaqueTexture,
                 m_RequiresTime = requiresTime,
-                m_RequiresVertexSkinning = requiresVertexSkinning
+                m_RequiresVertexSkinning = requiresVertexSkinning,
+                m_RequiresVertexID = requiresVertexID,
             };
 
             return reqs;
