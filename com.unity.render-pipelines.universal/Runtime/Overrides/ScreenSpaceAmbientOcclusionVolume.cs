@@ -5,7 +5,7 @@ using System;
 class ScreenSpaceAmbientOcclusionVolume : VolumeComponent
 {
     // Public properties
-    //public DepthSource depthSource = new DepthSource(ScreenSpaceAmbientOcclusionFeature.DepthSource.Depth);
+    //public DepthSource DepthSource = new DepthSource(ScreenSpaceAmbientOcclusionFeature.DepthSource.Depth);
     public QualitySettingNormals NormalQuality = new QualitySettingNormals(ScreenSpaceAmbientOcclusionFeature.QualityOptions.Medium);
     public BoolParameter Downsample            = new BoolParameter(true);
     public ClampedFloatParameter Intensity     = new ClampedFloatParameter(0f, 0f, 10f, false);
