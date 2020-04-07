@@ -2928,13 +2928,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 #define MODIFY_BAKED_DIFFUSE_LIGHTING
 #endif
 
-void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
+void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)
 {
-    // Since this is called early at PostInitBuiltinData and we need some fields from bsdfData and preLightData,
-    // we get the whole structures redundantly earlier here - compiler should optimize out everything.
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
-    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
-
     // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this saves VGPR)
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
     {
