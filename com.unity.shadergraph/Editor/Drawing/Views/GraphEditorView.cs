@@ -932,10 +932,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
                 var targetAnchor = targetNodeView.gvNode.inputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(targetSlot));
 
-                bool isEdgeActive = true;
-                if (!sourceNodeView.node.isActive || !targetNodeView.node.isActive)
-                    isEdgeActive = false;
-
                 var edgeView = new Edge
                 {
                     userData = edge,
@@ -965,6 +961,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             nodeStack.Clear();
             foreach (var nodeView in nodeViews)
                 nodeStack.Push((Node)nodeView);
+            PooledList<Edge> edgesToUpdate = PooledList<Edge>.Get();
             while (nodeStack.Any())
             {
                 var nodeView = nodeStack.Pop();
@@ -981,7 +978,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             //force redraw on update to prevent visual lag in the graph
                             //Now has to be delayed a frame because setting port styles wont update colors till next frame
-                            edgeView.schedule.Execute(() => edgeView.UpdateEdgeControl()).StartingIn(0);
+                            edgesToUpdate.Add(edgeView);
                         }
                         //update edges based on dynamic vector length of any modified nodes
                         var targetSlot = edgeView.input.GetSlot();
@@ -1008,7 +1005,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             //force redraw on update to prevent visual lag in the graph
                             //Now has to be delayed a frame because setting port styles wont update colors till next frame
-                            edgeView.schedule.Execute(() => edgeView.UpdateEdgeControl()).StartingIn(0);
+                            edgesToUpdate.Add(edgeView);
                         }
                         //update edge color for upstream dynamic vector types
                         var connectedNodeView = edgeView.output.node;
@@ -1020,6 +1017,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+            schedule.Execute(() =>
+            {
+                foreach (Edge e in edgesToUpdate)
+                {
+                    e.UpdateEdgeControl();
+                }
+                edgesToUpdate.Dispose();
+            }).StartingIn(0);
         }
 
         void OnPrimaryMasterChanged()
