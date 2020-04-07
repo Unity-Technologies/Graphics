@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
     {
         public static void Draw(List<SerializedShaderProperty> propertyList)
         {
-            int index = propertyList.FindIndex(x => x.PropertyType.intValue != (int)ShaderPropertyType.Texture);
+            int index = propertyList.FindIndex(x => x.propertyType.intValue != (int)ShaderPropertyType.Texture);
             if (index >= 0)
             {
                 EditorGUILayout.Separator();
@@ -29,43 +29,43 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         {
             int columnWidth = (int)EditorGUIUtility.labelWidth; // Set a fixed length for all labels, so everything in the UI is nicely aligned 
 
-            switch ((ShaderPropertyType)prop.PropertyType.intValue)
+            switch ((ShaderPropertyType)prop.propertyType.intValue)
             {
                 case ShaderPropertyType.Range:
                     {
                         EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.LabelField(prop.PropertyName.stringValue, GUILayout.Width(columnWidth));
-                        Vector2 rangeLimits = prop.RangeLimits.vector2Value;
-                        float val = EditorGUILayout.Slider(prop.PropertyValue.vector4Value.x, rangeLimits.x, rangeLimits.y);
-                        prop.PropertyValue.vector4Value = new Vector4(val, 0, 0, 0);
+                        EditorGUILayout.LabelField(prop.propertyName.stringValue, GUILayout.Width(columnWidth));
+                        Vector2 rangeLimits = prop.rangeLimits.vector2Value;
+                        float val = EditorGUILayout.Slider(prop.propertyValue.vector4Value.x, rangeLimits.x, rangeLimits.y);
+                        prop.propertyValue.vector4Value = new Vector4(val, 0, 0, 0);
                         EditorGUILayout.EndHorizontal();
                     }
                     break;
                 case ShaderPropertyType.Float:
                     {
                         EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.LabelField(prop.PropertyName.stringValue, GUILayout.Width(columnWidth));
-                        float val = EditorGUILayout.FloatField(prop.PropertyValue.vector4Value.x);
-                        prop.PropertyValue.vector4Value = new Vector4(val, 0, 0, 0);
+                        EditorGUILayout.LabelField(prop.propertyName.stringValue, GUILayout.Width(columnWidth));
+                        float val = EditorGUILayout.FloatField(prop.propertyValue.vector4Value.x);
+                        prop.propertyValue.vector4Value = new Vector4(val, 0, 0, 0);
                         EditorGUILayout.EndHorizontal();
                     }
                     break;
                 case ShaderPropertyType.Vector:
                     {
                         EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.LabelField(prop.PropertyName.stringValue, GUILayout.Width(columnWidth));
-                        Vector4 val = EditorGUILayout.Vector4Field(GUIContent.none, prop.PropertyValue.vector4Value);
-                        prop.PropertyValue.vector4Value = val;
+                        EditorGUILayout.LabelField(prop.propertyName.stringValue, GUILayout.Width(columnWidth));
+                        Vector4 val = EditorGUILayout.Vector4Field(GUIContent.none, prop.propertyValue.vector4Value);
+                        prop.propertyValue.vector4Value = val;
                         EditorGUILayout.EndHorizontal();
                     }
                     break;
                 case ShaderPropertyType.Color:
                     {
                         EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.LabelField(prop.PropertyName.stringValue, GUILayout.Width(columnWidth));
-                        Color val = prop.PropertyValue.vector4Value;
+                        EditorGUILayout.LabelField(prop.propertyName.stringValue, GUILayout.Width(columnWidth));
+                        Color val = prop.propertyValue.vector4Value;
                         val = EditorGUILayout.ColorField(GUIContent.none, val);
-                        prop.PropertyValue.vector4Value = val;
+                        prop.propertyValue.vector4Value = val;
                         EditorGUILayout.EndHorizontal();
                     }
                     break;

@@ -13,10 +13,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     {
         internal class ShaderIDs
         {
-            public static readonly int _BlitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
-            public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
-            public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
-            public static readonly int _ClearAlpha = Shader.PropertyToID("_ClearAlpha");
+            public static readonly int k_BlitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
+            public static readonly int k_BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
+            public static readonly int k_BlitTexture = Shader.PropertyToID("_BlitTexture");
+            public static readonly int k_ClearAlpha = Shader.PropertyToID("_ClearAlpha");
         }
 
         enum PassType
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             // Setup code here
-            if (name == "") name = "CustomClear";
+            if (string.IsNullOrEmpty(name)) name = "CustomClear";
 
             fullscreenPassMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRP/CustomClear");
         }
@@ -42,22 +42,22 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             // Executed every frame for all the camera inside the pass volume
             AdditionalCompositorData layerData = camera.camera.gameObject.GetComponent<AdditionalCompositorData>();
-            if (layerData == null || layerData.m_clearColorTexture == false)
+            if (layerData == null || layerData.clearColorTexture == false)
             {
                 return;
             }
             else
             {
                 float cameraAspectRatio = (float)camera.actualWidth / camera.actualHeight;
-                float imageAspectRatio = (float)layerData.m_clearColorTexture.width / layerData.m_clearColorTexture.height;
+                float imageAspectRatio = (float)layerData.clearColorTexture.width / layerData.clearColorTexture.height;
 
                 var scaleBiasRt = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
-                if (layerData.m_imageFitMode == BackgroundFitMode.FitHorizontally)
+                if (layerData.imageFitMode == BackgroundFitMode.FitHorizontally)
                 {
                     scaleBiasRt.y = cameraAspectRatio / imageAspectRatio;
                     scaleBiasRt.w = (1 - scaleBiasRt.y) / 2.0f;
                 }
-                else if (layerData.m_imageFitMode == BackgroundFitMode.FitVertically)
+                else if (layerData.imageFitMode == BackgroundFitMode.FitVertically)
                 {
                     scaleBiasRt.x = imageAspectRatio / cameraAspectRatio;
                     scaleBiasRt.z = (1 - scaleBiasRt.x) / 2.0f;
@@ -67,15 +67,15 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 // The texture might not cover the entire screen (letter boxing), so in this case clear first to the background color (and stencil)
                 if (scaleBiasRt.x < 1.0f || scaleBiasRt.y < 1.0f)
                 {
-                    fullscreenPassMaterial.SetVector(ShaderIDs._BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                    fullscreenPassMaterial.SetVector(ShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                    fullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                    fullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
                     cmd.DrawProcedural(Matrix4x4.identity, fullscreenPassMaterial, (int)PassType.ClearColorAndStencil, MeshTopology.Quads, 4, 1);
                 }
 
-                fullscreenPassMaterial.SetTexture(ShaderIDs._BlitTexture, layerData.m_clearColorTexture);
-                fullscreenPassMaterial.SetVector(ShaderIDs._BlitScaleBiasRt, scaleBiasRt);
-                fullscreenPassMaterial.SetVector(ShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                fullscreenPassMaterial.SetInt(ShaderIDs._ClearAlpha, layerData.m_clearAlpha ? 1 : 0);
+                fullscreenPassMaterial.SetTexture(ShaderIDs.k_BlitTexture, layerData.clearColorTexture);
+                fullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBiasRt, scaleBiasRt);
+                fullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                fullscreenPassMaterial.SetInt(ShaderIDs.k_ClearAlpha, layerData.clearAlpha ? 1 : 0);
 
                 // draw a quad (not Triangle), to support letter boxing and stretching 
                 cmd.DrawProcedural(Matrix4x4.identity, fullscreenPassMaterial, (int)PassType.DrawTextureAndClearStencil, MeshTopology.Quads, 4, 1);

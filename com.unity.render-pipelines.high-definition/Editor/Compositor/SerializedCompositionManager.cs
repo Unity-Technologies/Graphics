@@ -4,48 +4,47 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 {
     internal class SerializedCompositionManager
     {
-        public SerializedProperty CompositionProfile;
-        public SerializedProperty LayerList;
-        public SerializedProperty ShaderProperties;
-        public SerializedProperty DisplayNumber;
-        public SerializedProperty CompositionShader;
-        public SerializedProperty OutputCamera;
+        public SerializedProperty compositionProfile;
+        public SerializedProperty layerList;
+        public SerializedProperty shaderProperties;
+        public SerializedProperty displayNumber;
+        public SerializedProperty compositionShader;
+        public SerializedProperty outputCamera;
 
-        public SerializedObject CompositionProfileSO;
-        public SerializedObject CompositorSO;
+        public SerializedObject compositionProfileSO;
+        public SerializedObject compositorSO;
 
         public SerializedCompositionManager(SerializedObject root)
         {
-            CompositorSO = root;
+            compositorSO = root;
             {
-                CompositionProfile = CompositorSO.FindProperty("m_CompositionProfile");
-                DisplayNumber = CompositorSO.FindProperty("m_OutputDisplay");
-                CompositionShader = CompositorSO.FindProperty("m_Shader");
-                OutputCamera = CompositorSO.FindProperty("m_OutputCamera");
+                compositionProfile = compositorSO.FindProperty("m_CompositionProfile");
+                displayNumber = compositorSO.FindProperty("m_OutputDisplay");
+                compositionShader = compositorSO.FindProperty("m_Shader");
+                outputCamera = compositorSO.FindProperty("m_OutputCamera");
+                layerList = compositorSO.FindProperty("m_InputLayers");
             }
 
-            LayerList = CompositorSO.FindProperty("m_InputLayers");
-
             // Work around to find property on scriptable object
-            if (CompositionProfile.objectReferenceValue)
+            if (compositionProfile.objectReferenceValue)
             {
-                CompositionProfileSO = new SerializedObject(CompositionProfile.objectReferenceValue);
+                compositionProfileSO = new SerializedObject(compositionProfile.objectReferenceValue);
                 {
-                    ShaderProperties = CompositionProfileSO.FindProperty("m_ShaderProperties");
+                    shaderProperties = compositionProfileSO.FindProperty("m_ShaderProperties");
                 }
             }
         }
 
         public void Update()
         {
-            CompositionProfileSO.Update();
-            CompositorSO.Update();
+            compositionProfileSO.Update();
+            compositorSO.Update();
         }
 
         public void ApplyModifiedProperties()
         {
-            CompositionProfileSO.ApplyModifiedProperties();
-            CompositorSO.ApplyModifiedProperties();
+            compositionProfileSO.ApplyModifiedProperties();
+            compositorSO.ApplyModifiedProperties();
         }
     }
 }

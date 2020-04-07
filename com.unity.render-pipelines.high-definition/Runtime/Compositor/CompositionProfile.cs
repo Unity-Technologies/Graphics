@@ -71,7 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 int indx = compositor.layers.FindIndex(s => s.name == sp.m_PropertyName);
                 if (indx < 0 && !hide)
                 {
-                    Debug.Log($"Adding output layer from shader graph: {sp.m_PropertyName}");
                     var newLayer = CompositorLayer.CreateOutputLayer(sp.m_PropertyName);
                     compositor.layers.Add(newLayer);
                 }

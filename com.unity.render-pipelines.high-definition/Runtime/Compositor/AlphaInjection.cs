@@ -10,8 +10,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     {
         internal class ShaderIDs
         {
-            public static readonly int _AlphaTexture = Shader.PropertyToID("_AlphaTexture");
-            public static readonly int _InputTexture = Shader.PropertyToID("_InputTexture");
+            public static readonly int k_AlphaTexture = Shader.PropertyToID("_AlphaTexture");
+            public static readonly int k_InputTexture = Shader.PropertyToID("_InputTexture");
         }
 
         Material m_Material;
@@ -32,22 +32,22 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             //TODO: can we detect this before we get here?
             AdditionalCompositorData layerData = camera.camera.gameObject.GetComponent<AdditionalCompositorData>();
-            if (layerData == null || layerData.m_layerFilters == null)
+            if (layerData == null || layerData.layerFilters == null)
             {
                 HDUtils.BlitCameraTexture(cmd, source, destination);
                 return;
             }
 
-            int indx = layerData.m_layerFilters.FindIndex(x => x.m_Type == (int)CompositionFilter.FilterType.ALPHA_MASK);
-            if (indx < 0)
+            int index = layerData.layerFilters.FindIndex(x => x.m_Type == (int)CompositionFilter.FilterType.ALPHA_MASK);
+            if (index < 0)
             {
                 HDUtils.BlitCameraTexture(cmd, source, destination);
                 return;
             }
 
-            var filter = layerData.m_layerFilters[indx];
-            m_Material.SetTexture(ShaderIDs._InputTexture, source);
-            m_Material.SetTexture(ShaderIDs._AlphaTexture, filter.m_AlphaMask);
+            var filter = layerData.layerFilters[index];
+            m_Material.SetTexture(ShaderIDs.k_InputTexture, source);
+            m_Material.SetTexture(ShaderIDs.k_AlphaTexture, filter.m_AlphaMask);
 
             HDUtils.DrawFullScreen(cmd, m_Material, destination);
         }

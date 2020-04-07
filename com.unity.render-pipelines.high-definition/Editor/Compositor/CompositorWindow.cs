@@ -3,7 +3,6 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering.HighDefinition.Compositor;
 
-#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEditor.ShaderGraph;
@@ -13,10 +12,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 {
     internal class CompositorWindow : EditorWindow
     {
-        static partial class TextUI
+        static partial class Styles
         {
-            static public readonly GUIContent EnableCompositor = EditorGUIUtility.TrTextContent("Enable Compositor", "Enabled the compositor and creates a default composition profile.");
-            static public readonly GUIContent RemoveCompositor = EditorGUIUtility.TrTextContent("Remove compositor from scene", "Removes the compositor and any composition settings from the scene.");
+            static public readonly GUIContent k_EnableCompositor = EditorGUIUtility.TrTextContent("Enable Compositor", "Enabled the compositor and creates a default composition profile.");
+            static public readonly GUIContent k_RemoveCompositor = EditorGUIUtility.TrTextContent("Remove compositor from scene", "Removes the compositor and any composition settings from the scene.");
         }
 
         static CompositorWindow s_Window;
@@ -49,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             }
 
             bool enableCompositorCached = enableCompositor;
-            enableCompositor = EditorGUILayout.Toggle(TextUI.EnableCompositor, enableCompositor);
+            enableCompositor = EditorGUILayout.Toggle(Styles.k_EnableCompositor, enableCompositor);
 
             // Track if the user changed the compositor enable state and mark the scene dirty if necessary
             if (enableCompositorCached != enableCompositor && compositor != null)
@@ -83,9 +82,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 return;
             }
 
-            if (compositor && compositor.enabled == false)
+            if (compositor && !compositor.enabled)
             {
-                if (GUILayout.Button(new GUIContent("Remove compositor from scene")))
+                if (GUILayout.Button(new GUIContent(Styles.k_RemoveCompositor)))
                 {
                     if (compositor.outputCamera)
                     {
@@ -128,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             }
 
             m_ScrollPosition = GUILayout.BeginScrollView(m_ScrollPosition);
-            using (new EditorGUI.DisabledScope(compositor.enabled == false))
+            using (new EditorGUI.DisabledScope(!compositor.enabled))
             {
                 if (m_Editor)
                 {
@@ -158,4 +157,3 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         }
     }
 }
-#endif

@@ -43,16 +43,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             Half = 2,
             Quarter = 4
         }
-        public string name
-        {
-            get => m_LayerName;
-        }
+        public string name => m_LayerName;
+
         [SerializeField] string m_LayerName;
 
-        public OutputTarget outputTarget
-        {
-            get => m_OutputTarget;
-        }
+        public OutputTarget outputTarget => m_OutputTarget;
 
         [SerializeField] OutputTarget m_OutputTarget; // Specifies if this layer will be used in the compositor or a camera stack
         [SerializeField] bool m_ClearDepth = false;   // Specifies if the depth will be cleared when stacking this camera over the previous one (for overlays)
@@ -124,10 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
         }
 
-        public Camera camera
-        {
-            get => m_LayerCamera;
-        }
+        public Camera camera => m_LayerCamera;
 
         [SerializeField] Camera m_LayerCamera;
 
@@ -336,8 +328,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 {
                     cameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.None;
 
-                    layerData.m_clearColorTexture = m_InputTexture;
-                    layerData.m_imageFitMode = m_BackgroundFit;
+                    layerData.clearColorTexture = m_InputTexture;
+                    layerData.imageFitMode = m_BackgroundFit;
                 }
 
                 // Custom pass to inject an alpha mask 
@@ -575,7 +567,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     {
                         compositorData = m_LayerCamera.gameObject.AddComponent<AdditionalCompositorData>();
                     }
-                    compositorData.m_clearColorTexture = targetLayer.GetRenderTarget(false);
+                    compositorData.clearColorTexture = targetLayer.GetRenderTarget(false);
                     cameraData.volumeLayerMask |= 1 << 31;
                 }
                 else

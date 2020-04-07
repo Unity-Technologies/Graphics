@@ -4,26 +4,26 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 {
     internal class SerializedCompositionFilter
     {
-        public SerializedProperty FilterType;
-        public SerializedProperty MaskColor;
-        public SerializedProperty KeyThreshold;
-        public SerializedProperty KeyTolerance;
-        public SerializedProperty SpillRemoval;
-        public SerializedProperty AlphaMask;
+        public SerializedProperty filterType;
+        public SerializedProperty maskColor;
+        public SerializedProperty keyThreshold;
+        public SerializedProperty keyTolerance;
+        public SerializedProperty spillRemoval;
+        public SerializedProperty alphaMask;
 
         public SerializedCompositionFilter(SerializedProperty root)
         {
-            FilterType = root.FindPropertyRelative("m_Type");
-            MaskColor = root.FindPropertyRelative("m_MaskColor");
-            KeyThreshold = root.FindPropertyRelative("m_KeyThreshold");
-            KeyTolerance = root.FindPropertyRelative("m_KeyTolerance");
-            SpillRemoval = root.FindPropertyRelative("m_SpillRemoval");
-            AlphaMask = root.FindPropertyRelative("m_AlphaMask");
+            filterType = root.FindPropertyRelative("m_Type");
+            maskColor = root.FindPropertyRelative("m_MaskColor");
+            keyThreshold = root.FindPropertyRelative("m_KeyThreshold");
+            keyTolerance = root.FindPropertyRelative("m_KeyTolerance");
+            spillRemoval = root.FindPropertyRelative("m_SpillRemoval");
+            alphaMask = root.FindPropertyRelative("m_AlphaMask");
         }
 
         public float GetHeight()
         {
-            if (FilterType.intValue == 0)
+            if (filterType.intValue == 0)
             {
                 return 5 * CompositorStyle.k_Spacing;
             }

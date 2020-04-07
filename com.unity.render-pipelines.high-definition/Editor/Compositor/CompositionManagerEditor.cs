@@ -17,16 +17,16 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
     [CustomEditor(typeof(CompositionManager))]
     internal class CompositionManagerEditor : Editor
     {
-        static partial class TextUI
+        static partial class Styles
         {
-            static public readonly GUIContent CompositionGraph = EditorGUIUtility.TrTextContent("Composition Graph", "Specifies the Shader Graph that will be used to produce the final composited output.");
-            static public readonly GUIContent OutputCamera = EditorGUIUtility.TrTextContent("Output Camera", "Specifies the camera that will output the final composited image.");
-            static public readonly GUIContent EnablePreview = EditorGUIUtility.TrTextContent("Enable Preview", "When enabled, the compositor will generate the final composed frame even in edit mode.");
-            static public readonly GUIContent InputFilters = EditorGUIUtility.TrTextContent("Input Filters", "A list of color filters that will be executed before composing the frame.");
-            static public readonly GUIContent Properties = EditorGUIUtility.TrTextContent("Properties", "The properties of a layer or sub-layer.");
-            static public readonly GUIContent RenderSchedule = EditorGUIUtility.TrTextContent("Render Schedule", "A list of layers and sub-layers in the scene. Layers are drawn from top to bottom.");
-            static public readonly string AlphaWarningPipeline = "The rendering pipeline was not configured to output an alpha channel. You can select a color buffer format that supports alpha in the HDRP quality settings.";
-            static public readonly string AlphaWarningPost = "The post processing system was not configured to process the alpha channel. You can select a buffer format that supports alpha in the HDRP quality settings.";
+            static public readonly GUIContent k_CompositionGraph = EditorGUIUtility.TrTextContent("Composition Graph", "Specifies the Shader Graph that will be used to produce the final composited output.");
+            static public readonly GUIContent k_OutputCamera = EditorGUIUtility.TrTextContent("Output Camera", "Specifies the camera that will output the final composited image.");
+            static public readonly GUIContent k_EnablePreview = EditorGUIUtility.TrTextContent("Enable Preview", "When enabled, the compositor will generate the final composed frame even in edit mode.");
+            static public readonly GUIContent k_InputFilters = EditorGUIUtility.TrTextContent("Input Filters", "A list of color filters that will be executed before composing the frame.");
+            static public readonly GUIContent k_Properties = EditorGUIUtility.TrTextContent("Properties", "The properties of a layer or sub-layer.");
+            static public readonly GUIContent k_RenderSchedule = EditorGUIUtility.TrTextContent("Render Schedule", "A list of layers and sub-layers in the scene. Layers are drawn from top to bottom.");
+            static public readonly string k_AlphaWarningPipeline = "The rendering pipeline was not configured to output an alpha channel. You can select a color buffer format that supports alpha in the HDRP quality settings.";
+            static public readonly string k_AlphaWarningPost = "The post processing system was not configured to process the alpha channel. You can select a buffer format that supports alpha in the HDRP quality settings.";
         }
 
         ReorderableList m_layerList;
@@ -53,14 +53,14 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         void AddLayerOfTypeCallback(object type)
         {
             m_compositionManager.AddNewLayer(m_layerList.index + 1, (CompositorLayer.LayerType)type);
-            m_SerializedProperties.LayerList.serializedObject.Update();
+            m_SerializedProperties.layerList.serializedObject.Update();
             m_compositionManager.UpdateLayerSetup();
         }
 
         void AddFilterOfTypeCallback(object type)
         {
             m_compositionManager.AddInputFilterAtLayer(CompositionFilter.Create((CompositionFilter.FilterType)type), m_layerList.index);
-            m_SerializedProperties.LayerList.serializedObject.Update();
+            m_SerializedProperties.layerList.serializedObject.Update();
             CacheSerializedObjects();
         }
 
@@ -75,15 +75,15 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             m_SerializedLayerProperties = new List<SerializedCompositionLayer>();
             m_SerializedShaderProperties = new List<SerializedShaderProperty>();
 
-            var serializedLayerList = m_SerializedProperties.LayerList;
+            var serializedLayerList = m_SerializedProperties.layerList;
             for (int layerIndex = 0; layerIndex < serializedLayerList.arraySize; layerIndex++)
             {
                 var serializedLayer = serializedLayerList.GetArrayElementAtIndex(layerIndex);
                 m_SerializedLayerProperties.Add(new SerializedCompositionLayer(serializedLayer));
             }
 
-            var serializedPropertyList = m_SerializedProperties.ShaderProperties;
-            if (m_SerializedProperties.ShaderProperties == null)
+            var serializedPropertyList = m_SerializedProperties.shaderProperties;
+            if (m_SerializedProperties.shaderProperties == null)
             {
                 return false;
             }
@@ -129,21 +129,21 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             }
             m_SerializedProperties.Update();
 
-            m_EnablePreview = EditorGUILayout.Toggle(TextUI.EnablePreview, m_compositionManager.enableOutput);
+            m_EnablePreview = EditorGUILayout.Toggle(Styles.k_EnablePreview, m_compositionManager.enableOutput);
             {
                 m_compositionManager.enableOutput = m_EnablePreview;
             }
 
             bool cameraChange = false;
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_SerializedProperties.OutputCamera, TextUI.OutputCamera);
+            EditorGUILayout.PropertyField(m_SerializedProperties.outputCamera, Styles.k_OutputCamera);
             if (EditorGUI.EndChangeCheck())
             {
                 cameraChange = true;
             }
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_SerializedProperties.CompositionShader, TextUI.CompositionGraph);
+            EditorGUILayout.PropertyField(m_SerializedProperties.compositionShader, Styles.k_CompositionGraph);
 
             bool shaderChange = false;
             if (EditorGUI.EndChangeCheck())
@@ -153,18 +153,18 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 shaderChange = true;
             }
 
-            EditorGUILayout.PropertyField(m_SerializedProperties.DisplayNumber);
+            EditorGUILayout.PropertyField(m_SerializedProperties.displayNumber);
 
             // Draw some warnings in case alpha is not fully supported
             if (m_compositionManager.alphaSupport == CompositionManager.AlphaChannelSupport.None)
             {
                 EditorGUILayout.Space(5);
-                EditorGUILayout.HelpBox(TextUI.AlphaWarningPipeline, MessageType.Warning);
+                EditorGUILayout.HelpBox(Styles.k_AlphaWarningPipeline, MessageType.Warning);
             }
             else if (m_compositionManager.alphaSupport == CompositionManager.AlphaChannelSupport.Rendering)
             {
                 EditorGUILayout.Space(5);
-                EditorGUILayout.HelpBox(TextUI.AlphaWarningPost, MessageType.Warning);
+                EditorGUILayout.HelpBox(Styles.k_AlphaWarningPost, MessageType.Warning);
             }
 
             // Now draw the composition shader properties
@@ -176,8 +176,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             layerListChange = false;
             if (m_layerList == null)
             {
-                var serializedLayerList = m_SerializedProperties.LayerList;
-                m_layerList = new ReorderableList(m_SerializedProperties.CompositorSO, serializedLayerList, true, false, true, true);
+                var serializedLayerList = m_SerializedProperties.layerList;
+                m_layerList = new ReorderableList(m_SerializedProperties.compositorSO, serializedLayerList, true, false, true, true);
 
                 m_layerList.drawHeaderCallback = (Rect rect) =>
                 {
@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                     menu.ShowAsContext();
                     m_IsEditorDirty = true;
 
-                    m_SerializedProperties.LayerList.serializedObject.Update();
+                    m_SerializedProperties.layerList.serializedObject.Update();
                     EditorUtility.SetDirty(m_compositionManager.profile);
                 };
 
@@ -248,7 +248,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.BeginVertical();
-            EditorGUILayout.LabelField(TextUI.RenderSchedule, headerStyle);
+            EditorGUILayout.LabelField(Styles.k_RenderSchedule, headerStyle);
             m_layerList.DoLayoutList();
             EditorGUILayout.EndVertical();
             if (EditorGUI.EndChangeCheck())
@@ -267,7 +267,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             EditorGUI.BeginChangeCheck();
             if (m_layerList.index >= 0)
             {
-                EditorGUILayout.LabelField(TextUI.Properties, headerStyle);
+                EditorGUILayout.LabelField(Styles.k_Properties, headerStyle);
 
                 rectagle.y += EditorGUIUtility.singleLineHeight * 1.5f;
                 rectagle.x += 5;
@@ -321,7 +321,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 return;
             }
 
-            if (serializedProperties.OutTarget.intValue != (int)CompositorLayer.OutputTarget.CameraStack)
+            if (serializedProperties.outTarget.intValue != (int)CompositorLayer.OutputTarget.CameraStack)
             {
                 CompositionLayerUI.DrawOutputLayerProperties(rect, serializedProperties, m_compositionManager.DeleteLayerRTs);
             }
@@ -329,7 +329,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             {
                 if (m_filterList == null)
                 {
-                    m_filterList = new ReorderableList(serializedProperties.InputFilters.serializedObject, serializedProperties.InputFilters, true, true, true, true);
+                    m_filterList = new ReorderableList(serializedProperties.inputFilters.serializedObject, serializedProperties.inputFilters, true, true, true, true);
                     m_filterList.onAddCallback = (list) =>
                     {
                         var menu = new GenericMenu();
@@ -360,7 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
                     m_filterList.drawHeaderCallback = (Rect r) =>
                     {
-                        EditorGUI.LabelField(r, TextUI.InputFilters, EditorStyles.largeLabel);
+                        EditorGUI.LabelField(r, Styles.k_InputFilters, EditorStyles.largeLabel);
                     };
 
                     m_filterList.elementHeightCallback = (index) =>

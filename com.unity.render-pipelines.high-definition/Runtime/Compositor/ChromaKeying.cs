@@ -12,9 +12,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     {
         internal class ShaderIDs
         {
-            public static readonly int _KeyColor = Shader.PropertyToID("_KeyColor");
-            public static readonly int _KeyParams = Shader.PropertyToID("_KeyParams");
-            public static readonly int _InputTexture = Shader.PropertyToID("_InputTexture");
+            public static readonly int k_KeyColor = Shader.PropertyToID("_KeyColor");
+            public static readonly int k_KeyParams = Shader.PropertyToID("_KeyParams");
+            public static readonly int k_InputTexture = Shader.PropertyToID("_InputTexture");
         }
 
         public BoolParameter activate = new BoolParameter(false);
@@ -36,29 +36,29 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             AdditionalCompositorData layerData = camera.camera.gameObject.GetComponent<AdditionalCompositorData>();
 
-            if (activate.value == false || layerData == null || layerData.m_layerFilters == null)
+            if (activate.value == false || layerData == null || layerData.layerFilters == null)
             {
                 HDUtils.BlitCameraTexture(cmd, source, destination);
                 return;
             }
 
-            int indx = layerData.m_layerFilters.FindIndex(x => x.m_Type == (int)CompositionFilter.FilterType.CHROMA_KEYING);
-            if (indx < 0)
+            int index = layerData.layerFilters.FindIndex(x => x.m_Type == (int)CompositionFilter.FilterType.CHROMA_KEYING);
+            if (index < 0)
             {
                 HDUtils.BlitCameraTexture(cmd, source, destination);
                 return;
             }
 
-            var filter = layerData.m_layerFilters[indx];
+            var filter = layerData.layerFilters[index];
             Vector4 keyParams;
             keyParams.x = filter.m_KeyThreshold;
             keyParams.y = filter.m_KeyTolerance;
             keyParams.z = filter.m_SpillRemoval;
             keyParams.w = 1.0f;
 
-            m_Material.SetVector(ShaderIDs._KeyColor, filter.m_MaskColor);
-            m_Material.SetVector(ShaderIDs._KeyParams, keyParams);
-            m_Material.SetTexture(ShaderIDs._InputTexture, source);
+            m_Material.SetVector(ShaderIDs.k_KeyColor, filter.m_MaskColor);
+            m_Material.SetVector(ShaderIDs.k_KeyParams, keyParams);
+            m_Material.SetTexture(ShaderIDs.k_InputTexture, source);
             HDUtils.DrawFullScreen(cmd, m_Material, destination);
         }
 

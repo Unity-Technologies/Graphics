@@ -44,17 +44,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         [SerializeField] OutputDisplay m_OutputDisplay = OutputDisplay.Display1;
 
-        public List<CompositorLayer> layers
-        {
-            get => m_InputLayers;
-        }
+        public List<CompositorLayer> layers => m_InputLayers;
 
         [SerializeField] List<CompositorLayer> m_InputLayers = new List<CompositorLayer>();
 
-        public AlphaChannelSupport alphaSupport
-        {
-            get => m_AlphaSupport;
-        }
+        public AlphaChannelSupport alphaSupport => m_AlphaSupport;
+
         internal AlphaChannelSupport m_AlphaSupport = AlphaChannelSupport.RenderingAndPostProcessing;
 
         public bool enableOutput
@@ -86,10 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
         }
 
-        public int numLayers
-        {
-            get => m_InputLayers.Count;
-        }
+        public int numLayers => m_InputLayers.Count;
 
         public Shader shader
         {
@@ -618,7 +610,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     m_InputLayers[i].SetupLayerCamera(lastLayer, layerPositionInStack);
 
                     // Corner case: If the first layer in a camera stack was disabled, then it should still clear the color buffer
-                    if (m_InputLayers[i].enabled == false && layerPositionInStack == 0)
+                    if (!m_InputLayers[i].enabled && layerPositionInStack == 0)
                     {
                         m_InputLayers[i].SetupClearColor();
                     }
