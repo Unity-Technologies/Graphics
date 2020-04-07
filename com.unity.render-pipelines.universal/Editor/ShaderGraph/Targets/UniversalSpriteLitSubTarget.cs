@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         public override bool IsActive() => true;
-
+        
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
         {
         }
-
+        
 #region SubShader
         static class SubShaders
         {

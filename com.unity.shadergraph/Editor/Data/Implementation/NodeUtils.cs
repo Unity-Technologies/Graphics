@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Rendering.ShaderGraph;
 
@@ -80,6 +79,25 @@ namespace UnityEditor.Graphing
         {
             Include,
             Exclude
+        }
+
+        public static SlotReference DepthFirstCollectRedirectNodeFromNode(RedirectNodeData node)
+        {
+            var inputSlot = node.FindSlot<MaterialSlot>(RedirectNodeData.kInputSlotID);
+            foreach (var edge in node.owner.GetEdges(inputSlot.slotReference))
+            {
+                // get the input details
+                var outputSlotRef = edge.outputSlot;
+                var inputNode = node.owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                // If this is a redirect node we continue to look for the top one
+                if (inputNode is RedirectNodeData redirectNode)
+                {
+                    return DepthFirstCollectRedirectNodeFromNode( redirectNode );
+                }
+                return outputSlotRef;
+            }
+            // If no edges it is the first redirect node without an edge going into it and we should return the slot ref
+            return node.GetSlotReference(RedirectNodeData.kInputSlotID);
         }
 
         public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node,

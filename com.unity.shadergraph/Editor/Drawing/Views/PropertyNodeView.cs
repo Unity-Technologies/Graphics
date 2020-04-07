@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Graphing;
+using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -98,6 +99,33 @@ namespace UnityEditor.ShaderGraph
             {
                 // Remove elements from disabled class list
                 RemoveFromClassList(disabledString);
+            }
+        }
+
+        public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
+        {
+            ClearMessage();
+            IconBadge badge;
+            if (severity == ShaderCompilerMessageSeverity.Error)
+            {
+                badge = IconBadge.CreateError(errString);
+            }
+            else
+            {
+                badge = IconBadge.CreateComment(errString);
+            }
+
+            Add(badge);
+            badge.AttachTo(this, SpriteAlignment.RightCenter);
+        }
+
+        public void ClearMessage()
+        {
+            var badge = this.Q<IconBadge>();
+            if(badge != null)
+            {
+                badge.Detach();
+                badge.RemoveFromHierarchy();
             }
         }
 

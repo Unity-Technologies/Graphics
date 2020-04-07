@@ -1,450 +1,72 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.Graphing;
-using UnityEditor.UIElements;
-using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    enum AlphaMode
+    sealed class HDTarget : Target
     {
-        Alpha,
-        Premultiply,
-        Additive,
-    }
-
-    enum DistortionMode
-    {
-        Add,
-        Multiply,
-        Replace
-    }
-
-    enum DoubleSidedMode
-    {
-        Disabled,
-        Enabled,
-        FlippedNormals,
-        MirroredNormals,
-    }
-
-    enum EmissionGIMode
-    {
-        Disabled,
-        Realtime,
-        Baked,
-    }
-
-    enum SpecularOcclusionMode
-    {
-        Off,
-        FromAO,
-        FromAOAndBentNormal,
-        Custom
-    }
-
-    sealed class HDTarget : Target, ISerializationCallbackReceiver
-    {
-        // Constants
         const string kAssetGuid = "61d9843d4027e3e4a924953135f76f3c";
-        
-        // SubTarget
         List<SubTarget> m_SubTargets;
-        List<string> m_SubTargetNames;
-        int activeSubTargetIndex => m_SubTargets.IndexOf(m_ActiveSubTarget);
-
-        // View
-        PopupField<string> m_SubTargetField;
-        TextField m_CustomGUIField;
-
-        // TODO: Remove when Peter's serialization lands
-        [SerializeField]
-        SerializationHelper.JSONSerializedElement m_SerializedSubTarget;
-
-        [SerializeField]
         SubTarget m_ActiveSubTarget;
-
-        [SerializeField]
-        SurfaceType m_SurfaceType;
-
-        [SerializeField]
-        AlphaMode m_AlphaMode;
-
-        [SerializeField]
-        HDRenderQueue.RenderQueueType m_RenderingPass = HDRenderQueue.RenderQueueType.Opaque;
-
-        [SerializeField]
-        bool m_TransparencyFog = true;
-
-        [SerializeField]
-        bool m_Distortion;
-
-        [SerializeField]
-        DistortionMode m_DistortionMode;
-
-        [SerializeField]
-        bool m_DistortionDepthTest = true;
-
-        [SerializeField]
-        bool m_AlphaTest;
-
-        [SerializeField]
-        int m_SortPriority;
-
-        [SerializeField]
-        DoubleSidedMode m_DoubleSidedMode;
-
-        [SerializeField]
-        bool m_AddPrecomputedVelocity = false;
-
-        [SerializeField]
-        bool m_ZWrite = true;
-
-        [SerializeField]
-        TransparentCullMode m_TransparentCullMode = TransparentCullMode.Back;
-
-        [SerializeField]
-        CompareFunction m_ZTest = CompareFunction.LessEqual;
-
-        [SerializeField]
-        bool m_DOTSInstancing = false;
-
-        [SerializeField]
-        string m_CustomEditorGUI;
 
         public HDTarget()
         {
             displayName = "HDRP";
-            m_SubTargets = TargetUtils.GetSubTargets(this);
-            m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
+            m_SubTargets = TargetUtils.GetSubTargetsOfType<HDTarget>();
         }
 
         public static string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates";
 
-        public SubTarget activeSubTarget
-        {
-            get => m_ActiveSubTarget;
-            set => m_ActiveSubTarget = value;
-        }
-
-        public SurfaceType surfaceType
-        {
-            get => m_SurfaceType;
-            set => m_SurfaceType = value;
-        }
-
-        public AlphaMode alphaMode
-        {
-            get => m_AlphaMode;
-            set => m_AlphaMode = value;
-        }
-
-        public HDRenderQueue.RenderQueueType renderingPass
-        {
-            get => m_RenderingPass;
-            set => m_RenderingPass = value;
-        }
-
-        public bool transparencyFog
-        {
-            get => m_TransparencyFog;
-            set => m_TransparencyFog = value;
-        }
-
-        public bool distortion
-        {
-            get => m_Distortion;
-            set => m_Distortion = value;
-        }
-
-        public DistortionMode distortionMode
-        {
-            get => m_DistortionMode;
-            set => m_DistortionMode = value;
-        }
-
-        public bool distortionDepthTest
-        {
-            get => m_DistortionDepthTest;
-            set => m_DistortionDepthTest = value;
-        }
-
-        public bool alphaTest
-        {
-            get => m_AlphaTest;
-            set => m_AlphaTest = value;
-        }
-
-        public int sortPriority
-        {
-            get => m_SortPriority;
-            set => m_SortPriority = value;
-        }
-
-        public DoubleSidedMode doubleSidedMode
-        {
-            get => m_DoubleSidedMode;
-            set => m_DoubleSidedMode = value;
-        }
-
-        public bool addPrecomputedVelocity
-        {
-            get => m_AddPrecomputedVelocity;
-            set => m_AddPrecomputedVelocity = value;
-        }
-
-        public bool zWrite
-        {
-            get => m_ZWrite;
-            set => m_ZWrite = value;
-        }
-
-        public TransparentCullMode transparentCullMode
-        {
-            get => m_TransparentCullMode;
-            set => m_TransparentCullMode = value;
-        }
-
-        public CompareFunction zTest
-        {
-            get => m_ZTest;
-            set => m_ZTest = value;
-        }
-
-        public bool dotsInstancing
-        {
-            get => m_DOTSInstancing;
-            set => m_DOTSInstancing = value;
-        }
-
-        public string customEditorGUI
-        {
-            get => m_CustomEditorGUI;
-            set => m_CustomEditorGUI = value;
-        }
-
-        public override bool IsActive()
-        {
-            bool isHDRenderPipeline = GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset;
-            return isHDRenderPipeline && activeSubTarget.IsActive();
-        }
-
         public override void Setup(ref TargetSetupContext context)
         {
+            // Currently we infer the active SubTarget based on the MasterNode type
+            void SetActiveSubTargetIndex(IMasterNode masterNode)
+            {
+                Type activeSubTargetType;
+                if(!s_SubTargetMap.TryGetValue(masterNode.GetType(), out activeSubTargetType))
+                    return;
+
+                m_ActiveSubTarget = m_SubTargets.FirstOrDefault(x => x.GetType() == activeSubTargetType);
+            }
+            
             // Setup the Target
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
 
             // Setup the active SubTarget
-            TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+            SetActiveSubTargetIndex(context.masterNode);
             m_ActiveSubTarget.Setup(ref context);
-
-            // Override EditorGUI
-            if(!string.IsNullOrEmpty(m_CustomEditorGUI))
-            {
-                context.SetDefaultShaderGUI(m_CustomEditorGUI);
-            }
-        }
-        
-        public override void GetFields(ref TargetFieldContext context)
-        {
-            // Core fields
-            context.AddField(Fields.GraphVertex,            context.blocks.Contains(BlockFields.VertexDescription.Position) ||
-                                                            context.blocks.Contains(BlockFields.VertexDescription.Normal) ||
-                                                            context.blocks.Contains(BlockFields.VertexDescription.Tangent));
-            context.AddField(Fields.GraphPixel);
-
-            // Distortion
-            context.AddField(HDFields.DistortionAdd,                distortionMode == DistortionMode.Add);
-            context.AddField(HDFields.DistortionMultiply,           distortionMode == DistortionMode.Multiply);
-            context.AddField(HDFields.DistortionReplace,            distortionMode == DistortionMode.Replace);
-            context.AddField(HDFields.TransparentDistortion,        surfaceType != SurfaceType.Opaque && distortion);
-            context.AddField(HDFields.DistortionDepthTest,          distortionDepthTest);
-
-            // Misc
-            context.AddField(Fields.AlphaTest,                      alphaTest && context.pass.pixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(HDFields.DoAlphaTest,                  alphaTest && context.pass.pixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(HDFields.AlphaFog,                     surfaceType != SurfaceType.Opaque && transparencyFog);
-            context.AddField(Fields.VelocityPrecomputed,            addPrecomputedVelocity);
-
-            // SubTarget fields
-            m_ActiveSubTarget.GetFields(ref context);
         }
 
-        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+        public override bool IsValid(IMasterNode masterNode)
         {
-            // Core blocks
-            context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
-            context.AddBlock(BlockFields.SurfaceDescription.Emission);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              m_SurfaceType == SurfaceType.Transparent || m_AlphaTest);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, m_AlphaTest);
-            context.AddBlock(HDBlockFields.SurfaceDescription.Distortion,       m_SurfaceType == SurfaceType.Transparent && m_Distortion);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DistortionBlur,   m_SurfaceType == SurfaceType.Transparent && m_Distortion);
-
-            // SubTarget blocks
-            m_ActiveSubTarget.GetActiveBlocks(ref context);
+            // Currently we infer the validity based on SubTarget mapping
+            return s_SubTargetMap.TryGetValue(masterNode.GetType(), out _);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        public override bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
         {
-            // Core properties
-            m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
-            context.AddProperty("Material", m_SubTargetField, (evt) =>
-            {
-                if (Equals(activeSubTargetIndex, m_SubTargetField.index))
-                    return;
-
-                m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
-                onChange();
-            });
-
-            // SubTarget properties
-            m_ActiveSubTarget.GetPropertiesGUI(ref context, onChange);
-
-            // Custom Editor GUI
-            // Requires FocusOutEvent
-            m_CustomGUIField = new TextField("") { value = customEditorGUI };
-            m_CustomGUIField.RegisterCallback<FocusOutEvent>(s =>
-            {
-                if (Equals(customEditorGUI, m_CustomGUIField.value))
-                    return;
-
-                customEditorGUI = m_CustomGUIField.value;
-                onChange();
-            });
-            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+            return currentPipeline is HDRenderPipelineAsset;
         }
 
-        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        // Currently we need to map SubTarget type to IMasterNode type
+        // We do this here to avoid bleeding this into the SubTarget API
+        static Dictionary<Type, Type> s_SubTargetMap = new Dictionary<Type, Type>()
         {
-            // Trunk currently relies on checking material property "_EmissionColor" to allow emissive GI. If it doesn't find that property, or it is black, GI is forced off.
-            // ShaderGraph doesn't use this property, so currently it inserts a dummy color (white). This dummy color may be removed entirely once the following PR has been merged in trunk: Pull request #74105
-            // The user will then need to explicitly disable emissive GI if it is not needed.
-            // To be able to automatically disable emission based on the ShaderGraph config when emission is black,
-            // we will need a more general way to communicate this to the engine (not directly tied to a material property).
-            collector.AddShaderProperty(new ColorShaderProperty()
-            {
-                overrideReferenceName = "_EmissionColor",
-                hidden = true,
-                value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
-            });
-
-            // ShaderGraph only property used to send the RenderQueueType to the material
-            collector.AddShaderProperty(new Vector1ShaderProperty
-            {
-                overrideReferenceName = "_RenderQueueType",
-                hidden = true,
-                value = (int)renderingPass,
-            });
-
-            // See SG-ADDITIONALVELOCITY-NOTE
-            if (addPrecomputedVelocity)
-            {
-                collector.AddShaderProperty(new BooleanShaderProperty
-                {
-                    value  = true,
-                    hidden = true,
-                    overrideReferenceName = kAddPrecomputedVelocity,
-                });
-            }
-
-            // Core properties
-            HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
-
-            // SubTarget properties
-            m_ActiveSubTarget.CollectShaderProperties(collector, generationMode);
-        }
-
-        public override void ProcessPreviewMaterial(Material material)
-        {
-            // Fixup the material settings:
-            material.SetFloat(kSurfaceType, (int)surfaceType);
-            material.SetFloat(kDoubleSidedEnable, doubleSidedMode != DoubleSidedMode.Disabled ? 1.0f : 0.0f);
-            material.SetFloat(kDoubleSidedNormalMode, (int)doubleSidedMode);
-            material.SetFloat(kAlphaCutoffEnabled, alphaTest ? 1 : 0);
-            material.SetFloat(kBlendMode, (int)HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode));
-            material.SetFloat(kEnableFogOnTransparent, transparencyFog ? 1.0f : 0.0f);
-            material.SetFloat(kZTestTransparent, (int)zTest);
-            material.SetFloat(kTransparentCullMode, (int)transparentCullMode);
-            material.SetFloat(kZWrite, zWrite ? 1.0f : 0.0f);
-
-            // No sorting priority for shader graph preview
-            material.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: alphaTest);
-
-            HDUnlitGUI.SetupMaterialKeywordsAndPass(material);
-        }
-
-        public bool ChangeRenderingPass(HDRenderQueue.RenderQueueType value)
-        {
-            switch (value)
-            {
-                case HDRenderQueue.RenderQueueType.Overlay:
-                case HDRenderQueue.RenderQueueType.Unknown:
-                case HDRenderQueue.RenderQueueType.Background:
-                    throw new ArgumentException("Unexpected kind of RenderQueue, was " + value);
-                default:
-                    break;
-            };
-            return UpdateRenderingPassValue(value);
-        }
-
-        public bool UpdateRenderingPassValue(HDRenderQueue.RenderQueueType value)
-        {
-            switch (surfaceType)
-            {
-                case SurfaceType.Opaque:
-                    value = HDRenderQueue.GetOpaqueEquivalent(value);
-                    break;
-                case SurfaceType.Transparent:
-                    value = HDRenderQueue.GetTransparentEquivalent(value);
-                    break;
-                default:
-                    throw new ArgumentException("Unknown SurfaceType");
-            }
-
-            if (Equals(renderingPass, value))
-                return false;
-
-            renderingPass = value;
-            return true;
-        }
-
-        // TODO: Remove this
-#region Serialization
-        public void OnBeforeSerialize()
-        {
-            m_SerializedSubTarget = SerializationHelper.Serialize<SubTarget>(m_ActiveSubTarget);
-        }
-
-        public void OnAfterDeserialize()
-        {
-            // Deserialize the SubTarget
-            m_ActiveSubTarget = SerializationHelper.Deserialize<SubTarget>(m_SerializedSubTarget, GraphUtil.GetLegacyTypeRemapping());
-            m_ActiveSubTarget.target = this;
-        }
-#endregion
-    }
-
-#region BlockMasks
-    static class CoreBlockMasks
-    {
-        public static BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
-        {
-            BlockFields.VertexDescription.Position,
-            BlockFields.VertexDescription.Normal,
-            BlockFields.VertexDescription.Tangent,
+            { typeof(PBRMasterNode), typeof(PBRSubTarget) },
+            { typeof(UnlitMasterNode), typeof(UnlitSubTarget) },
+            { typeof(HDLitMasterNode), typeof(HDLitSubTarget) },
+            { typeof(HDUnlitMasterNode), typeof(HDUnlitSubTarget) },
+            { typeof(DecalMasterNode), typeof(HDDecalSubTarget) },
+            { typeof(EyeMasterNode), typeof(HDEyeSubTarget) },
+            { typeof(FabricMasterNode), typeof(HDFabricSubTarget) },
+            { typeof(HairMasterNode), typeof(HDHairSubTarget) },
+            { typeof(StackLitMasterNode), typeof(HDStackLitSubTarget) },
         };
     }
-#endregion
 
 #region StructCollections
     static class CoreStructCollections
@@ -657,6 +279,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static readonly string dstBlend = "[_DstBlend]";
             public static readonly string alphaSrcBlend = "[_AlphaSrcBlend]";
             public static readonly string alphaDstBlend = "[_AlphaDstBlend]";
+            public static readonly string alphaToMask = "[_AlphaToMask]";
             public static readonly string cullMode = "[_CullMode]";
             public static readonly string cullModeForward = "[_CullModeForward]";
             public static readonly string zTestDepthEqualForOpaque = "[_ZTestDepthEqualForOpaque]";
@@ -707,6 +330,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskDepth,
@@ -720,6 +344,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskMV,
@@ -743,7 +368,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Blend(Blend.One, Blend.Zero) },
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.ColorMask("ColorMask 0") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskNormal]") },
+            { RenderState.ColorMask("ColorMask 0 1") },
         };
 
         public static RenderStateCollection Forward = new RenderStateCollection
@@ -934,6 +560,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { HDBase },
             { CoreKeywordDescriptors.WriteMsaaDepth },
+            { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
         };
 
         public static KeywordCollection Forward = new KeywordCollection
@@ -1405,6 +1032,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Alpha Test",
             referenceName = "_ALPHATEST_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local
+        };
+
+        public static KeywordDescriptor AlphaToMask = new KeywordDescriptor()
+        {
+            displayName = "Alpha To Mask",
+            referenceName = "_ALPHATOMASK_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local

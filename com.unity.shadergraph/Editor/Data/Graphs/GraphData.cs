@@ -819,6 +819,20 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var serializableNode in nodes)
             {
+                // Check if it is a Redirect Node
+                // Get the edges and then re-create all Edges
+                // This only works if it has all the edges.
+                // If one edge is already deleted then we can not re-create.
+                if (serializableNode is RedirectNodeData redirectNode)
+                {
+                    redirectNode.GetOutputAndInputSlots(out SlotReference outputSlotRef, out var inputSlotRefs);
+
+                    foreach (SlotReference slot in inputSlotRefs)
+                    {
+                        ConnectNoValidate(outputSlotRef, slot);
+                    }
+                }
+
                 RemoveNodeNoValidate(serializableNode);
             }
 
@@ -956,7 +970,7 @@ namespace UnityEditor.ShaderGraph
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
             m_AddedInputs.Add(input);
         }
 

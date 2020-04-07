@@ -1,14 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.UIElements;
-using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -21,243 +12,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template";
         static string raytracingPassTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/UnlitPass.template";
 
-        // TODO: This isnt used anywhere?
-        [SerializeField]
-        bool m_DistortionOnly = true;
-
-        [SerializeField]
-        bool m_EnableShadowMatte = false;
-
         public HDUnlitSubTarget()
         {
             displayName = "Unlit";
         }
-
-        string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
-        string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(target.renderingPass, target.sortPriority, target.alphaTest));
-
-        public bool distortionOnly
-        {
-            get => m_DistortionOnly;
-            set => m_DistortionOnly = value;
-        }
-
-        public bool enableShadowMatte
-        {
-            get => m_EnableShadowMatte;
-            set => m_EnableShadowMatte = value;
-        }
-
-        public override bool IsActive() => true;
-
+        
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
             context.SetDefaultShaderGUI("Rendering.HighDefinition.HDUnlitGUI");
-
-            // Process SubShaders
-            SubShaderDescriptor[] subShaders = { SubShaders.Unlit, SubShaders.UnlitRaytracing };
-            for(int i = 0; i < subShaders.Length; i++)
-            {
-                // Update Render State
-                subShaders[i].renderType = renderType;
-                subShaders[i].renderQueue = renderQueue;
-
-                // Add
-                context.AddSubShader(subShaders[i]);
-            }
-        }
-
-        public override void GetFields(ref TargetFieldContext context)
-        {
-            // Unlit
-            context.AddField(HDFields.EnableShadowMatte, enableShadowMatte);
-        }
-
-        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
-        {
-            // Unlit
-            context.AddBlock(HDBlockFields.SurfaceDescription.ShadowTint, enableShadowMatte);
-        }
-
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
-        {
-            context.AddProperty("Surface Type", 0, new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
-            {
-                if (Equals(target.surfaceType, evt.newValue))
-                    return;
-
-                target.surfaceType = (SurfaceType)evt.newValue;
-                target.UpdateRenderingPassValue(target.renderingPass);
-                onChange();
-            });
-
-            var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(target.surfaceType == SurfaceType.Opaque, true);
-            var renderingPassValue = target.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(target.renderingPass) : HDRenderQueue.GetTransparentEquivalent(target.renderingPass);
-            var renderQueueType = target.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-            context.AddProperty("Rendering Pass", 1, new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue }, (evt) =>
-            {
-                if(target.ChangeRenderingPass(evt.newValue))
-                {
-                    onChange();
-                }
-            });
-
-            context.AddProperty("Blending Mode", 1, new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
-            {
-                if (Equals(target.alphaMode, evt.newValue))
-                    return;
-
-                target.alphaMode = (AlphaMode)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Depth Test", 1, new EnumField(target.zTest) { value = target.zTest }, target.surfaceType == SurfaceType.Transparent, (evt) =>
-            {
-                if (Equals(target.zTest, evt.newValue))
-                    return;
-
-                target.zTest = (CompareFunction)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Depth Write", 1, new Toggle() { value = target.zWrite }, target.surfaceType == SurfaceType.Transparent, (evt) =>
-            {
-                if (Equals(target.zWrite, evt.newValue))
-                    return;
-
-                target.zWrite = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Cull Mode", 1, new EnumField(target.transparentCullMode) { value = target.transparentCullMode }, target.surfaceType == SurfaceType.Transparent && target.doubleSidedMode != DoubleSidedMode.Disabled, (evt) =>
-            {
-                if (Equals(target.transparentCullMode, evt.newValue))
-                    return;
-
-                target.transparentCullMode = (TransparentCullMode)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Sorting Priority", 1, new IntegerField() { value = target.sortPriority }, target.surfaceType == SurfaceType.Transparent, (evt) =>
-            {
-                if (Equals(target.sortPriority, evt.newValue))
-                    return;
-
-                target.sortPriority = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Receive Fog", 1, new Toggle() { value = target.transparencyFog }, target.surfaceType == SurfaceType.Transparent, (evt) =>
-            {
-                if (Equals(target.transparencyFog, evt.newValue))
-                    return;
-
-                target.transparencyFog = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Distortion", 1, new Toggle() { value = target.distortion }, target.surfaceType == SurfaceType.Transparent, (evt) =>
-            {
-                if (Equals(target.distortion, evt.newValue))
-                    return;
-
-                target.distortion = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Distortion Blend Mode", 2, new EnumField(DistortionMode.Add) { value = target.distortionMode }, target.surfaceType == SurfaceType.Transparent && target.distortion, (evt) =>
-            {
-                if (Equals(target.distortionMode, evt.newValue))
-                    return;
-
-                target.distortionMode = (DistortionMode)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Distortion Only", 2, new Toggle() { value = distortionOnly }, target.surfaceType == SurfaceType.Transparent && target.distortion, (evt) =>
-            {
-                if (Equals(distortionOnly, evt.newValue))
-                    return;
-
-                distortionOnly = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Distortion Depth Test", 2, new Toggle() { value = target.distortionDepthTest }, target.surfaceType == SurfaceType.Transparent && target.distortion, (evt) =>
-            {
-                if (Equals(target.distortionDepthTest, evt.newValue))
-                    return;
-
-                target.distortionDepthTest = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Double-Sided", 0, new EnumField(DoubleSidedMode.Disabled) { value = target.doubleSidedMode }, (evt) =>
-            {
-                if (Equals(target.doubleSidedMode, evt.newValue))
-                    return;
-
-                target.doubleSidedMode = (DoubleSidedMode)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Alpha Clipping", 0, new Toggle() { value = target.alphaTest }, (evt) =>
-            {
-                if (Equals(target.alphaTest, evt.newValue))
-                    return;
-
-                target.alphaTest = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Add Precomputed Velocity", 0, new Toggle() { value = target.addPrecomputedVelocity }, (evt) =>
-            {
-                if (Equals(target.addPrecomputedVelocity, evt.newValue))
-                    return;
-
-                target.addPrecomputedVelocity = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Shadow Matte", 0, new Toggle() { value = enableShadowMatte }, (evt) =>
-            {
-                if (Equals(enableShadowMatte, evt.newValue))
-                    return;
-
-                enableShadowMatte = evt.newValue;
-                onChange();
-            });
-        }
-
-        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
-        {
-            if (m_EnableShadowMatte)
-            {
-                uint mantissa = ((uint)LightFeatureFlags.Punctual | (uint)LightFeatureFlags.Directional | (uint)LightFeatureFlags.Area) & 0x007FFFFFu;
-                uint exponent = 0b10000000u; // 0 as exponent
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    hidden = true,
-                    value = HDShadowUtils.Asfloat((exponent << 23) | mantissa),
-                    overrideReferenceName = HDMaterialProperties.kShadowMatteFilter
-                });
-            }
-
-            // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, false, false);
-            HDSubShaderUtilities.AddBlendingStatesShaderProperties(
-                collector,
-                target.surfaceType,
-                HDSubShaderUtilities.ConvertAlphaModeToBlendMode(target.alphaMode),
-                target.sortPriority,
-                target.zWrite,
-                target.transparentCullMode,
-                target.zTest,
-                false,
-                target.transparencyFog
-            );
-            HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, target.alphaTest, false);
+            context.AddSubShader(SubShaders.Unlit);
+            context.AddSubShader(SubShaders.UnlitRaytracing);
         }
 
 #region SubShaders
@@ -311,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                pixelBlocks = UnlitPortMasks.FragmentDefault,
+                pixelPorts = UnlitPortMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -336,8 +101,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = UnlitPortMasks.Vertex,
-                pixelBlocks = UnlitPortMasks.FragmentOnlyAlpha,
+                vertexPorts = UnlitPortMasks.Vertex,
+                pixelPorts = UnlitPortMasks.FragmentOnlyAlpha,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -362,8 +127,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = UnlitPortMasks.Vertex,
-                pixelBlocks = UnlitPortMasks.FragmentOnlyAlpha,
+                vertexPorts = UnlitPortMasks.Vertex,
+                pixelPorts = UnlitPortMasks.FragmentOnlyAlpha,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -389,8 +154,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = UnlitPortMasks.Vertex,
-                pixelBlocks = UnlitPortMasks.FragmentOnlyAlpha,
+                vertexPorts = UnlitPortMasks.Vertex,
+                pixelPorts = UnlitPortMasks.FragmentOnlyAlpha,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -415,8 +180,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = UnlitPortMasks.Vertex,
-                pixelBlocks = UnlitPortMasks.FragmentOnlyAlpha,
+                vertexPorts = UnlitPortMasks.Vertex,
+                pixelPorts = UnlitPortMasks.FragmentOnlyAlpha,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -441,8 +206,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = UnlitPortMasks.Vertex,
-                pixelBlocks = UnlitPortMasks.FragmentDistortion,
+                vertexPorts = UnlitPortMasks.Vertex,
+                pixelPorts = UnlitPortMasks.FragmentDistortion,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -467,14 +232,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = UnlitPortMasks.Vertex,
-                pixelBlocks = UnlitPortMasks.FragmentForward,
+                vertexPorts = UnlitPortMasks.Vertex,
+                pixelPorts = UnlitPortMasks.FragmentForward,
 
                 // Collections
                 structs = CoreStructCollections.Default,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = UnlitRenderStates.Forward,
+                renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = UnlitKeywords.Forward,
                 includes = UnlitIncludes.ForwardOnly,
@@ -493,8 +258,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = UnlitPortMasks.Vertex,
-                pixelBlocks = UnlitPortMasks.FragmentDefault,
+                vertexPorts = UnlitPortMasks.Vertex,
+                pixelPorts = UnlitPortMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -518,8 +283,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = UnlitPortMasks.Vertex,
-                pixelBlocks = UnlitPortMasks.FragmentDefault,
+                vertexPorts = UnlitPortMasks.Vertex,
+                pixelPorts = UnlitPortMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -543,8 +308,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = UnlitPortMasks.Vertex,
-                pixelBlocks = UnlitPortMasks.FragmentDefault,
+                vertexPorts = UnlitPortMasks.Vertex,
+                pixelPorts = UnlitPortMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -568,8 +333,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = UnlitPortMasks.Vertex,
-                pixelBlocks = UnlitPortMasks.FragmentDefault,
+                vertexPorts = UnlitPortMasks.Vertex,
+                pixelPorts = UnlitPortMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -593,8 +358,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = UnlitPortMasks.Vertex,
-                pixelBlocks = UnlitPortMasks.FragmentDefault,
+                vertexPorts = UnlitPortMasks.Vertex,
+                pixelPorts = UnlitPortMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -610,42 +375,42 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region PortMasks
         static class UnlitPortMasks
         {
-            public static BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
+            public static int[] Vertex = new int[]
             {
-                BlockFields.VertexDescription.Position,
-                BlockFields.VertexDescription.Normal,
-                BlockFields.VertexDescription.Tangent,
+                HDUnlitMasterNode.PositionSlotId,
+                HDUnlitMasterNode.VertexNormalSlotId,
+                HDUnlitMasterNode.VertexTangentSlotId,
             };
 
-            public static BlockFieldDescriptor[] FragmentDefault = new BlockFieldDescriptor[]
+            public static int[] FragmentDefault = new int[]
             {
-                BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.AlphaClipThreshold,
-                BlockFields.SurfaceDescription.Emission,
+                HDUnlitMasterNode.ColorSlotId,
+                HDUnlitMasterNode.AlphaSlotId,
+                HDUnlitMasterNode.AlphaThresholdSlotId,
+                HDUnlitMasterNode.EmissionSlotId,
             };
 
-            public static BlockFieldDescriptor[] FragmentOnlyAlpha = new BlockFieldDescriptor[]
+            public static int[] FragmentOnlyAlpha = new int[]
             {
-                BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                HDUnlitMasterNode.AlphaSlotId,
+                HDUnlitMasterNode.AlphaThresholdSlotId,
             };
 
-            public static BlockFieldDescriptor[] FragmentDistortion = new BlockFieldDescriptor[]
+            public static int[] FragmentDistortion = new int[]
             {
-                BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.AlphaClipThreshold,
-                HDBlockFields.SurfaceDescription.Distortion,
-                HDBlockFields.SurfaceDescription.DistortionBlur,
+                HDUnlitMasterNode.AlphaSlotId,
+                HDUnlitMasterNode.AlphaThresholdSlotId,
+                HDUnlitMasterNode.DistortionSlotId,
+                HDUnlitMasterNode.DistortionBlurSlotId,
             };
 
-            public static BlockFieldDescriptor[] FragmentForward = new BlockFieldDescriptor[]
+            public static int[] FragmentForward = new int[]
             {
-                BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.AlphaClipThreshold,
-                BlockFields.SurfaceDescription.Emission,
-                HDBlockFields.SurfaceDescription.ShadowTint,
+                HDUnlitMasterNode.ColorSlotId,
+                HDUnlitMasterNode.AlphaSlotId,
+                HDUnlitMasterNode.AlphaThresholdSlotId,
+                HDUnlitMasterNode.EmissionSlotId,
+                HDUnlitMasterNode.ShadowTintSlotId,
             };
         }
 #endregion
@@ -661,13 +426,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
 
             // Caution: When using MSAA we have normal and depth buffer bind.
-            // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
-            // This is not a problem in no MSAA mode as there is no buffer bind
+            // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+            // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+            // - When MSAA: disable target 1 (normal buffer)
+            // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
             public static RenderStateCollection DepthForwardOnly = new RenderStateCollection
             {
                 { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
                 { RenderState.ZWrite(ZWrite.On) },
-                { RenderState.ColorMask("ColorMask 0 0") },
+                { RenderState.ColorMask("ColorMask [_ColorMaskNormal]") },
+                { RenderState.ColorMask("ColorMask 0 1") },
+                { RenderState.AlphaToMask(CoreRenderStates.Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
                 { RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
@@ -684,7 +453,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
                 { RenderState.ZWrite(ZWrite.On) },
-                { RenderState.ColorMask("ColorMask 0 1") },
+                { RenderState.ColorMask("ColorMask [_ColorMaskNormal] 1") },
+                { RenderState.ColorMask("ColorMask 0 2") },
+                { RenderState.AlphaToMask(CoreRenderStates.Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
                 { RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskMV,
@@ -699,7 +470,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(HDFields.DistortionAdd, true) },
                 { RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.DstAlpha, Blend.Zero), new FieldCondition(HDFields.DistortionMultiply, true) },
                 { RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero), new FieldCondition(HDFields.DistortionReplace, true) },
-                { RenderState.BlendOp(UnityEditor.ShaderGraph.BlendOp.Add, UnityEditor.ShaderGraph.BlendOp.Add) },
+                { RenderState.BlendOp(BlendOp.Add, BlendOp.Add) },
                 { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
                 { RenderState.ZWrite(ZWrite.Off) },
                 { RenderState.ZTest(ZTest.Always), new FieldCondition(HDFields.DistortionDepthTest, false) },
@@ -708,21 +479,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDistortionVec,
                     Ref = CoreRenderStates.Uniforms.stencilRefDistortionVec,
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-            };
-
-            public static RenderStateCollection Forward = new RenderStateCollection
-            {
-                { RenderState.Blend(CoreRenderStates.Uniforms.srcBlend, CoreRenderStates.Uniforms.dstBlend, CoreRenderStates.Uniforms.alphaSrcBlend, CoreRenderStates.Uniforms.alphaDstBlend) },
-                { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
-                { RenderState.ZWrite(CoreRenderStates.Uniforms.zWrite) },
-                { RenderState.ZTest(CoreRenderStates.Uniforms.zTestTransparent) },
-                { RenderState.Stencil(new StencilDescriptor()
-                {
-                    WriteMask = CoreRenderStates.Uniforms.stencilWriteMask,
-                    Ref = CoreRenderStates.Uniforms.stencilRef,
                     Comp = "Always",
                     Pass = "Replace",
                 }) },
@@ -737,6 +493,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { CoreKeywords.HDBase },
                 { CoreKeywordDescriptors.WriteMsaaDepth },
+                { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
             };
 
             public static KeywordCollection Forward = new KeywordCollection

@@ -162,7 +162,20 @@ namespace UnityEditor.ShaderGraph
                     var customEditor = context.defaultShaderGUI;
                     if (customEditor != null)
                     {
-                        m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
+                        string customEditor = string.Empty;
+                        if(canChangeShaderGui.OverrideEnabled)
+                        {
+                            customEditor = GenerationUtils.FinalCustomEditorString(canChangeShaderGui);
+                        }
+                        else
+                        {
+                            customEditor = context.defaultShaderGUI;
+                        }
+                        
+                        if (customEditor != null)
+                        {
+                            m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
+                        }
                     }
                 }
 
@@ -299,10 +312,11 @@ namespace UnityEditor.ShaderGraph
             else if(m_OutputNode is SubGraphOutputNode)
             {
                 GenerationUtils.GetUpstreamNodesForShaderPass(m_OutputNode, pass, out vertexNodes, out pixelNodes);
-                pixelSlots = new List<MaterialSlot>()
-                {
-                    m_OutputNode.GetInputSlots<MaterialSlot>().FirstOrDefault(),
-                };
+                var slot = m_OutputNode.GetInputSlots<MaterialSlot>().FirstOrDefault();
+                if(slot != null)
+                    pixelSlots = new List<MaterialSlot>() { slot };
+                else
+                    pixelSlots = new List<MaterialSlot>();
                 vertexSlots = new List<MaterialSlot>();
             }
             else

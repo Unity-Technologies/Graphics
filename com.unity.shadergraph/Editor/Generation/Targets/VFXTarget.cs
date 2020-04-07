@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         bool m_AlphaTest = false;
-
+        
         public VFXTarget()
         {
             displayName = "Visual Effect";
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override bool IsActive() => true;
-
+        
         public override void Setup(ref TargetSetupContext context)
         {
         }

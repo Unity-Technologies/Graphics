@@ -30,6 +30,6 @@ namespace UnityEditor.ShaderGraph
         {
             get => base.target as T;
             set => base.target = value;
-        } 
+        }
     }
 }
