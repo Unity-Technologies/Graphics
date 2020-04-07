@@ -328,7 +328,7 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
       export YAMATO_JOB_ID=$YAMATO_JOB_ID
       export YAMATO_JOBDEFINITION_NAME=$YAMATO_JOBDEFINITION_NAME
       export YAMATO_PROJECT_ID=$YAMATO_PROJECT_ID
-      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics && GIT_BRANCH=$GIT_BRANCH GIT_REVISION=$GIT_REVISION YAMATO_JOB_ID=$YAMATO_JOB_ID YAMATO_JOBDEFINITION_NAME=$YAMATO_JOBDEFINITION_NAME YAMATO_PROJECT_ID=$YAMATO_PROJECT_ID ./utr --suite=playmode --platform=StandaloneOSX --player-load-path=build/players --artifacts_path=build/test-results --player-connection-ip=auto"
+      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "sudo cd ~/Graphics && GIT_BRANCH=$GIT_BRANCH GIT_REVISION=$GIT_REVISION YAMATO_JOB_ID=$YAMATO_JOB_ID YAMATO_JOBDEFINITION_NAME=$YAMATO_JOBDEFINITION_NAME YAMATO_PROJECT_ID=$YAMATO_PROJECT_ID ./utr --suite=playmode --platform=StandaloneOSX --player-load-path=build/players --artifacts_path=build/test-results --player-connection-ip=auto"
       
       UTR_RESULT=$?
       mkdir -p build/test-results/
