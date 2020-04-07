@@ -953,40 +953,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TAAPropertyBlock.SetVector(HDShaderIDs._RTHandleScaleHistory, camera.historyRTHandleProperties.rtHandleScale);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
-<<<<<<< HEAD
-=======
-            m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputVelocityMagnitudeHistory, prevMVLen);
-
-            m_TAAPropertyBlock.SetTexture(HDShaderIDs._DepthTexture, depthMipChain);
-
-            float minAntiflicker = 0.0f;
-            float maxAntiflicker = 3.5f;
-            float motionRejectionMultiplier = Mathf.Lerp(0.0f, 250.0f, camera.taaMotionVectorRejection * camera.taaMotionVectorRejection * camera.taaMotionVectorRejection);
-
-            var taaParameters = new Vector4(camera.taaHistorySharpening, Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, 0.0f);
-            Vector2 historySize = new Vector2(prevHistory.referenceSize.x * prevHistory.scaleFactor.x,
-                                              prevHistory.referenceSize.y * prevHistory.scaleFactor.y);
-            var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
-            var taaHistorySize = new Vector4(historySize.x, historySize.y, 1.0f / historySize.x, 1.0f / historySize.y);
-
-            // Precompute weights used for the Blackman-Harris filter. TODO: Note that these are slightly wrong as they don't take into account the jitter size. This needs to be fixed at some point.
-            float crossWeights = Mathf.Exp(-2.29f * 2);
-            float plusWeights = Mathf.Exp(-2.29f);
-            float centerWeight = 1;
-
-            float totalWeight = centerWeight + (4 * plusWeights);
-            if (camera.TAAQuality == HDAdditionalCameraData.TAAQualityLevel.High)
-            {
-                totalWeight += crossWeights * 4;
-            }
-
-            // Weights will be x: central, y: plus neighbours, z: cross neighbours, w: total
-            Vector4 taaFilterWeights = new Vector4(centerWeight / totalWeight, plusWeights / totalWeight, crossWeights / totalWeight, totalWeight);
-
-            m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaPostParameters, taaParameters);
-            m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
-            m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaFilterWeights, taaFilterWeights);
->>>>>>> 968d203cb6... Fix issues in the post process system with RenderTexture being invalid in some cases. Causing rendering problems. (#6480)
 
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
             cmd.SetRandomWriteTarget(1, nextHistory);
