@@ -66,6 +66,8 @@ namespace UnityEngine.Rendering.HighDefinition
         SharedRTManager     currentRTManager;
         HDCamera            currentHDCamera;
 
+        MaterialPropertyBlock userMaterialPropertyBlock;
+
         /// <summary>
         /// Mirror of the value in the CustomPassVolume where this custom pass is listed
         /// </summary>
@@ -170,23 +172,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     Setup(renderContext, cmd);
                     isSetup = true;
+                    userMaterialPropertyBlock = new MaterialPropertyBlock();
                 }
 
                 SetCustomPassTarget(cmd);
 
                 // Create the custom pass context:
-                CustomPassContext ctx = new CustomPassContext
-                {
-                    renderContext = renderContext,
-                    cmd = cmd,
-                    hdCamera = hdCamera,
-                    cullingResult = cullingResult,
-                    cameraColorBuffer = targets.cameraColorBuffer,
-                    cameraDepthBuffer = rtManager.GetDepthStencilBuffer(IsMSAAEnabled(hdCamera)),
-                    cameraNormalBuffer = rtManager.GetNormalBuffer(IsMSAAEnabled(hdCamera)),
-                    customColorBuffer = targets.customColorBuffer,
-                    customDepthBuffer = targets.customDepthBuffer,
-                };
+                CustomPassContext ctx = new CustomPassContext(
+                    renderContext, cmd, hdCamera,
+                    cullingResult, targets.cameraColorBuffer,
+                    rtManager.GetDepthStencilBuffer(IsMSAAEnabled(hdCamera)),
+                    rtManager.GetNormalBuffer(IsMSAAEnabled(hdCamera)),
+                    targets.customColorBuffer,
+                    targets.customDepthBuffer,
+                    userMaterialPropertyBlock
+                );
 
                 isExecuting = true;
 #pragma warning disable CS0618 // Member is obsolete
@@ -270,16 +270,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Called when your pass needs to be executed by a camera
         /// </summary>
-        /// <param name="ctx">Custom Pass Context.</param>
-        // TODO: move this function to abstract when we deprecate the method above
+        /// <param name="ctx">The context of the custom pass. Contains command buffer, render context, buffer, etc.</param>
+        // TODO: move this function to abstract when we remove the method above
         protected virtual void Execute(CustomPassContext ctx) {}
 
         /// <summary>
         /// Called before the first execution of the pass occurs.
         /// Allow you to allocate custom buffers.
         /// </summary>
-        /// <param name="renderContext"></param>
-        /// <param name="cmd"></param>
+        /// <param name="renderContext">The render context</param>
+        /// <param name="cmd">Current command buffer of the frame</param>
         protected virtual void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd) {}
 
         /// <summary>
@@ -287,6 +287,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Allow you to free custom buffers.
         /// </summary>
         protected virtual void Cleanup() {}
+
+        // TODO: mark obsolete all the Set* functions and add a variant that takes a CustomPassContext.
 
         /// <summary>
         /// Bind the camera color buffer as the current render target
@@ -401,27 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="type">The custom pass render queue type.</param>
         /// <returns>Returns a render queue range compatible with a ScriptableRenderContext.DrawRenderers.</returns>
         protected RenderQueueRange GetRenderQueueRange(CustomPass.RenderQueueType type)
-            => GetRenderQueueRangeFromRenderQueueType(type);
-
-        internal static RenderQueueRange GetRenderQueueRangeFromRenderQueueType(RenderQueueType type)
-        {
-            switch (type)
-            {
-                case CustomPass.RenderQueueType.OpaqueNoAlphaTest: return HDRenderQueue.k_RenderQueue_OpaqueNoAlphaTest;
-                case CustomPass.RenderQueueType.OpaqueAlphaTest: return HDRenderQueue.k_RenderQueue_OpaqueAlphaTest;
-                case CustomPass.RenderQueueType.AllOpaque: return HDRenderQueue.k_RenderQueue_AllOpaque;
-                case CustomPass.RenderQueueType.AfterPostProcessOpaque: return HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque;
-                case CustomPass.RenderQueueType.PreRefraction: return HDRenderQueue.k_RenderQueue_PreRefraction;
-                case CustomPass.RenderQueueType.Transparent: return HDRenderQueue.k_RenderQueue_Transparent;
-                case CustomPass.RenderQueueType.LowTransparent: return HDRenderQueue.k_RenderQueue_LowTransparent;
-                case CustomPass.RenderQueueType.AllTransparent: return HDRenderQueue.k_RenderQueue_AllTransparent;
-                case CustomPass.RenderQueueType.AllTransparentWithLowRes: return HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes;
-                case CustomPass.RenderQueueType.AfterPostProcessTransparent: return HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent;
-                case CustomPass.RenderQueueType.All:
-                default:
-                    return HDRenderQueue.k_RenderQueue_All;
-            }
-        }
+            => CustomPassUtils.GetRenderQueueRangeFromRenderQueueType(type);
 
         /// <summary>
         /// Create a custom pass to execute a fullscreen pass

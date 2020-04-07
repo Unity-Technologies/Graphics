@@ -1,4 +1,4 @@
-Shader "Hidden/FullScreen/Blur"
+Shader "Hidden/HDRP/CustomPassUtils"
 {
     HLSLINCLUDE
 
@@ -15,9 +15,19 @@ Shader "Hidden/FullScreen/Blur"
     float _Radius;
     float _SampleCount;
     float4 _ViewPortSize; // We need the viewport size because we have a non fullscreen render target (blur buffers are downsampled in half res)
+    float4 _SourceScaleBias;
+
+    float2 GetScaledUVs(Varyings varyings)
+    {
+        float2 uv = varyings.positionCS.xy;
+        
+        // Apply scale and bias
+        return uv * _SourceScaleBias.xy + _SourceScaleBias.zw;
+    }
 
     float4 Copy(Varyings varyings) : SV_Target
     {
+        // TODO: handle scale and bias
         return LOAD_TEXTURE2D_X_LOD(_Source, varyings.positionCS.xy, _SourceMip);
     }
 
@@ -41,7 +51,7 @@ Shader "Hidden/FullScreen/Blur"
     {
         float depth = LoadCameraDepth(varyings.positionCS.xy);
         PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ViewPortSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-        return posInput.positionNDC.xy * _RTHandleScale;
+        return posInput.positionNDC.xy * _RTHandleScale.zw;
     }
 
     float4 HorizontalBlur(Varyings varyings) : SV_Target
@@ -76,24 +86,31 @@ Shader "Hidden/FullScreen/Blur"
         return float4(BlurPixels(taps), 1);
     }
 
-    float4 CompositeMaskedBlur(Varyings varyings) : SV_Target
+    float4 DownSample(Varyings varyings) : SV_Target
     {
-        float depth = LoadCameraDepth(varyings.positionCS.xy);
-        float2 uv = ClampUVs(GetSampleUVs(varyings));
-
-        float4 colorBuffer = SAMPLE_TEXTURE2D_X_LOD(_ColorBufferCopy, s_linear_clamp_sampler, uv, 0).rgba;
-        float4 blurredBuffer = SAMPLE_TEXTURE2D_X_LOD(_Source, s_linear_clamp_sampler, uv, 0).rgba;
-        float4 mask = SAMPLE_TEXTURE2D_X_LOD(_Mask, s_linear_clamp_sampler, uv, 0);
-        float maskDepth = SAMPLE_TEXTURE2D_X_LOD(_MaskDepth, s_linear_clamp_sampler, uv, 0).r;
-        float maskValue = 0;
-
-        maskValue = any(mask.rgb > 0.1) || (maskDepth > depth - 0.0001);
-
-        if (_InvertMask > 0.5)
-            maskValue = !maskValue;
-
-        return float4(lerp(blurredBuffer.rgb, colorBuffer.rgb, maskValue), colorBuffer.a);
+        float2 uv = GetScaledUVs(varyings);
+        // TODO: add half pixel offset ?
+        return SAMPLE_TEXTURE2D_X_LOD(_Source, s_linear_clamp_sampler, uv, 0);
     }
+
+    // float4 CompositeMaskedBlur(Varyings varyings) : SV_Target
+    // {
+    //     float depth = LoadCameraDepth(varyings.positionCS.xy);
+    //     float2 uv = ClampUVs(GetSampleUVs(varyings));
+
+    //     float4 colorBuffer = SAMPLE_TEXTURE2D_X_LOD(_ColorBufferCopy, s_linear_clamp_sampler, uv, 0).rgba;
+    //     float4 blurredBuffer = SAMPLE_TEXTURE2D_X_LOD(_Source, s_linear_clamp_sampler, uv, 0).rgba;
+    //     float4 mask = SAMPLE_TEXTURE2D_X_LOD(_Mask, s_linear_clamp_sampler, uv, 0);
+    //     float maskDepth = SAMPLE_TEXTURE2D_X_LOD(_MaskDepth, s_linear_clamp_sampler, uv, 0).r;
+    //     float maskValue = 0;
+
+    //     maskValue = any(mask.rgb > 0.1) || (maskDepth > depth - 0.0001);
+
+    //     if (_InvertMask > 0.5)
+    //         maskValue = !maskValue;
+
+    //     return float4(lerp(blurredBuffer.rgb, colorBuffer.rgb, maskValue), colorBuffer.a);
+    // }
 
     ENDHLSL
 

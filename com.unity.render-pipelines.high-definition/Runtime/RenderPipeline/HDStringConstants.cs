@@ -921,6 +921,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputTex                       = Shader.PropertyToID("_InputTex");
         public static readonly int _LoD                            = Shader.PropertyToID("_LoD");
         public static readonly int _FaceIndex                      = Shader.PropertyToID("_FaceIndex");
+
+        // Custom Pass Utils API
+        public static readonly int _SourceScaleBias                = Shader.PropertyToID("_SourceScaleBias");
     }
 
     // Shared material property names
