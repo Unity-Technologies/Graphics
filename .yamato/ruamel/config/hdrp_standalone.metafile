@@ -52,8 +52,9 @@ platforms:
     components:
       - editor
       - il2cpp
-dependencies_in_all:
-  - platform_name: Win
-    api_name: DX11
-    test_platform_names:
-      - Standalone
+all:
+  dependencies:
+    - platform_name: Win
+      api_name: DX11
+      test_platform_names:
+        - Standalone

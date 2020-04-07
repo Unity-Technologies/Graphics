@@ -105,19 +105,20 @@ platforms:
   #     - editor
   #     - il2cpp
   #     - android
-dependencies_in_all:
-  - platform_name: Win
-    api_name: DX11
-    test_platform_names:
-      - Standalone
-      - editmode
-      - playmode
-  - platform_name: OSX
-    api_name: Metal
-    test_platform_names:
-      - Standalone
-      - playmode 
-  - platform_name: OSX
-    api_name: OpenGLCore
-    test_platform_names:
-      - editmode    
+all:
+  dependencies:
+    - platform_name: Win
+      api_name: DX11
+      test_platform_names:
+        - Standalone
+        - editmode
+        - playmode
+    - platform_name: OSX
+      api_name: Metal
+      test_platform_names:
+        - Standalone
+        - playmode 
+    - platform_name: OSX
+      api_name: OpenGLCore
+      test_platform_names:
+        - editmode    

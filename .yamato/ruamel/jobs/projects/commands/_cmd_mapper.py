@@ -1,6 +1,5 @@
 from . import win, osx_openglcore, osx_metal, linux
 
-# TODO maybe better to join up editmode, playmode, and playmode xr
 cmd_map = {
     'win' : {
         'not_standalone': win.cmd_not_standalone,
@@ -26,7 +25,7 @@ cmd_map = {
 }
 
 
-def get_cmd(platform_name, api_name, test_platform_name):
+def get_cmd(platform_name, api_name, test_platform_type):
     '''Returns the set of commands according to the platform, api, and job (editmode: normal editmode; editmode_split: editmode with split standalone_build for standalone; standalone_build: standalone_build player for standalone)'''
     cmd_map_ref = f'{platform_name}_{api_name}'.lower() if platform_name.lower() == 'osx' else platform_name.lower()
-    return cmd_map[cmd_map_ref][test_platform_name]
+    return cmd_map[cmd_map_ref][test_platform_type]

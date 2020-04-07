@@ -29,3 +29,7 @@ platforms:
     components:
       - editor
       - il2cpp
+agent:
+  type: Unity::VM
+  image: cds-ops/ubuntu-16.04-base:stable
+  flavor: b1.small

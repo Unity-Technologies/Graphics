@@ -88,10 +88,11 @@ platforms:
     components:
       - editor
       - il2cpp
-dependencies_in_all:
-  - platform_name: Win
-    api_name: DX11
-    test_platform_names:
-      - Standalone
-      - editmode
-      - playmode
+all:
+  dependencies:
+    - platform_name: Win
+      api_name: DX11
+      test_platform_names:
+        - Standalone
+        - editmode
+        - playmode

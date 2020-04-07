@@ -32,9 +32,10 @@ platforms:
     components:
       - editor
       - il2cpp
-dependencies_in_all:
-  - platform_name: Win
-    api_name: DX12
-    test_platform_names:
-      - Standalone
-      - playmode
+all:
+  dependencies:
+    - platform_name: Win
+      api_name: DX12
+      test_platform_names:
+        - Standalone
+        - playmode
