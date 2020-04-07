@@ -11,8 +11,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
     {
         internal class Styles
         {
-            public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-
             public static GUIContent UseVolumes = new GUIContent("Use Volumes", "Enable this if the settings should be controlled by a volume override.");
             //public static GUIContent DepthSource = new GUIContent("Depth Source", "");
             public static GUIContent NormalQuality = new GUIContent("Normal Quality", "Controls the quality of computing the reconstructed normal.");
@@ -30,7 +28,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         private SerializedProperty m_Intensity;
         private SerializedProperty m_Radius;
         private SerializedProperty m_SampleCount;
-
         private List<SerializedObject> m_properties = new List<SerializedObject>();
 
         private void Init(SerializedProperty property)
@@ -47,66 +44,37 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
         {
-            rect.height = EditorGUIUtility.singleLineHeight;
             EditorGUI.BeginChangeCheck();
-            EditorGUI.BeginProperty(rect, label, property);
 
             if (!m_properties.Contains(property.serializedObject))
             {
                 Init(property);
             }
 
-            rect.y += Styles.defaultLineSpace;
-            EditorGUI.PropertyField(rect, m_UseVolumes, Styles.UseVolumes);
-            rect.y += Styles.defaultLineSpace;
-
+            EditorGUILayout.PropertyField(m_UseVolumes, Styles.UseVolumes);
             if (m_UseVolumes.boolValue)
             {
-                rect.height += Styles.defaultLineSpace * 4;
-                EditorGUI.HelpBox(rect, "Settings will be taken from SSAO volumes. Make sure you have a Volume in your scene with a Screen Space Ambient Occlusion override.", MessageType.Info);
-                rect.y += Styles.defaultLineSpace * 4;
+                EditorGUILayout.HelpBox( "Settings will be taken from SSAO volumes. Make sure you have a Volume in your scene with a Screen Space Ambient Occlusion override.", MessageType.Info);
+                EditorGUILayout.Space(4f);
             }
             else
             {
-                //EditorGUI.PropertyField(rect, m_DepthSource, Styles.depthSource);
-                //rect.y += Styles.defaultLineSpace;
-
+                //EditorGUILayout.PropertyField(m_DepthSource, Styles.depthSource);
                 //if (m_DepthSource == DepthSource.Depth)
                 {
-                    EditorGUI.PropertyField(rect, m_NormalQuality, Styles.NormalQuality);
-                    rect.y += Styles.defaultLineSpace;
+                    EditorGUILayout.PropertyField(m_NormalQuality, Styles.NormalQuality);
                 }
 
-                EditorGUI.PropertyField(rect, m_Downsample, Styles.DownSample);
-                rect.y += Styles.defaultLineSpace;
-
-                EditorGUI.Slider(rect, m_Intensity, 0f, 10f, Styles.Intensity);
-                rect.y += Styles.defaultLineSpace;
-
-                EditorGUI.Slider(rect, m_Radius, 0f, 10f, Styles.Radius);
-                rect.y += Styles.defaultLineSpace;
-
-                EditorGUI.IntSlider(rect, m_SampleCount, 0, 12, Styles.SampleCount);
-                rect.y += Styles.defaultLineSpace;
+                EditorGUILayout.PropertyField(m_Downsample, Styles.DownSample);
+                EditorGUILayout.Slider(m_Intensity, 0f, 10f, Styles.Intensity);
+                EditorGUILayout.Slider(m_Radius, 0f, 10f, Styles.Radius);
+                EditorGUILayout.IntSlider(m_SampleCount, 0, 12, Styles.SampleCount);
             }
 
-            EditorGUI.EndProperty();
             if (EditorGUI.EndChangeCheck())
             {
                 property.serializedObject.ApplyModifiedProperties();
             }
-        }
-
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-        {
-            float height = Styles.defaultLineSpace * 8f;
-
-            if (m_properties.Contains(property.serializedObject))
-            {
-                height += m_UseVolumes.boolValue ? 0 : Styles.defaultLineSpace * 2f;
-            }
-
-            return height;
         }
     }
 }

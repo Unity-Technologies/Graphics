@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.Universal
         {
             PropertyFetcher<ScreenSpaceAmbientOcclusionVolume> volume = new PropertyFetcher<ScreenSpaceAmbientOcclusionVolume>(serializedObject);
 
-            //m_DepthSource = Unpack(volume.Find(x => x.depthSource));
+            //m_DepthSource = Unpack(volume.Find(x => x.DepthSource));
             m_NormalQuality = Unpack(volume.Find(x => x.NormalQuality));
             m_Downsample    = Unpack(volume.Find(x => x.Downsample));
             m_Intensity     = Unpack(volume.Find(x => x.Intensity));

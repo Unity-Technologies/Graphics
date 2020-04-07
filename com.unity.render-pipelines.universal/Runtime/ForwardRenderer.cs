@@ -160,14 +160,16 @@ namespace UnityEngine.Rendering.Universal
             bool requiresDepthPrepass = isSceneViewCamera;
             requiresDepthPrepass |= (requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData));
 
-            // HACK: Temporary hack for forcing a depth prepass for SSAO until we've exposed render feature requirements!
+            // TODO: Temporary code to force a depth prepass for SSAO until we've exposed render feature requirements!
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
-                if (rendererFeatures[i].GetType() == typeof( ScreenSpaceAmbientOcclusionFeature))
+                if (rendererFeatures[i].GetType() != typeof(ScreenSpaceAmbientOcclusionFeature))
                 {
-                    requiresDepthPrepass = true;
-                    break;
+                    continue;
                 }
+
+                requiresDepthPrepass = true;
+                break;
             }
 
             // The copying of depth should normally happen after rendering opaques.
