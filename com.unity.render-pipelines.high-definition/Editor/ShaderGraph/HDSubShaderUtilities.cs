@@ -213,21 +213,6 @@ namespace UnityEditor.Rendering.HighDefinition
             return result;
         }
 
-        public static BlendMode ConvertAlphaModeToBlendMode(AlphaMode alphaMode)
-        {
-            switch (alphaMode)
-            {
-                case AlphaMode.Additive:
-                    return BlendMode.Additive;
-                case AlphaMode.Alpha:
-                    return BlendMode.Alpha;
-                case AlphaMode.Premultiply:
-                    return BlendMode.Premultiply;
-                default:
-                    throw new System.Exception("Unknown AlphaMode: " + alphaMode + ": can't convert to BlendMode.");
-            }
-        }
-
         public static DoubleSidedNormalMode ConvertDoubleSidedModeToDoubleSidedNormalMode(DoubleSidedMode shaderGraphMode)
         {
             switch (shaderGraphMode)

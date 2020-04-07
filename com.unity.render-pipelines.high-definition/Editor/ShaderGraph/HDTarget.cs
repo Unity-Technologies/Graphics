@@ -1,72 +1,163 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.UIElements;
+using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEditor.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
+    enum DoubleSidedMode
+    {
+        Disabled,
+        Enabled,
+        FlippedNormals,
+        MirroredNormals,
+    }
+
     sealed class HDTarget : Target
     {
+        // Constants
         const string kAssetGuid = "61d9843d4027e3e4a924953135f76f3c";
+
+        // SubTarget
         List<SubTarget> m_SubTargets;
+        List<string> m_SubTargetNames;
+        int activeSubTargetIndex => m_SubTargets.IndexOf(m_ActiveSubTarget);
+
+        // View
+        PopupField<string> m_SubTargetField;
+        TextField m_CustomGUIField;
+
+        // TODO: Remove when Peter's serialization lands
+        [SerializeField]
+        SerializationHelper.JSONSerializedElement m_SerializedSubTarget;
+
+        [SerializeField]
         SubTarget m_ActiveSubTarget;
+
+        [SerializeField]
+        string m_CustomEditorGUI;
 
         public HDTarget()
         {
             displayName = "HDRP";
-            m_SubTargets = TargetUtils.GetSubTargetsOfType<HDTarget>();
+            m_SubTargets = TargetUtils.GetSubTargets(this);
+            m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
         }
 
         public static string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates";
 
+        public override bool IsActive()
+        {
+            if(m_ActiveSubTarget == null)
+                return false;
+
+            bool isHDRenderPipeline = GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset;
+            return isHDRenderPipeline && m_ActiveSubTarget.IsActive();
+        }
+
         public override void Setup(ref TargetSetupContext context)
         {
-            // Currently we infer the active SubTarget based on the MasterNode type
-            void SetActiveSubTargetIndex(IMasterNode masterNode)
-            {
-                Type activeSubTargetType;
-                if(!s_SubTargetMap.TryGetValue(masterNode.GetType(), out activeSubTargetType))
-                    return;
-
-                m_ActiveSubTarget = m_SubTargets.FirstOrDefault(x => x.GetType() == activeSubTargetType);
-            }
-            
             // Setup the Target
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
 
+            // Process SubTargets
+            TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+            if(m_ActiveSubTarget == null)
+                return;
+
             // Setup the active SubTarget
-            SetActiveSubTargetIndex(context.masterNode);
             m_ActiveSubTarget.Setup(ref context);
+
+            // Override EditorGUI
+            if(!string.IsNullOrEmpty(m_CustomEditorGUI))
+            {
+                context.SetDefaultShaderGUI(m_CustomEditorGUI);
+            }
         }
 
-        public override bool IsValid(IMasterNode masterNode)
+        public override void GetFields(ref TargetFieldContext context)
         {
-            // Currently we infer the validity based on SubTarget mapping
-            return s_SubTargetMap.TryGetValue(masterNode.GetType(), out _);
         }
 
-        public override bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            return currentPipeline is HDRenderPipelineAsset;
         }
 
-        // Currently we need to map SubTarget type to IMasterNode type
-        // We do this here to avoid bleeding this into the SubTarget API
-        static Dictionary<Type, Type> s_SubTargetMap = new Dictionary<Type, Type>()
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
         {
-            { typeof(PBRMasterNode), typeof(PBRSubTarget) },
-            { typeof(UnlitMasterNode), typeof(UnlitSubTarget) },
-            { typeof(HDLitMasterNode), typeof(HDLitSubTarget) },
-            { typeof(HDUnlitMasterNode), typeof(HDUnlitSubTarget) },
-            { typeof(DecalMasterNode), typeof(HDDecalSubTarget) },
-            { typeof(EyeMasterNode), typeof(HDEyeSubTarget) },
-            { typeof(FabricMasterNode), typeof(HDFabricSubTarget) },
-            { typeof(HairMasterNode), typeof(HDHairSubTarget) },
-            { typeof(StackLitMasterNode), typeof(HDStackLitSubTarget) },
+            if(m_ActiveSubTarget == null)
+                return;
+            
+            // Core properties
+            m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
+            context.AddProperty("Material", m_SubTargetField, (evt) =>
+            {
+                if (Equals(activeSubTargetIndex, m_SubTargetField.index))
+                    return;
+
+                m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
+                onChange();
+            });
+
+            // SubTarget properties
+            m_ActiveSubTarget.GetPropertiesGUI(ref context, onChange);
+
+            // Custom Editor GUI
+            m_CustomGUIField = new TextField("") { value = m_CustomEditorGUI };
+            m_CustomGUIField.RegisterCallback<FocusOutEvent>(s =>
+            {
+                if (Equals(m_CustomEditorGUI, m_CustomGUIField.value))
+                    return;
+
+                m_CustomEditorGUI = m_CustomGUIField.value;
+                onChange();
+            });
+            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+        }
+
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+        }
+
+        // TODO: Remove this
+#region Serialization
+        public void OnBeforeSerialize()
+        {
+            if(m_ActiveSubTarget == null)
+                return;
+            
+            m_SerializedSubTarget = SerializationHelper.Serialize<SubTarget>(m_ActiveSubTarget);
+        }
+
+        public void OnAfterDeserialize()
+        {
+            if(m_ActiveSubTarget == null)
+                return;
+            
+            // Deserialize the SubTarget
+            m_ActiveSubTarget = SerializationHelper.Deserialize<SubTarget>(m_SerializedSubTarget, GraphUtil.GetLegacyTypeRemapping());
+            m_ActiveSubTarget.target = this;
+        }
+#endregion
+    }
+
+#region BlockMasks
+    static class CoreBlockMasks
+    {
+        public static BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
+        {
+            BlockFields.VertexDescription.Position,
+            BlockFields.VertexDescription.Normal,
+            BlockFields.VertexDescription.Tangent,
         };
     }
+#endregion
 
 #region StructCollections
     static class CoreStructCollections

@@ -9,6 +9,9 @@ namespace UnityEditor.ShaderGraph
     {
         public static void ProcessSubTargetList(ref SubTarget activeSubTarget, ref List<SubTarget> subTargets)
         {
+            if(subTargets == null || subTargets.Count == 0)
+                return;
+
             if(activeSubTarget == null)
             {
                 activeSubTarget = subTargets[0];
