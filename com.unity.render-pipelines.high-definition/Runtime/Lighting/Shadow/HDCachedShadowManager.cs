@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void RegisterLight(HDAdditionalLightData lightData)
         {
             HDLightType lightType = lightData.type;
-            Debug.Log(lightType != HDLightType.Directional); // TODO_FCC: HANDLE DIRECTIONAL!!
+            Debug.Assert(lightType != HDLightType.Directional); // TODO_FCC: HANDLE DIRECTIONAL!!
 
             if (lightType == HDLightType.Area)
             {

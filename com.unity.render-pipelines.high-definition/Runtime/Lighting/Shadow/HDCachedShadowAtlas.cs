@@ -14,13 +14,9 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         static private int s_InitialCapacity = 384; // TODO_FCC: Determine this better.
 
-        // DBG
-        private bool hasPrinted = false;
-
         // Constants.
         private const int m_MinSlotSize = 64;
         private const int m_MaxShadowsPerLight = 6;
-
 
         private int m_NextLightID = 0;
         private bool m_CanTryPlacement = false;
@@ -31,11 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int shadowIndex;
             internal int viewportSize;                               // We assume only square shadows maps.
             internal Vector4 offsetInAtlas;                          // When is registered xy is the offset in the texture atlas, in UVs, the zw is the entry offset in the C# representation.
-
-            internal Vector4 GetShadowViewport() // In atlas/texture space
-            {
-                return new Vector4(offsetInAtlas.x, offsetInAtlas.y, viewportSize, viewportSize);
-            }
         }
 
         private int m_MaxAtlasResolution;
@@ -204,35 +195,31 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Debug.Assert(lightData.type != HDLightType.Directional);
 
-            CachedShadowRecord recordToRemove;
-            bool valueFound = m_PlacedShadows.TryGetValue(lightData.lightIdxForCachedShadows, out recordToRemove);
 
             DBG_NAMES_LIGHT.RemoveAll(x => x.Item1 == lightData.name);
 
             // todo is it here the right place?
             m_RegisteredLightDataPendingPlacement.Remove(lightData.lightIdxForCachedShadows);
 
-            if (valueFound)
+            int numberOfShadows = (lightData.type == HDLightType.Point) ? 6 : 1;
+
+            int lightIdx = lightData.lightIdxForCachedShadows;
+
+            for (int i = 0; i < numberOfShadows; ++i)
             {
-                int numberOfShadows = (lightData.type == HDLightType.Point) ? 6 : 1;
+                CachedShadowRecord recordToRemove;
+                bool valueFound = false;
+                int shadowIdx = lightIdx + i;
 
-                int lightIdx = lightData.lightIdxForCachedShadows;
+                valueFound = m_PlacedShadows.TryGetValue(shadowIdx, out recordToRemove);
 
-                for (int i = 0; i < numberOfShadows; ++i)
+                if (valueFound)
                 {
-                    int shadowIdx = lightIdx + i;
+                    m_PlacedShadows.Remove(shadowIdx);
+                    m_ShadowsPendingRendering.Remove(shadowIdx);
 
-                    valueFound = m_PlacedShadows.TryGetValue(shadowIdx, out recordToRemove);
-
-                    if (valueFound)
-                    {
-                        m_PlacedShadows.Remove(shadowIdx);
-                        m_ShadowsPendingRendering.Remove(shadowIdx);
-
-                        MarkEntries((int)recordToRemove.offsetInAtlas.z, (int)recordToRemove.offsetInAtlas.w, HDUtils.DivRoundUp(recordToRemove.viewportSize, m_MinSlotSize), false);
-                        m_CanTryPlacement = true;
-                    }
-
+                    MarkEntries((int)recordToRemove.offsetInAtlas.z, (int)recordToRemove.offsetInAtlas.w, HDUtils.DivRoundUp(recordToRemove.viewportSize, m_MinSlotSize), false);
+                    m_CanTryPlacement = true;
                 }
             }
         }
@@ -248,11 +235,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool LightIsPendingPlacement(HDAdditionalLightData lightData)
         {
             return m_RegisteredLightDataPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows);
-        }
-
-        // TODO: The idea is to either size up or ignore.
-        private void DealWithFullAtlas()
-        {
         }
 
         void InsertionSort(ref List<CachedShadowRecord> list, int startIndex, int lastIndex)
@@ -281,7 +263,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             foreach (var currentLightData in lightList.Values)
             {
-                // var resolution = currentLightData.shadowre
                 int resolution = 0;
 
                 resolution = currentLightData.GetResolutionFromSettings(m_ShadowType, initParams);
@@ -358,7 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void PerformPlacement()
         {
-            for (int i = 0; i < m_TempListForPlacement.Count; ++i)
+            for (int i = 0; i < m_TempListForPlacement.Count;)
             {
                 int x, y;
                 var record = m_TempListForPlacement[i];
@@ -387,6 +368,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_PlacedShadows.Add(record.shadowIndex, record);
                         m_RegisteredLightDataPendingPlacement.Remove(record.shadowIndex);
                     }
+
+                    i++;
                 }
             }
         }
