@@ -802,8 +802,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private static readonly ProfilerMarker GraphLoadMarker = new ProfilerMarker("GraphLoad");
         private static readonly ProfilerMarker CreateGraphEditorViewMarker = new ProfilerMarker("CreateGraphEditorView");
-        private static readonly ProfilerMarker RepaintMarker = new ProfilerMarker("Repaint");
-
         public void Initialize(string assetGuid)
         {
             try
@@ -871,10 +869,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 titleContent = EditorGUIUtility.TrTextContentWithIcon(selectedGuid, icon);
                 UpdateTitle();
 
-                using (RepaintMarker.Auto())
-                {
-                    Repaint();
-                }
+                Repaint();
             }
             catch (Exception)
             {
