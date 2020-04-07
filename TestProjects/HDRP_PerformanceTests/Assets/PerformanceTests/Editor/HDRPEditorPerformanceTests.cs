@@ -38,8 +38,6 @@ public class HDRPEditorPerformanceTests : EditorPerformanceTests
     [Timeout(k_BuildTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Build([ValueSource(nameof(GetBuildTests))] BuildTestDescription testDescription)
     {
-        yield return LoadScene(testDescription.sceneData.scene, testDescription.assetData.asset);
-
         HDRPreprocessShaders.shaderPreprocessed += ReportShaderStrippingData;
 
         using (new EditorLogWatcher(OnEditorLogWritten))

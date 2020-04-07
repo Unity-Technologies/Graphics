@@ -56,7 +56,7 @@ public static class PerformanceTestUtils
         => $"{inputData}:{inputDataCategory},{settings}:{settingsCategory},{testName}";
 
     // Counter example: Timing,GPU,Gbuffer
-    // Memory example: AllocatedBytes,CPU,Default
+    // Memory example: AllocatedBytes,Texture2D,Default
     public static string FormatSampleGroupName(string metricName, string category, string dataName = null)
         => $"{metricName},{category},{dataName ?? "Default"}";
 
