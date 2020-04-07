@@ -460,14 +460,25 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             var compositor = CompositionManager.GetInstance();
             m_LayerCamera.enabled = (m_Show || m_ClearsBackGround) && compositor.enableOutput;
 
-            // Refresh the camera data
-            m_LayerCamera.CopyFrom(m_Camera);
-            var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
-            var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-            if (cameraDataOrig)
+            if (m_Type == LayerType.Image)
             {
-                cameraDataOrig.CopyTo(cameraData);
+                var compositorData = m_LayerCamera.GetComponent<AdditionalCompositorData>();
+                if(compositorData)
+                    compositorData.clearColorTexture = m_Show ? m_InputTexture : Texture2D.blackTexture;
             }
+
+            if (m_LayerCamera.enabled)
+            {
+                // Refresh the camera data
+                m_LayerCamera.CopyFrom(m_Camera);
+                var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
+                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
+                if (cameraDataOrig)
+                {
+                    cameraDataOrig.CopyTo(cameraData);
+                }
+            }
+
         }
 
         public void Update()
@@ -568,7 +579,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     {
                         compositorData = m_LayerCamera.gameObject.AddComponent<AdditionalCompositorData>();
                     }
-                    compositorData.clearColorTexture = targetLayer.GetRenderTarget(false);
+                    if (m_Type != LayerType.Image)
+                    {
+                        compositorData.clearColorTexture = targetLayer.GetRenderTarget(false);
+                    }
                     cameraData.volumeLayerMask |= 1 << 31;
                 }
                 else
