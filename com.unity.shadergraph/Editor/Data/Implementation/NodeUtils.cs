@@ -250,8 +250,8 @@ namespace UnityEditor.Graphing
                 if(n.isActive != vt && getChangedNodes)
                 {
                     changedNodes.Add(n);
-                    n.isActive = vt;
                 }
+                n.isActive = vt;
             }
         }
 

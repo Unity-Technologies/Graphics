@@ -943,7 +943,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     input = targetAnchor,
                 };
 
-                SetEdgeViewOpacity(edgeView, isEdgeActive ? 1f : 0.5f);
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
                 m_GraphView.AddElement(edgeView);
@@ -956,10 +955,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             return null;
-        }
-
-        private void SetEdgeViewOpacity(Edge edgeView, float v)
-        {
         }
 
         Stack<Node> m_NodeStack = new Stack<Node>();
@@ -984,13 +979,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         //update edges based on the active state of any modified nodes
                         if(edgeView.input.node is MaterialNodeView inputNode && edgeView.output.node is MaterialNodeView outputNode)
                         {
-                            //if any node connected is not active, edge should be dimmed
-                            if(!inputNode.node.isActive || !outputNode.node.isActive)
-                                SetEdgeViewOpacity(edgeView, 0.5f);
-                            else
-                                SetEdgeViewOpacity(edgeView, 1f);
                             //force redraw on update to prevent visual lag in the graph
-                            edgeView.UpdateEdgeControl();
+                            //Now has to be delayed a frame because setting port styles wont update colors till next frame
+                            edgeView.schedule.Execute(() => edgeView.UpdateEdgeControl()).StartingIn(0);
                         }
                         //update edges based on dynamic vector length of any modified nodes
                         var targetSlot = edgeView.input.GetSlot();
@@ -1015,13 +1006,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         //update edges based on the active state of any modified nodes
                         if(edgeView.input.node is MaterialNodeView inputNode && edgeView.output.node is MaterialNodeView outputNode)
                         {
-                            //if any node connected is not active, edge should be dimmed
-                            if(!inputNode.node.isActive || !outputNode.node.isActive)
-                                SetEdgeViewOpacity(edgeView, 0.5f);
-                            else
-                                SetEdgeViewOpacity(edgeView, 1f);
                             //force redraw on update to prevent visual lag in the graph
-                            edgeView.UpdateEdgeControl();
+                            //Now has to be delayed a frame because setting port styles wont update colors till next frame
+                            edgeView.schedule.Execute(() => edgeView.UpdateEdgeControl()).StartingIn(0);
                         }
                         //update edge color for upstream dynamic vector types
                         var connectedNodeView = edgeView.output.node;
