@@ -501,6 +501,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.colorResolvePS);
 
             InitializeProbeVolumes();
+
+            ConstantBuffer<ShaderVariablesGlobal>.Allocate();
         }
 
 #if UNITY_EDITOR
@@ -956,6 +958,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 #endif
             }
+
+            ConstantBuffer<ShaderVariablesGlobal>.Release();
 
             CameraCaptureBridge.enabled = false;
         }

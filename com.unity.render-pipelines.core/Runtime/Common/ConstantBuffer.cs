@@ -1,3 +1,4 @@
+using System;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering
@@ -10,7 +11,7 @@ namespace UnityEngine.Rendering
     {
         CBType[]                        m_Data = new CBType[1]; // Array is required by the ComputeBuffer SetData API
         ComputeBuffer                   m_GPUConstantBuffer = null;
-        static ConstantBuffer<CBType>   m_TypedConstantBuffer = new ConstantBuffer<CBType>();
+        static ConstantBuffer<CBType>   m_TypedConstantBuffer;
 
         ConstantBuffer()
         {
@@ -41,9 +42,33 @@ namespace UnityEngine.Rendering
             mat.SetConstantBuffer(shaderId, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
         }
 
-        void Release()
+        void ReleaseInternal()
         {
             CoreUtils.SafeRelease(m_GPUConstantBuffer);
+        }
+
+        /// <summary>
+        /// Allocates GPU resources for this type of constant buffer.
+        /// This needs to be called once before using the constant buffer.
+        /// </summary>
+        public static void Allocate()
+        {
+            if (m_TypedConstantBuffer != null)
+                throw new InvalidOperationException($"Constant Buffer {m_TypedConstantBuffer.GetType()} was already allocated");
+
+            m_TypedConstantBuffer = new ConstantBuffer<CBType>();
+        }
+
+        /// <summary>
+        /// Release GPU resources for this type of constant buffer.
+        /// </summary>
+        public static void Release()
+        {
+            if (m_TypedConstantBuffer == null)
+                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+
+            m_TypedConstantBuffer.ReleaseInternal();
+            m_TypedConstantBuffer = null;
         }
 
         /// <summary>
@@ -54,6 +79,9 @@ namespace UnityEngine.Rendering
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public static void PushGlobal(CommandBuffer cmd, in CBType data, int shaderId)
         {
+            if (m_TypedConstantBuffer == null)
+                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+
             m_TypedConstantBuffer.UpdateDataInternal(cmd, data);
             m_TypedConstantBuffer.SetGlobalInternal(cmd, shaderId);
         }
@@ -67,6 +95,9 @@ namespace UnityEngine.Rendering
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public static void Push(CommandBuffer cmd, in CBType data, ComputeShader cs, int shaderId)
         {
+            if (m_TypedConstantBuffer == null)
+                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+
             m_TypedConstantBuffer.UpdateDataInternal(cmd, data);
             m_TypedConstantBuffer.SetInternal(cmd, cs, shaderId);
         }
@@ -80,6 +111,9 @@ namespace UnityEngine.Rendering
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public static void Push(CommandBuffer cmd, in CBType data, Material mat, int shaderId)
         {
+            if (m_TypedConstantBuffer == null)
+                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+
             m_TypedConstantBuffer.UpdateDataInternal(cmd, data);
             m_TypedConstantBuffer.SetInternal(mat, shaderId);
         }
@@ -91,6 +125,9 @@ namespace UnityEngine.Rendering
         /// <param name="data">Input data of the constant buffer.</param>
         public static void UpdateData(CommandBuffer cmd, in CBType data)
         {
+            if (m_TypedConstantBuffer == null)
+                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+
             m_TypedConstantBuffer.UpdateDataInternal(cmd, data);
         }
 
@@ -101,6 +138,9 @@ namespace UnityEngine.Rendering
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public static void SetGlobal(CommandBuffer cmd, int shaderId)
         {
+            if (m_TypedConstantBuffer == null)
+                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+
             m_TypedConstantBuffer.SetGlobalInternal(cmd, shaderId);
         }
 
@@ -112,6 +152,9 @@ namespace UnityEngine.Rendering
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public static void Set(CommandBuffer cmd, ComputeShader cs, int shaderId)
         {
+            if (m_TypedConstantBuffer == null)
+                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+
             m_TypedConstantBuffer.SetInternal(cmd, cs, shaderId);
         }
 
@@ -122,6 +165,9 @@ namespace UnityEngine.Rendering
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public static void Set(Material mat, int shaderId)
         {
+            if (m_TypedConstantBuffer == null)
+                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+
             m_TypedConstantBuffer.SetInternal(mat, shaderId);
         }
     }

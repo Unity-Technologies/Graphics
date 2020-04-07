@@ -307,6 +307,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void Initialize(HDRenderPipelineAsset hdrpAsset, RenderPipelineResources defaultResources,  IBLFilterBSDF[] iBLFilterBSDFArray)
             {
+                ConstantBuffer<ShaderVariablesLightList>.Allocate();
+
                 var lightLoopSettings = hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
                 m_CubeToPanoMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cubeToPanoPS);
@@ -343,6 +345,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightCookieManager.Release();
 
                 CoreUtils.Destroy(m_CubeToPanoMaterial);
+
+                ConstantBuffer<ShaderVariablesLightList>.Release();
             }
 
             public void NewFrame()
@@ -3486,8 +3490,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.probeVolumesAABBBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs._LightVolumeData, tileAndCluster.probeVolumesLightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs.g_data, tileAndCluster.probeVolumesConvexBoundsBuffer);
-
-                //cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs._ProbeVolumeIndexShift, 0); // HACK: Fixme?
 
                 cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, parameters.numTilesClusterX, parameters.numTilesClusterY, parameters.viewCount);
             }
