@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a weird behavior in the scalable settings drawing when the space becomes tiny (1212045).
 - Fixed an usage of a a compute buffer not bound (1229964)
 - Fixed an issue where unncessarily serialized members in StaticLightingSky component would change each time the scene is changed.
+- Fix issues in the post process system with RenderTexture being invalid in some cases, causing rendering problems.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
