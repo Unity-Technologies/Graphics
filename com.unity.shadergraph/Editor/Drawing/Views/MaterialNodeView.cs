@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 AddToClassList("master");
                 bool validTarget = false;
-                foreach(ITargetImplementation activeTarget in node.owner.validImplementations)
+                foreach(Target activeTarget in node.owner.validTargets)
                 {
                     //if we have a valid active target implementation and render pipeline, don't display the error
                     if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
