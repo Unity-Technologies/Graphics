@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for issue that prevented scene from being completely saved when baked reflection probes are present and lighting is set to auto generate.
 - Fixed the depth buffer copy made before custom pass after opaque and normal injection point.
 - Fixed a weird behavior in the scalable settings drawing when the space becomes tiny (1212045).
+- Fixed an usage of a a compute buffer not bound (1229964)
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
