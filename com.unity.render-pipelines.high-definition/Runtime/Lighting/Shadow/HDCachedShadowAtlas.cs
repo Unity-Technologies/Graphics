@@ -434,7 +434,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // ------------------------------------------------------------------------------------------
 
 
-
         // ------------------------------------------------------------------------------------------
         //                           Update/Rendering related functions 
         // ------------------------------------------------------------------------------------------
@@ -483,7 +482,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Put the record up for rendering
             m_ShadowsPendingRendering.Add(shadowIdx, shadowRecord);
         }
-
 
         internal void MarkAsRendered(int shadowIdx)
         {

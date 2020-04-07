@@ -1615,6 +1615,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDShadowManager.cachedShadowManager.ScheduleShadowUpdate(this);
         }
 
+        /// <summary>
+        /// Some lights render more than one shadow maps (e.g. cascade shadow maps or point lights). This method is used to request the rendering of specific shadow map
+        /// when Update Mode is set to On Demand. For example, to request the update of a second cascade, shadowIndex should be 1.
+        /// Note: if shadowIndex is a 0-based index and it must be lower than the number of shadow maps a light renders (i.e. cascade count for directional lights, 6 for point lights).
+        /// </summary>
+        public void RequestSubShadowMapRendering(int shadowIndex)
+        {
+            if (shadowUpdateMode == ShadowUpdateMode.OnDemand)
+                HDShadowManager.cachedShadowManager.ScheduleShadowUpdate(this, shadowIndex);
+        }
+
         internal bool ShadowIsUpdatedEveryFrame()
         {
             return shadowUpdateMode == ShadowUpdateMode.EveryFrame;
@@ -1826,10 +1837,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowRequestIndex);
 
                 int cachedShadowID = lightIdxForCachedShadows + index;
+                shadowNeedsRendering = !shadowDoesntHavePlacement;
 
                 if (shadowIsInCachedSystem && !shadowDoesntHavePlacement)
                 {
-                    // TODO_FCC: FIXUP DIR CASCADES! THE SHADOW MAP TYPE HERE IS OFF...ALSO SLOW.
                     shadowNeedsRendering = shadowNeedsRendering && HDShadowManager.cachedShadowManager.ShadowIsPendingUpdate(cachedShadowID, shadowMapType);
                     HDShadowManager.cachedShadowManager.UpdateResolutionRequest(ref resolutionRequest, cachedShadowID, shadowMapType);
                 }

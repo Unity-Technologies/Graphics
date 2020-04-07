@@ -165,6 +165,25 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal void ScheduleShadowUpdate(HDAdditionalLightData light, int subShadowIndex)
+        {
+            var lightType = light.type;
+            if (lightType == HDLightType.Spot)
+                punctualShadowAtlas.ScheduleShadowUpdate(light);
+            if (lightType == HDLightType.Area)
+                areaShadowAtlas.ScheduleShadowUpdate(light);
+            if (lightType == HDLightType.Point)
+            {
+                Debug.Assert(subShadowIndex < 6);
+                punctualShadowAtlas.ScheduleShadowUpdate(light.lightIdxForCachedShadows + subShadowIndex);
+            }
+            if (lightType == HDLightType.Directional)
+            {
+                Debug.Assert(subShadowIndex < m_MaxShadowCascades);
+                m_DirectionalShadowPendingUpdate[subShadowIndex] = true;
+            }
+        }
+
         internal bool LightIsPendingPlacement(HDAdditionalLightData light, ShadowMapType shadowMapType)
         {
             if (shadowMapType == ShadowMapType.PunctualAtlas)
