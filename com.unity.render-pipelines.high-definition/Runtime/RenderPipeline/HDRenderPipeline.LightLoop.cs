@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera);
                 passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera);
                 // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
-                passData.buildGPULightListResources = PrepareBuildGPULightListResources(m_TileAndClusterData, null, null);
+                passData.buildGPULightListResources = PrepareBuildGPULightListResources(m_TileAndClusterData, null, null, isGBufferNeeded: true);
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.stencilTexture = builder.ReadTexture(stencilBufferCopy);
                 if (passData.buildGPULightListParameters.computeMaterialVariants && passData.buildGPULightListParameters.enableFeatureVariants)
@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<DeferredLightingPassData>("Deferred Lighting", out var passData))
             {
-                passData.parameters = PrepareDeferredLightingParameters(hdCamera, debugDisplaySettings);
+                passData.parameters = PrepareDeferredLightingParameters(hdCamera, m_CurrentDebugDisplaySettings);
 
                 // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
                 passData.resources = new  DeferredLightingResources();

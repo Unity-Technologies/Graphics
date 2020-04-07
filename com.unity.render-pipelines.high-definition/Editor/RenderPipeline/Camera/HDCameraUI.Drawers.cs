@@ -147,6 +147,9 @@ namespace UnityEditor.Rendering.HighDefinition
             Expandable.Output,
             k_ExpandedState,
             CED.Group(
+#if ENABLE_VR && ENABLE_XR_MANAGEMENT
+                Drawer_SectionXRRendering,
+#endif
 #if ENABLE_MULTIPLE_DISPLAYS
                 Drawer_SectionMultiDisplay,
 #endif
@@ -452,7 +455,25 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if(p.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
             {
+                EditorGUILayout.PropertyField(p.taaQualityLevel, TAAQualityLevelContent);
+
+                EditorGUI.indentLevel++;
+
                 EditorGUILayout.PropertyField(p.taaSharpenStrength, TAASharpenContent);
+
+                if (p.taaQualityLevel.intValue > (int)HDAdditionalCameraData.TAAQualityLevel.Low)
+                {
+                    EditorGUILayout.PropertyField(p.taaHistorySharpening, TAAHistorySharpening);
+                    EditorGUILayout.PropertyField(p.taaAntiFlicker, TAAAntiFlicker);
+                }
+
+                if(p.taaQualityLevel.intValue == (int)HDAdditionalCameraData.TAAQualityLevel.High)
+                {
+                    EditorGUILayout.PropertyField(p.taaMotionVectorRejection, TAAMotionVectorRejection);
+                    EditorGUILayout.PropertyField(p.taaAntiRinging, TAAAntiRingingContent);
+                }
+
+                EditorGUI.indentLevel--;
             }
         }
 
@@ -510,6 +531,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (warnings.Length > 0)
                     EditorGUILayout.HelpBox(string.Join("\n\n", warnings), MessageType.Warning, true);
             }
+        }
+
+        static void Drawer_SectionXRRendering(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.xrRendering, xrRenderingContent);
         }
 
 #if ENABLE_MULTIPLE_DISPLAYS
