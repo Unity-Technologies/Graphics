@@ -339,6 +339,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP uses material variant classification to compute lighting.</summary>
         [FrameSettingsField(3, autoName: ComputeMaterialVariants, positiveDependencies: new[] { DeferredTile })]
         ComputeMaterialVariants = 125,
+        [FrameSettingsField(1, autoName: ProbeVolume)]
+        ProbeVolume = 127,
 
         //only 128 booleans saved. For more, change the BitArray used
     }
@@ -424,6 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.RayTracing,
                 (uint)FrameSettingsField.AlphaToMask,
+                (uint)FrameSettingsField.ProbeVolume,
             }),
             lodBias = 1,
             sssQualityMode        = SssQualityMode.FromQualitySettings,
@@ -475,6 +478,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.RayTracing,
                 // (uint)FrameSettingsField.EnableSkyReflection,
+                (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
@@ -777,6 +781,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
+
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume;
         }
 
         /// <summary>Aggregation is default with override of the renderer then sanitized depending on supported features of hdrpasset.</summary>

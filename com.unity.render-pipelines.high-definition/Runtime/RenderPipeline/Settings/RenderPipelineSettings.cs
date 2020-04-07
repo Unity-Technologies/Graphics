@@ -104,6 +104,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lightLayerName5 = "Light Layer 5",
             lightLayerName6 = "Light Layer 6",
             lightLayerName7 = "Light Layer 7",
+            supportProbeVolume = false,
+            probeVolumeSettings = GlobalProbeVolumeSettings.@default,
         };
 
         /// <summary>
@@ -188,10 +190,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDitheringCrossFade;
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
+        /// <summary>Support Probe Volumes.</summary>
+        [SerializeField] internal bool supportProbeVolume;
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;
 
-        /// <summary>Global light loop settings.</summary>
+        /// <summary>Global Probe Volume settings.</summary>
+        [SerializeField] internal GlobalProbeVolumeSettings probeVolumeSettings;
+		/// <summary>Global light loop settings.</summary>
         public GlobalLightLoopSettings lightLoopSettings;
         /// <summary>Global shadows settings.</summary>
         public HDShadowInitParameters hdShadowInitParams;
