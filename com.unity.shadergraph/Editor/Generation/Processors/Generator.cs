@@ -138,6 +138,11 @@ namespace UnityEditor.ShaderGraph
             // Collect excess shader properties from the TargetImplementation
             foreach(var target in m_Targets)
             {
+                // TODO: Setup is required to ensure all Targets are initialized
+                // TODO: Find a way to only require this once 
+                TargetSetupContext context = new TargetSetupContext();
+                target.Setup(ref context);
+
                 target.CollectShaderProperties(shaderProperties, m_Mode);
             }
 

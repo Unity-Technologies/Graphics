@@ -11,6 +11,23 @@ using UnityEditor.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
+    [Serializable]
+    abstract class HDTargetData
+    {
+    }
+
+    interface IRequiresData<T> where T : HDTargetData
+    {
+        void ProcessData(T data);
+    }
+
+    enum DistortionMode
+    {
+        Add,
+        Multiply,
+        Replace
+    }
+
     enum DoubleSidedMode
     {
         Disabled,
@@ -19,7 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         MirroredNormals,
     }
 
-    sealed class HDTarget : Target
+    sealed class HDTarget : Target, ISerializationCallbackReceiver
     {
         // Constants
         const string kAssetGuid = "61d9843d4027e3e4a924953135f76f3c";
@@ -37,8 +54,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         SerializationHelper.JSONSerializedElement m_SerializedSubTarget;
 
+        // TODO: Remove when Peter's serialization lands
+        [SerializeField]
+        SerializationHelper.JSONSerializedElement m_SerializedSystemData;
+
+        // TODO: Remove when Peter's serialization lands
+        [SerializeField]
+        SerializationHelper.JSONSerializedElement m_SerializedBuiltinData;
+
         [SerializeField]
         SubTarget m_ActiveSubTarget;
+
+        [SerializeField]
+        HDSystemData m_SystemData;
+
+        [SerializeField]
+        HDBuiltinData m_BuiltinData;
 
         [SerializeField]
         string m_CustomEditorGUI;
@@ -72,6 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return;
 
             // Setup the active SubTarget
+            ProcessSubTargetData();
             m_ActiveSubTarget.Setup(ref context);
 
             // Override EditorGUI
@@ -83,10 +115,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            // Stages
+            context.AddField(Fields.GraphVertex,                    context.blocks.Contains(BlockFields.VertexDescription.Position) ||
+                                                                    context.blocks.Contains(BlockFields.VertexDescription.Normal) ||
+                                                                    context.blocks.Contains(BlockFields.VertexDescription.Tangent));
+            context.AddField(Fields.GraphPixel);
+
+            // SubTarget
+            m_ActiveSubTarget.GetFields(ref context);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            if(m_ActiveSubTarget == null)
+                return;
+
+            // SubTarget
+            m_ActiveSubTarget.GetActiveBlocks(ref context);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
@@ -105,7 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 onChange();
             });
 
-            // SubTarget properties
+            // SubTarget
             m_ActiveSubTarget.GetPropertiesGUI(ref context, onChange);
 
             // Custom Editor GUI
@@ -123,6 +168,35 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
+            // SubTarget
+            m_ActiveSubTarget.CollectShaderProperties(collector, generationMode);
+        }
+
+        public override void ProcessPreviewMaterial(Material material)
+        {
+            // SubTarget
+            m_ActiveSubTarget.ProcessPreviewMaterial(material);
+        }
+
+        void ProcessSubTargetData()
+        {
+            // SystemData
+            if(m_ActiveSubTarget is IRequiresData<HDSystemData> iRequireSystemData)
+            {
+                if(m_SystemData == null)
+                    m_SystemData = new HDSystemData();
+                
+                iRequireSystemData.ProcessData(m_SystemData);
+            }
+
+            // BuiltinData
+            if(m_ActiveSubTarget is IRequiresData<HDBuiltinData> iRequireBuiltinData)
+            {
+                if(m_BuiltinData == null)
+                    m_BuiltinData = new HDBuiltinData();
+                
+                iRequireBuiltinData.ProcessData(m_BuiltinData);
+            }
         }
 
         // TODO: Remove this
@@ -131,8 +205,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             if(m_ActiveSubTarget == null)
                 return;
+
+            ClearUnusedData();
             
             m_SerializedSubTarget = SerializationHelper.Serialize<SubTarget>(m_ActiveSubTarget);
+            m_SerializedSystemData = SerializationHelper.Serialize<HDSystemData>(m_SystemData);
+            m_SerializedBuiltinData = SerializationHelper.Serialize<HDBuiltinData>(m_BuiltinData);
         }
 
         public void OnAfterDeserialize()
@@ -140,9 +218,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if(m_ActiveSubTarget == null)
                 return;
             
-            // Deserialize the SubTarget
             m_ActiveSubTarget = SerializationHelper.Deserialize<SubTarget>(m_SerializedSubTarget, GraphUtil.GetLegacyTypeRemapping());
+            m_SystemData = SerializationHelper.Deserialize<HDSystemData>(m_SerializedSystemData, GraphUtil.GetLegacyTypeRemapping());
+            m_BuiltinData = SerializationHelper.Deserialize<HDBuiltinData>(m_SerializedBuiltinData, GraphUtil.GetLegacyTypeRemapping());
             m_ActiveSubTarget.target = this;
+        }
+
+        void ClearUnusedData()
+        {
+            // SystemData
+            if(!(m_ActiveSubTarget is IRequiresData<HDSystemData> iRequireSystemData))
+            {
+                m_SystemData = null;
+            }
+
+            // BuiltinData
+            if(!(m_ActiveSubTarget is IRequiresData<HDBuiltinData> iRequireBuiltinData))
+            {
+                m_BuiltinData = null;
+            }
         }
 #endregion
     }
