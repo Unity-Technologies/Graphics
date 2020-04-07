@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             if (lightType == HDLightType.Directional)
             {
-                lightData.lightIdxForCachedShadows = 0;
+                lightData.lightIdxForCachedShadows = -1;
                 MarkAllDirectionalShadowsForUpdate();
             }
         }
