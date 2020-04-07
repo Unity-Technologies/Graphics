@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issues in the post process system with RenderTexture being invalid in some cases, causing rendering problems.
 - Fixed an issue where changing the default volume profile from another inspector would not update the default volume editor.
 - Fix for range compression factor for probes going negative (now clamped to positive values).
+- Fixed path validation when creating new volume profile (case 1229933)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
