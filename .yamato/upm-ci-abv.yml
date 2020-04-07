@@ -73,10 +73,10 @@ all_project_ci_nightly:
       rerun: always
     - path: .yamato/upm-ci-universal.yml#Universal_Android_Vulkan_2020.1
       rerun: always
-  triggers:
-    recurring:
-      - branch: 8.x.x/release
-        frequency: daily     
+  #triggers:
+  #  recurring:
+  #    - branch: 8.x.x/release
+  #      frequency: daily     
 
 {% for testplatform in testplatforms %} 
 {% for editor in editors %}
