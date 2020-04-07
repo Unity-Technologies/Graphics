@@ -42,13 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         bool layerListChange;
         CompositionManager m_compositionManager;
 
-        public bool isDirty
-        {
-            get
-            {
-                return m_IsEditorDirty;
-            }
-        }
+        public bool isDirty => m_IsEditorDirty;
 
         void AddLayerOfTypeCallback(object type)
         {
@@ -343,9 +337,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
                     m_filterList.drawElementCallback = (Rect r, int index, bool isActive, bool isFocused) =>
                     {
-                        if (index < m_SerializedLayerProperties[m_layerList.index].FilterList.Count)
+                        if (index < m_SerializedLayerProperties[m_layerList.index].filterList.Count)
                         { 
-                            var serializedFilter = m_SerializedLayerProperties[m_layerList.index].FilterList[index];
+                            var serializedFilter = m_SerializedLayerProperties[m_layerList.index].filterList[index];
                             CompositionFilterUI.Draw(r, serializedFilter);
                         }
                     };
@@ -365,9 +359,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
                     m_filterList.elementHeightCallback = (index) =>
                     {
-                        if (index < m_SerializedLayerProperties[m_layerList.index].FilterList.Count)
+                        if (index < m_SerializedLayerProperties[m_layerList.index].filterList.Count)
                         {
-                            var filter = m_SerializedLayerProperties[m_layerList.index].FilterList[index];
+                            var filter = m_SerializedLayerProperties[m_layerList.index].filterList[index];
                             return filter.GetHeight();
                         }
                         return 0;

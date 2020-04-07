@@ -19,13 +19,13 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 ShaderProperty sp = ShaderProperty.Create(shader, material, i);
                 AddShaderProperty(compositor, sp);
-                propertyNames.Add(sp.m_PropertyName);
+                propertyNames.Add(sp.propertyName);
             }
 
             // remove any left-over properties that do not appear in the shader anymore
             for (int j = m_ShaderProperties.Count - 1; j >= 0; --j)
             {
-                int indx = propertyNames.FindIndex(x => x == m_ShaderProperties[j].m_PropertyName);
+                int indx = propertyNames.FindIndex(x => x == m_ShaderProperties[j].propertyName);
                 if (indx < 0)
                 {
                     m_ShaderProperties.RemoveAt(j);
@@ -51,14 +51,14 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             Assert.IsNotNull(sp);
 
             // Check if property should be shown in the inspector
-            bool hide = ((int)sp.m_Flags & (int)ShaderPropertyFlags.NonModifiableTextureData) != 0
-                        || ((int)sp.m_Flags & (int)ShaderPropertyFlags.HideInInspector) != 0;
+            bool hide = ((int)sp.flags & (int)ShaderPropertyFlags.NonModifiableTextureData) != 0
+                        || ((int)sp.flags & (int)ShaderPropertyFlags.HideInInspector) != 0;
 
             
             if (!hide)
             {
                 // Check if property already exists / do not add duplicates
-                int indx = m_ShaderProperties.FindIndex(s => s.m_PropertyName == sp.m_PropertyName);
+                int indx = m_ShaderProperties.FindIndex(s => s.propertyName == sp.propertyName);
                 if (indx < 0)
                 {
                     m_ShaderProperties.Add(sp);
@@ -66,12 +66,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
 
             // For textures, check if we already have this layer in the layer list. If not, add it.
-            if (sp.m_Type == ShaderPropertyType.Texture)
+            if (sp.propertyType == ShaderPropertyType.Texture)
             {
-                int indx = compositor.layers.FindIndex(s => s.name == sp.m_PropertyName);
+                int indx = compositor.layers.FindIndex(s => s.name == sp.propertyName);
                 if (indx < 0 && !hide)
                 {
-                    var newLayer = CompositorLayer.CreateOutputLayer(sp.m_PropertyName);
+                    var newLayer = CompositorLayer.CreateOutputLayer(sp.propertyName);
                     compositor.layers.Add(newLayer);
                 }
                 else if (indx >= 0 && hide)

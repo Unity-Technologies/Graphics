@@ -531,13 +531,14 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // avoid duplicate filters
             foreach (var f in m_InputFilters)
             {
-                if (f.m_Type == filter.m_Type)
+                if (f.filterType == filter.filterType)
                 {
                     return;
                 }
             }
             m_InputFilters.Add(filter);
         }
+
         public void SetupLayerCamera(CompositorLayer targetLayer, int layerPositionInStack)
         {
             if (!m_LayerCamera || (targetLayer == null))

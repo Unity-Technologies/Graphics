@@ -13,12 +13,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         public SerializedCompositionFilter(SerializedProperty root)
         {
-            filterType = root.FindPropertyRelative("m_Type");
-            maskColor = root.FindPropertyRelative("m_MaskColor");
-            keyThreshold = root.FindPropertyRelative("m_KeyThreshold");
-            keyTolerance = root.FindPropertyRelative("m_KeyTolerance");
-            spillRemoval = root.FindPropertyRelative("m_SpillRemoval");
-            alphaMask = root.FindPropertyRelative("m_AlphaMask");
+            filterType = root.FindPropertyRelative("filterType");
+            maskColor = root.FindPropertyRelative("maskColor");
+            keyThreshold = root.FindPropertyRelative("keyThreshold");
+            keyTolerance = root.FindPropertyRelative("keyTolerance");
+            spillRemoval = root.FindPropertyRelative("spillRemoval");
+            alphaMask = root.FindPropertyRelative("alphaMask");
         }
 
         public float GetHeight()

@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 return;
             }
 
-            int index = layerData.layerFilters.FindIndex(x => x.m_Type == (int)CompositionFilter.FilterType.ALPHA_MASK);
+            int index = layerData.layerFilters.FindIndex(x => x.filterType == CompositionFilter.FilterType.ALPHA_MASK);
             if (index < 0)
             {
                 HDUtils.BlitCameraTexture(cmd, source, destination);
@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             var filter = layerData.layerFilters[index];
             m_Material.SetTexture(ShaderIDs.k_InputTexture, source);
-            m_Material.SetTexture(ShaderIDs.k_AlphaTexture, filter.m_AlphaMask);
+            m_Material.SetTexture(ShaderIDs.k_AlphaTexture, filter.alphaMask);
 
             HDUtils.DrawFullScreen(cmd, m_Material, destination);
         }

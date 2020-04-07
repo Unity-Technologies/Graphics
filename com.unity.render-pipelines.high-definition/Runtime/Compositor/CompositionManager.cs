@@ -673,21 +673,21 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             foreach (var prop in m_CompositionProfile.m_ShaderProperties)
             {
-                if (prop.m_Type == ShaderPropertyType.Float)
+                if (prop.propertyType == ShaderPropertyType.Float)
                 {
-                    m_Material.SetFloat(prop.m_PropertyName, prop.m_Value.x);
+                    m_Material.SetFloat(prop.propertyName, prop.value.x);
                 }
-                else if (prop.m_Type == ShaderPropertyType.Vector)
+                else if (prop.propertyType == ShaderPropertyType.Vector)
                 {
-                    m_Material.SetVector(prop.m_PropertyName, prop.m_Value);
+                    m_Material.SetVector(prop.propertyName, prop.value);
                 }
-                else if (prop.m_Type == ShaderPropertyType.Range)
+                else if (prop.propertyType == ShaderPropertyType.Range)
                 {
-                    m_Material.SetFloat(prop.m_PropertyName, prop.m_Value.x);
+                    m_Material.SetFloat(prop.propertyName, prop.value.x);
                 }
-                else if (prop.m_Type == ShaderPropertyType.Color)
+                else if (prop.propertyType == ShaderPropertyType.Color)
                 {
-                    m_Material.SetColor(prop.m_PropertyName, prop.m_Value);
+                    m_Material.SetColor(prop.propertyName, prop.value);
                 }
             }
 
@@ -742,16 +742,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             return null;
         }
 
-        static public CompositionManager GetInstance()
-        {
+        static public CompositionManager GetInstance() =>
+            s_CompositorInstance ?? (s_CompositorInstance = GameObject.FindObjectOfType(typeof(CompositionManager), true) as CompositionManager);
 
-            if(s_CompositorInstance != null)
-            {
-                return s_CompositorInstance;
-            }
-
-            s_CompositorInstance = GameObject.FindObjectOfType(typeof(CompositionManager), true) as CompositionManager;
-            return s_CompositorInstance;
-        }
     }
 }

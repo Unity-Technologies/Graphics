@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 return;
             }
 
-            int index = layerData.layerFilters.FindIndex(x => x.m_Type == (int)CompositionFilter.FilterType.CHROMA_KEYING);
+            int index = layerData.layerFilters.FindIndex(x => x.filterType == CompositionFilter.FilterType.CHROMA_KEYING);
             if (index < 0)
             {
                 HDUtils.BlitCameraTexture(cmd, source, destination);
@@ -51,12 +51,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             var filter = layerData.layerFilters[index];
             Vector4 keyParams;
-            keyParams.x = filter.m_KeyThreshold;
-            keyParams.y = filter.m_KeyTolerance;
-            keyParams.z = filter.m_SpillRemoval;
+            keyParams.x = filter.keyThreshold;
+            keyParams.y = filter.keyTolerance;
+            keyParams.z = filter.spillRemoval;
             keyParams.w = 1.0f;
 
-            m_Material.SetVector(ShaderIDs.k_KeyColor, filter.m_MaskColor);
+            m_Material.SetVector(ShaderIDs.k_KeyColor, filter.maskColor);
             m_Material.SetVector(ShaderIDs.k_KeyParams, keyParams);
             m_Material.SetTexture(ShaderIDs.k_InputTexture, source);
             HDUtils.DrawFullScreen(cmd, m_Material, destination);

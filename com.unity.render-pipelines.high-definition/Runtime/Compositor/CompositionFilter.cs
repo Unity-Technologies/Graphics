@@ -11,18 +11,19 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             ALPHA_MASK
         }
 
-        //TODO: inheritance?
-        public int m_Type;
-        public Color m_MaskColor;
-        public float m_KeyThreshold = 0.8f;
-        public float m_KeyTolerance = 0.5f;
-        public float m_SpillRemoval = 0.0f;
-        public Texture m_AlphaMask;
+        // TODO: idealy we should allow the use of arbitrary custom passes instead of hand-picked filters.
+
+        public FilterType filterType;
+        public Color maskColor;
+        public float keyThreshold = 0.8f;
+        public float keyTolerance = 0.5f;
+        public float spillRemoval = 0.0f;
+        public Texture alphaMask;
 
         static public CompositionFilter Create(FilterType type)
         {
             var newFilter = new CompositionFilter();
-            newFilter.m_Type = (int)type;
+            newFilter.filterType = type;
             return newFilter;
         }
     }

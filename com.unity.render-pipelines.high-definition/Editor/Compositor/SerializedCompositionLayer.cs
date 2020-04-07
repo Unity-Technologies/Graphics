@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         public SerializedProperty inputFilters;
         public SerializedProperty positionInStack;
 
-        public List<SerializedCompositionFilter> FilterList = new List<SerializedCompositionFilter>();
+        public List<SerializedCompositionFilter> filterList = new List<SerializedCompositionFilter>();
 
         public SerializedCompositionLayer(SerializedProperty root)
         {
@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             for (int index = 0; index < inputFilters.arraySize; index++)
             {
                 var serializedFilter = inputFilters.GetArrayElementAtIndex(index);
-                FilterList.Add(new SerializedCompositionFilter(serializedFilter));
+                filterList.Add(new SerializedCompositionFilter(serializedFilter));
             }
         }
 
@@ -81,16 +81,25 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             }
             else
             {
-                return EditorGUI.GetPropertyHeight(layerName, null) +
-                EditorGUI.GetPropertyHeight(inputCamera, null) +
-                EditorGUI.GetPropertyHeight(clearDepth, null) +
-                EditorGUI.GetPropertyHeight(clearAlpha, null) +
-                EditorGUI.GetPropertyHeight(clearMode, null) +
-                EditorGUI.GetPropertyHeight(aaMode, null) +
-                EditorGUI.GetPropertyHeight(cullingMaskProperty, null) +
-                EditorGUI.GetPropertyHeight(volumeMask, null) +
-                EditorGUI.GetPropertyHeight(inputFilters, null) +
-                7 * EditorGUIUtility.singleLineHeight; //for the heading and pading
+                float height =
+                    EditorGUI.GetPropertyHeight(layerName, null) +
+                    EditorGUI.GetPropertyHeight(inputCamera, null) +
+                    EditorGUI.GetPropertyHeight(clearDepth, null) +
+                    EditorGUI.GetPropertyHeight(clearAlpha, null) +
+                    EditorGUI.GetPropertyHeight(clearMode, null) +
+                    EditorGUI.GetPropertyHeight(aaMode, null) +
+                    EditorGUI.GetPropertyHeight(cullingMaskProperty, null) +
+                    EditorGUI.GetPropertyHeight(volumeMask, null) +
+                    EditorGUI.GetPropertyHeight(inputFilters, null) +
+                    EditorGUIUtility.singleLineHeight * 7; //for the heading and pading
+
+                if (inputFilters.arraySize > 0)
+                {
+                    // add extra height for the list of filters
+                    height += inputFilters.arraySize * EditorGUIUtility.singleLineHeight * 5;
+                }
+
+                return height;
             }
         }
 

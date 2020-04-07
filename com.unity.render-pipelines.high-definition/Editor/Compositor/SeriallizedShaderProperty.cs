@@ -11,10 +11,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         public SerializedShaderProperty(SerializedProperty root)
         {
-            propertyName = root.FindPropertyRelative("m_PropertyName");
-            propertyType = root.FindPropertyRelative("m_Type");
-            propertyValue = root.FindPropertyRelative("m_Value");
-            rangeLimits = root.FindPropertyRelative("m_RangeLimits");
+            propertyName = root.FindPropertyRelative("propertyName");
+            propertyType = root.FindPropertyRelative("propertyType");
+            propertyValue = root.FindPropertyRelative("value");
+            rangeLimits = root.FindPropertyRelative("rangeLimits");
         }
     }
 }

@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             // Executed every frame for all the camera inside the pass volume
             AdditionalCompositorData layerData = camera.camera.gameObject.GetComponent<AdditionalCompositorData>();
-            if (layerData == null || layerData.clearColorTexture == false)
+            if (layerData == null || layerData.clearColorTexture == null)
             {
                 return;
             }
