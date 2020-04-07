@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void RenderOcclusionMeshes(CommandBuffer cmd, RenderTargetHandle depthBuffer)
+        internal void RenderOcclusionMeshes(CommandBuffer cmd, RenderTargetIdentifier depthBuffer)
         {
             if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
             {
@@ -286,7 +286,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         if (views[viewId].occlusionMesh != null)
                         {
-                            CoreUtils.SetRenderTarget(cmd, depthBuffer.Identifier(), ClearFlag.None, 0, CubemapFace.Unknown, viewId);
+                            CoreUtils.SetRenderTarget(cmd, depthBuffer, ClearFlag.None, 0, CubemapFace.Unknown, viewId);
                             cmd.DrawMesh(views[viewId].occlusionMesh, m, occlusionMeshMaterial);
                         }
                     }

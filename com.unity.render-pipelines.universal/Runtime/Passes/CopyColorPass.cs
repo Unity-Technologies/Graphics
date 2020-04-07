@@ -75,8 +75,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 
-            // XRTODO: This SetRenderTarget is required to keep ScriptableRenderer's internal active render target state up to date.
-            // The active render target logic in RP requires a heavy refactor. It doesn't take render target depth slice into account and doesn't take load store action into account
             ScriptableRenderer.SetRenderTarget(cmd, opaqueColorRT, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
 
             bool useDrawProceduleBlit = renderingData.cameraData.xr.enabled;
