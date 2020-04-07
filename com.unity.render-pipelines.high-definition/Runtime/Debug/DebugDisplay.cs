@@ -1056,7 +1056,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugDecalsAffectingTransparentItems = new DebugUI.Widget[]
             {
                 new DebugUI.BoolField { displayName = "Display Atlas", getter = () => data.decalsDebugSettings.displayAtlas, setter = value => data.decalsDebugSettings.displayAtlas = value},
-                new DebugUI.UIntField { displayName = "Mip Level", getter = () => data.decalsDebugSettings.mipLevel, setter = value => data.decalsDebugSettings.mipLevel = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetDecalAtlasMipCount() }
+                new DebugUI.UIntField { displayName = "Mip Level", getter = () => data.decalsDebugSettings.mipLevel, setter = value => data.decalsDebugSettings.mipLevel = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline)?.GetDecalAtlasMipCount() }
             };
 
             var panel = DebugManager.instance.GetPanel(k_PanelDecals, true);

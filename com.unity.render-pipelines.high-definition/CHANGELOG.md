@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support of cookie baking and add support on Disc light.
 - Added XR setting to control camera jitter for temporal effects
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
+- Added option to disable XR rendering on the camera settings.
 
 ### Fixed
 - Fix Changelog
@@ -71,6 +72,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow cascade tooltip when using the metric mode (case 1229232)
 - Fix when rescale probe all direction below zero (1219246)
 - Fixed how the area light influence volume is computed to match rasterization.
+- Fixed usage of light size data that are not available at runtime.
+- Fixed light type resolution when performing a reset on HDAdditionalLightData (case 1220931)
+- Fixed drag area width at left of Light's intensity field in Inspector.
+- Fix for issue that prevented scene from being completely saved when baked reflection probes are present and lighting is set to auto generate.
+- Fixed the depth buffer copy made before custom pass after opaque and normal injection point.
+- Fixed a weird behavior in the scalable settings drawing when the space becomes tiny (1212045).
 - Fixed an usage of a a compute buffer not bound (1229964)
 
 ### Changed
@@ -86,6 +93,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hidden unsupported choice in emission in Materials
 - All custom pass volumes are now executed for one injection point instead of the first one.
 - Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
+- Changed the diffusion profile warning on the material to an info and changed the message to be more precise.
+- Moved scene view camera settings for HDRP from the preferences window to the scene view camera settings window.
 
 ## [8.0.0] - 2020-05-25
 
