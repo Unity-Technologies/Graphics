@@ -11,6 +11,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
         // Do not change this without changing PostProcessPass.PrepareBokehKernel()
         #define SAMPLE_COUNT            42
@@ -22,8 +23,6 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         TEXTURE2D_X(_MainTex);
         TEXTURE2D_X(_DofTexture);
         TEXTURE2D_X(_FullCoCTexture);
-
-        TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 
         float4 _MainTex_TexelSize;
         float4 _DofTexture_TexelSize;
@@ -293,7 +292,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             ENDHLSL
         }
     }
-        
+
     // SM3.5 fallbacks - needed because of the use of Gather
     SubShader
     {
