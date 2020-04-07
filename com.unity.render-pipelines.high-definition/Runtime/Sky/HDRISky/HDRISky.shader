@@ -10,8 +10,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
-    #pragma shader_feature_local USE_FLOWMAP
-
+    #pragma multi_compile _ USE_FLOWMAP
     #pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
