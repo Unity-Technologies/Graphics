@@ -1802,7 +1802,6 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowRequestCount = 0;
 
             HDLightType lightType = type;
-            ShadowMapType shadowMapType = lightType == HDLightType.Area ? ShadowMapType.AreaLightAtlas : ShadowMapType.PunctualAtlas;
 
             bool shadowIsInCachedSystem = !ShadowIsUpdatedEveryFrame();
             bool shadowNeedsRendering = true;

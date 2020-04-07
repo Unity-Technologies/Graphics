@@ -9,9 +9,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
     //  TODO_FCC: SUPER IMPORTANT! CONSIDER THE CONFIG FILE FOR AREA LIGHT SHADOWS.
 
+    // Note: The punctual and area light shadows have a specific atlas, however because there can be only be only one directional light casting shadow
+    // we use this cached shadow manager only as a source of utilities functions, but the data is stored in the dynamic shadow atlas.
 
     class HDCachedShadowManager
     {
+        // Constants
+        private const int m_MaxShadowCascades = 4;
+
+        internal HDCachedShadowAtlas punctualShadowAtlas;
+        internal HDCachedShadowAtlas areaShadowAtlas;
+
+        private HDShadowInitParameters m_initParams;        // Cache here to be able to compute resolutions. 
+
+        // Data for cached directional light shadows.
+        private bool[] m_DirectionalShadowPendingUpdate = new bool[m_MaxShadowCascades];
+
         // TODO_FCC: TODO Need to make it public somehow. Think later how. 
         static bool WouldFitInAtlas(int shadowResolution, HDLightType lightType)
         {
@@ -35,12 +48,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return fits;
         }
 
-        // TODO: MAKE THIS NOT PUBLIC OR INTERNAL AGAIN.
-        internal HDCachedShadowAtlas punctualShadowAtlas;
-        internal HDCachedShadowAtlas areaShadowAtlas;
-
-        private HDShadowInitParameters m_initParams;        // Cache here to be able to compute resolutions. 
-
+        private void MarkAllDirectionalShadowsForUpdate()
+        {
+            for (int i = 0; i < m_MaxShadowCascades; ++i)
+            {
+                m_DirectionalShadowPendingUpdate[i] = true;
+            }
+        }
 
         internal HDCachedShadowManager()
         {
@@ -61,15 +75,18 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void RegisterLight(HDAdditionalLightData lightData)
         {
             HDLightType lightType = lightData.type;
-            Debug.Assert(lightType != HDLightType.Directional); // TODO_FCC: HANDLE DIRECTIONAL!!
-
             if (lightType == HDLightType.Area)
             {
                 areaShadowAtlas.RegisterLight(lightData);
             }
-            else
+            else if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
             {
                 punctualShadowAtlas.RegisterLight(lightData);
+            }
+            if(lightType == HDLightType.Directional)
+            {
+                lightData.lightIdxForCachedShadows = 0;
+                MarkAllDirectionalShadowsForUpdate();
             }
         }
 
@@ -81,9 +98,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 areaShadowAtlas.EvictLight(lightData);
             }
-            else
+            else if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
             {
                 punctualShadowAtlas.EvictLight(lightData);
+            }
+            if (lightType == HDLightType.Directional)
+            {
+                lightData.lightIdxForCachedShadows = 0;
+                MarkAllDirectionalShadowsForUpdate();
             }
         }
 
@@ -101,9 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (shadowMapType == ShadowMapType.AreaLightAtlas)
                 return areaShadowAtlas.ShadowIsPendingRendering(shadowIdx);
             if (shadowMapType == ShadowMapType.CascadedDirectional)
-            {
-                Debug.Assert(false, "NOT SUPPORTED CASCADE DIRECTIONAL YET, PLS FIX"); // Not supported yet....
-            }
+                return m_DirectionalShadowPendingUpdate[shadowIdx];
 
             return false;
         }
@@ -115,9 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (shadowMapType == ShadowMapType.AreaLightAtlas)
                 areaShadowAtlas.MarkAsRendered(shadowIdx);
             if (shadowMapType == ShadowMapType.CascadedDirectional)
-            {
-                Debug.Assert(false, "NOT SUPPORTED CASCADE DIRECTIONAL YET, PLS FIX"); // Not supported yet....
-            }
+                m_DirectionalShadowPendingUpdate[shadowIdx] = false;
         }
 
         internal void UpdateResolutionRequest(ref HDShadowResolutionRequest request, int shadowIdx, ShadowMapType shadowMapType)
@@ -126,8 +144,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 punctualShadowAtlas.UpdateResolutionRequest(ref request, shadowIdx);
             else if (shadowMapType == ShadowMapType.AreaLightAtlas)
                 areaShadowAtlas.UpdateResolutionRequest(ref request, shadowIdx);
-            else if (shadowMapType == ShadowMapType.CascadedDirectional)
-                Debug.Assert(false, "NOT SUPPORTED CASCADE DIRECTIONAL YET, PLS FIX"); // Not supported yet....
         }
 
         internal void UpdateDebugSettings(LightingDebugSettings lightingDebugSettings)
@@ -138,13 +154,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ScheduleShadowUpdate(HDAdditionalLightData light)
         {
-            var typeLight = light.type;
-            if (typeLight == HDLightType.Point || typeLight == HDLightType.Spot)
+            var lightType = light.type;
+            if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
                 punctualShadowAtlas.ScheduleShadowUpdate(light);
-            else if (typeLight == HDLightType.Area)
+            else if (lightType == HDLightType.Area)
                 areaShadowAtlas.ScheduleShadowUpdate(light);
-
-            Debug.Assert(typeLight != HDLightType.Directional); // FOR NOW NOT SUPPORTED TODO.
+            else if (lightType == HDLightType.Directional)
+            {
+                MarkAllDirectionalShadowsForUpdate();
+            }
         }
 
         internal bool LightIsPendingPlacement(HDAdditionalLightData light, ShadowMapType shadowMapType)
@@ -153,10 +171,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return punctualShadowAtlas.LightIsPendingPlacement(light);
             if (shadowMapType == ShadowMapType.AreaLightAtlas)
                 return areaShadowAtlas.LightIsPendingPlacement(light);
-            if (shadowMapType == ShadowMapType.CascadedDirectional)
-            {
-                Debug.Assert(false, "NOT SUPPORTED CASCADE DIRECTIONAL YET, PLS FIX"); // Not supported yet....
-            }
 
             return false;
         }
