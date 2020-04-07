@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             rect.height = CompositorStyle.k_SingleLineHeight;
             float spacing = rect.height * 1.1f;
 
-            if (serialized.filterType.intValue == (int)CompositionFilter.FilterType.CHROMA_KEYING)
+            if (serialized.filterType.GetEnumValue<CompositionFilter.FilterType>() == CompositionFilter.FilterType.CHROMA_KEYING)
             {
                 SerializedProperty keyColor = serialized.maskColor;
                 SerializedProperty keyThreshold = serialized.keyThreshold;

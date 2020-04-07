@@ -96,6 +96,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         [SerializeField] bool m_ClearsBackGround = false;
 
+        static readonly string[] k_AOVNames = System.Enum.GetNames(typeof(MaterialSharedProperty));
+
         public bool enabled
         {
             get => m_Show;
@@ -598,10 +600,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 var aovRequestBuilder = new AOVRequestBuilder();
 
-                var aovNames = System.Enum.GetNames(typeof(MaterialSharedProperty));
-                int NUM_AOVs = aovNames.Length;
                 int outputIndex = 0;
-                for (int i = 0; i < NUM_AOVs; ++i)
+                for (int i = 0; i < k_AOVNames.Length; ++i)
                 {
                     if ((aovMask & (1 << i)) != 0)
                     {

@@ -13,23 +13,23 @@ MonoBehaviour:
   m_Name: TestCompositionGraph
   m_EditorClassIdentifier: 
   m_ShaderProperties:
-  - m_PropertyName: Layer0
-    m_Type: 4
-    m_Value: {x: 0, y: 0, z: 0, w: 0}
-    m_RangeLimits: {x: 0, y: 0}
-    m_Flags: 0
-  - m_PropertyName: Layer1
-    m_Type: 4
-    m_Value: {x: 0, y: 0, z: 0, w: 0}
-    m_RangeLimits: {x: 0, y: 0}
-    m_Flags: 0
-  - m_PropertyName: Logo
-    m_Type: 4
-    m_Value: {x: 0, y: 0, z: 0, w: 0}
-    m_RangeLimits: {x: 0, y: 0}
-    m_Flags: 0
-  - m_PropertyName: GreenScreen
-    m_Type: 4
-    m_Value: {x: 0, y: 0, z: 0, w: 0}
-    m_RangeLimits: {x: 0, y: 0}
-    m_Flags: 0
+  - propertyName: Layer0
+    propertyType: 4
+    value: {x: 0, y: 0, z: 0, w: 0}
+    rangeLimits: {x: 0, y: 0}
+    flags: 4
+  - propertyName: Layer1
+    propertyType: 4
+    value: {x: 0, y: 0, z: 0, w: 0}
+    rangeLimits: {x: 0, y: 0}
+    flags: 4
+  - propertyName: Logo
+    propertyType: 4
+    value: {x: 0, y: 0, z: 0, w: 0}
+    rangeLimits: {x: 0, y: 0}
+    flags: 4
+  - propertyName: GreenScreen
+    propertyType: 4
+    value: {x: 0, y: 0, z: 0, w: 0}
+    rangeLimits: {x: 0, y: 0}
+    flags: 4

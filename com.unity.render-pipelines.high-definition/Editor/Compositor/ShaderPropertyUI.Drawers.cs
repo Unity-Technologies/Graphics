@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
     {
         public static void Draw(List<SerializedShaderProperty> propertyList)
         {
-            int index = propertyList.FindIndex(x => x.propertyType.intValue != (int)ShaderPropertyType.Texture);
+            int index = propertyList.FindIndex(x => x.propertyType.GetEnumValue<ShaderPropertyType>() != ShaderPropertyType.Texture);
             if (index >= 0)
             {
                 EditorGUILayout.Separator();
