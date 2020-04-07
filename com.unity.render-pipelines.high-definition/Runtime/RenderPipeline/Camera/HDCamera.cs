@@ -850,7 +850,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 else if (camera.cameraType == CameraType.SceneView)
                 {
-                    var mode = HDRenderPipelinePreferences.sceneViewAntialiasing;
+                    var mode = HDAdditionalSceneViewSettings.sceneViewAntialiasing;
 
                     if (mode == AntialiasingMode.TemporalAntialiasing && !animateMaterials)
                         antialiasing = AntialiasingMode.None;

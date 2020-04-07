@@ -34,7 +34,7 @@ float3 GetNormalForShadowBias(BSDFData bsdfData)
     return bsdfData.geomNormalWS;
 #else
     return bsdfData.normalWS;
-#endif    
+#endif
 }
 
 float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
