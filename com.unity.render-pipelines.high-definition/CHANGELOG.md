@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow cascade tooltip when using the metric mode (case 1229232)
 - Focus on Decal uses the extends of the projectors
 - Fixed how the area light influence volume is computed to match rasterization.
+- Fixed usage of light size data that are not available at runtime.
+- Fixed light type resolution when performing a reset on HDAdditionalLightData (case 1220931)
+- Fixed drag area width at left of Light's intensity field in Inspector.
+- Fix for issue that prevented scene from being completely saved when baked reflection probes are present and lighting is set to auto generate.
+- Fixed the depth buffer copy made before custom pass after opaque and normal injection point.
+- Fixed a weird behavior in the scalable settings drawing when the space becomes tiny (1212045).
 - Fixed an usage of a a compute buffer not bound (1229964)
 
 ### Changed
@@ -95,6 +101,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add range-based clipping to box lights (case 1178780)
 - Improve area light culling (case 1085873)
 - Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
+- Changed the diffusion profile warning on the material to an info and changed the message to be more precise.
 
 ## [7.2.0] - 2020-02-10
 
