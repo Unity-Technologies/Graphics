@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     // Reset the layer params (in case we cloned a camera which already had AdditionalCompositorData)
                     if (layerData != null)
                     {
-                        layerData.Reset();
+                        layerData.ResetData();
                     }
                 }
 

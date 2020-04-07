@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             this.clearAlpha = clearAlpha;
         }
 
-        public void Reset()
+        public void ResetData()
         {
             clearColorTexture = null;
             clearAlpha = true;
@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (layerFilters !=null)
             {
                 layerFilters.Clear();
+                layerFilters = null;
             }
 
         }

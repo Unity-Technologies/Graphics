@@ -1,9 +1,11 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
-#pragma kernel MotionBlurCS         MAIN=MotionBlurCS
-#pragma kernel MotionBlurCSAlpha    MAIN=MotionBlurCSAlpha      ENABLE_ALPHA
+#pragma kernel MotionBlurCS
+
 //#pragma enable_d3d11_debug_symbols
+
+#pragma multi_compile ENABLE_ALPHA
 
 RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 TEXTURE2D_X(_InputTexture);
@@ -175,7 +177,7 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
 // ---------------------------------------------
 
 [numthreads(16, 16, 1)]
-void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
+void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
@@ -303,7 +305,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 
             colorAccumulation.rgb = accumulation.rgb + (1.0 - accumulation.w) * centralColor.rgb;
 #if ENABLE_ALPHA
-            colorAccumulation.w = accumulation.w + (1.0 - accumulation.w) * centralColor.w;
+            colorAccumulation.w = alphaAccumulation + (1.0 - accumulation.w) * centralColor.w;
 #endif
 
 #if DEBUG_VIEW == WEIGHT_VIS
