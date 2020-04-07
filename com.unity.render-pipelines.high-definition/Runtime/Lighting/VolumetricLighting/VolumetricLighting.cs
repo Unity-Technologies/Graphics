@@ -256,6 +256,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_PixelCoordToViewDirWS = new Matrix4x4[ShaderConfig.s_XrMaxViews];
 
+            ConstantBuffer<ShaderVariablesVolumetric>.Allocate();
+
             CreateVolumetricLightingBuffers();
         }
 
@@ -403,6 +405,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VolumeVoxelizationCS          = null;
             m_VolumetricLightingCS          = null;
             m_VolumetricLightingFilteringCS = null;
+
+            ConstantBuffer<ShaderVariablesVolumetric>.Release();
         }
 
         static int ComputeVBufferTileSize(VolumetricLightingPreset preset)
