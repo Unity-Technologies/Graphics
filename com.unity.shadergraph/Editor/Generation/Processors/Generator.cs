@@ -162,20 +162,7 @@ namespace UnityEditor.ShaderGraph
                     var customEditor = context.defaultShaderGUI;
                     if (customEditor != null)
                     {
-                        string customEditor = string.Empty;
-                        if(canChangeShaderGui.OverrideEnabled)
-                        {
-                            customEditor = GenerationUtils.FinalCustomEditorString(canChangeShaderGui);
-                        }
-                        else
-                        {
-                            customEditor = context.defaultShaderGUI;
-                        }
-                        
-                        if (customEditor != null)
-                        {
-                            m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
-                        }
+                        m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
                     }
                 }
 
