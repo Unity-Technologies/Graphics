@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering.VirtualTexturing;
 
 #if ENABLE_VIRTUALTEXTURES
@@ -50,14 +51,14 @@ namespace UnityEditor.Rendering.HighDefinition
             serialized.serializedObject.ApplyModifiedProperties();
         }
 
-        VirtualTexturingGPUCacheSizeOverride[] GetGPUCacheSizeOverrideArrayFromProperty(SerializedProperty property)
+        VirtualTexturingGPUCacheSizeOverrideSRP[] GetGPUCacheSizeOverrideArrayFromProperty(SerializedProperty property)
         {
-            List<VirtualTexturingGPUCacheSizeOverride> overrides = new List<VirtualTexturingGPUCacheSizeOverride>();
+            List<VirtualTexturingGPUCacheSizeOverrideSRP> overrides = new List<VirtualTexturingGPUCacheSizeOverrideSRP>();
             for (int i = 0; i < property.arraySize; ++i)
             {
                 SerializedProperty overrideProperty = property.GetArrayElementAtIndex(i);
-                overrides.Add(new VirtualTexturingGPUCacheSizeOverride()
-                    { format = (GraphicsFormat)overrideProperty.FindPropertyRelative("format").intValue, usage = (VirtualTexturingCacheUsage)overrideProperty.FindPropertyRelative("usage").intValue, sizeInMegaBytes = (uint)overrideProperty.FindPropertyRelative("sizeInMegaBytes").intValue });
+                overrides.Add(new VirtualTexturingGPUCacheSizeOverrideSRP()
+                    { format = (GraphicsFormat)overrideProperty.FindPropertyRelative("format").intValue, usage = (VirtualTexturingCacheUsageSRP)overrideProperty.FindPropertyRelative("usage").intValue, sizeInMegaBytes = (uint)overrideProperty.FindPropertyRelative("sizeInMegaBytes").intValue });
             }
 
             return overrides.ToArray();
@@ -79,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     List<GraphicsFormat> availableFormats = new List<GraphicsFormat>(EditorHelpers.QuerySupportedFormats());
 
                     // We can't just pass in existing overrides as a parameter to CreateGPUCacheSizeOverrideList() because lambdas can't capture ref params.
-                    VirtualTexturingGPUCacheSizeOverride[] existingOverrides = GetGPUCacheSizeOverrideArrayFromProperty(serializedRPAsset.virtualTexturingSettings.gpuCacheSizeOverridesStreaming);
+                    VirtualTexturingGPUCacheSizeOverrideSRP[] existingOverrides = GetGPUCacheSizeOverrideArrayFromProperty(serializedRPAsset.virtualTexturingSettings.gpuCacheSizeOverridesStreaming);
                     RemoveOverriddenFormats(availableFormats, existingOverrides);
 
                     int index = property.arraySize;
@@ -111,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return (GraphicsFormat)Enum.Parse(typeof(GraphicsFormat), $"{format}_{channelTransform}");
             }
 
-            void RemoveOverriddenFormats(List<GraphicsFormat> formats, VirtualTexturingGPUCacheSizeOverride[] overrides)
+            void RemoveOverriddenFormats(List<GraphicsFormat> formats, VirtualTexturingGPUCacheSizeOverrideSRP[] overrides)
             {
                 foreach (var existingCacheSizeOverride in overrides)
                 {
@@ -119,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            void GPUCacheSizeOverridesGUI(Rect rect, int overrideIdx, SerializedProperty overrideListProperty, VirtualTexturingGPUCacheSizeOverride[] overrideList)
+            void GPUCacheSizeOverridesGUI(Rect rect, int overrideIdx, SerializedProperty overrideListProperty, VirtualTexturingGPUCacheSizeOverrideSRP[] overrideList)
             {
                 var cacheSizeOverrideProperty = overrideListProperty.GetArrayElementAtIndex(overrideIdx);
                 var cacheSizeOverride = overrideList[overrideIdx];
