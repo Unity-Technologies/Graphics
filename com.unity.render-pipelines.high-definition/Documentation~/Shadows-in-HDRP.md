@@ -55,8 +55,6 @@ After HDRP captures a shadow map, it processes filtering on the map in order to 
 
 To change which filter HDRP uses, change the **Filtering Quality** property in your Unity Project’s [HDRP Asset](HDRP-Asset.html). There are currently four filter quality presets for directional and punctual lights. For information on the available filter qualities, see the [Filtering Qualities table](HDRP-Asset.html#FilteringQualities).
 
-Currently, if you want to use **High** quality (PCSS) filtering in [deferred](Forward-And-Deferred-Rendering.html) mode, you need to enable it in the [HDRP Config package](HDRP-Config-Package.html). For information on how to do this, see the [Example section](HDRP-Config-Package.html#Example) of the Config package documentation.
-
 ## Shadowmasks
 
 HDRP supports two [Mixed Lighting Modes](https://docs.unity3d.com/Manual/LightMode-Mixed.html):
