@@ -21,10 +21,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         GraphData m_Graph;
         MessageManager m_Messenger;
 
+        MaterialPropertyBlock m_SharedPreviewPropertyBlock;         // stores preview properties (shared among ALL preview nodes)
+
         Dictionary<Guid, PreviewRenderData> m_RenderDatas = new Dictionary<Guid, PreviewRenderData>();      // stores all of the PreviewRendererData, mapped by node GUID
         PreviewRenderData m_MasterRenderData;                                                               // cache ref to preview renderer data for the master node
 
-        int m_MaxNodesCompiling = 3;                                                                        // max preview shaders we want to async compile at once
+        int m_MaxNodesCompiling = 2;                                                                        // max preview shaders we want to async compile at once
 
         // state trackers
         HashSet<AbstractMaterialNode> m_NodesShaderChanged = new HashSet<AbstractMaterialNode>();           // nodes whose shader code has changed, this node and nodes that read from it are put into NeedRecompile
@@ -45,6 +47,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public PreviewManager(GraphData graph, MessageManager messenger)
         {
+            m_SharedPreviewPropertyBlock = new MaterialPropertyBlock();
             m_Graph = graph;
             m_Messenger = messenger;
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
@@ -176,32 +179,36 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // ADDs all nodes in sources, and all nodes in the given direction relative to them, into result
         // sources and result can be the same HashSet
+        private static readonly ProfilerMarker PropagateNodesMarker = new ProfilerMarker("PropagateNodes");
         void PropagateNodes(HashSet<AbstractMaterialNode> sources, PropagationDirection dir, HashSet<AbstractMaterialNode> result)
         {
-            // NodeWave represents the list of nodes we still have to process and add to result
-            m_TempNodeWave.Clear();
-            m_TempAddedToNodeWave.Clear();
-            foreach (var node in sources)
+            using (PropagateNodesMarker.Auto())
             {
-                m_TempNodeWave.Push(node);
-                m_TempAddedToNodeWave.Add(node);
+                // NodeWave represents the list of nodes we still have to process and add to result
+                m_TempNodeWave.Clear();
+                m_TempAddedToNodeWave.Clear();
+                foreach (var node in sources)
+                {
+                    m_TempNodeWave.Push(node);
+                    m_TempAddedToNodeWave.Add(node);
+                }
+
+                while (m_TempNodeWave.Count > 0)
+                {
+                    var node = m_TempNodeWave.Pop();
+                    if (node == null)
+                        continue;
+
+                    result.Add(node);
+
+                    // grab connected nodes in propagation direction, add them to the node wave
+                    ForeachConnectedNode(node, dir, AddNextLevelNodesToWave);
+                }
+
+                // clean up any temp data
+                m_TempNodeWave.Clear();
+                m_TempAddedToNodeWave.Clear();
             }
-
-            while (m_TempNodeWave.Count > 0)
-            {
-                var node = m_TempNodeWave.Pop();
-                if (node == null)
-                    continue;
-
-                result.Add(node);
-
-                // grab connected nodes in propagation direction, add them to the node wave
-                ForeachConnectedNode(node, dir, AddNextLevelNodesToWave);
-            }
-
-            // clean up any temp data
-            m_TempNodeWave.Clear();
-            m_TempAddedToNodeWave.Clear();
         }
 
         void ForeachConnectedNode(AbstractMaterialNode node, PropagationDirection dir, Action<AbstractMaterialNode> action)
@@ -284,27 +291,31 @@ namespace UnityEditor.ShaderGraph.Drawing
             return (m_NodesShaderChanged.Count > 0);
         }
 
-        void CollectShaderProperties(AbstractMaterialNode node, PreviewRenderData renderData)
+        private static readonly ProfilerMarker CollectPreviewPropertiesMarker = new ProfilerMarker("CollectPreviewProperties");
+        void CollectPreviewProperties()
         {
-            using (var tempPropertyNodes = PooledHashSet<AbstractMaterialNode>.Get())
+            using (CollectPreviewPropertiesMarker.Auto())
+            using (var tempCollectNodes = PooledHashSet<AbstractMaterialNode>.Get())
             using (var tempPreviewProps = PooledList<PreviewProperty>.Get())
             {
-                tempPropertyNodes.Add(node);
-                PropagateNodes(tempPropertyNodes, PropagationDirection.Upstream, tempPropertyNodes);
-                foreach (var propNode in tempPropertyNodes)
-                {
+                // we only collect properties from nodes upstream of something we want to draw
+                // TODO: we could go a step farther and only collect properties from nodes we know have changed their value
+                // but that's not something we currently track...
+                PropagateNodes(m_NodesToDraw, PropagationDirection.Upstream, tempCollectNodes);
+
+                foreach (var propNode in tempCollectNodes)
                     propNode.CollectPreviewMaterialProperties(tempPreviewProps);
-                }
 
                 foreach (var prop in m_Graph.properties)
                     tempPreviewProps.Add(prop.GetPreviewMaterialProperty());
 
                 foreach (var previewProperty in tempPreviewProps)
-                    renderData.shaderData.mat.SetPreviewProperty(previewProperty);
+                    previewProperty.SetValueOnMaterialPropertyBlock(m_SharedPreviewPropertyBlock);
             }
         }
 
         private static readonly ProfilerMarker RenderPreviewsMarker = new ProfilerMarker("RenderPreviews");
+        private static readonly ProfilerMarker PrepareNodesMarker = new ProfilerMarker("PrepareNodesMarker");
         public void RenderPreviews(bool requestShaders = true)
         {
             using (RenderPreviewsMarker.Auto())
@@ -313,14 +324,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (requestShaders)
                     UpdateShaders();
+
                 UpdateTimedNodeList();
 
                 PropagateNodes(m_NodesToDraw, PropagationDirection.Downstream, m_NodesToDraw);
                 m_NodesToDraw.UnionWith(m_TimedNodes);
 
+                if (m_NodesToDraw.Count <= 0)
+                    return;
+
+                CollectPreviewProperties();
+
                 var time = Time.realtimeSinceStartup;
                 var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
 
+                using (PrepareNodesMarker.Auto())
                 foreach (var node in m_NodesToDraw)
                 {
                     if (node == null || !node.hasPreview || !node.previewExpanded)
@@ -341,7 +359,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
                     }
 
-                    CollectShaderProperties(node, renderData);
                     renderData.shaderData.mat.SetVector("_TimeParameters", timeParameters);
 
                     if (renderData.shaderData.hasError)
@@ -386,8 +403,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var renderMasterPreview = masterRenderData != null && m_NodesToDraw.Contains(masterRenderData.shaderData.node);
                 if (renderMasterPreview && masterRenderData.shaderData.mat != null)
                 {
-                    CollectShaderProperties(masterRenderData.shaderData.node, masterRenderData);
-
                     if (m_NewMasterPreviewSize.HasValue)
                     {
                         if (masterRenderData.renderTexture != null)
@@ -638,52 +653,60 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        private static readonly ProfilerMarker UpdateTimedNodeListMarker = new ProfilerMarker("RenderPreviews");
         void UpdateTimedNodeList()
         {
             if (!m_RefreshTimedNodes)
                 return;
 
-            m_TimedNodes.Clear();
-            foreach (var timeNode in m_Graph.GetNodes<AbstractMaterialNode>().Where(node => node.RequiresTime()))
+            using (UpdateTimedNodeListMarker.Auto())
             {
-                m_TimedNodes.Add(timeNode);
-            }
-            PropagateNodes(m_TimedNodes, PropagationDirection.Downstream, m_TimedNodes);
+                m_TimedNodes.Clear();
+                foreach (var timeNode in m_Graph.GetNodes<AbstractMaterialNode>().Where(node => node.RequiresTime()))
+                {
+                    m_TimedNodes.Add(timeNode);
+                }
+                PropagateNodes(m_TimedNodes, PropagationDirection.Downstream, m_TimedNodes);
 
-            m_RefreshTimedNodes = false;
+                m_RefreshTimedNodes = false;
+            }
         }
 
+        private static readonly ProfilerMarker RenderPreviewMarker = new ProfilerMarker("RenderPreview");
         void RenderPreview(PreviewRenderData renderData, Mesh mesh, Matrix4x4 transform)
         {
-            var node = renderData.shaderData.node;
-            Assert.IsTrue((node != null && node.hasPreview && node.previewExpanded) || node == masterRenderData?.shaderData?.node);
-
-            if (renderData.shaderData.hasError)
+            using (RenderPreviewMarker.Auto())
             {
-                renderData.texture = m_ErrorTexture;
-                return;
+                var node = renderData.shaderData.node;
+                Assert.IsTrue((node != null && node.hasPreview && node.previewExpanded) || node == masterRenderData?.shaderData?.node);
+
+                if (renderData.shaderData.hasError)
+                {
+                    renderData.texture = m_ErrorTexture;
+                    return;
+                }
+
+                var previousRenderTexture = RenderTexture.active;
+
+                //Temp workaround for alpha previews...
+                var temp = RenderTexture.GetTemporary(renderData.renderTexture.descriptor);
+                RenderTexture.active = temp;
+                Graphics.Blit(Texture2D.whiteTexture, temp, m_SceneResources.checkerboardMaterial);
+
+                m_SceneResources.camera.targetTexture = temp;
+                Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, m_SharedPreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
+
+                var previousUseSRP = Unsupported.useScriptableRenderPipeline;
+                Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
+                m_SceneResources.camera.Render();
+                Unsupported.useScriptableRenderPipeline = previousUseSRP;
+
+                Graphics.Blit(temp, renderData.renderTexture, m_SceneResources.blitNoAlphaMaterial);
+                RenderTexture.ReleaseTemporary(temp);
+
+                RenderTexture.active = previousRenderTexture;
+                renderData.texture = renderData.renderTexture;
             }
-
-            var previousRenderTexture = RenderTexture.active;
-
-            //Temp workaround for alpha previews...
-            var temp = RenderTexture.GetTemporary(renderData.renderTexture.descriptor);
-            RenderTexture.active = temp;
-            Graphics.Blit(Texture2D.whiteTexture, temp, m_SceneResources.checkerboardMaterial);
-
-            m_SceneResources.camera.targetTexture = temp;
-            Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, null, ShadowCastingMode.Off, false, null, false);
-
-            var previousUseSRP = Unsupported.useScriptableRenderPipeline;
-            Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
-            m_SceneResources.camera.Render();
-            Unsupported.useScriptableRenderPipeline = previousUseSRP;
-
-            Graphics.Blit(temp, renderData.renderTexture, m_SceneResources.blitNoAlphaMaterial);
-            RenderTexture.ReleaseTemporary(temp);
-
-            RenderTexture.active = previousRenderTexture;
-            renderData.texture = renderData.renderTexture;
         }
 
         void InitializeSRPIfNeeded()
@@ -813,6 +836,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var renderData in m_RenderDatas.Values)
                 DestroyRenderData(renderData);
             m_RenderDatas.Clear();
+            m_SharedPreviewPropertyBlock.Clear();
         }
 
         public void Dispose()
