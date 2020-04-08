@@ -84,6 +84,14 @@ namespace UnityEngine.Rendering.Universal
             eyeIndex = 0;
         }
 
+        /// <summary>
+        /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
+        /// This method should be called inside Configure.
+        /// </summary>
+        /// <param name="colorType">Render texture type to use as color render texture.</param>
+        /// <param name="depthType">Render texture type to use as depth render texture.</param>
+        /// <seealso cref="Configure"/>
+        /// <seealso cref="UniversalRenderTextureType"/>
         public void ConfigureTarget(UniversalRenderTextureType colorType, UniversalRenderTextureType depthType = UniversalRenderTextureType.None)
         {
             var renderer = ScriptableRenderer.current;

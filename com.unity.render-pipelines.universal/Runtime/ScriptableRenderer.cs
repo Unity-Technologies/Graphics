@@ -81,8 +81,8 @@ namespace UnityEngine.Rendering.Universal
         /// <c>current</c> is null outside rendering scope.
         /// Similar to https://docs.unity3d.com/ScriptReference/Camera-current.html
         /// </summary>
-        public static ScriptableRenderer current = null;
-        
+        internal static ScriptableRenderer current = null;
+
         /// <summary>
         /// Set camera matrices. This method will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to camera matrices.
         /// Additionally this will also set <c>unity_CameraProjection</c> and <c>unity_CameraProjection</c>.
@@ -283,7 +283,7 @@ namespace UnityEngine.Rendering.Universal
             new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0},      // m_TrimmedColorAttachmentCopies[7] is an array of 7 RenderTargetIdentifiers
             new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 },  // m_TrimmedColorAttachmentCopies[8] is an array of 8 RenderTargetIdentifiers
         };
-        
+
         internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
             RenderTargetIdentifier depthAttachment)
         {
@@ -872,9 +872,6 @@ namespace UnityEngine.Rendering.Universal
             Color clearColor,
             TextureDimension dimension)
         {
-            if (colorAttachment == BuiltinRenderTextureType.None)
-                Debug.Log("None");
-            
             if (dimension == TextureDimension.Tex2DArray)
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
             else
