@@ -77,6 +77,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
     {
         if (m_Material == null)
         {
+            Debug.LogErrorFormat("{0}.AddRenderPasses(): Missing material. {1} render pass will not be added. Check for missing reference in the renderer resources.", GetType().Name, m_SSAOPass.profilerTag);
             return;
         }
 
@@ -87,7 +88,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         }
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
         CoreUtils.Destroy(m_Material);
     }
@@ -106,14 +107,11 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         private RenderTextureDescriptor m_Descriptor;
 
         // Constants
-        private const string SSAO_TEXTURE_NAME = "_ScreenSpaceAmbientOcclusionTexture";
+        private const string SSAO_TEXTURE_NAME = "_ScreenSpaceOcclusionTexture";
         private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
+        private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
         private static readonly int s_BlurTexture1ID = Shader.PropertyToID("_SSAO_BlurTexture1");
         private static readonly int s_BlurTexture2ID = Shader.PropertyToID("_SSAO_BlurTexture2");
-        private static readonly int s_DownsampleID = Shader.PropertyToID("_DownSample");
-        private static readonly int s_IntensityID = Shader.PropertyToID("_Intensity");
-        private static readonly int s_RadiusID = Shader.PropertyToID("_Radius");
-        private static readonly int s_SampleCountID = Shader.PropertyToID("_SampleCount");
         private static readonly int s_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
 
         // Enums
@@ -172,11 +170,14 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
             int downsampleDivider = m_FeatureSettings.Downsample ? 2 : 1;
 
-            // Material settings
-            material.SetFloat(s_DownsampleID, 1.0f / downsampleDivider);
-            material.SetFloat(s_IntensityID, m_FeatureSettings.Intensity);
-            material.SetFloat(s_RadiusID, m_FeatureSettings.Radius);
-            material.SetInt(s_SampleCountID, m_FeatureSettings.SampleCount);
+            // Update SSAO parameters in the material
+            Vector4 ssaoParams = new Vector4(
+                1.0f / downsampleDivider,      // Downsampling
+                m_FeatureSettings.Intensity,   // Intensity
+                m_FeatureSettings.Radius,      // Radius
+                m_FeatureSettings.SampleCount  // Sample count
+            );
+            material.SetVector(s_SSAOParamsID, ssaoParams);
 
             // Keywords
             //if (m_FeatureSettings.DepthSource == DepthSource.Depth)
@@ -184,19 +185,19 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 switch (m_FeatureSettings.NormalQuality)
                 {
                     case QualityOptions.Low:
-                        SetKeyword(NORMAL_RECONSTRUCTION_LOW_KEYWORD, true);
-                        SetKeyword(NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD, false);
-                        SetKeyword(NORMAL_RECONSTRUCTION_HIGH_KEYWORD, false);
+                        CoreUtils.SetKeyword(material, NORMAL_RECONSTRUCTION_LOW_KEYWORD, true);
+                        CoreUtils.SetKeyword(material, NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD, false);
+                        CoreUtils.SetKeyword(material, NORMAL_RECONSTRUCTION_HIGH_KEYWORD, false);
                         break;
                     case QualityOptions.Medium:
-                        SetKeyword(NORMAL_RECONSTRUCTION_LOW_KEYWORD, false);
-                        SetKeyword(NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD, true);
-                        SetKeyword(NORMAL_RECONSTRUCTION_HIGH_KEYWORD, false);
+                        CoreUtils.SetKeyword(material, NORMAL_RECONSTRUCTION_LOW_KEYWORD, false);
+                        CoreUtils.SetKeyword(material, NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD, true);
+                        CoreUtils.SetKeyword(material, NORMAL_RECONSTRUCTION_HIGH_KEYWORD, false);
                         break;
                     case QualityOptions.High:
-                        SetKeyword(NORMAL_RECONSTRUCTION_LOW_KEYWORD, false);
-                        SetKeyword(NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD, false);
-                        SetKeyword(NORMAL_RECONSTRUCTION_HIGH_KEYWORD, true);
+                        CoreUtils.SetKeyword(material, NORMAL_RECONSTRUCTION_LOW_KEYWORD, false);
+                        CoreUtils.SetKeyword(material, NORMAL_RECONSTRUCTION_MEDIUM_KEYWORD, false);
+                        CoreUtils.SetKeyword(material, NORMAL_RECONSTRUCTION_HIGH_KEYWORD, true);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -229,16 +230,14 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         {
             if (material == null)
             {
-                Debug.LogErrorFormat(
-                    "Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.",
-                    material, GetType().Name);
+                Debug.LogErrorFormat("{0}.Execute(): Missing material. {1} render pass will not execute. Check for missing reference in the renderer resources.", GetType().Name, profilerTag);
                 return;
             }
 
             CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceAmbientOcclusion, true);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
 
                 // Blit has logic to flip projection matrix when rendering to render texture.
                 // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
@@ -310,22 +309,10 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
                 throw new ArgumentNullException("cmd");
             }
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceAmbientOcclusion, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, false);
             cmd.ReleaseTemporaryRT(m_SSAOTextureHandle.id);
             cmd.ReleaseTemporaryRT(s_BlurTexture1ID);
             cmd.ReleaseTemporaryRT(s_BlurTexture2ID);
-        }
-
-        private void SetKeyword(string keyword, bool state)
-        {
-            if (state)
-            {
-                material.EnableKeyword(keyword);
-            }
-            else
-            {
-                material.DisableKeyword(keyword);
-            }
         }
 
         RenderTextureDescriptor GetStereoCompatibleDescriptor(int width, int height, GraphicsFormat format, int depthBufferBits = 0)

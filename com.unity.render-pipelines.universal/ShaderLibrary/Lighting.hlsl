@@ -31,9 +31,9 @@
     #define OUTPUT_SH(normalWS, OUT) OUT.xyz = SampleSHVertex(normalWS)
 #endif
 
-#if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
-TEXTURE2D_X(_ScreenSpaceAmbientOcclusionTexture);
-SAMPLER(sampler_ScreenSpaceAmbientOcclusionTexture);
+#if defined(_SCREEN_SPACE_OCCLUSION)
+TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
+SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -370,11 +370,11 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 ///////////////////////////////////////////////////////////////////////////////
 
 // Samples the Ambient Occlusion texture
-half SampleScreenSpaceAmbientOcclusionTexture(half3 positionCS)
+half SampleScreenSpaceOcclusionTexture(half3 positionCS)
 {
-#if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
+#if defined(_SCREEN_SPACE_OCCLUSION)
     float2 uv = UnityStereoTransformScreenSpaceTex(positionCS.xy * (GetScaledScreenParams().zw - 1.0));
-    return SAMPLE_TEXTURE2D_X(_ScreenSpaceAmbientOcclusionTexture, sampler_ScreenSpaceAmbientOcclusionTexture, uv).x;
+    return SAMPLE_TEXTURE2D_X(_ScreenSpaceOcclusionTexture, sampler_ScreenSpaceOcclusionTexture, uv).x;
 #endif
 
     return 1.0;
@@ -420,7 +420,7 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
     return L2Term;
 #elif defined(EVALUATE_SH_MIXED)
     half3 L0L1Term = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
-    return max(half3(0, 0, 0), L2Term + L0L1Term)
+    return max(half3(0, 0, 0), L2Term + L0L1Term);
 #endif
 
     // Default: Evaluate SH fully per-pixel
@@ -626,6 +626,8 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha, half occlusion = 1.0)
 {
     Light mainLight = GetMainLight(inputData.shadowCoord);
+
+    inputData.bakedGI *= occlusion;
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
@@ -647,7 +649,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     diffuseColor += inputData.vertexLighting;
 #endif
 
-    half3 finalColor = diffuseColor * diffuse * occlusion + emission;
+    half3 finalColor = diffuseColor * diffuse + emission;
 
 #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     finalColor += specularColor;
