@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
         #pragma multi_compile_local _ ORTHOGRAPHIC
         #pragma multi_compile_local _ REDUCED_HISTORY_CONTRIB
         #pragma multi_compile_local _ ENABLE_ALPHA
-        #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"

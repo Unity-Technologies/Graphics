@@ -5,7 +5,7 @@ Shader "Universal Render Pipeline/Lit"
         // Specular vs Metallic workflow
         [HideInInspector] _WorkflowMode("WorkflowMode", Float) = 1.0
 
-        [MainColor] _BaseColor("Color", Color) = (0.5,0.5,0.5,1)
+        [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -47,7 +47,7 @@ Shader "Universal Render Pipeline/Lit"
 
         // ObsoleteProperties
         [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
-        [HideInInspector] _Color("Base Color", Color) = (0.5, 0.5, 0.5, 1)
+        [HideInInspector] _Color("Base Color", Color) = (1, 1, 1, 1)
         [HideInInspector] _GlossMapScale("Smoothness", Float) = 0.0
         [HideInInspector] _Glossiness("Smoothness", Float) = 0.0
         [HideInInspector] _GlossyReflections("EnvironmentReflections", Float) = 0.0
