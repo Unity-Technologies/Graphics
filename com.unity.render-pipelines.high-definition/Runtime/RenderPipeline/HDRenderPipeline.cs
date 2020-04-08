@@ -3050,7 +3050,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     result.profilingId = HDProfileId.DepthPrepassForward;
 
                     RenderStateBlock? stateBlock = null;
-                    if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                    if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
                         stateBlock = m_AlphaToMaskBlock;
 
                     result.mrtRendererListDesc = CreateOpaqueRendererListDesc( cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, stateBlock: stateBlock, excludeObjectMotionVectors: objectMotionEnabled);
@@ -3804,7 +3804,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? (int)ColorWriteMask.All : 0);
                 
                 RenderStateBlock? stateBlock = null;
-                if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
                     stateBlock = m_AlphaToMaskBlock;
 
                 CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetMotionVectorsPassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
