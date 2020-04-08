@@ -739,7 +739,7 @@ MonoBehaviour:
     UseHDR: 0
     UseBackBuffer: 1
     ImageResolution: 4
-  WaitFrames: 1
+  WaitFrames: 2
 --- !u!1 &997499336
 GameObject:
   m_ObjectHideFlags: 0
