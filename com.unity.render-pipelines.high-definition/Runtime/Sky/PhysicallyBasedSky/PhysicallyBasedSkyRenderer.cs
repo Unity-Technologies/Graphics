@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ConstantBuffer._ZenithTint                = zenithTint;
             m_ConstantBuffer._HorizonZenithShiftScale   = expParams.y;
 
-            ConstantBuffer<ShaderVariablesPhysicallyBasedSky>.PushGlobal(cmd, m_ConstantBuffer, m_ShaderVariablesPhysicallyBasedSkyID);
+            ConstantBuffer.PushGlobal(cmd, m_ConstantBuffer, m_ShaderVariablesPhysicallyBasedSkyID);
         }
 
         void PrecomputeTables(CommandBuffer cmd)

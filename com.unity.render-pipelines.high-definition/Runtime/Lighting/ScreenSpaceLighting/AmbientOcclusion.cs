@@ -441,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 RenderPipelineResources resources,
                                 CommandBuffer           cmd)
         {
-            ConstantBuffer<ShaderVariablesAmbientOcclusion>.Push(cmd, parameters.cb, parameters.gtaoCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
+            ConstantBuffer.Push(cmd, parameters.cb, parameters.gtaoCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
             cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._AOPackedData, packedDataTexture);
 
             const int groupSizeX = 8;
@@ -468,7 +468,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.temporalAccumulation || parameters.fullResolution)
             {
                 var blurCS = parameters.spatialDenoiseAOCS;
-                ConstantBuffer<ShaderVariablesAmbientOcclusion>.Set(cmd, blurCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
+                ConstantBuffer.Set<ShaderVariablesAmbientOcclusion>(cmd, blurCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
 
                 // Spatial
                 cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._AOPackedData, packedDataTex);
@@ -494,7 +494,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 var blurCS = parameters.temporalDenoiseAOCS;
-                ConstantBuffer<ShaderVariablesAmbientOcclusion>.Set(cmd, blurCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
+                ConstantBuffer.Set<ShaderVariablesAmbientOcclusion>(cmd, blurCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
 
                 // Temporal
                 cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOPackedData, packedDataTex);
@@ -513,7 +513,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool blurAndUpsample = !parameters.temporalAccumulation;
 
-            ConstantBuffer<ShaderVariablesAmbientOcclusion>.Set(cmd, parameters.upsampleAndBlurAOCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
+            ConstantBuffer.Set<ShaderVariablesAmbientOcclusion>(cmd, parameters.upsampleAndBlurAOCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
 
             if (blurAndUpsample)
             {

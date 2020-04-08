@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering
@@ -6,169 +6,186 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Constant Buffer management class.
     /// </summary>
-    /// <typeparam name="CBType">Type of the structure that represent the constant buffer data.</typeparam>
-    public class ConstantBuffer<CBType> where CBType : struct
+    public class ConstantBuffer
     {
-        CBType[]                        m_Data = new CBType[1]; // Array is required by the ComputeBuffer SetData API
-        ComputeBuffer                   m_GPUConstantBuffer = null;
-        static ConstantBuffer<CBType>   m_TypedConstantBuffer;
-
-        ConstantBuffer()
-        {
-            m_GPUConstantBuffer = new ComputeBuffer(1, UnsafeUtility.SizeOf<CBType>(), ComputeBufferType.Constant);
-        }
-
-        void UpdateDataInternal(CommandBuffer cmd, in CBType data)
-        {
-            m_Data[0] = data;
-            cmd.SetComputeBufferData(m_GPUConstantBuffer, m_Data);
-        }
-
-        void SetGlobalInternal(CommandBuffer cmd, int shaderId)
-        {
-            cmd.SetGlobalConstantBuffer(m_GPUConstantBuffer, shaderId, 0, m_GPUConstantBuffer.stride);
-        }
-
-        void SetInternal(CommandBuffer cmd, ComputeShader cs, int shaderId)
-        {
-            cmd.SetComputeConstantBufferParam(cs, shaderId, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
-        }
-
-        void SetInternal(Material mat, int shaderId)
-        {
-            // This isn't done via command buffer because as long as the buffer itself is not destroyed,
-            // the binding stays valid. Only the commit of data needs to go through the command buffer.
-            // We do it here anyway for now to simplify user API.
-            mat.SetConstantBuffer(shaderId, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
-        }
-
-        void ReleaseInternal()
-        {
-            CoreUtils.SafeRelease(m_GPUConstantBuffer);
-        }
-
-        /// <summary>
-        /// Allocates GPU resources for this type of constant buffer.
-        /// This needs to be called once before using the constant buffer.
-        /// </summary>
-        public static void Allocate()
-        {
-            if (m_TypedConstantBuffer != null)
-                throw new InvalidOperationException($"Constant Buffer {m_TypedConstantBuffer.GetType()} was already allocated");
-
-            m_TypedConstantBuffer = new ConstantBuffer<CBType>();
-        }
-
-        /// <summary>
-        /// Release GPU resources for this type of constant buffer.
-        /// </summary>
-        public static void Release()
-        {
-            if (m_TypedConstantBuffer == null)
-                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
-
-            m_TypedConstantBuffer.ReleaseInternal();
-            m_TypedConstantBuffer = null;
-        }
+        static List<ConstantBufferBase> m_RegisteredConstantBuffers = new List<ConstantBufferBase>();
 
         /// <summary>
         /// Update the GPU data of the constant buffer and bind it globally.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="data">Input data of the constant buffer.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
-        public static void PushGlobal(CommandBuffer cmd, in CBType data, int shaderId)
+        public static void PushGlobal<CBType>(CommandBuffer cmd, in CBType data, int shaderId) where CBType : struct
         {
-            if (m_TypedConstantBuffer == null)
-                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+            var cb = TypedConstantBuffer<CBType>.instance;
 
-            m_TypedConstantBuffer.UpdateDataInternal(cmd, data);
-            m_TypedConstantBuffer.SetGlobalInternal(cmd, shaderId);
+            cb.UpdateData(cmd, data);
+            cb.SetGlobal(cmd, shaderId);
         }
 
         /// <summary>
         /// Update the GPU data of the constant buffer and bind it to a compute shader.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="data">Input data of the constant buffer.</param>
         /// <param name="cs">Compute shader to which the constant buffer should be bound.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
-        public static void Push(CommandBuffer cmd, in CBType data, ComputeShader cs, int shaderId)
+        public static void Push<CBType>(CommandBuffer cmd, in CBType data, ComputeShader cs, int shaderId) where CBType : struct
         {
-            if (m_TypedConstantBuffer == null)
-                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+            var cb = TypedConstantBuffer<CBType>.instance;
 
-            m_TypedConstantBuffer.UpdateDataInternal(cmd, data);
-            m_TypedConstantBuffer.SetInternal(cmd, cs, shaderId);
+            cb.UpdateData(cmd, data);
+            cb.Set(cmd, cs, shaderId);
         }
 
         /// <summary>
         /// Update the GPU data of the constant buffer and bind it to a material.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="data">Input data of the constant buffer.</param>
         /// <param name="mat">Material to which the constant buffer should be bound.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
-        public static void Push(CommandBuffer cmd, in CBType data, Material mat, int shaderId)
+        public static void Push<CBType>(CommandBuffer cmd, in CBType data, Material mat, int shaderId) where CBType : struct
         {
-            if (m_TypedConstantBuffer == null)
-                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+            var cb = TypedConstantBuffer<CBType>.instance;
 
-            m_TypedConstantBuffer.UpdateDataInternal(cmd, data);
-            m_TypedConstantBuffer.SetInternal(mat, shaderId);
+            cb.UpdateData(cmd, data);
+            cb.Set(mat, shaderId);
         }
 
         /// <summary>
         /// Update the GPU data of the constant buffer.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="data">Input data of the constant buffer.</param>
-        public static void UpdateData(CommandBuffer cmd, in CBType data)
+        public static void UpdateData<CBType>(CommandBuffer cmd, in CBType data) where CBType : struct
         {
-            if (m_TypedConstantBuffer == null)
-                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+            var cb = TypedConstantBuffer<CBType>.instance;
 
-            m_TypedConstantBuffer.UpdateDataInternal(cmd, data);
+            cb.UpdateData(cmd, data);
         }
 
         /// <summary>
         /// Bind the constant buffer globally.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
-        public static void SetGlobal(CommandBuffer cmd, int shaderId)
+        public static void SetGlobal<CBType>(CommandBuffer cmd, int shaderId) where CBType : struct
         {
-            if (m_TypedConstantBuffer == null)
-                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+            var cb = TypedConstantBuffer<CBType>.instance;
 
-            m_TypedConstantBuffer.SetGlobalInternal(cmd, shaderId);
+            cb.SetGlobal(cmd, shaderId);
         }
 
         /// <summary>
         /// Bind the constant buffer to a compute shader.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="cs">Compute shader to which the constant buffer should be bound.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
-        public static void Set(CommandBuffer cmd, ComputeShader cs, int shaderId)
+        public static void Set<CBType>(CommandBuffer cmd, ComputeShader cs, int shaderId) where CBType : struct
         {
-            if (m_TypedConstantBuffer == null)
-                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+            var cb = TypedConstantBuffer<CBType>.instance;
 
-            m_TypedConstantBuffer.SetInternal(cmd, cs, shaderId);
+            cb.Set(cmd, cs, shaderId);
         }
 
         /// <summary>
         /// Bind the constant buffer to a material.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="mat">Material to which the constant buffer should be bound.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
-        public static void Set(Material mat, int shaderId)
+        public static void Set<CBType>(Material mat, int shaderId) where CBType : struct
         {
-            if (m_TypedConstantBuffer == null)
-                throw new InvalidOperationException($"Constant Buffer of type {typeof(CBType)} was never allocated");
+            var cb = TypedConstantBuffer<CBType>.instance;
 
-            m_TypedConstantBuffer.SetInternal(mat, shaderId);
+            cb.Set(mat, shaderId);
+        }
+
+        /// <summary>
+        /// Release all currently allocated constant buffers.
+        /// This needs to be called before shutting down the application.
+        /// </summary>
+        public static void ReleaseAll()
+        {
+            foreach (var cb in m_RegisteredConstantBuffers)
+                cb.Release();
+
+            m_RegisteredConstantBuffers.Clear();
+        }
+
+        internal abstract class ConstantBufferBase
+        {
+            public abstract void Release();
+        }
+
+        internal static void Register(ConstantBufferBase cb)
+        {
+            m_RegisteredConstantBuffers.Add(cb);
+        }
+
+        class TypedConstantBuffer<CBType> : ConstantBufferBase where CBType : struct
+        {
+            CBType[] m_Data = new CBType[1]; // Array is required by the ComputeBuffer SetData API
+            static TypedConstantBuffer<CBType> s_Instance = null;
+            internal static TypedConstantBuffer<CBType> instance
+            {
+                get
+                {
+                    if (s_Instance == null)
+                        s_Instance = new TypedConstantBuffer<CBType>();
+                    return s_Instance;
+                }
+                set
+                {
+                    s_Instance = value;
+                }
+            }
+            ComputeBuffer m_GPUConstantBuffer = null;
+
+            TypedConstantBuffer()
+            {
+                m_GPUConstantBuffer = new ComputeBuffer(1, UnsafeUtility.SizeOf<CBType>(), ComputeBufferType.Constant);
+                ConstantBuffer.Register(this);
+            }
+
+            public void UpdateData(CommandBuffer cmd, in CBType data)
+            {
+                m_Data[0] = data;
+                cmd.SetComputeBufferData(m_GPUConstantBuffer, m_Data);
+            }
+
+            public void SetGlobal(CommandBuffer cmd, int shaderId)
+            {
+                cmd.SetGlobalConstantBuffer(m_GPUConstantBuffer, shaderId, 0, m_GPUConstantBuffer.stride);
+            }
+
+            public void Set(CommandBuffer cmd, ComputeShader cs, int shaderId)
+            {
+                cmd.SetComputeConstantBufferParam(cs, shaderId, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
+            }
+
+            public void Set(Material mat, int shaderId)
+            {
+                // This isn't done via command buffer because as long as the buffer itself is not destroyed,
+                // the binding stays valid. Only the commit of data needs to go through the command buffer.
+                // We do it here anyway for now to simplify user API.
+                mat.SetConstantBuffer(shaderId, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
+            }
+
+            public override void Release()
+            {
+                CoreUtils.SafeRelease(m_GPUConstantBuffer);
+                s_Instance = null;
+            }
         }
     }
 }

@@ -307,8 +307,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void Initialize(HDRenderPipelineAsset hdrpAsset, RenderPipelineResources defaultResources,  IBLFilterBSDF[] iBLFilterBSDFArray)
             {
-                ConstantBuffer<ShaderVariablesLightList>.Allocate();
-
                 var lightLoopSettings = hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
                 m_CubeToPanoMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cubeToPanoPS);
@@ -345,8 +343,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightCookieManager.Release();
 
                 CoreUtils.Destroy(m_CubeToPanoMaterial);
-
-                ConstantBuffer<ShaderVariablesLightList>.Release();
             }
 
             public void NewFrame()
@@ -2925,7 +2921,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         CommandBuffer cmd)
         {
             // ClearLightLists is the first pass, we push the global parameters for light list building here.
-            ConstantBuffer<ShaderVariablesLightList>.PushGlobal(cmd, parameters.lightListCB, HDShaderIDs._ShaderVariablesLightList);
+            ConstantBuffer.PushGlobal(cmd, parameters.lightListCB, HDShaderIDs._ShaderVariablesLightList);
 
             if (parameters.clearLightLists && !parameters.runLightList)
             {
@@ -3016,7 +3012,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var localLightListCB = parameters.lightListCB;
                     localLightListCB.g_BaseFeatureFlags = baseFeatureFlags;
-                    ConstantBuffer<ShaderVariablesLightList>.PushGlobal(cmd, localLightListCB, HDShaderIDs._ShaderVariablesLightList);
+                    ConstantBuffer.PushGlobal(cmd, localLightListCB, HDShaderIDs._ShaderVariablesLightList);
 
                     cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
                     tileFlagsWritten = true;
@@ -3103,7 +3099,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var localLightListCB = parameters.lightListCB;
                     localLightListCB.g_BaseFeatureFlags = baseFeatureFlags;
-                    ConstantBuffer<ShaderVariablesLightList>.PushGlobal(cmd, localLightListCB, HDShaderIDs._ShaderVariablesLightList);
+                    ConstantBuffer.PushGlobal(cmd, localLightListCB, HDShaderIDs._ShaderVariablesLightList);
 
                     cmd.SetComputeBufferParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
 
