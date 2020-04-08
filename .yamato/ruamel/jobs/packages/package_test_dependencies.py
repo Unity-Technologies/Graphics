@@ -4,7 +4,7 @@ from ..utils.namer import editor_filepath, editor_job_id, packages_filepath, pac
 
 def get_job_definition(package, platform, editor):
     job = {
-        'name': f'z_(do not use) Test { package["name"] } {platform["name"]} {editor["version"]} - dependencies',
+        'name': f'Test { package["name"] } {platform["name"]} {editor["version"]} - dependencies',
         'agent': dict(platform["agent"]),
         'dependencies':[
             f'{editor_filepath()}#{editor_job_id(editor["version"], platform["os"]) }',
@@ -16,7 +16,7 @@ def get_job_definition(package, platform, editor):
             f'unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only'
         ],
         'artifacts':{
-            'packages':{
+            'logs':{
                 'paths': [
                     dss("**/upm-ci~/test-results/**/*")
                 ]

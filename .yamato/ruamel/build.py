@@ -6,6 +6,12 @@ from jobs.projects.project_standalone_build import Project_StandaloneBuildJob
 from jobs.projects.project_not_standalone import Project_NotStandaloneJob
 from jobs.projects.project_all import Project_AllJob
 from jobs.editor.editor import Editor_PrimingJob
+from jobs.packages.package_pack import Package_PackJob
+from jobs.packages.package_publish import Package_PublishJob
+from jobs.packages.package_test import Package_TestJob
+from jobs.packages.package_test_dependencies import Package_TestDependenciesJob
+from jobs.packages.publish_all import Package_PublishAllJob
+from jobs.packages.test_all import Package_AllPackageCiJob
 
 # TODO:
 # - variables to store path names (change only once)
@@ -77,6 +83,36 @@ def create_editor_job(editor_metafile):
     dump_yml(editor_filepath(), yml)
 
 
+def create_package_jobs(package_metafile):
+    metafile = load_yml(package_metafile)
+    yml = {}
+
+    for package in metafile["packages"]:
+        job = Package_PackJob(package)
+        yml[job.job_id] = job.yml
+
+        job = Package_PublishJob(package, metafile["platforms"])
+        yml[job.job_id] = job.yml
+
+    for editor in metafile["editors"]:
+        for platform in metafile["platforms"]:
+            for package in metafile["packages"]:
+                job = Package_TestJob(package, platform, editor)
+                yml[job.job_id] = job.yml
+
+                job = Package_TestDependenciesJob(package, platform, editor)
+                yml[job.job_id] = job.yml
+
+    for editor in metafile["editors"]:
+        job = Package_AllPackageCiJob(metafile["packages"], metafile["platforms"], editor)
+        yml[job.job_id] = job.yml
+    
+    job = Package_PublishAllJob(metafile["packages"])
+    yml[job.job_id] = job.yml
+
+    dump_yml(packages_filepath(), yml)
+
+
 
 # TODO clean up the code, make filenames more readable/reuse, split things appropriately (eg editor, files, etc), fix scrip arguments, fix testplatforms (xr), ...
 if __name__== "__main__":
@@ -88,8 +124,12 @@ if __name__== "__main__":
 
 
     # create editor
-    create_editor_job('config/z_editor.metafile')
+    create_editor_job('config/_editor.metafile')
+    print(f'Running: editor')
 
+    # create package jobs
+    create_package_jobs('config/packages.metafile')
+    print(f'Running: packages')
 
     # create yml jobs for each specified project (universal, shadergraph, vfx_lwrp, ...)
     args = sys.argv

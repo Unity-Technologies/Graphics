@@ -8,7 +8,7 @@ def get_job_definition(package, platforms):
         dependencies.append(f'{packages_filepath()}#{package_job_id_test(package["id"],  platform["name"],"trunk")}')
 
     job = {
-        'name': f'z_(do not use) Publish { package["name"]}',
+        'name': f'Publish { package["name"]}',
         'agent': {
             'type':'Unity::VM',
             'image':'package-ci/win10:stable',
