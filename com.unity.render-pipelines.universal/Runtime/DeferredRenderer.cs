@@ -142,7 +142,7 @@ namespace UnityEngine.Rendering.Universal
 
             supportedRenderingFeatures = new RenderingFeatures()
             {
-                cameraStacking = true,
+                cameraStacking = false,
                 msaa = false,
             };
         }
