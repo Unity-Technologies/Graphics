@@ -23,8 +23,11 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static VolumeProfile GetOrAssignDefaultVolumeProfile(HDRenderPipelineAsset hdrpAsset)
         {
             if (hdrpAsset.defaultVolumeProfile == null || hdrpAsset.defaultVolumeProfile.Equals(null))
+            {
                 hdrpAsset.defaultVolumeProfile =
                     hdrpAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile;
+                EditorUtility.SetDirty(hdrpAsset);
+            }
 
             return hdrpAsset.defaultVolumeProfile;
         }

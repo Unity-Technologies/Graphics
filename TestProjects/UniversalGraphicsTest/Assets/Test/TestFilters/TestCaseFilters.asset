@@ -53,3 +53,8 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 4
     Reason: 
+  - FilteredScene: {fileID: 102900000, guid: 9f750aafa54d07a43b7601615bb2c7ea, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    Reason: 'Known issue: expected less than or equal to 0.000500000024f but was 0.000877162092f'
