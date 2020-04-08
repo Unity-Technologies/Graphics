@@ -85,14 +85,6 @@ namespace UnityEngine.VFX.Test
             var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
             if (camera)
             {
-
-#if VFX_HAS_UNIVERSAL_RP
-                if (!camera.gameObject.GetComponent<Rendering.Universal.UniversalAdditionalCameraData>())
-                {
-                    var cameraData = camera.gameObject.AddComponent<Rendering.Universal.UniversalAdditionalCameraData>();
-                    cameraData.renderPostProcessing = true; //HotFix forcing post process to be activated to cover missing clear
-                }
-#endif
                 var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
 
                 var rt = RenderTexture.GetTemporary(captureSizeWidth, captureSizeHeight, 24);
