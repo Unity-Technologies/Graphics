@@ -281,7 +281,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesRayTracingCB._RaytracingNumSamples = settings.sampleCount.value;
             m_ShaderVariablesRayTracingCB._RaytracingIntensityClamp = settings.clampValue.value;
             m_ShaderVariablesRayTracingCB._RaytracingMaxRecursion = settings.bounceCount.value;
-            ConstantBuffer<ShaderVariablesRaytracing>.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+            ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
         }
 
         void RenderIndirectDiffuseQuality(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)

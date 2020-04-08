@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Update Global Constant Buffer.
                 m_ShaderVariablesRayTracingCB._RaytracingRayMaxLength = recursiveSettings.rayLength.value;
                 m_ShaderVariablesRayTracingCB._RaytracingMaxRecursion = recursiveSettings.maxDepth.value;
-                ConstantBuffer<ShaderVariablesRaytracing>.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Fecth the temporary buffers we shall be using
                 RTHandle flagBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.R0);

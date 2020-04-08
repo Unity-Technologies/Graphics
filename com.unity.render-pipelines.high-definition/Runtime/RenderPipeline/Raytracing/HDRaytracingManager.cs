@@ -562,7 +562,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #endif
             return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
         }
-        
+
         internal bool RayTracingLightClusterRequired(HDCamera hdCamera)
         {
             ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
@@ -571,10 +571,10 @@ namespace UnityEngine.Rendering.HighDefinition
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
             SubSurfaceScattering subSurface = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
 
-            return (m_ValidRayTracingState && (reflSettings.rayTracing.value 
-                                                || giSettings.rayTracing.value 
-                                                || recursiveSettings.enable.value 
-                                                || pathTracingSettings.enable.value 
+            return (m_ValidRayTracingState && (reflSettings.rayTracing.value
+                                                || giSettings.rayTracing.value
+                                                || recursiveSettings.enable.value
+                                                || pathTracingSettings.enable.value
                                                 || subSurface.rayTracing.value));
         }
 
@@ -615,7 +615,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesRaytracingLightLoopCB._AreaLightCountRT = (uint)m_RayTracingLightCluster.GetAreaLightCount();
             m_ShaderVariablesRaytracingLightLoopCB._EnvLightCountRT = (uint)m_RayTracingLightCluster.GetEnvLightCount();
 
-            ConstantBuffer<ShaderVariablesRaytracingLightLoop>.PushGlobal(cmd, m_ShaderVariablesRaytracingLightLoopCB, HDShaderIDs._ShaderVariablesRaytracingLightLoop);
+            ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRaytracingLightLoopCB, HDShaderIDs._ShaderVariablesRaytracingLightLoop);
         }
 
         internal RayTracingAccelerationStructure RequestAccelerationStructure()

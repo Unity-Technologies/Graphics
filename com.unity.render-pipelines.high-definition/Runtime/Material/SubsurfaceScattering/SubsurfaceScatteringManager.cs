@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Inject the ray generation data
                         m_ShaderVariablesRayTracingCB._RaytracingNumSamples = settings.sampleCount.value;
                         m_ShaderVariablesRayTracingCB._RaytracingSampleIndex = sampleIndex;
-                        ConstantBuffer<ShaderVariablesRaytracing>.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+                        ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Bind the textures for ray generation
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DepthTexture, sharedRTManager.GetDepthStencilBuffer());

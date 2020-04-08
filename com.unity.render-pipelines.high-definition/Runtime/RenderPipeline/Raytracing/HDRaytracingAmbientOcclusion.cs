@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Inject the ray generation data (be careful of the global constant buffer limitation)
                 globalCB._RaytracingRayMaxLength = aoSettings.rayLength.value;
                 globalCB._RaytracingNumSamples = aoSettings.sampleCount.value;
-                ConstantBuffer<ShaderVariablesRaytracing>.PushGlobal(cmd, globalCB, HDShaderIDs._ShaderVariablesRaytracing);
+                ConstantBuffer.PushGlobal(cmd, globalCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Set the data for the ray generation
                 cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._DepthTexture, m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer());

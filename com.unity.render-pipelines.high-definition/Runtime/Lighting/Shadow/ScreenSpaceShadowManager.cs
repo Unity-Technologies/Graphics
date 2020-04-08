@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Update global Constant Buffer
                             m_ShaderVariablesRayTracingCB._RaytracingSampleIndex = sampleIdx;
                             m_ShaderVariablesRayTracingCB._RaytracingNumSamples = m_CurrentSunLightAdditionalLightData.numRayTracingSamples;
-                            ConstantBuffer<ShaderVariablesRaytracing>.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+                            ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                             // Bind the light & sampling data
                             cmd.SetComputeBufferParam(m_ScreenSpaceShadowsCS, m_RaytracingDirectionalShadowSample, HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
@@ -534,7 +534,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingTargetAreaLight, lightIndex);
 
                 m_ShaderVariablesRayTracingCB._RaytracingNumSamples = additionalLightData.numRayTracingSamples;
-                ConstantBuffer<ShaderVariablesRaytracing>.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Bind the input buffers
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
@@ -591,7 +591,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Update global Constant Buffer
                     m_ShaderVariablesRayTracingCB._RaytracingNumSamples = additionalLightData.numRayTracingSamples;
                     m_ShaderVariablesRayTracingCB._RaytracingSampleIndex = sampleIndex;
-                    ConstantBuffer<ShaderVariablesRaytracing>.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+                    ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                     // Bind the light data
                     cmd.SetComputeBufferParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._LightDatas, m_LightLoopLightData.lightData);
@@ -774,7 +774,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Update global constant buffer
                     m_ShaderVariablesRayTracingCB._RaytracingSampleIndex = sampleIdx;
                     m_ShaderVariablesRayTracingCB._RaytracingNumSamples = additionalLightData.numRayTracingSamples;
-                    ConstantBuffer<ShaderVariablesRaytracing>.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+                    ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                     // Bind the right kernel
                     int shadowKernel = lightData.lightType == GPULightType.Point ? m_RaytracingPointShadowSample : m_RaytracingSpotShadowSample;

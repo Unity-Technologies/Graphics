@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Inject the global parameters
-            ConstantBuffer<ShaderVariablesRaytracing>.PushGlobal(cmd, parameters.globalCB, HDShaderIDs._ShaderVariablesRaytracing);
+            ConstantBuffer.PushGlobal(cmd, parameters.globalCB, HDShaderIDs._ShaderVariablesRaytracing);
 
             // Define the shader pass to use for the reflection pass
             cmd.SetRayTracingShaderPass(parameters.gBufferRaytracingRT, "GBufferDXR");
