@@ -116,7 +116,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
             return;
 
         const StripData stripData = GetStripDataFromStripIndex(stripIndex, PARTICLE_PER_STRIP_COUNT);
-		InitStripAttributes(particleIndex, attributes, stripData);
+		InitStripAttributesWithSpawn(maxThreadId, particleIndex, attributes, stripData);
 		// TODO Change seed to be sure we're deterministic on random with strip
 #endif
         

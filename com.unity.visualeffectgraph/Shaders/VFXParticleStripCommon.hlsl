@@ -1,8 +1,9 @@
 #define STRIP_FIRST_INDEX 0
 #define STRIP_NEXT_INDEX 1
-#define STRIP_MIN_ALIVE 2
-#define STRIP_MAX_ALIVE 3
-#define STRIP_DATA_X(buffer,data,stripIndex) buffer[(stripIndex << 2) + (data)]
+#define STRIP_PREV_NEXT_INDEX 2
+#define STRIP_MIN_ALIVE 3
+#define STRIP_MAX_ALIVE 4
+#define STRIP_DATA_X(buffer,data,stripIndex) buffer[(stripIndex * 5) + (data)]
 #define STRIP_DATA(data,stripIndex) STRIP_DATA_X(stripDataBuffer,data,stripIndex)
 
 struct StripData
@@ -11,6 +12,7 @@ struct StripData
     uint capacity;
     uint firstIndex;
     uint nextIndex;
+    uint prevNextIndex;
 };
 
 #if HAS_STRIPS
@@ -21,6 +23,7 @@ const StripData GetStripDataFromStripIndex(uint stripIndex, uint capacity)
     stripData.capacity = capacity;
     stripData.firstIndex = STRIP_DATA(STRIP_FIRST_INDEX,stripData.stripIndex);
     stripData.nextIndex = STRIP_DATA(STRIP_NEXT_INDEX,stripData.stripIndex);
+    stripData.prevNextIndex = STRIP_DATA(STRIP_PREV_NEXT_INDEX, stripData.stripIndex);
     return stripData;
 }
 
@@ -51,6 +54,17 @@ void InitStripAttributes(uint particleIndex, inout Attributes attributes, const 
 #endif
 #if VFX_USE_PARTICLECOUNTINSTRIP_CURRENT
     attributes.particleCountInStrip = data.nextIndex;
+#endif
+}
+
+void InitStripAttributesWithSpawn(uint spawnCount, uint particleIndex, inout Attributes attributes, const StripData data)
+{
+    InitStripAttributes(particleIndex, attributes, data);
+#if VFX_USE_PARTICLECOUNTINSTRIP_CURRENT
+    attributes.particleCountInStrip = data.prevNextIndex + spawnCount; // Override particle count in init as nextIndex is not constant accross threads
+#endif
+#if VFX_USE_SPAWNINDEXINSTRIP_CURRENT
+    attributes.spawnIndexInStrip = GetRelativeIndex(particleIndex, data) - data.prevNextIndex;
 #endif
 }
 #endif

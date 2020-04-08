@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Range and Min attributes support on int and uint parameters
 - New Construct Matrix from Vector4 operator
 - Allow filtering enums in VFXModels' VFXSettings.
+- New particle strip attribute in Initialize: spawnIndexInStrip
+- New operator for strips that adds Orientation modes
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
@@ -84,6 +86,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix space issues with blocks and operators taking a camera as input
 - Generated shaderName are now consistent with displayed system names
 - Remove some shader warnings
+- SpawnOverDistance spawner block now behaves correctly
 
 ## [7.1.1] - 2019-09-05
 ### Added

@@ -60,9 +60,9 @@ namespace UnityEditor.VFX
                 if (colorMode != ColorMode.None)
                     yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Write);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Write);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
