@@ -924,6 +924,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Custom Pass Utils API
         public static readonly int _SourceScaleBias                = Shader.PropertyToID("_SourceScaleBias");
+        public static readonly int _GaussianWeights                = Shader.PropertyToID("_GaussianWeights");
+        public static readonly int _SampleCount                    = Shader.PropertyToID("_SampleCount");
+        public static readonly int _Radius                         = Shader.PropertyToID("_Radius");
+        public static readonly int _ViewPortSize                   = Shader.PropertyToID("_ViewPortSize");
+        public static readonly int _ViewportScaleBias              = Shader.PropertyToID("_ViewportScaleBias");
     }
 
     // Shared material property names

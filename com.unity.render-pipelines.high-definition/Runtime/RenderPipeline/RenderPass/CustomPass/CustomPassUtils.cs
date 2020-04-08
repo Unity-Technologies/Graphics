@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A set of custom pass utility function to help you build your effects
     /// </summary>
-    public class CustomPassUtils
+    public static class CustomPassUtils
     {
         /// <summary>
         /// Fullscreen scale and bias values, it is the default for functions that have scale and bias overloads.
@@ -16,22 +16,24 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>x: scaleX, y: scaleY, z: biasX, w: biasY</returns>
         public static Vector4 fullScreenScaleBias = new Vector4(1, 1, 0, 0);
 
-        static ShaderTagId[] litForwardTags = {
-            HDShaderPassNames.s_ForwardOnlyName, HDShaderPassNames.s_ForwardName, HDShaderPassNames.s_SRPDefaultUnlitName
-        };
+        static ShaderTagId[] litForwardTags = { HDShaderPassNames.s_ForwardOnlyName, HDShaderPassNames.s_ForwardName, HDShaderPassNames.s_SRPDefaultUnlitName };
         static ShaderTagId[] depthTags = { HDShaderPassNames.s_DepthForwardOnlyName, HDShaderPassNames.s_DepthOnlyName };
 
         static ProfilingSampler downSampleSampler = new ProfilingSampler("DownSample");
         static ProfilingSampler verticalBlurSampler = new ProfilingSampler("Vertical Blur");
         static ProfilingSampler horizontalBlurSampler = new ProfilingSampler("Horizontal Blur");
         static ProfilingSampler gaussianblurSampler = new ProfilingSampler("Gaussian Blur");
+        static ProfilingSampler copySampler = new ProfilingSampler("Copy");
 
-        static MaterialPropertyBlock    blurPropertyBlock = new MaterialPropertyBlock();
+        static MaterialPropertyBlock    propertyBlock = new MaterialPropertyBlock();
         static Material                 customPassUtilsMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassUtils);
 
-        static Dictionary<int, float[]> gaussianWeightsCache = new Dictionary<int, float[]>();
+        static Dictionary<int, ComputeBuffer> gaussianWeightsCache = new Dictionary<int, ComputeBuffer>();
 
         static int downSamplePassIndex = customPassUtilsMaterial.FindPass("Downsample");
+        static int verticalBlurPassIndex = customPassUtilsMaterial.FindPass("VerticalBlur");
+        static int horizontalBlurPassIndex = customPassUtilsMaterial.FindPass("HorizontalBlur");
+        static int copyPassIndex = customPassUtilsMaterial.FindPass("Copy");
 
         /// <summary>
         /// Convert the source buffer to an half resolution buffer and output it to the destination buffer.
@@ -44,22 +46,29 @@ namespace UnityEngine.Rendering.HighDefinition
         public static void DownSample(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sourceMip = 0, int destMip = 0)
             => DownSample(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sourceMip, destMip);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="sourceScaleBias">Scale and bias to apply when sampling the source buffer</param>
+        /// <param name="destScaleBias">Scale and bias to apply when writing into the destination buffer. It's scale is relative to the destination buffer, so if you want an half res downsampling into a fullres buffer you need to specify a scale of 0.5;0,5. If your buffer is already half res Then 1;1 scale works.</param>
+        /// <param name="sourceMip"></param>
+        /// <param name="destMip"></param>
         public static void DownSample(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sourceMip = 0, int destMip = 0)
         {
             // Check if the texture provided is at least half of the size of source.
-            if (destination.rt.width < source.rt.width / 2 || destination.rt.height < source.rt.height)
+            if (destination.rt.width < source.rt.width / 2 || destination.rt.height < source.rt.height / 2)
                 Debug.LogError("Destination for DownSample is too small, it needs to be at least half as big as source.");
 
             using (new ProfilingScope(ctx.cmd, downSampleSampler))
             {
-                CoreUtils.SetRenderTarget(ctx.cmd, destination, ClearFlag.None, miplevel: destMip);
+                SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
 
-                Vector2Int scaledViewportSize = destination.GetScaledSize(destination.rtHandleProperties.currentViewportSize);
-                ctx.cmd.SetViewport(new Rect(0.0f, 0.0f, scaledViewportSize.x, scaledViewportSize.y));
-
-                blurPropertyBlock.SetTexture(HDShaderIDs._Source, source);
-                blurPropertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, downSamplePassIndex, MeshTopology.Quads, 4, 1, blurPropertyBlock);
+                propertyBlock.SetTexture(HDShaderIDs._Source, source);
+                propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, downSamplePassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
             }
         }
 
@@ -69,62 +78,107 @@ namespace UnityEngine.Rendering.HighDefinition
         //     Debug.Log("TODO");
         // }
 
-        public static void Copy(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sourceMip = 0, int destMip = 0, bool bilinear = false)
-            => Copy(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sourceMip, destMip, bilinear);
+        public static void Copy(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sourceMip = 0, int destMip = 0)
+            => Copy(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sourceMip, destMip);
 
-        public static void Copy(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sourceMip = 0, int destMip = 0, bool bilinear = false)
+        public static void Copy(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sourceMip = 0, int destMip = 0)
         {
-            CoreUtils.SetRenderTarget(ctx.cmd, destination, ClearFlag.None, Color.black, destMip);
-            HDUtils.BlitQuad(ctx.cmd, source, sourceScaleBias, fullScreenScaleBias, sourceMip, bilinear);
+            if (source == destination)
+                Debug.LogError("Can't copy the buffer. Source has to be different from the destination.");
+
+            using (new ProfilingScope(ctx.cmd, copySampler))
+            {
+                SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
+
+                propertyBlock.SetTexture(HDShaderIDs._Source, source);
+                propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+            }
         }
 
-        public static void GaussianBlurVertical(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sampleCount = 8, int sourceMip = 0, int destMip = 0)
-            => GaussianBlurVertical(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sampleCount, sourceMip, destMip);
+        public static void VerticalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
+            => VerticalGaussianBlur(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sampleCount, radius, sourceMip, destMip);
 
-        public static void GaussianBlurVertical(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 8, int sourceMip = 0, int destMip = 0)
+        public static void VerticalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
         {
+            if (source == destination)
+                Debug.LogError("Can't blur the buffer. Source has to be different from the destination.");
+
             using (new ProfilingScope(ctx.cmd, verticalBlurSampler))
             {
-                
+                SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
+
+                propertyBlock.SetTexture(HDShaderIDs._Source, source);
+                propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
+                propertyBlock.SetBuffer(HDShaderIDs._GaussianWeights, GetGaussianWeights(sampleCount));
+                propertyBlock.SetFloat(HDShaderIDs._SampleCount, sampleCount);
+                propertyBlock.SetFloat(HDShaderIDs._Radius, radius);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, verticalBlurPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
             }
         }
 
-        public static void GaussianBlurHorizontal(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sampleCount = 8, int sourceMip = 0, int destMip = 0)
-            => GaussianBlurHorizontal(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sampleCount, sourceMip, destMip);
+        public static void HorizontalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
+            => HorizontalGaussianBlur(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sampleCount, radius, sourceMip, destMip);
 
-        public static void GaussianBlurHorizontal(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 8, int sourceMip = 0, int destMip = 0)
+        public static void HorizontalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
         {
+            if (source == destination)
+                Debug.LogError("Can't blur the buffer. Source has to be different from the destination.");
+
             using (new ProfilingScope(ctx.cmd, horizontalBlurSampler))
             {
-                
+                SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
+
+                propertyBlock.SetTexture(HDShaderIDs._Source, source);
+                propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
+                propertyBlock.SetBuffer(HDShaderIDs._GaussianWeights, GetGaussianWeights(sampleCount));
+                propertyBlock.SetFloat(HDShaderIDs._SampleCount, sampleCount);
+                propertyBlock.SetFloat(HDShaderIDs._Radius, radius);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, horizontalBlurPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
             }
         }
 
-        public static void GaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, RTHandle tempTarget, int sampleCount = 8, float radius = 1, int sourceMip = 0, int destMip = 0)
-            => GaussianBlur(ctx, source, destination, tempTarget, fullScreenScaleBias, fullScreenScaleBias, sampleCount, radius, sourceMip, destMip);
+        public static void GaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, RTHandle tempTarget, int sampleCount = 9, float radius = 5, int sourceMip = 0, int destMip = 0, bool downSample = true)
+            => GaussianBlur(ctx, source, destination, tempTarget, fullScreenScaleBias, fullScreenScaleBias, sampleCount, radius, sourceMip, destMip, downSample);
 
-        public static void GaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, RTHandle tempTarget, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 8, float radius = 1, int sourceMip = 0, int destMip = 0, bool downSample = true)
+        public static void GaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, RTHandle tempTarget, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 9, float radius = 5, int sourceMip = 0, int destMip = 0, bool downSample = true)
         {
+            if (source == tempTarget || destination == tempTarget)
+                Debug.LogError("Can't blur the buffer. tempTarget has to be different from both source or destination.");
+            if (tempTarget.scaleFactor.x != tempTarget.scaleFactor.y || (tempTarget.scaleFactor.x != 0.5f && tempTarget.scaleFactor.x != 1.0f))
+                Debug.LogError($"Can't blur the buffer. Only a scaleFactor of 0.5 or 1.0 is supported on tempTarget. Current scaleFactor: {tempTarget.scaleFactor}");
+
+            // Gaussian blur doesn't like even numbers
+            if (sampleCount % 2 == 0)
+                sampleCount++;
+
             using (new ProfilingScope(ctx.cmd, gaussianblurSampler))
             {
                 if (downSample)
                 {
-                    // Downsample to half res
-                    DownSample(ctx, source, tempTarget, sourceScaleBias, destScaleBias, sourceMip, destMip);
+                    // When the temp target is not already downsampled, we need to do it by hand:
+                    bool manualDownsampling = tempTarget.scaleFactor.x != 0.5f;
+                    // Downsample to half res in mip 0 of temp target (in case temp target doesn't have any mipmap we use 0)
+                    // Vector4 
+                    DownSample(ctx, source, tempTarget, sourceScaleBias, destScaleBias, sourceMip, 0);
                     // Vertical blur
-                    GaussianBlurVertical(ctx, tempTarget, destination);
+                    if (!manualDownsampling)
+                        destScaleBias.Scale(new Vector4(0.5f, 0.5f, 1, 1));
+                    VerticalGaussianBlur(ctx, tempTarget, destination, sourceScaleBias, destScaleBias, sampleCount, radius, 0, destMip);
                     // Instead of allocating a new buffer on the fly, we copy the data.
                     // We will be able to allocate it when rendergraph lands
-                    Copy(ctx, destination, tempTarget, fullScreenScaleBias, destScaleBias);
+                    if (!manualDownsampling)
+                        destScaleBias.Scale(new Vector4(2, 2, 1, 1));
+                    Copy(ctx, destination, tempTarget, fullScreenScaleBias, destScaleBias, 0, destMip);
                     // Horizontal blur and upsample
-                    GaussianBlurHorizontal(ctx, tempTarget, destination);
+                    HorizontalGaussianBlur(ctx, tempTarget, destination, sourceScaleBias, destScaleBias, sampleCount, radius, sourceMip, destMip);
                 }
                 else
                 {
                     // Vertical blur
-                    GaussianBlurVertical(ctx, source, tempTarget);
+                    VerticalGaussianBlur(ctx, source, tempTarget, sourceScaleBias, destScaleBias, sampleCount, radius, sourceMip, destMip);
                     // Horizontal blur and upsample
-                    GaussianBlurHorizontal(ctx, tempTarget, destination);
+                    HorizontalGaussianBlur(ctx, tempTarget, destination, sourceScaleBias, destScaleBias, sampleCount, radius, sourceMip, destMip);
                 }
             }
         }
@@ -173,24 +227,27 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Generate gaussian weights for a given number of samples
         /// </summary>
         /// <param name="weightCount"></param>
-        /// <returns></returns>
-        internal static float[] GetGaussianWeights(int weightCount)
+        /// <returns>a GPU compute buffer containing the weights</returns>
+        internal static ComputeBuffer GetGaussianWeights(int weightCount)
 		{
             float[] weights;
+            ComputeBuffer gpuWeights;
 
-            if (gaussianWeightsCache.TryGetValue(weightCount, out weights))
-                return weights;
-            
+            if (gaussianWeightsCache.TryGetValue(weightCount, out gpuWeights))
+                return gpuWeights;
+
             weights = new float[weightCount];
-			float p = 0;
 			float integrationBound = 3;
+			float p = -integrationBound;
+            float c = 0;
+            float step = (1.0f / (float)weightCount) * integrationBound * 2;
 			for (int i = 0; i < weightCount; i++)
 			{
-				float w = (Gaussian(p) / (float)weightCount) * integrationBound;
-				p += 1.0f / (float)weightCount * integrationBound;
+				float w = (Gaussian(p) / (float)weightCount) * integrationBound * 2;
                 weights[i] = w;
+				p += step;
+                c += w;
 			}
-            gaussianWeightsCache[weightCount] = weights;
 
 			// Gaussian function
 			float Gaussian(float x, float sigma = 1)
@@ -200,7 +257,11 @@ namespace UnityEngine.Rendering.HighDefinition
 				return a * b;
 			}
 
-            return weights;
+            gpuWeights = new ComputeBuffer(weights.Length, sizeof(float));
+            gpuWeights.SetData(weights);
+            gaussianWeightsCache[weightCount] = gpuWeights;
+
+            return gpuWeights;
 		}
 
         public static RenderQueueRange GetRenderQueueRangeFromRenderQueueType(CustomPass.RenderQueueType type)
@@ -221,6 +282,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     return HDRenderQueue.k_RenderQueue_All;
             }
+        }
+
+        // TODO when rendergraph is available: a PostProcess pass which does the copy with a temp target
+
+        internal static void Cleanup()
+        {
+            foreach (var gaussianWeights in gaussianWeightsCache)
+                gaussianWeights.Value.Release();
+            gaussianWeightsCache.Clear();
+        }
+
+        internal static Vector4 SetRenderTargetWithScaleBias(in CustomPassContext ctx, MaterialPropertyBlock block, RTHandle destination, Vector4 destScaleBias, ClearFlag clearFlag, int miplevel)
+        {
+            // viewport with RT handle scale and scale factor:
+            Rect viewport = new Rect();
+            Vector2 destSize = viewport.size = destination.GetScaledSize(destination.rtHandleProperties.currentViewportSize);
+            viewport.position = new Vector2(viewport.size.x * destScaleBias.z, viewport.size.y * destScaleBias.w);
+            viewport.size *= new Vector2(destScaleBias.x, destScaleBias.y);
+
+            CoreUtils.SetRenderTarget(ctx.cmd, destination, clearFlag, Color.black, miplevel);
+            ctx.cmd.SetViewport(viewport);
+
+            block.SetVector(HDShaderIDs._ViewPortSize, new Vector4(destSize.x, destSize.y, 1.0f / destSize.x, 1.0f / destSize.y));
+            block.SetVector(HDShaderIDs._ViewportScaleBias, new Vector4(1.0f / (destScaleBias.x), 1.0f / (destScaleBias.y), destScaleBias.z, destScaleBias.w));
+
+            return new Vector4(viewport.size.x, viewport.size.y, viewport.position.x, viewport.position.y);
         }
     }
 }

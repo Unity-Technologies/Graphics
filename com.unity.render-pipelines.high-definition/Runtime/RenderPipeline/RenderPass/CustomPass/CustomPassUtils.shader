@@ -6,21 +6,26 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-    // #pragma enable_d3d11_debug_symbols
+    #pragma enable_d3d11_debug_symbols
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
 
     TEXTURE2D_X(_Source);
-    float _SourceMip;
-    float _Radius;
-    float _SampleCount;
-    float4 _ViewPortSize; // We need the viewport size because we have a non fullscreen render target (blur buffers are downsampled in half res)
-    float4 _SourceScaleBias;
+    float       _SourceMip;
+    float4      _ViewPortSize; // We need the viewport size because we have a non fullscreen render target (blur buffers are downsampled in half res)
+    float4      _SourceScaleBias;
+    float4      _ViewportScaleBias;
+
+    float           _Radius;
+    float           _SampleCount;
+    Buffer<float>   _GaussianWeights;
 
     float2 GetScaledUVs(Varyings varyings)
     {
-        float2 uv = varyings.positionCS.xy;
-        
+        // Remap UV from part of the screen (due to viewport scale / offset) to 0 - 1
+        float2 uv01 = (varyings.positionCS.xy * _RTHandleScale.xy * _ViewPortSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
+        float2 uv = uv01;
+
         // Apply scale and bias
         return uv * _SourceScaleBias.xy + _SourceScaleBias.zw;
     }
@@ -28,62 +33,46 @@ Shader "Hidden/HDRP/CustomPassUtils"
     float4 Copy(Varyings varyings) : SV_Target
     {
         // TODO: handle scale and bias
-        return LOAD_TEXTURE2D_X_LOD(_Source, varyings.positionCS.xy, _SourceMip);
-    }
-
-    float3 BlurPixels(float3 taps[9])
-    {
-        return 0.27343750 * (taps[4]          )
-             + 0.21875000 * (taps[3] + taps[5])
-             + 0.10937500 * (taps[2] + taps[6])
-             + 0.03125000 * (taps[1] + taps[7])
-             + 0.00390625 * (taps[0] + taps[8]);
+        return LOAD_TEXTURE2D_X_LOD(_Source, varyings.positionCS.xy * _SourceScaleBias.xy + _SourceScaleBias.zw, _SourceMip);
     }
 
     // We need to clamp the UVs to avoid bleeding from bigger render tragets (when we have multiple cameras)
     float2 ClampUVs(float2 uv)
     {
-        uv = clamp(uv, 0, _RTHandleScale.xy - _ViewPortSize.zw); // clamp UV to 1 pixel to avoid bleeding
-        return uv;
+        // Clamp UV to the current viewport:
+        float2 offset = _ViewportScaleBias.zw * _RTHandleScale.xy;
+        float2 halfPixelSize = _ViewPortSize.zw / 2;
+        uv = clamp(uv, offset + halfPixelSize, rcp(_ViewportScaleBias.xy) * _RTHandleScale.xy + offset - halfPixelSize);
+        return saturate(uv);
     }
 
-    float2 GetSampleUVs(Varyings varyings)
+    float4 Blur(float2 uv, float2 direction)
     {
-        float depth = LoadCameraDepth(varyings.positionCS.xy);
-        PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ViewPortSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-        return posInput.positionNDC.xy * _RTHandleScale.zw;
+        // Horizontal blur from the camera color buffer
+        float4 result = 0;
+        for (int i = 0; i < _SampleCount; i++)
+        {
+            float offset = lerp(-_Radius, _Radius, (float(i) / _SampleCount));
+            float2 offsetUV = ClampUVs(uv + direction * offset * _ScreenSize.zw);
+            float4 sourceValue = SAMPLE_TEXTURE2D_X_LOD(_Source, s_linear_clamp_sampler, offsetUV, 0);
+
+            result += sourceValue * _GaussianWeights[i];
+        }
+
+        return result;
+
     }
 
     float4 HorizontalBlur(Varyings varyings) : SV_Target
     {
-        float2 texcoord = GetSampleUVs(varyings);
-
-        // Horizontal blur from the camera color buffer
-        float2 offset = _ScreenSize.zw * _Radius; // We don't use _ViewPortSize here because we want the offset to be the same between all the blur passes.
-        float3 taps[9];
-        for (int i = -4; i <= 4; i++)
-        {
-            float2 uv = ClampUVs(texcoord + float2(i, 0) * offset);
-            taps[i + 4] = SAMPLE_TEXTURE2D_X_LOD(_Source, s_linear_clamp_sampler, uv, 0).rgb;
-        }
-
-        return float4(BlurPixels(taps), 1);
+        float2 uv = GetScaledUVs(varyings);
+        return Blur(uv, float2(1, 0));
     }
 
     float4 VerticalBlur(Varyings varyings) : SV_Target
     {
-        float2 texcoord = GetSampleUVs(varyings);
-
-        // Vertical blur from the blur color buffer
-        float2 offset = _ScreenSize.zw * _Radius;
-        float3 taps[9];
-        for (int i = -4; i <= 4; i++)
-        {
-            float2 uv = ClampUVs(texcoord + float2(0, i) * offset);
-            taps[i + 4] = SAMPLE_TEXTURE2D_X_LOD(_Source, s_linear_clamp_sampler, uv, 0).rgb;
-        }
-
-        return float4(BlurPixels(taps), 1);
+        float2 uv = GetScaledUVs(varyings);
+        return Blur(uv, float2(0, 1));
     }
 
     float4 DownSample(Varyings varyings) : SV_Target
@@ -146,8 +135,7 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
         Pass
         {
-            // Horizontal Blur
-            Name "Horizontal Blur"
+            Name "HorizontalBlur"
 
             ZWrite Off
             ZTest Always
@@ -161,8 +149,7 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
         Pass
         {
-            // Vertical Blur
-            Name "Vertical Blur"
+            Name "VerticalBlur"
 
             ZWrite Off
             ZTest Always

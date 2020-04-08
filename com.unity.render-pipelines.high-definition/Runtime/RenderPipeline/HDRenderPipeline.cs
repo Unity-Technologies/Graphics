@@ -909,6 +909,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CleanupPrepass();
             CoreUtils.Destroy(m_ColorResolveMaterial);
 
+            CustomPassUtils.Cleanup();
+
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
