@@ -18,7 +18,6 @@ namespace UnityEditor.Rendering.HighDefinition
             Output = 1 << 2,
             Orthographic = 1 << 3,
             RenderLoop = 1 << 4,
-            XR = 1 << 5
         }
 
         enum ProjectionType
@@ -91,7 +90,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 SectionFrameSettings,
                 SectionPhysicalSettings,
                 SectionOutputSettings,
-                SectionXRSettings
             };
 
             string key = $"HDRP:{typeof(HDCameraUI).Name}:ShutterSpeedState";
@@ -149,25 +147,15 @@ namespace UnityEditor.Rendering.HighDefinition
             Expandable.Output,
             k_ExpandedState,
             CED.Group(
+#if ENABLE_VR && ENABLE_XR_MANAGEMENT
+                Drawer_SectionXRRendering,
+#endif
 #if ENABLE_MULTIPLE_DISPLAYS
                 Drawer_SectionMultiDisplay,
 #endif
                 Drawer_FieldRenderTarget,
                 Drawer_FieldDepth,
                 Drawer_FieldNormalizedViewPort
-                )
-            );
-
-        public static readonly CED.IDrawer SectionXRSettings = CED.Conditional(
-            (serialized, owner) => XRGraphics.tryEnable,
-            CED.FoldoutGroup(
-                xrSettingsHeaderContent,
-                Expandable.XR,
-                k_ExpandedState,
-                CED.Group(
-                    Drawer_FieldVR,
-                    Drawer_FieldTargetEye
-                    )
                 )
             );
 
@@ -527,10 +515,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void Drawer_FieldVR(SerializedHDCamera p, Editor owner)
+        static void Drawer_SectionXRRendering(SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.baseCameraSettings.stereoSeparation, stereoSeparationContent);
-            EditorGUILayout.PropertyField(p.baseCameraSettings.stereoConvergence, stereoConvergenceContent);
+            EditorGUILayout.PropertyField(p.xrRendering, xrRenderingContent);
         }
 
 #if ENABLE_MULTIPLE_DISPLAYS
@@ -546,13 +533,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
 #endif
-
-        static readonly int[] k_TargetEyeValues = { (int)StereoTargetEyeMask.Both, (int)StereoTargetEyeMask.Left, (int)StereoTargetEyeMask.Right, (int)StereoTargetEyeMask.None };
-
-        static void Drawer_FieldTargetEye(SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.IntPopup(p.baseCameraSettings.targetEye, k_TargetEyes, k_TargetEyeValues, targetEyeContent);
-        }
 
         static MethodInfo k_DisplayUtility_GetDisplayIndices = Type.GetType("UnityEditor.DisplayUtility,UnityEditor")
             .GetMethod("GetDisplayIndices");

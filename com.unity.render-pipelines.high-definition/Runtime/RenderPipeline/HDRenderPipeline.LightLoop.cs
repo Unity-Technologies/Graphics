@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<DeferredLightingPassData>("Deferred Lighting", out var passData))
             {
-                passData.parameters = PrepareDeferredLightingParameters(hdCamera, debugDisplaySettings);
+                passData.parameters = PrepareDeferredLightingParameters(hdCamera, m_CurrentDebugDisplaySettings);
 
                 // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
                 passData.resources = new  DeferredLightingResources();
@@ -254,9 +254,9 @@ namespace UnityEngine.Rendering.HighDefinition
             //var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
             //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
             //{
-            //    hdCamera.xr.StartSinglePass(cmd, hdCamera.camera, renderContext);
+            //    hdCamera.xr.StartSinglePass(cmd);
             //    RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
-            //    hdCamera.xr.StopSinglePass(cmd, hdCamera.camera, renderContext);
+            //    hdCamera.xr.StopSinglePass(cmd);
             //}
             //else
             {

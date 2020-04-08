@@ -6,11 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Added a field to the Master Nodes that overrides the generated shader's ShaderGUI.
+
 ### Fixed
 - Fixed a bug where any change to the PBR master node settings would lose connection to the normal slot.
 - Fixed a bug where the user couldn't open up HDRP Master Node Shader Graphs without the Render Pipeline set to HDRP.
 - Fixed a bug where adding a HDRP Master Node to a Shader Graph would softlock the Shader Graph.
 - Fixed a bug where the input fields sometimes didn't render properly. [1176268](https://issuetracker.unity3d.com/issues/shadergraph-input-fields-get-cut-off-after-minimizing-and-maximizing-become-unusable)
+- Fixed a bug with the `Transform` node where converting from `Absolute World` space in a sub graph causes invalid subscript errors. [1190813](https://issuetracker.unity3d.com/issues/shadergraph-invalid-subscript-errors-are-thrown-when-connecting-a-subgraph-with-transform-node-with-unlit-master-node)
+- Fixed a bug where the `Position` node would change coordinate spaces from `World` to `Absolute World` when shaders recompile. [1184617](https://issuetracker.unity3d.com/product/unity/issues/guid/1184617/)
+- Optimized loading a large Shader Graph. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
 
 ## [8.0.1] - 2020-05-25
 
@@ -77,6 +83,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Blackboard Properties to support scientific notation.
 - Fixed a bug where the error `Output value 'vert' is not initialized` displayed on all PBR graphs in Universal. [1210710](https://issuetracker.unity3d.com/issues/output-value-vert-is-not-completely-initialized-error-is-thrown-when-pbr-graph-is-created-using-urp)
 - Fixed a bug where PBR and Unlit master nodes in Universal had Alpha Clipping enabled by default.
+- Fixed a bug where if a user had a Blackboard Property Reference start with a digit the generated shader would be broken.
 - Fixed an issue in where analytics wasn't always working.
 
 ## [7.1.1] - 2019-09-05

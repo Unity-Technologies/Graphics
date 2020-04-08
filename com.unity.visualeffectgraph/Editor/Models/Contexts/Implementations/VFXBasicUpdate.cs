@@ -35,7 +35,7 @@ namespace UnityEditor.VFX
             m_ReapParticlesProperty = serializedObject.FindProperty("reapParticles");
         }
 
-        private static Func<VFXBasicUpdate, IEnumerable<string>> s_fnGetFilteredOutSettings = delegate (VFXBasicUpdate context)
+        private static Func<VFXBasicUpdate, IEnumerable<string>> s_fnGetFilteredOutSettings = delegate(VFXBasicUpdate context)
         {
             var property = typeof(VFXBasicUpdate).GetProperty("filteredOutSettings", BindingFlags.Instance | BindingFlags.NonPublic);
             return property.GetValue(context) as IEnumerable<string>;
@@ -69,7 +69,7 @@ namespace UnityEditor.VFX
             DisplayName();
 
             EditorGUILayout.LabelField(UpdateStyles.header, EditorStyles.boldLabel);
-            
+
             bool? updatePosition = null;
             bool? updateRotation = null;
             bool? ageParticles = null;
@@ -168,8 +168,8 @@ namespace UnityEditor.VFX
                 var age = data.IsCurrentAttributeRead(VFXAttribute.Age);
                 var positionVelocity = data.IsCurrentAttributeWritten(VFXAttribute.Velocity);
                 var angularVelocity =   data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityX) ||
-                                        data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityY) ||
-                                        data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityZ);
+                    data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityY) ||
+                    data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityZ);
 
                 if (!age && !lifeTime)
                     yield return "ageParticles";
@@ -199,7 +199,7 @@ namespace UnityEditor.VFX
                         data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityX) ||
                         data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityY) ||
                         data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityZ))
-                    )
+                )
                     yield return VFXBlock.CreateImplicitBlock<AngularEulerIntegration>(data);
 
                 var lifeTime = GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime);

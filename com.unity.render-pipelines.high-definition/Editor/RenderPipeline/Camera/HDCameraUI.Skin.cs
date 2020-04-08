@@ -8,7 +8,6 @@ namespace UnityEditor.Rendering.HighDefinition
         const string generalSettingsHeaderContent = "General";
         const string physicalSettingsHeaderContent = "Physical";
         const string outputSettingsHeaderContent = "Output";
-        const string xrSettingsHeaderContent = "XR";
 
         const string clippingPlaneMultiFieldTitle = "Clipping Planes";
 
@@ -58,22 +57,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly GUIContent viewportContent = EditorGUIUtility.TrTextContent("Viewport Rect", "Four values that indicate where on the screen HDRP draws this Camera view. Measured in Viewport Coordinates (values in the range of [0, 1]).");
         static readonly GUIContent depthContent = EditorGUIUtility.TrTextContent("Depth");
+        static readonly GUIContent xrRenderingContent = EditorGUIUtility.TrTextContent("XR Rendering");
 
 #if ENABLE_MULTIPLE_DISPLAYS
         static readonly GUIContent targetDisplayContent = EditorGUIUtility.TrTextContent("Target Display");
 #endif
-
-
-        static readonly GUIContent stereoSeparationContent = EditorGUIUtility.TrTextContent("Stereo Separation");
-        static readonly GUIContent stereoConvergenceContent = EditorGUIUtility.TrTextContent("Stereo Convergence");
-        static readonly GUIContent targetEyeContent = EditorGUIUtility.TrTextContent("Target Eye");
-        static readonly GUIContent[] k_TargetEyes = //order must match k_TargetEyeValues
-        {
-            new GUIContent("Both"),
-            new GUIContent("Left"),
-            new GUIContent("Right"),
-            new GUIContent("None (Main Display)"),
-        };
 
         static readonly GUIContent[] antialiasingModeNames =
         {

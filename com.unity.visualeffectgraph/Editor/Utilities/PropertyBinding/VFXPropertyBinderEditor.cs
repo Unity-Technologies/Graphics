@@ -220,14 +220,13 @@ namespace UnityEditor.Experimental.VFX.Utility
                 EditorGUI.DrawRect(iconRect, errorColor);
                 GUI.Label(rect, "<color=red>(Missing or Null Property Binder)</color>", Styles.labelStyle);
             }
-
         }
 
         public void RemoveElement(ReorderableList list)
         {
             int index = m_List.index;
             var element = m_Elements.GetArrayElementAtIndex(index).objectReferenceValue;
-            if(element != null)
+            if (element != null)
             {
                 Undo.DestroyObjectImmediate(element);
                 m_Elements.DeleteArrayElementAtIndex(index); // Delete object reference

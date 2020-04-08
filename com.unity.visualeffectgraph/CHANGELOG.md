@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Handle correctly direction, position & vector types in AppendVector operator [Case 1111867](https://issuetracker.unity3d.com/product/unity/issues/guid/1111867/)
 - Fix various bugs in Position (Cone) block [Case 1111053](https://issuetracker.unity3d.com/product/unity/issues/guid/1111053/)
 - Fix space issues with blocks and operators taking a camera as input
+- Generated shaderName are now consistent with displayed system names
 
 ## [8.0.0] - 2020-05-25
 
@@ -164,7 +165,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Crash chaining two spawners each other [Case 1135299](https://issuetracker.unity3d.com/issues/crash-chaining-two-spawners-to-each-other-produces-an-infinite-loop)
 - Inspector : Exposed parameters disregard the initial value [Case 1126471](https://issuetracker.unity3d.com/issues/parameters-exposed-parameters-disregard-the-initial-value)
 - Asset name now displayed in compile errors and output context shaders
-- Fix for linking spawner to spawner while first spawner is linked to initialize + test 
+- Fix for linking spawner to spawner while first spawner is linked to initialize + test
 - Fix space of spaceable slot not copy pasted + test
 - Position (Circle) does not take the Center Z value into account [Case 1146850](https://issuetracker.unity3d.com/issues/blocks-position-circle-does-not-take-the-center-z-value-into-account)
 - Add Exposure Weight for emissive in lit outputs
@@ -191,13 +192,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Visual Effect Inspector Cosmetic Improvements
 - Missing graph invalidation in VFXGraph.OnEnable, was causing trouble with value invalidation until next recompilation
 - Issue that remove the edge when dragging an edge from slot to the same slot.
-- Exception when undoing an edge deletion on a dynamic operator. 
+- Exception when undoing an edge deletion on a dynamic operator.
 - Exception regarding undo/redo when dragging a edge linked to a dynamic operator on another slot.
 - Exception while removing a sub-slot of a dynamic operator
 
 ## [6.5.0-preview] - 2019-03-07
 
-## [6.4.0-preview] - 2019-02-21 
+## [6.4.0-preview] - 2019-02-21
 
 ## [6.3.0-preview] - 2019-02-18
 

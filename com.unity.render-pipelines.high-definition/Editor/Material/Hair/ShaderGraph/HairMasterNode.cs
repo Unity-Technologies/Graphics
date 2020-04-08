@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Serializable]
     [Title("Master", "Hair (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HairMasterNode")]
-    class HairMasterNode : MasterNode<IHairSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class HairMasterNode : MaterialMasterNode<IHairSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";

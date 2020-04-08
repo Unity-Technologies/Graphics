@@ -6,15 +6,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-### Fixed
-- Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
-- Fixed an issue where Shader Graph subshaders referenced incorrect asset GUIDs. 
-
 ### Added
 - If Unity Editor Analytics are enabled, Universal collects anonymous data about usage of Universal. This helps the Universal team focus our efforts on the most common scenarios, and better understand the needs of our customers.
 
-## [8.0.0] - 2020-05-25
+### Changed
+- Optimized the 2D Renderer to skip rendering into certain internal buffers when not necessary.
 
+### Fixed
+- Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
+- Fixed an issue where Shader Graph subshaders referenced incorrect asset GUIDs.
+- Fixed issue that caused the QualitySettings anti-aliasing changing without user interaction. [case 1195272](https://issuetracker.unity3d.com/issues/lwrp-the-anti-alias-quality-settings-value-is-changing-without-user-interaction)
+- Fixed a shader issue that caused the Color in Sprite Shape to work improperly.
+- Fixed shader compilation errors when using multiple lights in DX10 level GPU. [case 1222302](https://issuetracker.unity3d.com/issues/urp-no-materials-apart-from-ui-are-rendered-when-using-direct3d11-graphics-api-on-a-dx10-gpu)
+- Fixed an issue where an exception would be thrown when resetting the ShadowCaster2D component. [case 1225339](https://issuetracker.unity3d.com/issues/urp-unassignedreferenceexception-thrown-on-resetting-the-shadow-caster-2d-component)
+- Fixe an issue where using a Subtractive Blend Style for your 2D Lights might cause artifacts in certain post-processing effects. [case 1215584](https://issuetracker.unity3d.com/issues/urp-incorrect-colors-in-scene-when-using-subtractive-and-multiply-blend-mode-in-gamma-color-space)
+- Fixed an issue where Cinemachine Pixel Perfect Extension didn't work when CinemachineBrain Update Method is anything other than Late Update.
+- Fixed an issue where particles using Sprite Shader Graph shaders were invisible.
+- Fixed an issue where Scene objects might be incorrectly affected by 2D Lights from a previous Sorting Layer.
+- Fixed an issue where errors would appear in the Console when entering Play Mode with a 2D Light selected in the Hierarchy. [Case 1226918](https://issuetracker.unity3d.com/issues/errors-appear-in-the-console-when-global-2d-light-is-selected-in-hierarchy)
+
+## [8.0.0] - 2020-05-25
 ### Added
 - Added the option to strip Terrain hole Shader variants.
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
@@ -47,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - UniversalRenderPipelineAsset no longer supports presets [case 1197020](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-on-preset-of-universalrenderpipelineassets)
 - The number of maximum visible lights is now determined by whether the platform is mobile or not.
 - Renderer Feature list is now redesigned to fit more closely to the Volume Profile UI, this vastly improves UX and reliability of the Renderer Features List.
+- Default color values for Lit and SimpleLit shaders changed to white due to issues with texture based workflows.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
@@ -116,6 +128,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where camera stacking didn't work properly inside prefab mode. [case 1220509](https://issuetracker.unity3d.com/issues/urp-cannot-assign-overlay-cameras-to-a-camera-stack-while-in-prefab-mode)
 - Fixed an issue with shadow cascade values were not readable in the render pipeline asset [case 1219003](https://issuetracker.unity3d.com/issues/urp-cascade-values-truncated-on-selecting-two-or-four-cascades-in-shadows-under-universalrenderpipelineasset)
 - Fixed the definition of `mad()` in SMAA shader for OpenGL.
+- Fixed an issue where partical shaders failed to handle Single-Pass Stereo VR rendering with Double-Wide Textures. [case 1201208](https://issuetracker.unity3d.com/issues/urp-vr-each-eye-uses-the-cameraopaquetexture-of-both-eyes-for-rendering-when-using-single-pass-rendering-mode)
 - Fixed an issue that caused assets to be reimported if player prefs were cleared. [case 1192259](https://issuetracker.unity3d.com/issues/lwrp-clearing-playerprefs-through-a-script-or-editor-causes-delay-and-console-errors-to-appear-when-entering-the-play-mode)
 - Fixed missing Custom Render Features after Library deletion. [case 1196338](https://issuetracker.unity3d.com/product/unity/issues/guid/1196338/)
 - Fixed not being able to remove a Renderer Feature due to tricky UI selection rects. [case 1208113](https://issuetracker.unity3d.com/product/unity/issues/guid/1208113/)
@@ -124,6 +137,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a Null ref when trying to remove a missing Renderer Feature from the Forward Renderer. [case 1196651](https://issuetracker.unity3d.com/product/unity/issues/guid/1196651/)
 - Fixed data serialization issue when adding a Renderer Feature to teh Forward Renderer. [case 1214779](https://issuetracker.unity3d.com/product/unity/issues/guid/1214779/)
 - Fixed an issue where Shaders that used Texture Arrays and FrontFace didn't compile at build time, which caused the build to fail.
+- Fixed an issue where MSAA isn't applied until eye textures are relocated by changing their resolution. [case 1197958](https://issuetracker.unity3d.com/issues/oculus-quest-oculus-go-urp-msaa-isnt-applied-until-eye-textures-are-relocated-by-changing-their-resolution)
+- Fixed an issue with a blurry settings icon. [case 1201895](https://issuetracker.unity3d.com/issues/urp-setting-icon-blurred-in-universalrendererpipelineasset)
+- Fixed an issue where rendering into RenderTexture with Single Pass Instanced renders both eyes overlapping.
+- Fixed an issue where Renderscale setting has no effect when using XRSDK.
+- Fixed an issue where renderScale != 1 or Display.main.requiresBlitToBackbuffer forced an unnecessary blit on XR.
+- Fixed an issue that causes double sRGB correction on Quest. [case 1209292](https://issuetracker.unity3d.com/product/unity/issues/guid/1209292)
+- Fixed an issue where terrain DepthOnly pass does not work for XR.
+- Fixed an issue with shadows not appearing on terrains when no cascades were selected [case 1226530](https://issuetracker.unity3d.com/issues/urp-no-shadows-on-terrain-when-cascades-is-set-to-no-cascades-in-render-pipeline-asset-settings)
+- Fixed an issue where Post-Processing caused nothing to render on GLES2.
+- Fixed an issue that caused depth texture to be flipped when sampling from shaders [case 1225362](https://issuetracker.unity3d.com/issues/game-object-is-rendered-incorrectly-in-the-game-view-when-sampling-depth-texture)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
