@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string FilmGrain = "_FILM_GRAIN";
         public static readonly string Fxaa = "_FXAA";
         public static readonly string Dithering = "_DITHERING";
-        public static readonly string ScreenSpaceAmbientOcclusion = "_SCREEN_SPACE_AMBIENT_OCCLUSION";
+        public static readonly string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
     }

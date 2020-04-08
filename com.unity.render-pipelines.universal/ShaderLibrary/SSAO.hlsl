@@ -5,30 +5,29 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
 //#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 
 // Textures & Samplers
 TEXTURE2D_X(_BaseMap);
-TEXTURE2D_X(_ScreenSpaceAmbientOcclusionTexture);
+TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
 
 SAMPLER(sampler_BaseMap);
-SAMPLER(sampler_ScreenSpaceAmbientOcclusionTexture);
+SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 
-// SSAO Settings
-int _SampleCount;
-half _Intensity;
-half _Radius;
-float _DownSample;
-
+// Function defines
 #define RANDOM(f) GenerateHashedRandomFloat(f)
 #define SAMPLE_BASEMAP(uv)  SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
 #define SCREEN_PARAMS GetScaledScreenParams()
-#define INTENSITY _Intensity
-#define RADIUS _Radius
-#define DOWNSAMPLE _DownSample
+
+// SSAO Settings
+float4 _SSAOParams;
+#define DOWNSAMPLE _SSAOParams.x
+#define INTENSITY _SSAOParams.y
+#define RADIUS _SSAOParams.z
 
 #if !defined(SHADER_API_GLES)
-    #define SAMPLE_COUNT _SampleCount
+    #define SAMPLE_COUNT _SSAOParams.w
 #else
     // GLES2: In many cases, dynamic looping is not supported.
     #define SAMPLE_COUNT 3
@@ -49,9 +48,6 @@ float _DownSample;
 // they're possibly unnormalized. We can eliminate this if it can be said
 // that there is no wrong shader that outputs unnormalized normals.
 // #define VALIDATE_NORMALS
-
-// Uniformly distributed points on a unit sphere
-#define FIX_SAMPLING_PATTERN
 
 // The constant below determines the contrast of occlusion. This allows
 // users to control over/under occlusion. At the moment, this is not exposed
@@ -106,24 +102,17 @@ float2 CosSin(float theta)
     return float2(cs, sn);
 }
 
-// Check if the camera is perspective.
-// (returns 1.0 when orthographic)
-float CheckPerspective(float x)
-{
-    return unity_OrthoParams.w == 0 ? x : 1.0;
-}
-
 // Normal vector comparer (for geometry-aware weighting)
 half CompareNormal(half3 d1, half3 d2)
 {
     return smoothstep(kGeometryCoeff, 1.0, dot(d1, d2));
 }
 
-float GetLinearEyeDepth(float2 uv)
+float SampleAndGetLinearDepth(float2 uv)
 {
     float rawDepth = SampleSceneDepth(uv.xy).r;
     float persp = LinearEyeDepth(rawDepth, _ZBufferParams);
-    float ortho = ((_ProjectionParams.z - _ProjectionParams.y) * (1.0-rawDepth) + _ProjectionParams.y);
+    float ortho = ((_ProjectionParams.z - _ProjectionParams.y) * (1.0 - rawDepth) + _ProjectionParams.y);
     return unity_OrthoParams.w == 0 ? persp : ortho;
 }
 
@@ -132,7 +121,9 @@ float GetLinearEyeDepth(float2 uv)
 // p13_31 = (unity_CameraProjection._13, unity_CameraProjection._23)
 float3 ReconstructViewPos(float3 uvDepth, float2 p11_22, float2 p13_31)
 {
-    return float3(((uvDepth.xy * 2.0 - 1.0 - p13_31) / p11_22) * CheckPerspective(uvDepth.z), uvDepth.z);
+    float3 viewPos = float3(((uvDepth.xy * 2.0 - 1.0 - p13_31) / p11_22), uvDepth.z);
+    viewPos.xy *= IsPerspectiveProjection() ? uvDepth.z : 1.0;
+    return viewPos;
 }
 
 // Sample point picker
@@ -140,21 +131,16 @@ float3 PickSamplePoint(float2 uv, float index)
 {
     // Uniformly distributed points on a unit sphere
     // http://mathworld.wolfram.com/SpherePointPicking.html
-#if defined(FIX_SAMPLING_PATTERN)
     float gn = InterleavedGradientNoise(uv * DOWNSAMPLE * SCREEN_PARAMS.xy, index);
-    // FIXME: This was added to avoid a NVIDIA driver issue.
-    //                                       vvvvvvvvvvvv
-    float u     = frac(RANDOM(0.0 + index + uv.x * 1e-10) + gn) * 2.0 - 1.0;
-    float theta =     (RANDOM(1.0 + index + uv.x * 1e-10) + gn) * TWO_PI;
-#else
-    float u     = RANDOM( uv.x + _Time.x + uv.y + index) * 2.0 - 1.0;
-    float theta = RANDOM(-uv.x - _Time.x + uv.y + index) * TWO_PI;
-#endif
 
-    float3 v = float3(CosSin(theta) * sqrt(1.0 - u * u), u);
+    // This was added to avoid a NVIDIA driver issue.
+    //                                      vvvvvvvvvvvv
+    float u     = frac(RANDOM(0.0 + index + uv.x * 1e-10) + gn);
+    float theta =     (RANDOM(1.0 + index + uv.x * 1e-10) + gn);
+    float3 v    = SampleSphereUniform(u, theta);
 
     // Make them distributed between [0, _Radius]
-    float l = sqrt((index + 1.0) / SAMPLE_COUNT) * RADIUS;
+    float l =  sqrt((index + 1.0) / SAMPLE_COUNT) * RADIUS;
     return v * l;
 }
 
@@ -166,7 +152,7 @@ float3 PickSamplePoint(float2 uv, float index)
 float3 ReconstructNormal(float2 uv, float2 p11_22, float2 p13_31)
 {
     #if defined(_RECONSTRUCT_NORMAL_LOW)
-        float3 P0 = ReconstructViewPos(float3(uv,  GetLinearEyeDepth(uv)), p11_22, p13_31);
+        float3 P0 = ReconstructViewPos(float3(uv,  SampleAndGetLinearDepth(uv)), p11_22, p13_31);
 
         // Use the cross product to calculate the normal...
         return normalize(cross(ddy(P0), ddx(P0)));
@@ -179,11 +165,11 @@ float3 ReconstructNormal(float2 uv, float2 p11_22, float2 p13_31)
         float2 uUV = float2(0.0,  delta.y);
         float2 dUV = float2(0.0, -delta.y);
 
-        float3 c  = float3(uv,       0.0); c.z  = GetLinearEyeDepth( c.xy); // Center
-        float3 l1 = float3(uv + lUV, 0.0); l1.z = GetLinearEyeDepth(l1.xy); // Left1
-        float3 r1 = float3(uv + rUV, 0.0); r1.z = GetLinearEyeDepth(r1.xy); // Right1
-        float3 u1 = float3(uv + uUV, 0.0); u1.z = GetLinearEyeDepth(u1.xy); // Up1
-        float3 d1 = float3(uv + dUV, 0.0); d1.z = GetLinearEyeDepth(d1.xy); // Down1
+        float3 c  = float3(uv,       0.0); c.z  = SampleAndGetLinearDepth( c.xy); // Center
+        float3 l1 = float3(uv + lUV, 0.0); l1.z = SampleAndGetLinearDepth(l1.xy); // Left1
+        float3 r1 = float3(uv + rUV, 0.0); r1.z = SampleAndGetLinearDepth(r1.xy); // Right1
+        float3 u1 = float3(uv + uUV, 0.0); u1.z = SampleAndGetLinearDepth(u1.xy); // Up1
+        float3 d1 = float3(uv + dUV, 0.0); d1.z = SampleAndGetLinearDepth(d1.xy); // Down1
 
 
         // Determine the closest horizontal and vertical pixels...
@@ -193,10 +179,10 @@ float3 ReconstructNormal(float2 uv, float2 p11_22, float2 p13_31)
             uint closest_horizontal = l1.z > r1.z ? 0 : 1;
             uint closest_vertical   = d1.z > u1.z ? 0 : 1;
         #else
-            float3 l2 = float3(uv + lUV * 2.0, 0.0); l2.z = GetLinearEyeDepth(l2.xy); // Left2
-            float3 r2 = float3(uv + rUV * 2.0, 0.0); r2.z = GetLinearEyeDepth(r2.xy); // Right2
-            float3 u2 = float3(uv + uUV * 2.0, 0.0); u2.z = GetLinearEyeDepth(u2.xy); // Up2
-            float3 d2 = float3(uv + dUV * 2.0, 0.0); d2.z = GetLinearEyeDepth(d2.xy); // Down2
+            float3 l2 = float3(uv + lUV * 2.0, 0.0); l2.z = SampleAndGetLinearDepth(l2.xy); // Left2
+            float3 r2 = float3(uv + rUV * 2.0, 0.0); r2.z = SampleAndGetLinearDepth(r2.xy); // Right2
+            float3 u2 = float3(uv + uUV * 2.0, 0.0); u2.z = SampleAndGetLinearDepth(u2.xy); // Up2
+            float3 d2 = float3(uv + dUV * 2.0, 0.0); d2.z = SampleAndGetLinearDepth(d2.xy); // Down2
 
             const uint closest_horizontal = abs( (2.0 * l1.z - l2.z) - c.z) < abs( (2.0 * r1.z - r2.z) - c.z) ? 0 : 1;
             const uint closest_vertical   = abs( (2.0 * d1.z - d2.z) - c.z) < abs( (2.0 * u1.z - u2.z) - c.z) ? 0 : 1;
@@ -254,7 +240,7 @@ float4 SSAO(Varyings input) : SV_Target
     float2 p13_31 = float2(camProj._13, camProj._23);
 
     // View space normal and depth
-    float depth_o = GetLinearEyeDepth(uv.xy);
+    float depth_o = SampleAndGetLinearDepth(uv.xy);
     float3 norm_o = SampleNormal(uv, p11_22, p13_31);
 
     // Reconstruct the view-space position.
@@ -276,10 +262,11 @@ float4 SSAO(Varyings input) : SV_Target
 
         // Reproject the sample point
         float3 spos_s1 = mul(camProj, vpos_s1);
-        float2 uv_s1_01 = (spos_s1.xy / CheckPerspective(vpos_s1.z) + 1.0) * 0.5;
+        float perspectiveDivide = IsPerspectiveProjection() ? vpos_s1.z : 1.0;
+        float2 uv_s1_01 = (spos_s1.xy / perspectiveDivide + 1.0) * 0.5;
 
         // Depth at the sample point
-        float depth_s1 = GetLinearEyeDepth(uv_s1_01);
+        float depth_s1 = SampleAndGetLinearDepth(uv_s1_01);
 
         // Relative position of the sample point
         float3 vpos_s2 = ReconstructViewPos(float3(uv_s1_01, depth_s1), p11_22, p13_31);
@@ -348,7 +335,7 @@ float4 FragBlur(Varyings input) : SV_Target
         s += GetPackedAO(p3a) * w3a;
         s += GetPackedAO(p3b) * w3b;
 
-        s /= w0 + w1a + w1b + w2a + w2b + w3a + w3b;
+        s *= rcp(w0 + w1a + w1b + w2a + w2b + w3a + w3b);
     #else
         // Faster 5-tap Gaussian with linear sampling
         half4 p0  = SAMPLE_BASEMAP(uv.xy                         );
@@ -379,7 +366,7 @@ float4 FragBlur(Varyings input) : SV_Target
         s += GetPackedAO(p2a) * w2a;
         s += GetPackedAO(p2b) * w2b;
 
-        s /= w0 + w1a + w1b + w2a + w2b;
+        s *= rcp(w0 + w1a + w1b + w2a + w2b);
     #endif
 
     return PackAONormal(s, n0);
@@ -410,7 +397,7 @@ half BlurSmall(TEXTURE2D_X_PARAM(tex, samp), float2 uv, float2 delta)
     s += GetPackedAO(p3) * w3;
     s += GetPackedAO(p4) * w4;
 
-    return s / (w0 + w1 + w2 + w3 + w4);
+    return s *= rcp(w0 + w1 + w2 + w3 + w4);
 }
 
 // Final composition shader
@@ -435,7 +422,7 @@ float4 FragComposition(Varyings input) : SV_Target
     CompositionOutput FragCompositionGBuffer(Varyings i)
     {
         float2 delta = (SCREEN_PARAMS.zw - 1.0) / DOWNSAMPLE;
-        half ao = BlurSmall(TEXTURE2D_X_ARGS(_ScreenSpaceAmbientOcclusionTexture, sampler_ScreenSpaceAmbientOcclusionTexture), i.uv.xy, delta);
+        half ao = BlurSmall(TEXTURE2D_X_ARGS(_ScreenSpaceOcclusionTexture, sampler_ScreenSpaceOcclusionTexture), i.uv.xy, delta);
 
         CompositionOutput o;
         o.gbuffer0 = half4(0.0, 0.0, 0.0, ao);

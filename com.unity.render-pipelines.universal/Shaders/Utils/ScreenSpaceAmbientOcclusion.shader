@@ -1,7 +1,6 @@
 Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
 {
     HLSLINCLUDE
-        #pragma prefer_hlslcc gles
         #pragma exclude_renderers d3d11_9x
 
         //Keep compiler quiet about Shadows.hlsl.
