@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            var xrPasses = m_XRSystem.SetupFrame(ref cameraData);
+            var xrPasses = m_XRSystem.SetupFrame(cameraData);
             foreach (XRPass xrPass in xrPasses)
             {
                 cameraData.xr = xrPass;

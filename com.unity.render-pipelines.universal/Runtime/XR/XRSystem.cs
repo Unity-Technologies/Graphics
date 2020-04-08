@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        internal List<XRPass> SetupFrame(ref CameraData cameraData)
+        internal List<XRPass> SetupFrame(CameraData cameraData)
         {
             Camera camera = cameraData.camera;
             bool xrEnabled = RefreshXrSdk();
@@ -145,8 +145,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 // XRTODO: Handle stereo mode selection in URP pipeline asset UI
                 display.textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
-                display.zNear = cameraData.camera.nearClipPlane;
-                display.zFar  = cameraData.camera.farClipPlane;
+                display.zNear = camera.nearClipPlane;
+                display.zFar  = camera.farClipPlane;
                 display.sRGB  = QualitySettings.activeColorSpace == ColorSpace.Linear;
             }
 #endif
@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
             bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
             bool xrSupported = isGameCamera && camera.targetTexture == null;
 
-            if (testModeEnabled && automatedTestRunning && isGameCamera && LayoutSinglePassTestMode(ref cameraData, new XRLayout() { camera = camera, xrSystem = this }))
+            if (testModeEnabled && automatedTestRunning && isGameCamera && LayoutSinglePassTestMode(cameraData, new XRLayout() { camera = camera, xrSystem = this }))
             {
                 // test layout in used
             }
@@ -350,11 +350,11 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        bool LayoutSinglePassTestMode(ref CameraData cameraData, XRLayout frameLayout)
+        bool LayoutSinglePassTestMode(CameraData cameraData, XRLayout frameLayout)
         {
             Camera camera = frameLayout.camera;
 
-            if (camera == null || camera.targetTexture == null || camera != Camera.main)
+            if (camera == null || camera != Camera.main)
                 return false;
 
             if (camera.TryGetCullingParameters(false, out var cullingParams))
@@ -375,12 +375,18 @@ namespace UnityEngine.Rendering.Universal
                 void copyToTestRenderTexture(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport)
                 {
                     cmd.SetViewport(viewport);
-                    cmd.SetRenderTarget(rt);
+                    cmd.SetRenderTarget(rt == null ? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget) : rt);
 
                     Vector4 scaleBias   = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
                     Vector4 scaleBiasRT = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
 
-                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (rt.sRGB && !testRenderTexture.sRGB) ? 1 : 0);
+                    if (rt == null)
+                    {
+                        scaleBias.y = -1.0f;
+                        scaleBias.w = 1.0f;
+                    }
+
+                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (rt != null && rt.sRGB) ? 0 : 1);
                     mirrorViewMaterialProperty.SetTexture(XRShaderIDs._BlitTexture, testRenderTexture);
                     mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBias, scaleBias);
                     mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBiasRt, scaleBiasRT);
