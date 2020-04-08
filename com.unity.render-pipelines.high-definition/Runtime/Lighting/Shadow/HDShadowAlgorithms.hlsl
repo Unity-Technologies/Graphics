@@ -9,7 +9,6 @@
 // Since we use slope-scale bias, the constant bias is for now set as a small fixed value
 #define FIXED_UNIFORM_BIAS (1.0f / 65536.0f)
 
-// We can't use multi_compile for compute shaders so we force the shadow algorithm
 #if (defined(_ENABLE_SHADOW_MATTE) && SHADERPASS == SHADERPASS_FORWARD_UNLIT)
 
     #if SHADEROPTIONS_DEFERRED_SHADOW_FILTERING == HDSHADOWFILTERINGQUALITY_LOW
