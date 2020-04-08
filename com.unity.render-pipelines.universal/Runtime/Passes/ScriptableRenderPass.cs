@@ -73,9 +73,10 @@ namespace UnityEngine.Rendering.Universal
 
         public ScriptableRenderPass()
         {
+            var none = BuiltinRenderTextureType.None;
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            m_ColorAttachments = new RenderTargetIdentifier[]{ScriptableRenderer.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
-            m_DepthAttachment = ScriptableRenderer.None;
+            m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget, none, none, none, none, none, none, none};
+            m_DepthAttachment = none;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -214,7 +215,8 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRenderer"/>
         public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
         {
-            ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
+            var renderer = ScriptableRenderer.current;
+            renderer.SetRenderTarget(cmd, destination, renderer.GetRenderTexture(UniversalRenderTextureType.CameraTarget), clearFlag, clearColor);
             cmd.Blit(source, destination, material, passIndex);
         }
 

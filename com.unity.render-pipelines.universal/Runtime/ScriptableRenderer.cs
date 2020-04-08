@@ -6,27 +6,44 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
-    /// Temporary render textures produced during camera's rendering.
+    /// <summary>
+    /// Pipeline render textures. Can be used to bind textures for a <c>ScriptableRenderPass</c>.
+    /// <seealso cref="ScriptableRenderPass"/>
+    /// </summary>
     public enum UniversalRenderTextureType
     {
-        // CameraTarget can be either the intermediate color buffer, the camera render texture or swap chaing
-        CameraTarget = -1, 
-        
-        // None means don't bind a texture, can be used for transient attachment or to bind depth buffer
-        None = 0, 
-        
-        // Current active attachment setup
+        /// <summary>
+        /// Target texture of currently rendering camera.
+        /// It can be either the intermediate color buffer, the camera render texture (offscreen camera) or the backbuffer
+        /// </summary>
+        CameraTarget = -1,
+ 
+        /// <summary>
+        /// Special render target identifier to signal the pipeline to not bind any surface.
+        /// Can be used to tell the pipeline to not bind any render texture as attachment, f.ex, compute render passes.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Special render target identifier to signal the pipeline to use the current attachment setup as render textures.
+        /// </summary>
         CurrentActive = 1, 
-        
-        // Camera Intermediate color texture, _CameraColorTexture
-        ColorBuffer = 2, 
-        
-        // Camera Intermediate depth texture, _CameraDepthAttachment 
+
+        /// <summary>
+        /// Camera intermediate color texture. It can be bound in shaders as _CameraColorTexture.
+        /// </summary>
+        ColorBuffer = 2,
+
+        /// <summary>
+        /// Camera intermediate depth texture. It can be bound in shaders as _CameraDepthAttachment.
+        /// This texture is write-only, to read camera depth texture you should read from _CameraDepthTexture.
+        /// </summary>
         DepthBuffer = 3,
-        
+
+        // TODO: Add DepthTexture
         // Camera readable depth texture, either output from depth pre-pass or copy depth
         // _CameraDepthTexture
-        DepthTexture = 4,
+        //DepthTexture = 4,
     }
     
     /// <summary>
@@ -66,9 +83,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public static ScriptableRenderer current = null;
         
-        internal static readonly RenderTargetIdentifier CameraTarget = new RenderTargetIdentifier(-1);
-        internal static readonly RenderTargetIdentifier None = new RenderTargetIdentifier(0);
-
         /// <summary>
         /// Set camera matrices. This method will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to camera matrices.
         /// Additionally this will also set <c>unity_CameraProjection</c> and <c>unity_CameraProjection</c>.
@@ -303,6 +317,12 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
+        /// <summary>
+        /// Returns a pipeline render texture.  
+        /// </summary>
+        /// <param name="type">Render texture type</param>
+        /// <returns>A <c>RenderTargetIdentifier</c> for the texture.</returns>
+        /// <seealso cref="UniversalRenderTextureType"/>
         public RenderTargetIdentifier GetRenderTexture(UniversalRenderTextureType type)
         {
             switch (type)
@@ -324,10 +344,10 @@ namespace UnityEngine.Rendering.Universal
                     return m_ActiveColorAttachments[0];
                 
                 case UniversalRenderTextureType.None:
-                    return None;
+                    return BuiltinRenderTextureType.None;
                 
                 case UniversalRenderTextureType.CameraTarget:
-                    return CameraTarget;
+                    return BuiltinRenderTextureType.CameraTarget;
                 
                 default:
                     return new RenderTargetIdentifier((int)type);
@@ -568,8 +588,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Clear(CameraRenderType cameraType)
         {
-            var colorBuffer = CameraTarget;
-            var depthBuffer = None;
+            var colorBuffer = GetRenderTexture(UniversalRenderTextureType.CameraTarget);
+            var depthBuffer = GetRenderTexture(UniversalRenderTextureType.None);
             
             m_ActiveColorAttachments[0] = colorBuffer;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
@@ -614,7 +634,7 @@ namespace UnityEngine.Rendering.Universal
 
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
-            var currentActiveTarget = current.GetRenderTexture(UniversalRenderTextureType.CurrentActive);
+            var currentActiveTarget = GetRenderTexture(UniversalRenderTextureType.CurrentActive);
             
             // Currently in non-MRT case, color attachment can actually be a depth attachment.
 
@@ -629,12 +649,13 @@ namespace UnityEngine.Rendering.Universal
                 passDepthAttachment = m_CameraDepthTarget;
             }
 
+            var renderTextureNone = GetRenderTexture(UniversalRenderTextureType.None);
             // We use a different code path for MRT since it calls a different version of API SetRenderTarget
             if (passColorAttachment == currentActiveTarget)
             {
                 // do nothing, leave current render target attachments
             }
-            else if (passColorAttachment == None && passDepthAttachment == None)
+            else if (passColorAttachment == renderTextureNone && passDepthAttachment == renderTextureNone)
             {
                 // do nothing
             }
@@ -823,7 +844,7 @@ namespace UnityEngine.Rendering.Universal
             m_InsideStereoRenderBlock = false;
         }
 
-        internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
+        internal void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
@@ -851,7 +872,7 @@ namespace UnityEngine.Rendering.Universal
             Color clearColor,
             TextureDimension dimension)
         {
-            if (colorAttachment == None)
+            if (colorAttachment == BuiltinRenderTextureType.None)
                 Debug.Log("None");
             
             if (dimension == TextureDimension.Tex2DArray)
@@ -860,7 +881,7 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
 
-        static void SetRenderTarget(
+        void SetRenderTarget(
             CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
@@ -872,7 +893,8 @@ namespace UnityEngine.Rendering.Universal
             Color clearColor,
             TextureDimension dimension)
         {
-            if (depthAttachment == CameraTarget || depthAttachment == None)
+            if (depthAttachment == GetRenderTexture(UniversalRenderTextureType.CameraTarget) ||
+                depthAttachment == GetRenderTexture(UniversalRenderTextureType.None))
             {
                 SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor,
                     dimension);
@@ -888,7 +910,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
+        void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments = colorAttachments;
             m_ActiveDepthAttachment = depthAttachment;
