@@ -46,6 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         EdgeConnectorListener m_EdgeConnectorListener;
         BlackboardProvider m_BlackboardProvider;
         ColorManager m_ColorManager;
+        EditorWindow m_EditorWindow;
 
         public BlackboardProvider blackboardProvider
         {
@@ -105,6 +106,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
             m_GraphViewElementsRemovedFromGroup = OnElementsRemovedFromGroup;
 
+            m_EditorWindow = editorWindow;
             m_Graph = graph;
             m_MessageManager = messageManager;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
@@ -253,13 +255,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_SearchWindowProvider = ScriptableObject.CreateInstance<SearcherProvider>();
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
-            m_GraphView.nodeCreationRequest = (c) =>
-                {
-                    m_SearchWindowProvider.connectedPort = null;
-                    SearcherWindow.Show(editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
-                        item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - editorWindow.position.position),
-                        c.screenMousePosition - editorWindow.position.position, null);
-                };
+            m_GraphView.nodeCreationRequest = NodeCreationRequest;
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
@@ -280,6 +276,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEdge(edge);
 
             Add(content);
+        }
+
+        void NodeCreationRequest(NodeCreationContext c)
+        {
+            m_SearchWindowProvider.connectedPort = null;
+            SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
+                item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - m_EditorWindow.position.position),
+                c.screenMousePosition - m_EditorWindow.position.position, null);
         }
 
         void UpdateSubWindowsVisibility()
@@ -438,10 +442,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in nodesToUpdate)
             {
-                if (node is MaterialNodeView materialNodeView)
-                {
-                    materialNodeView.OnModified(ModificationScope.Topological);
-                }
+                node.OnModified(ModificationScope.Topological);
             }
 
             UpdateEdgeColors(nodesToUpdate);
@@ -533,14 +534,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_GraphView == null)
                 return;
 
+            IEnumerable<IShaderNodeView> theViews = m_GraphView.nodes.ToList().OfType<IShaderNodeView>();
+
             var dependentNodes = new List<AbstractMaterialNode>();
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)
             {
-                var theViews = m_GraphView.nodes.ToList().OfType<IShaderNodeView>();
-                var viewsFound = theViews.Where(x => x.node.guid == node.guid).ToList();
-                foreach (var drawableNodeData in viewsFound)
-                    drawableNodeData.OnModified(scope);
+                var nodeView = theViews.FirstOrDefault(x => x.node.guid == node.guid);
+                if (nodeView != null)
+                    nodeView.OnModified(scope);
             }
         }
 
@@ -699,10 +701,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in nodesToUpdate)
             {
-                if (node is MaterialNodeView materialNodeView)
-                {
-                    materialNodeView.OnModified(ModificationScope.Topological);
-                }
+                node.OnModified(ModificationScope.Topological);
             }
 
             UpdateEdgeColors(nodesToUpdate);
@@ -735,14 +734,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var node = m_Graph.GetNodeFromGuid(messageData.Key);
 
-                if (!(m_GraphView.GetNodeByGuid(node.guid.ToString()) is MaterialNodeView nodeView))
+                if (!(m_GraphView.GetNodeByGuid(node.guid.ToString()) is IShaderNodeView nodeView))
                     continue;
 
                 if (messageData.Value.Count == 0)
                 {
-                    var badge = nodeView.Q<IconBadge>();
-                    badge?.Detach();
-                    badge?.RemoveFromHierarchy();
+                    nodeView.ClearMessage();
                 }
                 else
                 {
@@ -756,13 +753,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddNode(AbstractMaterialNode node)
         {
-            var materialNode = (AbstractMaterialNode)node;
+            var materialNode = node;
             Node nodeView;
             if (node is PropertyNode propertyNode)
             {
                 var tokenNode = new PropertyNodeView(propertyNode, m_EdgeConnectorListener);
                 m_GraphView.AddElement(tokenNode);
                 nodeView = tokenNode;
+            }
+            else if (node is RedirectNodeData redirectNodeData)
+            {
+                var redirectNodeView = new RedirectNodeView { userData = redirectNodeData };
+                m_GraphView.AddElement(redirectNodeView);
+                redirectNodeView.ConnectToData(materialNode, m_EdgeConnectorListener);
+                nodeView = redirectNodeView;
             }
             else
             {
@@ -900,6 +904,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     output = sourceAnchor,
                     input = targetAnchor
                 };
+
+                edgeView.RegisterCallback<MouseDownEvent>(OnMouseDown);
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
                 m_GraphView.AddElement(edgeView);
@@ -914,6 +920,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             return null;
         }
 
+        void OnMouseDown(MouseDownEvent evt)
+        {
+            if (evt.button == (int)MouseButton.LeftMouse && evt.clickCount == 2)
+            {
+                if (evt.target is Edge edgeTarget)
+                {
+                    Vector2 pos = evt.mousePosition;
+                    m_GraphView.CreateRedirectNode(pos, edgeTarget);
+                }
+            }
+        }
+
         Stack<Node> m_NodeStack = new Stack<Node>();
 
         void UpdateEdgeColors(HashSet<IShaderNodeView> nodeViews)
@@ -925,10 +943,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             while (nodeStack.Any())
             {
                 var nodeView = nodeStack.Pop();
-                if (nodeView is MaterialNodeView materialNodeView)
+                if (nodeView is IShaderNodeView shaderNodeView)
                 {
-                    materialNodeView.UpdatePortInputTypes();
+                    shaderNodeView.UpdatePortInputTypes();
                 }
+
                 foreach (var anchorView in nodeView.outputContainer.Children().OfType<Port>())
                 {
                     foreach (var edgeView in anchorView.connections)
@@ -945,6 +964,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
                 }
+
                 foreach (var anchorView in nodeView.inputContainer.Children().OfType<Port>())
                 {
                     var targetSlot = anchorView.GetSlot();
