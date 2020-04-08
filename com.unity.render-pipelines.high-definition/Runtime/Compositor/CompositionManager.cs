@@ -670,26 +670,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 return;
 
             // set shader uniforms
-
-            foreach (var prop in m_CompositionProfile.m_ShaderProperties)
-            {
-                if (prop.propertyType == ShaderPropertyType.Float)
-                {
-                    m_Material.SetFloat(prop.propertyName, prop.value.x);
-                }
-                else if (prop.propertyType == ShaderPropertyType.Vector)
-                {
-                    m_Material.SetVector(prop.propertyName, prop.value);
-                }
-                else if (prop.propertyType == ShaderPropertyType.Range)
-                {
-                    m_Material.SetFloat(prop.propertyName, prop.value.x);
-                }
-                else if (prop.propertyType == ShaderPropertyType.Color)
-                {
-                    m_Material.SetColor(prop.propertyName, prop.value);
-                }
-            }
+            m_CompositionProfile.CopyPropertiesToMaterial(m_Material);
 
             int layerIndex = 0;
             foreach (var layer in m_InputLayers)

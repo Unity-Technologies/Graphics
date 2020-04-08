@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     // Holds a list of layers and layer/composition properties. This is serialized and can be shared between projects
     internal class CompositionProfile : ScriptableObject
     {
-        public List<ShaderProperty> m_ShaderProperties = new List<ShaderProperty>();
+        [SerializeField] List<ShaderProperty> m_ShaderProperties = new List<ShaderProperty>();
 
         public void AddPropertiesFromShaderAndMaterial (CompositionManager compositor, Shader shader, Material material)
         {
@@ -54,7 +54,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             bool hide = ((int)sp.flags & (int)ShaderPropertyFlags.NonModifiableTextureData) != 0
                         || ((int)sp.flags & (int)ShaderPropertyFlags.HideInInspector) != 0;
 
-            
             if (!hide)
             {
                 // Check if property already exists / do not add duplicates
@@ -78,6 +77,29 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 {
                     // if a layer that was in the list is now hidden, remove it
                     compositor.RemoveLayerAtIndex(indx);
+                }
+            }
+        }
+
+        public void CopyPropertiesToMaterial(Material material)
+        {
+            foreach (var prop in m_ShaderProperties)
+            {
+                if (prop.propertyType == ShaderPropertyType.Float)
+                {
+                    material.SetFloat(prop.propertyName, prop.value.x);
+                }
+                else if (prop.propertyType == ShaderPropertyType.Vector)
+                {
+                    material.SetVector(prop.propertyName, prop.value);
+                }
+                else if (prop.propertyType == ShaderPropertyType.Range)
+                {
+                    material.SetFloat(prop.propertyName, prop.value.x);
+                }
+                else if (prop.propertyType == ShaderPropertyType.Color)
+                {
+                    material.SetColor(prop.propertyName, prop.value);
                 }
             }
         }

@@ -54,10 +54,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         [SerializeField] bool m_ClearAlpha = true;    // Specifies if the Alpha channel will be cleared when stacking this camera over the previous one (for overlays)
         [SerializeField] Renderer m_OutputRenderer = null; // Specifies the output surface/renderer
         [SerializeField] LayerType m_Type;
-        [SerializeField] Camera m_Camera;             // The source camera for the layer (were we get the default properties). The actual rendering, with overridden properties is done by the m_LayerCamera
-        [SerializeField] public VideoPlayer m_InputVideo;
-        [SerializeField] public Texture m_InputTexture;
-        [SerializeField] public BackgroundFitMode m_BackgroundFit;
+        [SerializeField] Camera m_Camera = null;      // The source camera for the layer (were we get the default properties). The actual rendering, with overridden properties is done by the m_LayerCamera
+        [SerializeField] VideoPlayer m_InputVideo = null;
+        [SerializeField] Texture m_InputTexture = null;
+        [SerializeField] BackgroundFitMode m_BackgroundFit = BackgroundFitMode.Stretch;
         [SerializeField] ResolutionScale m_ResolutionScale = ResolutionScale.Full;
         [SerializeField] UIColorBufferFormat m_ColorBufferFormat = UIColorBufferFormat.R16G16B16A16;
 
@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         [SerializeField] HDAdditionalCameraData.AntialiasingMode m_Antialiasing;
 
         [SerializeField] bool m_OverrideClearMode = false;
-        [SerializeField] public HDAdditionalCameraData.ClearColorMode m_ClearMode;
+        [SerializeField] HDAdditionalCameraData.ClearColorMode m_ClearMode = HDAdditionalCameraData.ClearColorMode.Color;
 
         [SerializeField] bool m_OverrideCullingMask = false;
         [SerializeField] LayerMask m_CullingMask;
