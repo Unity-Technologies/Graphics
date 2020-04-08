@@ -97,6 +97,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for alpha to coverage for HDRP shaders and shader graph
 - Added support for Quality Levels to Subsurface Scattering.
 - Added option to disable XR rendering on the camera settings.
+- Added a frame setting for alpha to mask.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -506,11 +507,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for issue that prevented scene from being completely saved when baked reflection probes are present and lighting is set to auto generate.
 - Fixed drag area width at left of Light's intensity field in Inspector.
 - Fixed light type resolution when performing a reset on HDAdditionalLightData (case 1220931)
+- Fixed reliance on atan2 undefined behavior in motion vector debug shader.
 - Fixed an usage of a a compute buffer not bound (1229964)
 - Fixed an issue where changing the default volume profile from another inspector would not update the default volume editor.
 - Fix issues in the post process system with RenderTexture being invalid in some cases, causing rendering problems.
 - Fixed an issue where unncessarily serialized members in StaticLightingSky component would change each time the scene is changed.
 - Fixed a weird behavior in the scalable settings drawing when the space becomes tiny (1212045).
+- Fixed a regression in the ray traced indirect diffuse due to the new probe system.
+- Fix for range compression factor for probes going negative (now clamped to positive values).
+- Fixed path validation when creating new volume profile (case 1229933)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -619,6 +624,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Temporal Anti aliasing improvements.
 - Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
 - Moved scene view camera settings for HDRP from the preferences window to the scene view camera settings window.
+- Updated shaders to be compatible with Microsoft's DXC.
 
 ## [7.1.1] - 2019-09-05
 
