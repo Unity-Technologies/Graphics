@@ -515,15 +515,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a regression in the ray traced indirect diffuse due to the new probe system.
 - Fix for range compression factor for probes going negative (now clamped to positive values).
 - Fixed path validation when creating new volume profile (case 1229933)
-- Fixed an usage of a a compute buffer not bound (1229964)
-- Fixed an issue where changing the default volume profile from another inspector would not update the default volume editor.
-- Fix issues in the post process system with RenderTexture being invalid in some cases, causing rendering problems.
-- Fixed an issue where unncessarily serialized members in StaticLightingSky component would change each time the scene is changed.
-- Fixed a weird behavior in the scalable settings drawing when the space becomes tiny (1212045).
-- Fixed a regression in the ray traced indirect diffuse due to the new probe system.
-- Fix for range compression factor for probes going negative (now clamped to positive values).
-- Fixed path validation when creating new volume profile (case 1229933)
-- Fixed NaN issue in triplanar SG node when blend goes to 0.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
