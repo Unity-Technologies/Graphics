@@ -97,6 +97,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for alpha to coverage for HDRP shaders and shader graph
 - Added support for Quality Levels to Subsurface Scattering.
 - Added option to disable XR rendering on the camera settings.
+- Added support for POM for emissive map
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
