@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Update the GPU data of the constant buffer and bind it globally.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="data">Input data of the constant buffer.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
@@ -27,6 +28,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Update the GPU data of the constant buffer and bind it to a compute shader.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="data">Input data of the constant buffer.</param>
         /// <param name="cs">Compute shader to which the constant buffer should be bound.</param>
@@ -42,6 +44,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Update the GPU data of the constant buffer and bind it to a material.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="data">Input data of the constant buffer.</param>
         /// <param name="mat">Material to which the constant buffer should be bound.</param>
@@ -57,6 +60,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Update the GPU data of the constant buffer.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="data">Input data of the constant buffer.</param>
         public static void UpdateData<CBType>(CommandBuffer cmd, in CBType data) where CBType : struct
@@ -69,6 +73,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Bind the constant buffer globally.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public static void SetGlobal<CBType>(CommandBuffer cmd, int shaderId) where CBType : struct
@@ -81,6 +86,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Bind the constant buffer to a compute shader.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="cs">Compute shader to which the constant buffer should be bound.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
@@ -94,6 +100,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Bind the constant buffer to a material.
         /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="mat">Material to which the constant buffer should be bound.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public static void Set<CBType>(Material mat, int shaderId) where CBType : struct
@@ -103,6 +110,10 @@ namespace UnityEngine.Rendering
             cb.Set(mat, shaderId);
         }
 
+        /// <summary>
+        /// Release all currently allocated constant buffers.
+        /// This needs to be called before shutting down the application.
+        /// </summary>
         public static void ReleaseAll()
         {
             foreach (var cb in m_RegisteredConstantBuffers)
