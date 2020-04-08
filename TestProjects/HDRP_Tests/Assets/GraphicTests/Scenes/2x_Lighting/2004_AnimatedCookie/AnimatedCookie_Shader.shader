@@ -22,7 +22,7 @@ Shader "HDRenderPipeline/GraphicTests/2004_AnimatedCookie_AnimMat"
             float4      _Color;
             sampler2D   _Tex;
 
-            float4 frag(v2f_customrendertexture IN) : COLOR
+            float4 frag(v2f_customrendertexture IN) : SV_Target
             {
                 float f = _Time.y % 3;
 

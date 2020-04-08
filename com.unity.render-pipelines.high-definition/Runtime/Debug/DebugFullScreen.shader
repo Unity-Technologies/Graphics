@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -240,6 +240,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
                         d = DrawArrow(positionSS, body, 0.25 * body, 0.5, 2.0, 1.0);
                         d = 1.0 - saturate(d);
                     }
+
+                    // Explicitly handling the case where mv == float2(0, 0) as atan2(mv.x, mv.y) above would be atan2(0,0) which
+                    // is undefined and in practice can be incosistent between compilers (e.g. NaN on FXC and ~pi/2 on DXC)
+                    if(!any(mv))
+                        color = float3(0, 0, 0);
 
                     return float4(color + d.xxx, 1.0);
                 }
