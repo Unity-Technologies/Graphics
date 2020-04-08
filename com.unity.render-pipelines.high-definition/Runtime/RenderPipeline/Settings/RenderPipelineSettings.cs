@@ -64,6 +64,9 @@ namespace UnityEngine.Rendering.HighDefinition
             supportShadowMask = true,
             supportSSAO = true,
             supportSubsurfaceScattering = true,
+            sssSampleBudget = new IntScalableSetting(new[] { (int)DefaultSssSampleBudgetForQualityLevel.Low,
+                                                             (int)DefaultSssSampleBudgetForQualityLevel.Medium,
+                                                             (int)DefaultSssSampleBudgetForQualityLevel.High }, ScalableSettingSchemaId.With3Levels),
             supportVolumetrics = true,
             supportDistortion = true,
             supportTransparentBackface = true,
@@ -101,6 +104,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lightLayerName5 = "Light Layer 5",
             lightLayerName6 = "Light Layer 6",
             lightLayerName7 = "Light Layer 7",
+            supportProbeVolume = false,
+            probeVolumeSettings = GlobalProbeVolumeSettings.@default,
         };
 
         /// <summary>
@@ -124,8 +129,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportSSAO;
         /// <summary>Support subsurface scattering.</summary>
         public bool supportSubsurfaceScattering;
-        /// <summary>High quality subsurface scattering.</summary>
-        public bool increaseSssSampleCount;
+        /// <summary>Sample budget for the Subsurface Scattering algorithm.</summary>
+        public IntScalableSetting sssSampleBudget;
         /// <summary>Support volumetric lighting.</summary>
         public bool supportVolumetrics;
         /// <summary>High quality volumetric lighting.</summary>
@@ -185,10 +190,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDitheringCrossFade;
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
+        /// <summary>Support Probe Volumes.</summary>
+        [SerializeField] internal bool supportProbeVolume;
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;
 
-        /// <summary>Global light loop settings.</summary>
+        /// <summary>Global Probe Volume settings.</summary>
+        [SerializeField] internal GlobalProbeVolumeSettings probeVolumeSettings;
+		/// <summary>Global light loop settings.</summary>
         public GlobalLightLoopSettings lightLoopSettings;
         /// <summary>Global shadows settings.</summary>
         public HDShadowInitParameters hdShadowInitParams;
@@ -214,5 +223,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Global lighting quality settings.</summary>
         public GlobalLightingQualitySettings lightingQualitySettings;
+
+    #pragma warning disable 618 // Type or member is obsolete
+        [Obsolete("For data migration")]
+        internal bool m_ObsoleteincreaseSssSampleCount;
+    #pragma warning restore 618
     }
 }
