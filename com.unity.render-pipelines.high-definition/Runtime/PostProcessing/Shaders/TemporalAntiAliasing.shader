@@ -75,7 +75,7 @@ Shader "Hidden/HDRP/TemporalAA"
         TEXTURE2D_X(_DepthTexture);
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
-        RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture);
+        RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture) : register(u1);
 
 
         #define _HistorySharpening _TaaPostParameters.x
