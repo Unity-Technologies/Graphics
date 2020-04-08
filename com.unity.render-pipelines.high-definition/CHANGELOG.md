@@ -8,14 +8,46 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Add XR setting to control camera jitter for temporal effects #6259
+- Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
 
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
+- Fixed an issue where default volume would not update when switching profile.
+- Fixed an issue where AO override would not override specular occlusion.
+- Fixed an issue where Volume inspector might not refresh correctly in some cases.
+- Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
+- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601)
+- Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
+- Fix when rescale probe all direction below zero (1219246)
+- Fixed issue with resources being accessed before initialization process has been performed completely. 
+- Fixed render texture with XR
+- Fixed sRGB mismatch with XR SDK
+- Fixed XR single-pass with Mock HMD plugin
+- Fixed XR culling with multiple cameras
+- Fixed shadow cascade tooltip when using the metric mode (case 1229232)
+- Focus on Decal uses the extends of the projectors
+- Fixed how the area light influence volume is computed to match rasterization.
+- Fixed usage of light size data that are not available at runtime.
+- Fixed light type resolution when performing a reset on HDAdditionalLightData (case 1220931)
+- Fixed drag area width at left of Light's intensity field in Inspector.
+- Fix for issue that prevented scene from being completely saved when baked reflection probes are present and lighting is set to auto generate.
+- Fixed the depth buffer copy made before custom pass after opaque and normal injection point.
+- Fixed a weird behavior in the scalable settings drawing when the space becomes tiny (1212045).
+- Fixed an usage of a a compute buffer not bound (1229964)
+- Fixed an issue where unncessarily serialized members in StaticLightingSky component would change each time the scene is changed.
+- Fix issues in the post process system with RenderTexture being invalid in some cases, causing rendering problems.
+- Fixed an issue where changing the default volume profile from another inspector would not update the default volume editor.
+- Fix for range compression factor for probes going negative (now clamped to positive values).
+- Fixed path validation when creating new volume profile (case 1229933)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
+- All custom pass volumes are now executed for one injection point instead of the first one.
+- Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
+- Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
+- Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 
 ## [7.3.0] - 2020-03-11
 
@@ -65,6 +97,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some typos in debug menu (case 1224594)
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 - Fixed cubemap thumbnail generation at project load time. 
+- Half fixed shuriken particle light that cast shadows (only the first one will be correct)
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
@@ -73,6 +106,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add range-based clipping to box lights (case 1178780)
 - Improve area light culling (case 1085873)
 - Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
+- Changed the diffusion profile warning on the material to an info and changed the message to be more precise.
 
 ## [7.2.0] - 2020-02-10
 

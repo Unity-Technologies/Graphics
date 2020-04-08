@@ -28,16 +28,23 @@ public class CameraCallbackTests : ScriptableRendererFeature
 		afterAll.Init("_AfterAll");
 	}
 
-	public override void Create()
+    public override void Create()
     {
         ForwardRendererData data = null;
-        if(UniversalRenderPipeline.asset.m_RendererDataList[0] != null)
-		    data = UniversalRenderPipeline.asset.m_RendererDataList[0] as ForwardRendererData;
-		if (data == null)
-			return;
-		var shader = data.shaders.samplingPS;
-		m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shader);
-	}
+        if (UniversalRenderPipeline.asset.m_RendererDataList[0] != null)
+            data = UniversalRenderPipeline.asset.m_RendererDataList[0] as ForwardRendererData;
+
+        if (data == null)
+            return;
+
+        if (data.shaders == null)
+            return;
+
+        if (data.shaders.samplingPS == null)
+            return;
+
+        m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
+    }
 
 	internal class ClearColorPass : ScriptableRenderPass
     {
