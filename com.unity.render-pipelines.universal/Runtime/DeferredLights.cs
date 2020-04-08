@@ -574,12 +574,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_HasTileVisLights = this.tiledDeferredShading && CheckHasTileLights(ref renderingData.lightData.visibleLights);
         }
 
-        public void FrameCleanup(CommandBuffer cmd)
+        public void OnCameraCleanup(CommandBuffer cmd)
         {
             for (int tilerIndex = 0; tilerIndex < m_Tilers.Length; ++ tilerIndex)
             {
                 m_TileDataCapacities[tilerIndex] = max(m_TileDataCapacities[tilerIndex], m_Tilers[tilerIndex].TileDataCapacity);
-                m_Tilers[tilerIndex].FrameCleanup();
+                m_Tilers[tilerIndex].OnCameraCleanup();
             }
 
             if (m_stencilVisLights.IsCreated)

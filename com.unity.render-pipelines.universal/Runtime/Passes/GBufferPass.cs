@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBufferPool.Release(gbufferCommands);
         }
 
-        public override void FrameCleanup(CommandBuffer cmd)
+        public override void OnCameraCleanup(CommandBuffer cmd)
         {
             for (int i = 0; i < m_ColorAttachments.Length; ++i)
                 if (i != DeferredConfig.kGBufferLightingIndex)
