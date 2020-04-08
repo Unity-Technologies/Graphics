@@ -1,6 +1,6 @@
 import sys, glob
 import ruamel
-from jobs.utils.namer import editor_filepath, packages_filepath, project_filepath_specific,project_filepath_all
+from jobs.utils.namer import *
 from jobs.projects.project_standalone import Project_StandaloneJob
 from jobs.projects.project_standalone_build import Project_StandaloneBuildJob
 from jobs.projects.project_not_standalone import Project_NotStandaloneJob
@@ -12,6 +12,12 @@ from jobs.packages.package_test import Package_TestJob
 from jobs.packages.package_test_dependencies import Package_TestDependenciesJob
 from jobs.packages.publish_all import Package_PublishAllJob
 from jobs.packages.test_all import Package_AllPackageCiJob
+from jobs.abv.all_project_ci import ABV_AllProjectCiJob
+from jobs.abv.all_project_ci_nightly import ABV_AllProjectCiNightlyJob
+from jobs.abv.all_smoke_tests import ABV_AllSmokeTestsJob
+from jobs.abv.smoke_test import ABV_SmokeTestJob
+from jobs.abv.trunk_verification import ABV_TrunkVerificationJob
+
 
 # TODO:
 # - variables to store path names (change only once)
@@ -27,9 +33,9 @@ def dump_yml(filepath, yml_dict):
     with open(filepath, 'w') as f:
         yaml.dump(yml_dict, f)
 
-def create_project_specific_jobs(project_metafile):
+def create_project_specific_jobs(metafile_name):
 
-    metafile = load_yml(project_metafile)
+    metafile = load_yml(metafile_name)
     project = metafile["project"]
 
     for platform in metafile['platforms']:
@@ -56,9 +62,9 @@ def create_project_specific_jobs(project_metafile):
 
 
 
-def create_project_all_jobs(project_metafile):
+def create_project_all_jobs(metafile_name):
 
-    metafile = load_yml(project_metafile)
+    metafile = load_yml(metafile_name)
 
     yml = {}
     for editor in metafile['editors']:
@@ -70,9 +76,9 @@ def create_project_all_jobs(project_metafile):
 
 
 
-def create_editor_job(editor_metafile):
+def create_editor_job(metafile_name):
 
-    metafile = load_yml(editor_metafile)
+    metafile = load_yml(metafile_name)
 
     yml = {}
     for platform in metafile["platforms"]:
@@ -83,8 +89,8 @@ def create_editor_job(editor_metafile):
     dump_yml(editor_filepath(), yml)
 
 
-def create_package_jobs(package_metafile):
-    metafile = load_yml(package_metafile)
+def create_package_jobs(metafile_name):
+    metafile = load_yml(metafile_name)
     yml = {}
 
     for package in metafile["packages"]:
@@ -113,6 +119,29 @@ def create_package_jobs(package_metafile):
     dump_yml(packages_filepath(), yml)
 
 
+def create_abv_jobs(metafile_name):
+    metafile = load_yml(metafile_name)
+    yml = {}
+
+    for editor in metafile["editors"]:
+        for test_platform in metafile['test_platforms']:
+            job = ABV_SmokeTestJob(editor, test_platform)
+            yml[job.job_id] = job.yml
+        
+        job = ABV_AllSmokeTestsJob(editor, metafile["test_platforms"])
+        yml[job.job_id] = job.yml
+
+        job = ABV_AllProjectCiJob(editor, metafile["projects"])
+        yml[job.job_id] = job.yml
+
+        job = ABV_AllProjectCiNightlyJob(editor, metafile["projects"], metafile["test_platforms"])
+        yml[job.job_id] = job.yml
+
+        job = ABV_TrunkVerificationJob(editor, metafile["projects"], metafile["test_platforms"])
+        yml[job.job_id] = job.yml
+
+    dump_yml(abv_filepath(), yml)
+
 
 # TODO clean up the code, make filenames more readable/reuse, split things appropriately (eg editor, files, etc), fix scrip arguments, fix testplatforms (xr), ...
 if __name__== "__main__":
@@ -130,6 +159,10 @@ if __name__== "__main__":
     # create package jobs
     create_package_jobs('config/packages.metafile')
     print(f'Running: packages')
+
+    # create abv
+    create_abv_jobs('config/abv.metafile')
+    print(f'Running: abv')
 
     # create yml jobs for each specified project (universal, shadergraph, vfx_lwrp, ...)
     args = sys.argv
