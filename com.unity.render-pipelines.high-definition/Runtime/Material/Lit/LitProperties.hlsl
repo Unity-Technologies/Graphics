@@ -151,6 +151,9 @@ float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
 
+// Raytracing
+float _RayTracing;
+
 #ifndef LAYERED_LIT_SHADER
 
 // Set of users variables
@@ -288,7 +291,8 @@ int _PassValue;
 
 CBUFFER_END
 
-#ifdef UNITY_DOTS_INSTANCING_ENABLED
+// DOTS instancing not enabled for LayeredLit for now
+#if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(LAYERED_LIT_SHADER)
 UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
     UNITY_DOTS_INSTANCED_PROP(float , _Metallic)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 
@@ -13,9 +14,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("m_BakingSkyUniqueID")]
         int m_StaticLightingSkyUniqueID = 0;
         int m_LastComputedHash;
+        bool m_NeedUpdateStaticLightingSky;
 
-        // This one contain only property values from overridden properties in the original profile component
-        public SkySettings m_SkySettings;
+        [NonSerialized]
+        public SkySettings m_SkySettings; // This one contain only property values from overridden properties in the original profile component
+        [NonSerialized]
         public SkySettings m_SkySettingsFromProfile;
 
         public SkySettings skySettings
@@ -172,7 +175,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            UpdateCurrentStaticLightingSky();
+            // We can't call UpdateCurrentStaticLightingSky in OnValidate because we may destroy an object there and it's forbidden.
+            // So we delay the update.
+            m_NeedUpdateStaticLightingSky = true;
         }
 
         void OnEnable()
@@ -188,6 +193,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 SkyManager.UnRegisterStaticLightingSky(this);
 
             Reset();
+        }
+
+        void Update()
+        {
+            if (m_NeedUpdateStaticLightingSky)
+            {
+                UpdateCurrentStaticLightingSky();
+                m_NeedUpdateStaticLightingSky = false;
+            }
         }
 
         void Reset()

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Utilities;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -174,6 +173,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector4[]              frustumPlaneEquations;
         internal int                    taaFrameIndex;
         internal float                  taaSharpenStrength;
+        internal float                  taaHistorySharpening;
+        internal float                  taaAntiFlicker;
+        internal float                  taaMotionVectorRejection;
+        internal bool                   taaAntiRinging;
+
         internal Vector4                zBufferParams;
         internal Vector4                unity_OrthoParams;
         internal Vector4                projectionParams;
@@ -283,6 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
 
         internal HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
+        internal HDAdditionalCameraData.TAAQualityLevel TAAQuality { get; private set; } = HDAdditionalCameraData.TAAQualityLevel.Medium;
 
         internal bool resetPostProcessingHistory = true;
 
@@ -607,12 +612,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
 
-            // TODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
+            // XRTODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
             if (true)
             {
                 cmd.SetGlobalInt(HDShaderIDs._XRViewCount, viewCount);
 
                 // Convert AoS to SoA for GPU constant buffer until we can use StructuredBuffer via command buffer
+                // XRTODO: use the new API and remove this code
                 for (int i = 0; i < viewCount; i++)
                 {
                     m_XRViewMatrix[i] = m_XRViewConstants[i].viewMatrix;
@@ -844,7 +850,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 else if (camera.cameraType == CameraType.SceneView)
                 {
-                    var mode = HDRenderPipelinePreferences.sceneViewAntialiasing;
+                    var mode = HDAdditionalSceneViewSettings.sceneViewAntialiasing;
 
                     if (mode == AntialiasingMode.TemporalAntialiasing && !animateMaterials)
                         antialiasing = AntialiasingMode.None;
@@ -856,7 +862,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     antialiasing = m_AdditionalCameraData.antialiasing;
                     SMAAQuality = m_AdditionalCameraData.SMAAQuality;
+                    TAAQuality = m_AdditionalCameraData.TAAQuality;
                     taaSharpenStrength = m_AdditionalCameraData.taaSharpenStrength;
+                    taaHistorySharpening = m_AdditionalCameraData.taaHistorySharpening;
+                    taaAntiFlicker = m_AdditionalCameraData.taaAntiFlicker;
+                    taaAntiRinging = m_AdditionalCameraData.taaAntiHistoryRinging;
+                    taaMotionVectorRejection = m_AdditionalCameraData.taaMotionVectorRejection;
+
                 }
                 else
                     antialiasing = AntialiasingMode.None;
@@ -1125,8 +1137,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
-            // Do not add extra jitter in VR (micro-variations from head tracking are enough)
-            if (xr.enabled)
+            // Do not add extra jitter in VR unless requested (micro-variations from head tracking are usually enough)
+            if (xr.enabled && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter)
             {
                 taaJitter = Vector4.zero;
                 return origProj;

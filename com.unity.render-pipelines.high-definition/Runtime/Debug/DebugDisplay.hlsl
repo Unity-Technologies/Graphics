@@ -1,3 +1,5 @@
+#ifdef DEBUG_DISPLAY // Guard define here to be compliant with how shader graph generate code for include
+
 #ifndef UNITY_DEBUG_DISPLAY_INCLUDED
 #define UNITY_DEBUG_DISPLAY_INCLUDED
 
@@ -19,6 +21,7 @@ float _DebugViewMaterialArray[11]; // Contain the id (define in various material
 int _DebugMipMapMode; // Match enum DebugMipMapMode
 int _DebugMipMapModeTerrainTexture; // Match enum DebugMipMapModeTerrainTexture
 int _ColorPickerMode; // Match enum ColorPickerDebugMode
+int _DebugProbeVolumeMode; // Match enum ProbeVolumeDebugMode
 int _DebugStep;
 int _DebugDepthPyramidMip;
 int _DebugFullScreenMode;
@@ -273,3 +276,5 @@ bool ShouldFlipDebugTexture()
 }
 
 #endif
+
+#endif // DEBUG_DISPLAY
