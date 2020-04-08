@@ -22,7 +22,7 @@ Shader "Hidden/DistordFromTex"
             sampler2D   _Tex;
             float _Scale, _Bias;
 
-            float4 frag(v2f_customrendertexture IN) : COLOR
+            float4 frag(v2f_customrendertexture IN) : SV_Target
             {
                 float4 c = float4(0,0,0,0);
 
