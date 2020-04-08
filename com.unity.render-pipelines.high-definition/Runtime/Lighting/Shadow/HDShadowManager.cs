@@ -498,7 +498,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void LayoutShadowMaps(LightingDebugSettings lightingDebugSettings)
         {
-            // TODO_FCC: THIS IS TEMP
             cachedShadowManager.UpdateDebugSettings(lightingDebugSettings);
 
             m_Atlas.UpdateDebugSettings(lightingDebugSettings);
@@ -650,9 +649,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Atlas.BindResources(cmd);
             m_CascadeAtlas.BindResources(cmd);
             cachedShadowManager.punctualShadowAtlas.BindResources(cmd);
-            cachedShadowManager.areaShadowAtlas.BindResources(cmd);
             if (ShaderConfig.s_AreaLights == 1)
+            {
                 m_AreaLightShadowAtlas.BindResources(cmd);
+                cachedShadowManager.areaShadowAtlas.BindResources(cmd);
+            }
         }
 
         public int GetShadowRequestCount()
@@ -683,13 +684,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle areaShadowAtlas;
 
             public RTHandle cachedPunctualShadowAtlas;
+            public RTHandle cachedAreaShadowAtlas;
         }
 
         public ShadowDebugAtlasTextures GetDebugAtlasTextures()
         {
             var result = new ShadowDebugAtlasTextures();
             if (ShaderConfig.s_AreaLights == 1)
+            {
                 result.areaShadowAtlas = m_AreaLightShadowAtlas.renderTarget;
+                result.cachedAreaShadowAtlas = cachedShadowManager.areaShadowAtlas.renderTarget;
+            }
             result.punctualShadowAtlas = m_Atlas.renderTarget;
             result.cascadeShadowAtlas = m_CascadeAtlas.renderTarget;
             result.cachedPunctualShadowAtlas = cachedShadowManager.punctualShadowAtlas.renderTarget;
@@ -715,11 +720,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_AreaLightShadowAtlas.DisplayAtlas(atlasTexture, cmd, debugMaterial, new Rect(0, 0, m_AreaLightShadowAtlas.width, m_AreaLightShadowAtlas.height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
         }
 
-        public void DisplayCachedShadowAtlas(RTHandle atlasTexture, CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, MaterialPropertyBlock mpb)
+        public void DisplayCachedPunctualShadowAtlas(RTHandle atlasTexture, CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, MaterialPropertyBlock mpb)
         {
             cachedShadowManager.punctualShadowAtlas.DisplayAtlas(atlasTexture, cmd, debugMaterial, new Rect(0, 0, cachedShadowManager.punctualShadowAtlas.width, cachedShadowManager.punctualShadowAtlas.height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
         }
 
+        public void DisplayCachedAreaShadowAtlas(RTHandle atlasTexture, CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, MaterialPropertyBlock mpb)
+        {
+            if (ShaderConfig.s_AreaLights == 1)
+                cachedShadowManager.punctualShadowAtlas.DisplayAtlas(atlasTexture, cmd, debugMaterial, new Rect(0, 0, cachedShadowManager.areaShadowAtlas.width, cachedShadowManager.areaShadowAtlas.height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+        }
 
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
         public void DisplayShadowMap(in ShadowDebugAtlasTextures atlasTextures, int shadowIndex, CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, MaterialPropertyBlock mpb)
@@ -733,7 +743,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case ShadowMapType.PunctualAtlas:
                 {
-                    m_Atlas.DisplayAtlas(atlasTextures.punctualShadowAtlas, cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                    if (shadowRequest.isInCachedAtlas)
+                        cachedShadowManager.punctualShadowAtlas.DisplayAtlas(atlasTextures.cachedPunctualShadowAtlas, cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                    else
+                        m_Atlas.DisplayAtlas(atlasTextures.punctualShadowAtlas, cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
                     break;
                 }
                 case ShadowMapType.CascadedDirectional:
@@ -744,7 +757,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 case ShadowMapType.AreaLightAtlas:
                 {
                     if (ShaderConfig.s_AreaLights == 1)
-                        m_AreaLightShadowAtlas.DisplayAtlas(atlasTextures.areaShadowAtlas, cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                    {
+                        if (shadowRequest.isInCachedAtlas)
+                            cachedShadowManager.areaShadowAtlas.DisplayAtlas(atlasTextures.cachedAreaShadowAtlas, cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                        else
+                            m_AreaLightShadowAtlas.DisplayAtlas(atlasTextures.areaShadowAtlas, cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                    }
                     break;
                 }
             };
@@ -759,8 +777,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_AreaLightShadowAtlas.Release();
             m_CascadeAtlas.Release();
 
-            cachedShadowManager.punctualShadowAtlas.Release();
-            cachedShadowManager.areaShadowAtlas.Release();
+            cachedShadowManager.Dispose();
         }
     }
 }

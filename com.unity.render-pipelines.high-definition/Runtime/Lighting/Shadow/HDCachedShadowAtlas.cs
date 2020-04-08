@@ -182,6 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We register only if not already pending placement and if enabled. 
             if (!m_RegisteredLightDataPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows) && lightData.isActiveAndEnabled)
             {
+                lightData.legacyLight.useInfiniteFrustumForShadowCasterCull = true;
                 lightData.lightIdxForCachedShadows = GetNextLightIdentifier();
 
                 DBG_NAMES_LIGHT.Add((lightData.name, lightData.lightIdxForCachedShadows));
@@ -193,9 +194,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void EvictLight(HDAdditionalLightData lightData)
         {
-            Debug.Assert(lightData.type != HDLightType.Directional);
-
-
             DBG_NAMES_LIGHT.RemoveAll(x => x.Item1 == lightData.name);
 
             // todo is it here the right place?
@@ -215,6 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (valueFound)
                 {
+                    lightData.legacyLight.useInfiniteFrustumForShadowCasterCull = false;
                     m_PlacedShadows.Remove(shadowIdx);
                     m_ShadowsPendingRendering.Remove(shadowIdx);
 
@@ -268,9 +267,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 resolution = currentLightData.GetResolutionFromSettings(m_ShadowType, initParams);
 
                 HDLightType lightType = currentLightData.type;
-                // TODO_FCC Handle this better of course.
-                Debug.Assert(lightType != HDLightType.Directional);
-
                 int numberOfShadows = (lightType == HDLightType.Point) ? 6 : 1;
 
                 for (int i = 0; i < numberOfShadows; ++i)

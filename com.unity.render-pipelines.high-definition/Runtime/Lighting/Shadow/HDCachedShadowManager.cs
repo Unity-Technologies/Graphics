@@ -59,7 +59,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDCachedShadowManager()
         {
             punctualShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.PunctualAtlas);
-            areaShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.AreaLightAtlas);
+            if (ShaderConfig.s_AreaLights == 1)
+                areaShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.AreaLightAtlas);
         }
 
         internal void InitPunctualShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, int atlasSizeShaderID, Material clearMaterial, int maxShadowRequests, HDShadowAtlas.BlurAlgorithm blurAlgorithm = HDShadowAtlas.BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
@@ -75,18 +76,21 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void RegisterLight(HDAdditionalLightData lightData)
         {
             HDLightType lightType = lightData.type;
-            if (lightType == HDLightType.Area)
-            {
-                areaShadowAtlas.RegisterLight(lightData);
-            }
-            else if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
-            {
-                punctualShadowAtlas.RegisterLight(lightData);
-            }
-            if(lightType == HDLightType.Directional)
+
+            if (lightType == HDLightType.Directional)
             {
                 lightData.lightIdxForCachedShadows = 0;
                 MarkAllDirectionalShadowsForUpdate();
+            }
+
+            if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
+            {
+                punctualShadowAtlas.RegisterLight(lightData);
+            }
+
+            if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area)
+            {
+                areaShadowAtlas.RegisterLight(lightData);
             }
         }
 
@@ -94,26 +98,31 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             HDLightType lightType = lightData.type;
 
-            if (lightType == HDLightType.Area)
-            {
-                areaShadowAtlas.EvictLight(lightData);
-            }
-            else if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
-            {
-                punctualShadowAtlas.EvictLight(lightData);
-            }
             if (lightType == HDLightType.Directional)
             {
                 lightData.lightIdxForCachedShadows = -1;
                 MarkAllDirectionalShadowsForUpdate();
             }
+
+            if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
+            {
+                punctualShadowAtlas.EvictLight(lightData);
+            }
+
+            if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area)
+            {
+                areaShadowAtlas.EvictLight(lightData);
+            }
+
+
         }
 
         internal void AssignSlotsInAtlases(HDShadowInitParameters initParams)
         {
             m_initParams = initParams;
             punctualShadowAtlas.AssignOffsetsInAtlas(initParams);
-            areaShadowAtlas.AssignOffsetsInAtlas(initParams);
+            if(ShaderConfig.s_AreaLights == 1)
+                areaShadowAtlas.AssignOffsetsInAtlas(initParams);
         }
 
         internal bool ShadowIsPendingUpdate(int shadowIdx, ShadowMapType shadowMapType)
@@ -149,7 +158,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void UpdateDebugSettings(LightingDebugSettings lightingDebugSettings)
         {
             punctualShadowAtlas.UpdateDebugSettings(lightingDebugSettings);
-            areaShadowAtlas.UpdateDebugSettings(lightingDebugSettings);
+            if (ShaderConfig.s_AreaLights == 1)
+                areaShadowAtlas.UpdateDebugSettings(lightingDebugSettings);
         }
 
         internal void ScheduleShadowUpdate(HDAdditionalLightData light)
@@ -199,6 +209,13 @@ namespace UnityEngine.Rendering.HighDefinition
             punctualShadowAtlas.Clear();
             if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas.Clear();
+        }
+
+        internal void Dispose()
+        {
+            punctualShadowAtlas.Release();
+            if (ShaderConfig.s_AreaLights == 1)
+                areaShadowAtlas.Release();
         }
     }
 }
