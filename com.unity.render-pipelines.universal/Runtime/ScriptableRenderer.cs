@@ -585,8 +585,7 @@ namespace UnityEngine.Rendering.Universal
             int endIndex = blockRanges[blockIndex + 1];
             bool renderPassStarted = false;
 
-            HashSet<AttachmentDescriptor> attachmentSet = new HashSet<AttachmentDescriptor>();
-            NativeArray<AttachmentDescriptor> descriptors;
+            List<AttachmentDescriptor> attachmentList = new List<AttachmentDescriptor>();
 
             for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
             {
@@ -606,12 +605,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                 {
                     int depthAttachmentIdx = -1;
-                    var desc = renderPass.renderPassDescriptor;
                     var colorCount = RenderingUtils.GetValidAttachmentCount(renderPass.colorAttachmentDescriptors);
-
-                    NativeArray<int> indices =
-                        new NativeArray<int>((int)colorCount, Allocator.Temp);
-                    NativeArray<int> inputIndices = new NativeArray<int>(0, Allocator.Temp);
 
                     if (!renderPassStarted)
                     {
@@ -625,101 +619,98 @@ namespace UnityEngine.Rendering.Universal
                                 continue;
 
                             rp.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
-
                             for (int i = 0; i < rp.colorAttachmentDescriptors.Length; i++)
                             {
+                                if (rp.colorAttachmentDescriptors[i] == m_CameraColorTargetAttachment)
+                                    m_FirstTimeCameraColorTargetIsBound = false;
+
                                 if (rp.colorAttachmentDescriptors[i].loadStoreTarget == BuiltinRenderTextureType.None //First invalid means we are done with the attachments
                                     && rp.colorAttachmentDescriptors[i].storeAction != RenderBufferStoreAction.DontCare //This also checks whether it's a transient texture
                                     && rp.colorAttachmentDescriptors[i].loadAction != RenderBufferLoadAction.DontCare)
                                     break;
 
-                                if (rp.colorAttachmentDescriptors[i] == m_CameraColorTargetAttachment)
-                                    m_FirstTimeCameraColorTargetIsBound = false;
-
-                                attachmentSet.Add(rp.colorAttachmentDescriptors[i]);
+                                if (!RenderingUtils.Contains(attachmentList.ToArray(), rp.colorAttachmentDescriptors[i]))
+                                    attachmentList.Add(rp.colorAttachmentDescriptors[i]);
                             }
 
-                            if (rp.hasInputAttachment)
+                            if (rp.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None)
                             {
-                                for (int i = 0; i < rp.inputAttachmentDescriptors.Length; i++)
+                                if (!RenderingUtils.Contains(attachmentList.ToArray(), rp.depthAttachmentDescriptor) && depthAttachmentIdx == -1)
                                 {
-                                    attachmentSet.Add(rp.inputAttachmentDescriptors[i]);
+                                    attachmentList.Add(rp.depthAttachmentDescriptor);
+                                    depthAttachmentIdx = attachmentList.Count - 1;
                                 }
-                            }
-
-                            if (rp.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None && depthAttachmentIdx == -1)
-                            {
-                                attachmentSet.Add(rp.depthAttachmentDescriptor);
 
                                 if (rp.depthAttachmentDescriptor == m_CameraDepthTargetAttachment)
                                     m_FirstTimeCameraDepthTargetIsBound = false;
-
-                                for (int i = 0; i < attachmentSet.Count; i++)
-                                {
-                                    if (rp.depthAttachmentDescriptor == attachmentSet.ElementAt(i))
-                                        depthAttachmentIdx = i;
-                                }
                             }
                         }
-
                         context.ExecuteCommandBuffer(cmd);
                         CommandBufferPool.Release(cmd);
                     }
 
-                    //Map color and input attachments for the subpass
-
-                    descriptors = new NativeArray<AttachmentDescriptor>(attachmentSet.ToArray(), Allocator.Temp);
-
-                    if (descriptors.Length > k_MaxAttachmentCount)
+                    if (attachmentList.Count > k_MaxAttachmentCount)
                     {
-                        Debug.LogError("Maximum attachment count " + k_MaxAttachmentCount + " has been exceeded with " + descriptors.Length);
+                        Debug.LogError("Maximum attachment count " + k_MaxAttachmentCount + " has been exceeded with " + attachmentList.Count );
                         break;
                     }
 
+                    //Map color and input attachments for the subpass
+                    //We use the copy for mapping attachments and replacing them with empty to avoid duplicating transient attachments
+                    AttachmentDescriptor[] attachmentCopy = attachmentList.ToArray();
+
+                    NativeArray<int> colorIndices =
+                        new NativeArray<int>((int)colorCount, Allocator.Temp);
+                    NativeArray<int> inputIndices = new NativeArray<int>(0, Allocator.Temp);
+
                     for (int i = 0; i < colorCount; i++)
                     {
-                        for (int j = 0; j < descriptors.Length; j++)
+                        var idx = RenderingUtils.IndexOf(attachmentCopy.ToArray(), renderPass.colorAttachmentDescriptors[i]);
+
+                        if (idx != -1)
                         {
-                            if (renderPass.colorAttachmentDescriptors[i] == descriptors[j])
-                            {
-                                indices[i] = j;
-                                break;
-                            }
+                            attachmentCopy[idx] = ScriptableRenderPass.EmptyAttachment;
+                            colorIndices[i] = idx;
                         }
                     }
+
                     if (renderPass.hasInputAttachment)
                     {
                         inputIndices = new NativeArray<int>(renderPass.inputAttachmentDescriptors.Length, Allocator.Temp);
+
                         for (int i = 0; i < renderPass.inputAttachmentDescriptors.Length; i++)
                         {
-                            for (int j = 0; j < descriptors.Length; j++)
+                            var idx  = RenderingUtils.IndexOf(attachmentCopy.ToArray(),
+                                renderPass.inputAttachmentDescriptors[i]);
+
+                            if (idx != -1)
                             {
-                                if (renderPass.inputAttachmentDescriptors[i] == descriptors[j])
-                                {
-                                    inputIndices[i] = j;
-                                    break;
-                                }
+                                attachmentCopy[idx] = ScriptableRenderPass.EmptyAttachment;
+                                inputIndices[i] = idx;
                             }
                         }
                     }
+
+                    var descriptor = renderPass.renderPassDescriptor;
 
                     //Start the RenderPass
                     if (!renderPassStarted)
                     {
-                        context.BeginRenderPass(desc.width, desc.height, desc.sampleCount, descriptors, depthAttachmentIdx);
-                        descriptors.Dispose();
+                        var attachmentDescriptors = new NativeArray<AttachmentDescriptor>(attachmentList.ToArray(), Allocator.Temp);
+                        context.BeginRenderPass(descriptor.width, descriptor.height, descriptor.sampleCount, attachmentDescriptors, depthAttachmentIdx);
+                        attachmentDescriptors.Dispose();
                         renderPassStarted = true;
                     }
 
                     if (renderPass.hasInputAttachment)
-                        context.BeginSubPass(indices, inputIndices, desc.readOnlyDepth);
+                        context.BeginSubPass(colorIndices, inputIndices, descriptor.readOnlyDepth);
                     else
-                        context.BeginSubPass(indices);
+                        context.BeginSubPass(colorIndices);
 
                     if (inputIndices.IsCreated)
                         inputIndices.Dispose();
-                    if (indices.IsCreated)
-                        indices.Dispose();
+                    if (colorIndices.IsCreated)
+                        colorIndices.Dispose();
 
                     ExecuteNativeRenderPass(context, renderPass, ref renderingData);
                     context.EndSubPass();
@@ -728,7 +719,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderPassStarted)
             {
-                attachmentSet.Clear();
+                attachmentList.Clear();
                 context.EndRenderPass();
             }
 

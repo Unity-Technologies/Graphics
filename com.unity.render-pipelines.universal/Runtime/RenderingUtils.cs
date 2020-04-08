@@ -269,6 +269,19 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        //TODO: what should we do about Transient attachments? Currently can only exclude them from this
+        internal static bool Contains(AttachmentDescriptor[] source, AttachmentDescriptor value)
+        {
+            foreach (var identifier in source)
+            {
+                if (identifier == value &&
+                    identifier.loadAction != RenderBufferLoadAction.DontCare &&
+                    identifier.storeAction != RenderBufferStoreAction.DontCare)
+                    return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Return the index where value was found source. Otherwise, return -1. (without recurring to Linq)
         /// </summary>
@@ -276,6 +289,16 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="value"></param>
         /// <returns></returns>
         internal static int IndexOf(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        {
+            for (int i = 0; i < source.Length; ++i)
+            {
+                if (source[i] == value)
+                    return i;
+            }
+            return -1;
+        }
+
+        internal static int IndexOf(AttachmentDescriptor[] source, AttachmentDescriptor value)
         {
             for (int i = 0; i < source.Length; ++i)
             {
