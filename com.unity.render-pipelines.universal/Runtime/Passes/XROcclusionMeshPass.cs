@@ -23,7 +23,8 @@ namespace UnityEngine.Rendering.Universal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             // XRTODO: We need a way to specify the depth slice of the target depth here. Current URP scriptable renderer doesn't track depth slice and we need to add one.
-            ConfigureTarget(m_TargetDepthTarget.Identifier(), m_TargetDepthTarget.Identifier());
+            var targetDepthId = new RenderTargetIdentifier(m_TargetDepthTarget.Identifier(), 0, CubemapFace.Unknown, -1);
+            ConfigureTarget(targetDepthId, targetDepthId);
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
@@ -33,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
             if (!renderingData.cameraData.xr.enabled)
                 return;
             
-            CommandBuffer cmd = CommandBufferPool.Get();
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 renderingData.cameraData.xr.StopSinglePass(cmd);
