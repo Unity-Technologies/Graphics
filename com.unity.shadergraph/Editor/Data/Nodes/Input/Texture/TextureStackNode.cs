@@ -680,6 +680,13 @@ namespace UnityEditor.ShaderGraph
                         {0}.levelMode = {7};
                         {0}.uvMode = {8};
                         {0}.sampleQuality = {9};
+#if defined(SHADER_STAGE_RAY_TRACING)
+                        if ({0}.levelMode == VtLevel_Automatic || {0}.levelMode == VtLevel_Bias)
+                        {{
+                            {0}.levelMode = VtLevel_Lod;
+                            {0}.lodOrOffset = 0.0f;
+                        }}
+#endif
             ";
 
             return string.Format(VTParametersInputTemplate,
