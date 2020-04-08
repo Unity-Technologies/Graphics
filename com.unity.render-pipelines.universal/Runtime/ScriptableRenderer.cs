@@ -332,12 +332,12 @@ namespace UnityEngine.Rendering.Universal
 
                 case UniversalRenderTextureType.DepthBuffer:
                 {
-                    // depth buffer
-                    if (current.cameraDepth.Equals(new RenderTargetIdentifier((int) UniversalRenderTextureType.None)))
+                    // if camera depth is none, this means we have a created depth implicitly by
+                    // requesting a color texture + depth bits
+                    if (current.cameraDepth == GetRenderTexture(UniversalRenderTextureType.None))
                         return cameraColorTarget;
-                    // depth texture
-                    else
-                        return cameraDepth;
+                    
+                    return cameraDepth;
                 }
 
                 case UniversalRenderTextureType.CurrentActive:
@@ -650,7 +650,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             var renderTextureNone = GetRenderTexture(UniversalRenderTextureType.None);
-            // We use a different code path for MRT since it calls a different version of API SetRenderTarget
             if (passColorAttachment == currentActiveTarget)
             {
                 // do nothing, leave current render target attachments
@@ -659,6 +658,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 // do nothing
             }
+            // We use a different code path for MRT since it calls a different version of API SetRenderTarget
             else if (RenderingUtils.IsMRT(renderPass.colorAttachments))
             {
                 // In the MRT path we assume that all color attachments are REAL color attachments,
