@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 // Enable XR layout only for gameview camera
-                bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
+                bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null && HDUtils.TryGetAdditionalCameraDataOrDefault(camera).xrRendering;
 
                 if (customLayout != null && customLayout(new XRLayout() { camera = camera, xrSystem = this }))
                 {
