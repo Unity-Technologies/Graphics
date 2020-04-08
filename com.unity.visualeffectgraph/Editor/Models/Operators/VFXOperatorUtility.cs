@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
 
         static private VFXExpression BaseToConstant(Base _base, VFXValueType type)
         {
-            switch(_base)
+            switch (_base)
             {
                 case Base.Base2:    return TwoExpression[type];
                 case Base.Base10:   return TenExpression[type];
@@ -575,7 +575,7 @@ namespace UnityEditor.VFX
             dt = new VFXExpressionCastUintToFloat(dt);
             var size = new VFXExpressionCastUintToFloat(count) - VFXOperatorUtility.OneExpression[VFXValueType.Float];
             size = new VFXExpressionMax(size, VFXOperatorUtility.OneExpression[VFXValueType.Float]);
-            dt = dt / size ;
+            dt = dt / size;
             dt = new VFXExpressionCombine(dt, dt, dt);
             return VFXOperatorUtility.Lerp(start, end, dt);
         }

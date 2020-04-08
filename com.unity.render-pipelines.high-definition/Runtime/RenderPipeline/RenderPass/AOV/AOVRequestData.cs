@@ -114,8 +114,8 @@ namespace UnityEngine.Rendering.HighDefinition
         class PushCameraTexturePassData
         {
             public int                  requestIndex;
-            public RenderGraphResource  source;
-            // Not super clean to not use RenderGraphResources here. In practice it's ok because those texture are never passed back to any other render pass.
+            public TextureHandle        source;
+            // Not super clean to not use TextureHandles here. In practice it's ok because those texture are never passed back to any other render pass.
             public List<RTHandle>       targets;
         }
 
@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderGraph         renderGraph,
             AOVBuffers          aovBufferId,
             HDCamera            camera,
-            RenderGraphResource source,
+            TextureHandle       source,
             List<RTHandle>      targets
         )
         {
