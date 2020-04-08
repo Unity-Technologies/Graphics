@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -90,6 +90,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
                 keywords = LitKeywords.GBuffer,
                 includes = LitIncludes.GBuffer,
+
+                virtualTextureFeedback = true,
             };
 
             public static PassDescriptor META = new PassDescriptor()
@@ -328,6 +330,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = CoreDefines.Forward,
                 keywords = CoreKeywords.Forward,
                 includes = LitIncludes.Forward,
+
+                virtualTextureFeedback = true,
             };
 
             public static PassDescriptor TransparentDepthPostpass = new PassDescriptor()

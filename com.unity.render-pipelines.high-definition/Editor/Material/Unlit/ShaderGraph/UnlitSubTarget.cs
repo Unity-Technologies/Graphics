@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -191,6 +191,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = CoreKeywords.DebugDisplay,
                 includes = UnlitIncludes.ForwardOnly,
+
+                virtualTextureFeedback = true,
             };
         }
 #endregion
