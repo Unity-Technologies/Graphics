@@ -73,9 +73,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_NewMasterPreviewSize = newSize;
         }
 
-        public PreviewRenderData GetPreview(AbstractMaterialNode node)
+        public PreviewRenderData GetPreviewRenderData(AbstractMaterialNode node)
         {
-            return m_RenderDatas[node.guid];
+            PreviewRenderData result = null;
+            if (node != null)
+                m_RenderDatas.TryGetValue(node.guid, out result);
+            return result;
         }
 
         void AddPreview(AbstractMaterialNode node)
@@ -84,6 +87,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (node is IMasterNode || node is SubGraphOutputNode)
             {
+                // we don't build preview render data for output nodes that aren't the active output node
                 if (masterRenderData != null || (node is IMasterNode && node.guid != node.owner.activeOutputNodeGuid))
                 {
                     return;
@@ -322,7 +326,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (node == null || !node.hasPreview || !node.previewExpanded)
                         continue;
 
-                    var renderData = m_RenderDatas[node.guid];
+                    var renderData = GetPreviewRenderData(node);
+                    if (renderData == null) // non-active output nodes can have NULL render data (no preview)
+                        continue;
 
                     if ((renderData.shaderData.shader == null) || (renderData.shaderData.mat == null))
                     {
@@ -431,9 +437,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 foreach (var node in m_NodesCompiling)
                 {
-                    PreviewRenderData renderData = m_RenderDatas[node.guid];
+                    PreviewRenderData renderData = GetPreviewRenderData(node);
                     PreviewShaderData shaderData = renderData.shaderData;
                     Assert.IsTrue(shaderData.passesCompiling > 0);
+
+                    if (shaderData.passesCompiling != renderData.shaderData.mat.passCount)
+                    {
+                        Debug.LogWarning("WARNING, shader pass count changed while compiling preview shader, preview may not complete");
+                    }
 
                     // check that all passes have compiled
                     var allPassesCompiled = true;
@@ -487,6 +498,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     !m_NodesCompiling.Contains(m_MasterRenderData.shaderData.node) &&
                     ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0)))    // master node requires an SRP
                 {
+                    var renderData = GetPreviewRenderData(m_MasterRenderData.shaderData.node);
+                    Assert.IsTrue(renderData != null);
                     nodesToCompile.Add(m_MasterRenderData.shaderData.node);
                 }
 
@@ -498,6 +511,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         if (node.hasPreview && node.previewExpanded && !m_NodesCompiling.Contains(node))
                         {
+                            var renderData = GetPreviewRenderData(node);
+                            if (renderData == null) // non-active output nodes can have NULL render data (no preview)
+                                continue;
+
                             nodesToCompile.Add(node);
                             if (m_NodesCompiling.Count + nodesToCompile.Count >= m_MaxNodesCompiling)
                                 break;
@@ -526,11 +543,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     Assert.IsFalse(!node.hasPreview && !(node is SubGraphOutputNode || node is VfxMasterNode));
 
-                    var renderData = m_RenderDatas[node.guid];
-                    if (renderData == null)
-                    {
-                        continue;
-                    }
+                    var renderData = GetPreviewRenderData(node);
 
                     // Get shader code and compile
                     var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
@@ -576,8 +589,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // flag all nodes in m_NodesNeedRecompile as having out of date textures, and redraw them
                 foreach (var node in m_NodesNeedsRecompile)
                 {
-                    PreviewRenderData previewRendererData = m_RenderDatas[node.guid];
-                    if (!previewRendererData.shaderData.isOutOfDate)
+                    PreviewRenderData previewRendererData = GetPreviewRenderData(node);
+                    if ((previewRendererData != null) && !previewRendererData.shaderData.isOutOfDate)
                     {
                         previewRendererData.shaderData.isOutOfDate = true;
                         previewRendererData.NotifyPreviewChanged();

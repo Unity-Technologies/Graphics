@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewContainer.Add(m_PreviewImage);
 
                 // Hook up preview image to preview manager
-                m_PreviewRenderData = previewManager.GetPreview(inNode);
+                m_PreviewRenderData = previewManager.GetPreviewRenderData(inNode);
                 m_PreviewRenderData.onPreviewChanged += UpdatePreviewTexture;
                 UpdatePreviewTexture();
 
