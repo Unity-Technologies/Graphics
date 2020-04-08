@@ -64,7 +64,7 @@ namespace UnityEditor.VFX
 
                     if (Has(VFXExpressionContextOption.GPUDataTransformation))
                         foreach (var exp in m_EndExpressions)
-                            m_ReducedCache[exp] = InsertGPUTransformation(GetReduced(exp));
+                            m_ReducedCache[exp] = InsertGPUTransformation(GetReduced(exp), null /* no source in end expression */);
                 }
                 finally
                 {
@@ -86,6 +86,9 @@ namespace UnityEditor.VFX
                 if (exp.IsAny(Flags.NotCompilableOnCPU))
                     return false;
 
+                if (!Has(VFXExpressionContextOption.CPUEvaluation) && exp.IsAny(Flags.InvalidConstant))
+                    return false;
+
                 if (!exp.Is(Flags.Value) && reducedParents.Length == 0) // not a value
                     return false;
 
@@ -99,8 +102,28 @@ namespace UnityEditor.VFX
                 return reducedParents.All(e => (e.m_Flags & (flag | Flags.InvalidOnCPU)) == flag);
             }
 
-            private VFXExpression InsertGPUTransformation(VFXExpression exp)
+            private VFXExpression InsertGPUTransformation(VFXExpression exp, VFXExpression sourceExpression)
             {
+#if UNITY_2020_2_OR_NEWER
+                if (exp.valueType == VFXValueType.Mesh)
+                {
+                    if (sourceExpression == null)
+                        throw new InvalidOperationException("VFXValueType.Mesh cannot be an end expression, we can't determine usage.");
+
+                    if (    sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat
+                        ||  sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat2
+                        ||  sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat3
+                        ||  sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat4
+                        ||  sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexColor)
+                        return new VFXExpressionVertexBufferFromMesh(exp);
+
+                    if (sourceExpression.operation == VFXExpressionOperation.SampleMeshIndex)
+                        return new VFXExpressionIndexBufferFromMesh(exp);
+
+                    throw new InvalidOperationException("Unexpected source operation for InsertGPUTransformation : " + sourceExpression.operation);
+                }
+#endif
+
                 switch (exp.valueType)
                 {
                     case VFXValueType.ColorGradient:
@@ -124,7 +147,7 @@ namespace UnityEditor.VFX
                         if (Has(VFXExpressionContextOption.GPUDataTransformation)
                             && expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU)
                             && !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
-                            parent = InsertGPUTransformation(parent);
+                            parent = InsertGPUTransformation(parent, expression);
 
                         return parent;
                     }).ToArray();
