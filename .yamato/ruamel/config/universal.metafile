@@ -88,23 +88,26 @@ platforms:
     components:
       - editor
       - il2cpp
-  # - name: Android
-  #   os: android
-  #   apis:
-  #     - name: 
-  #       cmd: 
-  #   agent_default:
-  #     type: Unity::mobile::android
-  #     image: mobile/android-execution-r19:stable
-  #     flavor: b1.large
-  #   agent_standalone_build:
-  #     type: Unity::VM
-  #     image: mobile/android-execution-r19:stable
-  #     flavor: b1.large
-  #   components:
-  #     - editor
-  #     - il2cpp
-  #     - android
+  - name: Android
+    os: android
+    standalone_split: true
+    apis:
+      - name: OpenGLES3
+        cmd:
+      - name: Vulkan
+        cmd: 
+    agent_default:
+      type: Unity::mobile::android
+      image: mobile/android-execution-r19:stable
+      flavor: b1.large
+    agent_standalone_build:
+      type: Unity::VM
+      image: mobile/android-execution-r19:stable
+      flavor: b1.large
+    components:
+      - editor
+      - il2cpp
+      - android
 all:
   dependencies:
     - platform_name: Win

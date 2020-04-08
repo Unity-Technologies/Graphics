@@ -1,0 +1,83 @@
+editors:
+  - version: trunk
+  - version: 2020.1
+  - version: fast-trunk
+  - version: fast-2020.1
+packages:
+  - name: Core
+    id: core
+    packagename: com.unity.render-pipelines.core
+    dependencies:
+      - core
+  - name: Lightweight
+    id: lwrp
+    packagename: com.unity.render-pipelines.lightweight
+    dependencies:
+      - core
+      - shadergraph
+      - universal
+      - lwrp
+    hascodependencies: 1
+  - name: ShaderGraph
+    id: shadergraph
+    packagename: com.unity.shadergraph
+    dependencies:
+      - core
+      - shadergraph
+    hascodependencies: 1
+  - name: HDRP
+    id: hdrp
+    packagename: com.unity.render-pipelines.high-definition
+    dependencies:
+      - core
+      - shadergraph
+      - vfx
+      - config
+      - hdrp
+    hascodependencies: 1
+  - name: Universal
+    id: universal
+    packagename: com.unity.render-pipelines.universal
+    dependencies:
+      - core
+      - shadergraph
+      - universal
+    hascodependencies: 1
+  - name: VFX
+    id: vfx
+    packagename: com.unity.visualeffectgraph
+    dependencies:
+      - core
+      - shadergraph
+      - vfx
+    hascodependencies: 1
+  - name: Config
+    id: config
+    packagename: com.unity.render-pipelines.high-definition-config
+    dependencies:
+      - core
+      - config
+    hascodependencies: 1
+platforms:
+    - name: win
+      os: windows
+      components:
+      - editor
+      - il2cpp
+      agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+      copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      editorpath: .\.Editor
+    - name: mac
+      os: macos
+      components:
+      - editor
+      - il2cpp
+      agent:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+      copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
+      editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"

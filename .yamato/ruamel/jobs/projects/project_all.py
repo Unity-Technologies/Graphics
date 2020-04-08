@@ -1,5 +1,5 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..utils.namer import project_filepath_specific, project_job_id_all
+from ..utils.namer import *
 
 
 def get_job_definition(project_name, editor, dependencies_in_all):
@@ -7,8 +7,8 @@ def get_job_definition(project_name, editor, dependencies_in_all):
     for d in dependencies_in_all:
         for test_platform_name in d["test_platform_names"]:
             
-            file_name= project_filepath_specific(project_name, d["platform_name"], d["api_name"])
-            job_id = f'{project_name}_{d["platform_name"]}_{d["api_name"]}_{test_platform_name}_{editor["version"]}'
+            file_name = project_filepath_specific(project_name, d["platform_name"], d["api_name"])
+            job_id = project_job_id_test(project_name,d["platform_name"],d["api_name"],test_platform_name,editor["version"])
 
             dependencies.append(
                 {

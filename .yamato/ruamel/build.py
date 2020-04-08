@@ -52,7 +52,7 @@ def create_project_specific_jobs(metafile_name):
                         if platform["standalone_split"]:
                             job = Project_StandaloneBuildJob(project, editor, platform, api)
                             yml[job.job_id] = job.yml
-                    else:
+                    elif platform["name"].lower() != "android": # skip for only android
                         job = Project_NotStandaloneJob(project, editor, platform, api, test_platform)
                         yml[job.job_id] = job.yml
                     
@@ -153,23 +153,22 @@ if __name__== "__main__":
 
 
     # create editor
-    create_editor_job('config/_editor.metafile')
     print(f'Running: editor')
+    create_editor_job('config/_editor.metafile')
 
     # create package jobs
-    create_package_jobs('config/packages.metafile')
     print(f'Running: packages')
+    create_package_jobs('config/_packages.metafile')
 
     # create abv
-    create_abv_jobs('config/abv.metafile')
     print(f'Running: abv')
+    create_abv_jobs('config/_abv.metafile')
 
     # create yml jobs for each specified project (universal, shadergraph, vfx_lwrp, ...)
     args = sys.argv
-    projects = glob.glob('config/[!z_]*.metafile') if 'all' in args else [f'config/{project}.metafile' for project in args[1:]]   
-    print(f'Running: {projects}')
-
+    projects = glob.glob('config/[!_]*.metafile') if 'all' in args else [f'config/{project}.metafile' for project in args[1:]]   
     for project_metafile in projects:
+        print(f'Running: {project_metafile}')
         create_project_specific_jobs(project_metafile) # create jobs for testplatforms
         create_project_all_jobs(project_metafile) # create All_ job
 

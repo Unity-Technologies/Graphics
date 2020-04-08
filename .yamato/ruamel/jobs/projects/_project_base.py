@@ -2,6 +2,8 @@ from ruamel import yaml
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ruamel.yaml.scalarstring import PlainScalarString as pss
 from .commands._cmd_mapper import get_cmd
+from ..utils.namer import *
+from ..utils.constants import VAR_UPM_REGISTRY
 
 def _job(project_name, test_platform_name, editor, platform, api, cmd):
 
@@ -16,11 +18,11 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
         'name' : job_name,
         'agent' : dict(agent),
         'variables':{
-            'UPM_REGISTRY': 'https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates'
+            'UPM_REGISTRY': VAR_UPM_REGISTRY
         },
         'dependencies' : [
             {
-                'path' : f'.yamato/z_editor.yml#editor:priming:{editor["version"]}:{platform["os"]}',
+                'path' : f'{editor_filepath()}#{editor_job_id(editor["version"], platform["os"])}',
                 'rerun' : editor["rerun_strategy"]
             }
         ],

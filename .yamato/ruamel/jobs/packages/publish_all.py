@@ -2,7 +2,7 @@ from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import packages_filepath, package_job_id_publish, package_job_id_publish_all
 
 
-def build_yml(packages):
+def get_job_definition(packages):
     job = {
         'name': f'Publish all packages',
         'agent': {
@@ -23,7 +23,7 @@ class Package_PublishAllJob():
     
     def __init__(self, packages):
         self.job_id = package_job_id_publish_all()
-        self.yml = build_yml(packages)
+        self.yml = get_job_definition(packages)
 
 
     

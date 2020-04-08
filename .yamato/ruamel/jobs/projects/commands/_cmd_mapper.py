@@ -1,4 +1,4 @@
-from . import win, osx_openglcore, osx_metal, linux
+from . import win, osx_openglcore, osx_metal, linux, android
 
 cmd_map = {
     'win' : {
@@ -20,6 +20,11 @@ cmd_map = {
         'not_standalone': linux.cmd_not_standalone,
         'standalone' : linux.cmd_standalone,
         'standalone_build' : linux.cmd_standalone_build
+    },
+    'android' : {
+        'not_standalone': android.cmd_not_standalone,
+        'standalone' : android.cmd_standalone,
+        'standalone_build' : android.cmd_standalone_build
     }
     
 }

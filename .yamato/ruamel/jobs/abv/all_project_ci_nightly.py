@@ -1,31 +1,31 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..utils.namer import abv_job_id_all_project_ci_nightly
+from ..utils.namer import *
 
 
 def get_job_definition(editor, projects, test_platforms):  # only run for 2020.1 and trunk
 
     dependencies = [{
-            'path': f'.yamato/upm-ci-packages.yml#all_package_ci_{editor["version"]}',
+            'path': f'{packages_filepath()}#{package_job_id_test_all(editor["version"])}',
+            'rerun': 'always'
+        },
+        { #TODO add these under project loop
+            'path': f'{project_filepath_specific("Universal", "Android", "OpenGLES3")}#{project_job_id_test("Universal", "Android", "OpenGLES3", "", editor["version"])}', # TODO 
             'rerun': 'always'
         },
         {
-            'path': f'.yamato/upm-ci-universal.yml#Universal_Android_OpenGLES3_{editor["version"]}',
-            'rerun': 'always'
-        },
-        {
-            'path': f'.yamato/upm-ci-universal.yml#Universal_Android_Vulkan_{editor["version"]}',
+            'path': f'{project_filepath_specific("Universal", "Android", "Vulkan")}#{project_job_id_test("Universal", "Android", "Vulkan", "", editor["version"])}',
             'rerun': 'always'
         }]
 
     for project in projects:
         dependencies.append({
-            'path': f'.yamato/upm-ci-{project["name"].lower()}.yml#All_{project["name"]}_{editor["version"]}',
+            'path': f'{project_filepath_all(project["name"])}#{project_job_id_all(project["name"], editor["version"])}',
             'rerun': 'always'
         })
     
     for test_platform in test_platforms:
         dependencies.append({
-            'path': f'.yamato/upm-ci-abv.yml#smoke_test_{test_platform["name"]}_{editor["version"]}',
+            'path': f'{abv_filepath()}#{abv_job_id_smoke_test(editor["version"],test_platform["name"])}',
             'rerun': 'always'
         })
 

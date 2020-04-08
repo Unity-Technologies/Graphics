@@ -1,5 +1,5 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..utils.namer import abv_job_id_all_smoke_tests
+from ..utils.namer import *
 
 
 def get_job_definition(editor, test_platforms):
@@ -7,7 +7,7 @@ def get_job_definition(editor, test_platforms):
     dependencies = []
     for test_platform in test_platforms:
         dependencies.append({
-            'path': f'.yamato/upm-ci-abv.yml#smoke_test_{test_platform["name"]}_{editor["version"]}',
+            'path': f'{abv_filepath()}#{abv_job_id_smoke_test(editor["version"],test_platform["name"])}',
             'rerun': 'on-new-revision'
         })
 

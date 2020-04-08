@@ -7,7 +7,7 @@ HDRP_Standalone_Win_Vulkan_Standalone_2020.1:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
-      -  path: .yamato/z_editor.yml#editor:priming:2020.1:windows
+      -  path: .yamato/_editor.yml#editor:priming:2020.1:windows
          rerun: on-new-revision
       -  path: .yamato/hdrp_standalone/hdrp_standalone-win-vulkan.yml#Build_HDRP_Standalone_Win_Vulkan_Player_2020.1
          rerun: on-new-revision
@@ -30,7 +30,7 @@ Build_HDRP_Standalone_Win_Vulkan_Player_2020.1:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
-      -  path: .yamato/z_editor.yml#editor:priming:2020.1:windows
+      -  path: .yamato/_editor.yml#editor:priming:2020.1:windows
          rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_RuntimeTests/utr

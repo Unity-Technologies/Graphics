@@ -1,5 +1,5 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..utils.namer import abv_job_id_trunk_verification
+from ..utils.namer import *
 
 def get_job_definition(editor, projects, test_platforms):  # only run for 2020.1 and trunk
     dependencies = []
@@ -13,7 +13,7 @@ def get_job_definition(editor, projects, test_platforms):  # only run for 2020.1
                 continue
             else:
                 dependencies.append({
-                    'path': f'.yamato/upm-ci-{project["name"].lower()}.yml#{ project["name"] }_Win_DX11_{ test_platform["name"] }_{ editor["version"]}',
+                    'path' : f'{project_filepath_specific(project["name"], "Win", "DX11")}#{project_job_id_test(project["name"], "Win", "DX11", test_platform["name"], editor["version"])}',
                     'rerun': 'always'
                 })
 

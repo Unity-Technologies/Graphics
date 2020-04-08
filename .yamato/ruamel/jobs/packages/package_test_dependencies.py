@@ -1,5 +1,5 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..utils.namer import editor_filepath, editor_job_id, packages_filepath, package_job_id_test, package_job_id_test_dependencies
+from ..utils.namer import *
 
 
 def get_job_definition(package, platform, editor):
@@ -24,7 +24,7 @@ def get_job_definition(package, platform, editor):
         }
     }
 
-    [job["commands"].append(dep) for dep in package["dependencies"]]
+    [job["commands"].append(f'{packages_filepath()}#{package_job_id_pack(package["id"])}') for dep in package["dependencies"]]
 
     if package.get('hascodependencies', None) is not None:
         job["commands"].append(platform["copycmd"])

@@ -84,4 +84,4 @@ all:
       test_platform_names:
         - editmode
         - playmode
-        #TODO - playmode XR
+        - playmode XR

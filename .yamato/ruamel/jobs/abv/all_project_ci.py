@@ -1,16 +1,16 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..utils.namer import abv_job_id_all_project_ci
+from ..utils.namer import *
 
 
 def get_job_definition(editor, projects):  # only run for 2020.1 and trunk
     dependencies = [{
-        'path': f'.yamato/upm-ci-packages.yml#all_package_ci_{editor["version"]}',
+        'path': f'{packages_filepath()}#{package_job_id_test_all(editor["version"])}',
         'rerun': 'always'
     }]
 
     for project in projects:
         dependencies.append({
-            'path': f'.yamato/upm-ci-{project["name"].lower()}.yml#All_{project["name"]}_{editor["version"]}',
+            'path': f'{project_filepath_all(project["name"])}#{project_job_id_all(project["name"], editor["version"])}',
             'rerun': 'always'
         })
 
