@@ -33,10 +33,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
+            m_ColorTargetHandle.Init("_CameraColorTexture");
             m_AfterPostProcessColorHandle.Init("_AfterPostProcessTexture");
             m_ColorGradingLutHandle.Init("_InternalGradingLut");
 
             m_Renderer2DData = data;
+
+            supportedRenderingFeatures = new RenderingFeatures()
+            {
+                cameraStacking = true,
+            };
         }
 
         protected override void Dispose(bool disposing)
@@ -55,35 +61,45 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
             PixelPerfectCamera ppc;
             cameraData.camera.TryGetComponent<PixelPerfectCamera>(out ppc);
-
-            Vector2Int ppcOffscreenRTSize = ppc != null ? ppc.offscreenRTSize : Vector2Int.zero;
-            bool ppcUsesOffscreenRT = ppcOffscreenRTSize != Vector2Int.zero;
             bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
-            bool useOffscreenColorTexture =
-                ppcUsesOffscreenRT || postProcessEnabled || cameraData.isHdrEnabled || cameraData.isSceneViewCamera || !cameraData.isDefaultViewport || !m_UseDepthStencilBuffer;
+            bool requireFinalBlitPass;
 
-            // Pixel Perfect Camera may request a different RT size than camera VP size.
-            // In that case we need to modify cameraTargetDescriptor here so that all the passes would use the same size.
-            if (ppcUsesOffscreenRT)
+            if (cameraData.renderType == CameraRenderType.Base)
             {
-                cameraTargetDescriptor.width = ppcOffscreenRTSize.x;
-                cameraTargetDescriptor.height = ppcOffscreenRTSize.y;
+                Vector2Int ppcOffscreenRTSize = ppc != null ? ppc.offscreenRTSize : Vector2Int.zero;
+                bool ppcUsesOffscreenRT = ppcOffscreenRTSize != Vector2Int.zero;
+                
+                bool createColorTexture = ppcUsesOffscreenRT || postProcessEnabled || cameraData.isHdrEnabled || cameraData.isSceneViewCamera || !cameraData.isDefaultViewport
+                    || !m_UseDepthStencilBuffer || !cameraData.resolveFinalTarget;
+
+                // Pixel Perfect Camera may request a different RT size than camera VP size.
+                // In that case we need to modify cameraTargetDescriptor here so that all the passes would use the same size.
+                if (ppcUsesOffscreenRT)
+                {
+                    cameraTargetDescriptor.width = ppcOffscreenRTSize.x;
+                    cameraTargetDescriptor.height = ppcOffscreenRTSize.y;
+                }
+
+                if (createColorTexture)
+                {
+                    var filterMode = ppc != null ? ppc.finalBlitFilterMode : FilterMode.Bilinear;
+                    CreateColorTexture(context, ref cameraTargetDescriptor, filterMode, m_ColorTargetHandle);
+                }
+                else
+                    m_ColorTargetHandle = RenderTargetHandle.CameraTarget;
+
+                requireFinalBlitPass = createColorTexture && cameraData.resolveFinalTarget;
+            }
+            else    // Overlay camera
+            {
+                requireFinalBlitPass = cameraData.resolveFinalTarget;
             }
 
-            if (useOffscreenColorTexture)
-            {
-                var filterMode = ppc != null ? ppc.finalBlitFilterMode : FilterMode.Bilinear;
-                m_ColorTargetHandle = CreateOffscreenColorTexture(context, ref cameraTargetDescriptor, filterMode);
-            }
-            else
-                m_ColorTargetHandle = RenderTargetHandle.CameraTarget;
-
-            ConfigureCameraTarget(m_ColorTargetHandle.Identifier(), BuiltinRenderTextureType.CameraTarget);
+            ConfigureCameraTarget(m_ColorTargetHandle.Identifier(), m_ColorTargetHandle.Identifier());
 
             m_Render2DLightingPass.ConfigureTarget(m_ColorTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
 
-            bool requireFinalBlitPass = useOffscreenColorTexture;
             var finalBlitSourceHandle = m_ColorTargetHandle;
 
             if (postProcessEnabled)
@@ -158,11 +174,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cullingParameters.shadowDistance = 0.0f;
         }
 
-        RenderTargetHandle CreateOffscreenColorTexture(ScriptableRenderContext context, ref RenderTextureDescriptor cameraTargetDescriptor, FilterMode filterMode)
+        void CreateColorTexture(ScriptableRenderContext context, ref RenderTextureDescriptor cameraTargetDescriptor, FilterMode filterMode, RenderTargetHandle colorTextureHandle)
         {
-            RenderTargetHandle colorTextureHandle = new RenderTargetHandle();
-            colorTextureHandle.Init("_CameraColorTexture");
-
             var colorDescriptor = cameraTargetDescriptor;
             colorDescriptor.depthBufferBits = m_UseDepthStencilBuffer ? 32 : 0;
 
@@ -171,8 +184,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-
-            return colorTextureHandle;
         }
 
         public override void FinishRendering(CommandBuffer cmd)
