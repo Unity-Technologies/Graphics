@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera);
                 passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera);
                 // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
-                passData.buildGPULightListResources = PrepareBuildGPULightListResources(m_TileAndClusterData, null, null);
+                passData.buildGPULightListResources = PrepareBuildGPULightListResources(m_TileAndClusterData, null, null, isGBufferNeeded: true);
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.stencilTexture = builder.ReadTexture(stencilBufferCopy);
                 if (passData.buildGPULightListParameters.computeMaterialVariants && passData.buildGPULightListParameters.enableFeatureVariants)
@@ -110,9 +110,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 (PushGlobalCameraParamPassData data, RenderGraphContext context) =>
                 {
                     data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB, data.frameCount);
-                    ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                    ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
                     data.hdCamera.UpdateShaderVariablesXRCB(ref data.xrCB);
-                    ConstantBuffer<ShaderVariablesXR>.PushGlobal(context.cmd, data.xrCB, HDShaderIDs._ShaderVariablesXR);
+                    ConstantBuffer.PushGlobal(context.cmd, data.xrCB, HDShaderIDs._ShaderVariablesXR);
                 });
             }
         }
