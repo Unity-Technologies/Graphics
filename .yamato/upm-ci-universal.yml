@@ -534,6 +534,9 @@ All_{{ project.name }}_{{ editor.version }}:
   {% elsif platform.name == "Android" %}
    #skip
 
+  {% elsif platform.name == "iPhone" %}
+   #skip
+
   {% elsif platform.name == "Linux" %}
   #skip
 
