@@ -76,7 +76,10 @@ namespace UnityEngine.Rendering.HighDefinition
             SubsystemManager.GetInstances(displayList);
 
             for (int i = 0; i < displayList.Count; i++)
+            {
                 displayList[i].disableLegacyRenderer = true;
+                displayList[i].sRGB = true;
+            }
         }
 #endif
 
@@ -120,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 // Enable XR layout only for gameview camera
-                bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
+                bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null && HDUtils.TryGetAdditionalCameraDataOrDefault(camera).xrRendering;
 
                 if (customLayout != null && customLayout(new XRLayout() { camera = camera, xrSystem = this }))
                 {
@@ -167,6 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 display = displayList[0];
                 display.disableLegacyRenderer = true;
+                display.textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
 
                 return display.running;
             }

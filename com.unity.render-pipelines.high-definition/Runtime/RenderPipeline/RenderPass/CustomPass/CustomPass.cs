@@ -375,6 +375,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="type">The custom pass render queue type.</param>
         /// <returns>Returns a render queue range compatible with a ScriptableRenderContext.DrawRenderers.</returns>
         protected RenderQueueRange GetRenderQueueRange(CustomPass.RenderQueueType type)
+            => GetRenderQueueRangeFromRenderQueueType(type);
+
+        internal static RenderQueueRange GetRenderQueueRangeFromRenderQueueType(RenderQueueType type)
         {
             switch (type)
             {

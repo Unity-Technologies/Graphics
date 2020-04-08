@@ -236,7 +236,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderAdditionalShadowmapAtlas(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
         }
 
-        public override void FrameCleanup(CommandBuffer cmd)
+        public override void OnCameraCleanup(CommandBuffer cmd)
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         void SetupAdditionalLightsShadowReceiverConstants(CommandBuffer cmd, ref ShadowData shadowData, bool softShadows)
         {
             int shadowLightsCount = m_AdditionalShadowCastingLightIndices.Count;
-            
+
             float invShadowAtlasWidth = 1.0f / shadowData.additionalLightsShadowmapWidth;
             float invShadowAtlasHeight = 1.0f / shadowData.additionalLightsShadowmapHeight;
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
