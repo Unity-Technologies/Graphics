@@ -534,7 +534,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalMatrix(HDShaderIDs._InvProjMatrix, shadowRequest.deviceProjectionYFlip.inverse);
                 cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix, viewProjection);
                 cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix, viewProjection.inverse);
-                cmd.SetGlobalVectorArray(HDShaderIDs._ShadowClipPlanes, shadowRequest.frustumPlanes);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ShadowFrustumPlanes, shadowRequest.frustumPlanes);
 
                 // TODO: remove this execute when DrawShadows will use a CommandBuffer
                 renderContext.ExecuteCommandBuffer(cmd);

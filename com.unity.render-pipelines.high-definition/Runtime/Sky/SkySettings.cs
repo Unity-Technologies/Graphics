@@ -139,6 +139,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Returns the hash code of the sky parameters.
         /// </summary>
+        /// <param name="camera">The camera we want to use to compute the hash of the sky.</param>
+        /// <returns>The hash code of the sky parameters.</returns>
+        virtual public int GetHashCode(Camera camera)
+        {
+            // By default we don't need to consider the camera position.
+            return GetHashCode();
+        }
+
+        /// <summary>
+        /// Returns the hash code of the sky parameters. When used with PBR Sky please use the GetHashCode variant that takes a camera as parameter.
+        /// </summary>
         /// <returns>The hash code of the sky parameters.</returns>
         public override int GetHashCode()
         {
