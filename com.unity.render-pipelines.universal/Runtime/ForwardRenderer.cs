@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.Universal
                 var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
                 var activeDepthRenderTargetId = m_ActiveCameraDepthAttachment.Identifier();
 
-                if (cameraData.xr.singlePassEnabled)
+                if (cameraData.xr.enabled)
                 {
                     activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
                     activeDepthRenderTargetId = new RenderTargetIdentifier(activeDepthRenderTargetId, 0, CubemapFace.Unknown, -1);
