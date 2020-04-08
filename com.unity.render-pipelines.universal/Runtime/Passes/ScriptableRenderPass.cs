@@ -50,11 +50,6 @@ namespace UnityEngine.Rendering.Universal
             get => m_DepthAttachment;
         }
 
-        public TextureDimension dimension
-        {
-            get => m_AttachmentDimension;
-        }
-
         public ClearFlag clearFlag
         {
             get => m_ClearFlag;
@@ -70,7 +65,6 @@ namespace UnityEngine.Rendering.Universal
 
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
-        TextureDimension m_AttachmentDimension = TextureDimension.Tex2D;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
@@ -79,7 +73,6 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
-            m_AttachmentDimension = TextureDimension.Tex2D;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -285,19 +278,6 @@ namespace UnityEngine.Rendering.Universal
         {
             return lhs.renderPassEvent > rhs.renderPassEvent;
         }
-
-        // TODO: Remove this. Currently only used by FinalBlit pass.
-        internal void SetRenderTarget(
-            CommandBuffer cmd,
-            RenderTargetIdentifier colorAttachment,
-            RenderBufferLoadAction colorLoadAction,
-            RenderBufferStoreAction colorStoreAction,
-            ClearFlag clearFlags,
-            Color clearColor)
-        {
-            CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
-        }
-
 
         #region Obsolete
 

@@ -59,10 +59,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (cameraData.xr.enabled)
             {
-                int depthSlice = cameraData.xr.singlePassEnabled ? -1 : cameraData.xr.GetTextureArraySlice(0); // XRTODO: Should be multipass eye id here?
+                int depthSlice = cameraData.xr.singlePassEnabled ? -1 : cameraData.xr.GetTextureArraySlice();
                 cameraTarget = new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, depthSlice);
 
-                SetRenderTarget(
+                CoreUtils.SetRenderTarget(
                     cmd,
                     cameraTarget,
                     RenderBufferLoadAction.Load,
@@ -94,9 +94,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
             {
                 // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
-                // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
+                // We need to keep in the pipeline of first render pass to each render target to properly set load/store actions.
                 // meanwhile we set to load so split screen case works.
-                SetRenderTarget(
+                CoreUtils.SetRenderTarget(
                     cmd,
                     cameraTarget,
                     RenderBufferLoadAction.Load,
