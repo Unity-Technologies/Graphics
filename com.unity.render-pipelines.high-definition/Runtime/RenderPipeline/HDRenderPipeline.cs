@@ -501,8 +501,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.colorResolvePS);
 
             InitializeProbeVolumes();
-
-            ConstantBuffer<ShaderVariablesGlobal>.Allocate();
         }
 
 #if UNITY_EDITOR
@@ -959,7 +957,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             }
 
-            ConstantBuffer<ShaderVariablesGlobal>.Release();
+            ConstantBuffer.ReleaseAll();
 
             CameraCaptureBridge.enabled = false;
         }
@@ -1041,7 +1039,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
             }
 
-            ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+            ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
 
         void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
@@ -2254,7 +2252,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderShadowMaps(renderContext, cmd, m_ShaderVariablesGlobalCB, cullingResults, hdCamera);
 
                     hdCamera.UpdateShaderVariableGlobalCB(ref m_ShaderVariablesGlobalCB, m_FrameCount);
-                    ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+                    ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 }
 
                 hdCamera.xr.StartSinglePass(cmd);
@@ -3782,7 +3780,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.LowResTransparent)))
             {
                 UpdateOffscreenRenderingConstants(ref m_ShaderVariablesGlobalCB, true, 2u);
-                ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                 CoreUtils.SetRenderTarget(cmd, m_LowResTransparentBuffer, m_SharedRTManager.GetLowResDepthBuffer(), clearFlag: ClearFlag.Color, Color.black);
                 RenderQueueRange transparentRange = HDRenderQueue.k_RenderQueue_LowTransparent;
@@ -3791,7 +3789,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
 
                 UpdateOffscreenRenderingConstants(ref m_ShaderVariablesGlobalCB, false, 1u);
-                ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
             }
         }
 
@@ -4650,14 +4648,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.hdCamera.UpdateShaderVariableGlobalCB(ref parameters.globalCB, parameters.frameCount);
 
                 UpdateOffscreenRenderingConstants(ref parameters.globalCB, true, 1);
-                ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, parameters.globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                ConstantBuffer.PushGlobal(cmd, parameters.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                 DrawOpaqueRendererList(renderContext, cmd, parameters.hdCamera.frameSettings, opaqueAfterPostProcessRendererList);
                 // Setup off-screen transparency here
                 DrawTransparentRendererList(renderContext, cmd, parameters.hdCamera.frameSettings, transparentAfterPostProcessRendererList);
 
                 UpdateOffscreenRenderingConstants(ref parameters.globalCB, false, 1);
-                ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(cmd, parameters.globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                ConstantBuffer.PushGlobal(cmd, parameters.globalCB, HDShaderIDs._ShaderVariablesGlobal);
             }
         }
 

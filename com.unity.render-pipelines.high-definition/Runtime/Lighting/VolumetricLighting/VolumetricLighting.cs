@@ -256,8 +256,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_PixelCoordToViewDirWS = new Matrix4x4[ShaderConfig.s_XrMaxViews];
 
-            ConstantBuffer<ShaderVariablesVolumetric>.Allocate();
-
             CreateVolumetricLightingBuffers();
         }
 
@@ -405,8 +403,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VolumeVoxelizationCS          = null;
             m_VolumetricLightingCS          = null;
             m_VolumetricLightingFilteringCS = null;
-
-            ConstantBuffer<ShaderVariablesVolumetric>.Release();
         }
 
         static int ComputeVBufferTileSize(VolumetricLightingPreset preset)
@@ -683,8 +679,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(parameters.voxelizationCS, parameters.voxelizationKernel, HDShaderIDs._VolumeData, visibleVolumeDataBuffer);
             cmd.SetComputeTextureParam(parameters.voxelizationCS, parameters.voxelizationKernel, HDShaderIDs._VolumeMaskAtlas, parameters.volumeAtlas);
 
-            ConstantBuffer<ShaderVariablesVolumetric>.Push(cmd, parameters.volumetricCB, parameters.voxelizationCS, HDShaderIDs._ShaderVariablesVolumetric);
-            ConstantBuffer<ShaderVariablesLightList>.Set(cmd, parameters.voxelizationCS, HDShaderIDs._ShaderVariablesLightList);
+            ConstantBuffer.Push(cmd, parameters.volumetricCB, parameters.voxelizationCS, HDShaderIDs._ShaderVariablesVolumetric);
+            ConstantBuffer.Set<ShaderVariablesLightList>(cmd, parameters.voxelizationCS, HDShaderIDs._ShaderVariablesLightList);
 
             // The shader defines GROUP_SIZE_1D = 8.
             cmd.DispatchCompute(parameters.voxelizationCS, parameters.voxelizationKernel, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
@@ -832,8 +828,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferLightingFeedback, feedbackRT); // Write
             }
 
-            ConstantBuffer<ShaderVariablesVolumetric>.Push(cmd, parameters.volumetricCB, parameters.volumetricLightingCS, HDShaderIDs._ShaderVariablesVolumetric);
-            ConstantBuffer<ShaderVariablesLightList>.Set(cmd, parameters.volumetricLightingCS, HDShaderIDs._ShaderVariablesLightList);
+            ConstantBuffer.Push(cmd, parameters.volumetricCB, parameters.volumetricLightingCS, HDShaderIDs._ShaderVariablesVolumetric);
+            ConstantBuffer.Set<ShaderVariablesLightList>(cmd, parameters.volumetricLightingCS, HDShaderIDs._ShaderVariablesLightList);
 
             // The shader defines GROUP_SIZE_1D = 8.
             cmd.DispatchCompute(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
@@ -843,7 +839,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricLightingFiltering)))
             {
-                ConstantBuffer<ShaderVariablesVolumetric>.Push(cmd, parameters.volumetricCB, parameters.volumetricLightingCS, HDShaderIDs._ShaderVariablesVolumetric);
+                ConstantBuffer.Push(cmd, parameters.volumetricCB, parameters.volumetricLightingCS, HDShaderIDs._ShaderVariablesVolumetric);
 
                 // The shader defines GROUP_SIZE_1D = 8.
                 cmd.SetComputeTextureParam(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelX, HDShaderIDs._VBufferLightingFeedback, inputBuffer);  // Read

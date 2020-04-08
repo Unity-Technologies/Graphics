@@ -608,12 +608,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 (RenderLowResTransparentPassData data, RenderGraphContext context) =>
                 {
                     UpdateOffscreenRenderingConstants(ref data.globalCB, true, 2u);
-                    ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                    ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                     DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings,  context.resources.GetRendererList(data.rendererList));
 
                     UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1u);
-                    ConstantBuffer<ShaderVariablesGlobal>.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                    ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
                 });
 
                 return passData.lowResBuffer;
