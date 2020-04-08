@@ -12,7 +12,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class HDLitSettingsView : VisualElement
+    class HDLitSettingsView : MasterNodeSettingsView
     {
         HDLitMasterNode m_Node;
 
@@ -28,12 +28,22 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
-        public HDLitSettingsView(HDLitMasterNode node)
+        public HDLitSettingsView(HDLitMasterNode node) : base(node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
 
             int indentLevel = 0;
+
+            ps.Add(new PropertyRow(CreateLabel("Ray Tracing (Preview)", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.rayTracing.isOn;
+                    toggle.RegisterValueChangedCallback(ChangeRayTracingFlag);
+                });
+            });
+
             ps.Add(new PropertyRow(CreateLabel("Surface Type", indentLevel)), (row) =>
             {
                 row.Add(new EnumField(SurfaceType.Opaque), (field) =>
@@ -283,6 +293,15 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                         toggle.OnToggleChanged(ChangeAlphaTestShadow);
                     });
                 });
+
+                ps.Add(new PropertyRow(CreateLabel("Alpha to Mask", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.alphaToMask.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaToMask);
+                    });
+                });
                 --indentLevel;
             }
 
@@ -402,6 +421,18 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             });
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
+        }
+
+        void ChangeRayTracingFlag(ChangeEvent<bool> evt)
+        {
+            if (Equals(m_Node.rayTracing, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Ray Tracing Flag Change");
+            ToggleData rt = m_Node.rayTracing;
+            rt.isOn = evt.newValue;
+            m_Node.rayTracing = rt;
         }
 
         void ChangeSurfaceType(ChangeEvent<Enum> evt)
@@ -685,6 +716,14 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             ToggleData td = m_Node.supportLodCrossFade;
             td.isOn = evt.newValue;
             m_Node.supportLodCrossFade = td;
+        }
+
+        void ChangeAlphaToMask(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha to Mask Change");
+            ToggleData td = m_Node.alphaToMask;
+            td.isOn = evt.newValue;
+            m_Node.alphaToMask = td;
         }
 
         void ChangeZWrite(ChangeEvent<bool> evt)
