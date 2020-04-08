@@ -304,7 +304,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _SRGBRead          = Shader.PropertyToID("_SRGBRead");
         }
 
-        internal void RenderMirrorView(CommandBuffer cmd, ref CameraData cameraData)
+        internal void RenderMirrorView(CommandBuffer cmd, Camera camera)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (display == null || !display.running || !mirrorViewMaterial)
@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, _XRMirrorProfilingSampler))
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-                bool yflip = cameraData.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
+                bool yflip = camera.targetTexture != null || camera.cameraType == CameraType.SceneView || camera.cameraType == CameraType.Preview;
                 int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
                 if (display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode))
                 {

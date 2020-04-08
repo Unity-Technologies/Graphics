@@ -125,15 +125,6 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-#if ENABLE_VR && ENABLE_VR_MODULE
-            if (cameraData.xr.enabled)
-            {
-                cameraTargetDescriptor = cameraData.xr.renderTargetDesc;
-                // In case of HDR, assign camera target hdr format to descriptor. This descriptor is later being used to create intermediate texture
-                if(cameraData.isHdrEnabled)
-                    cameraTargetDescriptor.colorFormat = cameraData.cameraTargetDescriptor.colorFormat;
-            }
-#endif
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
             bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
