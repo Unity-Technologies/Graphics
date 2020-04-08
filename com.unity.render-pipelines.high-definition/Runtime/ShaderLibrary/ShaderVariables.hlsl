@@ -38,7 +38,7 @@
 // However, FXC does not support the proper pattern (the one bellow), so we only override it in the case of ray tracing subshaders for the moment.
 // Note that this should be used for all shaders when DX12 used DXC for vert/frag shaders (which it does not for the moment)
 #undef MERGE_NAME
-#define MERGE_NAME_CONCAT(Name, ...) Name ## __VA_ARGS__
+#define MERGE_NAME_CONCAT(Name, X) Name##X
 #define MERGE_NAME(X, Y) MERGE_NAME_CONCAT(X, Y)
 
 #define RAY_TRACING_OPTIONAL_PARAMETERS , IntersectionVertex intersectionVertex, RayCone rayCone, out bool alphaTestResult
@@ -287,6 +287,10 @@ GLOBAL_CBUFFER_START(UnityGlobal, UNITY_GLOBAL_CBUFFER_REGISTER)
     uint  _EnableRecursiveRayTracing;
 
     float4 _CoarseStencilBufferSize;
+
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED
+    uint _EnableProbeVolumes;
+#endif
 
 CBUFFER_END
 
