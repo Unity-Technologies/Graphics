@@ -181,6 +181,7 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
+        // XRTODO : same code as post process
         internal static void Blit(CommandBuffer cmd,
             RenderTargetIdentifier source,
             RenderTargetIdentifier destination,

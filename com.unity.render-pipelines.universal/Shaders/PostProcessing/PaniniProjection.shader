@@ -8,7 +8,7 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
     HLSLINCLUDE
 
         #pragma multi_compile_local _GENERIC _UNIT_DISTANCE
-        #pragma multi_compile _ _DRAW_PROCEDURE_QUAD_BLIT
+        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"

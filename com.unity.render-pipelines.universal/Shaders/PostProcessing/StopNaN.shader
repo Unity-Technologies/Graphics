@@ -6,7 +6,7 @@ Shader "Hidden/Universal Render Pipeline/Stop NaN"
     }
 
     HLSLINCLUDE
-        #pragma multi_compile _ _DRAW_PROCEDURE_QUAD_BLIT
+        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
         #pragma exclude_renderers gles
         #pragma target 3.5
 
