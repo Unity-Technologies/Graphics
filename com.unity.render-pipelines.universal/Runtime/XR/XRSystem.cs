@@ -110,31 +110,6 @@ namespace UnityEngine.Rendering.Universal
             return maxViews;
         }
 
-        // XRTODO: Remove MountShimLayer/UnmountShimLayer. (Workaround URP Skybox using legacy skybox shader, XRSDK MSAA not exposed to SRP)
-        internal bool MountShimLayer()
-        {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (display != null)
-            {
-                display.disableLegacyRenderer = false;
-                return true;
-            }
-#endif
-            return false;
-        }
-
-        internal bool UnmountShimLayer()
-        {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (display != null)
-            {
-                display.disableLegacyRenderer = true;
-                return true;
-            }
-#endif
-            return false;
-        }
-
         internal List<XRPass> SetupFrame(CameraData cameraData)
         {
             Camera camera = cameraData.camera;
