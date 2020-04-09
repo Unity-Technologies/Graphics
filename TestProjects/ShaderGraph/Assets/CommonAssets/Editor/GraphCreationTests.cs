@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         private static readonly string TestGraphLocation = "Assets/Testing/CreatedTestGraphs/";
         private static readonly string TestPrefix = "_Test_";
         private const float CompilationTimeout = 30f;
-        private static bool verbose = false;
+        private static bool verbose = true;
 
 
         public static void CloseAllOpenShaderGraphWindows()
