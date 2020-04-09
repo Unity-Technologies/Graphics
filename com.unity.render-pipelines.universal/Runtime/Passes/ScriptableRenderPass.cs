@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.UIElements;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -97,9 +96,9 @@ namespace UnityEngine.Rendering.Universal
             var renderer = ScriptableRenderer.current;
             var colorBuffer = renderer.GetRenderTexture(colorType);
             var depthBuffer = renderer.GetRenderTexture(depthType);
-            ConfigureTarget(colorBuffer, depthBuffer); 
+            ConfigureTarget(colorBuffer, depthBuffer);
         }
-        
+
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
