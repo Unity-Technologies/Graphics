@@ -43,4 +43,9 @@ class Blur : CustomPass
             64, radius * 4, 0, 0, true
         );
     }
+
+    protected override void Cleanup()
+    {
+        halfResTarget.Release();   
+    }
 }
