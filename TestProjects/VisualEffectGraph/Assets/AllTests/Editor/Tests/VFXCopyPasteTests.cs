@@ -196,7 +196,7 @@ namespace UnityEditor.VFX.Test
             var inlineOperatorDesc = VFXLibrary.GetOperators().Where(t => t.modelType == typeof(VFXInlineOperator)).First();
 
             var newOperator = m_ViewController.AddVFXOperator(new Vector2(100, 100), inlineOperatorDesc);
-            newOperator.SetSettingValue("m_Type",new SerializableType(typeof(DirectionType)));
+            newOperator.SetSettingValue("m_Type", new SerializableType(typeof(DirectionType)));
 
             m_ViewController.ApplyChanges();
             var operatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().First();
@@ -432,7 +432,6 @@ namespace UnityEditor.VFX.Test
             // Assert all names are unique, and the expected number of elements was obtained
             Assert.IsTrue(uniqueNames.Count() == spawnerCount + GPUSystemsCount, "Some systems have the same name or are null or empty.");
         }
-
     }
 }
 #endif

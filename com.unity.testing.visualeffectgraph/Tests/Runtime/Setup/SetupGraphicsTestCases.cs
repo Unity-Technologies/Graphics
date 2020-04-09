@@ -10,26 +10,9 @@ using UnityEngine.VFX;
 // can be used directly instead.
 public class SetupGraphicsTestCases : IPrebuildSetup
 {
-    public static void RebuildVisualEffectAsset(VisualEffectAsset vfx)
-    {
-        //We are in Assembly-CSharp-Editor, we don't want to be friend of this namespace
-        var visualEffectAssetExt = AppDomain.CurrentDomain.GetAssemblies()  .Select(o => o.GetType("UnityEditor.VFX.VisualEffectAssetExtensions"))
-                                                                            .Where(o => o != null)
-                                                                            .FirstOrDefault();
-        var fnGetResource = visualEffectAssetExt.GetMethod("GetResource");
-        fnGetResource = fnGetResource.MakeGenericMethod(new Type[] { typeof(VisualEffectAsset) });
-        var resource = fnGetResource.Invoke(null, new object[] { vfx });
-        var fnGetOrCreate = visualEffectAssetExt.GetMethod("GetOrCreateGraph");
-        var graph = fnGetOrCreate.Invoke(null, new object[] { resource });
-
-        var fnRecompileIfNeeded = graph.GetType().GetMethod("RecompileIfNeeded");
-        fnRecompileIfNeeded.Invoke(graph, new object[] { false, false });
-    }
-
-
     public void Setup()
     {
-        new UnityEditor.TestTools.Graphics.SetupGraphicsTestCases().Setup();
+        UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup();
 
         var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset AssetBundle");
 
@@ -38,22 +21,17 @@ public class SetupGraphicsTestCases : IPrebuildSetup
             foreach (var guid in vfxAssetsGuid)
             {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-                if (vfxAsset != null)
-                {
-                    var vfxName = Path.GetFileName(AssetDatabase.GUIDToAssetPath(guid));
-                    EditorUtility.DisplayProgressBar("Recompiling Asset Bundle VFX : " + vfxName, "Asset Bundle", 0);
-                    RebuildVisualEffectAsset(vfxAsset);
-                }
+                AssetDatabase.ImportAsset(assetPath);
             }
             EditorUtility.ClearProgressBar();
         }
 
-        var bundlePath = Unity.Testing.VisualEffectGraph.LoadVFXFromAssetBundle.GetAssetBundleBasePath();
+        var bundlePath = "Assets/StreamingAssets/" + Unity.Testing.VisualEffectGraph.LoadVFXFromAssetBundle.s_AssetBundleName;
         if (!Directory.Exists(bundlePath))
         {
             Directory.CreateDirectory(bundlePath);
         }
-        UnityEditor.BuildPipeline.BuildAssetBundles(bundlePath, UnityEditor.BuildAssetBundleOptions.None, UnityEditor.BuildTarget.StandaloneWindows64);
+        BuildTarget target = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
+        UnityEditor.BuildPipeline.BuildAssetBundles(bundlePath, UnityEditor.BuildAssetBundleOptions.None, target);
     }
 }

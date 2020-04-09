@@ -23,9 +23,9 @@ namespace UnityEditor.VFX.UI
         public override float GetPreferredControlWidth()
         {
             int min = 120;
-            foreach(var str in Enum.GetNames(provider.portType))
+            foreach (var str in Enum.GetNames(provider.portType))
             {
-                Vector2 size = m_Field.Q<TextElement>().MeasureTextSize(str,0, VisualElement.MeasureMode.Undefined,0, VisualElement.MeasureMode.Undefined);
+                Vector2 size = m_Field.Q<TextElement>().MeasureTextSize(str, 0, VisualElement.MeasureMode.Undefined, 0, VisualElement.MeasureMode.Undefined);
 
                 size.x += 60;
                 if (min < size.x)
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.UI
             if (min > 200)
                 min = 200;
 
-            
+
             return min;
         }
 

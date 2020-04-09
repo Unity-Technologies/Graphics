@@ -118,6 +118,8 @@ NavMeshSettings:
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
@@ -258,7 +260,7 @@ PrefabInstance:
         type: 3}
       propertyPath: renderPipelineAsset
       value: 
-      objectReference: {fileID: 11400000, guid: 73a04dff298836e469832d3bb600ca7e,
+      objectReference: {fileID: 11400000, guid: d8d4203e854177c479462d0413803b0c,
         type: 2}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
@@ -537,6 +539,21 @@ PrefabInstance:
       propertyPath: m_FilterSizeTraced
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 8260598193632443335, guid: 2fa6f5d58b5b25c4291462020a1cc105,
+        type: 3}
+      propertyPath: m_Version
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8260598193632443335, guid: 2fa6f5d58b5b25c4291462020a1cc105,
+        type: 3}
+      propertyPath: m_AreaLightEmissiveMeshShadowCastingMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8260598193632443335, guid: 2fa6f5d58b5b25c4291462020a1cc105,
+        type: 3}
+      propertyPath: m_AreaLightEmissiveMeshMotionVectorGenerationMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8260598193881476736, guid: 2fa6f5d58b5b25c4291462020a1cc105,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -602,5 +619,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8260598193632443333, guid: 2fa6f5d58b5b25c4291462020a1cc105, type: 3}
+    - {fileID: 8260598193632443334, guid: 2fa6f5d58b5b25c4291462020a1cc105, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 2fa6f5d58b5b25c4291462020a1cc105, type: 3}

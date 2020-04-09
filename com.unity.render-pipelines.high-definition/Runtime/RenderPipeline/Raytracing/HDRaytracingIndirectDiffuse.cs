@@ -87,7 +87,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind the output texture
                 cmd.SetComputeTextureParam(indirectDiffuseCS, indirectDiffuseKernel, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
                 cmd.SetComputeTextureParam(indirectDiffuseCS, indirectDiffuseKernel, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
-                cmd.SetComputeVectorParam(indirectDiffuseCS, HDShaderIDs._IndirectLightingMultiplier, new Vector4(hdCamera.volumeStack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity.value, 0, 0, 0));
 
                 // Evaluate the dispatch parameters
                 int areaTileSize = 8;
@@ -182,11 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
 
                 // Bind all the required scalars
-                cmd.SetComputeFloatParam(indirectDiffuseCS, HDShaderIDs._RaytracingIntensityClamp, settings.clampValue.value);
-
-                // Bind the sampling data
-                int frameIndex = RayTracingFrameIndex(hdCamera);
-                cmd.SetComputeIntParam(indirectDiffuseCS, HDShaderIDs._RaytracingFrameIndex, frameIndex);
+                cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, settings.clampValue.value);
 
                 // Bind the output buffers
                 cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._RaytracingDirectionBuffer, directionBuffer);
@@ -271,9 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Inject the ray generation data
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtSettings.rayBias.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, settings.rayLength.value);
-            cmd.SetRayTracingIntParams(indirectDiffuseShader, HDShaderIDs._RaytracingNumSamples, settings.sampleCount.value);
-            int frameIndex = RayTracingFrameIndex(hdCamera);
-            cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, settings.sampleCount.value);
 
             // Set the data for the ray generation
             cmd.SetRayTracingTextureParam(indirectDiffuseShader, HDShaderIDs._IndirectDiffuseTextureRW, outputLightingBuffer);
@@ -282,15 +275,15 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(indirectDiffuseShader, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
 
             // Set the indirect diffuse parameters
-            cmd.SetRayTracingFloatParams(indirectDiffuseShader, HDShaderIDs._RaytracingIntensityClamp, settings.clampValue.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, settings.clampValue.value);
 
             // Set ray count texture
             RayCountManager rayCountManager = GetRayCountManager();
-            cmd.SetRayTracingIntParam(indirectDiffuseShader, HDShaderIDs._RayCountEnabled, rayCountManager.RayCountIsEnabled());
+            cmd.SetGlobalInt(HDShaderIDs._RayCountEnabled, rayCountManager.RayCountIsEnabled());
             cmd.SetRayTracingTextureParam(indirectDiffuseShader, HDShaderIDs._RayCountTexture, rayCountManager.GetRayCountTexture());
 
             // Compute the pixel spread value
-            cmd.SetRayTracingFloatParam(indirectDiffuseShader, HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
 
             // LightLoop data
             lightCluster.BindLightClusterData(cmd);

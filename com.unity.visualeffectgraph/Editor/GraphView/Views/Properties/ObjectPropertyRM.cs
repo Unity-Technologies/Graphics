@@ -98,7 +98,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
-            if( force )
+            if (force)
                 m_ObjectField.SetValueWithoutNotify(null);
             m_ObjectField.SetValueWithoutNotify(m_Value);
         }

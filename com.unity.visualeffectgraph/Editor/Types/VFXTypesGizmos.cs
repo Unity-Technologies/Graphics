@@ -53,7 +53,7 @@ namespace UnityEditor.VFX
 
             var mat = Handles.matrix;
 
-            mat.SetColumn(3,new Vector4(position.x,position.y,position.z,1));
+            mat.SetColumn(3, new Vector4(position.x, position.y, position.z, 1));
 
             Handles.matrix = mat;
 
