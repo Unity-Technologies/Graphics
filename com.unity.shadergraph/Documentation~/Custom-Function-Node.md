@@ -40,7 +40,7 @@ If you select `File` mode, the graph does not automatically generate the shader 
 
 ![06](images/Custom-Function-Node-File-wFunction.png)
 
-When you use `File` mode for the Custom Function node, you must manually format the functions properly. One thing to note when creating custom functions for [Shader Graph](Shader-Graph.md) is the precision suffixes. The generated code appends a precision suffix to function names. Your include file function must also append your desired precision suffix (shown below with `_float`), or contain multiple functions with both `_float` and `_half` suffixes, but your `Name` field **must not include the precision suffix**. 
+When you use `File` mode for the Custom Function node, you must manually format the functions properly. **This means that function inputs and outputs must match the same order as presented on the node itself.** One thing to note when creating custom functions for [Shader Graph](Shader-Graph.md) is the precision suffixes. The generated code appends a precision suffix to function names. Your include file function must also append your desired precision suffix (shown below with `_float`), or contain multiple functions with both `_float` and `_half` suffixes, but your `Name` field **must not include the precision suffix**. 
 
 ![07](images/Custom-Function-Node-File-Function-01.png)
 
