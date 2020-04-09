@@ -635,7 +635,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb._XRPrevViewProjMatrixNoCameraTrans[i * 16 + j] = m_XRViewConstants[i].prevViewProjMatrixNoCameraTrans[j];
                     cb._XRPixelCoordToViewDirWS[i * 16 + j] = m_XRViewConstants[i].pixelCoordToViewDirWS[j];
                 }
-
                 for (int j = 0; j < 3; ++j) // Inputs are vec3 but we align CB on float4
                 {
                     cb._XRWorldSpaceCameraPos[i * 4 + j] = m_XRViewConstants[i].worldSpaceCameraPos[j];
