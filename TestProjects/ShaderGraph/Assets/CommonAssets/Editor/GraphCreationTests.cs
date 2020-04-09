@@ -45,15 +45,16 @@ namespace UnityEditor.ShaderGraph.UnitTests
             GraphEditorView graphEditorView = window.GetPrivateProperty<GraphEditorView>("graphEditorView");
             PreviewManager previewManager = graphEditorView.GetPrivateProperty<PreviewManager>("previewManager");
             Dictionary<Guid, PreviewRenderData> renderDatas = previewManager.GetPrivateField<Dictionary<Guid, PreviewRenderData>>("m_RenderDatas");
+            HashSet<AbstractMaterialNode> nodesCompiling = previewManager.GetPrivateField<HashSet<AbstractMaterialNode>>("m_NodesCompiling");
             bool allCompiled;
             float startTime = Time.realtimeSinceStartup;
             do
             {
                 allCompiled = true;
-                foreach (var renderDataKV in renderDatas)
+                foreach (var node in nodesCompiling)
                 {
-                    var renderData = renderDataKV.Value;
-                    if (renderData != null && renderData.shaderData.isCompiling)
+                    var renderData = renderDatas[node.guid];
+                    if (renderData != null)
                     {
                         var isCompiled = true;
                         for (var i = 0; i < renderData.shaderData.mat.passCount; i++)
