@@ -15,7 +15,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit
             ^ SurfaceOptionUIBlock.Features.AlphaCutoffThreshold
             ^ SurfaceOptionUIBlock.Features.BackThenFrontRendering
-            ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass;
+            ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass
+            ^ SurfaceOptionUIBlock.Features.ShowPrePassAndPostPass;
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
