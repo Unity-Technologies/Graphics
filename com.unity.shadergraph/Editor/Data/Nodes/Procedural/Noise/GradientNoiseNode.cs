@@ -45,7 +45,8 @@ $precision2 Unity_GradientNoise_Dir_$precision($precision2 p)
 {
     // Permutation and hashing used in webgl-nosie goo.gl/pX7HtC
     p = p % 289;
-    $precision x = (34 * p.x + 1) * p.x % 289 + p.y;
+    // need full precision, otherwise half overflows when p > 1
+    float x = float(34 * p.x + 1) * p.x % 289 + p.y;
     x = (34 * x + 1) * x % 289;
     x = frac(x / 41) * 2 - 1;
     return normalize($precision2(x - floor(x + 0.5), abs(x) - 0.5));
