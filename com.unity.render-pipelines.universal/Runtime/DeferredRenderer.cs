@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (requiresDepthPrepass)
                 {
-                    m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthAttachment);
+                    m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthTexture);
                     EnqueuePass(m_DepthPrepass);
                 }
 
@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (requiresDepthPrepass)
             {
-                m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthAttachment);
+                m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthTexture);
                 EnqueuePass(m_DepthPrepass);
             }
 
@@ -473,23 +473,24 @@ namespace UnityEngine.Rendering.Universal
             var desc = renderingData.cameraData.cameraTargetDescriptor;
 
             RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[DeferredConfig.kGBufferSliceCount + 1 + depthAsRT];
-            for (int gbufferIndex = 0; gbufferIndex < DeferredConfig.kGBufferSliceCount; ++gbufferIndex)
-                gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
-            gbufferColorAttachments[DeferredConfig.kGBufferSliceCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
-
             AttachmentDescriptor[] gbufferAttachmentDescriptors = new AttachmentDescriptor[DeferredConfig.kGBufferSliceCount + 1 + depthAsRT];
 
-            gbufferAttachmentDescriptors[0] = new AttachmentDescriptor(GBufferPass.kGBufferFormats[0]);
-            gbufferAttachmentDescriptors[1] = new AttachmentDescriptor(GBufferPass.kGBufferFormats[1]);
-            gbufferAttachmentDescriptors[2] = new AttachmentDescriptor(GBufferPass.kGBufferFormats[2]);
+            for (int gbufferIndex = 0; gbufferIndex < DeferredConfig.kGBufferSliceCount; ++gbufferIndex)
+            {
+                gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
+                gbufferAttachmentDescriptors[gbufferIndex] = new AttachmentDescriptor(DeferredConfig.GetGBufferFormat(gbufferIndex));
+            }
 
-            gbufferAttachmentDescriptors[3] = new AttachmentDescriptor(renderingData.cameraData.cameraTargetDescriptor.graphicsFormat);
-            gbufferAttachmentDescriptors[3].ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), false, true);
+
+            gbufferColorAttachments[DeferredConfig.kGBufferSliceCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
+
+            gbufferAttachmentDescriptors[DeferredConfig.kGBufferSliceCount] = new AttachmentDescriptor(renderingData.cameraData.cameraTargetDescriptor.graphicsFormat);
+            gbufferAttachmentDescriptors[DeferredConfig.kGBufferSliceCount].ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), false, true);
             //TODO: Investigate which color exactly to pick here, as this is needed for both Scene view and Game view
-            gbufferAttachmentDescriptors[3].ConfigureClear(CoreUtils.ConvertLinearToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
+            gbufferAttachmentDescriptors[DeferredConfig.kGBufferSliceCount].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
 
 #if UNITY_IOS && !UNITY_EDITOR
-            gbufferAttachmentDescriptors[k_GBufferSlicesCount + 1] = new AttachmentDescriptor(GBufferPass.kGBufferFormats[4]);
+            gbufferAttachmentDescriptors[DeferredConfig.kGBufferSliceCount + 1] = new AttachmentDescriptor(DeferredConfig.GetGBufferFormat(4));
 #endif
 
             AttachmentDescriptor depthBufferAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);

@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public const int kGBufferLightingIndex = 3;
         public const int kGBufferDepthIndex = 4;
 
-        public const int kGBufferSliceCount = 4;
+        public const int kGBufferSliceCount = 3;
 
         public static GraphicsFormat GetGBufferFormat(int index, bool accurateGbufferNormals = false)
         {
