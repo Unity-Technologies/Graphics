@@ -980,62 +980,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         children =
                         {
-                            new DebugUI.UIntField
-                            {
-                                displayName = "Fullscreen Debug Mip",
-                                getter = () =>
-                                    {
-                                        int id;
-                                        switch (data.fullScreenDebugMode)
-                                        {
-                                            case FullScreenDebugMode.FinalColorPyramid:
-                                            case FullScreenDebugMode.PreRefractionColorPyramid:
-                                                id = HDShaderIDs._ColorPyramidScale;
-                                                break;
-                                            default:
-                                                id = HDShaderIDs._DepthPyramidScale;
-                                                break;
-                                        }
-                                        var size = Shader.GetGlobalVector(id);
-                                        float lodCount = size.z;
-                                        return (uint)(data.fullscreenDebugMip * lodCount);
-                                    },
-                                setter = value =>
-                                    {
-                                        int id;
-                                        switch (data.fullScreenDebugMode)
-                                        {
-                                            case FullScreenDebugMode.FinalColorPyramid:
-                                            case FullScreenDebugMode.PreRefractionColorPyramid:
-                                                id = HDShaderIDs._ColorPyramidScale;
-                                                break;
-                                            default:
-                                                id = HDShaderIDs._DepthPyramidScale;
-                                                break;
-                                        }
-                                        var size = Shader.GetGlobalVector(id);
-                                        float lodCount = size.z;
-                                        data.fullscreenDebugMip = (float)Convert.ChangeType(value, typeof(float)) / lodCount;
-                                    },
-                                min = () => 0u,
-                                max = () =>
-                                    {
-                                        int id;
-                                        switch (data.fullScreenDebugMode)
-                                        {
-                                            case FullScreenDebugMode.FinalColorPyramid:
-                                            case FullScreenDebugMode.PreRefractionColorPyramid:
-                                                id = HDShaderIDs._ColorPyramidScale;
-                                                break;
-                                            default:
-                                                id = HDShaderIDs._DepthPyramidScale;
-                                                break;
-                                        }
-                                        var size = Shader.GetGlobalVector(id);
-                                        float lodCount = size.z;
-                                        return (uint)lodCount;
-                                    }
-                            }
+
+                            new DebugUI.FloatField { displayName = "Fullscreen Debug Mip", getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f }
                         }
                     });
                     break;
