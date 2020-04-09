@@ -14,13 +14,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     [ExecuteAlways]
     internal class CompositionManager : MonoBehaviour
     {
-        // These shader graph properties should be properly set when drawing a full screen quad for the compositor output
-        internal class SGShaderIDs
-        {
-            public static readonly int _ViewProjMatrix = Shader.PropertyToID("_ViewProjMatrix");
-            public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
-        }
-
         public enum OutputDisplay
         {
             Display1 = 0,
@@ -134,6 +127,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         internal Matrix4x4 m_ViewProjMatrix;
         internal Matrix4x4 m_ViewProjMatrixFlipped;
         internal GameObject m_CompositorGameObject;
+
+        ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
 
         static private CompositionManager s_CompositorInstance;
 
@@ -685,20 +680,22 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // Blit command
             var cmd = CommandBufferPool.Get("Compositor Blit");
             {
-                cmd.SetGlobalVector(SGShaderIDs._WorldSpaceCameraPos, new Vector3(0.0f, 0.0f, 0.0f));
+                m_ShaderVariablesGlobalCB._WorldSpaceCameraPos_Internal = new Vector3(0.0f, 0.0f, 0.0f);
                 cmd.SetViewport(new Rect(0, 0, camera.camera.pixelWidth, camera.camera.pixelHeight));
                 cmd.ClearRenderTarget(true, false, Color.black);
             }
 
             if (camera.camera.targetTexture)
             {
-                cmd.SetGlobalMatrix(SGShaderIDs._ViewProjMatrix, m_ViewProjMatrixFlipped);
+                m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 cmd.Blit(null, BuiltinRenderTextureType.CurrentActive, m_Material, m_Material.FindPass("ForwardOnly"));
                 cmd.Blit(BuiltinRenderTextureType.CurrentActive, camera.camera.targetTexture);
             }
             else
             {
-                cmd.SetGlobalMatrix(SGShaderIDs._ViewProjMatrix, m_ViewProjMatrix);
+                m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrix;
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 cmd.Blit(null, BuiltinRenderTextureType.CurrentActive, m_Material, m_Material.FindPass("ForwardOnly"));
             }
             
