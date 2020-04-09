@@ -3351,7 +3351,10 @@ namespace UnityEngine.Rendering.HighDefinition
             in BuildGPULightListResources resources,
             CommandBuffer cmd)
         {
-            if(parameters.probeVolumesClearLightLists && !parameters.probeVolumesRunLightList)
+            // ClearLightLists is the first pass, we push the global parameters for light list building here.
+            ConstantBuffer.PushGlobal(cmd, parameters.lightListCB, HDShaderIDs._ShaderVariablesLightList);
+
+            if (parameters.probeVolumesClearLightLists && !parameters.probeVolumesRunLightList)
             {
                 // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
                 // to changes to the inner workings of the lists.
