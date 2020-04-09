@@ -331,8 +331,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._CascadeShadowCount = (uint)(m_CascadeCount + 1);
             cb._ShadowAtlasSize = new Vector4(m_Atlas.width, m_Atlas.height, 1.0f / m_Atlas.width, 1.0f / m_Atlas.height);
             cb._CascadeShadowAtlasSize = new Vector4(m_CascadeAtlas.width, m_CascadeAtlas.height, 1.0f / m_CascadeAtlas.width, 1.0f / m_CascadeAtlas.height);
+            cb._CachedShadowAtlasSize = new Vector4(cachedShadowManager.punctualShadowAtlas.width, cachedShadowManager.punctualShadowAtlas.height, 1.0f / cachedShadowManager.punctualShadowAtlas.width, 1.0f / cachedShadowManager.punctualShadowAtlas.height);
             if (ShaderConfig.s_AreaLights == 1)
+            {
                 cb._AreaShadowAtlasSize = new Vector4(m_AreaLightShadowAtlas.width, m_AreaLightShadowAtlas.height, 1.0f / m_AreaLightShadowAtlas.width, 1.0f / m_AreaLightShadowAtlas.height);
+                cb._CachedAreaShadowAtlasSize = new Vector4(cachedShadowManager.areaShadowAtlas.width, cachedShadowManager.areaShadowAtlas.height, 1.0f / cachedShadowManager.areaShadowAtlas.width, 1.0f / cachedShadowManager.areaShadowAtlas.height);
+            }
         }
 
         public void UpdateDirectionalShadowResolution(int resolution, int cascadeCount)
