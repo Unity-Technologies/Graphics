@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Data.Interfaces;
+using Drawing.Inspector;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -18,7 +20,7 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.MaterialGraph")]
     [FormerName("UnityEditor.ShaderGraph.SubGraph")]
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
-    sealed partial class GraphData : ISerializationCallbackReceiver
+    sealed partial class GraphData : ISerializationCallbackReceiver, IInspectable
     {
         public GraphObject owner { get; set; }
 
@@ -321,7 +323,39 @@ namespace UnityEditor.ShaderGraph
 
         int m_ActiveTargetBitmask;
 
+        public int activeTargetBitmask
+        {
+            get => m_ActiveTargetBitmask;
+            set => m_ActiveTargetBitmask = value;
+        }
+
+        public string displayName { get => "GraphData"; }
+
+        public object GetObjectToInspect()
+        {
+            return this.activeTargets;
+        }
+
+        public PropertyInfo[] GetPropertyInfo()
+        {
+            return this.GetType().GetProperties();
+        }
+
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        {
+            if (propertyDrawer is TargetPropertyDrawer targetPropertyDrawer)
+            {
+                targetPropertyDrawer.GetPropertyData(() =>
+                {
+                    this.UpdateActiveTargets();
+                    this.UpdateActiveBlocks();
+                    inspectorUpdateDelegate();
+                });
+            }
+        }
+
         public List<Target> validTargets => m_ValidTargets;
+
         public List<Target> activeTargets => m_ActiveTargets;
 
         // TODO: Need a better way to handle this
@@ -381,7 +415,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(type.IsAbstract || type.IsGenericType || !type.IsClass)
                     continue;
-                
+
                 var target = (Target)Activator.CreateInstance(type);
                 if(!target.isHidden)
                 {
@@ -390,7 +424,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void UpdateActiveTargets()
+        public void UpdateActiveTargets()
         {
             // Update active TargetImplementation list
             if(m_ActiveTargets != null)
@@ -406,70 +440,6 @@ namespace UnityEditor.ShaderGraph
                 }
             }
         }
-
-        Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
-
-        // TODO: We should not have any View code here
-        // TODO: However, for now we dont know how the InspectorView will work
-        // TODO: So for now leave it here and dont spill the assemblies outside the method
-        /*public UnityEngine.UIElements.VisualElement GetSettings(Action onChange)
-        {
-            var element = new UnityEngine.UIElements.VisualElement() { name = "graphSettings" };
-
-            // Add Label
-            var targetSettingsLabel = new UnityEngine.UIElements.Label("Target Settings");
-            targetSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            element.Add(new Drawing.PropertyRow(targetSettingsLabel));
-
-            element.Add(new Drawing.PropertyRow(new UnityEngine.UIElements.Label("Targets")), (row) =>
-                {
-                    row.Add(new UnityEngine.UIElements.IMGUIContainer(() => {
-                        EditorGUI.BeginChangeCheck();
-                        m_ActiveTargetBitmask = EditorGUILayout.MaskField(m_ActiveTargetBitmask, m_ValidTargets.Select(x => x.displayName).ToArray(), GUILayout.Width(100f));
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            UpdateActiveTargets();
-                            onChange();
-                        }
-                    }));
-                });
-
-            // Iterate active TargetImplementations
-            foreach(var target in m_ActiveTargets)
-            {
-                // Ensure enabled state is being tracked and get value
-                bool foldoutActive = true;
-                if(!m_TargetFoldouts.TryGetValue(target, out foldoutActive))
-                {
-                    m_TargetFoldouts.Add(target, foldoutActive);
-                }
-
-                // Create foldout
-                var foldout = new UnityEngine.UIElements.Foldout() { text = target.displayName, value = foldoutActive };
-                element.Add(foldout);
-                foldout.RegisterValueChangedCallback(evt => 
-                {
-                    // Update foldout value and rebuild
-                    m_TargetFoldouts[target] = evt.newValue;
-                    foldout.value = evt.newValue;
-                    onChange();
-                });
-            
-                if(foldout.value)
-                {
-                    // Get settings for Target
-                    var context = new TargetPropertyGUIContext();
-                    target.GetPropertiesGUI(ref context, onChange);
-
-                    foreach(var property in context.properties)
-                {
-                        element.Add(property);
-                    }
-                }
-            }
-
-            return element;
-        }*/
 
         public void ClearChanges()
         {

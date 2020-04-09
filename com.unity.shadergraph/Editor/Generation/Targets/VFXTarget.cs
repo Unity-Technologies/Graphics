@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Data.Interfaces;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
@@ -21,17 +22,25 @@ namespace UnityEditor.ShaderGraph
             displayName = "Visual Effect";
         }
 
+        [Inspectable("Lit", false)]
         public bool lit
         {
             get => m_Lit;
             set => m_Lit = value;
         }
 
+
+        [Inspectable("Alpha Test", false)]
         public bool alphaTest
         {
             get => m_AlphaTest;
             set => m_AlphaTest = value;
         }
+
+        public override List<string> subTargetNames { get; }
+        public override int activeSubTargetIndex { get; set; }
+
+        public override SubTarget activeSubTarget { get; set; }
 
         public override bool IsActive() => true;
 

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Data.Interfaces;
 using UnityEditor;
@@ -24,7 +26,7 @@ namespace Drawing.Inspector
     }
 
     // Interface that should be implemented by any property drawer for the inspector view
-    interface IPropertyDrawer
+    public interface IPropertyDrawer
     {
         VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute);
     }
@@ -72,7 +74,7 @@ namespace Drawing.Inspector
     }
 
     [SGPropertyDrawer(typeof(ToggleData))]
-    class BoolPropertyDrawer : IPropertyDrawer
+    class ToggleDataPropertyDrawer : IPropertyDrawer
     {
         internal delegate void ValueChangedCallback(ToggleData newValue);
 
@@ -111,6 +113,49 @@ namespace Drawing.Inspector
                 (ToggleData) propertyInfo.GetValue(actualObject),
                  attribute.labelName,
                  out var propertyVisualElement);
+        }
+    }
+
+    [SGPropertyDrawer(typeof(bool))]
+    class BoolPropertyDrawer : IPropertyDrawer
+    {
+        internal delegate void ValueChangedCallback(ToggleData newValue);
+
+        internal VisualElement CreateGUIForField(
+            ValueChangedCallback valueChangedCallback,
+            bool fieldToDraw,
+            string labelName,
+            out VisualElement propertyToggle)
+        {
+            var row = new PropertyRow(new Label(labelName));
+            // Create and assign toggle as out variable here so that callers can also do additional work with enabling/disabling if needed
+            propertyToggle = new Toggle();
+            row.Add((Toggle)propertyToggle, (toggle) =>
+            {
+                toggle.value = fieldToDraw;
+            });
+
+            if (valueChangedCallback != null)
+            {
+                var toggle = (Toggle) propertyToggle;
+                toggle.OnToggleChanged(evt => valueChangedCallback(new ToggleData(evt.newValue)));
+            }
+
+            row.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyRow"));
+            return row;
+        }
+
+        public VisualElement DrawProperty(
+            PropertyInfo propertyInfo,
+            object actualObject,
+            Inspectable attribute)
+        {
+            return this.CreateGUIForField(
+                // Use the setter from the provided property as the callback
+                newBoolValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newBoolValue}),
+                (bool) propertyInfo.GetValue(actualObject),
+                attribute.labelName,
+                out var propertyVisualElement);
         }
     }
 
@@ -154,30 +199,27 @@ namespace Drawing.Inspector
         }
     }
 
-    /*[SGPropertyDrawer(typeof(string[]))]
+    [SGPropertyDrawer(typeof(IEnumerable<string>))]
     class TextArrayPropertyDrawer : IPropertyDrawer
     {
         internal delegate void ValueChangedCallback(int newValue);
 
         internal VisualElement CreateGUIForField(
             ValueChangedCallback valueChangedCallback,
-            string[] fieldToDraw,
-            int selectedIndex,
-            string labelName)
+            IEnumerable<string> fieldToDraw,
+            string labelName,
+            out VisualElement textArrayField)
         {
             var propertyRow = new PropertyRow(new Label(labelName));
-
-            propertyRow.Add(new IMGUIContainer(() => {
-                EditorGUI.BeginChangeCheck();
-                var selectedItem = EditorGUILayout.Popup(selectedIndex,
-                    fieldToDraw, GUILayout.Width(100f));
-                if (EditorGUI.EndChangeCheck())
-                {
-                    valueChangedCallback?.Invoke(selectedItem);
-                }
-            }));
-
+            textArrayField = new PopupField<string>(fieldToDraw.ToList(), 0);
+            propertyRow.Add(textArrayField);
+            var popupField = (PopupField<string>) textArrayField;
+            popupField.RegisterValueChangedCallback(evt =>
+            {
+                valueChangedCallback(popupField.index);
+            });
             propertyRow.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyRow"));
+
             return propertyRow;
         }
 
@@ -185,12 +227,12 @@ namespace Drawing.Inspector
         {
             return this.CreateGUIForField(
                 // Use the setter from the provided property as the callback
-                newStringValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newStringValue}),
-                (string[]) propertyInfo.GetValue(actualObject),
-
-                attribute.labelName);
+                newSelectedIndex => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newSelectedIndex}),
+                (IEnumerable<string>) propertyInfo.GetValue(actualObject),
+                attribute.labelName,
+                out var textArrayField);
         }
-    }*/
+    }
 
     [SGPropertyDrawer(typeof(int))]
     class IntegerPropertyDrawer : IPropertyDrawer

@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using Data.Util;
+using UnityEditor.ShaderGraph.Drawing;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -99,11 +101,7 @@ namespace UnityEditor.ShaderGraph
 
         void BuildShader()
         {
-<<<<<<< HEAD
-            var activeNodeList = ListPool<AbstractMaterialNode>.Get();
-=======
             var activeNodeList = Graphing.ListPool<AbstractMaterialNode>.Get();
->>>>>>> sg/stack-master-v2
             if(m_OutputNode == null)
             {
                 foreach(var block in m_Blocks)
@@ -112,7 +110,7 @@ namespace UnityEditor.ShaderGraph
                     // This avoids another call to SetActiveBlocks on each TargetImplementation
                     if(!block.isActive)
                         continue;
-                    
+
                     NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, block, NodeUtils.IncludeSelf.Include);
                 }
             }
@@ -151,28 +149,21 @@ namespace UnityEditor.ShaderGraph
                 for(int i = 0; i < m_Targets.Length; i++)
                 {
                     TargetSetupContext context = new TargetSetupContext();
-<<<<<<< HEAD
-                    m_TargetImplementations[i].SetupTarget(ref context); 
-=======
 
                     // Instead of setup target, we can also just do get context
                     m_Targets[i].Setup(ref context);
->>>>>>> sg/stack-master-v2
                     GetAssetDependencyPaths(context);
 
                     foreach(var subShader in context.subShaders)
                     {
                         GenerateSubShader(i, subShader);
                     }
-<<<<<<< HEAD
-=======
-                    
+
                     var customEditor = context.defaultShaderGUI;
                     if (customEditor != null)
                     {
                         m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
                     }
->>>>>>> sg/stack-master-v2
                 }
 
                 if(m_Mode != GenerationMode.Preview)
@@ -189,7 +180,7 @@ namespace UnityEditor.ShaderGraph
             if(descriptor.passes == null)
                 return;
 
-            //early out of preview generation if no passes are used in preview
+            // Early out of preview generation if no passes are used in preview
             if (m_Mode == GenerationMode.Preview && descriptor.generatesPreview == false)
                 return;
 
@@ -214,8 +205,6 @@ namespace UnityEditor.ShaderGraph
                         GenerateShaderPass(targetIndex, pass.descriptor, activeFields);
                 }
             }
-            if (!string.IsNullOrEmpty(descriptor.customEditorOverride))
-                m_Builder.AppendLine(descriptor.customEditorOverride);
         }
 
         void GenerateShaderPass(int targetIndex, PassDescriptor pass, ActiveFields activeFields)
@@ -267,7 +256,7 @@ namespace UnityEditor.ShaderGraph
                         // TODO: Can we merge these?
                         if(!activeBlockContext.blocks.Contains(blockFieldDescriptor))
                             continue;
-                        
+
                         // Attempt to get BlockNode from the stack
                         var block = contextData.blocks.FirstOrDefault(x => x.descriptor == blockFieldDescriptor);
 

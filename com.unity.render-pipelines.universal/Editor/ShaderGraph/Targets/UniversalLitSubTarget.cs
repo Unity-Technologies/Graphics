@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using Data.Interfaces;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
@@ -24,12 +25,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "Lit";
         }
 
+        [Inspectable("Workflow", WorkflowMode.Metallic)]
         public WorkflowMode workflowMode
         {
             get => m_WorkflowMode;
             set => m_WorkflowMode = value;
         }
 
+        [Inspectable("Fragment Normal Space", NormalDropOffSpace.Tangent)]
         public NormalDropOffSpace normalDropOffSpace
         {
             get => m_NormalDropOffSpace;
@@ -102,7 +105,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.surfaceType, evt.newValue))
                     return;
-                
+
                 target.surfaceType = (SurfaceType)evt.newValue;
                 onChange();
             });
@@ -120,7 +123,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.alphaClip, evt.newValue))
                     return;
-                
+
                 target.alphaClip = evt.newValue;
                 onChange();
             });
@@ -129,7 +132,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.twoSided, evt.newValue))
                     return;
-                
+
                 target.twoSided = evt.newValue;
                 onChange();
             });
@@ -176,7 +179,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     depthOnly.pragmas = CorePragmas.DOTSInstanced;
                     meta.pragmas = CorePragmas.DOTSDefault;
                     _2d.pragmas = CorePragmas.DOTSDefault;
-                    
+
                     return new SubShaderDescriptor()
                     {
                         pipelineTag = UniversalTarget.kPipelineTag,

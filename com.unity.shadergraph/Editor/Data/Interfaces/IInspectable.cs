@@ -24,7 +24,7 @@ namespace Data.Interfaces
         }
     }
 
-    interface IInspectable
+    public interface IInspectable
     {
         string displayName { get; }
 

@@ -82,7 +82,7 @@ namespace Drawing.Inspector
         {
             if(!isSubGraph)
             {
-                var boolPropertyDrawer = new BoolPropertyDrawer();
+                var boolPropertyDrawer = new ToggleDataPropertyDrawer();
                 propertySheet.Add(boolPropertyDrawer.CreateGUIForField(
                     evt =>
                     {
@@ -212,7 +212,7 @@ namespace Drawing.Inspector
 
         private void BuildGpuInstancingField(PropertySheet propertySheet, AbstractShaderProperty property)
         {
-            var boolPropertyDrawer = new BoolPropertyDrawer();
+            var boolPropertyDrawer = new ToggleDataPropertyDrawer();
             propertySheet.Add(boolPropertyDrawer.CreateGUIForField( newValue =>
             {
                 this._preChangeValueCallback("Change Hybrid Instanced Toggle");
@@ -486,7 +486,7 @@ namespace Drawing.Inspector
 
         private void HandleBooleanProperty(PropertySheet propertySheet, BooleanShaderProperty booleanProperty)
         {
-            var booleanPropertyDrawer = new BoolPropertyDrawer();
+            var booleanPropertyDrawer = new ToggleDataPropertyDrawer();
             propertySheet.Add(booleanPropertyDrawer.CreateGUIForField(
                 newValue =>
                 {
@@ -648,7 +648,7 @@ namespace Drawing.Inspector
 
         private void BuildBooleanKeywordField(PropertySheet propertySheet, ShaderKeyword keyword)
         {
-            var boolPropertyDrawer = new BoolPropertyDrawer();
+            var boolPropertyDrawer = new ToggleDataPropertyDrawer();
             propertySheet.Add(boolPropertyDrawer.CreateGUIForField(
                 newValue =>
                 {

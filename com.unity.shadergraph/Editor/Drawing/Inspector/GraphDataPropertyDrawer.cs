@@ -8,6 +8,7 @@ using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -17,14 +18,16 @@ namespace Drawing.Inspector
     public class GraphDataPropertyDrawer : IPropertyDrawer
     {
         public delegate void ChangeConcretePrecisionCallback(ConcretePrecision newValue);
-        public delegate void PostTargetSettingsChangedCallback(bool updateInspector);
+        public delegate void PostTargetSettingsChangedCallback();
 
         private PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
         private ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
 
         // Targets have persistent data that needs to be maintained between interactions
         // Hence we are storing a reference to this particular property drawer to continue using it
-        private TargetPropertyDrawer m_TargetPropertyDrawer = new TargetPropertyDrawer();
+       // private TargetPropertyDrawer m_TargetPropertyDrawer = new TargetPropertyDrawer();
+
+        Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
 
         public void GetPropertyData(
             PostTargetSettingsChangedCallback postChangeValueCallback,
@@ -34,7 +37,7 @@ namespace Drawing.Inspector
             m_postChangeConcretePrecisionCallback = changeConcretePrecisionCallback;
         }
 
-        internal VisualElement CreateGUIForField(GraphData graphData)
+        internal VisualElement CreateGUI(GraphData graphData)
         {
             if (graphData == null)
                 throw new InvalidCastException(
@@ -56,132 +59,108 @@ namespace Drawing.Inspector
             propertySheet.Add(new PropertyRow(targetSettingsLabel));
 
             // Target Dropdown Field
-            propertySheet.Add(new PropertyRow(new Label("Target")), (row) =>
+            propertySheet.Add(new PropertyRow(new Label("Targets")), (row) =>
             {
                 row.Add(new IMGUIContainer(() =>
                 {
                     EditorGUI.BeginChangeCheck();
-                    graphData.activeTargetIndex = EditorGUILayout.Popup(graphData.activeTargetIndex,
-                        graphData.generationTargets.Select(x => x.target.displayName).ToArray(), GUILayout.Width(100f));
+                    graphData.activeTargetBitmask = EditorGUILayout.MaskField(graphData.activeTargetBitmask,
+                        graphData.validTargets.Select(x => x.displayName).ToArray(), GUILayout.Width(100f));
                     if (EditorGUI.EndChangeCheck())
                     {
-                        m_postChangeTargetSettingsCallback(true);
+                        graphData.UpdateActiveTargets();
+                        m_postChangeTargetSettingsCallback();
                     }
                 }));
             });
 
-            // Add a space
-            propertySheet.Add(new PropertyRow(new Label("")));
-
-            graphData.activeGenerationTarget.SupplyDataToPropertyDrawer(m_TargetPropertyDrawer, null);
-            propertySheet.Add(
-                m_TargetPropertyDrawer.CreateGUIForField((updateInspector) =>
+            // Iterate active TargetImplementations
+            foreach(var target in graphData.activeTargets)
+            {
+                // Ensure enabled state is being tracked and get value
+                bool foldoutActive = true;
+                if(!m_TargetFoldouts.TryGetValue(target, out foldoutActive))
                 {
-                    m_postChangeTargetSettingsCallback(updateInspector);
-                },
-            graphData.activeGenerationTarget,
-            out propertyVisualElement));
+                    m_TargetFoldouts.Add(target, foldoutActive);
+                }
 
+                // Create foldout
+                var foldout = new Foldout() { text = target.displayName + " settings", value = foldoutActive };
+                propertySheet.Add(foldout);
+                foldout.RegisterValueChangedCallback(evt =>
+                {
+                    // Update foldout value and rebuild
+                    m_TargetFoldouts[target] = evt.newValue;
+                    foldout.value = evt.newValue;
+                    m_postChangeTargetSettingsCallback();
+                });
+
+                if(foldout.value)
+                {
+                    var targetPropertyDrawer = new TargetPropertyDrawer();
+                    void TargetSettingsChangedCallback() => m_postChangeTargetSettingsCallback();
+                    targetPropertyDrawer.GetPropertyData(TargetSettingsChangedCallback);
+                    targetPropertyDrawer.CreateGUI(target, out var targetSettings);
+                    propertySheet.Add(targetSettings);
+                    InspectorUtils.GatherInspectorContent(propertySheet, target, TargetSettingsChangedCallback);
+                }
+            }
             return propertySheet;
         }
 
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
         {
-            return this.CreateGUIForField((GraphData)actualObject);
+            return this.CreateGUI((GraphData)actualObject);
         }
     }
 
     [SGPropertyDrawer(typeof(Target))]
     public class TargetPropertyDrawer : IPropertyDrawer
     {
-        private Action m_postChangeActiveImplementationsCallback;
+        private Action m_targetSettingsChangedCallback;
 
-        string[] m_TargetNames { get; set; }
-
-        Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
-
-        public void GetPropertyData(
-            string[] targetNames,
-            Action postChangeActiveImplementationsCallback)
+        public void GetPropertyData(Action targetSettingsChangedCallback)
         {
-            m_TargetNames = targetNames;
-            m_postChangeActiveImplementationsCallback = postChangeActiveImplementationsCallback;
+            m_targetSettingsChangedCallback = targetSettingsChangedCallback;
         }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(
+            PropertyInfo propertyInfo,
+            object actualObject,
+            Inspectable attribute)
         {
             var target = (Target) actualObject;
             if (target == null)
                 throw new InvalidCastException(
                     "Attempting to draw something that isn't of type Target with a TargetPropertyDrawer");
 
-            return CreateGUIForField((updateInspector) =>
-                {
-                    propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {updateInspector});
-                },
-                target,
-                out var implementationPropertyVisualElement);
+            return CreateGUI(target, out var visualElement);
         }
 
-        internal VisualElement CreateGUIForField(GraphDataPropertyDrawer.PostTargetSettingsChangedCallback postSettingsChangedCallback, Target target, out VisualElement element)
+        internal VisualElement CreateGUI(Target target, out VisualElement element)
         {
-            var visualElement = new VisualElement() {name = "implementationSettings"};
+            var visualElement = new VisualElement() {name = "targetSettings"};
 
-            // Title
-            var title = new Label("Implementation Settings") {name = "titleLabel"};
-            title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            visualElement.Add(new PropertyRow(title));
+            var textArrayPropertyDrawer = new TextArrayPropertyDrawer();
 
-            // Implementation Dropdown Field
-            visualElement.Add(new PropertyRow(new Label("Implementations")), (row) =>
-            {
-                row.Add(new IMGUIContainer(() =>
+            // SubTargets Dropdown Field
+            var subTargetRow = textArrayPropertyDrawer.CreateGUIForField(newValue =>
                 {
-                    EditorGUI.BeginChangeCheck();
-                    target.activeImplementationBitmask = EditorGUILayout.MaskField(
-                        target.activeImplementationBitmask, m_TargetNames, GUILayout.Width(100f));
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        m_postChangeActiveImplementationsCallback();
-                        postSettingsChangedCallback(true);
-                    }
-                }));
-            });
+                    if (Equals(target.activeSubTargetIndex, newValue))
+                        return;
 
-            // Iterate active TargetImplementations
-            foreach (var implementation in target.Implementations)
-            {
-                // Ensure enabled state is being tracked and get value
-                bool foldoutActive = true;
-                if (!m_TargetFoldouts.TryGetValue(implementation, out foldoutActive))
-                {
-                    m_TargetFoldouts.Add(implementation, foldoutActive);
-                }
+                    target.activeSubTargetIndex = newValue;
+                    m_targetSettingsChangedCallback();
+                },
+                target.subTargetNames,
+                "Material", out var textArrayField);
 
-                // Create foldout
-                var foldout = new Foldout() {text = implementation.displayName, value = foldoutActive};
-                visualElement.Add(foldout);
-                foldout.RegisterValueChangedCallback(evt =>
-                {
-                    // Update foldout value and rebuild
-                    m_TargetFoldouts[implementation] = evt.newValue;
-                    foldout.value = evt.newValue;
-                    postSettingsChangedCallback(true);
-                });
+            // Set the active subtarget index
+            var subTargetField = (PopupField<string>) textArrayField;
+            subTargetField.index = target.activeSubTargetIndex;
+            visualElement.Add(subTargetRow);
 
-                if (foldout.value)
-                {
-                    // Get settings for TargetImplementation
-                    var implementationSettings = implementation.GetSettings(() => postSettingsChangedCallback(true));
-
-                    // Virtual method returns null
-                    // Settings are only added if this is overriden
-                    if (implementationSettings != null)
-                    {
-                        visualElement.Add(implementationSettings);
-                    }
-                }
-            }
+            InspectorUtils.GatherInspectorContent(visualElement, target.activeSubTarget, m_targetSettingsChangedCallback);
 
             element = visualElement;
             return element;

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using Data.Interfaces;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph;
-using UnityEditor.Experimental.Rendering.Universal;
 using UnityEditor.Graphing;
 using UnityEditor.UIElements;
 
@@ -49,7 +49,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // SubTarget
         List<SubTarget> m_SubTargets;
         List<string> m_SubTargetNames;
-        int activeSubTargetIndex => m_SubTargets.IndexOf(m_ActiveSubTarget);
+
+        public override List<string> subTargetNames => m_SubTargetNames;
+
+        public override int activeSubTargetIndex
+        {
+            get => m_SubTargets.IndexOf(m_ActiveSubTarget);
+            set => m_ActiveSubTarget = m_SubTargets[value];
+        }
 
         // View
         PopupField<string> m_SubTargetField;
@@ -79,7 +86,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
-        
+
         public UniversalTarget()
         {
             displayName = "Universal";
@@ -111,30 +118,35 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         }
 
-        public SubTarget activeSubTarget
+
+        public override SubTarget activeSubTarget
         {
             get => m_ActiveSubTarget;
             set => m_ActiveSubTarget = value;
         }
-        
+
+        [Inspectable("Surface", SurfaceType.Opaque)]
         public SurfaceType surfaceType
         {
             get => m_SurfaceType;
             set => m_SurfaceType = value;
         }
 
+        [Inspectable("Blend", AlphaMode.Alpha)]
         public AlphaMode alphaMode
         {
             get => m_AlphaMode;
             set => m_AlphaMode = value;
         }
 
+        [Inspectable("Two Sided", false)]
         public bool twoSided
         {
             get => m_TwoSided;
             set => m_TwoSided = value;
         }
 
+        [Inspectable("Alpha Clip", false)]
         public bool alphaClip
         {
             get => m_AlphaClip;
@@ -147,6 +159,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_AddPrecomputedVelocity = value;
         }
 
+        [Inspectable("Custom Editor GUI", "")]
         public string customEditorGUI
         {
             get => m_CustomEditorGUI;
@@ -537,9 +550,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { CorePostgraph },
             { kShadowCasterPass, IncludeLocation.Postgraph },
         };
-    } 
+    }
 #endregion
-    
+
 #region KeywordDescriptors
     static class CoreKeywordDescriptors
     {

@@ -446,12 +446,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public PropertyInfo[] GetPropertyInfo()
-            {
+        {
             return this.node.GetType().GetProperties();
-            }
+        }
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
-            {
+        {
             // Currently unimplemented
         }
 

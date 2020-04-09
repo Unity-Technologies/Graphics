@@ -14,6 +14,11 @@ namespace UnityEditor.ShaderGraph
             isHidden = true;
         }
 
+        public override List<string> subTargetNames { get; }
+        public override int activeSubTargetIndex { get; set; }
+
+        public override SubTarget activeSubTarget { get; set; }
+
         public override bool IsActive() => false;
 
         public override void Setup(ref TargetSetupContext context)

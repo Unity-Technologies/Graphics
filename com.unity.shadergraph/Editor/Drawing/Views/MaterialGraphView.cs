@@ -46,10 +46,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCopyNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
         }
 
-        public MaterialGraphView(GraphData graph, Action previewUpdateCallback) : this()
+        public MaterialGraphView(GraphData graph) : this()
         {
             this.graph = graph;
-            this.m_PreviewUpdateDelegate = previewUpdateCallback;
         }
 
         [Inspectable("GraphData", null)]
@@ -76,12 +75,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void ChangeTargetSettings(bool updateInspector = false)
+        void ChangeTargetSettings()
         {
             graph.UpdateActiveBlocks();
-            this.m_PreviewUpdateDelegate();
-            if(updateInspector)
-                this.m_InspectorUpdateDelegate();
+            this.m_InspectorUpdateDelegate();
         }
         void ChangeConcretePrecision(ConcretePrecision newValue)
         {
@@ -106,7 +103,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         private Action m_InspectorUpdateDelegate;
-        private Action m_PreviewUpdateDelegate;
 
         public Action onConvertToSubgraphClick { get; set; }
         public Vector2 cachedMousePosition { get; private set; }
