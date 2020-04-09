@@ -386,11 +386,8 @@ namespace UnityEngine.Rendering.Universal
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)
                 {
-                    var blitAttachment = new AttachmentDescriptor(m_CameraColorDescriptor.graphicsFormat);
-                    blitAttachment.ConfigureTarget((cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget, false, true);
-                    m_FinalBlitPass.ConfigureTarget(blitAttachment);
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
-                    EnqueueRenderPass(m_FinalBlitPass, new RenderTextureDescriptor(cameraData.pixelWidth, cameraData.pixelHeight));
+                    EnqueuePass(m_FinalBlitPass);
                 }
             }
 
