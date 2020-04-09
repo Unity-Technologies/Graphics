@@ -31,17 +31,4 @@ MonoBehaviour:
         keywordFilter: 
         passNameFilter: 
     includeInTargets: 1f000000
-  - assetAlias: DeferredCompute
-    assetCategory: Default
-    testName: Default
-    asset: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259, type: 3}
-    filter:
-      filterType: 1
-      referenceName: 
-      definition:
-        name: Deferred
-        category: Default
-        keywordFilter: 
-        passNameFilter: 
-    includeInTargets: 1f000000
   m_StaticAnalysisTimeout: 3600
