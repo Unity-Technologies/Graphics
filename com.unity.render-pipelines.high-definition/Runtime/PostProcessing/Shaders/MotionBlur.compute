@@ -5,7 +5,7 @@
 
 //#pragma enable_d3d11_debug_symbols
 
-#pragma multi_compile ENABLE_ALPHA
+#pragma multi_compile _ ENABLE_ALPHA
 
 RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 TEXTURE2D_X(_InputTexture);

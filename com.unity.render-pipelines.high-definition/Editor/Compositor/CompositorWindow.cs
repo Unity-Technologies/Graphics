@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         private void OnDestroy()
         {
             CompositionManager compositor = CompositionManager.GetInstance();
-            if (compositor.shader != null)
+            if (compositor && compositor.shader != null)
             {
                 GraphData.onSaveGraph -= MarkShaderAsDirty;
             }
