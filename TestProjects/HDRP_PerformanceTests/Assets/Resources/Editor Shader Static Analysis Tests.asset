@@ -15,10 +15,10 @@ MonoBehaviour:
   m_Filters:
   - name: GBuffer
     category: Lit
-    keywordFilter: 
+    keywordFilter: SHADOWS_SHADOWMASK&DECALS_OFF&LIGHT_LAYERS
     passNameFilter: +GBuffer
   m_AssetDefinitions:
-  - assetAlias: DeferredShader
+  - assetAlias: LitShaderGraph
     assetCategory: Default
     testName: Default
     asset: {fileID: 2100000, guid: d21ceb45c06d0f840bbac5ce3ba6076b, type: 2}
@@ -28,6 +28,19 @@ MonoBehaviour:
       definition:
         name: 
         category: 
+        keywordFilter: 
+        passNameFilter: 
+    includeInTargets: 1f000000
+  - assetAlias: DeferredCompute
+    assetCategory: Default
+    testName: Default
+    asset: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259, type: 3}
+    filter:
+      filterType: 1
+      referenceName: 
+      definition:
+        name: Deferred
+        category: Default
         keywordFilter: 
         passNameFilter: 
     includeInTargets: 1f000000
