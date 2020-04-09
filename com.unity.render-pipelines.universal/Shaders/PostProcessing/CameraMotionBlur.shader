@@ -36,7 +36,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 #if _USE_DRAW_PROCEDURAL
-            GetProceduralQuad(input.vertexID, output.positionCS, output.uv);
+            GetProceduralQuad(input.vertexID, output.positionCS, output.uv.xy);
 #else
             output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
             output.uv.xy = input.uv;
