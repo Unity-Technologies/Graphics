@@ -194,7 +194,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Assert.IsNotNull(targets);
 
-            var index = Array.FindIndex(m_CustomPassAOVBuffers, x => x.injectionPoint == injectionPoint);
+            int index = -1;
+            for (int i = 0; i < m_CustomPassAOVBuffers.Length; ++i)
+            {
+                if (m_CustomPassAOVBuffers[i].injectionPoint == injectionPoint)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
             if (index == -1)
                 return;
 
