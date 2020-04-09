@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float scaleFactor = (parameters.runningRes.x * parameters.runningRes.y) / (540.0f * 960.0f);
             float radInPixels = Mathf.Max(16, settings.maximumRadiusInPixels * Mathf.Sqrt(scaleFactor));
 
-            
+
 
             parameters.aoParams2 = new Vector4(
                 historySize.x,
@@ -606,13 +606,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void PushGlobalParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal void UpdateShaderVariableGlobalCB(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            bool aoEnabled = false;
             if (IsActive(hdCamera, settings))
-                cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, settings.directLightingStrength.value));
+            {
+                aoEnabled = true;
+                // If raytraced AO is enabled but raytracing state is wrong then we disable it.
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && !HDRenderPipeline.currentPipeline.GetRayTracingState())
+                {
+                    aoEnabled = false;
+                }
+            }
+
+            if (aoEnabled)
+                cb._AmbientOcclusionParam = new Vector4(0f, 0f, 0f, settings.directLightingStrength.value);
             else
-                cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
+                cb._AmbientOcclusionParam = Vector4.zero;
         }
 
         internal void PostDispatchWork(CommandBuffer cmd, HDCamera camera)
