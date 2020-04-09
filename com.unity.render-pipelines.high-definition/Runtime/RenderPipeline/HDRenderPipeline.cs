@@ -8,6 +8,10 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using Utilities;
 
+#if ENABLE_VIRTUALTEXTURES
+using UnityEngine.Rendering.VirtualTexturing;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
@@ -366,7 +370,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 settings = new VirtualTexturingSettingsSRP();
 
             VirtualTexturing.System.SetCPUCacheSize(settings.streamingCpuCacheSizeInMegaBytes);
-            VirtualTexturing.System.SetGPUCacheSettings(settings.streamingGpuCacheSettings.ToArray());
+
+            GPUCacheSetting[] gpuCacheSettings = new GPUCacheSetting[settings.streamingGpuCacheSettings.Count];
+            for (int i = 0; i < settings.streamingGpuCacheSettings.Count; ++i)
+            {
+                GPUCacheSettingSRP srpSetting = settings.streamingGpuCacheSettings[i];
+                gpuCacheSettings[i] = new GPUCacheSetting() { format = srpSetting.format, sizeInMegaBytes = srpSetting.sizeInMegaBytes };
+            }
+
+            VirtualTexturing.System.SetGPUCacheSettings(gpuCacheSettings);
 #endif
 
             // Initial state of the RTHandle system.
