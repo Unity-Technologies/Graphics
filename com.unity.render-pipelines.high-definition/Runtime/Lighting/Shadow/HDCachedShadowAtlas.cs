@@ -6,9 +6,8 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
     // TODO_FCC: Big todos list:
-    // - Render graph :( 
-
-    // TODO: IMPORTANT!! EXCLUDE CASCADE SHADOW MAPS FROM MOST OF THIS? OR NOT? 
+    // - Public API
+    // - Test defrag better
 
     class HDCachedShadowAtlas : HDShadowAtlas
     {
@@ -40,6 +39,9 @@ namespace UnityEngine.Rendering.HighDefinition
         private Dictionary<int, CachedShadowRecord> m_PlacedShadows;
         private Dictionary<int, CachedShadowRecord> m_ShadowsPendingRendering;
         private Dictionary<int, HDAdditionalLightData> m_RegisteredLightDataPendingPlacement;
+        private Dictionary<int, CachedShadowRecord> m_RecordsPendingPlacement;          // Note: this is different from m_RegisteredLightDataPendingPlacement because it contains records that were allocated in the system
+                                                                                        // but they lost their spot (e.g. post defrag). They don't have a light associated anymore if not by index, so we keep a separate collection.
+
         private List<(string, int)> DBG_NAMES_LIGHT;
         private List<CachedShadowRecord> m_TempListForPlacement;
 
@@ -56,15 +58,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TempListForPlacement = new List<CachedShadowRecord>(s_InitialCapacity);
 
             m_RegisteredLightDataPendingPlacement = new Dictionary<int, HDAdditionalLightData>(s_InitialCapacity);
+            m_RecordsPendingPlacement = new Dictionary<int, CachedShadowRecord>(s_InitialCapacity); 
 
             DBG_NAMES_LIGHT = new List<(string, int)>();
 
             m_ShadowType = type;
         }
 
-        public override void InitAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
+        public override void InitAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
         {
-            base.InitAtlas(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, blurAlgorithm, filterMode, depthBufferBits, format, name, momentAtlasShaderID);
+            base.InitAtlas(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name, momentAtlasShaderID);
 
             m_MaxAtlasResolution = width;
             m_AtlasResolutionInSlots = HDUtils.DivRoundUp(m_MaxAtlasResolution, m_MinSlotSize);
@@ -74,6 +77,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_AtlasSlots.Add(false);
             }
 
+            //// Note: If changing the characteristics of the atlas via HDRP asset, the lights OnEnable will not be called again so we are missing them, however we can explicitly
+            //// put them back up for placement. If this is the first Init of the atlas, the lines below do nothing.
+            DefragmentAtlasAndReRender(initParams);
+            m_CanTryPlacement = true;
+            m_NeedOptimalPacking = true;
         }
         // ------------------------------------------------------------------------------------------
 
@@ -193,7 +201,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DBG_NAMES_LIGHT.RemoveAll(x => x.Item1 == lightData.name);
 
-            // todo is it here the right place?
             m_RegisteredLightDataPendingPlacement.Remove(lightData.lightIdxForCachedShadows);
 
             int numberOfShadows = (lightData.type == HDLightType.Point) ? 6 : 1;
@@ -202,11 +209,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int i = 0; i < numberOfShadows; ++i)
             {
-                CachedShadowRecord recordToRemove;
                 bool valueFound = false;
                 int shadowIdx = lightIdx + i;
 
-                valueFound = m_PlacedShadows.TryGetValue(shadowIdx, out recordToRemove);
+                m_RecordsPendingPlacement.Remove(shadowIdx);
+
+                valueFound = m_PlacedShadows.TryGetValue(shadowIdx, out CachedShadowRecord recordToRemove);
 
                 if (valueFound)
                 {
@@ -230,7 +238,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool LightIsPendingPlacement(HDAdditionalLightData lightData)
         {
-            return m_RegisteredLightDataPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows);
+            return (m_RegisteredLightDataPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows) ||
+                     m_RecordsPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows));
         }
 
         void InsertionSort(ref List<CachedShadowRecord> list, int startIndex, int lastIndex)
@@ -345,11 +354,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (isFirstOfASeries)
                 {
                     if (PlaceMultipleShadows(i, m_MaxShadowsPerLight))
+                    {
                         m_RegisteredLightDataPendingPlacement.Remove(record.shadowIndex);   // We placed all the shadows of the light, hence we can remove the light from pending placement.
+                        for (int subIdx = 0; subIdx < m_MaxShadowsPerLight; ++subIdx)
+                            m_RecordsPendingPlacement.Remove(record.shadowIndex);
+                    }
 
                     i += m_MaxShadowsPerLight;  // We will not need to process depending shadows.
                 }
-                else if(!isFirstOfASeries) // We have only one shadow to place.
+                else // We have only one shadow to place.
                 {
                     bool fit = GetSlotInAtlas(record.viewportSize, out x, out y);
                     if (fit)
@@ -360,6 +373,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_ShadowsPendingRendering.Add(record.shadowIndex, record);
                         m_PlacedShadows.Add(record.shadowIndex, record);
                         m_RegisteredLightDataPendingPlacement.Remove(record.shadowIndex);
+                        m_RecordsPendingPlacement.Remove(record.shadowIndex);
                     }
 
                     i++;
@@ -375,9 +389,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_TempListForPlacement.Clear();
 
+                m_TempListForPlacement.AddRange(m_RecordsPendingPlacement.Values);
                 AddLightListToRecordList(m_RegisteredLightDataPendingPlacement, initParameters, ref m_TempListForPlacement);
 
-                // TODO: If we went for resizable atlas, here we should resize already, before even trying to fit in.
                 if (m_NeedOptimalPacking)
                 {
                     InsertionSort(ref m_TempListForPlacement, 0, m_TempListForPlacement.Count);
@@ -390,22 +404,44 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // TODO: Make this accessible through manager and or public API.
         internal void DefragmentAtlasAndReRender(HDShadowInitParameters initParams)
         {
             m_TempListForPlacement.Clear();
 
             m_TempListForPlacement.AddRange(m_PlacedShadows.Values);
-            m_TempListForPlacement.AddRange(m_ShadowsPendingRendering.Values); // This should really be empty at this point, but in case is not invalidate that.
+            m_TempListForPlacement.AddRange(m_RecordsPendingPlacement.Values);
             AddLightListToRecordList(m_RegisteredLightDataPendingPlacement, initParams, ref m_TempListForPlacement);
+
+            for (int i = 0; i < m_AtlasResolutionInSlots * m_AtlasResolutionInSlots; ++i)
+            {
+                m_AtlasSlots[i] = false;
+            }
 
             // Clear the other state lists.
             m_PlacedShadows.Clear();
             m_ShadowsPendingRendering.Clear();
+            m_RecordsPendingPlacement.Clear(); // We'll reset what records are pending.
 
             // Sort in order to obtain a more optimal packing. 
             InsertionSort(ref m_TempListForPlacement, 0, m_TempListForPlacement.Count);
 
             PerformPlacement();
+
+            // This is fairly inefficient, but simple and this function should be called very rarely.
+            // We need to add to pending the records that were placed but were not in m_RegisteredLightDataPendingPlacement
+            // but they don't have a place yet.
+            foreach (var record in m_TempListForPlacement)
+            {
+                if (!m_PlacedShadows.ContainsKey(record.shadowIndex)) // If we couldn't place it
+                {
+                    int parentLightIdx = record.shadowIndex / m_MaxShadowsPerLight;
+                    if (!m_RegisteredLightDataPendingPlacement.ContainsKey(parentLightIdx)) // Did not come originally from m_RegisteredLightDataPendingPlacement
+                    {
+                        m_RecordsPendingPlacement.Add(record.shadowIndex, record);
+                    }
+                }
+            }
 
             m_CanTryPlacement = false;
         }
