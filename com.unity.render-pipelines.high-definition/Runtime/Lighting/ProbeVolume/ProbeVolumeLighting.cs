@@ -495,6 +495,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, HDShaderIDs._ProbeVolumeAtlasOctahedralDepthScaleBias,
                             volume.parameters.octahedralDepthScaleBias
                         );
+                        cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, HDShaderIDs._ProbeVolumeAtlasOctahedralDepthResolutionAndInverse, new Vector4(
+                            m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.width,
+                            m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.height,
+                            1.0f / (float)m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.width,
+                            1.0f / (float)m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.height
+                        ));
                         cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCount, new Vector4(
                             s_ProbeVolumeAtlasWidth,
                             s_ProbeVolumeAtlasHeight,

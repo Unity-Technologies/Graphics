@@ -484,6 +484,18 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._VBufferRcpInstancedViewCount = 1.0f / hdCamera.viewCount;
         }
 
+        void PushVolumetricLightingGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
+        {
+            if (!Fog.IsVolumetricFogEnabled(hdCamera))
+            {
+                cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, HDUtils.clearTexture3D);
+            }
+            else
+            {
+                cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, m_LightingBufferHandle);
+            }
+        }
+
         DensityVolumeList PrepareVisibleDensityVolumeList(HDCamera hdCamera, CommandBuffer cmd, float time)
         {
             DensityVolumeList densityVolumes = new DensityVolumeList();
