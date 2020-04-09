@@ -322,6 +322,10 @@ namespace UnityEngine.Rendering.Universal
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         static void ApplyAdaptivePerformance(ref CameraData cameraData)
         {
+            var noFrontToBackOpaqueFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
+            if (AdaptivePerformance.AdaptivePerformanceSettings.SkipFrontToBackSorting)
+                cameraData.defaultOpaqueSortFlags = noFrontToBackOpaqueFlags;
+
             var MaxShadowDistanceMultiplier = AdaptivePerformance.AdaptivePerformanceSettings.MaxShadowDistanceMultiplier;
             cameraData.maxShadowDistance *= MaxShadowDistanceMultiplier;
 
@@ -335,13 +339,16 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.cameraTargetDescriptor.height = (int)(cameraData.camera.pixelHeight * cameraData.renderScale);
             }
 
-            var antialiasingQualityIndex = (int)cameraData.antialiasingQuality - AdaptivePerformance.AdaptivePerformanceSettings.MainLightShadowCascadesCountBias;
+            var antialiasingQualityIndex = (int)cameraData.antialiasingQuality - AdaptivePerformance.AdaptivePerformanceSettings.AntiAliasingQualityBias;
             if (antialiasingQualityIndex < 0)
                 cameraData.antialiasing = AntialiasingMode.None;
             cameraData.antialiasingQuality = (AntialiasingQuality)Mathf.Clamp(antialiasingQualityIndex, (int)AntialiasingQuality.Low, (int)AntialiasingQuality.High);
         }
         static void ApplyAdaptivePerformance(ref RenderingData renderingData)
         {
+            if (AdaptivePerformance.AdaptivePerformanceSettings.SkipDynamicBatching)
+                renderingData.supportsDynamicBatching = false;
+
             var MainLightShadowmapResultionMultiplier = AdaptivePerformance.AdaptivePerformanceSettings.MainLightShadowmapResultionMultiplier;
             renderingData.shadowData.mainLightShadowmapWidth = (int)(renderingData.shadowData.mainLightShadowmapWidth * MainLightShadowmapResultionMultiplier);
             renderingData.shadowData.mainLightShadowmapHeight = (int)(renderingData.shadowData.mainLightShadowmapHeight * MainLightShadowmapResultionMultiplier);
@@ -474,6 +481,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
             UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
             InitializeCameraData(baseCamera, baseCameraAdditionalData, out var baseCameraData);
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+            ApplyAdaptivePerformance(ref baseCameraData);
+#endif
             RenderSingleCamera(context, baseCameraData, !isStackedRendering, anyPostProcessingEnabled);
             EndCameraRendering(context, baseCamera);
 
