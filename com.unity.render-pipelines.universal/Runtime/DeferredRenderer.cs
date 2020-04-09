@@ -10,7 +10,6 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public sealed class DeferredRenderer : ScriptableRenderer
     {
-        public static readonly int k_GBufferSlicesCount = 3;
         public static readonly int k_DepthStencilBufferBits = 32;
 
         static readonly string k_CreateCameraTextures = "Create Camera Texture";
@@ -46,7 +45,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_CameraColorTexture;
         RenderTargetHandle m_CameraDepthTexture;
         RenderTargetHandle m_CameraDepthAttachment;
-        RenderTargetHandle[] m_GBufferAttachments = new RenderTargetHandle[k_GBufferSlicesCount];
+        RenderTargetHandle[] m_GBufferAttachments = new RenderTargetHandle[DeferredConfig.kGBufferSliceCount];
         RenderTargetHandle m_OpaqueColor;
         RenderTargetHandle m_AfterPostProcessColor;
         RenderTargetHandle m_ColorGradingLut;
@@ -142,7 +141,7 @@ namespace UnityEngine.Rendering.Universal
 
             supportedRenderingFeatures = new RenderingFeatures()
             {
-                cameraStacking = true,
+                cameraStacking = false,
                 msaa = false,
             };
         }
@@ -269,7 +268,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (requiresDepthPrepass)
             {
-                m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthTexture);
+                m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthAttachment);
                 EnqueuePass(m_DepthPrepass);
             }
 

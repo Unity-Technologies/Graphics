@@ -29,9 +29,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         // ScriptableRenderPass
-        public override void FrameCleanup(CommandBuffer cmd)
+        public override void OnCameraCleanup(CommandBuffer cmd)
         {
-            m_DeferredLights.FrameCleanup(cmd);
+            m_DeferredLights.OnCameraCleanup(cmd);
         }
     }
 }

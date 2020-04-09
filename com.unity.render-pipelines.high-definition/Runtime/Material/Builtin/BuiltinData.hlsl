@@ -11,9 +11,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl" // Require for GetIndexColor auto generated
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.cs.hlsl"
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-
 //-----------------------------------------------------------------------------
 // helper macro
 //-----------------------------------------------------------------------------
@@ -83,11 +80,13 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, PositionInputs p
     case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION:
         result = float3((builtinData.distortion / (abs(builtinData.distortion) + 1) + 1) * 0.5, 0.5);
         break;
+#ifdef DEBUG_DISPLAY
     case DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS:
         // Only 8 first rendering layers are currently in use (used by light layers)
         // This mode shows only those layers
 
         uint stripeSize = 8;
+
         int lightLayers = (builtinData.renderingLayers & _DebugLightLayersMask) & 0xFF;
         uint layerId = 0, layerCount = countbits(lightLayers);
 
@@ -102,6 +101,7 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, PositionInputs p
             }
         }
         break;
+#endif
     }
 }
 

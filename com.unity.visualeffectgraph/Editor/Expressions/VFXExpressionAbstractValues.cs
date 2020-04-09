@@ -177,14 +177,14 @@ namespace UnityEditor.VFX
         public override void SetContent(object value)
         {
             m_Content = default(T);
-            if (value == null )
+            if (value == null)
             {
                 return;
             }
 
             var fromType = value.GetType();
             var toType = typeof(T);
-            
+
             if (typeof(Texture).IsAssignableFrom(toType) && toType.IsAssignableFrom(fromType))
             {
                 m_Content = (T)value;
@@ -212,7 +212,6 @@ namespace UnityEditor.VFX
             }
         }
 
-
         private static VFXValueType ToValueType()
         {
             Type t = typeof(T);
@@ -237,10 +236,9 @@ namespace UnityEditor.VFX
     }
 
 
-
     class VFXObjectValue : VFXValue<int>
     {
-        public VFXObjectValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID,mode)
+        public VFXObjectValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode)
         {
         }
 

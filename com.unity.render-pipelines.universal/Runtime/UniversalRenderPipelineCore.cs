@@ -194,9 +194,9 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
         public Vector3 spotDirection;   // for spotLights
         public int lightIndex;
-    }
+    }    
 
-    public static class ShaderPropertyId
+    internal static class ShaderPropertyId
     {
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
@@ -397,8 +397,13 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                bool use32BitHDR = !needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render);
-                GraphicsFormat hdrFormat = (use32BitHDR) ? GraphicsFormat.B10G11R11_UFloatPack32 : GraphicsFormat.R16G16B16A16_SFloat;
+                GraphicsFormat hdrFormat;
+                if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                    hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                    hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
+                else
+                    hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR); // This might actually be a LDR format on old devices.
 
                 desc.graphicsFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
                 desc.depthBufferBits = 32;
@@ -583,8 +588,6 @@ namespace UnityEngine.Rendering.Universal
             lightOcclusionProbeChannel.x = occlusionProbeChannel == -1 ? 0f : occlusionProbeChannel;
             lightOcclusionProbeChannel.y = occlusionProbeChannel == -1 ? 1f : 0f;
         }
-
-
     }
 
     internal enum URPProfileId

@@ -29,7 +29,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
-
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 

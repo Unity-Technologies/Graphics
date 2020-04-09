@@ -87,6 +87,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.SetGlobalFloat("_HDREmulationScale", m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat("_UseSceneLighting", isLitView ? 1.0f : 0.0f);
+                cmd.SetGlobalColor("_RendererColor", Color.white);
                 RendererLighting.SetShapeLightShaderGlobals(cmd);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -115,21 +116,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     int layerToRender = s_SortingLayers[i].id;
 
                     Light2D.LightStats lightStats;
-                    lightStats = Light2D.GetLightStatsByLayer(layerToRender);
+                    lightStats = Light2D.GetLightStatsByLayer(layerToRender, camera);
 
-                    // Allocate our blend style textures
                     cmd.Clear();
                     for (int blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
                     {
                         uint blendStyleMask = (uint)(1 << blendStyleIndex);
-                        if ((lightStats.blendStylesUsed & blendStyleMask) > 0 && !hasBeenInitialized[blendStyleIndex])
+                        bool blendStyleUsed = (lightStats.blendStylesUsed & blendStyleMask) > 0;
+
+                        if (blendStyleUsed && !hasBeenInitialized[blendStyleIndex])
                         {
                             RendererLighting.CreateBlendStyleRenderTexture(cmd, blendStyleIndex);
                             hasBeenInitialized[blendStyleIndex] = true;
                         }
+
+                        RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
                     }
                     context.ExecuteCommandBuffer(cmd);
-
 
                     // Start Rendering
                     if (lightStats.totalNormalMapUsage > 0)
@@ -184,6 +187,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.SetGlobalTexture("_ShapeLightTexture2", Texture2D.blackTexture);
                 cmd.SetGlobalTexture("_ShapeLightTexture3", Texture2D.blackTexture);
                 cmd.SetGlobalFloat("_UseSceneLighting", isLitView ? 1.0f : 0.0f);
+                cmd.SetGlobalColor("_RendererColor", Color.white);
                 cmd.EnableShaderKeyword("USE_SHAPE_LIGHT_TYPE_0");
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);

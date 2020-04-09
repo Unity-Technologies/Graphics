@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_Counters[2] = tileDataCapacity;
         }
 
-        public void FrameCleanup()
+        public void OnCameraCleanup()
         {
             if (m_TileHeaders.IsCreated)
                 m_TileHeaders.Dispose();

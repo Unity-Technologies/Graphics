@@ -6,6 +6,8 @@ namespace UnityEngine.Rendering.Universal
 
         Material m_CopyDepthMaterial;
         const string m_ProfilerTag = "Copy Depth for Scene View";
+        int m_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
+
 
         public SceneViewDepthCopyPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
@@ -35,7 +37,21 @@ namespace UnityEngine.Rendering.Universal
             cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-            cmd.Blit(source.Identifier(), BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+            // Blit has logic to flip projection matrix when rendering to render texture.
+            // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
+            // If you replace this Blit with a Draw* that sets projection matrix double check
+            // to also update shader.
+            // scaleBias.x = flipSign
+            // scaleBias.y = scale
+            // scaleBias.z = bias
+            // scaleBias.w = unused
+            ref CameraData cameraData = ref renderingData.cameraData;
+            float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
+            Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+            cmd.SetGlobalVector(m_ScaleBiasId, scaleBias);
+
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

@@ -31,6 +31,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         #if XR_MODE
         float4 posCS : TEXCOORD0;
         #endif
+        float3 screenUV : TEXCOORD1;
         UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
     };
@@ -73,6 +74,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         output.positionCS = vertexInput.positionCS;
         #endif
 
+        output.screenUV = output.positionCS.xyw;
+        #if UNITY_UV_STARTS_AT_TOP
+        output.screenUV.xy = output.screenUV.xy * float2(0.5, -0.5) + 0.5 * output.screenUV.z;
+        #else
+        output.screenUV.xy = output.screenUV.xy * 0.5 + 0.5 * output.screenUV.z;
+        #endif
+
         #if XR_MODE
         output.posCS = output.positionCS;
         #endif
@@ -86,6 +94,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
 
     float4x4 _ScreenToWorld;
+    SamplerState my_point_clamp_sampler;
 
     float3 _LightPosWS;
     float3 _LightColor;
@@ -127,7 +136,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
         bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
-        #if SHADER_API_SWITCH
+        #if SHADER_API_MOBILE || SHADER_API_SWITCH
         // Specular highlights are still silenced by setting specular to 0.0 during gbuffer pass and GPU timing is still reduced.
         bool materialSpecularHighlightsOff = false;
         #else
@@ -235,10 +244,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 Ref 48       // 0b00110000
                 WriteMask 16 // 0b00010000
                 ReadMask 112 // 0b01110000
-                CompBack Equal
-                PassBack Zero
-                FailBack Keep
-                ZFailBack Keep
+                Comp Equal
+                Pass Zero
+                Fail Keep
+                ZFail Keep
             }
 
             HLSLPROGRAM

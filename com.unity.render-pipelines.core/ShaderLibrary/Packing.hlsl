@@ -177,8 +177,16 @@ real3 UnpackNormalAG(real4 packedNormal, real scale = 1.0)
 {
     real3 normal;
     normal.xy = packedNormal.ag * 2.0 - 1.0;
-    normal.xy *= scale;
     normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
+
+    // must scale after reconstruction of normal.z which also
+    // mirrors UnpackNormalRGB(). This does imply normal is not returned
+    // as a unit length vector but doesn't need it since it will get normalized after TBN transformation.
+    // If we ever need to blend contributions with built-in shaders for URP
+    // then we should consider using UnpackDerivativeNormalAG() instead like
+    // HDRP does since derivatives do not use renormalization and unlike tangent space
+    // normals allow you to blend, accumulate and scale contributions correctly.
+    normal.xy *= scale;
     return normal;
 }
 
@@ -527,7 +535,7 @@ float3 PackFloat2To888(float2 f)
 // Unpack 2 float of 12bit packed into a 888
 float2 Unpack888ToFloat2(float3 x)
 {
-    uint3 i = (uint3)(x * 255.0);
+    uint3 i = (uint3)(x * 255.5); // +0.5 to fix precision error on iOS 
     // 8 bit in lo, 4 bit in hi
     uint hi = i.z >> 4;
     uint lo = i.z & 15;
