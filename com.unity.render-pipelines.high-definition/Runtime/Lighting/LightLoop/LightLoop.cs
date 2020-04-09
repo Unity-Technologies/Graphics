@@ -3150,7 +3150,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return frameSettings.IsEnabled(FrameSettingsField.DeferredTile) && (!frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) || k_PreferFragment);
         }
 
-        unsafe BuildGPULightListParameters PrepareBuildGPULightListParameters(HDCamera hdCamera)
+        unsafe BuildGPULightListParameters PrepareBuildGPULightListParameters(HDCamera hdCamera, bool buildForProbeVolumes)
         {
             BuildGPULightListParameters parameters = new BuildGPULightListParameters();
 
@@ -3203,7 +3203,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
             cb.g_viDimensions = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
-            cb.g_iNrVisibLights = m_TotalLightCount;
+            cb.g_iNrVisibLights = buildForProbeVolumes ? m_TotalLightCount : m_probeVolumeCount;
             cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
             cb.g_BaseFeatureFlags = 0; // Filled for each individual pass.
             cb.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
@@ -3383,7 +3383,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // TODO: (Nick): These parameters can be cached and shared between BuildGPULightListProbeVolumesCommon and BuildGPULightListsCommon.
                 // Currently, we are generated them twice.
-                var parameters = PrepareBuildGPULightListParameters(hdCamera);
+                var parameters = PrepareBuildGPULightListParameters(hdCamera, true);
                 var resources = PrepareBuildGPULightListResources(
                     m_TileAndClusterData,
                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
@@ -3478,7 +3478,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildLightList)))
             {
-                var parameters = PrepareBuildGPULightListParameters(hdCamera);
+                var parameters = PrepareBuildGPULightListParameters(hdCamera, false);
                 var resources = PrepareBuildGPULightListResources(
                     m_TileAndClusterData,
                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
