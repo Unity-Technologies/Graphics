@@ -472,12 +472,12 @@ namespace UnityEngine.Rendering.Universal
 
             var desc = renderingData.cameraData.cameraTargetDescriptor;
 
-            RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[k_GBufferSlicesCount + 1 + depthAsRT];
-            for (int gbufferIndex = 0; gbufferIndex < k_GBufferSlicesCount; ++gbufferIndex)
+            RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[DeferredConfig.kGBufferSliceCount + 1 + depthAsRT];
+            for (int gbufferIndex = 0; gbufferIndex < DeferredConfig.kGBufferSliceCount; ++gbufferIndex)
                 gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
-            gbufferColorAttachments[k_GBufferSlicesCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
+            gbufferColorAttachments[DeferredConfig.kGBufferSliceCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
 
-            AttachmentDescriptor[] gbufferAttachmentDescriptors = new AttachmentDescriptor[k_GBufferSlicesCount + 1 + depthAsRT];
+            AttachmentDescriptor[] gbufferAttachmentDescriptors = new AttachmentDescriptor[DeferredConfig.kGBufferSliceCount + 1 + depthAsRT];
 
             gbufferAttachmentDescriptors[0] = new AttachmentDescriptor(GBufferPass.kGBufferFormats[0]);
             gbufferAttachmentDescriptors[1] = new AttachmentDescriptor(GBufferPass.kGBufferFormats[1]);
@@ -521,7 +521,7 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_TileDepthRangeExtraPass);
             }
 
-            m_DeferredPass.ConfigureTarget(gbufferAttachmentDescriptors[k_GBufferSlicesCount], depthBufferAttachmentDescriptor);
+            m_DeferredPass.ConfigureTarget(gbufferAttachmentDescriptors[DeferredConfig.kGBufferSliceCount], depthBufferAttachmentDescriptor);
             m_DeferredPass.ConfigureInputAttachment(new[] {gbufferAttachmentDescriptors[0], gbufferAttachmentDescriptors[1], gbufferAttachmentDescriptors[2]
 #if UNITY_IOS && !UNITY_EDITOR
                 , gbufferAttachmentDescriptors[4]});
@@ -531,7 +531,7 @@ namespace UnityEngine.Rendering.Universal
             EnqueueRenderPass(m_DeferredPass, desc);
 
             // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
-            m_RenderOpaqueForwardOnlyPass.ConfigureTarget(m_GBufferPass.colorAttachmentDescriptors[k_GBufferSlicesCount], depthBufferAttachmentDescriptor);
+            m_RenderOpaqueForwardOnlyPass.ConfigureTarget(m_GBufferPass.colorAttachmentDescriptors[DeferredConfig.kGBufferSliceCount], depthBufferAttachmentDescriptor);
             EnqueueRenderPass(m_RenderOpaqueForwardOnlyPass, desc);
         }
 
