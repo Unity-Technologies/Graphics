@@ -1831,15 +1831,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDLightType lightType = type;
 
             bool shadowIsInCachedSystem = !ShadowIsUpdatedEveryFrame();
-            bool shadowNeedsRendering = true;
-            bool shadowDoesntHavePlacement = false;
-
             // Note if we are in cached system, but if a placement has not been found by this point we bail out shadows
-            if(shadowIsInCachedSystem && HDShadowManager.cachedShadowManager.LightIsPendingPlacement(this, shadowMapType))
-            {
-                shadowNeedsRendering = false;
-                shadowDoesntHavePlacement = true;
-            }
+            bool shadowDoesntHavePlacement = shadowIsInCachedSystem && HDShadowManager.cachedShadowManager.LightIsPendingPlacement(this, shadowMapType);
 
             int count = GetShadowRequestCount(shadowSettings);
 
@@ -1853,7 +1846,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowRequestIndex);
 
                 int cachedShadowID = lightIdxForCachedShadows + index;
-                shadowNeedsRendering = !shadowDoesntHavePlacement;
+                bool shadowNeedsRendering = !shadowDoesntHavePlacement;
 
                 if (shadowIsInCachedSystem && !shadowDoesntHavePlacement)
                 {
