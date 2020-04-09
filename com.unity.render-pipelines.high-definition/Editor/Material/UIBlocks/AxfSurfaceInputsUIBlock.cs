@@ -426,7 +426,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     BRDFVariants |= ((uint)wardVariant) << 2;
                     BRDFVariants |= ((uint)blinnVariant) << 4;
 
-//                    cmd.SetGlobalFloat( HDShaderIDs._TexturingModeFlags, *(float*) &texturingModeFlags );
                     m_SVBRDF_BRDFType.floatValue = (float)BRDFType;
                     m_SVBRDF_BRDFVariants.floatValue = (float)BRDFVariants;
 
@@ -487,8 +486,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         --EditorGUI.indentLevel;
                         clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);
                     }
-
-//                    cmd.SetGlobalFloat( HDShaderIDs._TexturingModeFlags, *(float*) &texturingModeFlags );
 
                     --EditorGUI.indentLevel;
                     break;
