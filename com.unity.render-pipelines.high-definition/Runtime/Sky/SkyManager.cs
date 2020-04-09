@@ -822,15 +822,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var reflectionTexture = GetReflectionTexture(hdCamera.lightingSky);
             cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, reflectionTexture);
 
-            if (IsLightingSkyValid(hdCamera))
-            {
-                cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 1);
-            }
-            else
-            {
-                cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
-            }
-
             int skyID = ImportanceSamplers.GetIdentifier(reflectionTexture);
             if (ImportanceSamplers.ExistAndReady(skyID))
             {

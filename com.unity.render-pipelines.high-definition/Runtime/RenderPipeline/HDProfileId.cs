@@ -191,5 +191,9 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
         ContrastAdaptiveSharpen,
+        PrepareProbeVolumeList,
+        ProbeVolumeDebug,
+        BuildGPULightListProbeVolumes,
+        PushProbeVolumeLightListGlobalParameters,
     }
 }
