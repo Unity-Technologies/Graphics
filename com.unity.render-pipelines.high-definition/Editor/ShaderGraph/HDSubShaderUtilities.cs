@@ -168,6 +168,12 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty("_RayTracing", isRayTracing);
         }
         
+        public static void AddPrePostPassProperties(PropertyCollector collector, bool prepass, bool postpass)
+        {
+            collector.AddFloatProperty(kTransparentDepthPrepassEnable, prepass ? 1.0f : 0.0f);
+            collector.AddFloatProperty(kTransparentDepthPostpassEnable, postpass ? 1.0f : 0.0f);
+        }
+
         public static string RenderQueueName(HDRenderQueue.RenderQueueType value)
         {
             switch (value)
