@@ -160,6 +160,8 @@ namespace UnityEngine.Rendering.HighDefinition
             directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
             punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
+            cachedPunctualLightShadowAtlas      = 2048,
+            cachedAreaLightShadowAtlas          = 1024,
             shadowResolutionDirectional         = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowResolutionArea                = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowResolutionPunctual            = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
@@ -190,6 +192,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDShadowAtlasInitParams punctualLightShadowAtlas;
         /// <summary>Initialization parameters for area shadows atlas.</summary>
         public HDShadowAtlasInitParams areaLightShadowAtlas;
+
+        /// <summary>Resolution for the punctual lights cached shadow maps atlas.</summary>
+        public int cachedPunctualLightShadowAtlas;
+
+        /// <summary>Resolution for the area lights cached shadow maps atlas.</summary>
+        public int cachedAreaLightShadowAtlas;
 
         /// <summary>Shadow scalable resolution for directional lights.</summary>
         public IntScalableSetting shadowResolutionDirectional;
@@ -263,7 +271,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {}
 
         public void InitShadowManager(RenderPipelineResources renderPipelineResources, DepthBits directionalShadowDepthBits,
-                            HDShadowInitParameters.HDShadowAtlasInitParams punctualLightAtlasInfo, HDShadowInitParameters.HDShadowAtlasInitParams areaLightAtlasInfo, int maxShadowRequests, Shader clearShader)
+                            HDShadowInitParameters.HDShadowAtlasInitParams punctualLightAtlasInfo, HDShadowInitParameters.HDShadowAtlasInitParams areaLightAtlasInfo,
+                            int cachedPunctualShadowAtlasResolution, int cachedAreaShadowAtlasResolution, int maxShadowRequests, Shader clearShader)
         {
             Material clearMaterial = CoreUtils.CreateEngineMaterial(clearShader);
 
@@ -292,12 +301,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_MaxShadowRequests = maxShadowRequests;
 
-            // TODO_FCC: BETTER HANDLING HERE
-            int sizeOfCachedPunctual = 2048;
-            int sizeOfCachedArea = 256;
-            s_CachedShadowManager.InitPunctualShadowAtlas(renderPipelineResources, sizeOfCachedPunctual, sizeOfCachedPunctual, HDShaderIDs._CachedShadowmapAtlas, HDShaderIDs._CachedShadowAtlasSize, clearMaterial, maxShadowRequests, depthBufferBits: punctualLightAtlasInfo.shadowAtlasDepthBits, name: "Cached Shadow Map Atlas");
+            s_CachedShadowManager.InitPunctualShadowAtlas(renderPipelineResources, cachedPunctualShadowAtlasResolution, cachedPunctualShadowAtlasResolution, HDShaderIDs._CachedShadowmapAtlas, HDShaderIDs._CachedShadowAtlasSize, clearMaterial, maxShadowRequests, depthBufferBits: punctualLightAtlasInfo.shadowAtlasDepthBits, name: "Cached Shadow Map Atlas");
             if (ShaderConfig.s_AreaLights == 1)
-                s_CachedShadowManager.InitAreaLightShadowAtlas(renderPipelineResources, sizeOfCachedArea, sizeOfCachedArea, HDShaderIDs._CachedAreaLightShadowmapAtlas, HDShaderIDs._CachedAreaShadowAtlasSize, clearMaterial, maxShadowRequests, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: areaLightAtlasInfo.shadowAtlasDepthBits, name: "Cached Area Light Shadow Map Atlas", momentAtlasShaderID: HDShaderIDs._CachedAreaShadowmapMomentAtlas);
+                s_CachedShadowManager.InitAreaLightShadowAtlas(renderPipelineResources, cachedAreaShadowAtlasResolution, cachedAreaShadowAtlasResolution, HDShaderIDs._CachedAreaLightShadowmapAtlas, HDShaderIDs._CachedAreaShadowAtlasSize, clearMaterial, maxShadowRequests, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: areaLightAtlasInfo.shadowAtlasDepthBits, name: "Cached Area Light Shadow Map Atlas", momentAtlasShaderID: HDShaderIDs._CachedAreaShadowmapMomentAtlas);
         }
 
         public static DirectionalShadowAlgorithm GetDirectionalShadowAlgorithm()

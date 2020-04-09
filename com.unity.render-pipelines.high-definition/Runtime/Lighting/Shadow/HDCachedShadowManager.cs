@@ -5,10 +5,6 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    // Dispose
-
-    //  TODO_FCC: SUPER IMPORTANT! CONSIDER THE CONFIG FILE FOR AREA LIGHT SHADOWS.
-
     // Note: The punctual and area light shadows have a specific atlas, however because there can be only be only one directional light casting shadow
     // we use this cached shadow manager only as a source of utilities functions, but the data is stored in the dynamic shadow atlas.
 

@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     class HDCachedShadowAtlas : HDShadowAtlas
     {
-        static private int s_InitialCapacity = 384; // TODO_FCC: Determine this better.
+        static private int s_InitialCapacity = 256;
 
         // Constants.
         private const int m_MinSlotSize = 64;
@@ -23,7 +23,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct CachedShadowRecord
         {
-            //internal int parentLightIdx;
             internal int shadowIndex;
             internal int viewportSize;                               // We assume only square shadows maps.
             internal Vector4 offsetInAtlas;                          // When is registered xy is the offset in the texture atlas, in UVs, the zw is the entry offset in the C# representation.
@@ -34,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool m_NeedOptimalPacking = true;
 
-        List<bool> m_AtlasSlots;
+        private List<bool> m_AtlasSlots;
 
         // Note: Some of these could be simple lists, but since we might need to search by index some of them and we want to avoid GC alloc, a dictionary is easier.
         // This also mean slightly worse performance, however hopefully the number of cached shadow lights is not huge at any tie.
@@ -44,8 +43,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private List<(string, int)> DBG_NAMES_LIGHT;
         private List<CachedShadowRecord> m_TempListForPlacement;
 
-        // Have a pending rendering list?
-        // A shadow will check here if it is pending a rendering call.
 
         private ShadowMapType m_ShadowType;
 
@@ -455,7 +452,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                // Number of shadows TODO_FCC: AGAIN, HANDLE DIRECTIONAL!
                 int numberOfShadows = (lightData.type == HDLightType.Point) ? 6 : 1;
                 for (int i = 0; i < numberOfShadows; ++i)
                 {

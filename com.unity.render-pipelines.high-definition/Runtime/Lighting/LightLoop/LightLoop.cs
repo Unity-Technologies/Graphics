@@ -696,6 +696,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShadowInitParameters.directionalShadowsDepthBits,
                 m_ShadowInitParameters.punctualLightShadowAtlas,
                 m_ShadowInitParameters.areaLightShadowAtlas,
+                m_ShadowInitParameters.cachedPunctualLightShadowAtlas,
+                m_ShadowInitParameters.cachedAreaLightShadowAtlas,
                 m_ShadowInitParameters.maxShadowRequests,
                 defaultResources.shaders.shadowClearPS
             );

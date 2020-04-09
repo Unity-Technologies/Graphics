@@ -1329,7 +1329,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_ShadowUpdateMode != ShadowUpdateMode.EveryFrame && value == ShadowUpdateMode.EveryFrame)
                 {
-                    if(!mantainCacheShadowSlotUnlessDestroyed)
+                    if(!preserveCachedShadow)
                     {
                         HDShadowManager.cachedShadowManager.EvictLight(this);
                     }
@@ -1379,6 +1379,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_BarnDoorLength = Mathf.Clamp(value, 0.0f, float.MaxValue);
                 UpdateAllLightValues();
+            }
+        }
+
+        [SerializeField]
+        bool m_preserveCachedShadow = false;
+        /// <summary>
+        /// Controls whether the cached shadow maps for this light is preserved upon disabling the light.
+        /// If this field is set to true, then the light will maintain its space in the cached shadow atlas until it is destroyed.
+        /// </summary>
+        public bool preserveCachedShadow
+        {
+            get => m_preserveCachedShadow;
+            set
+            {
+                if (m_preserveCachedShadow == value)
+                    return;
+
+                m_preserveCachedShadow = value;
             }
         }
 
@@ -1456,16 +1474,11 @@ namespace UnityEngine.Rendering.HighDefinition
         int[]               m_ShadowRequestIndices;
 
 
-        // Data for cached shadow maps TODO_FCC: Rename and CONSIDER WELL
+        // Data for cached shadow maps
         [System.NonSerialized]
         internal int lightIdxForCachedShadows = -1;
+        Vector3 m_CachedViewPos = new Vector3(0, 0, 0);
 
-        public bool mantainCacheShadowSlotUnlessDestroyed = false; // MOVE TO A BETTER API
-
-        // Data for cached shadow maps.
-        Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
-
-        int[]               m_CachedResolutionRequestIndices = new int[6];
 
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
@@ -1580,7 +1593,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDisable()
         {
             // If it is within the cached system we need to evict it, unless user explicitly requires not to.
-            if (!mantainCacheShadowSlotUnlessDestroyed && lightIdxForCachedShadows >= 0) 
+            if (!preserveCachedShadow && lightIdxForCachedShadows >= 0) 
             {
                 HDShadowManager.cachedShadowManager.EvictLight(this);
             }
