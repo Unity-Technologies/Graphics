@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -11,6 +9,8 @@ using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph.Internal;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
+using Unity.Profiling;
+
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -20,12 +20,19 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         GraphData m_Graph;
         MessageManager m_Messenger;
-        Dictionary<Guid, PreviewRenderData> m_RenderDatas = new Dictionary<Guid, PreviewRenderData>();
-        PreviewRenderData m_MasterRenderData;
-        HashSet<AbstractMaterialNode> m_NodesToUpdate = new HashSet<AbstractMaterialNode>();
-        HashSet<AbstractMaterialNode> m_NodesToDraw = new HashSet<AbstractMaterialNode>();
-        HashSet<AbstractMaterialNode> m_TimedNodes = new HashSet<AbstractMaterialNode>();
-        bool m_RefreshTimedNodes;
+
+        Dictionary<Guid, PreviewRenderData> m_RenderDatas = new Dictionary<Guid, PreviewRenderData>();      // stores all of the PreviewRendererData, mapped by node GUID
+        PreviewRenderData m_MasterRenderData;                                                               // cache ref to preview renderer data for the master node
+
+        int m_MaxNodesCompiling = 3;                                                                        // max preview shaders we want to async compile at once
+
+        // state trackers
+        HashSet<AbstractMaterialNode> m_NodesShaderChanged = new HashSet<AbstractMaterialNode>();           // nodes whose shader code has changed, this node and nodes that read from it are put into NeedRecompile
+        HashSet<AbstractMaterialNode> m_NodesNeedsRecompile = new HashSet<AbstractMaterialNode>();           // nodes we need to recompile the preview shader
+        HashSet<AbstractMaterialNode> m_NodesCompiling = new HashSet<AbstractMaterialNode>();               // nodes currently being compiled
+        HashSet<AbstractMaterialNode> m_NodesToDraw = new HashSet<AbstractMaterialNode>();                  // nodes to rebuild the texture for
+        HashSet<AbstractMaterialNode> m_TimedNodes = new HashSet<AbstractMaterialNode>();                   // nodes that are dependent on a time node -- i.e. animated -- need to redraw every frame
+        bool m_RefreshTimedNodes;                                                                           // flag to trigger rebuilding the list of timed nodes
 
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
@@ -105,12 +112,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             var shaderData = new PreviewShaderData
             {
                 node = node,
-                isCompiling = false,
+                passesCompiling = 0,
+                isOutOfDate = true,
                 hasError = false,
-                shader = ShaderUtil.CreateShaderAsset(k_EmptyShader, false)
             };
-            shaderData.shader.hideFlags = HideFlags.HideAndDontSave;
-            shaderData.mat = new Material(shaderData.shader) {hideFlags = HideFlags.HideAndDontSave};
             renderData.shaderData = shaderData;
 
             m_RenderDatas.Add(node.guid, renderData);
@@ -126,7 +131,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 onPrimaryMasterChanged();
             }
 
-            m_NodesToUpdate.Add(node);
+            m_NodesNeedsRecompile.Add(node);
         }
 
         void OnNodeModified(AbstractMaterialNode node, ModificationScope scope)
@@ -134,20 +139,30 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (scope == ModificationScope.Topological ||
                 scope == ModificationScope.Graph)
             {
-                m_NodesToUpdate.Add(node);
-
+                m_NodesShaderChanged.Add(node);
                 m_RefreshTimedNodes = true;
             }
             else if (scope == ModificationScope.Node)
             {
+                // if we only changed a constant on the node, we don't have to recompile the shader for it, just re-render it with the updated constant
                 m_NodesToDraw.Add(node);
             }
         }
 
-        Stack<AbstractMaterialNode> m_NodeWave = new Stack<AbstractMaterialNode>();
-        List<IEdge> m_Edges = new List<IEdge>();
-        List<MaterialSlot> m_Slots = new List<MaterialSlot>();
-        List<AbstractMaterialNode> m_NextLevelNodes = new List<AbstractMaterialNode>();
+        // temp structures that are kept around statically to avoid GC churn
+        static Stack<AbstractMaterialNode> m_TempNodeWave = new Stack<AbstractMaterialNode>();
+        static HashSet<AbstractMaterialNode> m_TempAddedToNodeWave = new HashSet<AbstractMaterialNode>();
+
+        // cache the Action to avoid GC
+        Action<AbstractMaterialNode> AddNextLevelNodesToWave =
+            nextLevelNode =>
+            {
+                if (!m_TempAddedToNodeWave.Contains(nextLevelNode))
+                {
+                    m_TempNodeWave.Push(nextLevelNode);
+                    m_TempAddedToNodeWave.Add(nextLevelNode);
+                }
+            };
 
         enum PropagationDirection
         {
@@ -155,53 +170,61 @@ namespace UnityEditor.ShaderGraph.Drawing
             Downstream
         }
 
-        void PropagateNodeList<T>(T nodes, PropagationDirection dir) where T : ICollection<AbstractMaterialNode>
+        // ADDs all nodes in sources, and all nodes in the given direction relative to them, into result
+        // sources and result can be the same HashSet
+        void PropagateNodes(HashSet<AbstractMaterialNode> sources, PropagationDirection dir, HashSet<AbstractMaterialNode> result)
         {
-            m_NodeWave.Clear();
-            foreach (var node in nodes)
-                m_NodeWave.Push(node);
-
-            while (m_NodeWave.Count > 0)
+            // NodeWave represents the list of nodes we still have to process and add to result
+            m_TempNodeWave.Clear();
+            m_TempAddedToNodeWave.Clear();
+            foreach (var node in sources)
             {
-                var node = m_NodeWave.Pop();
+                m_TempNodeWave.Push(node);
+                m_TempAddedToNodeWave.Add(node);
+            }
+
+            while (m_TempNodeWave.Count > 0)
+            {
+                var node = m_TempNodeWave.Pop();
                 if (node == null)
                     continue;
 
-                m_NextLevelNodes.Clear();
-                GetConnectedNodes(node, dir, m_NextLevelNodes);
-                foreach (var nextNode in m_NextLevelNodes)
-                {
-                    nodes.Add(nextNode);
-                    m_NodeWave.Push(nextNode);
-                }
+                result.Add(node);
+
+                // grab connected nodes in propagation direction, add them to the node wave
+                ForeachConnectedNode(node, dir, AddNextLevelNodesToWave);
             }
+
+            // clean up any temp data
+            m_TempNodeWave.Clear();
+            m_TempAddedToNodeWave.Clear();
         }
 
-        void GetConnectedNodes<T>(AbstractMaterialNode node, PropagationDirection dir, T connections) where T : ICollection<AbstractMaterialNode>
+        void ForeachConnectedNode(AbstractMaterialNode node, PropagationDirection dir, Action<AbstractMaterialNode> action)
         {
-            // Loop through all nodes that the node feeds into.
-            m_Slots.Clear();
-            if (dir == PropagationDirection.Downstream)
-                node.GetOutputSlots(m_Slots);
-            else
-                node.GetInputSlots(m_Slots);
-            foreach (var slot in m_Slots)
+            using (var tempEdges = PooledList<IEdge>.Get())
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                m_Edges.Clear();
-                m_Graph.GetEdges(slot.slotReference, m_Edges);
-                foreach (var edge in m_Edges)
+                // Loop through all nodes that the node feeds into.
+                if (dir == PropagationDirection.Downstream)
+                    node.GetOutputSlots(tempSlots);
+                else
+                    node.GetInputSlots(tempSlots);
+
+                foreach (var slot in tempSlots)
                 {
-                    // We look at each node we feed into.
-                    var connectedSlot = (dir == PropagationDirection.Downstream) ? edge.inputSlot : edge.outputSlot;
-                    var connectedNodeGuid = connectedSlot.nodeGuid;
-                    var connectedNode = m_Graph.GetNodeFromGuid(connectedNodeGuid);
+                    // get the edges out of each slot
+                    tempEdges.Clear();                            // and here we serialize another list, ouch!
+                    m_Graph.GetEdges(slot.slotReference, tempEdges);
+                    foreach (var edge in tempEdges)
+                    {
+                        // We look at each node we feed into.
+                        var connectedSlot = (dir == PropagationDirection.Downstream) ? edge.inputSlot : edge.outputSlot;
+                        var connectedNodeGuid = connectedSlot.nodeGuid;
+                        var connectedNode = m_Graph.GetNodeFromGuid(connectedNodeGuid);
 
-                    // If the input node is already in the set, we don't need to process it.
-                    if (connections.Contains(connectedNode))
-                        continue;
-
-                    // Add the node to the set, and to the wavefront such that we can process the nodes that it feeds into.
-                    connections.Add(connectedNode);
+                        action(connectedNode);
+                    }
                 }
             }
         }
@@ -216,10 +239,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.removedNodes)
             {
                 DestroyPreview(node.guid);
-                m_NodesToUpdate.Remove(node);
-                m_NodesToDraw.Remove(node);
                 m_RefreshTimedNodes = true;
             }
+
+            // remove the nodes from the state trackers
+            m_NodesShaderChanged.ExceptWith(m_Graph.removedNodes);
+            m_NodesNeedsRecompile.ExceptWith(m_Graph.removedNodes);
+            m_NodesCompiling.ExceptWith(m_Graph.removedNodes);
+            m_NodesToDraw.ExceptWith(m_Graph.removedNodes);
+            m_TimedNodes.ExceptWith(m_Graph.removedNodes);
 
             m_Messenger.ClearNodesFromProvider(this, m_Graph.removedNodes);
 
@@ -234,7 +262,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var node = m_Graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                 if (node != null)
                 {
-                    m_NodesToUpdate.Add(node);
+                    m_NodesShaderChanged.Add(node);
                     m_RefreshTimedNodes = true;
                 }
             }
@@ -243,247 +271,358 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var node = m_Graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                 if(node != null)
                 {
-                    m_NodesToUpdate.Add(node);
+                    m_NodesShaderChanged.Add(node);
                     m_RefreshTimedNodes = true;
                 }
             }
 
-            return m_NodesToUpdate.Count > 0;
+            // This seems to only control whether we rebuild colors or not...
+            return (m_NodesShaderChanged.Count > 0);
         }
-
-        List<PreviewProperty> m_PreviewProperties = new List<PreviewProperty>();
-        List<AbstractMaterialNode> m_PropertyNodes = new List<AbstractMaterialNode>();
 
         void CollectShaderProperties(AbstractMaterialNode node, PreviewRenderData renderData)
         {
-            m_PreviewProperties.Clear();
-            m_PropertyNodes.Clear();
-
-            m_PropertyNodes.Add(node);
-            PropagateNodeList(m_PropertyNodes, PropagationDirection.Upstream);
-
-            foreach (var propNode in m_PropertyNodes)
+            using (var tempPropertyNodes = PooledHashSet<AbstractMaterialNode>.Get())
+            using (var tempPreviewProps = PooledList<PreviewProperty>.Get())
             {
-                propNode.CollectPreviewMaterialProperties(m_PreviewProperties);
+                tempPropertyNodes.Add(node);
+                PropagateNodes(tempPropertyNodes, PropagationDirection.Upstream, tempPropertyNodes);
+                foreach (var propNode in tempPropertyNodes)
+                {
+                    propNode.CollectPreviewMaterialProperties(tempPreviewProps);
+                }
+
+                foreach (var prop in m_Graph.properties)
+                    tempPreviewProps.Add(prop.GetPreviewMaterialProperty());
+
+                foreach (var previewProperty in tempPreviewProps)
+                    renderData.shaderData.mat.SetPreviewProperty(previewProperty);
             }
-
-            foreach (var prop in m_Graph.properties)
-                m_PreviewProperties.Add(prop.GetPreviewMaterialProperty());
-
-            foreach (var previewProperty in m_PreviewProperties)
-                renderData.shaderData.mat.SetPreviewProperty(previewProperty);
         }
 
-        List<PreviewRenderData> m_RenderList2D = new List<PreviewRenderData>();
-        List<PreviewRenderData> m_RenderList3D = new List<PreviewRenderData>();
-
-        public void RenderPreviews()
+        private static readonly ProfilerMarker RenderPreviewsMarker = new ProfilerMarker("RenderPreviews");
+        public void RenderPreviews(bool requestShaders = true)
         {
-            UpdateShaders();
-            UpdateTimedNodeList();
-
-            PropagateNodeList(m_NodesToDraw, PropagationDirection.Downstream);
-            m_NodesToDraw.UnionWith(m_TimedNodes);
-
-            var time = Time.realtimeSinceStartup;
-            var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
-
-            foreach (var node in m_NodesToDraw)
+            using (RenderPreviewsMarker.Auto())
+            using (var renderList2D = PooledList<PreviewRenderData>.Get())
+            using (var renderList3D = PooledList<PreviewRenderData>.Get())
             {
-                if(node == null || !node.hasPreview || !node.previewExpanded)
-                    continue;
+                if (requestShaders)
+                    UpdateShaders();
+                UpdateTimedNodeList();
 
-                var renderData = m_RenderDatas[node.guid];
+                PropagateNodes(m_NodesToDraw, PropagationDirection.Downstream, m_NodesToDraw);
+                m_NodesToDraw.UnionWith(m_TimedNodes);
 
-                CollectShaderProperties(node, renderData);
-                renderData.shaderData.mat.SetVector("_TimeParameters", timeParameters);
+                var time = Time.realtimeSinceStartup;
+                var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
 
-                if (renderData.shaderData.shader == null)
+                foreach (var node in m_NodesToDraw)
                 {
-                    renderData.texture = null;
+                    if (node == null || !node.hasPreview || !node.previewExpanded)
+                        continue;
+
+                    var renderData = m_RenderDatas[node.guid];
+
+                    if ((renderData.shaderData.shader == null) || (renderData.shaderData.mat == null))
+                    {
+                        // avoid calling NotifyPreviewChanged repeatedly
+                        if (renderData.texture != null)
+                        {
+                            renderData.texture = null;
+                            renderData.NotifyPreviewChanged();
+                        }
+                        continue;
+                    }
+
+                    CollectShaderProperties(node, renderData);
+                    renderData.shaderData.mat.SetVector("_TimeParameters", timeParameters);
+
+                    if (renderData.shaderData.hasError)
+                    {
+                        renderData.texture = m_ErrorTexture;
+                        renderData.NotifyPreviewChanged();
+                        continue;
+                    }
+
+                    if (renderData.previewMode == PreviewMode.Preview2D)
+                        renderList2D.Add(renderData);
+                    else
+                        renderList3D.Add(renderData);
+                }
+
+                EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
+
+                m_SceneResources.light0.enabled = true;
+                m_SceneResources.light0.intensity = 1.0f;
+                m_SceneResources.light0.transform.rotation = Quaternion.Euler(50f, 50f, 0);
+                m_SceneResources.light1.enabled = true;
+                m_SceneResources.light1.intensity = 1.0f;
+                m_SceneResources.camera.clearFlags = CameraClearFlags.Color;
+
+                // Render 2D previews
+                m_SceneResources.camera.transform.position = -Vector3.forward * 2;
+                m_SceneResources.camera.transform.rotation = Quaternion.identity;
+                m_SceneResources.camera.orthographicSize = 0.5f;
+                m_SceneResources.camera.orthographic = true;
+
+                foreach (var renderData in renderList2D)
+                    RenderPreview(renderData, m_SceneResources.quad, Matrix4x4.identity);
+
+                // Render 3D previews
+                m_SceneResources.camera.transform.position = -Vector3.forward * 5;
+                m_SceneResources.camera.transform.rotation = Quaternion.identity;
+                m_SceneResources.camera.orthographic = false;
+
+                foreach (var renderData in renderList3D)
+                    RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity);
+
+                var renderMasterPreview = masterRenderData != null && m_NodesToDraw.Contains(masterRenderData.shaderData.node);
+                if (renderMasterPreview && masterRenderData.shaderData.mat != null)
+                {
+                    CollectShaderProperties(masterRenderData.shaderData.node, masterRenderData);
+
+                    if (m_NewMasterPreviewSize.HasValue)
+                    {
+                        if (masterRenderData.renderTexture != null)
+                            Object.DestroyImmediate(masterRenderData.renderTexture, true);
+                        masterRenderData.renderTexture = new RenderTexture((int)m_NewMasterPreviewSize.Value.x, (int)m_NewMasterPreviewSize.Value.y, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
+                        masterRenderData.renderTexture.Create();
+                        masterRenderData.texture = masterRenderData.renderTexture;
+                        m_NewMasterPreviewSize = null;
+                    }
+                    var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh : m_SceneResources.sphere;
+                    var previewTransform = Matrix4x4.Rotate(m_Graph.previewData.rotation);
+                    var scale = m_Graph.previewData.scale;
+                    previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
+                    previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
+
+                    RenderPreview(masterRenderData, mesh, previewTransform);
+                }
+
+                m_SceneResources.light0.enabled = false;
+                m_SceneResources.light1.enabled = false;
+
+                foreach (var renderData in renderList2D)
                     renderData.NotifyPreviewChanged();
-                    continue;
-                }
-                if (renderData.shaderData.hasError)
-                {
-                    renderData.texture = m_ErrorTexture;
+                foreach (var renderData in renderList3D)
                     renderData.NotifyPreviewChanged();
-                    continue;
-                }
+                if (renderMasterPreview)
+                    masterRenderData.NotifyPreviewChanged();
 
-                if (renderData.previewMode == PreviewMode.Preview2D)
-                    m_RenderList2D.Add(renderData);
-                else
-                    m_RenderList3D.Add(renderData);
+                m_NodesToDraw.Clear();
             }
-
-            EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
-
-            m_SceneResources.light0.enabled = true;
-            m_SceneResources.light0.intensity = 1.0f;
-            m_SceneResources.light0.transform.rotation = Quaternion.Euler(50f, 50f, 0);
-            m_SceneResources.light1.enabled = true;
-            m_SceneResources.light1.intensity = 1.0f;
-            m_SceneResources.camera.clearFlags = CameraClearFlags.Color;
-
-            // Render 2D previews
-            m_SceneResources.camera.transform.position = -Vector3.forward * 2;
-            m_SceneResources.camera.transform.rotation = Quaternion.identity;
-            m_SceneResources.camera.orthographicSize = 0.5f;
-            m_SceneResources.camera.orthographic = true;
-
-            foreach (var renderData in m_RenderList2D)
-                RenderPreview(renderData, m_SceneResources.quad, Matrix4x4.identity);
-
-            // Render 3D previews
-            m_SceneResources.camera.transform.position = -Vector3.forward * 5;
-            m_SceneResources.camera.transform.rotation = Quaternion.identity;
-            m_SceneResources.camera.orthographic = false;
-
-            foreach (var renderData in m_RenderList3D)
-                RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity);
-
-            var renderMasterPreview = masterRenderData != null && m_NodesToDraw.Contains(masterRenderData.shaderData.node);
-            if (renderMasterPreview)
-            {
-                CollectShaderProperties(masterRenderData.shaderData.node, masterRenderData);
-
-                if (m_NewMasterPreviewSize.HasValue)
-                {
-                    if (masterRenderData.renderTexture != null)
-                        Object.DestroyImmediate(masterRenderData.renderTexture, true);
-                    masterRenderData.renderTexture = new RenderTexture((int)m_NewMasterPreviewSize.Value.x, (int)m_NewMasterPreviewSize.Value.y, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
-                    masterRenderData.renderTexture.Create();
-                    masterRenderData.texture = masterRenderData.renderTexture;
-                    m_NewMasterPreviewSize = null;
-                }
-                var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh :  m_SceneResources.sphere;
-                var previewTransform = Matrix4x4.Rotate(m_Graph.previewData.rotation);
-                var scale = m_Graph.previewData.scale;
-                previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
-                previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
-
-                RenderPreview(masterRenderData, mesh, previewTransform);
-            }
-
-            m_SceneResources.light0.enabled = false;
-            m_SceneResources.light1.enabled = false;
-
-            foreach (var renderData in m_RenderList2D)
-                renderData.NotifyPreviewChanged();
-            foreach (var renderData in m_RenderList3D)
-                renderData.NotifyPreviewChanged();
-            if (renderMasterPreview)
-                masterRenderData.NotifyPreviewChanged();
-
-            m_RenderList2D.Clear();
-            m_RenderList3D.Clear();
-            m_NodesToDraw.Clear();
         }
 
         public void ForceShaderUpdate()
         {
             foreach (var data in m_RenderDatas.Values)
             {
-                m_NodesToUpdate.Add(data.shaderData.node);
+                m_NodesNeedsRecompile.Add(data.shaderData.node);
             }
         }
 
-        void UpdateShaders()
+        private static readonly ProfilerMarker ProcessCompletedShaderCompilationsMarker = new ProfilerMarker("ProcessCompletedShaderCompilations");
+        void ProcessCompletedShaderCompilations()
         {
             // Check for shaders that finished compiling and set them to redraw
-            foreach (var renderData in m_RenderDatas.Values)
+            using (ProcessCompletedShaderCompilationsMarker.Auto())
+            using (var nodesCompiled = PooledHashSet<AbstractMaterialNode>.Get())
             {
-                if (renderData.shaderData.isCompiling)
+                foreach (var node in m_NodesCompiling)
                 {
-                    var isCompiled = true;
+                    PreviewRenderData renderData = m_RenderDatas[node.guid];
+                    PreviewShaderData shaderData = renderData.shaderData;
+                    Assert.IsTrue(shaderData.passesCompiling > 0);
+
+                    // check that all passes have compiled
+                    var allPassesCompiled = true;
                     for (var i = 0; i < renderData.shaderData.mat.passCount; i++)
                     {
                         if (!ShaderUtil.IsPassCompiled(renderData.shaderData.mat, i))
                         {
-                            isCompiled = false;
+                            allPassesCompiled = false;
                             break;
                         }
                     }
 
-                    if (!isCompiled)
+                    if (!allPassesCompiled)
                     {
                         continue;
                     }
 
-                    // Force the material to re-generate all it's shader properties.
+                    // Force the material to re-generate all it's shader properties, by reassigning the shader
                     renderData.shaderData.mat.shader = renderData.shaderData.shader;
-
-                    renderData.shaderData.isCompiling = false;
+                    renderData.shaderData.passesCompiling = 0;
+                    renderData.shaderData.isOutOfDate = false;
                     CheckForErrors(renderData.shaderData);
-                    m_NodesToDraw.Add(renderData.shaderData.node);
+
+                    nodesCompiled.Add(renderData.shaderData.node);
 
                     var masterNode = renderData.shaderData.node as IMasterNode;
-                    masterNode?.ProcessPreviewMaterial(renderData.shaderData.mat);
-                }
-            }
-
-            if (m_NodesToUpdate.Count == 0)
-                return;
-
-            PropagateNodeList(m_NodesToUpdate, PropagationDirection.Downstream);
-            // Reset error states for the UI, the shader, and all render data for nodes we're updating
-            m_Messenger.ClearNodesFromProvider(this, m_NodesToUpdate);
-            var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
-            ShaderUtil.allowAsyncCompilation = true;
-
-            foreach (var node in m_NodesToUpdate)
-            {
-                if (node is IMasterNode && node == masterRenderData.shaderData.node && !(node is VfxMasterNode))
-                {
-                    UpdateMasterNodeShader();
-                    continue;
-                }
-
-                if (!node.hasPreview && !(node is SubGraphOutputNode || node is VfxMasterNode))
-                    continue;
-
-                var renderData = m_RenderDatas[node.guid];
-                if (renderData == null)
-                {
-                    continue;
-                }
-                ShaderUtil.ClearCachedData(renderData.shaderData.shader);
-
-                // Get shader code and compile
-                var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
-                BeginCompile(renderData, generator.generatedShader);
-
-                // Calculate the PreviewMode from upstream nodes
-                // If any upstream node is 3D that trickles downstream
-                List<AbstractMaterialNode> upstreamNodes = new List<AbstractMaterialNode>();
-                NodeUtils.DepthFirstCollectNodesFromNode(upstreamNodes, node, NodeUtils.IncludeSelf.Include);
-                renderData.previewMode = PreviewMode.Preview2D;
-                foreach (var pNode in upstreamNodes)
-                {
-                    if (pNode.previewMode == PreviewMode.Preview3D)
+                    if (masterNode != null)
                     {
-                        renderData.previewMode = PreviewMode.Preview3D;
-                        break;
+                        masterNode.ProcessPreviewMaterial(renderData.shaderData.mat);
                     }
                 }
-            }
 
-            ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
-            m_NodesToUpdate.Clear();
+                // removed compiled nodes from compiling list
+                m_NodesCompiling.ExceptWith(nodesCompiled);
+
+                // and add them to the draw list
+                m_NodesToDraw.UnionWith(nodesCompiled);
+            }
         }
 
+        private static readonly ProfilerMarker KickOffShaderCompilationsMarker = new ProfilerMarker("KickOffShaderCompilations");
+        void KickOffShaderCompilations()
+        {
+            // Start compilation for nodes that need to recompile
+            using (KickOffShaderCompilationsMarker.Auto())
+            using (var nodesToCompile = PooledHashSet<AbstractMaterialNode>.Get())
+            {
+                // master node compile is first in the priority list, as it takes longer than the other previews
+                if ((m_NodesCompiling.Count + nodesToCompile.Count < m_MaxNodesCompiling) &&
+                    m_NodesNeedsRecompile.Contains(m_MasterRenderData.shaderData.node) &&
+                    !m_NodesCompiling.Contains(m_MasterRenderData.shaderData.node) &&
+                    ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0)))    // master node requires an SRP
+                {
+                    nodesToCompile.Add(m_MasterRenderData.shaderData.node);
+                }
+
+                // add each node to compile list if it needs a preview, is not already compiling, and we have room
+                // (we don't want to double kick compiles, so wait for the first one to get back before kicking another)
+                if (m_NodesCompiling.Count + nodesToCompile.Count < m_MaxNodesCompiling)
+                {
+                    foreach (var node in m_NodesNeedsRecompile)
+                    {
+                        if (node.hasPreview && node.previewExpanded && !m_NodesCompiling.Contains(node))
+                        {
+                            nodesToCompile.Add(node);
+                            if (m_NodesCompiling.Count + nodesToCompile.Count >= m_MaxNodesCompiling)
+                                break;
+                        }
+                    }
+                }
+
+                // remove the selected nodes from the recompile list
+                m_NodesNeedsRecompile.ExceptWith(nodesToCompile);
+
+                // Reset error states for the UI, the shader, and all render data for nodes we're recompiling
+                m_Messenger.ClearNodesFromProvider(this, nodesToCompile);
+
+                // Force async compile on
+                var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
+                ShaderUtil.allowAsyncCompilation = true;
+
+                // kick async compiles for all nodes in m_NodeToCompile
+                foreach (var node in nodesToCompile)
+                {
+                    if (node is IMasterNode && node == masterRenderData.shaderData.node && !(node is VfxMasterNode))
+                    {
+                        UpdateMasterNodeShader();
+                        continue;
+                    }
+
+                    Assert.IsFalse(!node.hasPreview && !(node is SubGraphOutputNode || node is VfxMasterNode));
+
+                    var renderData = m_RenderDatas[node.guid];
+                    if (renderData == null)
+                    {
+                        continue;
+                    }
+
+                    // Get shader code and compile
+                    var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
+                    BeginCompile(renderData, generator.generatedShader);
+
+                    // Calculate the PreviewMode from upstream nodes
+                    // If any upstream node is 3D that trickles downstream
+                    List<AbstractMaterialNode> upstreamNodes = new List<AbstractMaterialNode>();
+                    NodeUtils.DepthFirstCollectNodesFromNode(upstreamNodes, node, NodeUtils.IncludeSelf.Include);
+                    renderData.previewMode = PreviewMode.Preview2D;
+                    foreach (var pNode in upstreamNodes)
+                    {
+                        if (pNode.previewMode == PreviewMode.Preview3D)
+                        {
+                            renderData.previewMode = PreviewMode.Preview3D;
+                            break;
+                        }
+                    }
+                }
+
+                ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
+            }
+        }
+
+        private static readonly ProfilerMarker UpdateShadersMarker = new ProfilerMarker("UpdateShaders");
+        void UpdateShaders()
+        {
+            using (UpdateShadersMarker.Auto())
+            {
+                ProcessCompletedShaderCompilations();
+
+                if (m_NodesShaderChanged.Count > 0)
+                {
+                    // nodes with shader changes cause all downstream nodes to need recompilation
+                    PropagateNodes(m_NodesShaderChanged, PropagationDirection.Downstream, m_NodesNeedsRecompile);
+                    m_NodesShaderChanged.Clear();
+                }
+
+                // if there's nothing to update, or if too many nodes are still compiling, then just return
+                if ((m_NodesNeedsRecompile.Count == 0) || (m_NodesCompiling.Count >= m_MaxNodesCompiling))
+                    return;
+
+                // flag all nodes in m_NodesNeedRecompile as having out of date textures, and redraw them
+                foreach (var node in m_NodesNeedsRecompile)
+                {
+                    PreviewRenderData previewRendererData = m_RenderDatas[node.guid];
+                    if (!previewRendererData.shaderData.isOutOfDate)
+                    {
+                        previewRendererData.shaderData.isOutOfDate = true;
+                        previewRendererData.NotifyPreviewChanged();
+                    }
+                }
+
+                InitializeSRPIfNeeded();    // SRP must be initialized to compile master node previews
+
+                KickOffShaderCompilations();
+            }
+        }
+
+        private static readonly ProfilerMarker BeginCompileMarker = new ProfilerMarker("BeginCompile");
         void BeginCompile(PreviewRenderData renderData, string shaderStr)
         {
-            var shaderData = renderData.shaderData;
-            ShaderUtil.ClearCachedData(shaderData.shader);
-            ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
-            for (var i = 0; i < shaderData.mat.passCount; i++)
+            using (BeginCompileMarker.Auto())
             {
-                ShaderUtil.CompilePass(shaderData.mat, i);
+                var shaderData = renderData.shaderData;
+
+                // want to ensure this so we don't get confused with multiple compile versions in flight
+                Assert.IsTrue(shaderData.passesCompiling == 0);
+
+                if (shaderData.shader == null)
+                {
+                    shaderData.shader = ShaderUtil.CreateShaderAsset(shaderStr, false);
+                    shaderData.shader.hideFlags = HideFlags.HideAndDontSave;
+                }
+                else
+                {
+                    ShaderUtil.ClearCachedData(shaderData.shader);
+                    ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
+                }
+
+                if (shaderData.mat == null)
+                {
+                    shaderData.mat = new Material(shaderData.shader) { hideFlags = HideFlags.HideAndDontSave };
+                }
+
+                shaderData.passesCompiling = shaderData.mat.passCount;
+                for (var i = 0; i < shaderData.mat.passCount; i++)
+                {
+                    ShaderUtil.CompilePass(shaderData.mat, i);
+                }
+                m_NodesCompiling.Add(shaderData.node);
             }
-            shaderData.isCompiling = true;
-            renderData.NotifyPreviewChanged();
         }
 
         void UpdateTimedNodeList()
@@ -492,13 +631,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             m_TimedNodes.Clear();
-
             foreach (var timeNode in m_Graph.GetNodes<AbstractMaterialNode>().Where(node => node.RequiresTime()))
             {
                 m_TimedNodes.Add(timeNode);
             }
+            PropagateNodes(m_TimedNodes, PropagationDirection.Downstream, m_TimedNodes);
 
-            PropagateNodeList(m_TimedNodes, PropagationDirection.Downstream);
             m_RefreshTimedNodes = false;
         }
 
@@ -535,6 +673,35 @@ namespace UnityEditor.ShaderGraph.Drawing
             renderData.texture = renderData.renderTexture;
         }
 
+        void InitializeSRPIfNeeded()
+        {
+            if ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0))
+            {
+                return;
+            }
+
+            // issue a dummy SRP render to force SRP initialization, use the master node texture
+            PreviewRenderData renderData = m_MasterRenderData;
+
+            var previousRenderTexture = RenderTexture.active;
+
+            //Temp workaround for alpha previews...
+            var temp = RenderTexture.GetTemporary(renderData.renderTexture.descriptor);
+            RenderTexture.active = temp;
+            Graphics.Blit(Texture2D.whiteTexture, temp, m_SceneResources.checkerboardMaterial);
+
+            m_SceneResources.camera.targetTexture = temp;
+
+            var previousUseSRP = Unsupported.useScriptableRenderPipeline;
+            Unsupported.useScriptableRenderPipeline = true;
+            m_SceneResources.camera.Render();
+            Unsupported.useScriptableRenderPipeline = previousUseSRP;
+
+            RenderTexture.ReleaseTemporary(temp);
+
+            RenderTexture.active = previousRenderTexture;
+        }
+
         void CheckForErrors(PreviewShaderData shaderData)
         {
             shaderData.hasError = ShaderUtil.ShaderHasError(shaderData.shader);
@@ -568,16 +735,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     shaderData.shader = null;
                 }
                 return;
-            }
-
-            if (shaderData.shader == null)
-            {
-                shaderData.shader = ShaderUtil.CreateShaderAsset(shaderData.shaderString, false);
-                shaderData.shader.hideFlags = HideFlags.HideAndDontSave;
-            }
-            else
-            {
-                ShaderUtil.ClearCachedData(shaderData.shader);
             }
 
             BeginCompile(masterRenderData, shaderData.shaderString);
@@ -655,48 +812,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             throw new Exception("PreviewManager was not disposed of properly.");
         }
-
-        const string k_EmptyShader = @"
-Shader ""hidden/preview""
-{
-    SubShader
-    {
-        Tags { ""RenderType""=""Opaque"" }
-        LOD 100
-
-        Pass
-        {
-            CGPROGRAM
-            #pragma    vertex    vert
-            #pragma    fragment    frag
-
-            #include    ""UnityCG.cginc""
-
-            struct    appdata
-            {
-                float4 vertex : POSITION;
-            };
-
-            struct v2f
-            {
-                float4 vertex : SV_POSITION;
-            };
-
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                return o;
-            }
-
-            fixed4 frag (v2f i) : SV_Target
-            {
-                return 0;
-            }
-            ENDCG
-        }
-    }
-}";
     }
 
     delegate void OnPreviewChanged();
@@ -707,7 +822,8 @@ Shader ""hidden/preview""
         public Shader shader { get; set; }
         public Material mat { get; set; }
         public string shaderString { get; set; }
-        public bool isCompiling { get; set; }
+        public int passesCompiling { get; set; }
+        public bool isOutOfDate { get; set; }
         public bool hasError { get; set; }
     }
 
