@@ -100,6 +100,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for specular AA from geometric curvature in AxF
 - Added support for baked AO (no input for now) in AxF
 - Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
+- Added a frame setting for alpha to mask.
+- Added support for custom passes in the AOV API
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
