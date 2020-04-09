@@ -24,6 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
         /// <summary>Default HDAdditionalCameraData</summary>
         static internal HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
+        
+        static List<CustomPassVolume> m_TempCustomPassVolumeList = new List<CustomPassVolume>();
 
         static Texture3D m_ClearTexture3D;
         static RTHandle m_ClearTexture3DRTH;
@@ -335,7 +337,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, colorBuffer.rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -354,7 +355,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffer, depthStencilBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, colorBuffer.rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -373,7 +373,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffers, depthStencilBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, depthStencilBuffer.rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -734,12 +733,17 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 return false;
 
-            var customPass = CustomPassVolume.GetActivePassVolume(injectionPoint);
+            bool executed = false;
+            CustomPassVolume.GetActivePassVolumes(injectionPoint, m_TempCustomPassVolumeList);
+            foreach(var customPassVolume in m_TempCustomPassVolumeList)
+            {
+                if (customPassVolume == null)
+                    return false;
 
-            if (customPass == null)
-                return false;
+                executed |= customPassVolume.WillExecuteInjectionPoint(hdCamera);
+            }
 
-            return customPass.WillExecuteInjectionPoint(hdCamera);
+            return executed;
         }
 
         internal static bool PostProcessIsFinalPass(HDCamera hdCamera)

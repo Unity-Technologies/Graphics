@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     static class DiffusionProfileMaterialUI
     {
-        static GUIContent    diffusionProfileNotInHDRPAsset = new GUIContent("You must add this diffusion profile in the HDRP asset to make it work", EditorGUIUtility.IconContent("console.warnicon").image);
+        static GUIContent    diffusionProfileNotInHDRPAsset = new GUIContent("You must make sure that this diffusion profile is either referenced in the HDRP asset or in the Diffusion Profile Override to make it work.", EditorGUIUtility.IconContent("console.infoicon").image);
 
         public static bool IsSupported(MaterialEditor materialEditor)
         {

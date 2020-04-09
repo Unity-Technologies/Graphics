@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
         }
 
         public void Init(HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
-        {   
+        {
             // Keep track of the resources
             m_TemporalFilterCS = rpRTResources.temporalFilterCS;
 
@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
         // Denoiser variant for non history array
         public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera,
             RTHandle noisySignal, RTHandle historySignal,
-            RTHandle outputSignal, 
+            RTHandle outputSignal,
             bool singleChannel = true, float historyValidity = 1.0f)
         {
                 // If we do not have a depth and normal history buffers, we can skip right away
@@ -60,8 +60,6 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
 
                 // First of all we need to validate the history to know where we can or cannot use the history signal
                 int m_KernelFilter = m_TemporalFilterCS.FindKernel("ValidateHistory");
-                var historyScale = new Vector2(hdCamera.actualWidth / (float)historySignal.rt.width, hdCamera.actualHeight / (float)historySignal.rt.height);
-                cmd.SetComputeVectorParam(m_TemporalFilterCS, HDShaderIDs._RTHandleScaleHistory, historyScale);
                 cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                 cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._HistoryDepthTexture, historyDepthBuffer);
                 cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
@@ -128,8 +126,6 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
 
             // First of all we need to validate the history to know where we can or cannot use the history signal
             int m_KernelFilter = m_TemporalFilterCS.FindKernel("ValidateHistory");
-            var historyScale = new Vector2(hdCamera.actualWidth / (float)historySignal.rt.width, hdCamera.actualHeight / (float)historySignal.rt.height);
-            cmd.SetComputeVectorParam(m_TemporalFilterCS, HDShaderIDs._RTHandleScaleHistory, historyScale);
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._HistoryDepthTexture, historyDepthBuffer);
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());

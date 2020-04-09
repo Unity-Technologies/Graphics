@@ -30,7 +30,6 @@ namespace UnityEngine.VFX.Utility
         /// </summary>
         public virtual void Reset()
         {
-
         }
 
         /// <summary>
