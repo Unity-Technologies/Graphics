@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderPropertyId.blitScaleBias, scaleBias);
                 cmd.SetGlobalVector(ShaderPropertyId.blitScaleBiasRt, scaleBiasRT);
 
-                cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
+                cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4);
             }
             else if (cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
             {

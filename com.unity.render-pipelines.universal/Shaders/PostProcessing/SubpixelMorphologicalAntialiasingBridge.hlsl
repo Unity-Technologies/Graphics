@@ -52,10 +52,8 @@ VaryingsEdge VertEdge(Attributes input)
     VaryingsEdge output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-#ifdef _DRAW_PROCEDURE_QUAD_BLIT
-    output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
-    output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
-    output.uv = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+#if _USE_DRAW_PROCEDURAL
+    GetProceduralQuad(input.vertexID, output.positionCS, output.uv);
 #else
     output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = input.uv;
@@ -87,10 +85,8 @@ VaryingsBlend VertBlend(Attributes input)
     VaryingsBlend output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-#ifdef _DRAW_PROCEDURE_QUAD_BLIT
-    output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
-    output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
-    output.uv = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+#if _USE_DRAW_PROCEDURAL
+    GetProceduralQuad(input.vertexID, output.positionCS, output.uv);
 #else
     output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = input.uv;
@@ -121,10 +117,8 @@ VaryingsNeighbor VertNeighbor(Attributes input)
     VaryingsNeighbor output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-#ifdef _DRAW_PROCEDURE_QUAD_BLIT
-    output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
-    output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
-    output.uv = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+#if _USE_DRAW_PROCEDURAL
+    GetProceduralQuad(input.vertexID, output.positionCS, output.uv);
 #else
     output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = input.uv;

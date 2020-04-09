@@ -713,12 +713,9 @@ namespace UnityEngine.Rendering.Universal
             if (!cameraData.xr.enabled)
                 return;
 
-            if (cameraData.xr.singlePassEnabled)
-            {
-                cameraData.xr.StartSinglePass(cmd);
-            }
+            cameraData.xr.StartSinglePass(cmd);
 
-            cmd.EnableShaderKeyword(ShaderKeywordStrings.DrawProceduleQuadBlit);
+            cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }
@@ -728,11 +725,9 @@ namespace UnityEngine.Rendering.Universal
             if (!cameraData.xr.enabled)
                 return;
 
-            if (cameraData.xr.singlePassEnabled)
-            {
-                cameraData.xr.StopSinglePass(cmd);
-            }
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.DrawProceduleQuadBlit);
+            cameraData.xr.StopSinglePass(cmd);
+
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }

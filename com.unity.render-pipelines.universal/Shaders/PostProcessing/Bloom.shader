@@ -8,7 +8,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
     HLSLINCLUDE
 
         #pragma multi_compile_local _ _USE_RGBM
-        #pragma multi_compile _ _DRAW_PROCEDURE_QUAD_BLIT
+        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
@@ -58,8 +58,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         half4 FragPrefilter(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
-            half3 color = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, uv).xyz;
+            half3 color = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, input.uv).xyz;
 
         #if UNITY_COLORSPACE_GAMMA
             color = SRGBToLinear(color);
