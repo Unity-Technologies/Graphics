@@ -155,7 +155,9 @@ namespace UnityEngine.Rendering.Universal
             passInfo.cullingPassId = xrRenderPass.cullingPassIndex;
             passInfo.cullingParams = cullingParameters;
             passInfo.views.Clear();
-            passInfo.renderTarget = xrRenderPass.renderTarget;
+            // XRTODO: here we are making assuption that XR always renders to all depth slices because URP is lacking regarding to depth slice handling.
+            // Relax this constrant after adding better depth slice support to URP(being able to tell if RenderTexture belongs to a slice of another RenderTargetArray). 
+            passInfo.renderTarget = new RenderTargetIdentifier(xrRenderPass.renderTarget, 0, CubemapFace.Unknown, -1);
 
             RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(
                     xrRenderPass.renderTargetDesc.width, xrRenderPass.renderTargetDesc.height, xrRenderPass.renderTargetDesc.colorFormat,
