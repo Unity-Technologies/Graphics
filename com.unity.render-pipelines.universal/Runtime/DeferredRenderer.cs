@@ -487,7 +487,7 @@ namespace UnityEngine.Rendering.Universal
             gbufferAttachmentDescriptors[3] = new AttachmentDescriptor(renderingData.cameraData.cameraTargetDescriptor.graphicsFormat);
             gbufferAttachmentDescriptors[3].ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), false, true);
             //TODO: Investigate which color exactly to pick here, as this is needed for both Scene view and Game view
-            gbufferAttachmentDescriptors[3].ConfigureClear(renderingData.cameraData.camera.backgroundColor, 1, 0);
+            gbufferAttachmentDescriptors[3].ConfigureClear(CoreUtils.ConvertLinearToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
 
 #if UNITY_IOS && !UNITY_EDITOR
             gbufferAttachmentDescriptors[k_GBufferSlicesCount + 1] = new AttachmentDescriptor(GBufferPass.kGBufferFormats[4]);
