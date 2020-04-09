@@ -1839,11 +1839,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cs = m_Resources.shaders.motionBlurCS;
 
-                if (m_EnableAlpha)
-                {
-                    cs.EnableKeyword("ENABLE_ALPHA");
-                }
-
+                CoreUtils.SetKeyword(cs, "ENABLE_ALPHA", m_EnableAlpha);
                 kernel = cs.FindKernel("MotionBlurCS");
 
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);

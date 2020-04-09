@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             ClearColorAndStencil = 0,
             DrawTextureAndClearStencil = 1
         };
-        Material fullscreenPassMaterial;
+        Material m_FullscreenPassMaterial;
 
         // It can be used to configure render targets and their clear state. Also to create temporary render target textures.
         // When empty this render pass will render to the active camera render target.
@@ -35,7 +35,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // Setup code here
             if (string.IsNullOrEmpty(name)) name = "CustomClear";
 
-            fullscreenPassMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRP/CustomClear");
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset != null)
+                m_FullscreenPassMaterial = CoreUtils.CreateEngineMaterial(hdrpAsset.renderPipelineResources.shaders.customClearPS);
         }
 
         protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera camera, CullingResults cullingResult)
@@ -67,25 +69,25 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 // The texture might not cover the entire screen (letter boxing), so in this case clear first to the background color (and stencil)
                 if (scaleBiasRt.x < 1.0f || scaleBiasRt.y < 1.0f)
                 {
-                    fullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                    fullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                    cmd.DrawProcedural(Matrix4x4.identity, fullscreenPassMaterial, (int)PassType.ClearColorAndStencil, MeshTopology.Quads, 4, 1);
+                    m_FullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                    m_FullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                    cmd.DrawProcedural(Matrix4x4.identity, m_FullscreenPassMaterial, (int)PassType.ClearColorAndStencil, MeshTopology.Quads, 4, 1);
                 }
 
-                fullscreenPassMaterial.SetTexture(ShaderIDs.k_BlitTexture, layerData.clearColorTexture);
-                fullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBiasRt, scaleBiasRt);
-                fullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                fullscreenPassMaterial.SetInt(ShaderIDs.k_ClearAlpha, layerData.clearAlpha ? 1 : 0);
+                m_FullscreenPassMaterial.SetTexture(ShaderIDs.k_BlitTexture, layerData.clearColorTexture);
+                m_FullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBiasRt, scaleBiasRt);
+                m_FullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                m_FullscreenPassMaterial.SetInt(ShaderIDs.k_ClearAlpha, layerData.clearAlpha ? 1 : 0);
 
                 // draw a quad (not Triangle), to support letter boxing and stretching 
-                cmd.DrawProcedural(Matrix4x4.identity, fullscreenPassMaterial, (int)PassType.DrawTextureAndClearStencil, MeshTopology.Quads, 4, 1);
+                cmd.DrawProcedural(Matrix4x4.identity, m_FullscreenPassMaterial, (int)PassType.DrawTextureAndClearStencil, MeshTopology.Quads, 4, 1);
             }
         }
 
         protected override void Cleanup()
         {
             // Cleanup code
-            CoreUtils.Destroy(fullscreenPassMaterial);
+            CoreUtils.Destroy(m_FullscreenPassMaterial);
         }
     }
 }

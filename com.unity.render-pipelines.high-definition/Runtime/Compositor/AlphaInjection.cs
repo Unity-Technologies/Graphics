@@ -5,7 +5,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition.Compositor
 {
-    [Serializable, VolumeComponentMenu("Post-processing/Custom/AlphaInjection")]
+    [Serializable]
     internal sealed class AlphaInjection : CustomPostProcessVolumeComponent, IPostProcessComponent
     {
         internal class ShaderIDs
@@ -22,8 +22,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public override void Setup()
         {
-            if (Shader.Find("Hidden/Shader/AlphaInjection") != null)
-                m_Material = new Material(Shader.Find("Hidden/Shader/AlphaInjection"));
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset != null)
+                m_Material = CoreUtils.CreateEngineMaterial(hdrpAsset.renderPipelineResources.shaders.alphaInjectionPS);
         }
 
         public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
