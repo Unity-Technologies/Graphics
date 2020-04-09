@@ -256,6 +256,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SearchWindowProvider = ScriptableObject.CreateInstance<SearcherProvider>();
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
             m_GraphView.nodeCreationRequest = NodeCreationRequest;
+            //regenerate entries when graph view is refocused, to propogate subgraph changes
+            m_GraphView.RegisterCallback<FocusInEvent>( evt => { m_SearchWindowProvider.regenerateEntries = true; });
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
@@ -534,14 +536,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_GraphView == null)
                 return;
 
+            IEnumerable<IShaderNodeView> theViews = m_GraphView.nodes.ToList().OfType<IShaderNodeView>();
+
             var dependentNodes = new List<AbstractMaterialNode>();
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)
             {
-                var theViews = m_GraphView.nodes.ToList().OfType<IShaderNodeView>();
-                var viewsFound = theViews.Where(x => x.node.guid == node.guid).ToList();
-                foreach (var drawableNodeData in viewsFound)
-                    drawableNodeData.OnModified(scope);
+                var nodeView = theViews.FirstOrDefault(x => x.node.guid == node.guid);
+                if (nodeView != null)
+                    nodeView.OnModified(scope);
             }
         }
 
@@ -561,6 +564,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
+            if(m_Graph.addedInputs.Count() > 0 || m_Graph.removedInputs.Count() > 0)
+                m_SearchWindowProvider.regenerateEntries = true;
             m_BlackboardProvider.HandleGraphChanges();
             m_GroupHashSet.Clear();
 

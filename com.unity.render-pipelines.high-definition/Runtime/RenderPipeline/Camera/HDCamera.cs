@@ -566,57 +566,63 @@ namespace UnityEngine.Rendering.HighDefinition
             s_Cleanup.Clear();
         }
 
-        // Set up UnityPerView CBuffer.
-        internal void SetupGlobalParams(CommandBuffer cmd, int frameCount)
+        unsafe internal void UpdateShaderVariableGlobalCB(ref ShaderVariablesGlobal cb, int frameCount)
         {
             bool taaEnabled = frameSettings.IsEnabled(FrameSettingsField.Postprocess)
                 && antialiasing == AntialiasingMode.TemporalAntialiasing
                 && camera.cameraType == CameraType.Game;
 
-            cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix, mainViewConstants.viewMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix, mainViewConstants.invViewMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._ProjMatrix, mainViewConstants.projMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._InvProjMatrix, mainViewConstants.invProjMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix, mainViewConstants.viewProjMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix, mainViewConstants.invViewProjMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, mainViewConstants.nonJitteredViewProjMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix, mainViewConstants.prevViewProjMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._PrevInvViewProjMatrix, mainViewConstants.prevInvViewProjMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._CameraViewProjMatrix, mainViewConstants.viewProjMatrix);
-            cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos, mainViewConstants.worldSpaceCameraPos);
-            cmd.SetGlobalVector(HDShaderIDs._PrevCamPosRWS, mainViewConstants.prevWorldSpaceCameraPos);
-            cmd.SetGlobalVector(HDShaderIDs._ScreenSize, screenSize);
-            cmd.SetGlobalVector(HDShaderIDs._RTHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
-            cmd.SetGlobalVector(HDShaderIDs._RTHandleScaleHistory, m_HistoryRTSystem.rtHandleProperties.rtHandleScale);
-            cmd.SetGlobalVector(HDShaderIDs._ZBufferParams, zBufferParams);
-            cmd.SetGlobalVector(HDShaderIDs._ProjectionParams, projectionParams);
-            cmd.SetGlobalVector(HDShaderIDs.unity_OrthoParams, unity_OrthoParams);
-            cmd.SetGlobalVector(HDShaderIDs._ScreenParams, screenParams);
-            cmd.SetGlobalVector(HDShaderIDs._TaaFrameInfo, new Vector4(taaSharpenStrength, 0, taaFrameIndex, taaEnabled ? 1 : 0));
-            cmd.SetGlobalVector(HDShaderIDs._TaaJitterStrength, taaJitter);
-            cmd.SetGlobalInt(HDShaderIDs._FrameCount, frameCount);
-            cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
+            cb._ViewMatrix = mainViewConstants.viewMatrix;
+            cb._InvViewMatrix = mainViewConstants.invViewMatrix;
+            cb._ProjMatrix = mainViewConstants.projMatrix;
+            cb._InvProjMatrix = mainViewConstants.invProjMatrix;
+            cb._ViewProjMatrix = mainViewConstants.viewProjMatrix;
+            cb._CameraViewProjMatrix = mainViewConstants.viewProjMatrix;
+            cb._InvViewProjMatrix = mainViewConstants.invViewProjMatrix;
+            cb._NonJitteredViewProjMatrix = mainViewConstants.nonJitteredViewProjMatrix;
+            cb._PrevViewProjMatrix = mainViewConstants.prevViewProjMatrix;
+            cb._PrevInvViewProjMatrix = mainViewConstants.prevInvViewProjMatrix;
+            cb._WorldSpaceCameraPos_Internal = mainViewConstants.worldSpaceCameraPos;
+            cb._PrevCamPosRWS_Internal = mainViewConstants.prevWorldSpaceCameraPos;
+            cb._ScreenSize = screenSize;
+            cb._RTHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
+            cb._RTHandleScaleHistory = m_HistoryRTSystem.rtHandleProperties.rtHandleScale;
+            cb._ZBufferParams = zBufferParams;
+            cb._ProjectionParams = projectionParams;
+            cb.unity_OrthoParams = unity_OrthoParams;
+            cb._ScreenParams = screenParams;
+            for (int i = 0; i < 6; ++i)
+                for (int j = 0; j < 4; ++j)
+                    cb._FrustumPlanes[i * 4 + j] = frustumPlaneEquations[i][j];
+            cb._TaaFrameInfo = new Vector4(taaSharpenStrength, 0, taaFrameIndex, taaEnabled ? 1 : 0);
+            cb._TaaJitterStrength = taaJitter;
+            cb._ColorPyramidLodCount = colorPyramidHistoryMipCount;
 
             float ct = time;
             float pt = lastTime;
             float dt = Time.deltaTime;
             float sdt = Time.smoothDeltaTime;
 
-            cmd.SetGlobalVector(HDShaderIDs._Time, new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f));
-            cmd.SetGlobalVector(HDShaderIDs._SinTime, new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct)));
-            cmd.SetGlobalVector(HDShaderIDs._CosTime, new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct)));
-            cmd.SetGlobalVector(HDShaderIDs.unity_DeltaTime, new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt));
-            cmd.SetGlobalVector(HDShaderIDs._TimeParameters, new Vector4(ct, Mathf.Sin(ct), Mathf.Cos(ct), 0.0f));
-            cmd.SetGlobalVector(HDShaderIDs._LastTimeParameters, new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f));
+            cb._Time = new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f);
+            cb._SinTime = new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct));
+            cb._CosTime = new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct));
+            cb.unity_DeltaTime = new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt);
+            cb._TimeParameters = new Vector4(ct, Mathf.Sin(ct), Mathf.Cos(ct), 0.0f);
+            cb._LastTimeParameters = new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f);
+            cb._FrameCount = frameCount;
+            cb._XRViewCount = (uint)viewCount;
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
-            cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
+            cb._ProbeExposureScale  = exposureMultiplierForProbes;
+        }
 
+
+        // Set up UnityPerView CBuffer.
+        internal void SetupGlobalParams(CommandBuffer cmd, int frameCount)
+        {
             // XRTODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
             if (true)
             {
-                cmd.SetGlobalInt(HDShaderIDs._XRViewCount, viewCount);
-
                 // Convert AoS to SoA for GPU constant buffer until we can use StructuredBuffer via command buffer
                 // XRTODO: use the new API and remove this code
                 for (int i = 0; i < viewCount; i++)
@@ -850,7 +856,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 else if (camera.cameraType == CameraType.SceneView)
                 {
-                    var mode = HDRenderPipelinePreferences.sceneViewAntialiasing;
+                    var mode = HDAdditionalSceneViewSettings.sceneViewAntialiasing;
 
                     if (mode == AntialiasingMode.TemporalAntialiasing && !animateMaterials)
                         antialiasing = AntialiasingMode.None;
