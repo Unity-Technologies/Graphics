@@ -109,8 +109,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 areaShadowAtlas.EvictLight(lightData);
             }
-
-
         }
 
         internal void AssignSlotsInAtlases(HDShadowInitParameters initParams)

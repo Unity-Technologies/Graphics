@@ -2979,6 +2979,7 @@ namespace UnityEngine.Rendering.HighDefinition
             : type != HDLightType.Directional
                 ? ShadowMapType.PunctualAtlas
                 : ShadowMapType.CascadedDirectional;
+
         void OnEnable()
         {
             if (shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
