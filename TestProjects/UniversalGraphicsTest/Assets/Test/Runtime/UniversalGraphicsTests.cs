@@ -35,7 +35,7 @@ public class UniversalGraphicsTests
 
         if (XRSystem.testModeEnabled)
         {
-            if (settings.xrCompatible)
+            if (settings.XRCompatible)
             {
                 XRSystem.automatedTestRunning = true;
             }
