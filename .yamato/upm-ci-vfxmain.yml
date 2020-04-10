@@ -47,6 +47,8 @@ projects:
 win_apis:
   - name: DX11
     cmd: -force-d3d11
+  - name: DX12
+    cmd: -force-d3d12
   - name: Vulkan
     cmd: -force-vulkan
 linux_apis:
