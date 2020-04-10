@@ -64,6 +64,7 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     float _MatcapViewScale;
     int _DebugSingleShadowIndex;
     int _DebugProbeVolumeMode;
+    float3 _Pad0;
 CBUFFER_END
 
 

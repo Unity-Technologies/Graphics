@@ -18,5 +18,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int     _SsrDepthPyramidMaxMip;
         public int     _SsrColorPyramidMaxMip;
         public int     _SsrReflectsSky;
+        public float   _Pad0;
     }
 }
