@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _DebugSingleShadowIndex;
 
         public int _DebugProbeVolumeMode;
-        public Vector3 _Pad0;
+        public Vector3 _DebugDisplayPad0;
     }
 
     /// <summary>
