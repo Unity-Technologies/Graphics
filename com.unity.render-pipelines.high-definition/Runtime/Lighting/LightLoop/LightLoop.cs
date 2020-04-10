@@ -3386,7 +3386,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // TODO: (Nick): These parameters can be cached and shared between BuildGPULightListProbeVolumesCommon and BuildGPULightListsCommon.
                 // Currently, we are generated them twice.
-                var parameters = PrepareBuildGPULightListParameters(hdCamera, true);
+                var parameters = PrepareBuildGPULightListParameters(hdCamera, buildForProbeVolumes: true);
                 var resources = PrepareBuildGPULightListResources(
                     m_TileAndClusterData,
                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
@@ -3481,7 +3481,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildLightList)))
             {
-                var parameters = PrepareBuildGPULightListParameters(hdCamera, false);
+                var parameters = PrepareBuildGPULightListParameters(hdCamera, buildForProbeVolumes: false);
                 var resources = PrepareBuildGPULightListResources(
                     m_TileAndClusterData,
                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),

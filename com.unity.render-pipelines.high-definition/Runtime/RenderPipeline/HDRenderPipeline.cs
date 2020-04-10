@@ -4163,7 +4163,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var debugMaterialIndices = m_CurrentDebugDisplaySettings.GetDebugMaterialIndexes();
                 for (int i = 0; i < 11; ++i)
                 {
-                    cb._DebugViewMaterialArray[i * 4] = (int)debugMaterialIndices[i]; // Only x component is used.
+                    cb._DebugViewMaterialArray[i * 4] = (uint)debugMaterialIndices[i]; // Only x component is used.
                 }
                 for (int i = 0; i < 32; ++i)
                 {

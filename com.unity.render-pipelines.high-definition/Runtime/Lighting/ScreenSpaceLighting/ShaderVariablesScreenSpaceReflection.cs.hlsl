@@ -19,6 +19,7 @@ CBUFFER_START(ShaderVariablesScreenSpaceReflection)
     int _SsrDepthPyramidMaxMip;
     int _SsrColorPyramidMaxMip;
     int _SsrReflectsSky;
+    float _ScreenSpaceReflectionPad0;
 CBUFFER_END
 
 

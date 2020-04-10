@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(32, typeof(Vector4))]
         public fixed float _DebugRenderingLayersColors[32 * 4];
         [HLSLArray(11, typeof(ShaderGenUInt4))]
-        public fixed int _DebugViewMaterialArray[11 * 4]; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
+        public fixed uint _DebugViewMaterialArray[11 * 4]; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
 
         public int _DebugLightingMode; // Match enum DebugLightingMode
         public int _DebugLightLayersMask;
@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _DebugSingleShadowIndex;
 
         public int _DebugProbeVolumeMode;
+        public Vector3 _DebugDisplayPad0;
     }
 
     /// <summary>
