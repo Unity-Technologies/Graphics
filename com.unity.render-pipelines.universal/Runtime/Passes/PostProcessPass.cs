@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             else
             {
-                base.Blit(cmd, source, destination, material, passIndex);
+                cmd.Blit(source, destination, material, passIndex);
             }
         }
 
