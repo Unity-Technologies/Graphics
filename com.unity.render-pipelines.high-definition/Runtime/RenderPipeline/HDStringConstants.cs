@@ -929,6 +929,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Radius                         = Shader.PropertyToID("_Radius");
         public static readonly int _ViewPortSize                   = Shader.PropertyToID("_ViewPortSize");
         public static readonly int _ViewportScaleBias              = Shader.PropertyToID("_ViewportScaleBias");
+        public static readonly int _SourceSize                     = Shader.PropertyToID("_SourceSize");
     }
 
     // Shared material property names

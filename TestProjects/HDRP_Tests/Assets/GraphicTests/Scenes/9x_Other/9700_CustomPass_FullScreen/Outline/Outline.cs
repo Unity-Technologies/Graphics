@@ -15,14 +15,12 @@ class Outline : CustomPass
     Shader                  outlineShader;
 
     Material                fullscreenOutline;
-    MaterialPropertyBlock   outlineProperties;
     RTHandle                outlineBuffer;
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
         outlineShader = Shader.Find("Hidden/Outline");
         fullscreenOutline = CoreUtils.CreateEngineMaterial(outlineShader);
-        outlineProperties = new MaterialPropertyBlock();
 
         outlineBuffer = RTHandles.Alloc(
             Vector2.one, TextureXR.slices, dimension: TextureXR.dimension,
@@ -38,13 +36,13 @@ class Outline : CustomPass
         CustomPassUtils.DrawRenderers(ctx, outlineLayer);
 
         // Setup outline effect properties
-        outlineProperties.SetColor("_OutlineColor", outlineColor);
-        outlineProperties.SetTexture("_OutlineBuffer", outlineBuffer);
-        outlineProperties.SetFloat("_Threshold", threshold);
+        ctx.propertyBlock.SetColor("_OutlineColor", outlineColor);
+        ctx.propertyBlock.SetTexture("_OutlineBuffer", outlineBuffer);
+        ctx.propertyBlock.SetFloat("_Threshold", threshold);
 
         // Render the outline as a fullscreen alpha-blended pass on top of the camera color
         CoreUtils.SetRenderTarget(ctx.cmd, ctx.cameraColorBuffer, ClearFlag.None);
-        CoreUtils.DrawFullScreen(ctx.cmd, fullscreenOutline, outlineProperties, shaderPassId: 0);
+        CoreUtils.DrawFullScreen(ctx.cmd, fullscreenOutline, ctx.propertyBlock, shaderPassId: 0);
     }
 
     protected override void Cleanup()

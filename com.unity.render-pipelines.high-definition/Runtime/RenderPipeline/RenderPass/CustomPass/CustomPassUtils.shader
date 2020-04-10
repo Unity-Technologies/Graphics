@@ -15,6 +15,7 @@ Shader "Hidden/HDRP/CustomPassUtils"
     float4      _ViewPortSize; // We need the viewport size because we have a non fullscreen render target (blur buffers are downsampled in half res)
     float4      _SourceScaleBias;
     float4      _ViewportScaleBias;
+    float4      _SourceSize;
 
     float           _Radius;
     float           _SampleCount;
@@ -32,8 +33,11 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
     float4 Copy(Varyings varyings) : SV_Target
     {
-        // TODO: handle scale and bias
-        return LOAD_TEXTURE2D_X_LOD(_Source, varyings.positionCS.xy * _SourceScaleBias.xy + _SourceScaleBias.zw, _SourceMip);
+        float2 uv01 = (varyings.positionCS.xy * _ViewPortSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
+        // Apply scale and bias
+        float2 uv = uv01 * _SourceScaleBias.xy + _SourceScaleBias.zw;
+
+        return LOAD_TEXTURE2D_X_LOD(_Source, uv * _SourceSize.xy, _SourceMip);
     }
 
     // We need to clamp the UVs to avoid bleeding from bigger render tragets (when we have multiple cameras)
@@ -78,28 +82,8 @@ Shader "Hidden/HDRP/CustomPassUtils"
     float4 DownSample(Varyings varyings) : SV_Target
     {
         float2 uv = GetScaledUVs(varyings);
-        // TODO: add half pixel offset ?
         return SAMPLE_TEXTURE2D_X_LOD(_Source, s_linear_clamp_sampler, uv, 0);
     }
-
-    // float4 CompositeMaskedBlur(Varyings varyings) : SV_Target
-    // {
-    //     float depth = LoadCameraDepth(varyings.positionCS.xy);
-    //     float2 uv = ClampUVs(GetSampleUVs(varyings));
-
-    //     float4 colorBuffer = SAMPLE_TEXTURE2D_X_LOD(_ColorBufferCopy, s_linear_clamp_sampler, uv, 0).rgba;
-    //     float4 blurredBuffer = SAMPLE_TEXTURE2D_X_LOD(_Source, s_linear_clamp_sampler, uv, 0).rgba;
-    //     float4 mask = SAMPLE_TEXTURE2D_X_LOD(_Mask, s_linear_clamp_sampler, uv, 0);
-    //     float maskDepth = SAMPLE_TEXTURE2D_X_LOD(_MaskDepth, s_linear_clamp_sampler, uv, 0).r;
-    //     float maskValue = 0;
-
-    //     maskValue = any(mask.rgb > 0.1) || (maskDepth > depth - 0.0001);
-
-    //     if (_InvertMask > 0.5)
-    //         maskValue = !maskValue;
-
-    //     return float4(lerp(blurredBuffer.rgb, colorBuffer.rgb, maskValue), colorBuffer.a);
-    // }
 
     ENDHLSL
 

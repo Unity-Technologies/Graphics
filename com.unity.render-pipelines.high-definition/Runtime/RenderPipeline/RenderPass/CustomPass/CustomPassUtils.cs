@@ -26,14 +26,23 @@ namespace UnityEngine.Rendering.HighDefinition
         static ProfilingSampler copySampler = new ProfilingSampler("Copy");
 
         static MaterialPropertyBlock    propertyBlock = new MaterialPropertyBlock();
-        static Material                 customPassUtilsMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassUtils);
+        static Material                 customPassUtilsMaterial;
 
         static Dictionary<int, ComputeBuffer> gaussianWeightsCache = new Dictionary<int, ComputeBuffer>();
 
-        static int downSamplePassIndex = customPassUtilsMaterial.FindPass("Downsample");
-        static int verticalBlurPassIndex = customPassUtilsMaterial.FindPass("VerticalBlur");
-        static int horizontalBlurPassIndex = customPassUtilsMaterial.FindPass("HorizontalBlur");
-        static int copyPassIndex = customPassUtilsMaterial.FindPass("Copy");
+        static int downSamplePassIndex;
+        static int verticalBlurPassIndex;
+        static int horizontalBlurPassIndex;
+        static int copyPassIndex;
+
+        internal static void Initialize()
+        {
+            customPassUtilsMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassUtils);
+            downSamplePassIndex = customPassUtilsMaterial.FindPass("Downsample");
+            verticalBlurPassIndex = customPassUtilsMaterial.FindPass("VerticalBlur");
+            horizontalBlurPassIndex = customPassUtilsMaterial.FindPass("HorizontalBlur");
+            copyPassIndex = customPassUtilsMaterial.FindPass("Copy");
+        }
 
         /// <summary>
         /// Convert the source buffer to an half resolution buffer and output it to the destination buffer.
@@ -90,8 +99,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
 
+                Vector2 sourceSize = source.GetScaledSize(source.rtHandleProperties.currentViewportSize);
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
+                propertyBlock.SetVector(HDShaderIDs._SourceSize, new Vector4(sourceSize.x, sourceSize.y, 1.0f / sourceSize.x, 1.0f / sourceSize.y));
                 ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
             }
         }
@@ -156,20 +167,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (downSample)
                 {
-                    // When the temp target is not already downsampled, we need to do it by hand:
-                    bool manualDownsampling = tempTarget.scaleFactor.x != 0.5f;
                     // Downsample to half res in mip 0 of temp target (in case temp target doesn't have any mipmap we use 0)
-                    // Vector4 
                     DownSample(ctx, source, tempTarget, sourceScaleBias, destScaleBias, sourceMip, 0);
                     // Vertical blur
-                    if (!manualDownsampling)
-                        destScaleBias.Scale(new Vector4(0.5f, 0.5f, 1, 1));
                     VerticalGaussianBlur(ctx, tempTarget, destination, sourceScaleBias, destScaleBias, sampleCount, radius, 0, destMip);
                     // Instead of allocating a new buffer on the fly, we copy the data.
                     // We will be able to allocate it when rendergraph lands
-                    if (!manualDownsampling)
-                        destScaleBias.Scale(new Vector4(2, 2, 1, 1));
-                    Copy(ctx, destination, tempTarget, fullScreenScaleBias, destScaleBias, 0, destMip);
+                    Copy(ctx, destination, tempTarget, sourceScaleBias, destScaleBias, 0, destMip);
                     // Horizontal blur and upsample
                     HorizontalGaussianBlur(ctx, tempTarget, destination, sourceScaleBias, destScaleBias, sampleCount, radius, sourceMip, destMip);
                 }
@@ -293,7 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
             gaussianWeightsCache.Clear();
         }
 
-        internal static Vector4 SetRenderTargetWithScaleBias(in CustomPassContext ctx, MaterialPropertyBlock block, RTHandle destination, Vector4 destScaleBias, ClearFlag clearFlag, int miplevel)
+        internal static void SetRenderTargetWithScaleBias(in CustomPassContext ctx, MaterialPropertyBlock block, RTHandle destination, Vector4 destScaleBias, ClearFlag clearFlag, int miplevel)
         {
             // viewport with RT handle scale and scale factor:
             Rect viewport = new Rect();
@@ -305,9 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ctx.cmd.SetViewport(viewport);
 
             block.SetVector(HDShaderIDs._ViewPortSize, new Vector4(destSize.x, destSize.y, 1.0f / destSize.x, 1.0f / destSize.y));
-            block.SetVector(HDShaderIDs._ViewportScaleBias, new Vector4(1.0f / (destScaleBias.x), 1.0f / (destScaleBias.y), destScaleBias.z, destScaleBias.w));
-
-            return new Vector4(viewport.size.x, viewport.size.y, viewport.position.x, viewport.position.y);
+            block.SetVector(HDShaderIDs._ViewportScaleBias, new Vector4(1.0f / destScaleBias.x, 1.0f / destScaleBias.y, destScaleBias.z, destScaleBias.w));
         }
     }
 }
