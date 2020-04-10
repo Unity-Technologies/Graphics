@@ -132,7 +132,7 @@ struct DecomposedLighting
 void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData builtinData, AggregateLighting lighting, float3 mipmapColor,
                                     inout float3 diffuseLighting, inout float3 specularLighting)
 {
-    if (_DebugShadowMapMode != 0)
+    if (_DebugShadowMapMode != SHADOWMAPDEBUGMODE_NONE)
     {
         switch (_DebugShadowMapMode)
         {
@@ -142,7 +142,7 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
             break ;
         }
     }
-    if (_DebugLightingMode != 0)
+    if (_DebugLightingMode != DEBUGLIGHTINGMODE_NONE)
     {
         // Caution: _DebugLightingMode is used in other part of the code, don't do anything outside of
         // current cases
@@ -155,7 +155,7 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
             //Compress lighting values for color picker if enabled
             if (_ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
                 diffuseLighting = diffuseLighting / LUXMETER_COMPRESSION_RATIO;
-            
+
             specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
@@ -179,12 +179,28 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
             specularLighting = float3(0, 0, 0);
             #endif
             break ;
+
+        case DEBUGLIGHTINGMODE_PROBE_VOLUME:
+            diffuseLighting = builtinData.bakeDiffuseLighting;
+            specularLighting = float3(0, 0, 0);
+            break;
         }
     }
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
         diffuseLighting = mipmapColor;
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
+    else if (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_NONE)
+    {
+        switch (_DebugProbeVolumeMode)
+        {
+        case PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS:
+        case PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY:
+            diffuseLighting = builtinData.bakeDiffuseLighting;
+            specularLighting = float3(0.0, 0.0, 0.0);
+            break;
+        }
     }
 }
 
