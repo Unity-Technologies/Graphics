@@ -205,7 +205,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 {
     uint mask = 0;
     // the code in the macros, gets moved inside the conditionals by the compiler
-    FETCH_DBUFFER(DBuffer, _DBufferTexture, posInput.positionSS);
+    FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(posInput.positionSS.xy));
 
 #if defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)  // forward transparent using clustered decals
     uint decalCount, decalStart;
