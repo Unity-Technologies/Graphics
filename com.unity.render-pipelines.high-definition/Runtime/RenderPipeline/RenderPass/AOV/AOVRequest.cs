@@ -13,6 +13,16 @@ namespace UnityEngine.Rendering.HighDefinition
         DiffuseOnly = 1 << 0,
         /// <summary>Render only specular.</summary>
         SpecularOnly = 1 << 1,
+        /// <summary>Render only direct diffuse.</summary>
+        DirectDiffuseOnly = 1 << 2,
+        /// <summary>Render only direct specular.</summary>
+        DirectSpecularOnly = 1 << 3,
+        /// <summary>Render only indirect diffuse.</summary>
+        IndirectDiffuseOnly = 1 << 4,
+        /// <summary>Render only reflection.</summary>
+        IndirectSpecularOnly = 1 << 5,
+        /// <summary>Render only emissive.</summary>
+        EmissiveOnly = 1 << 8
     }
 
     /// <summary>Output a specific debug mode.</summary>
@@ -119,6 +129,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case LightingProperty.SpecularOnly:
                     debug.SetDebugLightingMode(DebugLightingMode.SpecularLighting);
+                    break;
+                case LightingProperty.DirectDiffuseOnly:
+                    debug.SetDebugLightingMode(DebugLightingMode.DirectDiffuseLighting);
+                    break;
+                case LightingProperty.DirectSpecularOnly:
+                    debug.SetDebugLightingMode(DebugLightingMode.DirectSpecularLighting);
+                    break;
+                case LightingProperty.IndirectDiffuseOnly:
+                    debug.SetDebugLightingMode(DebugLightingMode.IndirectDiffuseLighting);
+                    break;
+                case LightingProperty.IndirectSpecularOnly:
+                    debug.SetDebugLightingMode(DebugLightingMode.IndirectSpecularLighting);
+                    break;
+                case LightingProperty.EmissiveOnly:
+                    debug.SetDebugLightingMode(DebugLightingMode.EmissiveLighting);
                     break;
                 default:
                 {
