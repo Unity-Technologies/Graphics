@@ -154,10 +154,6 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
 
         diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? defaultColor.rgb * _MatcapViewScale : 1.0f);
     }
-
-    // We always apply exposure when in debug mode. The exposure value will be at a neutral 0.0 when not needed.
-    diffuseLighting *= exp2(_DebugExposure);
-    specularLighting *= exp2(_DebugExposure);
 #endif
 }
 

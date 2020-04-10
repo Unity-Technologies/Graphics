@@ -289,7 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Maximum number of lights against which the light overdraw gradient is displayed.</summary>
         public uint                 maxDebugLightCount = 24;
 
-        /// <summary>Exposure used for lighting debug modes.</summary>
+        /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
 
         /// <summary>Display the light cookies atlas.</summary>
@@ -327,7 +327,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()
         {
-            return debugLightingMode != DebugLightingMode.None && debugLightingMode != DebugLightingMode.MatcapView;
+            return  debugLightingMode == DebugLightingMode.LuxMeter || debugLightingMode == DebugLightingMode.LuminanceMeter ||
+                    debugLightingMode == DebugLightingMode.VisualizeCascade || debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
+                    debugLightingMode == DebugLightingMode.IndirectDiffuseOcclusion || debugLightingMode == DebugLightingMode.IndirectSpecularOcclusion ||
+                    debugLightingMode == DebugLightingMode.ProbeVolume;
         }
 
         internal static Vector4[] GetDefaultRenderingLayersColorPalette()

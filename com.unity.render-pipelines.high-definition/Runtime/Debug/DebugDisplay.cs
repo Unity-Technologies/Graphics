@@ -1087,11 +1087,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
 
-            if (DebugNeedsExposure() || data.lightingDebugSettings.displaySkyReflection
-                    || data.lightingDebugSettings.displayPlanarReflectionProbeAtlas
-                    || data.lightingDebugSettings.displayCookieAtlas
-                    || data.lightingDebugSettings.displayCookieCubeArray)
-                list.Add(new DebugUI.FloatField { displayName = "Debug Exposure", getter = () => data.lightingDebugSettings.debugExposure, setter = value => data.lightingDebugSettings.debugExposure = value });
+            list.Add(new DebugUI.FloatField { displayName = "Debug Exposure Compensation", getter = () => data.lightingDebugSettings.debugExposure, setter = value => data.lightingDebugSettings.debugExposure = value });
 
             m_DebugLightingItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelLighting, true);
@@ -1508,7 +1504,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsDebugDisplayRemovePostprocess()
         {
-            // We want to keep post process when only the override more are enabled and none of the other
             return data.materialDebugSettings.IsDebugDisplayEnabled() || data.lightingDebugSettings.IsDebugDisplayRemovePostprocess() || data.mipMapDebugSettings.IsDebugDisplayEnabled();
         }
 

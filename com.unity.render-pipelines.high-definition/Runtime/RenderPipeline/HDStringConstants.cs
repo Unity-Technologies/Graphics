@@ -389,6 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
+        public static readonly int _ApplyExposure = Shader.PropertyToID("_ApplyExposure");        
 
         public static readonly int _DiffusionProfileHash = Shader.PropertyToID("_DiffusionProfileHash");
         public static readonly int _MaxRadius = Shader.PropertyToID("_MaxRadius");

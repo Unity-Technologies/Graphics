@@ -99,6 +99,9 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_DitheringFS;
         bool m_AntialiasingFS;
 
+        // Debug Exposure compensation (Drive by debug menu) to add to all exposure processed value
+        float m_DebugExposureCompensation;
+
         // Physical camera ref
         HDPhysicalCamera m_PhysicalCamera;
         static readonly HDPhysicalCamera m_DefaultPhysicalCamera = new HDPhysicalCamera();
@@ -331,6 +334,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+
+            m_DebugExposureCompensation = m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
             CheckRenderTexturesValidity();
 
@@ -755,12 +760,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Exposure.mode.value == ExposureMode.Fixed)
             {
                 kernel = cs.FindKernel("KFixedExposure");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.fixedExposure.value, 0f, 0f, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f));
             }
             else if (m_Exposure.mode == ExposureMode.UsePhysicalCamera)
             {
                 kernel = cs.FindKernel("KManualCameraExposure");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso));
             }
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
@@ -867,14 +872,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // Reduction: 2nd pass (32 -> 1) + evaluate exposure
             if (m_Exposure.mode.value == ExposureMode.Automatic)
             {
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value, m_Exposure.limitMin.value, m_Exposure.limitMax.value, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.limitMin.value, m_Exposure.limitMax.value, 0f));
                 m_ExposureVariants[3] = 1;
             }
             else if (m_Exposure.mode.value == ExposureMode.CurveMapping)
             {
                 PrepareExposureCurveData(m_Exposure.curveMap.value, out float min, out float max);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureCurveTexture, m_ExposureCurveTexture);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value, min, max, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, min, max, 0f));
                 m_ExposureVariants[3] = 2;
             }
 
