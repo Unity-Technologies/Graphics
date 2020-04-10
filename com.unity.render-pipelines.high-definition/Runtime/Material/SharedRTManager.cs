@@ -24,6 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // This texture stores a set of depth values that are required for evaluating a bunch of effects in MSAA mode (R = Samples Max Depth, G = Samples Min Depth, G =  Samples Average Depth)
         RTHandle m_CameraDepthValuesBuffer = null;
 
+        // UAVs used for quad overshading debug mode
+        RTHandle m_DebugQuadLockUAV;
+        RTHandle m_DebugQuadOverdrawUAV;
+
         ComputeBuffer m_CoarseStencilBuffer = null;
 
         // MSAA resolve materials
@@ -111,6 +115,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // In case of deferred, we must be in sync with NormalBuffer.hlsl and lit.hlsl files and setup the correct buffers
                 m_NormalRT = gbufferManager.GetNormalBuffer(0); // Normal + Roughness
             }
+
+            m_DebugQuadLockUAV = RTHandles.Alloc(new Vector2(0.5f, 0.5f), colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "DebugQuadLockUAV");
+            m_DebugQuadOverdrawUAV = RTHandles.Alloc(new Vector2(0.5f, 0.5f), TextureXR.slices, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "DebugOverdrawUAV");
         }
 
         public bool IsConsolePlatform()
@@ -156,6 +163,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_RTIDs2[1] = m_NormalRT.nameID;
                 return m_RTIDs2;
             }
+        }
+
+        // Function that will return the UAV used to lock quads for quad overdraw debug
+        public RenderTargetIdentifier GetDebugQuadLockRTI()
+        {
+            return m_DebugQuadLockUAV.nameID;
+        }
+
+        // Function that will return the UAV used to count quad overdraw for debug
+        public RenderTargetIdentifier GetDebugQuadOverdrawRTI()
+        {
+            return m_DebugQuadOverdrawUAV.nameID;
         }
 
         // Request the normal buffer (MSAA or not)
@@ -277,6 +296,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Cleanup()
         {
+            RTHandles.Release(m_DebugQuadLockUAV);
+            RTHandles.Release(m_DebugQuadOverdrawUAV);
+
             if (!m_ReuseGBufferMemory)
             {
                 RTHandles.Release(m_NormalRT);

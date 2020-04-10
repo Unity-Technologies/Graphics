@@ -2169,6 +2169,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             RenderTransparencyOverdraw(cullingResults, hdCamera, renderContext, cmd);
+            RenderQuadOverdraw(cullingResults, hdCamera, renderContext, cmd);
 
             if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
             {
@@ -3445,6 +3446,38 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void RenderQuadOverdraw(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.QuadOverdraw)
+            {
+                CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
+
+                cmd.SetRandomWriteTarget(1, m_SharedRTManager.GetDebugQuadLockRTI());
+                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugQuadOverdrawRTI());
+
+                // Depth test less equal + no color write
+                var stateBlock = new RenderStateBlock
+                {
+                    mask = RenderStateMask.Depth | RenderStateMask.Blend,
+                    depthState = new DepthState(true, CompareFunction.LessEqual),
+                    blendState = new BlendState { blendState0 = new RenderTargetBlendState((ColorWriteMask)0) }
+                };
+
+                m_DebugFullScreenPropertyBlock.SetFloat(HDShaderIDs._QuadOverdrawMaxQuadCost, (float)m_DebugDisplaySettings.data.maxQuadCost);
+
+                // Render Opaque forward
+                var rendererListOpaque = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_AllForwardOpaquePassNames, m_CurrentRendererConfigurationBakedLighting, stateBlock: stateBlock));
+                DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListOpaque);
+
+                // Render forward transparent
+                var rendererListTransparent = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_AllTransparentPassNames, m_CurrentRendererConfigurationBakedLighting, stateBlock: stateBlock));
+                DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
+
+                cmd.ClearRandomWriteTargets();
+                m_FullScreenDebugPushed = true;
+            }
+        }
+
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, int frameIndex, CommandBuffer cmd)
         {
             m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetCurrentSunLight(), frameIndex, cmd);
@@ -4276,6 +4309,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material         debugFullScreenMaterial;
             public int              depthPyramidMip;
             public ComputeBuffer    depthPyramidOffsets;
+            public RenderTargetIdentifier quadLockRTI;
+            public RenderTargetIdentifier quadOverdrawRTI;
 
             // Sky
             public Texture skyReflectionTexture;
@@ -4304,6 +4339,9 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.depthPyramidMip = (int)(parameters.debugDisplaySettings.data.fullscreenDebugMip * depthMipInfo.mipLevelCount);
             parameters.depthPyramidOffsets = depthMipInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
+            parameters.quadLockRTI = m_SharedRTManager.GetDebugQuadLockRTI();
+            parameters.quadOverdrawRTI = m_SharedRTManager.GetDebugQuadOverdrawRTI();
+
             parameters.skyReflectionTexture = m_SkyManager.GetSkyReflection(hdCamera);
             parameters.debugLatlongMaterial = m_DebugDisplayLatlong;
             parameters.lightingOverlayParameters = PrepareLightLoopDebugOverlayParameters();
@@ -4331,7 +4369,12 @@ namespace UnityEngine.Rendering.HighDefinition
             mpb.SetBuffer(HDShaderIDs._DebugDepthPyramidOffsets, parameters.depthPyramidOffsets);
             mpb.SetInt(HDShaderIDs._DebugContactShadowLightIndex, parameters.debugDisplaySettings.data.fullScreenContactShadowLightIndex);
 
+            cmd.SetRandomWriteTarget(1, parameters.quadLockRTI);
+            cmd.SetRandomWriteTarget(2, parameters.quadOverdrawRTI);
+
             HDUtils.DrawFullScreen(cmd, parameters.debugFullScreenMaterial, output, mpb, 0);
+
+            cmd.ClearRandomWriteTargets();
         }
 
         static void ResolveColorPickerDebug(in DebugParameters  parameters,

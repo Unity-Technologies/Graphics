@@ -29,6 +29,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
             float _TransparencyOverdrawMaxPixelCost;
+            float _QuadOverdrawMaxQuadCost;
             CBUFFER_END
 
             TEXTURE2D_X(_DebugFullScreenTexture);
@@ -312,6 +313,19 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float pixelCost = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
                     if ((pixelCost > 0.001))
                         color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _TransparencyOverdrawMaxPixelCost) * pixelCost), 1.0, 1.0));// 
+                    return color;
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
+                {
+                    uint2 quad = (uint2)(input.positionCS*0.5);
+                    float4 color = (float4)0;
+
+                    float quadCost = (float)_DebugQuadOverdrawUAV[quad];
+                    _DebugQuadLockUAV[quad] = 0xffffffff;
+                    _DebugQuadOverdrawUAV[quad] = 0;
+
+                    if ((quadCost > 0.001))
+                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _QuadOverdrawMaxQuadCost) * quadCost), 1.0, 1.0));
                     return color;
                 }
 

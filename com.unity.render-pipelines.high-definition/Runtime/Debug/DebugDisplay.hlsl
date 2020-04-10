@@ -49,6 +49,9 @@ static DirectionalShadowType g_DebugShadowAttenuation = 0;
 
 StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 
+RWTexture2D<uint> _DebugQuadLockUAV :register(u1);
+RWTexture2D<uint> _DebugQuadOverdrawUAV :register(u2);
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/PBRValidator.hlsl"
 
 // When displaying lux meter we compress the light in order to be able to display value higher than 65504

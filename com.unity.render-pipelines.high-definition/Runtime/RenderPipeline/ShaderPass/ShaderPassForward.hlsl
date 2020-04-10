@@ -60,6 +60,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
 #endif
 
+[earlydepthstencil]
 void Frag(PackedVaryingsToPS packedInput,
 #ifdef OUTPUT_SPLIT_LIGHTING
     out float4 outColor : SV_Target0,  // outSpecularLighting
@@ -73,6 +74,9 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif // OUTPUT_SPLIT_LIGHTING
 #ifdef _DEPTHOFFSET_ON
     , out float outputDepth : SV_Depth
+#endif
+#ifdef DEBUG_DISPLAY
+    , uint id : SV_PrimitiveID
 #endif
 )
 {
@@ -177,6 +181,36 @@ void Frag(PackedVaryingsToPS packedInput,
         {
             float4 result = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
             outColor = result;
+        }
+        else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
+        {
+            uint2 quad = posInput.positionSS*0.5;
+            uint  prevID;
+
+            uint unlockedID = 0xffffffff;
+            bool processed  = false;
+            int  lockCount  = 0;
+
+            for (int i = 0; i < 16; i++)
+            {
+                if (!processed)
+                    InterlockedCompareExchange(_DebugQuadLockUAV[quad], unlockedID, id, prevID);
+
+                [branch]
+                if (prevID == unlockedID)
+                {
+                    // Wait a bit, then unlock for other quads
+                    if (++lockCount == 2)
+                        InterlockedExchange(_DebugQuadLockUAV[quad], unlockedID, prevID);
+                    processed = true;
+                }
+
+                if (prevID == id)
+                    processed = true;
+            }
+
+            if (lockCount)
+                InterlockedAdd(_DebugQuadOverdrawUAV[quad], 1);
         }
         else
 #endif
