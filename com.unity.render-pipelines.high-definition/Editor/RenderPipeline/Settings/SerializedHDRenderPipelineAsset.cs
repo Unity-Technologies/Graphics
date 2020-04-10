@@ -20,9 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedFrameSettings defaultFrameSettings;
         public SerializedFrameSettings defaultBakedOrCustomReflectionFrameSettings;
         public SerializedFrameSettings defaultRealtimeReflectionFrameSettings;
-#if ENABLE_VIRTUALTEXTURES
         public SerializedVirtualTexturingSettings virtualTexturingSettings;
-#endif
 
         //RenderPipelineResources not always exist and thus cannot be serialized normally.
         public bool editorResourceHasMultipleDifferentValues
@@ -67,9 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             defaultBakedOrCustomReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), null); //no overrides in HDRPAsset
             defaultRealtimeReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), null); //no overrides in HDRPAsset
 
-#if ENABLE_VIRTUALTEXTURES
             virtualTexturingSettings = new SerializedVirtualTexturingSettings(serializedObject.FindProperty("virtualTexturingSettings"));
-#endif
         }
 
         public void Update()

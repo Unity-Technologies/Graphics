@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
     }
 
+    [Serializable]
     public enum VirtualTexturingCacheUsageSRP
     {
         Any,
