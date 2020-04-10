@@ -69,7 +69,31 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
                 instance.punctualShadowAtlas.DefragmentAtlasAndReRender(instance.m_InitParams);
         }
-        
+
+        /// <summary>
+        /// This function can be used to evict a light from its atlas. The slots occupied by such light will be available to be occupied by other shadows.
+        /// Note that eviction happens automatically upon light destruction and, if lightData.preserveCachedShadow is false, upon disabling of the light.
+        /// </summary>
+        /// <param name="lightData">The light to evict from the atlas.</param>
+        public void ForceEvictLight(HDAdditionalLightData lightData)
+        {
+            EvictLight(lightData);
+            lightData.lightIdxForCachedShadows = -1;
+        }
+
+        /// <summary>
+        /// This function can be used to register a light to the cached shadow system if not already registered. It is necessary to call this function if a light has been
+        /// evicted with ForceEvictLight and it needs to be registered again. Please note that a light is automatically registered when enabled or when the shadow update changes
+        /// from EveryFrame to OnDemand or OnEnable. 
+        /// </summary>
+        /// <param name="lightData">The light to register.</param>
+        public void ForceRegisterLight(HDAdditionalLightData lightData)
+        {
+            // Note: this is for now just calling the internal API, but having a separate API helps with future
+            // changes to the process. 
+            RegisterLight(lightData);
+        }
+
         // ------------------------------------------------------------------------------------------------------------------
 
         private void MarkAllDirectionalShadowsForUpdate()

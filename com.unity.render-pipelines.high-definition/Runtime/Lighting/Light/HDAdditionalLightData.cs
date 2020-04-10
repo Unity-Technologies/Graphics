@@ -1833,6 +1833,8 @@ namespace UnityEngine.Rendering.HighDefinition
             bool shadowIsInCachedSystem = !ShadowIsUpdatedEveryFrame();
             // Note if we are in cached system, but if a placement has not been found by this point we bail out shadows
             bool shadowDoesntHavePlacement = shadowIsInCachedSystem && HDShadowManager.cachedShadowManager.LightIsPendingPlacement(this, shadowMapType);
+            // If we force evicted the light, it will have lightIdxForCachedShadows == -1
+            shadowDoesntHavePlacement = shadowDoesntHavePlacement || (lightIdxForCachedShadows == -1);
 
             int count = GetShadowRequestCount(shadowSettings);
 

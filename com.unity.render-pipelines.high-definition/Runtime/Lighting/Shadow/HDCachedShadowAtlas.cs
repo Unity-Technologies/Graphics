@@ -196,6 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int numberOfShadows = (lightData.type == HDLightType.Point) ? 6 : 1;
 
             int lightIdx = lightData.lightIdxForCachedShadows;
+            lightData.lightIdxForCachedShadows = -1;
 
             for (int i = 0; i < numberOfShadows; ++i)
             {
