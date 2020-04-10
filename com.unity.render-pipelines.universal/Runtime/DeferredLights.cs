@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 case kGBufferAlbedoIndex:           return GraphicsFormat.R8G8B8A8_SRGB;    // albedo          albedo          albedo          occlusion       (sRGB rendertarget)
                 case kGBufferSpecularMetallicIndex: return GraphicsFormat.R8G8B8A8_SRGB;    // specular        specular        specular        metallic        (sRGB rendertarget)
-                case kGBufferNormalSmoothnessIndex: return accurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm;
+                case kGBufferNormalSmoothnessIndex: return GraphicsFormat.R8G8B8A8_UNorm;
                                                                                             // encoded-normal  encoded-normal  encoded-normal  smoothness
                 case kGBufferLightingIndex:         return GraphicsFormat.None;             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
                 case kGBufferDepthIndex:            return GraphicsFormat.R32_SFloat;       // Optional: some mobile platforms are faster reading back depth as color instead of real depth.
