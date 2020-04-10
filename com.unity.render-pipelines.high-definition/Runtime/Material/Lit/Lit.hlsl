@@ -628,11 +628,10 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         {
     #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
             if (!IsUninitializedGI(builtinData.bakeDiffuseLighting))
-    #else
+    #endif
             {
                 builtinData.bakeDiffuseLighting = real3(0.0, 0.0, 0.0);
             }
-    #endif
         }
         else
         {
