@@ -178,6 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
         ShaderVariablesXR m_ShaderVariablesXRCB = new ShaderVariablesXR();
         ShaderVariablesDebugDisplay m_ShaderVariablesDebugDisplayCB = new ShaderVariablesDebugDisplay();
+        ShaderVariablesRaytracing m_ShaderVariablesRayTracingCB = new ShaderVariablesRaytracing();
 
         // The current MSAA count
         MSAASamples m_MSAASamples;
@@ -1051,13 +1052,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+        }
 
         void UpdateShaderVariablesXRCB(HDCamera hdCamera, CommandBuffer cmd)
+        {
             hdCamera.UpdateShaderVariablesXRCB(ref m_ShaderVariablesXRCB);
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesXRCB, HDShaderIDs._ShaderVariablesXR);
         }
 
-        ShaderVariablesRaytracing m_ShaderVariablesRayTracingCB = new ShaderVariablesRaytracing();
 
         void UpdateShaderVariablesRaytracingCB(HDCamera hdCamera, CommandBuffer cmd)
         {
