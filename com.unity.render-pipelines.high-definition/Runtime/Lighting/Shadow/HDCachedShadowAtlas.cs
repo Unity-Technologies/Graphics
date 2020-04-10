@@ -5,10 +5,6 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    // TODO_FCC: Big todos list:
-    // - Public API
-    // - Test defrag better
-
     class HDCachedShadowAtlas : HDShadowAtlas
     {
         static private int s_InitialCapacity = 256;
@@ -42,7 +38,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private Dictionary<int, CachedShadowRecord> m_RecordsPendingPlacement;          // Note: this is different from m_RegisteredLightDataPendingPlacement because it contains records that were allocated in the system
                                                                                         // but they lost their spot (e.g. post defrag). They don't have a light associated anymore if not by index, so we keep a separate collection.
 
-        private List<(string, int)> DBG_NAMES_LIGHT;
         private List<CachedShadowRecord> m_TempListForPlacement;
 
 
@@ -59,8 +54,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RegisteredLightDataPendingPlacement = new Dictionary<int, HDAdditionalLightData>(s_InitialCapacity);
             m_RecordsPendingPlacement = new Dictionary<int, CachedShadowRecord>(s_InitialCapacity); 
-
-            DBG_NAMES_LIGHT = new List<(string, int)>();
 
             m_ShadowType = type;
         }
@@ -191,8 +184,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 lightData.lightIdxForCachedShadows = GetNextLightIdentifier();
 
-                DBG_NAMES_LIGHT.Add((lightData.name, lightData.lightIdxForCachedShadows));
-
                 m_RegisteredLightDataPendingPlacement.Add(lightData.lightIdxForCachedShadows, lightData);
                 m_CanTryPlacement = true;
             }
@@ -200,8 +191,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void EvictLight(HDAdditionalLightData lightData)
         {
-            DBG_NAMES_LIGHT.RemoveAll(x => x.Item1 == lightData.name);
-
             m_RegisteredLightDataPendingPlacement.Remove(lightData.lightIdxForCachedShadows);
 
             int numberOfShadows = (lightData.type == HDLightType.Point) ? 6 : 1;

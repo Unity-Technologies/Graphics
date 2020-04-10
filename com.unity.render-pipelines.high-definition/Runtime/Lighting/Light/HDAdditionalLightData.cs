@@ -1729,7 +1729,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            // Reserver wanted resolution in the shadow atlas
+            // Reserve wanted resolution in the shadow atlas
             int resolution = GetResolutionFromSettings(shadowMapType, initParameters);
             Vector2 viewportSize = new Vector2(resolution, resolution);
 
