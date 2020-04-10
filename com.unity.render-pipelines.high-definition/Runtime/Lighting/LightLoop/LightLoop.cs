@@ -229,11 +229,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint         g_BaseFeatureFlags;
         public int          g_iNumSamplesMSAA;
-        public int          _EnvLightIndexShift;
-        public int          _DecalIndexShift;
+        public uint         _EnvLightIndexShift;
+        public uint         _DecalIndexShift;
 
-        public int          _DensityVolumeIndexShift;
-        public int          _ProbeVolumeIndexShift;
+        public uint         _DensityVolumeIndexShift;
+        public uint         _ProbeVolumeIndexShift;
     }
 
     internal struct ProcessedLightData
@@ -3207,14 +3207,14 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
             cb.g_BaseFeatureFlags = 0; // Filled for each individual pass.
             cb.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
-            cb._EnvLightIndexShift = m_lightList.lights.Count;
-            cb._DecalIndexShift = m_lightList.lights.Count + m_lightList.envLights.Count;
-            cb._DensityVolumeIndexShift = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount;
+            cb._EnvLightIndexShift = (uint)m_lightList.lights.Count;
+            cb._DecalIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count);
+            cb._DensityVolumeIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
 
             int probeVolumeIndexShift = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)
                     ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount)
                     : 0;
-            cb._ProbeVolumeIndexShift = probeVolumeIndexShift;
+            cb._ProbeVolumeIndexShift = (uint)probeVolumeIndexShift;
 
             parameters.lightListCB = m_ShaderVariablesLightListCB;
             parameters.runLightList = m_TotalLightCount > 0;
