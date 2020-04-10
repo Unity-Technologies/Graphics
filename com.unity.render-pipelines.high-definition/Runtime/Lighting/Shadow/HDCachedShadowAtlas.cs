@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private const int m_MinSlotSize = 64;
         private const int m_MaxShadowsPerLight = 6;
 
+
         private int m_NextLightID = 0;
         private bool m_CanTryPlacement = false;
 
@@ -27,12 +28,11 @@ namespace UnityEngine.Rendering.HighDefinition
             internal Vector4 offsetInAtlas;                          // When is registered xy is the offset in the texture atlas, in UVs, the zw is the entry offset in the C# representation.
         }
 
-        private int m_MaxAtlasResolution;
         private int m_AtlasResolutionInSlots;       // Atlas Resolution / m_MinSlotSize
 
-        private bool m_NeedOptimalPacking = true;
+        private bool m_NeedOptimalPacking = true;   // Whenever this is set to true, the pending lights are sorted before insertion. 
 
-        private List<bool> m_AtlasSlots;
+        private List<bool> m_AtlasSlots;            // One entry per slot (of size m_MinSlotSize) true if occupied, false if free.
 
         // Note: Some of these could be simple lists, but since we might need to search by index some of them and we want to avoid GC alloc, a dictionary is easier.
         // This also mean slightly worse performance, however hopefully the number of cached shadow lights is not huge at any tie.
@@ -69,16 +69,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             base.InitAtlas(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name, momentAtlasShaderID);
 
-            m_MaxAtlasResolution = width;
-            m_AtlasResolutionInSlots = HDUtils.DivRoundUp(m_MaxAtlasResolution, m_MinSlotSize);
+            m_AtlasResolutionInSlots = HDUtils.DivRoundUp(width, m_MinSlotSize);
             m_AtlasSlots = new List<bool>(m_AtlasResolutionInSlots * m_AtlasResolutionInSlots);
             for (int i = 0; i < m_AtlasResolutionInSlots * m_AtlasResolutionInSlots; ++i)
             {
                 m_AtlasSlots.Add(false);
             }
 
-            //// Note: If changing the characteristics of the atlas via HDRP asset, the lights OnEnable will not be called again so we are missing them, however we can explicitly
-            //// put them back up for placement. If this is the first Init of the atlas, the lines below do nothing.
+            // Note: If changing the characteristics of the atlas via HDRP asset, the lights OnEnable will not be called again so we are missing them, however we can explicitly
+            // put them back up for placement. If this is the first Init of the atlas, the lines below do nothing.
             DefragmentAtlasAndReRender(initParams);
             m_CanTryPlacement = true;
             m_NeedOptimalPacking = true;
@@ -187,7 +186,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // We register only if not already pending placement and if enabled. 
             if (!m_RegisteredLightDataPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows) && lightData.isActiveAndEnabled)
             {
-                lightData.legacyLight.useInfiniteFrustumForShadowCasterCull = true;
+#if UNITY_2020_2_OR_NEWER
+                lightData.legacyLight.useViewFrustumForShadowCasterCull = false;
+#endif
                 lightData.lightIdxForCachedShadows = GetNextLightIdentifier();
 
                 DBG_NAMES_LIGHT.Add((lightData.name, lightData.lightIdxForCachedShadows));
@@ -218,7 +219,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (valueFound)
                 {
-                    lightData.legacyLight.useInfiniteFrustumForShadowCasterCull = false;
+#if UNITY_2020_2_OR_NEWER
+                    lightData.legacyLight.useViewFrustumForShadowCasterCull = true;
+#endif
                     m_PlacedShadows.Remove(shadowIdx);
                     m_ShadowsPendingRendering.Remove(shadowIdx);
 
@@ -231,16 +234,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // ------------------------------------------------------------------------------------------
 
 
-
         // ------------------------------------------------------------------------------------------
         //                           Atlassing on the actual textures 
         // ------------------------------------------------------------------------------------------
 
-        internal bool LightIsPendingPlacement(HDAdditionalLightData lightData)
-        {
-            return (m_RegisteredLightDataPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows) ||
-                     m_RecordsPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows));
-        }
 
         void InsertionSort(ref List<CachedShadowRecord> list, int startIndex, int lastIndex)
         {
@@ -404,7 +401,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // TODO: Make this accessible through manager and or public API.
         internal void DefragmentAtlasAndReRender(HDShadowInitParameters initParams)
         {
             m_TempListForPlacement.Clear();
@@ -438,7 +434,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     int parentLightIdx = record.shadowIndex / m_MaxShadowsPerLight;
                     if (!m_RegisteredLightDataPendingPlacement.ContainsKey(parentLightIdx)) // Did not come originally from m_RegisteredLightDataPendingPlacement
                     {
-                        m_RecordsPendingPlacement.Add(record.shadowIndex, record);
+                        if (!m_RecordsPendingPlacement.ContainsKey(record.shadowIndex))
+                            m_RecordsPendingPlacement.Add(record.shadowIndex, record);
                     }
                 }
             }
@@ -446,26 +443,17 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CanTryPlacement = false;
         }
 
-        internal void UpdateResolutionRequest(ref HDShadowResolutionRequest request, int shadowIdx)
+        // ------------------------------------------------------------------------------------------
+
+
+        // ------------------------------------------------------------------------------------------
+        //                           Functions to query and change state of a shadow
+        // ------------------------------------------------------------------------------------------
+        internal bool LightIsPendingPlacement(HDAdditionalLightData lightData)
         {
-            CachedShadowRecord record;
-            bool valueFound = m_PlacedShadows.TryGetValue(shadowIdx, out record);
-
-            if(!valueFound)
-            {
-                Debug.LogWarning("Trying to render a cached shadow map that doesn't have a slot in the atlas yet.");
-            }
-
-            request.atlasViewport = new Rect(record.offsetInAtlas.x, record.offsetInAtlas.y, record.viewportSize, record.viewportSize);
-            request.resolution = new Vector2(record.viewportSize, record.viewportSize);
+            return (m_RegisteredLightDataPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows) ||
+                    m_RecordsPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows));
         }
-
-        // ------------------------------------------------------------------------------------------
-
-
-        // ------------------------------------------------------------------------------------------
-        //                           Update/Rendering related functions 
-        // ------------------------------------------------------------------------------------------
 
         internal bool ShadowIsPendingRendering(int shadowIdx)
         {
@@ -517,6 +505,21 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_ShadowsPendingRendering.Remove(shadowIdx);
             }
+        }
+
+        // Used to update the resolution request processed by the light loop
+        internal void UpdateResolutionRequest(ref HDShadowResolutionRequest request, int shadowIdx)
+        {
+            CachedShadowRecord record;
+            bool valueFound = m_PlacedShadows.TryGetValue(shadowIdx, out record);
+
+            if (!valueFound)
+            {
+                Debug.LogWarning("Trying to render a cached shadow map that doesn't have a slot in the atlas yet.");
+            }
+
+            request.atlasViewport = new Rect(record.offsetInAtlas.x, record.offsetInAtlas.y, record.viewportSize, record.viewportSize);
+            request.resolution = new Vector2(record.viewportSize, record.viewportSize);
         }
 
         // ------------------------------------------------------------------------------------------

@@ -1845,6 +1845,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowRequestIndex);
 
+                if (resolutionRequest == null)
+                    continue;
+
                 int cachedShadowID = lightIdxForCachedShadows + index;
                 bool shadowNeedsRendering = !shadowDoesntHavePlacement;
 
@@ -1855,8 +1858,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 shadowRequest.isInCachedAtlas = shadowIsInCachedSystem;
 
-                if (resolutionRequest == null)
-                    continue;
 
                 Vector2 viewportSize = resolutionRequest.resolution;
 

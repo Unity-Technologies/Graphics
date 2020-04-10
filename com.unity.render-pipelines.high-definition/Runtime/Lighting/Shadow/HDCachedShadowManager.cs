@@ -8,21 +8,33 @@ namespace UnityEngine.Rendering.HighDefinition
     // Note: The punctual and area light shadows have a specific atlas, however because there can be only be only one directional light casting shadow
     // we use this cached shadow manager only as a source of utilities functions, but the data is stored in the dynamic shadow atlas.
 
-    class HDCachedShadowManager
+    /// <summary>
+    /// The class responsible to handle cached shadow maps (shadows with Update mode set to OnEnable or OnDemand). 
+    /// </summary>
+    public class HDCachedShadowManager
     {
-        // Constants
-        private const int m_MaxShadowCascades = 4;
-
-        internal HDCachedShadowAtlas punctualShadowAtlas;
-        internal HDCachedShadowAtlas areaShadowAtlas;
-
-        private HDShadowInitParameters m_initParams;        // Cache here to be able to compute resolutions. 
+        private static HDCachedShadowManager s_Instance = new HDCachedShadowManager();
+        public static HDCachedShadowManager instance { get { return s_Instance; } }
 
         // Data for cached directional light shadows.
+        private const int m_MaxShadowCascades = 4;
         private bool[] m_DirectionalShadowPendingUpdate = new bool[m_MaxShadowCascades];
 
-        // TODO_FCC: TODO Need to make it public somehow. Think later how. 
-        static bool WouldFitInAtlas(int shadowResolution, HDLightType lightType)
+        // Cached atlas
+        internal HDCachedShadowAtlas punctualShadowAtlas;
+        internal HDCachedShadowAtlas areaShadowAtlas;
+        // Cache here to be able to compute resolutions. 
+        private HDShadowInitParameters m_InitParams;
+
+        // ------------------------ Public API -------------------------------
+
+        /// <summary>
+        /// This function verifies if a shadow map of resolution shadowResolution for a light of type lightType would fit in the atlas when inserted. 
+        /// </summary>
+        /// <param name="shadowResolution">The resolution of the hypothetical shadow map that we are assessing.</param>
+        /// <param name="lightType">The type of the light that cast the hypothetical shadow map that we are assessing.</param>
+        /// <returns>True if the shadow map would fit in the atlas, false otherwise.</returns>
+        public bool WouldFitInAtlas(int shadowResolution, HDLightType lightType)
         {
             bool fits = true;
             int x, y;
@@ -44,6 +56,22 @@ namespace UnityEngine.Rendering.HighDefinition
             return fits;
         }
 
+        /// <summary>
+        /// If a light is added after a scene is loaded, its placement in the atlas might be not optimal and the suboptimal placement might prevent a light to find a place in the atlas.
+        /// This function will force a defragmentation of the atlas containing lights of type lightType and redistributes the shadows inside so that the placement is optimal. Note however that this will also mark the shadow maps
+        /// as dirty and they will be re-rendered as soon the light will come into view for the first time after this function call. 
+        /// </summary>
+        /// <param name="lightType">The type of the light contained in the atlas that need defragmentation.</param>
+        public void DefragAtlas(HDLightType lightType)
+        {
+            if (lightType == HDLightType.Area)
+                instance.areaShadowAtlas.DefragmentAtlasAndReRender(instance.m_InitParams);
+            if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
+                instance.punctualShadowAtlas.DefragmentAtlasAndReRender(instance.m_InitParams);
+        }
+        
+        // ------------------------------------------------------------------------------------------------------------------
+
         private void MarkAllDirectionalShadowsForUpdate()
         {
             for (int i = 0; i < m_MaxShadowCascades; ++i)
@@ -52,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal HDCachedShadowManager()
+        private HDCachedShadowManager()
         {
             punctualShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.PunctualAtlas);
             if (ShaderConfig.s_AreaLights == 1)
@@ -62,14 +90,14 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void InitPunctualShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams,
                                             HDShadowAtlas.BlurAlgorithm blurAlgorithm = HDShadowAtlas.BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
         {
-            m_initParams = initParams;
+            m_InitParams = initParams;
             punctualShadowAtlas.InitAtlas(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name, momentAtlasShaderID);
         }
 
         internal void InitAreaLightShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams,
                                             HDShadowAtlas.BlurAlgorithm blurAlgorithm = HDShadowAtlas.BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
         {
-            m_initParams = initParams;
+            m_InitParams = initParams;
             areaShadowAtlas.InitAtlas(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name, momentAtlasShaderID);
         }
 
@@ -117,9 +145,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void AssignSlotsInAtlases()
         {
-            punctualShadowAtlas.AssignOffsetsInAtlas(m_initParams);
+            punctualShadowAtlas.AssignOffsetsInAtlas(m_InitParams);
             if(ShaderConfig.s_AreaLights == 1)
-                areaShadowAtlas.AssignOffsetsInAtlas(m_initParams);
+                areaShadowAtlas.AssignOffsetsInAtlas(m_InitParams);
         }
 
         internal bool ShadowIsPendingUpdate(int shadowIdx, ShadowMapType shadowMapType)
