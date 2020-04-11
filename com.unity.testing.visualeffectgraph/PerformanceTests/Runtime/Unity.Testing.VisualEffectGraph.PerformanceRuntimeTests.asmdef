@@ -1,10 +1,9 @@
 {
-    "name": "Unity.Testing.VisualEffectGraph.PerformanceEditorTests",
+    "name": "Unity.Testing.VisualEffectGraph.PerformanceRuntimeTests",
     "references": [
         "UnityEngine.TestRunner",
         "Unity.PerformanceTesting",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.GraphicTests.Performance.Editor",
         "Unity.GraphicTests.Performance.Runtime"
     ],
     "includePlatforms": [

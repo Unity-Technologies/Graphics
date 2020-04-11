@@ -8,10 +8,23 @@ using System.Text.RegularExpressions;
 using System.Globalization;
 using Unity.PerformanceTesting;
 using static PerformanceTestUtils;
-//using static PerformanceMetricNames;
+using static PerformanceMetricNames;
 
 namespace UnityEditor.VFX.PerformanceTest
 {
+    public class VFXCompilePerformanceTest : EditorPerformanceTests
+    {
+        const int k_BuildTimeout = 10 * 60 * 1000;    // 10 min for each build test
+        const string k_ShaderNameFilter = "HDRP";
+
+        [Timeout(k_BuildTimeout), Version("1"), UnityTest, Performance]
+        public IEnumerator DUMMY_123()
+        {
+            System.Threading.Thread.Sleep(123);
+            yield return null;
+        }
+    }
+
 #if ___WIP
     class VFXCompilePerformanceTest : EditorPerformanceTests
     {
