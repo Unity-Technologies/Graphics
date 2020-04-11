@@ -22,8 +22,10 @@ namespace UnityEngine.Rendering.HighDefinition
         DirectSpecularLighting,
         /// <summary>Display only indirect diffuse lighting.</summary>
         IndirectDiffuseLighting,
-        /// <summary>Display only indirect specular lighting.</summary>
-        IndirectSpecularLighting,
+        /// <summary>Display only reflection.</summary>
+        ReflectionLighting,
+        /// <summary>Display only refraction.</summary>
+        RefractionLighting,
         /// <summary>Display only Emissive lighting.</summary>
         EmissiveLighting,
         /// <summary>Display lux values.</summary>

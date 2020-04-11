@@ -20,7 +20,8 @@ void ApplyDebugToLighting(LightLoopContext context, inout BuiltinData builtinDat
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_SPECULAR_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_LIGHTING ||
-            _DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTION_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFRACTION_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
         {
             aggregateLighting.direct.diffuse = real3(0.0, 0.0, 0.0);
@@ -29,7 +30,8 @@ void ApplyDebugToLighting(LightLoopContext context, inout BuiltinData builtinDat
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_DIFFUSE_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_LIGHTING ||
-            _DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTION_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFRACTION_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
         {
             aggregateLighting.direct.specular = real3(0.0, 0.0, 0.0);
@@ -39,6 +41,7 @@ void ApplyDebugToLighting(LightLoopContext context, inout BuiltinData builtinDat
             _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_DIFFUSE_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_SPECULAR_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFRACTION_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
         {
             aggregateLighting.indirect.specularReflected = real3(0.0, 0.0, 0.0);
@@ -46,8 +49,7 @@ void ApplyDebugToLighting(LightLoopContext context, inout BuiltinData builtinDat
 
         // Note: specular transmission is the refraction and as it reflect lighting behind the object it
         // must be displayed for both diffuse and specular mode, except if we ask for direct lighting only
-        if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_DIFFUSE_LIGHTING ||
-            _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_SPECULAR_LIGHTING)
+        if (_DebugLightingMode != DEBUGLIGHTINGMODE_REFRACTION_LIGHTING)
         {
             aggregateLighting.indirect.specularTransmitted = real3(0.0, 0.0, 0.0);
         }
@@ -55,7 +57,8 @@ void ApplyDebugToLighting(LightLoopContext context, inout BuiltinData builtinDat
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_DIFFUSE_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_SPECULAR_LIGHTING ||
-            _DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_LIGHTING
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTION_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFRACTION_LIGHTING
 #if (SHADERPASS != SHADERPASS_DEFERRED_LIGHTING)
             || _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING // With deferred, Emissive is store in builtinData.bakeDiffuseLighting
 #endif

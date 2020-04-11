@@ -1536,7 +1536,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     GetDebugLightingMode() == DebugLightingMode.DirectDiffuseLighting ||
                     GetDebugLightingMode() == DebugLightingMode.DirectSpecularLighting ||
                     GetDebugLightingMode() == DebugLightingMode.IndirectDiffuseLighting ||
-                    GetDebugLightingMode() == DebugLightingMode.IndirectSpecularLighting
+                    GetDebugLightingMode() == DebugLightingMode.ReflectionLighting ||
+                    GetDebugLightingMode() == DebugLightingMode.RefractionLighting
                     );
         }
 
@@ -1546,7 +1547,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
             ProbeVolumeDebugMode debugProbeVolume = data.lightingDebugSettings.probeVolumeDebugMode;
             return
-                (debugLighting == DebugLightingMode.DirectDiffuseLighting || debugLighting == DebugLightingMode.DirectSpecularLighting || debugLighting == DebugLightingMode.IndirectDiffuseLighting || debugLighting == DebugLightingMode.IndirectSpecularLighting || debugLighting == DebugLightingMode.EmissiveLighting ||
+                (debugLighting == DebugLightingMode.DirectDiffuseLighting || debugLighting == DebugLightingMode.DirectSpecularLighting || debugLighting == DebugLightingMode.IndirectDiffuseLighting || debugLighting == DebugLightingMode.ReflectionLighting || debugLighting == DebugLightingMode.RefractionLighting || debugLighting == DebugLightingMode.EmissiveLighting ||
                 debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
                 (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
