@@ -538,7 +538,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderScale = (Mathf.Abs(1.0f - settings.renderScale) < kRenderScaleThreshold) ? 1.0f : settings.renderScale;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            cameraData.xr = UniversalRenderPipeline.m_XRSystem.emptyPass;
+            cameraData.xr = m_XRSystem.emptyPass;
             cameraData.renderScale = XRSystem.UpdateRenderScale(settings.renderScale);
 #else
             cameraData.xr = XRPass.emptyPass;

@@ -190,11 +190,8 @@ namespace UnityEngine.Rendering.Universal
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
-                RenderTargetHandle cameraTargetHandle = RenderTargetHandle.CameraTarget;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                    cameraTargetHandle.Init(cameraData.xr.renderTarget);
-#endif
+                RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData.xr);
+
                 m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : cameraTargetHandle;
                 m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : cameraTargetHandle;
 
@@ -317,13 +314,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (lastCameraInTheStack)
             {
-                bool cameraColorAttachmentIsCameraTarget = m_ActiveCameraColorAttachment == RenderTargetHandle.CameraTarget;
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                    cameraColorAttachmentIsCameraTarget = m_ActiveCameraColorAttachment.Identifier() == cameraData.xr.renderTarget;
-#endif
-
                 // Post-processing will resolve to final target. No need for final blit pass.
                 if (applyPostProcessing)
                 {
@@ -359,7 +349,7 @@ namespace UnityEngine.Rendering.Universal
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
                     (applyPostProcessing && !hasPassesAfterPostProcessing) ||
                     // offscreen camera rendering to a texture, we don't need a blit pass to resolve to screen
-                    cameraColorAttachmentIsCameraTarget;
+                    m_ActiveCameraColorAttachment == RenderTargetHandle.GetCameraTarget(cameraData.xr);
 
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)

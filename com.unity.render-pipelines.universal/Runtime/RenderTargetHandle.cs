@@ -15,6 +15,16 @@ namespace UnityEngine.Rendering.Universal
             rtid = renderTargetIdentifier;
         }
 
+        internal static RenderTargetHandle GetCameraTarget(XRPass xr)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+                return new RenderTargetHandle(xr.renderTarget);
+#endif
+
+            return CameraTarget;
+        }
+
         public void Init(string shaderProperty)
         {
             id = Shader.PropertyToID(shaderProperty);
