@@ -148,7 +148,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             var finalBlitSourceHandle = colorTargetHandle;
 
-            if (cameraHasPostProcess)
+            if (cameraHasPostProcess && !cameraData.resolveFinalTarget)
+            {
+                m_PostProcessPass.Setup(cameraTargetDescriptor, colorTargetHandle, k_AfterPostProcessColorHandle, depthTargetHandle, k_ColorGradingLutHandle, false, false);
+                EnqueuePass(m_PostProcessPass);
+            }
+
+            if (cameraHasPostProcess && cameraData.resolveFinalTarget)
             {
                 // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
                 // and only upscale the low-res RT to fullscreen when blitting it to camera target.
