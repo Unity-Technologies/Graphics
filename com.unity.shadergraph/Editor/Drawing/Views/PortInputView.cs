@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
-using UnityEngine.UIElements.StyleSheets;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -60,12 +59,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             Add(m_Container);
 
-            m_Container.visible = m_EdgeControl.visible = m_Control != null;
-
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
         }
 
-        private void OnCustomStyleResolved(CustomStyleResolvedEvent e)
+        void OnCustomStyleResolved(CustomStyleResolvedEvent e)
         {
             Color colorValue;
 
@@ -96,22 +93,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddToClassList("type" + m_SlotType);
             if (m_Control != null)
             {
-                var disposable = m_Control as IDisposable;
-                if (disposable != null)
+                if (m_Control is IDisposable disposable)
                     disposable.Dispose();
                 m_Container.Remove(m_Control);
             }
             m_Control = slot.InstantiateControl();
             if (m_Control != null)
                 m_Container.Insert(0, m_Control);
-
-            m_Container.visible = m_EdgeControl.visible = m_Control != null;
         }
 
         public void Dispose()
         {
-            var disposable = m_Control as IDisposable;
-            if (disposable != null)
+            if (m_Control is IDisposable disposable)
                 disposable.Dispose();
         }
     }
