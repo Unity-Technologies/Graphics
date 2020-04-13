@@ -760,7 +760,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Exposure.mode.value == ExposureMode.Fixed)
             {
                 kernel = cs.FindKernel("KFixedExposure");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f));
             }
             else if (m_Exposure.mode == ExposureMode.UsePhysicalCamera)
             {
