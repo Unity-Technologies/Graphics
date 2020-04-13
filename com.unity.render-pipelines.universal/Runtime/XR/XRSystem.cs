@@ -56,11 +56,20 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        static void GetDisplaySubsystem()
+        {
+#if UNITY_2020_2_OR_NEWER
+            SubsystemManager.GetSubsystems(displayList);
+#else
+            SubsystemManager.GetInstances(displayList);
+#endif
+        }
+
         // With XR SDK: disable legacy VR system before rendering first frame
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
         {
-            SubsystemManager.GetInstances(displayList);
+            GetDisplaySubsystem();
 
             // XRTODO: refactor with RefreshXrSdk()
             for (int i = 0; i < displayList.Count; i++)
@@ -73,7 +82,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal static float UpdateRenderScale(float renderScale)
         {
-            SubsystemManager.GetInstances(displayList);
+            GetDisplaySubsystem();
 
             for (int i = 0; i < displayList.Count; i++)
                 displayList[i].scaleOfAllRenderTargets = renderScale;
@@ -159,7 +168,7 @@ namespace UnityEngine.Rendering.Universal
 
         bool RefreshXrSdk()
         {
-            SubsystemManager.GetInstances(displayList);
+            GetDisplaySubsystem();
 
             if (displayList.Count > 0)
             {
