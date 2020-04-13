@@ -100,6 +100,55 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
+        [UnityTest]
+        public IEnumerator Check_Total_Time_Is_Always_The_Sum_of_DeltaTime()
+        {
+            yield return new EnterPlayMode();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+
+            var blockCustomSpawner = ScriptableObject.CreateInstance<VFXSpawnerCustomWrapper>();
+            blockCustomSpawner.SetSettingValue("m_customType", new SerializableType(typeof(VFXCustomSpawnerTimeCheckerTest)));
+
+            var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var outputContext = ScriptableObject.CreateInstance<VFXPointOutput>();
+
+            spawnerContext.LinkTo(initContext);
+            initContext.LinkTo(outputContext);
+
+            spawnerContext.AddChild(blockCustomSpawner);
+            graph.AddChild(spawnerContext);
+            graph.AddChild(initContext);
+            graph.AddChild(outputContext);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var vfxComponent = m_gameObject.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+
+            int maxFrame = 64;
+            while (vfxComponent.culled && --maxFrame > 0)
+                yield return null;
+            Assert.IsTrue(maxFrame > 0);
+
+            while (--maxFrame > 0 && VFXCustomSpawnerTimeCheckerTest.s_ReadInternalTotalTime < 0.5f)
+                yield return null;
+            Assert.IsTrue(maxFrame > 0);
+
+            //Moved the object until culled
+            var backupPosition = vfxComponent.transform.position;
+
+            maxFrame = 64;
+            while (--maxFrame > 0 && !vfxComponent.culled)
+            {
+                vfxComponent.transform.position = vfxComponent.transform.position + Vector3.up;
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+
+            yield return new ExitPlayMode();
+        }
+
 #pragma warning disable 0414
         public static object[] updateModes = { VFXUpdateMode.FixedDeltaTime, VFXUpdateMode.DeltaTime };
 #pragma warning restore 0414
