@@ -754,7 +754,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource colorBuffer, RenderGraphResource volumetricLighting, RenderGraphMutableResource depthStencilBuffer, RenderGraphResource depthTexture)
         {
-            if (m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
             {
                 return;
             }
