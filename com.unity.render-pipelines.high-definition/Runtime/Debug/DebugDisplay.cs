@@ -35,7 +35,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _MousePixelCoord;  // xy unorm, zw norm
         public Vector4 _MouseClickPixelCoord;  // xy unorm, zw norm
 
-        public float _DebugExposure;
         public int _MatcapMixAlbedo;
         public float _MatcapViewScale;
         public int _DebugSingleShadowIndex;
