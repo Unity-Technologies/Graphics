@@ -503,7 +503,7 @@ namespace UnityEngine.Rendering.Universal
 
             // TODO: why is requiresBlitForOffscreenCamera used here?
             return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                   !isCompatibleBackbufferTextureDimension || isCapturing || (Display.main.requiresBlitToBackbuffer && !cameraData.xr.enabled);
+                   !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireExplicitSrgbConversion;
         }
 
         bool CanCopyDepth(ref CameraData cameraData)
