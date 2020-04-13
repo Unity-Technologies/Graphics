@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion, cameraData.requireSrgbConversion);
 
-            cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
+            cmd.SetGlobalTexture(ShaderPropertyId.blitTex, m_Source.Identifier());
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)

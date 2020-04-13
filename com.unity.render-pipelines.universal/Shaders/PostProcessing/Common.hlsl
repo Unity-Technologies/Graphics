@@ -28,14 +28,13 @@ struct Varyings
 };
 
 #if _USE_DRAW_PROCEDURAL
-float4 _BlitScaleBias;
-float4 _BlitScaleBiasRt;
+float4 _InputTexScaleBias;
 
 void GetProceduralQuad(in uint vertexID, out float4 positionCS, out float2 uv)
 {
-    positionCS = GetQuadVertexPosition(vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
+    positionCS = GetQuadVertexPosition(vertexID);
     positionCS.xy = positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
-    uv = GetQuadTexCoord(vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+    uv = GetQuadTexCoord(vertexID) * _InputTexScaleBias.xy + _InputTexScaleBias.zw;
 }
 #endif
 

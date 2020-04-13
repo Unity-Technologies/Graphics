@@ -24,7 +24,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             #endif
         #endif
 
-        TEXTURE2D_X(_BlitTex);
+        TEXTURE2D_X(_InputTex);
         TEXTURE2D_X(_Bloom_Texture);
         TEXTURE2D(_LensDirt_Texture);
         TEXTURE2D(_Grain_Texture);
@@ -127,15 +127,15 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
                 float2 delta = (end - uv) / 3.0;
 
-                half r = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, uvDistorted                ).x;
-                half g = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, DistortUV(delta + uv)      ).y;
-                half b = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, DistortUV(delta * 2.0 + uv)).z;
+                half r = SAMPLE_TEXTURE2D_X(_InputTex, sampler_LinearClamp, uvDistorted                ).x;
+                half g = SAMPLE_TEXTURE2D_X(_InputTex, sampler_LinearClamp, DistortUV(delta + uv)      ).y;
+                half b = SAMPLE_TEXTURE2D_X(_InputTex, sampler_LinearClamp, DistortUV(delta * 2.0 + uv)).z;
 
                 color = half3(r, g, b);
             }
             #else
             {
-                color = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, uvDistorted).xyz;
+                color = SAMPLE_TEXTURE2D_X(_InputTex, sampler_LinearClamp, uvDistorted).xyz;
             }
             #endif
 
