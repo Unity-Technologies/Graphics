@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
 #if ENABLE_VR && ENABLE_VR_MODULE
-                XR.XRDevice.UpdateEyeTextureMSAASetting();
+                XRSystem.UpdateMSAALevel(asset.msaaSampleCount);
 #endif
             }
 
