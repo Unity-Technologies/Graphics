@@ -142,7 +142,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _MousePixelCoord = Shader.PropertyToID("_MousePixelCoord");
         public static readonly int _MouseClickPixelCoord = Shader.PropertyToID("_MouseClickPixelCoord");
         public static readonly int _DebugFont = Shader.PropertyToID("_DebugFont");
-        public static readonly int _DebugExposure = Shader.PropertyToID("_DebugExposure");
         public static readonly int _SliceIndex = Shader.PropertyToID("_SliceIndex");
         public static readonly int _DebugContactShadowLightIndex = Shader.PropertyToID("_DebugContactShadowLightIndex");
 
