@@ -618,6 +618,22 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     // Note: no need to store MATERIALFEATUREFLAGS_LIT_STANDARD, always present
     outGBuffer2.a  = PackFloatInt8bit(coatMask, materialFeatureId, 8);
 
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode >= DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING && _DebugLightingMode <= DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+    {
+        // With deferred, Emissive is store in builtinData.bakeDiffuseLighting. If we ask for emissive lighting only
+        // then remove bakeDiffuseLighting part.
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+        {
+            builtinData.bakeDiffuseLighting = real3(0.0, 0.0, 0.0);
+        }
+        else
+        {
+            builtinData.emissiveColor = real3(0.0, 0.0, 0.0);
+        }
+    }
+#endif
+
     // RT3 - 11f:11f:10f
     // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
     // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.

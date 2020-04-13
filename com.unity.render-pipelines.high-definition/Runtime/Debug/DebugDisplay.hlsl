@@ -32,7 +32,6 @@ float4 _DebugLightingMaterialValidateLowColor;
 float4 _DebugLightingMaterialValidatePureMetalColor;
 float4 _MousePixelCoord;  // xy unorm, zw norm
 float4 _MouseClickPixelCoord;  // xy unorm, zw norm
-float _DebugExposure;
 int _MatcapMixAlbedo;
 int _MatcapViewScale;
 uint _DebugContactShadowLightIndex;
