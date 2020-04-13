@@ -59,7 +59,8 @@ namespace UnityEngine.Rendering.Universal
         static void GetDisplaySubsystem()
         {
 #if UNITY_2020_2_OR_NEWER
-            SubsystemManager.GetSubsystems(displayList);
+            //SubsystemManager.GetSubsystems(displayList);
+            SubsystemManager.GetInstances(displayList);
 #else
             SubsystemManager.GetInstances(displayList);
 #endif
