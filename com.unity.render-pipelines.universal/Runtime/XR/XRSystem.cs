@@ -182,6 +182,37 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        // XRTODO: rework and merge code with CreateLayoutFromXrSdk()
+        internal void UpdateFromCamera(ref XRPass xrPass, Camera camera)
+        {
+            if (xrPass.enabled)
+            {
+                display.GetRenderPass(xrPass.multipassId, out var renderPass);
+                display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
+
+                // Disable legacy stereo culling path
+                cullingParams.cullingOptions &= ~CullingOptions.Stereo;
+
+                if (xrPass.singlePassEnabled)
+                {
+                    xrPass = XRPass.Create(renderPass, multipassId: xrPass.multipassId, cullingParams, occlusionMeshMaterial);
+
+                    for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
+                    {
+                        renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
+                        xrPass.AddView(renderPass, renderParam);
+                    }
+                }
+                else
+                {
+                    renderPass.GetRenderParameter(camera, 0, out var renderParam);
+
+                    xrPass = XRPass.Create(renderPass, multipassId: xrPass.multipassId, cullingParams, occlusionMeshMaterial);
+                    xrPass.AddView(renderPass, renderParam);
+                }
+            }
+        }
+
         void CreateLayoutFromXrSdk(Camera camera, bool singlePassAllowed)
         {
             bool CanUseSinglePass(XRDisplaySubsystem.XRRenderPass renderPass)

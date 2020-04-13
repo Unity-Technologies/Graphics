@@ -365,6 +365,9 @@ namespace UnityEngine.Rendering.Universal
                             CameraData overlayCameraData = baseCameraData;
                             bool lastCamera = i == lastActiveOverlayCameraIndex;
 
+                            if (baseCameraData.xr.enabled)
+                                m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, currCamera);
+
                             BeginCameraRendering(context, currCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
