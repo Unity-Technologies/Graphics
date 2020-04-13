@@ -4,12 +4,11 @@
 // When a pass has 2+ views, single-pass will be active.
 // To avoid allocating every frame, XRView is a struct and XRPass is pooled.
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+
 using System;
 using System.Collections.Generic;
-
-#if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.XR;
-#endif
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -49,7 +48,6 @@ namespace UnityEngine.Rendering.Universal
             textureArraySlice = dstSlice;
         }
 
-#if ENABLE_VR && ENABLE_XR_MODULE
         internal XRView(XRDisplaySubsystem.XRRenderPass renderPass, XRDisplaySubsystem.XRRenderParameter renderParameter)
         {
             projMatrix = renderParameter.projection;
@@ -64,7 +62,6 @@ namespace UnityEngine.Rendering.Universal
             viewport.y      *= renderPass.renderTargetDesc.height;
             viewport.height *= renderPass.renderTargetDesc.height;
         }
-#endif
     }
 
     class XRPass
@@ -146,7 +143,6 @@ namespace UnityEngine.Rendering.Universal
             AddViewInternal(new XRView(proj, view, vp, textureArraySlice));
         }
 
-#if ENABLE_VR && ENABLE_XR_MODULE
         internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
@@ -188,7 +184,6 @@ namespace UnityEngine.Rendering.Universal
         {
             AddViewInternal(new XRView(xrSdkRenderPass, xrSdkRenderParameter));
         }
-#endif
 
         internal static void Release(XRPass xrPass)
         {
@@ -292,6 +287,9 @@ namespace UnityEngine.Rendering.Universal
                             cmd.DrawMesh(views[viewId].occlusionMesh, m, occlusionMeshMaterial);
                         }
                     }
+
+                    if (singlePassEnabled)
+                        CoreUtils.SetRenderTarget(cmd, depthBuffer, ClearFlag.None, 0, CubemapFace.Unknown, -1);
                 }
             }
         }
@@ -317,3 +315,18 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
+
+#else
+namespace UnityEngine.Rendering.Universal
+{
+    internal class XRPass
+    {
+        internal static readonly XRPass emptyPass = new XRPass();
+
+        internal bool enabled { get => false; }
+        internal void StartSinglePass(CommandBuffer cmd) { }
+        internal void StopSinglePass(CommandBuffer cmd) { }
+        internal void EndCamera(CommandBuffer cmd, Camera camera) { }
+    }
+}
+#endif

@@ -231,14 +231,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool RequireSRGBConversionBlitToBackBuffer(CameraData cameraData)
         {
-            bool requiresSRGBConversion = Display.main.requiresSrgbBlitToBackbuffer;
-            // For stereo case, eye texture always want color data in sRGB space.
-            // If eye texture color format is linear, we do explicit sRGB conversion
-#if ENABLE_VR && ENABLE_VR_MODULE
-            if (cameraData.xr.enabled)
-                requiresSRGBConversion = !cameraData.xr.renderTargetDesc.sRGB;
-#endif
-            return requiresSRGBConversion && m_EnableSRGBConversionIfNeeded;
+            return cameraData.requireSrgbConversion && m_EnableSRGBConversionIfNeeded;
         }
 
         private void Blit(CommandBuffer cmd,
@@ -441,8 +434,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     colorLoadAction = RenderBufferLoadAction.Load;
 
                 RenderTargetHandle cameraTargetHandle = RenderTargetHandle.CameraTarget;
-#if ENABLE_VR && ENABLE_VR_MODULE
-                if(cameraData.xr.enabled)
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
                     cameraTargetHandle.Init(cameraData.xr.renderTarget);
 #endif
                 // Note: We rendering to "camera target" we need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
@@ -453,6 +446,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 bool finishPostProcessOnScreen = cameraData.resolveFinalTarget || (m_Destination == cameraTargetHandle || m_HasFinalPass == true);
 
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                 {
                     cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
@@ -489,6 +483,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                 }
                 else
+#endif
                 {
                     cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
@@ -1177,7 +1172,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             RenderTargetHandle cameraTargetHandle = RenderTargetHandle.CameraTarget;
 
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
                 cameraTargetHandle.Init(cameraData.xr.renderTarget);

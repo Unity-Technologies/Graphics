@@ -39,7 +39,10 @@ namespace UnityEngine.Rendering.Universal
 
         const string k_RenderCameraTag = "Render Camera";
         static ProfilingSampler _CameraProfilingSampler = new ProfilingSampler(k_RenderCameraTag);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
         internal static XRSystem m_XRSystem = new XRSystem();
+#endif
 
         public static float maxShadowBias
         {
@@ -190,17 +193,15 @@ namespace UnityEngine.Rendering.Universal
 
         static bool TryGetCullingParameters(CameraData cameraData, out ScriptableCullingParameters cullingParams)
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
                 cullingParams = cameraData.xr.cullingParams;
                 return true;
             }
-            else
-            {
-                if (!cameraData.camera.TryGetCullingParameters(false, out cullingParams))
-                    return false;
-            }
-            return true;
+#endif
+
+            return cameraData.camera.TryGetCullingParameters(false, out cullingParams);
         }
 
         /// <summary>
@@ -319,8 +320,9 @@ namespace UnityEngine.Rendering.Universal
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
-            var originalTargetDesc = baseCameraData.cameraTargetDescriptor;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            var originalTargetDesc = baseCameraData.cameraTargetDescriptor;
             var xrActive = false;
             var xrPasses = m_XRSystem.SetupFrame(baseCameraData);
             foreach (XRPass xrPass in xrPasses)
@@ -335,6 +337,7 @@ namespace UnityEngine.Rendering.Universal
                     if (baseCameraData.isHdrEnabled)
                         baseCameraData.cameraTargetDescriptor.colorFormat = originalTargetDesc.colorFormat;
                 }
+#endif
 
                 BeginCameraRendering(context, baseCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
@@ -375,6 +378,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (baseCameraData.xr.enabled)
                     baseCameraData.cameraTargetDescriptor = originalTargetDesc;
             }
@@ -389,6 +393,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_XRSystem.ReleaseFrame();
+#endif
         }
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
@@ -532,6 +537,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             cameraData.xr = UniversalRenderPipeline.m_XRSystem.emptyPass;
             cameraData.renderScale = XRSystem.UpdateRenderScale(settings.renderScale);
+#else
+            cameraData.xr = XRPass.emptyPass;
 #endif
 
             var commonOpaqueFlags = SortingCriteria.CommonOpaque;

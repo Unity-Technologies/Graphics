@@ -15,14 +15,10 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (!renderingData.cameraData.xr.enabled)
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // XRTODO: Remove this code once Skybox pass is moved to SRP land.
+            if (renderingData.cameraData.xr.enabled)
             {
-                context.DrawSkybox(renderingData.cameraData.camera);
-            }
-            else
-            {
-                //XRTODO: Remove this else branch once Skybox pass is moved to SRP land.
-
                 // Setup Legacy XR buffer states
                 if (renderingData.cameraData.xr.singlePassEnabled)
                 {
@@ -55,6 +51,11 @@ namespace UnityEngine.Rendering.Universal
 
                     context.DrawSkybox(renderingData.cameraData.camera);
                 }
+            }
+            else
+#endif
+            {
+                context.DrawSkybox(renderingData.cameraData.camera);
             }
         }
     }

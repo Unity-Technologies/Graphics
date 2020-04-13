@@ -1,3 +1,5 @@
+#if ENABLE_VR && ENABLE_XR_MODULE
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -48,3 +50,5 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
+
+#endif

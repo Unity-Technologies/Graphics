@@ -2,12 +2,11 @@
 // - XRDisplaySubsystem from the XR SDK
 // - the test automated test framework
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+
 using System;
 using System.Collections.Generic;
-
-#if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.XR;
-#endif
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -19,7 +18,6 @@ namespace UnityEngine.Rendering.Universal
         // Store active passes and avoid allocating memory every frames
         List<XRPass> framePasses = new List<XRPass>();
 
-#if ENABLE_VR && ENABLE_XR_MODULE
         // XR SDK display interface
         static List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
         XRDisplaySubsystem display = null;
@@ -28,7 +26,6 @@ namespace UnityEngine.Rendering.Universal
         Material occlusionMeshMaterial = null;
         Material mirrorViewMaterial = null;
         MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
-#endif
 
         // Set by test framework
         internal static bool automatedTestRunning = false;
@@ -44,9 +41,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal XRSystem()
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
             RefreshXrSdk();
-#endif
 
             // XRTODO: replace by dynamic render graph
             TextureXR.maxViews = Math.Max(TextureXR.slices, GetMaxViews());
@@ -54,16 +49,13 @@ namespace UnityEngine.Rendering.Universal
 
         internal void InitializeXRSystemData(XRSystemData data)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
             if (data)
             {
                 occlusionMeshMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrOcclusionMeshPS);
                 mirrorViewMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrMirrorViewPS);
             }
-#endif
         }
 
-#if ENABLE_VR && ENABLE_XR_MODULE
         // With XR SDK: disable legacy VR system before rendering first frame
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
@@ -88,24 +80,21 @@ namespace UnityEngine.Rendering.Universal
 
             return (displayList.Count > 0) ? 1.0f : renderScale;
         }
-#endif
 
         // Compute the maximum number of views (slices) to allocate for texture arrays
         internal int GetMaxViews()
         {
             int maxViews = 1;
 
-#if ENABLE_VR && ENABLE_XR_MODULE
             if (display != null)
             {
                 // XRTODO : replace by API from XR SDK, assume we have 2 slices until then
                 maxViews = 2;
             }
-            else
-#endif
-
-            if (testModeEnabled)
+            else if (testModeEnabled)
+            {
                 maxViews = Math.Max(maxViews, 2);
+            }
 
             return maxViews;
         }
@@ -115,7 +104,6 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             bool xrEnabled = RefreshXrSdk();
 
-#if ENABLE_VR && ENABLE_XR_MODULE
             if (display != null)
             {
                 // XRTODO: Handle stereo mode selection in URP pipeline asset UI
@@ -124,7 +112,6 @@ namespace UnityEngine.Rendering.Universal
                 display.zFar  = camera.farClipPlane;
                 display.sRGB  = QualitySettings.activeColorSpace == ColorSpace.Linear;
             }
-#endif
 
             if (framePasses.Count > 0)
             {
@@ -172,7 +159,6 @@ namespace UnityEngine.Rendering.Universal
 
         bool RefreshXrSdk()
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
             SubsystemManager.GetInstances(displayList);
 
             if (displayList.Count > 0)
@@ -193,14 +179,11 @@ namespace UnityEngine.Rendering.Universal
                 display = null;
             }
 
-#endif
-
             return false;
         }
 
         void CreateLayoutFromXrSdk(Camera camera, bool singlePassAllowed)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
             bool CanUseSinglePass(XRDisplaySubsystem.XRRenderPass renderPass)
             {
                 if (renderPass.renderTargetDesc.dimension != TextureDimension.Tex2DArray)
@@ -254,15 +237,12 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
-#endif
         }
 
         internal void Cleanup()
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
             CoreUtils.Destroy(occlusionMeshMaterial);
             CoreUtils.Destroy(mirrorViewMaterial);
-#endif
         }
 
         internal void AddPassToFrame(XRPass xrPass)
@@ -281,13 +261,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal void RenderMirrorView(CommandBuffer cmd, Camera camera)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
             if (display == null || !display.running || !mirrorViewMaterial)
                 return;
 
             using (new ProfilingScope(cmd, _XRMirrorProfilingSampler))
             {
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+                cmd.SetRenderTarget(camera.targetTexture != null  ? camera.targetTexture : new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget));
                 bool yflip = camera.targetTexture != null || camera.cameraType == CameraType.SceneView || camera.cameraType == CameraType.Preview;
                 int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
                 if (display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode))
@@ -306,7 +285,7 @@ namespace UnityEngine.Rendering.Universal
                                                         new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
                             Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
-                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, blitParam.srcTex.sRGB ? 0 : 1);
+                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (!display.sRGB || blitParam.srcTex.sRGB) ? 0 : 1);
                             mirrorViewMaterialProperty.SetTexture(XRShaderIDs._BlitTexture, blitParam.srcTex);
                             mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBias, scaleBias);
                             mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBiasRt, scaleBiasRT);
@@ -322,7 +301,6 @@ namespace UnityEngine.Rendering.Universal
                     cmd.ClearRenderTarget(true, true, Color.black);
                 }
             }
-#endif
         }
 
         bool LayoutSinglePassTestMode(CameraData cameraData, XRLayout frameLayout)
@@ -414,3 +392,5 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
+
+#endif

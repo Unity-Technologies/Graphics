@@ -1,5 +1,7 @@
 // Helper API to create custom XR layout
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+
 namespace UnityEngine.Rendering.Universal
 {
     internal struct XRLayout
@@ -20,3 +22,5 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
+
+#endif

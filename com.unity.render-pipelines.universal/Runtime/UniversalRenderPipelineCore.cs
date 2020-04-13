@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetViewMatrix(int viewIndex = 0)
         {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
                 return xr.GetViewMatrix(viewIndex);
 #endif
@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetProjectionMatrix(int viewIndex = 0)
         {
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
                 return xr.GetProjMatrix(viewIndex);
 #endif      
@@ -108,6 +108,19 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+
+        internal bool requireSrgbConversion
+        {
+            get
+            {
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (xr.enabled)
+                    return !xr.renderTargetDesc.sRGB && (QualitySettings.activeColorSpace == ColorSpace.Linear);
+#endif
+
+                return Display.main.requiresSrgbBlitToBackbuffer;
+            }
+        }
 
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering

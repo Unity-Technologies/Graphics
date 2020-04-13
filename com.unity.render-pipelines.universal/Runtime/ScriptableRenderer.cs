@@ -55,11 +55,13 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
         public static void SetCameraMatrices(CommandBuffer cmd, ref CameraData cameraData, bool setInverseMatrices)
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
                 cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, cameraData.xr.renderTargetIsRenderTexture);
                 return;
             }
+#endif
 
             Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
             Matrix4x4 projectionMatrix = cameraData.GetProjectionMatrix();
@@ -689,6 +691,8 @@ namespace UnityEngine.Rendering.Universal
                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
                 {
                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
                     if (cameraData.xr.enabled)
                     {
                         // SetRenderTarget might alter the internal device state(winding order).
@@ -697,6 +701,7 @@ namespace UnityEngine.Rendering.Universal
                         bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
                         cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
                     }
+#endif
                 }
             }
 
@@ -710,26 +715,28 @@ namespace UnityEngine.Rendering.Universal
 
         void BeginXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
         {
-            if (!cameraData.xr.enabled)
-                return;
-
-            cameraData.xr.StartSinglePass(cmd);
-
-            cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                cameraData.xr.StartSinglePass(cmd);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
+#endif
         }
 
         void EndXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
         {
-            if (!cameraData.xr.enabled)
-                return;
-
-            cameraData.xr.StopSinglePass(cmd);
-
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                cameraData.xr.StopSinglePass(cmd);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
+#endif
         }
 
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)

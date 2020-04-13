@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
         PostProcessPass m_FinalPostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
         XROcclusionMeshPass m_XROcclusionMeshPass;
 #endif
 #if UNITY_EDITOR
@@ -53,7 +53,9 @@ namespace UnityEngine.Rendering.Universal
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
             UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
+#endif
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
@@ -72,7 +74,7 @@ namespace UnityEngine.Rendering.Universal
             // we inject the builtin passes in the before events.
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingPrepasses);
 #endif
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
@@ -88,6 +90,7 @@ namespace UnityEngine.Rendering.Universal
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
+
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
 #endif
@@ -188,8 +191,8 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base)
             {
                 RenderTargetHandle cameraTargetHandle = RenderTargetHandle.CameraTarget;
-#if ENABLE_VR && ENABLE_VR_MODULE
-                if(cameraData.xr.enabled)
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
                     cameraTargetHandle.Init(cameraData.xr.renderTarget);
 #endif
                 m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : cameraTargetHandle;
@@ -222,11 +225,13 @@ namespace UnityEngine.Rendering.Universal
                 var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
                 var activeDepthRenderTargetId = m_ActiveCameraDepthAttachment.Identifier();
 
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                 {
                     activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
                     activeDepthRenderTargetId = new RenderTargetIdentifier(activeDepthRenderTargetId, 0, CubemapFace.Unknown, -1);
                 }
+#endif
 
                 ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
             }
@@ -251,9 +256,12 @@ namespace UnityEngine.Rendering.Universal
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
-#if ENABLE_VR && ENABLE_VR_MODULE
-            m_XROcclusionMeshPass.Setup(m_ActiveCameraDepthAttachment);
-            EnqueuePass(m_XROcclusionMeshPass);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled && m_XROcclusionMeshPass != null)
+            {
+                m_XROcclusionMeshPass.Setup(m_ActiveCameraDepthAttachment);
+                EnqueuePass(m_XROcclusionMeshPass);
+            }
 #endif
 
             if (requiresDepthPrepass)
@@ -310,8 +318,11 @@ namespace UnityEngine.Rendering.Universal
             if (lastCameraInTheStack)
             {
                 bool cameraColorAttachmentIsCameraTarget = m_ActiveCameraColorAttachment == RenderTargetHandle.CameraTarget;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                     cameraColorAttachmentIsCameraTarget = m_ActiveCameraColorAttachment.Identifier() == cameraData.xr.renderTarget;
+#endif
 
                 // Post-processing will resolve to final target. No need for final blit pass.
                 if (applyPostProcessing)
@@ -339,7 +350,6 @@ namespace UnityEngine.Rendering.Universal
                     m_FinalPostProcessPass.SetupFinalPass(sourceForFinalPass);
                     EnqueuePass(m_FinalPostProcessPass);
                 }
-
 
                 // if post-processing then we already resolved to camera target while doing post.
                 // Also only do final blit if camera is not rendering to RT.
@@ -491,21 +501,19 @@ namespace UnityEngine.Rendering.Universal
             bool requiresExplicitMsaaResolve = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
             bool isOffscreenRender = cameraData.targetTexture != null && !cameraData.isSceneViewCamera;
             bool isCapturing = cameraData.captureActions != null;
-            bool requiresExplicitSRGBCorrection = Display.main.requiresBlitToBackbuffer;
-#if ENABLE_VR && ENABLE_VR_MODULE
+
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
-            {
                 isCompatibleBackbufferTextureDimension = cameraData.xr.renderTargetDesc.dimension == cameraTargetDescriptor.dimension;
-                requiresExplicitSRGBCorrection = !cameraData.xr.renderTargetDesc.sRGB;
-            }
 #endif
 
             bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport;
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
 
+            // TODO: why is requiresBlitForOffscreenCamera used here?
             return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                   !isCompatibleBackbufferTextureDimension || isCapturing || requiresExplicitSRGBCorrection;
+                   !isCompatibleBackbufferTextureDimension || isCapturing || (Display.main.requiresBlitToBackbuffer && !cameraData.xr.enabled);
         }
 
         bool CanCopyDepth(ref CameraData cameraData)
