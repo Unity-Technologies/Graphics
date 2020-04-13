@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Render2DLightingPass = new Render2DLightingPass(data);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
@@ -66,7 +66,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
             PixelPerfectCamera ppc;
             cameraData.camera.TryGetComponent<PixelPerfectCamera>(out ppc);
-            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
+            bool cameraHasPostProcess = renderingData.cameraData.postProcessEnabled;
+            bool stackHasPostProcess = renderingData.postProcessingEnabled;
             bool requireFinalBlitPass;
 
             RenderTargetHandle colorTargetHandle;
@@ -77,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 Vector2Int ppcOffscreenRTSize = ppc != null ? ppc.offscreenRTSize : Vector2Int.zero;
                 bool ppcUsesOffscreenRT = ppcOffscreenRTSize != Vector2Int.zero;
                 
-                m_CreateColorTexture = ppcUsesOffscreenRT || postProcessEnabled || cameraData.isHdrEnabled || cameraData.isSceneViewCamera || !cameraData.isDefaultViewport
+                m_CreateColorTexture = ppcUsesOffscreenRT || cameraHasPostProcess || cameraData.isHdrEnabled || cameraData.isSceneViewCamera || !cameraData.isDefaultViewport
                     || !m_UseDepthStencilBuffer || !cameraData.resolveFinalTarget;
 
                 m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;
@@ -135,16 +136,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
 
+            // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
+            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base)
+            {
+                m_ColorGradingLutPass.Setup(k_ColorGradingLutHandle);
+                EnqueuePass(m_ColorGradingLutPass);
+            }
+
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
 
             var finalBlitSourceHandle = colorTargetHandle;
 
-            if (postProcessEnabled)
+            if (cameraHasPostProcess)
             {
-                m_ColorGradingLutPass.Setup(k_ColorGradingLutHandle);
-                EnqueuePass(m_ColorGradingLutPass);
-
                 // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
                 // and only upscale the low-res RT to fullscreen when blitting it to camera target.
                 if (ppc != null && ppc.upscaleRT && ppc.isRunning)
