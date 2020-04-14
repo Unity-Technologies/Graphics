@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where changing the default volume profile from another inspector would not update the default volume editor.
 - Fixed path validation when creating new volume profile (case 1229933)
 - Fix for range compression factor for probes going negative (now clamped to positive values).
+- Fixed shadowmask UI now correctly showing shadowmask disable
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
@@ -48,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
+- Shadowmask and realtime reflectoin probe property are hide in Quality settings
 
 ## [7.3.0] - 2020-03-11
 
