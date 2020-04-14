@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
 - Copied nodes are now pasted at the cursor location instead of slightly offset from their original location
 - Error messages reported on Sub Graph output nodes for invalid previews now present clearer information, with documentation support.
+- Updated legacy COLOR output semantic to SV_Target in pixel shader for compatibility with DXC
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -87,10 +88,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where adding a HDRP Master Node to a Shader Graph would softlock the Shader Graph.
 - Fixed a bug where shaders fail to compile due to `#pragma target` generation when your system locale uses commas instead of periods.
 - Fixed a compilation error when using Hybrid Renderer due to incorrect positioning of macros.
+- Fixed a bug where the `Create Node Menu` lagged on load. Entries are now only generated when property, keyword, or subgraph changes are detected. [1209567](https://issuetracker.unity3d.com/issues/shadergraph-opening-node-search-window-is-unnecessarily-slow).
 - Fixed a bug with the `Transform` node where converting from `Absolute World` space in a sub graph causes invalid subscript errors. [1190813](https://issuetracker.unity3d.com/issues/shadergraph-invalid-subscript-errors-are-thrown-when-connecting-a-subgraph-with-transform-node-with-unlit-master-node)
 - Fixed a bug where the `Position` node would change coordinate spaces from `World` to `Absolute World` when shaders recompile. [1184617](https://issuetracker.unity3d.com/product/unity/issues/guid/1184617/)
 - Fixed a bug where instanced shaders wouldn't compile on PS4.
 - Optimized loading a large Shader Graph. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
+- Fixed NaN issue in triplanar SG node when blend goes to 0.
 
 ## [7.1.1] - 2019-09-05
 ### Added
