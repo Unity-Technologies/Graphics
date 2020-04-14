@@ -121,6 +121,14 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(spawnerContext);
             graph.AddChild(initContext);
             graph.AddChild(outputContext);
+
+            //plug total time into custom spawn total time
+            var builtInParameter = ScriptableObject.CreateInstance<VFXBuiltInParameter>();
+            builtInParameter.SetSettingValue("m_expressionOp", VFXExpressionOperation.TotalTime);
+            blockCustomSpawner.inputSlots[0].Link(builtInParameter.outputSlots[0]);
+
+            graph.AddChild(builtInParameter);
+
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var vfxComponent = m_gameObject.AddComponent<VisualEffect>();
@@ -131,7 +139,7 @@ namespace UnityEditor.VFX.Test
                 yield return null;
             Assert.IsTrue(maxFrame > 0);
 
-            while (--maxFrame > 0 && VFXCustomSpawnerTimeCheckerTest.s_ReadInternalTotalTime < 0.5f)
+            while (--maxFrame > 0 && VFXCustomSpawnerTimeCheckerTest.s_ReadInternalTotalTime < 0.2f)
                 yield return null;
             Assert.IsTrue(maxFrame > 0);
 
@@ -141,11 +149,20 @@ namespace UnityEditor.VFX.Test
             maxFrame = 64;
             while (--maxFrame > 0 && !vfxComponent.culled)
             {
-                vfxComponent.transform.position = vfxComponent.transform.position + Vector3.up;
+                vfxComponent.transform.position = vfxComponent.transform.position + Vector3.up * 5.0f;
                 yield return null;
             }
             Assert.IsTrue(maxFrame > 0);
 
+            for (int i = 0; i < 8; ++i)
+                yield return null;
+
+            vfxComponent.transform.position = backupPosition;
+
+            for (int i = 0; i < 8; ++i)
+                yield return null;
+
+            Assert.AreEqual((double)VFXCustomSpawnerTimeCheckerTest.s_ReadInternalTotalTime, (double)VFXCustomSpawnerTimeCheckerTest.s_ReadTotalTimeThroughInput, 0.0001f);
             yield return new ExitPlayMode();
         }
 
