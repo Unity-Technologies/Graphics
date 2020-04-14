@@ -103,6 +103,12 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly PostProcessSystem m_PostProcessSystem;
         readonly XRSystem m_XRSystem;
 
+        // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
+        bool m_previousLightsUseLinearIntensity;
+        bool m_previoulightsUseColorTemperature;
+        bool m_previousSRPBatcher;
+        ShadowmaskMode m_previousShadowMaskMode;
+
         bool m_FrameSettingsHistoryEnabled = false;
 
         /// <summary>
@@ -660,10 +666,16 @@ namespace UnityEngine.Rendering.HighDefinition
             Shader.globalRenderPipeline = "HDRenderPipeline";
 
             // HD use specific GraphicsSettings
+            m_previousLightsUseLinearIntensity = GraphicsSettings.lightsUseLinearIntensity;
             GraphicsSettings.lightsUseLinearIntensity = true;
+            m_previoulightsUseColorTemperature = GraphicsSettings.lightsUseColorTemperature;
             GraphicsSettings.lightsUseColorTemperature = true;
-
+            m_previousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
+
+            // In case shadowmask mode isn't setup correctly, force it to correct usage (as there is no UI to fix it)
+            m_previousShadowMaskMode = QualitySettings.shadowmaskMode;
+            QualitySettings.shadowmaskMode = ShadowmaskMode.DistanceShadowmask;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
             {
@@ -776,10 +788,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Shader.globalRenderPipeline = "";
 
-            SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
+            GraphicsSettings.lightsUseLinearIntensity = m_previousLightsUseLinearIntensity;
+            GraphicsSettings.lightsUseColorTemperature = m_previoulightsUseColorTemperature;
+            GraphicsSettings.useScriptableRenderPipelineBatching = m_previousSRPBatcher;
+            QualitySettings.shadowmaskMode = m_previousShadowMaskMode;
 
-            // Reset srp batcher state just in case
-            GraphicsSettings.useScriptableRenderPipelineBatching = false;
+            SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
 
             Lightmapping.ResetDelegate();
         }
