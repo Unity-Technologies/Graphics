@@ -297,7 +297,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     probes[count - 1] = null;
                     --count;
                 }
-                else
+
+                if (probes[i])
                 {
                     bounds[i] = probes[i].boundingSphere;
                 }
