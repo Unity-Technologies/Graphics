@@ -129,14 +129,21 @@ Shader ""Hidden/GraphErrorShader2""
             ctx.AddObjectToAsset("MainAsset", mainObject, texture);
             ctx.SetMainObject(mainObject);
 
-            // TODO: Fix metadata
-            // var metadata = ScriptableObject.CreateInstance<ShaderGraphMetadata>();
-            // metadata.hideFlags = HideFlags.HideInHierarchy;
-            // if (graph != null)
-            // {
-            //     metadata.outputNodeTypeName = graph.outputNode.GetType().FullName;
-            // }
-            // ctx.AddObjectToAsset("Metadata", metadata);
+            if(graph != null)
+            {
+                foreach(var target in graph.activeTargets)
+                {
+                    if(target is IHasMetadata iHasMetadata)
+                    {
+                        var metadata = iHasMetadata.GetMetadataObject();
+                        if(metadata == null)
+                            continue;
+
+                        metadata.hideFlags = HideFlags.HideInHierarchy;
+                        ctx.AddObjectToAsset($"{iHasMetadata.identifier}:Metadata", metadata);
+                    }
+                }
+            }
 
             foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
             {

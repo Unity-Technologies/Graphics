@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -121,9 +122,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (shader.IsShaderGraph())
             {
-                // TODO: All Shader Graphs are now HDRP shaders
-                // TODO: Need to calculate this from Targets?
-                return true;
+                // All HDRP shader graphs should have HD metadata
+                return shader.TryGetMetadataOfType<HDMetadata>(out _);
             }
             else if (upgradable)
                 return s_ShaderPaths.Contains(shader.name);
@@ -138,17 +138,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (shader.IsShaderGraph())
             {
-                // TODO: Calculate this from metadata
-                return true;
-                // string shaderPath = AssetDatabase.GetAssetPath(shader);
-                // switch (GraphUtil.GetOutputNodeType(shaderPath).Name)
-                // {
-                //     case nameof(HDUnlitMasterNode):
-                //     case nameof(UnlitMasterNode):
-                //         return true;
-                //     default:
-                //         return false;
-                // }
+                // Throw exception if no metadata is found
+                // This case should be handled by the Target
+                HDMetadata obj;
+                if(!shader.TryGetMetadataOfType<HDMetadata>(out obj))
+                    throw new ArgumentException("Unknown shader");
+                
+                return obj.shaderID == ShaderID.SG_Unlit;
             }
             else
                 return shader.name == "HDRP/Unlit";
@@ -170,14 +166,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (shader.IsShaderGraph())
             {
-                return ShaderID.SG_Unlit;
-
-                // TODO: Calculate this from metadata
-                // var type = GraphUtil.GetOutputNodeType(AssetDatabase.GetAssetPath(shader));
-                // var index = Array.FindIndex(s_MasterNodes, m => m == type);
-                // if (index == -1)
-                //     throw new ArgumentException("Unknown shader");
-                // return (ShaderID)(index + ShaderID.Count_Standard);
+                // Throw exception if no metadata is found
+                // This case should be handled by the Target
+                HDMetadata obj;
+                if(!shader.TryGetMetadataOfType<HDMetadata>(out obj))
+                    throw new ArgumentException("Unknown shader");
+                
+                return obj.shaderID;
             }
             else
             {
