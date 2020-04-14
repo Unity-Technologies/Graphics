@@ -9,11 +9,11 @@ def get_job_definition(editor, projects, test_platforms):  # only run for 2020.1
             'rerun': 'always'
         },
         { #TODO add these under project loop
-            'path': f'{project_filepath_specific("Universal", "Android", "OpenGLES3")}#{project_job_id_test("Universal", "Android", "OpenGLES3", "", editor["version"])}', # TODO 
+            'path': f'{project_filepath_specific("Universal", "Android", "OpenGLES3")}#{project_job_id_test("Universal", "Android", "OpenGLES3", "Standalone", editor["version"])}', # TODO 
             'rerun': 'always'
         },
         {
-            'path': f'{project_filepath_specific("Universal", "Android", "Vulkan")}#{project_job_id_test("Universal", "Android", "Vulkan", "", editor["version"])}',
+            'path': f'{project_filepath_specific("Universal", "Android", "Vulkan")}#{project_job_id_test("Universal", "Android", "Vulkan", "Standalone", editor["version"])}',
             'rerun': 'always'
         }]
 
