@@ -528,6 +528,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed MSAA depth resolve when there is no motion vectors
 - Fixed various object leaks in HDRP.
 - Fixed compile error with XR SubsystemManager.
+- Fixed shadowmask UI now correctly showing shadowmask disable
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -638,6 +639,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved scene view camera settings for HDRP from the preferences window to the scene view camera settings window.
 - Updated shaders to be compatible with Microsoft's DXC.
 - Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
+- Shadowmask and realtime reflectoin probe property are hide in Quality settings
 
 ## [7.1.1] - 2019-09-05
 
