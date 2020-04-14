@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for range compression factor for probes going negative (now clamped to positive values).
 - Fixed various object leaks in HDRP.
 - Fix for assertion triggering sometimes when saving a newly created lit shader graph (case 1230996)
+- Fixed MSAA depth resolve when there is no motion vectors
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
