@@ -1,7 +1,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
-#if (SRC_TEXTURE2D_X_ARRAY == 1)
+#if SRC_TEXTURE2D_X_ARRAY
 TEXTURE2D_ARRAY(_BlitTexture);
 #else
 TEXTURE2D(_BlitTexture);
@@ -35,7 +35,7 @@ Varyings VertQuad(Attributes input)
 float4 FragBilinear(Varyings input) : SV_Target
 {
     float4 outColor;
-#if defined(SRC_TEXTURE2D_X_ARRAY)
+#if SRC_TEXTURE2D_X_ARRAY
     outColor = SAMPLE_TEXTURE2D_ARRAY(_BlitTexture, sampler_LinearClamp, input.texcoord.xy, _BlitTexArraySlice);
 #else
     outColor = SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp, input.texcoord.xy);
