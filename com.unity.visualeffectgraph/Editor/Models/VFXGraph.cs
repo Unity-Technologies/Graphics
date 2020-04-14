@@ -27,7 +27,8 @@ namespace UnityEditor.VFX
                 if (resource == null)
                     return;
                 Debug.Log("Sanitizing graph");
-                resource.GetOrCreateGraph().SanitizeGraph();
+
+                resource.GetOrCreateGraph().SanitizeForImport();
             }
         }
 
@@ -678,6 +679,24 @@ namespace UnityEditor.VFX
         //Explicit compile must be used if we want to force compilation even if a dependency is needed, which me must not do on a deleted library import.
         public static bool explicitCompile { get; set; } = false;
 
+
+        public void SanitizeForImport()
+        {
+            if (!explicitCompile)
+            {
+                HashSet<int> dependentAsset = new HashSet<int>();
+                GetImportDependentAssets(dependentAsset);
+
+                foreach (var instanceID in dependentAsset)
+                {
+                    if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                    {
+                        return;
+                    }
+                }
+            }
+            SanitizeGraph();
+        }
         public void CompileForImport()
         {
             if (!GetResource().isSubgraph)
@@ -693,7 +712,6 @@ namespace UnityEditor.VFX
                     {
                         if (EditorUtility.InstanceIDToObject(instanceID) == null)
                         {
-                            //Debug.LogWarning("Refusing to compile " + AssetDatabase.GetAssetPath(this) + "because dependency is not yet loaded");
                             return;
                         }
                     }
