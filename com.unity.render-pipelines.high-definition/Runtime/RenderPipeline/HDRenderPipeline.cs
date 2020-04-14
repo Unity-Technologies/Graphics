@@ -962,6 +962,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ConstantBuffer.ReleaseAll();
 
             CameraCaptureBridge.enabled = false;
+
+            HDUtils.ReleaseComponentSingletons();
         }
 
 
