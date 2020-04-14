@@ -680,6 +680,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // Blit command
             var cmd = CommandBufferPool.Get("Compositor Blit");
             {
+                // fill the camera-related entries in the global constant buffer
+                // (Note: we later patch the position/_ViewProjMatrix values in order to perform a full screen blit with a SG Unlit material)
+                camera.UpdateShaderVariableGlobalCB(ref m_ShaderVariablesGlobalCB, 0);
+
                 m_ShaderVariablesGlobalCB._WorldSpaceCameraPos_Internal = new Vector3(0.0f, 0.0f, 0.0f);
                 cmd.SetViewport(new Rect(0, 0, camera.camera.pixelWidth, camera.camera.pixelHeight));
                 cmd.ClearRenderTarget(true, false, Color.black);
