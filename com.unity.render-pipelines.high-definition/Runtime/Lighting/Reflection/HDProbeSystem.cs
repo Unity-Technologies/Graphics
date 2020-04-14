@@ -293,10 +293,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (probes[i] == null || probes[i].Equals(null))
                 {
                     probes[i] = probes[count - 1];
+                    bounds[i] = bounds[count - 1];
                     probes[count - 1] = null;
                     --count;
                 }
-                bounds[i] = probes[i].boundingSphere;
+                else
+                {
+                    bounds[i] = probes[i].boundingSphere;
+                }
             }
         }
 
