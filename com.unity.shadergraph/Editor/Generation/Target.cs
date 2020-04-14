@@ -19,5 +19,6 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode) { }
         public virtual void ProcessPreviewMaterial(Material material) { }
+        public virtual object saveContext => null;
     }
 }

@@ -192,9 +192,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        //needed for HDRP material update system
-        public virtual object saveContext => null;
-
         string m_DefaultVariableName;
         string m_NameForDefaultVariableName;
         Guid m_GuidForDefaultVariableName;
