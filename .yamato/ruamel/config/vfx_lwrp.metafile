@@ -45,7 +45,7 @@ platforms:
       - il2cpp
   - name: OSX
     os: macos
-    standalone_split: false
+    standalone_split: true
     apis:
       - name: Metal
         cmd: 
@@ -71,7 +71,7 @@ platforms:
       - il2cpp 
   - name: Linux
     os: linux
-    standalone_split: false
+    standalone_split: true
     apis: 
       - name: OpenGLCore
         cmd: -force-glcore

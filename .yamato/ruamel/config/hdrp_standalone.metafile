@@ -41,7 +41,7 @@ platforms:
       - il2cpp
   - name: OSX
     os: macos
-    standalone_split: false
+    standalone_split: true
     apis:
       - name: Metal
         cmd: 

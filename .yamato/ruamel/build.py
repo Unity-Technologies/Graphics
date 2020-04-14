@@ -49,7 +49,7 @@ def create_project_specific_jobs(metafile_name):
                         job = Project_StandaloneJob(project, editor, platform, api, test_platform)
                         yml[job.job_id] = job.yml
                         
-                        if platform["standalone_split"]:
+                        if platform["standalone_split"]: # This bool can be removed once everything uses split (or make it automatically know if split is present or not)
                             job = Project_StandaloneBuildJob(project, editor, platform, api)
                             yml[job.job_id] = job.yml
                     elif platform["name"].lower() != "android": # skip for only android
