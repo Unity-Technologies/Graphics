@@ -246,7 +246,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_PlanarProbeCullingGroup == null)
                 return default;
 
-            RemoveDestroyedProbes(m_PlanarProbes, m_PlanarProbeBounds, ref m_PlanarProbeCount);
+            UpdateBoundsAndRemoveDestroyedProbes(m_PlanarProbes, m_PlanarProbeBounds, ref m_PlanarProbeCount);
 
             m_PlanarProbeCullingGroup.targetCamera = camera;
             m_PlanarProbeCullingGroup.SetBoundingSpheres(m_PlanarProbeBounds);
@@ -286,17 +286,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void RemoveDestroyedProbes(PlanarReflectionProbe[] probes, BoundingSphere[] bounds, ref int count)
+        static void UpdateBoundsAndRemoveDestroyedProbes(PlanarReflectionProbe[] probes, BoundingSphere[] bounds, ref int count)
         {
             for (int i = 0; i < count; ++i)
             {
                 if (probes[i] == null || probes[i].Equals(null))
                 {
                     probes[i] = probes[count - 1];
-                    bounds[i] = bounds[count - 1];
                     probes[count - 1] = null;
                     --count;
                 }
+                bounds[i] = probes[i].boundingSphere;
             }
         }
 
