@@ -11,7 +11,7 @@
 #define MAX_IBL_SAMPLE_CNT 89
 #endif
 
-RWTexture2D<float4> output; // [MAX_SAMPLE_CNT x UNITY_SPECCUBE_LOD_STEPS]
+RWTexture2D<float4> outputResult; // [MAX_SAMPLE_CNT x UNITY_SPECCUBE_LOD_STEPS]
 
 #pragma kernel ComputeGgxIblSampleData
 
@@ -33,7 +33,7 @@ void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
 
         if (sampleIndex >= sampleCount)
         {
-            output[texCoord] = float4(0, 0, 0, 0);
+            outputResult[texCoord] = float4(0, 0, 0, 0);
             return;
         }
 
@@ -82,6 +82,6 @@ void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
         float pdf    = 0.25 * D_GGX(NdotH, roughness);
         float omegaS = rcp(sampleCount) * rcp(pdf);
 
-        output[texCoord] = float4(localL, omegaS);
+        outputResult[texCoord] = float4(localL, omegaS);
     }
 }
