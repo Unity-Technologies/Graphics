@@ -94,6 +94,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where instanced shaders wouldn't compile on PS4.
 - Optimized loading a large Shader Graph. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
 - Fixed NaN issue in triplanar SG node when blend goes to 0.
+- Fixed an issue where Blackboard properties would not duplicate with `Precision` or `Hybrid Instancing` options. 
+- Fixed an issue where `Texture` properties on the Blackboard would not duplicate with the same `Mode` settings. 
+- Fixed an issue where `Keywords` on the Blackboard would not duplicate with the same `Default` value.
 
 ## [7.1.1] - 2019-09-05
 ### Added
