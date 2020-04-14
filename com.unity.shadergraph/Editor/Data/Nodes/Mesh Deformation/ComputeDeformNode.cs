@@ -72,7 +72,6 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            //TODO: Not break old vertex skinning?
             sb.AppendLine("$precision3 {0} = 0;", GetVariableNameForSlot(kPositionOutputSlotId));
             sb.AppendLine("$precision3 {0} = 0;", GetVariableNameForSlot(kNormalOutputSlotId));
             sb.AppendLine("$precision3 {0} = 0;", GetVariableNameForSlot(kTangentOutputSlotId));
@@ -90,15 +89,10 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine(
                            /*4*/ $"{GetVariableNameForSlot(kPositionOutputSlotId)}, " +
                            /*5*/ $"{GetVariableNameForSlot(kNormalOutputSlotId)}, " +
-                           /*6*/ $"{GetVariableNameForSlot(kTangentOutputSlotId)}, ");
-                    sb.AppendLine(
-                           /*7*/$"(int)(({GetSlotValue(kVertexIndexOffsetSlotId, generationMode)}))");
-
+                           /*6*/ $"{GetVariableNameForSlot(kTangentOutputSlotId)} ");
                     sb.AppendLine(");");
                 }
             }
-
-            
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
@@ -131,17 +125,14 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine(
                             /*4*/"out $precision3 positionOut, " +
                             /*5*/"out $precision3 normalOut, " +
-                            /*6*/"out $precision3 tangentOut, ");
-                    sb.AppendLine(
-                            /*7*/"int vertIndexOffset");
-
+                            /*6*/"out $precision3 tangentOut ");
                     sb.AppendLine(")");
                 }
 
                 sb.AppendLine("{");
                 using (sb.IndentScope())
                 {
-                    sb.AppendLine("const VertexData vertData = _DeformedMeshData[vertIndexOffset + vertexID];");
+                    sb.AppendLine("const VertexData vertData = _DeformedMeshData[asint(_ComputeMeshIndex) + vertexID];");
                     sb.AppendLine("positionOut = vertData.Position;");
                     sb.AppendLine("normalOut = vertData.Normal;");
                     sb.AppendLine("tangentOut = vertData.Tangent;");
@@ -152,7 +143,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return $"Unity_LinearBlendSkinning_{concretePrecision.ToShaderString()}";
+            return $"Unity_ComputeDeformedVertex_{concretePrecision.ToShaderString()}";
         }
     }
 }
