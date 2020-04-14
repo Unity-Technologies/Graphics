@@ -23,8 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         // For conversion to Sub Graph: keys for remembering the user's desired path
         const string k_PrevSubGraphPathKey = "SHADER_GRAPH_CONVERT_TO_SUB_GRAPH_PATH";
-        const string k_PrevSubGraphPathDefaultValue = null; // null directory path to start, and check for isnullorempty in session.
-
+        
         [SerializeField]
         string m_Selected;
 
@@ -450,10 +449,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             var graphView = graphEditorView.graphView;
 
             string path;
-            string sessionStateResult = SessionState.GetString(k_PrevSubGraphPathKey, k_PrevSubGraphPathDefaultValue);
+            string sessionStateResult = SessionState.GetString(k_PrevSubGraphPathKey, string.Empty);
             string pathToOriginSG = Path.GetDirectoryName(AssetDatabase.GUIDToAssetPath(selectedGuid));
 
-            if (!string.IsNullOrEmpty(k_PrevSubGraphPathDefaultValue) && !sessionStateResult.Equals(k_PrevSubGraphPathDefaultValue))
+            if (!string.IsNullOrEmpty(sessionStateResult))
                 path = sessionStateResult;
             else
                 path = pathToOriginSG;
