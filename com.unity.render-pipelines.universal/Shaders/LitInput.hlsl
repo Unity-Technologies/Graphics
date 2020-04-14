@@ -75,12 +75,13 @@ half SampleOcclusion(float2 uv)
 #endif
 }
 
-#ifdef _CLEARCOAT
+
 // Returns clear coat parameters
 // .x/.r == strength
 // .y/.g == smoothness
 half2 SampleClearCoat(float2 uv)
 {
+#ifdef _CLEARCOAT
     half2 clearCoatStrengthSmoothness = half2(_ClearCoatStrength, _ClearCoatSmoothness);
 
 #ifdef _CLEARCOATMAP
@@ -88,8 +89,10 @@ half2 SampleClearCoat(float2 uv)
 #endif
 
     return clearCoatStrengthSmoothness;
+#else
+    return half2(0.0, 1.0);
+#endif  // _CLEARCOAT
 }
-#endif
 
 inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)
 {

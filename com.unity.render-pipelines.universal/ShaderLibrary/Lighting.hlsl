@@ -6,6 +6,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
 //#define CC_DEBUG
@@ -342,8 +343,8 @@ half OneMinusReflectivityMetallic(half metallic)
 
 #ifdef _CLEARCOAT
 
-// See ConvertF0ForAirInterfaceToF0ForClearCoat15
-half3 f0ClearCoatToSurface(half3 f0)
+// TODO: merge with BSDF.hlsl ???
+half3 ConvertF0ForAirInterfaceToF0ForClearCoat15Half(half3 f0)
 {
     // Approximation of iorTof0(f0ToIor(f0), 1.5)
     // This assumes that the clear coat layer has an IOR of 1.5
@@ -397,10 +398,11 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     outBRDFData.clearCoatPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(clearCoatSmoothness);
     outBRDFData.clearCoatRoughness           = max(PerceptualRoughnessToRoughness(outBRDFData.clearCoatPerceptualRoughness), HALF_MIN);
     outBRDFData.clearCoatRoughness2          = outBRDFData.clearCoatRoughness * outBRDFData.clearCoatRoughness;
-    outBRDFData.clearCoatNormalizationTerm   = outBRDFData.clearCoatRoughness * 4.0h * 2.0h;
+    outBRDFData.clearCoatNormalizationTerm   = outBRDFData.clearCoatRoughness * 4.0h + 2.0h;
     outBRDFData.clearCoatRoughness2MinusOne  = outBRDFData.clearCoatRoughness2 - 1.0h;
     outBRDFData.clearCoatGrazingTerm         = saturate(clearCoatSmoothness + kDielectricSpec.x);
 
+// Relatively small effect, cut it for lower quality
 #if !defined(SHADER_API_MOBILE)
     // Modify Roughness of base layer using coat IOR
     half ieta                       = lerp(1.0h, CLEAR_COAT_IETA, outBRDFData.clearCoatStrength);
@@ -416,7 +418,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 #endif
 
     // Darken/saturate base layer using coat to surface reflectance (vs. air to surface)
-    outBRDFData.specular = lerp(outBRDFData.specular, f0ClearCoatToSurface(outBRDFData.specular), outBRDFData.clearCoatStrength);
+    outBRDFData.specular = lerp(outBRDFData.specular, ConvertF0ForAirInterfaceToF0ForClearCoat15Half(outBRDFData.specular), outBRDFData.clearCoatStrength);
     // TODO: what about diffuse? at least in specular workflow diffuse should be recalculated as it directly depends on it.
 #endif // _CLEARCOAT
 }
