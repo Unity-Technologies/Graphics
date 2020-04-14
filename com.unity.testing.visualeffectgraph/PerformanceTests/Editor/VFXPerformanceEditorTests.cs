@@ -1,208 +1,122 @@
-using System.Collections;
+using System;
+using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor.Rendering;
-using UnityEngine.TestTools;
 using NUnit.Framework;
-using System.Text.RegularExpressions;
-using System.Globalization;
 using Unity.PerformanceTesting;
 using static PerformanceTestUtils;
 using static PerformanceMetricNames;
+using UnityEngine.VFX;
+using System.Reflection;
 
 namespace UnityEditor.VFX.PerformanceTest
 {
-    public class VFXCompilePerformanceTest : EditorPerformanceTests
+    public class VFXCompilePerformanceTests : EditorPerformanceTests
     {
-        const int k_BuildTimeout = 10 * 60 * 1000;    // 10 min for each build test
-        const string k_ShaderNameFilter = "HDRP";
+        const int k_BuildTimeout = 10 * 60 * 1000;
 
-        [Timeout(k_BuildTimeout), Version("1"), UnityTest, Performance]
-        public IEnumerator DUMMY_123()
-        {
-            System.Threading.Thread.Sleep(123);
-            yield return null;
-        }
-    }
-
-#if ___WIP
-    class VFXCompilePerformanceTest : EditorPerformanceTests
-    {
-
-    }
-
-
-        //[Test]  //Not really a test but an helper to measure compilation time for every existing visual effect
-        public void MeasureCompilationTime()
-        {
-            UnityEngine.Debug.unityLogger.logEnabled = false;
-            var vfxAssets = new List<VisualEffectAsset>();
-            var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
-            foreach (var guid in vfxAssetsGuid)
-            {
-                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-                if (vfxAsset != null)
-                {
-                    vfxAssets.Add(vfxAsset);
-                }
-            }
-
-            foreach (var vfxAsset in vfxAssets)
-            {
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset), ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
-                vfxAsset.GetResource().GetOrCreateGraph();
-            }
-
-            uint processCount = 8;
-            long[] elapsedTime = new long[vfxAssets.Count];
-            for (int pass = 0; pass < processCount; ++pass)
-                for (int i = 0; i < vfxAssets.Count; ++i)
-                {
-                    var graph = vfxAssets[i].GetResource().GetOrCreateGraph();
-
-                    var sw = Stopwatch.StartNew();
-                    graph.SetExpressionGraphDirty();
-                    VFXExpression.ClearCache();
-                    graph.RecompileIfNeeded();
-                    sw.Stop();
-
-                    elapsedTime[i] += sw.ElapsedMilliseconds;
-                }
-
-            UnityEngine.Debug.unityLogger.logEnabled = true;
-
-            var debugLogList = new List<KeyValuePair<long, string>>();
-            for (int i = 0; i < vfxAssets.Count; ++i)
-            {
-                var nameAsset = AssetDatabase.GetAssetPath(vfxAssets[i]);
-                var res = string.Format("{0, -90} | second : {1}ms", nameAsset, elapsedTime[i] / processCount);
-                debugLogList.Add(new KeyValuePair<long, string>(elapsedTime[i], res));
-            }
-
-            foreach (var log in debugLogList.OrderByDescending(o => o.Key))
-            {
-                UnityEngine.Debug.Log(log.Value);
-            }
-        }
-
-        //[Test]  //Not really a test but an helper to measure compilation time for every existing visual effect
+        [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
         public void MeasureLoadLibraryTime()
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
-
-            var sw = Stopwatch.StartNew();
-            long processCount = 4;
-            for (int pass = 0; pass < processCount; ++pass)
-            {
-                VFXLibrary.ClearLibrary();
-                VFXLibrary.Load();
-            }
-            sw.Stop();
-
+            VFXLibrary.ClearLibrary();
+            VFXLibrary.Load();
             UnityEngine.Debug.unityLogger.logEnabled = true;
-            UnityEngine.Debug.LogFormat("LoadLibrary : {0}ms", sw.ElapsedMilliseconds / processCount);
         }
 
-        //[Test]  //Not really a test but an helper to measure backup (for undo/redo) time for every existing asset
-        public void MeasureBackupTime()
+        static IEnumerable<string> allVisualEffectAsset
+        {
+            get
+            {
+                var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
+                foreach (var guid in vfxAssetsGuid)
+                {
+                    var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                    yield return System.IO.Path.GetFileNameWithoutExtension(assetPath);
+                }
+            }
+        }
+
+        static IEnumerable<string> allCompilationMode
+        {
+            get
+            {
+                foreach (var mode in Enum.GetValues(typeof(VFXCompilationMode)))
+                    yield return mode.ToString();
+            }
+        }
+        
+
+        private static MethodInfo k_fnGetResource = typeof(VisualEffectObjectExtensions).GetMethod("GetResource");
+        private static MethodInfo k_fnGetOrCreateGraph = typeof(VisualEffectResourceExtensions).GetMethod("GetOrCreateGraph");
+
+        private static void LoadVFXGraph(string vfxAssetName, out string fullPath, out VFXGraph graph)
+        {
+            var vfxAssets = new List<VisualEffectAsset>();
+            var vfxAssetsGuids = AssetDatabase  .FindAssets("t:VisualEffectAsset " + vfxAssetName)
+                                                .Where(o => System.IO.Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(o)) == vfxAssetName);
+            if (vfxAssetsGuids.Count() != 1)
+                throw new InvalidOperationException("Cannot retrieve (or several asset with same name) " + vfxAssetName);
+
+            var vfxAssetsGuid = vfxAssetsGuids.First();
+            fullPath = AssetDatabase.GUIDToAssetPath(vfxAssetsGuid);
+
+            AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+            var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(fullPath);
+
+            var resource = k_fnGetResource.Invoke(null, new object[] { vfxAsset });
+            if (resource == null)
+            {
+                graph = null;
+            }
+
+            graph = k_fnGetOrCreateGraph.Invoke(null, new object[] { resource }) as VFXGraph;
+        }
+
+        static readonly string[] allForceShaderValidation = { "ShaderValidation_On", "ShaderValidation_Off" };
+
+        [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
+        public void MeasureCompilationTime([ValueSource("allForceShaderValidation")] string forceShaderValidationModeName, [ValueSource("allCompilationMode")] string compilationModeName, [ValueSource("allVisualEffectAsset")] string vfxAssetPath)
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
-            var vfxAssets = new List<VisualEffectAsset>();
-            var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
-            foreach (var guid in vfxAssetsGuid)
+
+            VFXCompilationMode compilationMode;
+            Enum.TryParse<VFXCompilationMode>(compilationModeName, out compilationMode);
+
+            bool forceShaderValidationMode = forceShaderValidationModeName == "ShaderValidation_On";
+
+            VFXGraph graph;
+            string fullPath;
+            LoadVFXGraph(vfxAssetPath, out fullPath, out graph);
+            if (graph)
             {
-                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-                if (vfxAsset != null)
-                {
-                    vfxAssets.Add(vfxAsset);
-                }
+                VFXExpression.ClearCache();
+                graph.SetExpressionGraphDirty();
+                graph.SetForceShaderValidation(forceShaderValidationMode, false);
+                graph.SetCompilationMode(compilationMode, false);
+                AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
             }
 
-            //vfxAssets = vfxAssets.Take(1).ToList();
-
-            var dependenciesPerAsset = new List<ScriptableObject[]>();
-            foreach (var vfxAsset in vfxAssets)
-            {
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset), ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
-                var graph = vfxAsset.GetResource().GetOrCreateGraph();
-                var hashset = new HashSet<ScriptableObject>();
-                hashset.Add(graph);
-                graph.CollectDependencies(hashset);
-                dependenciesPerAsset.Add(hashset.Cast<ScriptableObject>().ToArray());
-            }
-
-            var report = new List<string>();
-            var levels = new[] { (CompressionLevel)int.MaxValue, CompressionLevel.None, CompressionLevel.Fastest };
-            foreach (var level in levels)
-            {
-                var data = new byte[vfxAssets.Count][];
-                var elapsedTimeCompression = new long[vfxAssets.Count];
-                var elapsedTimeDecompression = new long[vfxAssets.Count];
-                var watch = Enumerable.Repeat(0, vfxAssets.Count).Select(o => new Stopwatch()).ToArray();
-
-                uint processCount = 8;
-                for (int pass = 0; pass < processCount; ++pass)
-                {
-                    for (int i = 0; i < vfxAssets.Count; ++i)
-                    {
-                        var sw = watch[i];
-                        if (level == (CompressionLevel)int.MaxValue)
-                        {
-                            sw.Start();
-                            var currentData = VFXMemorySerializer.StoreObjects(dependenciesPerAsset[i]);
-                            sw.Stop();
-                            data[i] = System.Text.Encoding.UTF8.GetBytes(currentData);
-                        }
-                        else
-                        {
-                            sw.Start();
-                            var currentData = VFXMemorySerializer.StoreObjectsToByteArray(dependenciesPerAsset[i], level);
-                            sw.Stop();
-                            data[i] = currentData;
-                        }
-                        elapsedTimeCompression[i] = sw.ElapsedMilliseconds;
-                    }
-                }
-
-                watch = Enumerable.Repeat(0, vfxAssets.Count).Select(o => new Stopwatch()).ToArray();
-                for (int pass = 0; pass < processCount; ++pass)
-                {
-                    for (int i = 0; i < vfxAssets.Count; ++i)
-                    {
-                        var sw = watch[i];
-                        if (level == (CompressionLevel)int.MaxValue)
-                        {
-                            var currentData = System.Text.Encoding.UTF8.GetString(data[i]);
-                            sw.Start();
-                            VFXMemorySerializer.ExtractObjects(currentData, false);
-                            sw.Stop();
-                        }
-                        else
-                        {
-                            sw.Start();
-                            VFXMemorySerializer.ExtractObjects(data[i], false);
-                            sw.Stop();
-                        }
-
-                        elapsedTimeDecompression[i] = sw.ElapsedMilliseconds;
-                    }
-                }
-
-                report.Add(level == (CompressionLevel)int.MaxValue ? "original" : level.ToString());
-                report.Add("asset;size;compression;decompression");
-                for (int i = 0; i < vfxAssets.Count; ++i)
-                {
-                    var nameAsset = AssetDatabase.GetAssetPath(vfxAssets[i]);
-                    report.Add(string.Format("{0};{1}kb;{2}ms;{3}ms", nameAsset, data[i].Length / (1024), elapsedTimeCompression[i] / processCount, elapsedTimeDecompression[i] / processCount));
-                }
-            }
             UnityEngine.Debug.unityLogger.logEnabled = true;
-            foreach (var log in report)
-            {
-                UnityEngine.Debug.Log(log);
-            }
         }
-#endif
+
+        //Measure backup (for undo/redo & Duplicate) time for every existing asset
+        [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
+        public void MeasureBackup([ValueSource("allVisualEffectAsset")] string vfxAssetPath)
+        {
+            UnityEngine.Debug.unityLogger.logEnabled = false;
+
+            VFXGraph graph;
+            string fullPath;
+            LoadVFXGraph(vfxAssetPath, out fullPath, out graph);
+
+            if (graph)
+            {
+                var backup = graph.Backup();
+                graph.Restore(backup);
+                AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+            }
+
+            UnityEngine.Debug.unityLogger.logEnabled = true;
+        }
+    }
 }

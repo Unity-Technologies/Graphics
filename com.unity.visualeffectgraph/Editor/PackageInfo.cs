@@ -8,6 +8,10 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.Tests-testable")]
 [assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.EditorTests")]
 [assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.EditorTests-testable")]
+[assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.PerformanceEditorTests")]
+[assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.PerformanceEditorTests-testable")]
+[assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.PerformanceRuntimeTests")]
+[assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.PerformanceRuntimeTests-testable")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Editor")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Editor-testable")]
 
