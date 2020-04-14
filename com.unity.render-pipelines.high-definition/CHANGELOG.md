@@ -527,6 +527,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the debug exposure mode for display sky reflection and debug view baked lighting
 - Fixed MSAA depth resolve when there is no motion vectors
 - Fixed various object leaks in HDRP.
+- Fixed compile error with XR SubsystemManager.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
