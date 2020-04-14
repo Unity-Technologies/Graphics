@@ -13,9 +13,10 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_hdriSky;
         SerializedDataParameter m_UpperHemisphereLuxValue;
         SerializedDataParameter m_UpperHemisphereLuxColor;
-        SerializedDataParameter m_flowmap;
-        SerializedDataParameter m_flowCycle;
-        SerializedDataParameter m_flowStrength;
+        SerializedDataParameter m_EnableDistortion;
+        SerializedDataParameter m_Flowmap;
+        SerializedDataParameter m_LoopTime;
+        SerializedDataParameter m_Amplitude;
         SerializedDataParameter m_EnableBackplate;
         SerializedDataParameter m_BackplateType;
         SerializedDataParameter m_GroundLevel;
@@ -49,9 +50,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereLuxValue   = Unpack(o.Find(x => x.upperHemisphereLuxValue));
             m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
 
-            m_flowmap                   = Unpack(o.Find(x => x.flowmap));
-            m_flowCycle                 = Unpack(o.Find(x => x.flowCycle));
-            m_flowStrength              = Unpack(o.Find(x => x.flowStrength));
+            m_EnableDistortion          = Unpack(o.Find(x => x.enableDistortion));
+            m_Flowmap                   = Unpack(o.Find(x => x.flowmap));
+            m_LoopTime                  = Unpack(o.Find(x => x.loopTime));
+            m_Amplitude                 = Unpack(o.Find(x => x.amplitude));
 
             m_EnableBackplate           = Unpack(o.Find(x => x.enableBackplate));
             m_BackplateType             = Unpack(o.Find(x => x.backplateType));
@@ -123,11 +125,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 updateDefaultShadowTint = true;
             }
 
-            PropertyField(m_flowmap);
+            PropertyField(m_EnableDistortion, new GUIContent("Distortion"));
+            if (m_EnableDistortion.value.boolValue)
             {
                 EditorGUI.indentLevel++;
-                PropertyField(m_flowCycle);
-                PropertyField(m_flowStrength);
+                PropertyField(m_Flowmap);
+                PropertyField(m_LoopTime);
+                PropertyField(m_Amplitude);
                 EditorGUI.indentLevel--;
             }
             base.CommonSkySettingsGUI();

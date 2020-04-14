@@ -129,12 +129,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     passID = m_RenderFullscreenSkyWithBackplateID;
             }
 
-            if (hdriSky.flowmap.overrideState)
+            if (hdriSky.enableDistortion.value == true)
             {
                 m_SkyHDRIMaterial.EnableKeyword("USE_FLOWMAP");
                 m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Flowmap, hdriSky.flowmap.value);
-                m_SkyHDRIMaterial.SetFloat(HDShaderIDs._FlowSpeed, 0.5f / hdriSky.flowCycle.value);
-                m_SkyHDRIMaterial.SetFloat(HDShaderIDs._FlowStrength, hdriSky.flowStrength.value);
+                m_SkyHDRIMaterial.SetFloat(HDShaderIDs._FlowSpeed, 0.5f / hdriSky.loopTime.value);
+                m_SkyHDRIMaterial.SetFloat(HDShaderIDs._FlowStrength, hdriSky.amplitude.value);
             }
             else
                 m_SkyHDRIMaterial.DisableKeyword("USE_FLOWMAP");
