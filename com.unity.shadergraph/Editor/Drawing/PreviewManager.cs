@@ -240,7 +240,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public bool HandleGraphChanges()
+        public void HandleGraphChanges()
         {
             if (m_Graph.didActiveOutputNodeChange)
             {
@@ -286,9 +286,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_RefreshTimedNodes = true;
                 }
             }
-
-            // This seems to only control whether we rebuild colors or not...
-            return (m_NodesShaderChanged.Count > 0);
         }
 
         private static readonly ProfilerMarker CollectPreviewPropertiesMarker = new ProfilerMarker("CollectPreviewProperties");
@@ -486,10 +483,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     nodesCompiled.Add(renderData.shaderData.node);
 
                     var masterNode = renderData.shaderData.node as IMasterNode;
-                    if (masterNode != null)
-                    {
-                        masterNode.ProcessPreviewMaterial(renderData.shaderData.mat);
-                    }
+                    masterNode?.ProcessPreviewMaterial(renderData.shaderData.mat);
                 }
 
                 // removed compiled nodes from compiling list
@@ -520,20 +514,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // add each node to compile list if it needs a preview, is not already compiling, and we have room
                 // (we don't want to double kick compiles, so wait for the first one to get back before kicking another)
-                if (m_NodesCompiling.Count + nodesToCompile.Count < m_MaxNodesCompiling)
+                foreach (var node in m_NodesNeedsRecompile)
                 {
-                    foreach (var node in m_NodesNeedsRecompile)
-                    {
-                        if (node.hasPreview && node.previewExpanded && !m_NodesCompiling.Contains(node))
-                        {
-                            var renderData = GetPreviewRenderData(node);
-                            if (renderData == null) // non-active output nodes can have NULL render data (no preview)
-                                continue;
+                    if (m_NodesCompiling.Count + nodesToCompile.Count >= m_MaxNodesCompiling)
+                        break;
 
-                            nodesToCompile.Add(node);
-                            if (m_NodesCompiling.Count + nodesToCompile.Count >= m_MaxNodesCompiling)
-                                break;
-                        }
+                    if (node.hasPreview && node.previewExpanded && !m_NodesCompiling.Contains(node))
+                    {
+                        var renderData = GetPreviewRenderData(node);
+                        if (renderData == null) // non-active output nodes can have NULL render data (no preview)
+                            continue;
+
+                        nodesToCompile.Add(node);
                     }
                 }
 
@@ -566,6 +558,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     // Calculate the PreviewMode from upstream nodes
                     // If any upstream node is 3D that trickles downstream
+                    // TODO: not sure why this code exists here
+                    // it would make more sense in HandleGraphChanges and/or RenderPreview
                     List<AbstractMaterialNode> upstreamNodes = new List<AbstractMaterialNode>();
                     NodeUtils.DepthFirstCollectNodesFromNode(upstreamNodes, node, NodeUtils.IncludeSelf.Include);
                     renderData.previewMode = PreviewMode.Preview2D;

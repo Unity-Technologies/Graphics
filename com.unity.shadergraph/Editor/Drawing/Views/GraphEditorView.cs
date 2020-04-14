@@ -554,10 +554,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             UnregisterGraphViewCallbacks();
 
-            if(previewManager.HandleGraphChanges())
+            previewManager.HandleGraphChanges();
+
+            if (m_Graph.addedEdges.Any() || m_Graph.removedEdges.Any())
             {
                 var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-
                 m_ColorManager.SetNodesDirty(nodeList);
                 m_ColorManager.UpdateNodeViews(nodeList);
             }
