@@ -475,8 +475,14 @@ namespace UnityEditor.ShaderGraph.UnitTests
             MaterialGraphView materialGraphView = graphEditorView.graphView;
             graphEditorView.HandleGraphChanges();
             materialGraphView.selection.Clear();
-            materialGraphView.selection.Add(materialGraphView.nodes.ToList().OfType<MaterialNodeView>()
-                                       .Where(n => n.node == searcherAddedNode).First());
+            foreach(var view in materialGraphView.nodes.ToList())
+            {
+                if(view is MaterialNodeView nodeView && nodeView.node == searcherAddedNode)
+                {
+                    materialGraphView.selection.Add(nodeView);
+                    break;
+                }
+            }
 
             void convertSelectionToProperty() => materialGraphView.InvokePrivateAction("ConvertToProperty", new DropdownMenuAction[] { null });
 
@@ -606,9 +612,21 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             var previouslyAdded = graph.addedNodes.ToList();
             addAction.Invoke();
-            var newlyAdded = graph.addedNodes.Where(newlyAddedNode => previouslyAdded.Contains(newlyAddedNode) == false).ToList();
-            Assert.IsTrue(newlyAdded.Count > 0);
-            AbstractMaterialNode addedNode = newlyAdded.Where(newlyAddedNode => newlyAddedNode.GetType() == expectedNodeType).First();
+            var newlyAdded = graph.addedNodes;
+            AbstractMaterialNode addedNode = null;
+            foreach(AbstractMaterialNode node in newlyAdded)
+            {
+                if(previouslyAdded.Contains(node))
+                {
+                    continue;
+                }
+
+                if(node.GetType() == expectedNodeType)
+                {
+                    addedNode = node;
+                    break;
+                }
+            }
             Assert.IsNotNull(addedNode);
             return addedNode;
         }
