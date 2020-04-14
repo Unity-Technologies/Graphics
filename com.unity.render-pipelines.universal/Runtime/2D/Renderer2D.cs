@@ -64,11 +64,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
-            PixelPerfectCamera ppc;
-            cameraData.camera.TryGetComponent<PixelPerfectCamera>(out ppc);
             bool cameraHasPostProcess = renderingData.cameraData.postProcessEnabled;
             bool stackHasPostProcess = renderingData.postProcessingEnabled;
-            bool requireFinalBlitPass;
+            bool lastCameraInStack = cameraData.resolveFinalTarget;
+
+            PixelPerfectCamera ppc;
+            cameraData.camera.TryGetComponent<PixelPerfectCamera>(out ppc);
 
             RenderTargetHandle colorTargetHandle;
             RenderTargetHandle depthTargetHandle;
@@ -79,9 +80,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 bool ppcUsesOffscreenRT = ppcOffscreenRTSize != Vector2Int.zero;
                 
                 m_CreateColorTexture = ppcUsesOffscreenRT || cameraHasPostProcess || cameraData.isHdrEnabled || cameraData.isSceneViewCamera || !cameraData.isDefaultViewport
-                    || !m_UseDepthStencilBuffer || !cameraData.resolveFinalTarget;
+                    || !m_UseDepthStencilBuffer || !lastCameraInStack;
 
-                m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;
+                m_CreateDepthTexture = !lastCameraInStack && m_UseDepthStencilBuffer;
 
                 // Pixel Perfect Camera may request a different RT size than camera VP size.
                 // In that case we need to modify cameraTargetDescriptor here so that all the passes would use the same size.
@@ -124,14 +125,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     context.ExecuteCommandBuffer(cmd);
                     CommandBufferPool.Release(cmd);
                 }
-
-                requireFinalBlitPass = m_CreateColorTexture && cameraData.resolveFinalTarget;
             }
             else    // Overlay camera
             {
+                m_CreateColorTexture = false;
+                m_CreateDepthTexture = false;
                 colorTargetHandle = k_ColorTextureHandle;
                 depthTargetHandle = k_DepthTextureHandle;
-                requireFinalBlitPass = cameraData.resolveFinalTarget;
             }
 
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
@@ -146,72 +146,42 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
 
-            var finalBlitSourceHandle = colorTargetHandle;
+            // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
+            // and only upscale the low-res RT to fullscreen when blitting it to camera target.
+            bool ppcUpscaleRT = ppc != null && ppc.upscaleRT && ppc.isRunning;
 
-            if (cameraHasPostProcess && !cameraData.resolveFinalTarget)
+            bool requireFinalPostProcessPass =
+                lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
+
+            RenderTargetHandle currentTargetHandle = colorTargetHandle;
+
+            if (cameraHasPostProcess)
             {
-                m_PostProcessPass.Setup(cameraTargetDescriptor, colorTargetHandle, k_AfterPostProcessColorHandle, depthTargetHandle, k_ColorGradingLutHandle, false, false);
+                RenderTargetHandle postProcessDestHandle =
+                    lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? RenderTargetHandle.CameraTarget : k_AfterPostProcessColorHandle;
+
+                m_PostProcessPass.Setup(
+                    cameraTargetDescriptor,
+                    colorTargetHandle,
+                    postProcessDestHandle,
+                    depthTargetHandle,
+                    k_ColorGradingLutHandle,
+                    requireFinalPostProcessPass,
+                    postProcessDestHandle == RenderTargetHandle.CameraTarget);
+
                 EnqueuePass(m_PostProcessPass);
+                currentTargetHandle = postProcessDestHandle;
             }
 
-            if (cameraHasPostProcess && cameraData.resolveFinalTarget)
+            if (requireFinalPostProcessPass)
             {
-                // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
-                // and only upscale the low-res RT to fullscreen when blitting it to camera target.
-                if (ppc != null && ppc.upscaleRT && ppc.isRunning)
-                {
-                    m_PostProcessPass.Setup(
-                        cameraTargetDescriptor,
-                        colorTargetHandle,
-                        k_AfterPostProcessColorHandle,
-                        depthTargetHandle,
-                        k_ColorGradingLutHandle,
-                        false,
-                        false
-                    );
-                    EnqueuePass(m_PostProcessPass);
-
-                    requireFinalBlitPass = true;
-                    finalBlitSourceHandle = k_AfterPostProcessColorHandle;
-                }
-                else if (renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
-                {
-                    m_PostProcessPass.Setup(
-                        cameraTargetDescriptor,
-                        colorTargetHandle,
-                        k_AfterPostProcessColorHandle,
-                        depthTargetHandle,
-                        k_ColorGradingLutHandle,
-                        true,
-                        false
-                    );
-                    EnqueuePass(m_PostProcessPass);
-
-                    m_FinalPostProcessPass.SetupFinalPass(k_AfterPostProcessColorHandle);
-                    EnqueuePass(m_FinalPostProcessPass);
-
-                    requireFinalBlitPass = false;
-                }
-                else
-                {
-                    m_PostProcessPass.Setup(
-                        cameraTargetDescriptor,
-                        colorTargetHandle,
-                        RenderTargetHandle.CameraTarget,
-                        depthTargetHandle,
-                        k_ColorGradingLutHandle,
-                        false,
-                        true
-                    );
-                    EnqueuePass(m_PostProcessPass);
-
-                    requireFinalBlitPass = false;
-                }
+                m_FinalPostProcessPass.SetupFinalPass(currentTargetHandle);
+                EnqueuePass(m_FinalPostProcessPass);
+                currentTargetHandle = RenderTargetHandle.CameraTarget;
             }
-
-            if (requireFinalBlitPass)
+            else if (lastCameraInStack && currentTargetHandle != RenderTargetHandle.CameraTarget)
             {
-                m_FinalBlitPass.Setup(cameraTargetDescriptor, finalBlitSourceHandle);
+                m_FinalBlitPass.Setup(cameraTargetDescriptor, currentTargetHandle);
                 EnqueuePass(m_FinalBlitPass);
             }
         }
