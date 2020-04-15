@@ -353,6 +353,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 RTHandle currentExposureTexture = GetExposureTexture(camera);
 
+                // Fix exposure is store in Exposure Textures at the beginning of the frame as there is no need for color buffer
+                // Dynamic exposure (Auto, curve) is store in Exposure Textures at the end of the frame (as it rely on color buffer)
+                // Texture current and previous are swapped at the beginning of the frame.
                 if (IsExposureFixed())
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FixedExposure)))
@@ -362,9 +365,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
+                    // When we use Dynamic Exposure and we reset history we can't use pre-exposure (as there is no information)
+                    // For this reasons we put neutral value at the beginning of the frame in Exposure textures and
+                    // apply processed exposure from color buffer at the end of the Frame, only for a single frame.
+                    // After that we re-use the pre-exposure system
                     if (camera.resetPostProcessingHistory)
                     {
-                        currentExposureTexture = m_EmptyExposureTexture;
+                        currentExposureTexture = m_EmptyExposureTexture; // Use neutral texture
                     }
                 }
 
@@ -852,6 +859,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!Application.isPlaying || camera.resetPostProcessingHistory)
                 adaptationMode = AdaptationMode.Fixed;
+
+            if (camera.resetPostProcessingHistory)
+            {
+                // For Dynamic Exposure, we need to undo the pre-exposure from the color buffer to calculate the correct one
+                // When we reset history we must setup neutral value
+                prevExposure = m_EmptyExposureTexture; // Use neutral texture
+            }
 
             m_ExposureVariants[0] = 1; // (int)exposureSettings.luminanceSource.value;
             m_ExposureVariants[1] = (int)m_Exposure.meteringMode.value;
