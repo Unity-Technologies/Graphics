@@ -234,7 +234,7 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
 
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
-    - /Library/Application\ Support/Veertu/Anka/addons/change_res 1920x1080x300
+    - /Library/Application\ Support/Veertu/Anka/addons/change_res 1920x1080x72
     - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
