@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
 - Added support for specular AA from geometric curvature in AxF
 - Added support for baked AO (no input for now) in AxF
+- Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
 
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
@@ -45,7 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for assertion triggering sometimes when saving a newly created lit shader graph (case 1230996)
 - Fixed MSAA depth resolve when there is no motion vectors
 - Fix issue causing wrong planar reflection rendering when more than one camera is present.
-- Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
+- Fixed culling of planar reflection probes that change position (case 1218651)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
