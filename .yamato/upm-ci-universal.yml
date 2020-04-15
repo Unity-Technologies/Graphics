@@ -94,7 +94,6 @@ android_apis:
     flavor: b1.large
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
-  skip_checkout: true
   variables:
     UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     {% if editor.version == 'CUSTOM-REVISION' %}
