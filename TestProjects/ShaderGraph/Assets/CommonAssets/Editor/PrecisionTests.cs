@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             foreach(PreviewNode node in previewNodes)
             {
                 GroupData group = m_Graph.groups.Where(x => x.guid == node.groupGuid).FirstOrDefault();
-                Assert.NotNull(m_Graph, $"Invalid group data found for PreviewNode with guid {node.guid}");
+                Assert.NotNull(m_Graph, $"Invalid group data found for PreviewNode with guid {node.objectId}");
                 m_TestNodes.Add(group.title, node);
             }
         }

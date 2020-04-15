@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var edge = m_Graph.GetEdges(slot.slotReference).FirstOrDefault();
                 if (edge == null) continue;
 
-                var outputNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                var outputNode = edge.outputSlot.node;
                 var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
                 var curOutputType = outputSlot.valueType.ToConcreteSlotValueType();
 
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     // Verify all errors are expected
                     foreach (var message in m_Graph.messageManager.GetNodeMessages())
                     {
-                        if (message.Key.Equals(m_CFNode.guid) && message.Value.Exists(msg =>
+                        if (message.Key.Equals(m_CFNode.objectId) && message.Value.Exists(msg =>
                                 msg.severity == ShaderCompilerMessageSeverity.Error))
                         {
                             Assert.IsFalse(SlotValueHelper.AreCompatible(slotValType, curOutputType),
