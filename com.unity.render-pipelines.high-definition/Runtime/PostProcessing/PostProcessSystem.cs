@@ -269,6 +269,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_InternalLogLut);
             CoreUtils.Destroy(m_FinalPassMaterial);
             CoreUtils.Destroy(m_ClearBlackMaterial);
+            CoreUtils.Destroy(m_SMAAMaterial);
+            CoreUtils.Destroy(m_TemporalAAMaterial);
             CoreUtils.SafeRelease(m_BokehNearKernel);
             CoreUtils.SafeRelease(m_BokehFarKernel);
             CoreUtils.SafeRelease(m_BokehIndirectCmd);
@@ -285,6 +287,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_InternalLogLut            = null;
             m_FinalPassMaterial         = null;
             m_ClearBlackMaterial        = null;
+            m_SMAAMaterial              = null;
+            m_TemporalAAMaterial        = null;
             m_BokehNearKernel           = null;
             m_BokehFarKernel            = null;
             m_BokehIndirectCmd          = null;
