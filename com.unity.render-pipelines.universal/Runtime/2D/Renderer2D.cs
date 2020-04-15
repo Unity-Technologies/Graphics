@@ -68,14 +68,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool stackHasPostProcess = renderingData.postProcessingEnabled;
             bool lastCameraInStack = cameraData.resolveFinalTarget;
 
-            PixelPerfectCamera ppc;
-            cameraData.camera.TryGetComponent<PixelPerfectCamera>(out ppc);
-
+            PixelPerfectCamera ppc = null;
             RenderTargetHandle colorTargetHandle;
             RenderTargetHandle depthTargetHandle;
 
             if (cameraData.renderType == CameraRenderType.Base)
             {
+                cameraData.camera.TryGetComponent(out ppc);
                 Vector2Int ppcOffscreenRTSize = ppc != null ? ppc.offscreenRTSize : Vector2Int.zero;
                 bool ppcUsesOffscreenRT = ppcOffscreenRTSize != Vector2Int.zero;
                 

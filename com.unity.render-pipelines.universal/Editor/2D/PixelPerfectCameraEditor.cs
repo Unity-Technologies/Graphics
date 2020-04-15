@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
@@ -19,6 +20,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public GUIContent stretchFill = new GUIContent("Stretch Fill", "If enabled, expands the viewport to fit the screen resolution while maintaining the viewport aspect ratio.");
             public GUIContent currentPixelRatio = new GUIContent("Current Pixel Ratio", "Ratio of the rendered Sprites compared to their original size.");
             public GUIContent runInEditMode = new GUIContent("Run In Edit Mode", "Enable this to preview Camera setting changes in Edit Mode. This will cause constant changes to the Scene while active.");
+            public const string cameraStackingWarning = "Pixel Perfect Camera won't function properly if stacked with another camera.";
 
             public GUIStyle centeredLabel;
 
@@ -45,6 +47,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         private Vector2 m_GameViewSize = Vector2.zero;
         private GUIContent m_CurrentPixelRatioValue;
+        bool m_CameraStacking;
 
         private void LazyInit()
         {
@@ -53,6 +56,26 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (m_CurrentPixelRatioValue == null)
                 m_CurrentPixelRatioValue = new GUIContent();
+        }
+
+        void CheckForCameraStacking()
+        {
+            m_CameraStacking = false;
+
+            PixelPerfectCamera obj = target as PixelPerfectCamera;
+            UniversalAdditionalCameraData cameraData = null;
+            obj?.TryGetComponent(out cameraData);
+
+            if (cameraData == null)
+                return;
+
+            if (cameraData.renderType == CameraRenderType.Base)
+            {
+                var cameraStack = cameraData.cameraStack;
+                m_CameraStacking = cameraStack != null ? cameraStack.Count > 0 : false;
+            }
+            else if (cameraData.renderType == CameraRenderType.Overlay)
+                m_CameraStacking = true;
         }
 
         public void OnEnable()
@@ -91,6 +114,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             float originalLabelWidth = EditorGUIUtility.labelWidth;
 
             serializedObject.Update();
+
+            if (Event.current.type == EventType.Layout)
+                CheckForCameraStacking();
+
+            if (m_CameraStacking)
+                EditorGUILayout.HelpBox(Style.cameraStackingWarning, MessageType.Warning);
 
             EditorGUILayout.PropertyField(m_AssetsPPU, m_Style.assetsPPU);
             if (m_AssetsPPU.intValue <= 0)
