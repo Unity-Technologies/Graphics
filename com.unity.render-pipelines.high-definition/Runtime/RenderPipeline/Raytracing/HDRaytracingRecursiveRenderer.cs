@@ -104,7 +104,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Note: Just in case, we rebind the directional light data (in case they were not)
                 cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
-                cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
 
                 // Set the data for the ray miss
                 cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));

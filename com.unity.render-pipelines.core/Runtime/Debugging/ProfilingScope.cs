@@ -4,7 +4,7 @@
 //#define USE_UNSAFE
 
 #if UNITY_2020_1_OR_NEWER
-//#define UNITY_USE_RECORDER // Temporarily commented out until a crash is fixed in GPU profiling samplers.
+#define UNITY_USE_RECORDER
 #endif
 
 using System;

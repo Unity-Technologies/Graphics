@@ -310,7 +310,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         // let's compute the oobb of the light influence volume first
-                        Vector3 oobbDimensions = new Vector3(light.areaSize.x + 2 * lightRange, light.areaSize.y + 2 * lightRange, lightRange); // One-sided
+                        Vector3 oobbDimensions = new Vector3(currentLight.shapeWidth + 2 * lightRange, currentLight.shapeHeight + 2 * lightRange, lightRange); // One-sided
                         Vector3 extents    = 0.5f * oobbDimensions;
                         Vector3 oobbCenter = currentLight.gameObject.transform.position + extents.z * currentLight.gameObject.transform.forward;
 
@@ -545,7 +545,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 lightDimensions =  new Vector3(0.0f, 0.0f, 0.0f);
 
                 // Use the shared code to build the light data
-                m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, processedData, 
+                m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData, 
                     shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot, ref lightData);
 
                 // We make the light position camera-relative as late as possible in order

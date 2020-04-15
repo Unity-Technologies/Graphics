@@ -302,6 +302,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Vertical flip mode.</summary>
         public FlipYMode flipYMode;
 
+        /// <summary>Enable XR rendering.</summary>
+        public bool xrRendering = true;
+
         /// <summary>Skips rendering settings to directly render in fullscreen (Useful for video).</summary>
         [Tooltip("Skips rendering settings to directly render in fullscreen (Useful for video).")]
         public bool fullscreenPassthrough = false;
@@ -502,6 +505,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.volumeAnchorOverride = volumeAnchorOverride;
             data.antialiasing = antialiasing;
             data.dithering = dithering;
+            data.xrRendering = xrRendering;
             physicalParameters.CopyTo(data.physicalParameters);
 
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
