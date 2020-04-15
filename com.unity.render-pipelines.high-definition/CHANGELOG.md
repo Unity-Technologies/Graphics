@@ -528,6 +528,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed MSAA depth resolve when there is no motion vectors
 - Fixed various object leaks in HDRP.
 - Fixed compile error with XR SubsystemManager.
+- Replaced commands incompatible with async compute in light list build process.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
