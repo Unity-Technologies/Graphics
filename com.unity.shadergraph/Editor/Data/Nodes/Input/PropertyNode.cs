@@ -161,31 +161,31 @@ namespace UnityEditor.ShaderGraph
 
             return property.referenceName;
         }
-
-        protected override bool CalculateNodeHasError(ref string errorMessage)
+        
+        protected override void CalculateNodeHasError()
         {
             if (property == null || !owner.properties.Any(x => x == property))
             {
-                errorMessage = "Property Node has no associated Blackboard property.";
-                return true;
+                owner.AddConcretizationError(guid, "Property Node has no associated Blackboard property.");
             }
-
-            return false;
         }
 
-        public override bool ValidateConcretePrecision(ref string errorMessage)
+        public override void EvaluateConcretePrecision()
         {
             // Get precision from Property
             if (property == null)
-                return true;
-
+            {
+                owner.AddConcretizationError(guid, string.Format("No matching poperty found on owner for node {0}", guid));
+                hasError = true;
+                return;
+            }
             // If Property has a precision override use that
             precision = property.precision;
             if (precision != Precision.Inherit)
                 concretePrecision = precision.ToConcrete();
             else
                 concretePrecision = owner.concretePrecision;
-            return false;
         }
+
     }
 }

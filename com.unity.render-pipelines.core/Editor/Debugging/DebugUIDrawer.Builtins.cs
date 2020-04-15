@@ -369,7 +369,13 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             Enum value = w.GetValue();
             var rect = PrepareControlRect();
-            value = EditorGUI.EnumFlagsField(rect, EditorGUIUtility.TrTextContent(w.displayName), value);
+
+            // Skip first element (with value 0) because EditorGUI.MaskField adds a 'Nothing' field anyway
+            var enumNames = new string[w.enumNames.Length - 1];
+            for (int i = 0; i < enumNames.Length; i++)
+                enumNames[i] = w.enumNames[i + 1].text;
+            var index = EditorGUI.MaskField(rect, EditorGUIUtility.TrTextContent(w.displayName), (int)Convert.ToInt32(value), enumNames);
+            value = Enum.Parse(value.GetType(), index.ToString()) as Enum;
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -638,6 +644,115 @@ namespace UnityEditor.Rendering
         public override void End(DebugUI.Widget widget, DebugState state)
         {
             EditorGUILayout.EndVertical();
+        }
+    }
+
+    /// <summary>
+    /// Builtin Drawer for Table Debug Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.Table))]
+    public sealed class DebugUIDrawerTable : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for Table DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.Table>(widget);
+            var header = w.Header;
+
+            // Put some space before the array
+            PrepareControlRect(EditorGUIUtility.singleLineHeight * 0.5f);
+
+            // Draw an outline around the table
+            var rect = EditorGUI.IndentedRect(PrepareControlRect(header.height + (w.children.Count + 1) * EditorGUIUtility.singleLineHeight));
+            rect = DrawOutline(rect);
+
+            // Compute rects
+            var headerRect = new Rect(rect.x, rect.y, rect.width, header.height);
+            var contentRect = new Rect(rect.x, headerRect.yMax, rect.width, rect.height - headerRect.height);
+            var viewRect = new Rect(contentRect.x, contentRect.y, header.state.widthOfAllVisibleColumns, contentRect.height);
+            var rowRect = contentRect;
+            rowRect.height = EditorGUIUtility.singleLineHeight;
+            viewRect.height -= EditorGUIUtility.singleLineHeight;
+
+            // Show header
+            header.OnGUI(headerRect, Mathf.Max(w.scroll.x, 0f));
+
+            // Show array content
+            w.scroll = GUI.BeginScrollView(contentRect, w.scroll, viewRect);
+            {
+                var columns = header.state.columns;
+                var visible = header.state.visibleColumns;
+                for (int r = 0; r < w.children.Count; r++)
+                {
+                    var row = Cast<DebugUI.Container>(w.children[r]);
+                    rowRect.x = contentRect.x;
+                    rowRect.width = columns[0].width;
+
+                    rowRect.xMin += 2;
+                    rowRect.xMax -= 2;
+                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(row.displayName));
+                    rowRect.xMin -= 2;
+                    rowRect.xMax += 2;
+
+                    for (int c = 1; c < visible.Length; c++)
+                    {
+                        rowRect.x += rowRect.width;
+                        rowRect.width = columns[visible[c]].width;
+                        DisplayChild(rowRect, row.children[visible[c] - 1], w.isReadOnly);
+                    }
+                    rowRect.y += rowRect.height;
+                }
+            }
+            GUI.EndScrollView(false);
+
+            return false;
+        }
+
+        internal Rect DrawOutline(Rect rect)
+        {
+            if (Event.current.type != EventType.Repaint)
+                return rect;
+
+            float size = 1.0f;
+            var color = EditorGUIUtility.isProSkin ? new Color(0.12f, 0.12f, 0.12f, 1.333f) : new Color(0.6f, 0.6f, 0.6f, 1.333f);
+
+            Color orgColor = GUI.color;
+            GUI.color = GUI.color * color;
+            GUI.DrawTexture(new Rect(rect.x, rect.y, rect.width, size), EditorGUIUtility.whiteTexture);
+            GUI.DrawTexture(new Rect(rect.x, rect.yMax - size, rect.width, size), EditorGUIUtility.whiteTexture);
+            GUI.DrawTexture(new Rect(rect.x, rect.y + 1, size, rect.height - 2 * size), EditorGUIUtility.whiteTexture);
+            GUI.DrawTexture(new Rect(rect.xMax - size, rect.y + 1, size, rect.height - 2 * size), EditorGUIUtility.whiteTexture);
+
+            GUI.color = orgColor;
+            return new Rect(rect.x + size, rect.y + size, rect.width - 2 * size, rect.height - 2 * size);
+        }
+
+        internal void DisplayChild(Rect rect, DebugUI.Widget child, bool disable)
+        {
+            rect.xMin += 2;
+            rect.xMax -= 2;
+            if (child.GetType() == typeof(DebugUI.Value))
+            {
+                var widget = Cast<DebugUI.Value>(child);
+                EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent(widget.GetValue().ToString()));
+            }
+            else if (child.GetType() == typeof(DebugUI.ColorField))
+            {
+                var widget = Cast<DebugUI.ColorField>(child);
+                using (new EditorGUI.DisabledScope(disable))
+                    EditorGUI.ColorField(rect, GUIContent.none, widget.GetValue(), false, widget.showAlpha, widget.hdr);
+            }
+            else if (child.GetType() == typeof(DebugUI.BoolField))
+            {
+                var widget = Cast<DebugUI.BoolField>(child);
+                using (new EditorGUI.DisabledScope(disable))
+                    EditorGUI.Toggle(rect, GUIContent.none, widget.GetValue());
+            }
         }
     }
 }

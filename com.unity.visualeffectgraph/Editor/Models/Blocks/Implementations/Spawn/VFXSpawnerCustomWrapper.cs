@@ -39,11 +39,11 @@ namespace UnityEditor.VFX
         {
             base.GetImportDependentAssets(dependencies);
 
-            if( m_customType != null)
+            if (m_customType != null)
             {
                 var function = ScriptableObject.CreateInstance(m_customType);
                 var monoScript = MonoScript.FromScriptableObject(function);
-                if( monoScript != null)
+                if (monoScript != null)
                     dependencies.Add(monoScript.GetInstanceID());
             }
         }

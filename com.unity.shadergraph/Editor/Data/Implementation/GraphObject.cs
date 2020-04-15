@@ -47,7 +47,7 @@ namespace UnityEditor.Graphing
             set { m_IsDirty = value; }
         }
 
-        public void RegisterCompleteObjectUndo(string actionName)
+        public virtual void RegisterCompleteObjectUndo(string actionName)
         {
             Undo.RegisterCompleteObjectUndo(this, actionName);
             m_SerializedVersion++;

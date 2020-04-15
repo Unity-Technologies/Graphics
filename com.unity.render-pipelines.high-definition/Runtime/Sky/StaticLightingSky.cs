@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 
@@ -13,9 +14,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("m_BakingSkyUniqueID")]
         int m_StaticLightingSkyUniqueID = 0;
         int m_LastComputedHash;
+        bool m_NeedUpdateStaticLightingSky;
 
-        // This one contain only property values from overridden properties in the original profile component
-        public SkySettings m_SkySettings;
+        [NonSerialized]
+        public SkySettings m_SkySettings; // This one contain only property values from overridden properties in the original profile component
+        [NonSerialized]
         public SkySettings m_SkySettingsFromProfile;
 
         public SkySettings skySettings
@@ -114,11 +117,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 // As such, it may contain values that are not actually overridden
                 // For example, user overrides a value, change it, and disable overrides. In this case the volume still contains the old overridden value
                 // In this case, we want to use values only if they are still overridden, so we create a volume component with default values and then copy the overridden values from the profile.
+                // Also, a default profile might be set in the HDRP project settings, this volume is applied by default to all the scene so it should also be taken into account here.
 
                 // Create an instance with default values
                 m_SkySettings = (SkySettings)ScriptableObject.CreateInstance(skyType);
                 var newSkyParameters = m_SkySettings.parameters;
                 var profileSkyParameters = m_SkySettingsFromProfile.parameters;
+
+                var defaultVolume = HDRenderPipeline.GetOrCreateDefaultVolume();
+                defaultVolume.sharedProfile.TryGet(skyType, out SkySettings defaultSky);
+                var defaultSkyParameters = defaultSky != null ? defaultSky.parameters : null; // Can be null if the profile does not contain the component.
 
                 // Seems to inexplicably happen sometimes on domain reload.
                 if (profileSkyParameters == null)
@@ -133,6 +141,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (profileSkyParameters[i].overrideState == true)
                     {
                         newSkyParameters[i].SetValue(profileSkyParameters[i]);
+                    }
+                    // Fallback to the default profile if values are overridden in there.
+                    else if (defaultSkyParameters != null && defaultSkyParameters[i].overrideState == true)
+                    {
+                        newSkyParameters[i].SetValue(defaultSkyParameters[i]);
                     }
                 }
 
@@ -162,7 +175,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            UpdateCurrentStaticLightingSky();
+            // We can't call UpdateCurrentStaticLightingSky in OnValidate because we may destroy an object there and it's forbidden.
+            // So we delay the update.
+            m_NeedUpdateStaticLightingSky = true;
         }
 
         void OnEnable()
@@ -178,6 +193,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 SkyManager.UnRegisterStaticLightingSky(this);
 
             Reset();
+        }
+
+        void Update()
+        {
+            if (m_NeedUpdateStaticLightingSky)
+            {
+                UpdateCurrentStaticLightingSky();
+                m_NeedUpdateStaticLightingSky = false;
+            }
         }
 
         void Reset()

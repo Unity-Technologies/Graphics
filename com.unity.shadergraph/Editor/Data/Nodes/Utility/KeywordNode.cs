@@ -188,12 +188,13 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        protected override bool CalculateNodeHasError(ref string errorMessage)
+        protected override void CalculateNodeHasError()
         {
-            if (keyword == null || !owner.keywords.Any(x => x == keyword))
-                return true;
-
-            return false;
+            if (keyword == null || !owner.keywords.Any(x => x == keyword)
+            {
+                owner.AddConcretizationError(guid, "Keyword Node has no associated keyword.");
+                hasError = true;
+            }
         }
     }
 }

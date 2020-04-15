@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.MaterialGraph")]
     [FormerName("UnityEditor.ShaderGraph.SubGraph")]
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
-    sealed class GraphData : JsonObject
+    sealed partial class GraphData : JsonObject
     {
         const int k_CurrentVersion = 1;
 
@@ -266,12 +266,9 @@ namespace UnityEditor.ShaderGraph
 
         #region Targets
         [NonSerialized]
-        List<ITarget> m_ValidTargets = new List<ITarget>();
+        List<Target> m_ValidTargets = new List<Target>();
 
-        [NonSerialized]
-        List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
-
-        public List<ITargetImplementation> validImplementations => m_ValidImplementations;
+        public List<Target> validTargets => m_ValidTargets;
         #endregion
 
         public bool didActiveOutputNodeChange { get; set; }
@@ -567,6 +564,20 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var serializableNode in nodes)
             {
+                // Check if it is a Redirect Node
+                // Get the edges and then re-create all Edges
+                // This only works if it has all the edges.
+                // If one edge is already deleted then we can not re-create.
+                if (serializableNode is RedirectNodeData redirectNode)
+                {
+                    redirectNode.GetOutputAndInputSlots(out SlotReference outputSlotRef, out var inputSlotRefs);
+
+                    foreach (SlotReference slot in inputSlotRefs)
+                    {
+                        ConnectNoValidate(outputSlotRef, slot);
+                    }
+                }
+
                 RemoveNodeNoValidate(serializableNode);
             }
 
@@ -603,16 +614,14 @@ namespace UnityEditor.ShaderGraph
 
         public AbstractMaterialNode GetNodeFromId(string nodeId)
         {
-            if (m_NodeDictionary.TryGetValue(nodeId, out var node))
-            {
-                return node;
-            }
-            return null;
+            m_NodeDictionary.TryGetValue(nodeId, out var node);
+            return node;
         }
 
         public T GetNodeFromId<T>(string nodeId) where T : class
         {
-            return m_NodeDictionary[nodeId] as T;
+            m_NodeDictionary.TryGetValue(nodeId, out var node);
+            return node as T;
         }
 
         public bool ContainsNode(AbstractMaterialNode node)
@@ -668,7 +677,7 @@ namespace UnityEditor.ShaderGraph
             collector.CalculateKeywordPermutations();
         }
 
-        public void AddGraphInput(ShaderInput input)
+        public void AddGraphInput(ShaderInput input, int index = -1)
         {
             if (input == null)
                 return;
@@ -678,12 +687,22 @@ namespace UnityEditor.ShaderGraph
                 case AbstractShaderProperty property:
                     if (m_Properties.Contains(property))
                         return;
-                    m_Properties.Add(property);
+
+                    if (index < 0)
+                        m_Properties.Add(property);
+                    else
+                        m_Properties.Insert(index, property);
+
                     break;
                 case ShaderKeyword keyword:
                     if (m_Keywords.Contains(keyword))
                         return;
-                    m_Keywords.Add(keyword);
+
+                    if (index < 0)
+                        m_Keywords.Add(keyword);
+                    else
+                        m_Keywords.Insert(index, keyword);
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -716,6 +735,9 @@ namespace UnityEditor.ShaderGraph
             string name = newName.Trim();
             if (string.IsNullOrEmpty(name))
                 return;
+
+            if (Regex.IsMatch(name, @"^\d+"))
+                name = "_" + name;
 
             name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
             switch(input)
@@ -861,13 +883,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void ValidateGraph()
+        public void CleanupGraph()
         {
-            var propertyNodes = GetNodes<PropertyNode>().Where(n => !m_Properties.Any(p => p == n.property)).ToArray();
-            foreach (var pNode in propertyNodes)
-                ReplacePropertyNodeWithConcreteNodeNoValidate(pNode);
-
-            messageManager?.ClearAllFromProvider(this);
             //First validate edges, remove any
             //orphans. This can happen if a user
             //manually modifies serialized data
@@ -895,56 +912,15 @@ namespace UnityEditor.ShaderGraph
                     RemoveEdgeNoValidate(edge);
                 }
             }
+        }
 
-            var temporaryMarks = PooledHashSet<string>.Get();
-            var permanentMarks = PooledHashSet<string>.Get();
-            var slots = ListPool<MaterialSlot>.Get();
-
-            // Make sure we process a node's children before the node itself.
-            var stack = StackPool<AbstractMaterialNode>.Get();
-            foreach (var node in GetNodes<AbstractMaterialNode>())
-            {
-                stack.Push(node);
-            }
-            while (stack.Count > 0)
-            {
-                var node = stack.Pop();
-                if (permanentMarks.Contains(node.objectId))
-                {
-                    continue;
-                }
-
-                if (temporaryMarks.Contains(node.objectId))
-                {
-                    node.ValidateNode();
-                    permanentMarks.Add(node.objectId);
-                }
-                else
-                {
-                    temporaryMarks.Add(node.objectId);
-                    stack.Push(node);
-                    node.GetInputSlots(slots);
-                    foreach (var inputSlot in slots)
-                    {
-                        var nodeEdges = GetEdges(inputSlot.slotReference);
-                        foreach (var edge in nodeEdges)
-                        {
-                            var fromSocketRef = edge.outputSlot;
-                            var childNode = fromSocketRef.node;
-                            if (childNode != null)
-                            {
-                                stack.Push(childNode);
-                            }
-                        }
-                    }
-                    slots.Clear();
-                }
-            }
-
-            StackPool<AbstractMaterialNode>.Release(stack);
-            ListPool<MaterialSlot>.Release(slots);
-            temporaryMarks.Dispose();
-            permanentMarks.Dispose();
+        public void ValidateGraph()
+        {
+            messageManager?.ClearAllFromProvider(this);
+            CleanupGraph();
+            GraphSetup.SetupGraph(this);
+            GraphConcretization.ConcretizeGraph(this);
+            GraphValidation.ValidateGraph(this);
 
             foreach (var edge in m_AddedEdges.ToList())
             {
@@ -972,7 +948,19 @@ namespace UnityEditor.ShaderGraph
         public void AddValidationError(string id, string errorMessage,
             ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
-            messageManager?.AddOrAppendError(this, id, new ShaderMessage(errorMessage, severity));
+            messageManager?.AddOrAppendError(this, id, new ShaderMessage("Validation: " + errorMessage, severity));
+        }
+
+        public void AddSetupError(Guid id, string errorMessage,
+            ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
+        {
+            messageManager?.AddOrAppendError(this, id, new ShaderMessage("Setup: " + errorMessage, severity));
+        }
+
+        public void AddConcretizationError(Guid id, string errorMessage,
+            ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
+        {
+            messageManager?.AddOrAppendError(this, id, new ShaderMessage("Concretization: " + errorMessage, severity));
         }
 
         public void ClearErrorsForNode(AbstractMaterialNode node)
@@ -1067,7 +1055,8 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes, List<IEdge> remappedEdges)
+        internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes,
+            List<IEdge> remappedEdges)
         {
         }
 
@@ -1246,50 +1235,30 @@ namespace UnityEditor.ShaderGraph
             if(outputNode == null)
                 return;
 
-            // First get all valid TargetImplementations that are valid with the current graph
-            List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            // Clear current Targets
+            m_ValidTargets.Clear();
+
+            // SubGraph Target is always PreviewTarget
+            if(outputNode is SubGraphOutputNode)
             {
-                foreach (var type in assembly.GetTypesOrNothing())
-                {
-                    var isImplementation = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
-                    //for subgraph output nodes, preview target is the only valid target
-                    if (outputNode is SubGraphOutputNode && isImplementation && typeof(DefaultPreviewTarget).IsAssignableFrom(type))
-                    {
-                        var implementation = (DefaultPreviewTarget)Activator.CreateInstance(type);
-                        foundImplementations.Add(implementation);
-                    }
-                    else if (isImplementation && !foundImplementations.Any(s => s.GetType() == type))
-                    {
-                        var masterNode = outputNode as IMasterNode;
-                        var implementation = (ITargetImplementation)Activator.CreateInstance(type);
-                        if(implementation.IsValid(masterNode))
-                        {
-                            foundImplementations.Add(implementation);
-                        }
-                    }
-                }
+                m_ValidTargets.Add(new PreviewTarget());
+                return;
             }
 
-            // Next we get all Targets that have valid TargetImplementations
-            List<ITarget> foundTargets = new List<ITarget>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            // Find all valid Targets
+            var typeCollection = TypeCache.GetTypesDerivedFrom<Target>();
+            foreach(var type in typeCollection)
             {
-                foreach (var type in assembly.GetTypesOrNothing())
+                if(type.IsAbstract || type.IsGenericType || !type.IsClass)
+                    continue;
+                
+                var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
+                var target = (Target)Activator.CreateInstance(type);
+                if(!target.isHidden && target.IsValid(masterNode))
                 {
-                    var isTarget = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITarget).IsAssignableFrom(type);
-                    if (isTarget && !foundTargets.Any(s => s.GetType() == type))
-                    {
-                        var target = (ITarget)Activator.CreateInstance(type);
-                        if(foundImplementations.Where(s => s.targetType == type).Any())
-                            foundTargets.Add(target);
-                    }
+                    m_ValidTargets.Add(target);
                 }
             }
-
-            m_ValidTargets = foundTargets;
-            m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
-
         }
     }
 

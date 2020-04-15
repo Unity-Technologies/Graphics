@@ -16,6 +16,7 @@ using Data.Util;
 using UnityEditor.ProjectWindowCallback;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
@@ -347,6 +348,25 @@ namespace UnityEditor.ShaderGraph
                 };
                 p.Start();
             }
+        }
+
+        public static string CurrentPipelinePreferredShaderGUI(IMasterNode masterNode)
+        {
+            foreach (var target in (masterNode as AbstractMaterialNode).owner.validTargets)
+            {
+                if (target.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
+                {
+                    var context = new TargetSetupContext();
+                    context.SetMasterNode(masterNode);
+                    target.Setup(ref context);
+
+                    var defaultShaderGUI = context.defaultShaderGUI;
+                    if (!string.IsNullOrEmpty(defaultShaderGUI))
+                        return defaultShaderGUI;
+                }
+            }
+
+            return null;
         }
     }
 }
