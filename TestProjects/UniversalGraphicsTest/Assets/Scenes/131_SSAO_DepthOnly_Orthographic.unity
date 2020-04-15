@@ -7398,12 +7398,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 800
-    TargetHeight: 450
+    TargetWidth: 1024
+    TargetHeight: 512
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.001
     UseHDR: 0
-  WaitFrames: 1
+  WaitFrames: 2
 --- !u!81 &1315329436
 AudioListener:
   m_ObjectHideFlags: 0

@@ -103,16 +103,24 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         // Private Variables
         private Settings m_FeatureSettings;
         private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("SSAO.Execute()");
-        private RenderTargetHandle m_SSAOTextureHandle;
         private RenderTextureDescriptor m_Descriptor;
+        private RenderTargetIdentifier m_BlurTexture1Target = new RenderTargetIdentifier(s_BlurTexture1ID, 0, CubemapFace.Unknown, -1);
+        private RenderTargetIdentifier m_BlurTexture2Target = new RenderTargetIdentifier(s_BlurTexture2ID, 0, CubemapFace.Unknown, -1);
+        private RenderTargetIdentifier m_ScreenSpaceOcclusionTextureTarget = new RenderTargetIdentifier(s_ScreenSpaceOcclusionTextureID, 0, CubemapFace.Unknown, -1);
 
         // Constants
         private const string SSAO_TEXTURE_NAME = "_ScreenSpaceOcclusionTexture";
+        private const RenderBufferLoadAction RBLA_DONT_CARE = RenderBufferLoadAction.DontCare;
+        private const RenderBufferStoreAction RBSA_STORE = RenderBufferStoreAction.Store;
+        private const RenderBufferStoreAction RBSA_DONT_CARE = RenderBufferStoreAction.DontCare;
+
+        // Statics
         private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
+        private static readonly int s_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
         private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
         private static readonly int s_BlurTexture1ID = Shader.PropertyToID("_SSAO_BlurTexture1");
         private static readonly int s_BlurTexture2ID = Shader.PropertyToID("_SSAO_BlurTexture2");
-        private static readonly int s_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
+        private static readonly int s_ScreenSpaceOcclusionTextureID = Shader.PropertyToID(SSAO_TEXTURE_NAME);
 
         // Enums
         private enum ShaderPass
@@ -132,7 +140,6 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
 
         public ScreenSpaceAmbientOcclusionPass()
         {
-            m_SSAOTextureHandle.Init(SSAO_TEXTURE_NAME);
             m_FeatureSettings = new Settings();
         }
 
@@ -213,15 +220,15 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             m_Descriptor.colorFormat = RenderTextureFormat.R8;
 
             // Get temporary render textures
-            var desc = GetStereoCompatibleDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, GraphicsFormat.R8G8B8A8_UNorm);
-            cmd.GetTemporaryRT(m_SSAOTextureHandle.id, m_Descriptor, FilterMode.Point);
+            RenderTextureDescriptor desc = GetStereoCompatibleDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, GraphicsFormat.R8G8B8A8_UNorm);
+            cmd.GetTemporaryRT(s_ScreenSpaceOcclusionTextureID, m_Descriptor, FilterMode.Point);
 
             FilterMode filterMode = m_FeatureSettings.Downsample ? FilterMode.Bilinear : FilterMode.Point;
             cmd.GetTemporaryRT(s_BlurTexture1ID, desc, filterMode);
             cmd.GetTemporaryRT(s_BlurTexture2ID, desc, filterMode);
 
             // Configure targets and clear color
-            ConfigureTarget(m_SSAOTextureHandle.id);
+            ConfigureTarget(s_ScreenSpaceOcclusionTextureID);
             ConfigureClear(ClearFlag.None, Color.white);
         }
 
@@ -282,22 +289,22 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         private void ExecuteSSAO(CommandBuffer cmd, int occlusionPass, int horizontalBlurPass, int verticalPass, int finalPass)
         {
             // Occlusion pass
-            cmd.SetRenderTarget(s_BlurTexture1ID);
+            cmd.SetRenderTarget(m_BlurTexture1Target, RBLA_DONT_CARE, RBSA_STORE, m_BlurTexture1Target, RBLA_DONT_CARE, RBSA_DONT_CARE);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, occlusionPass);
 
             // Horizontal Blur
             cmd.SetGlobalTexture(s_BaseMapID, s_BlurTexture1ID);
-            cmd.SetRenderTarget(s_BlurTexture2ID);
+            cmd.SetRenderTarget(m_BlurTexture2Target, RBLA_DONT_CARE, RBSA_STORE, m_BlurTexture2Target, RBLA_DONT_CARE, RBSA_DONT_CARE);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, horizontalBlurPass);
 
             // Vertical Blur
             cmd.SetGlobalTexture(s_BaseMapID, s_BlurTexture2ID);
-            cmd.SetRenderTarget(s_BlurTexture1ID);
+            cmd.SetRenderTarget(m_BlurTexture1Target, RBLA_DONT_CARE, RBSA_STORE, m_BlurTexture1Target, RBLA_DONT_CARE, RBSA_DONT_CARE);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, verticalPass);
 
             // Final Composition
             cmd.SetGlobalTexture(s_BaseMapID, s_BlurTexture1ID);
-            cmd.SetRenderTarget(m_SSAOTextureHandle.id);
+            cmd.SetRenderTarget(m_ScreenSpaceOcclusionTextureTarget, RBLA_DONT_CARE, RBSA_STORE, m_ScreenSpaceOcclusionTextureTarget, RBLA_DONT_CARE, RBSA_DONT_CARE);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, finalPass);
         }
 
@@ -310,7 +317,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             }
 
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, false);
-            cmd.ReleaseTemporaryRT(m_SSAOTextureHandle.id);
+            cmd.ReleaseTemporaryRT(s_ScreenSpaceOcclusionTextureID);
             cmd.ReleaseTemporaryRT(s_BlurTexture1ID);
             cmd.ReleaseTemporaryRT(s_BlurTexture2ID);
         }
