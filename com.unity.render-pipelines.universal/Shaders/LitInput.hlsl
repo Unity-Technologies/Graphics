@@ -15,7 +15,7 @@ half _Smoothness;
 half _Metallic;
 half _BumpScale;
 half _OcclusionStrength;
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
 half _ClearCoatStrength;
 half _ClearCoatSmoothness;
 #endif
@@ -81,10 +81,10 @@ half SampleOcclusion(float2 uv)
 // .y/.g == smoothness
 half2 SampleClearCoat(float2 uv)
 {
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     half2 clearCoatStrengthSmoothness = half2(_ClearCoatStrength, _ClearCoatSmoothness);
 
-#ifdef _CLEARCOATMAP
+#if defined(_CLEARCOATMAP)
     clearCoatStrengthSmoothness *= SAMPLE_TEXTURE2D(_ClearCoatMap, sampler_ClearCoatMap, uv).rg;
 #endif
 
@@ -115,7 +115,7 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     outSurfaceData.occlusion = SampleOcclusion(uv);
     outSurfaceData.emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));
 
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     half2 clearCoat = SampleClearCoat(uv);
     outSurfaceData.clearCoatStrength   = clearCoat.r;
     outSurfaceData.clearCoatSmoothness = clearCoat.g;

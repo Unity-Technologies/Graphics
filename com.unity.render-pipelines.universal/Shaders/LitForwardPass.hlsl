@@ -137,13 +137,13 @@ half4 LitPassFragment(Varyings input) : SV_Target
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
         , surfaceData.clearCoatStrength
         , surfaceData.clearCoatSmoothness
 #endif
     );
-    
-    
+
+
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a);
 

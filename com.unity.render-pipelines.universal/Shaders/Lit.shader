@@ -32,7 +32,8 @@ Shader "Universal Render Pipeline/Lit"
         _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
 
-        _ClearCoatMap("Clear Coat", 2D) = "white" {}
+        _ClearCoat("Clear Coat", Float) = 0.0
+        _ClearCoatMap("Clear Coat Map", 2D) = "white" {}
         _ClearCoatStrength("Clear Coat Strength", Range(0.0, 1.0)) = 0.0
         _ClearCoatSmoothness("Clear Coat Smoothness", Range(0.0, 1.0)) = 1.0
 
@@ -95,8 +96,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature _OCCLUSIONMAP
 
-            #pragma shader_feature _CLEARCOAT
-            #pragma shader_feature _CLEARCOATMAP
+            #pragma shader_feature _ _CLEARCOAT _CLEARCOATMAP
 
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _ENVIRONMENTREFLECTIONS_OFF

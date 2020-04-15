@@ -26,7 +26,7 @@ half3 DebugColorValue(float value, float start, float end)
     {
         return half3(0.25,0.25,0.25);
     }
-    else if(t < 0)
+    else if(t < 0) // MYCK (i.e. CMYK) for negatives
     {
         if( t >= -edge0)
             return half3(1,0,1);
@@ -39,7 +39,7 @@ half3 DebugColorValue(float value, float start, float end)
         else
             return half3(0,0,0);    // Under -1 == Black
     }
-    else
+    else // RGBW for positives
     {
         if( t <= edge0 )
             return half3(1,0,0);
@@ -310,7 +310,7 @@ struct BRDFData
     half normalizationTerm;     // roughness * 4.0 + 2.0
     half roughness2MinusOne;    // roughness^2 - 1.0
 
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     half clearCoatStrength;
     half clearCoatPerceptualRoughness;
     half clearCoatRoughness;
@@ -341,7 +341,7 @@ half OneMinusReflectivityMetallic(half metallic)
     return oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
 }
 
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
 
 // TODO: merge with BSDF.hlsl ???
 half3 ConvertF0ForAirInterfaceToF0ForClearCoat15Half(half3 f0)
@@ -358,7 +358,7 @@ half3 ConvertF0ForAirInterfaceToF0ForClearCoat15Half(half3 f0)
 #endif //_CLEARCOAT
 
 inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha,
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     half clearCoatStrength,
     half clearCoatSmoothness,
 #endif
@@ -392,7 +392,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     alpha = alpha * oneMinusReflectivity + reflectivity;
 #endif
 
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     // Calculate Roughness of Clear Coat layer
     outBRDFData.clearCoatStrength            = clearCoatStrength;
     outBRDFData.clearCoatPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(clearCoatSmoothness);
@@ -424,7 +424,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 }
 
 
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
 half ClearCoatBRDF(BRDFData brdfData, half3 halfDir, half NoH, half LoH, half LoH2)
 {
     half d = NoH * NoH * brdfData.clearCoatRoughness2MinusOne + 1.0001h;
@@ -485,7 +485,7 @@ half3 DirectBRDF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
     specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
 #endif
 
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     half CC = ClearCoatBRDF(brdfData, halfDir, NoH, LoH, LoH2);
 
     // Mix clear coat and base layer using khronos glTF recommended formula
@@ -654,7 +654,7 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
     return min(bakedGI, realtimeShadow);
 }
 
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
 half3 ClearCoatGlobalIllumination(BRDFData brdfData, half3 reflectVector, half fresnelTerm, half occlusion)
 {
     half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.clearCoatPerceptualRoughness, occlusion);
@@ -675,7 +675,7 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
 
     half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
-#if defined(_CLEARCOAT)
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     // TODO: "grazing term" causes problems. full roughness -> dark 1px edge
     half3 CC = ClearCoatGlobalIllumination(brdfData, reflectVector, fresnelTerm, occlusion);
 
@@ -747,16 +747,12 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
 half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha
-#ifdef _CLEARCOAT
-    , half clearCoatStrength
-    , half clearCoatSmoothness
-#endif
-)
+    half smoothness, half occlusion, half3 emission, half alpha,
+    half clearCoatStrength, half clearCoatSmoothness)
 {
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha,
-#ifdef _CLEARCOAT
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
         clearCoatStrength, clearCoatSmoothness,
 #endif
         brdfData);
@@ -786,6 +782,12 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     color = debugColor;
 #endif
     return half4(color, alpha);
+}
+
+half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
+    half smoothness, half occlusion, half3 emission, half alpha)
+{
+    return UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha, 0.0, 1.0);
 }
 
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
@@ -825,12 +827,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)
 {
-    return UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha
-#if _CLEARCOAT
-        , 0.0h
-        , 0.0h
-#endif
-    );
+    return UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
 }
 
 half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
