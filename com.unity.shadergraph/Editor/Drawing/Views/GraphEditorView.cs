@@ -300,6 +300,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEdge(edge);
 
             Add(content);
+
+            // Active block lists need to be initialized on window start up
+            // Do this here to as we cant do this inside GraphData
+            // This is due to targets not being deserialized yet
+            m_Graph.UpdateActiveBlocks();
         }
 
         void AddContexts()

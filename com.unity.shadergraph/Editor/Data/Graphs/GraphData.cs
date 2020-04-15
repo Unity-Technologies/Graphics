@@ -1562,9 +1562,6 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
-            // TODO: Do I need this?
-            UpdateActiveBlocks();
-
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
         }
 
