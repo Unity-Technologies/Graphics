@@ -38,6 +38,9 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
 
     builtinData.opacity = alpha;
 
+    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
+    builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+    
     // We only want to read the screen space buffer that holds the indirect diffuse signal if this is not a transparent surface
 #if RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD) && !defined(_SURFACE_TYPE_TRANSPARENT)
     if (_RaytracedIndirectDiffuse == 1)
@@ -54,12 +57,11 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     }
     else
 #endif
+    {
+        // Sample lightmap/probevolume/lightprobe/volume proxy
+        builtinData.bakeDiffuseLighting = SampleBakedGI(posInput, normalWS, builtinData.renderingLayers, texCoord1.xy, texCoord2.xy);
+    }
 
-    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-    builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
-
-    // Sample lightmap/probevolume/lightprobe/volume proxy
-    builtinData.bakeDiffuseLighting = SampleBakedGI(posInput, normalWS, builtinData.renderingLayers, texCoord1.xy, texCoord2.xy);
     // We also sample the back lighting in case we have transmission. If not use this will be optimize out by the compiler
     // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
     // however it may not optimize the lightprobe case due to the proxy volume relying on dynamic if (to verify), not a problem for SH9, but a problem for proxy volume.

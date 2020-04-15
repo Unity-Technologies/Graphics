@@ -27,7 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class BuildGPULightListPassData
         {
-            public LightDataGlobalParameters lightDataGlobalParameters;
             public ShadowGlobalParameters shadowGlobalParameters;
             public LightLoopGlobalParameters lightLoopGlobalParameters;
 
@@ -45,10 +44,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
-                passData.lightDataGlobalParameters = PrepareLightDataGlobalParameters(hdCamera);
                 passData.shadowGlobalParameters = PrepareShadowGlobalParameters(hdCamera);
                 passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera);
-                passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera);
+                passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, buildForProbeVolumes: false);
                 // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
                 passData.buildGPULightListResources = PrepareBuildGPULightListResources(m_TileAndClusterData, null, null, isGBufferNeeded: true);
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
@@ -83,7 +81,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     BuildDispatchIndirectArguments(data.buildGPULightListParameters, data.buildGPULightListResources, tileFlagsWritten, context.cmd);
 
                     // TODO RENDERGRAPH WARNING: Note that the three sets of variables are bound here, but it should be handled differently.
-                    PushLightDataGlobalParams(data.lightDataGlobalParameters, context.cmd);
                     PushShadowGlobalParams(data.shadowGlobalParameters, context.cmd);
                     PushLightLoopGlobalParams(data.lightLoopGlobalParameters, context.cmd);
                 });
@@ -93,8 +90,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class PushGlobalCameraParamPassData
         {
-            public HDCamera    hdCamera;
-            public int         frameCount;
+            public HDCamera                 hdCamera;
+            public int                      frameCount;
+            public ShaderVariablesGlobal    globalCB;
+            public ShaderVariablesXR        xrCB;
 
         }
 
@@ -104,20 +103,24 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.hdCamera = hdCamera;
                 passData.frameCount = m_FrameCount;
+                passData.globalCB = m_ShaderVariablesGlobalCB;
+                passData.xrCB = m_ShaderVariablesXRCB;
 
                 builder.SetRenderFunc(
                 (PushGlobalCameraParamPassData data, RenderGraphContext context) =>
                 {
-                    data.hdCamera.SetupGlobalParams(context.cmd, data.frameCount);
+                    data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB, data.frameCount);
+                    ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                    data.hdCamera.UpdateShaderVariablesXRCB(ref data.xrCB);
+                    ConstantBuffer.PushGlobal(context.cmd, data.xrCB, HDShaderIDs._ShaderVariablesXR);
                 });
             }
         }
 
         internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults)
         {
-            var result = m_ShadowManager.RenderShadows(m_RenderGraph, hdCamera, cullResults);
-
-            // TODO: Remove this once shadows don't pollute global parameters anymore.
+            var result = m_ShadowManager.RenderShadows(m_RenderGraph, m_ShaderVariablesGlobalCB, hdCamera, cullResults);
+            // Need to restore global camera parameters.
             PushGlobalCameraParams(renderGraph, hdCamera);
             return result;
         }
@@ -251,7 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderSSR(    RenderGraph     renderGraph,
-                                        HDCamera            hdCamera,
+                                    HDCamera        hdCamera,
                                     TextureHandle   normalBuffer,
                                     TextureHandle   motionVectorsBuffer,
                                     TextureHandle   depthPyramid,
@@ -282,7 +285,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
 
-                    passData.parameters = PrepareSSRParameters(hdCamera);
+                    passData.parameters = PrepareSSRParameters(hdCamera, m_DepthBufferMipChainInfo);
                     passData.depthPyramid = builder.ReadTexture(depthPyramid);
                     passData.colorPyramid = builder.ReadTexture(colorPyramid);
                     passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
@@ -336,8 +339,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ContactShadowsParameters     parameters;
             public LightLoopLightData           lightLoopLightData;
             public TileAndClusterData           tileAndClusterData;
-            public TextureHandle            depthTexture;
-            public TextureHandle            contactShadowsTexture;
+            public TextureHandle                depthTexture;
+            public TextureHandle                contactShadowsTexture;
             public HDShadowManager              shadowManager;
         }
 
@@ -388,10 +391,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle VolumeVoxelizationPass(   RenderGraph     renderGraph,
-                                                    HDCamera            hdCamera,
-                                                    ComputeBuffer       visibleVolumeBoundsBuffer,
-                                                    ComputeBuffer       visibleVolumeDataBuffer,
-                                                    ComputeBuffer       bigTileLightListBuffer)
+                                                HDCamera        hdCamera,
+                                                ComputeBuffer   visibleVolumeBoundsBuffer,
+                                                ComputeBuffer   visibleVolumeDataBuffer,
+                                                ComputeBuffer   bigTileLightListBuffer,
+                                                int             frameIndex)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -399,7 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync());
 
-                    passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera);
+                    passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera, frameIndex);
                     passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
                     passData.visibleVolumeDataBuffer = visibleVolumeDataBuffer;
                     passData.bigTileLightListBuffer = bigTileLightListBuffer;
