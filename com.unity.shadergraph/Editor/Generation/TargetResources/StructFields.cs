@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
     internal static class StructFields
@@ -128,11 +128,10 @@
 
             public static FieldDescriptor BoneWeights = new FieldDescriptor(VertexDescriptionInputs.name, "BoneWeights", "", ShaderValueType.Float4,
                 subscriptOptions : StructFieldOptions.Optional);
-
             public static FieldDescriptor BoneIndices = new FieldDescriptor(VertexDescriptionInputs.name, "BoneIndices", "", ShaderValueType.Uint4,
                 subscriptOptions : StructFieldOptions.Optional);
 
-            public static FieldDescriptor VertexID = new FieldDescriptor(VertexDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint4,
+            public static FieldDescriptor VertexID = new FieldDescriptor(VertexDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint,
                 subscriptOptions: StructFieldOptions.Optional);
         }
 
@@ -202,11 +201,13 @@
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor FaceSign = new FieldDescriptor(SurfaceDescriptionInputs.name, "FaceSign", "", ShaderValueType.Float,
                 subscriptOptions : StructFieldOptions.Optional);
+
             public static FieldDescriptor BoneWeights = new FieldDescriptor(SurfaceDescriptionInputs.name, "BoneWeights", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor BoneIndices = new FieldDescriptor(SurfaceDescriptionInputs.name, "BoneIndices", "", ShaderValueType.Uint4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor VertexID = new FieldDescriptor(SurfaceDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint4,
+
+            public static FieldDescriptor VertexID = new FieldDescriptor(SurfaceDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint,
                 subscriptOptions: StructFieldOptions.Optional);
         }
     }

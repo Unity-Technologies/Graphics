@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
         public static bool RequiresVertexID(this ISlot slot)
         {
             var mayRequireVertexID = slot as IMayRequireVertexID;
-            return mayRequireVertexID!= null && mayRequireVertexID.RequiresVertexID();
+            return mayRequireVertexID != null && mayRequireVertexID.RequiresVertexID();
         }
     }
 }

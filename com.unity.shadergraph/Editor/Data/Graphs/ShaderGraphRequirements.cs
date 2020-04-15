@@ -142,6 +142,7 @@ namespace UnityEditor.ShaderGraph.Internal
             newReqs.m_RequiresCameraOpaqueTexture = other.m_RequiresCameraOpaqueTexture | m_RequiresCameraOpaqueTexture;
             newReqs.m_RequiresTime = other.m_RequiresTime | m_RequiresTime;
             newReqs.m_RequiresVertexSkinning = other.m_RequiresVertexSkinning | m_RequiresVertexSkinning;
+            newReqs.m_RequiresVertexID = other.m_RequiresVertexID | m_RequiresVertexID;
 
 
             newReqs.m_RequiresMeshUVs = new List<UVChannel>();
