@@ -63,12 +63,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
 
             // Misc
-            context.AddProperty("Double-Sided", 0, new Toggle { value = systemData.doubleSided }, (evt) =>
+            context.AddProperty("Double-Sided Mode", 0, new EnumField(DoubleSidedMode.Disabled) { value = systemData.doubleSidedMode }, (evt) =>
             {
-                if (Equals(systemData.doubleSided, evt.newValue))
+                if (Equals(systemData.doubleSidedMode, evt.newValue))
                     return;
 
-                systemData.doubleSided = evt.newValue;
+                systemData.doubleSidedMode = (DoubleSidedMode)evt.newValue;
                 onChange();
             });
             context.AddProperty("Add Precomputed Velocity", 0, new Toggle() { value = builtinData.addPrecomputedVelocity }, (evt) =>
@@ -140,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Cull Mode", indentLevel + 1, new EnumField(systemData.transparentCullMode) { value = systemData.transparentCullMode }, systemData.surfaceType == SurfaceType.Transparent && systemData.doubleSided, (evt) =>
+            context.AddProperty("Cull Mode", indentLevel + 1, new EnumField(systemData.transparentCullMode) { value = systemData.transparentCullMode }, systemData.surfaceType == SurfaceType.Transparent && systemData.doubleSidedMode != DoubleSidedMode.Disabled, (evt) =>
             {
                 if (Equals(systemData.transparentCullMode, evt.newValue))
                     return;

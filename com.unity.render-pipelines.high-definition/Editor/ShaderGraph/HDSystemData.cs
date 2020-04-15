@@ -18,6 +18,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
+        RenderQueueType m_RenderingPass = RenderQueueType.Opaque;
+        public RenderQueueType renderingPass
+        {
+            get => m_RenderingPass;
+            set => m_RenderingPass = value;
+        }
+
+        [SerializeField]
         BlendMode m_BlendMode = BlendMode.Alpha;
         public BlendMode blendMode
         {
@@ -26,12 +34,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        RenderQueueType m_RenderingPass = RenderQueueType.Opaque;
-        public RenderQueueType renderingPass
+        CompareFunction m_ZTest = CompareFunction.LessEqual;
+        public CompareFunction zTest
         {
-            get => m_RenderingPass;
-            set => m_RenderingPass = value;
-        }
+            get => m_ZTest;
+            set => m_ZTest = value;
+        }    
 
         [SerializeField]
         bool m_ZWrite = true;
@@ -50,14 +58,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        CompareFunction m_ZTest = CompareFunction.LessEqual;
-        public CompareFunction zTest
-        {
-            get => m_ZTest;
-            set => m_ZTest = value;
-        }
-
-        [SerializeField]
         int m_SortPriority;
         public int sortPriority
         {
@@ -73,14 +73,57 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_AlphaTest = value;
         }
 
+        [SerializeField]
+        bool m_AlphaTestDepthPrepass;
+        public bool alphaTestDepthPrepass
+        {
+            get => m_AlphaTestDepthPrepass;
+            set => m_AlphaTestDepthPrepass = value;
+        }
+
+        [SerializeField]
+        bool m_AlphaTestDepthPostpass;
+        public bool alphaTestDepthPostpass
+        {
+            get => m_AlphaTestDepthPostpass;
+            set => m_AlphaTestDepthPostpass = value;
+        }
+
+        [SerializeField]
+        DoubleSidedMode m_DoubleSidedMode;
+        public DoubleSidedMode doubleSidedMode
+        {
+            get => m_DoubleSidedMode;
+            set => m_DoubleSidedMode = value;
+        }
+
         // TODO: HDUnlit doesnt support DoubleSidedMode, presumably because normals are irrelevant
         // TODO: Can we share a DoubleSidedMode property anyway to simplify things?
+        // [SerializeField]
+        // bool m_DoubleSided;
+        // public bool doubleSided
+        // {
+        //     get => m_DoubleSided;
+        //     set => m_DoubleSided = value;
+        // }
+
         [SerializeField]
-        bool m_DoubleSided;
-        public bool doubleSided
+        bool m_SupportLodCrossFade;
+        public bool supportLodCrossFade
         {
-            get => m_DoubleSided;
-            set => m_DoubleSided = value;
+            get => m_SupportLodCrossFade;
+            set => m_SupportLodCrossFade = value;
+        }
+
+        // TODO: This was on HDUnlitMaster but not used anywhere
+        // TODO: On HDLit it adds the field `HDFields.DotsInstancing`
+        // TODO: Should this be added properly to HDUnlit?
+        [SerializeField]
+        bool m_DOTSInstancing = false;
+        public bool dotsInstancing
+        {
+            get => m_DOTSInstancing;
+            set => m_DOTSInstancing = value;
         }
     }
 

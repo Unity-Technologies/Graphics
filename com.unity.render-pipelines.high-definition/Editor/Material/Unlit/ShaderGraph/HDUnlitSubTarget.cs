@@ -183,14 +183,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             );
 
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, systemData.alphaTest, false);
-            HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled);
+            HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSidedMode);
         }
 
         public override void ProcessPreviewMaterial(Material material)
         {
             // Fixup the material settings:
             material.SetFloat(kSurfaceType, (int)(SurfaceType)systemData.surfaceType);
-            material.SetFloat(kDoubleSidedEnable, systemData.doubleSided ? 1.0f : 0.0f);
+            material.SetFloat(kDoubleSidedEnable, systemData.doubleSidedMode != DoubleSidedMode.Disabled ? 1.0f : 0.0f);
             material.SetFloat(kAlphaCutoffEnabled, systemData.alphaTest ? 1 : 0);
             material.SetFloat(kBlendMode, (int)systemData.blendMode);
             material.SetFloat(kEnableFogOnTransparent, builtinData.transparencyFog ? 1.0f : 0.0f);
