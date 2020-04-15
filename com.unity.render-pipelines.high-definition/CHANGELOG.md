@@ -551,6 +551,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replaced commands incompatible with async compute in light list build process.
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
 - Fixed unneeded cookie texture allocation for cone stop lights.
+- Fixed issue with screen-space shadows not enabled properly when RT is disabled (case 1235821)
 
 ### Changed
 - Improve MIP selection for decals on Transparents

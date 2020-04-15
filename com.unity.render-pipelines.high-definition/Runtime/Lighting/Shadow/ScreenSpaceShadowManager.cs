@@ -230,27 +230,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ScreenSpaceShadows)))
             {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ScreenSpaceShadows)))
-                {
-                    // First of all we handle the directional light
-                    RenderDirectionalLightScreenSpaceShadow(cmd, hdCamera);
+                // First of all we handle the directional light
+                RenderDirectionalLightScreenSpaceShadow(cmd, hdCamera);
 
-                    // We handle the other light sources
-                    RenderLightScreenSpaceShadows(hdCamera, cmd);
+                // We handle the other light sources
+                RenderLightScreenSpaceShadows(hdCamera, cmd);
 
-                    // We do render the debug view
-                    EvaluateShadowDebugView(cmd, hdCamera);
+                // We do render the debug view
+                EvaluateShadowDebugView(cmd, hdCamera);
 
-                    // Big the right texture
-                    cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, m_ScreenSpaceShadowTextureArray);
-                }
-            }
-            else
-            {
-                // We bind the black texture in this case
-                BindBlackShadowTexture(cmd);
+                // Bind the right texture
+                cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, m_ScreenSpaceShadowTextureArray);
             }
         }
 
