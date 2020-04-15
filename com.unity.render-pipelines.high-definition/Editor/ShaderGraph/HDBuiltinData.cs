@@ -30,16 +30,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_DistortionDepthTest = value;
         }
 
-        // TODO: This was on HDUnlitMaster but not used anywhere
-        // TODO: Can this be removed?
-        // [SerializeField]
-        // bool m_DistortionOnly = true;
-        // public bool distortionOnly
-        // {
-        //     get => m_DistortionOnly;
-        //     set => m_DistortionOnly = value;
-        // }
-
         [SerializeField]
         bool m_AddPrecomputedVelocity = false;
         public bool addPrecomputedVelocity

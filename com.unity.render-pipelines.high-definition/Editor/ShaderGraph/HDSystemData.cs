@@ -97,16 +97,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_DoubleSidedMode = value;
         }
 
-        // TODO: HDUnlit doesnt support DoubleSidedMode, presumably because normals are irrelevant
-        // TODO: Can we share a DoubleSidedMode property anyway to simplify things?
-        // [SerializeField]
-        // bool m_DoubleSided;
-        // public bool doubleSided
-        // {
-        //     get => m_DoubleSided;
-        //     set => m_DoubleSided = value;
-        // }
-
         [SerializeField]
         bool m_SupportLodCrossFade;
         public bool supportLodCrossFade

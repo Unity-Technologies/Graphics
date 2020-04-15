@@ -36,6 +36,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         MirroredNormals,
     }
 
+    enum SpecularOcclusionMode
+    {
+        Off,
+        FromAO,
+        FromAOAndBentNormal,
+        Custom
+    }
+
     sealed class HDTarget : Target, ISerializationCallbackReceiver
     {
         // Constants
