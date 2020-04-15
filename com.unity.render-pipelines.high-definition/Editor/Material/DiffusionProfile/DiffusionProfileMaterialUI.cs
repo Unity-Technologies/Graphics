@@ -47,10 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 foreach (var target in materialEditor.targets)
                 {
                     MaterialExternalReferences matExternalRefs = MaterialExternalReferences.GetMaterialExternalReferences(target as Material);
-                    if (matExternalRefs != null)
-                    {
-                        matExternalRefs.SetDiffusionProfileReference(profileIndex, diffusionProfile);
-                    }
+                    matExternalRefs.SetDiffusionProfileReference(profileIndex, diffusionProfile);
                 }
             }
 

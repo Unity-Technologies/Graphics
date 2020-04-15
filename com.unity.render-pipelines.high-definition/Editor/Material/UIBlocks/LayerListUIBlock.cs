@@ -159,10 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         foreach (var target in materialEditor.targets)
                         {
                             MaterialExternalReferences matExternalRefs = MaterialExternalReferences.GetMaterialExternalReferences(target as Material);
-                            if (matExternalRefs != null)
-                            {
-                                matExternalRefs.SetMaterialReference(layerIndex, m_MaterialLayers[layerIndex]);
-                            }
+                            matExternalRefs.SetMaterialReference(layerIndex, m_MaterialLayers[layerIndex]);
                         }
                     }
 
