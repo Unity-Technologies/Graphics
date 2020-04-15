@@ -3,12 +3,12 @@
     "references": [
         "UnityEngine.TestRunner",
         "Unity.PerformanceTesting",
+        "Unity.Testing.VisualEffectGraph.Tests",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.GraphicTests.Performance.Runtime"
+        "Unity.GraphicTests.Performance.Runtime",
+        "UnityEngine.TestTools.Graphics"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
