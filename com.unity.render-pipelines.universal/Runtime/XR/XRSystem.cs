@@ -70,6 +70,9 @@ namespace UnityEngine.Rendering.Universal
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
         {
+            if (GraphicsSettings.currentRenderPipeline == null)
+                return;
+
             GetDisplaySubsystem();
 
             // XRTODO: refactor with RefreshXrSdk()
