@@ -43,6 +43,19 @@ To select TAA for a Camera:
 1. Select the Camera in the Scene view or Hierarchy and view it in the Inspector.
 2. In the General section, select Temporal Anti-aliasing (TAA) from the Anti-aliasing drop-down.
 
+TAA has few tunable parameters: 
+
+![](Images/TAA.png)
+
+| **Property**               | **Description**                                              |
+| -------------------------- | ------------------------------------------------------------ |
+| **TAA Quality Preset**     | The quality level of TAA. Note that, depending on your content, the default settings for higher presets are not guaranteed to produce better results than lower presets. However, the higher the preset, the more options are available to you and thus the more able you are to adapt the anti-aliasing to your content. |
+| **TAA Sharpen Strength**   | The intensity of the sharpening filter that Unity applies to the result of TAA. This helps to reduce the potentially soft look that TAA can produce. Be aware that high values can cause ringing issues (dark lines along the edges of geometry). |
+| **TAA History Sharpening** | This strength of the history sharpening effect. When the value is above 0, Unity samples the history buffer with a bicubic filter that sharpens the result of TAA. This helps to produce a sharper image during motion. Be aware that high values can cause ringing issues (dark lines along the edges of geometry).Note that if you set this value to 0, it increases the performance of TAA because Unity simplifies the history buffer sampling. <br/>This property is only visible when **TAA Quality Preset** is set to a value above **Low**. |
+| **TAA Anti-flickering**    | The strength of TAA's anti-flickering effort. Increasing this value may reduce some cases of flickering. However, increasing this value also brings the risk of [ghosting](Glossary.md#Ghosting) or [disocclusion](Glossary.md#Disocclusion) artifacts. <br />This property is only visible when **TAA Quality Preset** is set to a value above **Low**. |
+| **TAA Speed rejection**    | Controls the threshold at which Unity rejects history buffer contribution for TAA. Increasing this value can help to remove ghosting artifacts because Unity rejects history buffer contribution when a GameObject's current speed and reprojected speed history are very different. While this can be effective in reducing ghosting, it might also reintroduce some aliasing for fast-moving GameObject.<br/>Note that if you set this value to 0, it increases the performance of TAA because Unity does not process speed rejection.<br />This property is only visible when **TAA Quality Preset** is set to **High**. |
+| **TAA Anti-ringing**       | Enable this option to reduce the ringing artifacts caused by high history sharpening values. Be aware that enabling this slightly reduces the effect of the history sharpening.<br /> This property is only visible when **TAA Quality Preset** is set to **High**. |
+
 <a name="SMAA"></a>
 
 ## Subpixel morphological anti-aliasing (SMAA)
