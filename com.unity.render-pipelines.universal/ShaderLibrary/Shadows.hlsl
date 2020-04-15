@@ -215,7 +215,7 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
     return mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 }
 
-half computeShadowFade(float3 positionWS, float shadowStrength)
+half ComputeShadowFade(float3 positionWS, float shadowStrength)
 {
 #if FADE_SHADOWS
     float3 fragToCamVec = _WorldSpaceCameraPos - positionWS;
@@ -240,7 +240,7 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 half MainLightRealtimeShadow(float3 positionWS, float4 shadowCoord)
 {
     half4 shadowParams = GetMainLightShadowParams();
-    shadowParams.x = computeShadowFade(positionWS, shadowParams.x);
+    shadowParams.x = ComputeShadowFade(positionWS, shadowParams.x);
 #if !defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     return 1.0h;
 #endif  
@@ -270,7 +270,7 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 #endif
 
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
-    shadowParams.x = computeShadowFade(positionWS, shadowParams.x);
+    shadowParams.x = ComputeShadowFade(positionWS, shadowParams.x);
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
 }
 

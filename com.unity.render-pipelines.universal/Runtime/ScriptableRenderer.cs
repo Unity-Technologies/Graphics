@@ -427,21 +427,21 @@ namespace UnityEngine.Rendering.Universal
         {
             if (shaderQuality == ShaderQuality.High)
             {
-                cmd.DisableShaderKeyword("SHADER_QUALITY_LOW");
-                cmd.DisableShaderKeyword("SHADER_QUALITY_MEDIUM");
-                cmd.EnableShaderKeyword("SHADER_QUALITY_HIGH");
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.ShaderQualityLow);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.ShaderQualityMedium);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings.ShaderQualityHigh);
             }
             else if (shaderQuality == ShaderQuality.Medium)
             {
-                cmd.DisableShaderKeyword("SHADER_QUALITY_LOW");
-                cmd.EnableShaderKeyword("SHADER_QUALITY_MEDIUM");
-                cmd.DisableShaderKeyword("SHADER_QUALITY_HIGH");
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.ShaderQualityLow);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings.ShaderQualityMedium);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.ShaderQualityHigh);
             }
             else if (shaderQuality == ShaderQuality.Low)
             {
-                cmd.EnableShaderKeyword("SHADER_QUALITY_LOW");
-                cmd.DisableShaderKeyword("SHADER_QUALITY_MEDIUM");
-                cmd.DisableShaderKeyword("SHADER_QUALITY_HIGH");
+                cmd.EnableShaderKeyword(ShaderKeywordStrings.ShaderQualityLow);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.ShaderQualityMedium);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.ShaderQualityHigh);
             }
         }
 

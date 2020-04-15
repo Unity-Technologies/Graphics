@@ -152,6 +152,10 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string Dithering = "_DITHERING";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
+
+        public static readonly string ShaderQualityLow = "SHADER_QUALITY_LOW";
+        public static readonly string ShaderQualityMedium = "SHADER_QUALITY_MEDIUM";
+        public static readonly string ShaderQualityHigh = "SHADER_QUALITY_HIGH";
     }
 
     public sealed partial class UniversalRenderPipeline

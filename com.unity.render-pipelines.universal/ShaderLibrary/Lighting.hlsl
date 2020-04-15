@@ -496,9 +496,8 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
 #endif
 #endif*/
     return irradiance * occlusion;
-#endif
-#endif
-    // GLOSSY_REFLECTIONS
+#endif // REFLECTION_PROBE
+#endif // GLOSSY_REFLECTIONS
     return _GlossyEnvironmentColor.rgb * occlusion;
 }
 

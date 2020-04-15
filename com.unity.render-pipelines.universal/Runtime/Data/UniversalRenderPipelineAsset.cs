@@ -49,6 +49,9 @@ namespace UnityEngine.Rendering.Universal
         _8x = 8
     }
 
+    /// <summary>
+    /// The ShaderQuality is used to choose a tier setting for the shaders and Shader Graph to use.
+    /// </summary>
     public enum ShaderQuality
     {
         Low,
