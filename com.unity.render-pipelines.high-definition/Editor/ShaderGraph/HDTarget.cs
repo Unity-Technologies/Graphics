@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
     interface IRequiresData<T> where T : HDTargetData
     {
-        void ProcessData(T data);
+        T data { get; set; }
     }
 
     enum DistortionMode
@@ -64,20 +64,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         // TODO: Remove when Peter's serialization lands
         [SerializeField]
-        SerializationHelper.JSONSerializedElement m_SerializedSystemData;
-
-        // TODO: Remove when Peter's serialization lands
-        [SerializeField]
-        SerializationHelper.JSONSerializedElement m_SerializedBuiltinData;
+        List<SerializationHelper.JSONSerializedElement> m_SerializedDatas;
 
         [SerializeField]
         SubTarget m_ActiveSubTarget;
 
         [SerializeField]
-        HDSystemData m_SystemData;
-
-        [SerializeField]
-        HDBuiltinData m_BuiltinData;
+        List<HDTargetData> m_Datas = new List<HDTargetData>();
 
         [SerializeField]
         string m_CustomEditorGUI;
@@ -87,6 +80,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             displayName = "HDRP";
             m_SubTargets = TargetUtils.GetSubTargets(this);
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
+
+            TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+            ProcessSubTargetDatas();
         }
 
         public static string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates";
@@ -111,7 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return;
 
             // Setup the active SubTarget
-            ProcessSubTargetData();
+            ProcessSubTargetDatas();
             m_ActiveSubTarget.Setup(ref context);
 
             // Override EditorGUI
@@ -186,24 +182,56 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             m_ActiveSubTarget.ProcessPreviewMaterial(material);
         }
 
-        void ProcessSubTargetData()
+        void ProcessSubTargetDatas()
         {
-            // SystemData
-            if(m_ActiveSubTarget is IRequiresData<HDSystemData> iRequireSystemData)
+            var typeCollection = TypeCache.GetTypesDerivedFrom<HDTargetData>();
+            foreach(var type in typeCollection)
             {
-                if(m_SystemData == null)
-                    m_SystemData = new HDSystemData();
-                
-                iRequireSystemData.ProcessData(m_SystemData);
+                // Data requirement interfaces need generic type arguments
+                // Therefore we need to use reflections to call the method
+                var methodInfo = typeof(HDTarget).GetMethod("SetDataOnSubTarget");
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type);
+                genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget });
+            }
+        }
+
+        void ClearUnusedData()
+        {
+            for(int i = 0; i < m_Datas.Count; i++)
+            {
+                var data = m_Datas[i];
+                var type = data.GetType();
+
+                // Data requirement interfaces need generic type arguments
+                // Therefore we need to use reflections to call the method
+                var methodInfo = typeof(HDTarget).GetMethod("ValidateDataForSubTarget");
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type);
+                genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget, data });
+            }
+        }
+
+        public void SetDataOnSubTarget<T>(SubTarget subTarget) where T : HDTargetData
+        {
+            if(!(subTarget is IRequiresData<T> requiresData))
+                return;
+            
+            // Ensure data object exists in list
+            var data = m_Datas.FirstOrDefault(x => x.GetType().Equals(typeof(T))) as T;
+            if(data == null)
+            {
+                data = Activator.CreateInstance(typeof(T)) as T;
+                m_Datas.Add(data);
             }
 
-            // BuiltinData
-            if(m_ActiveSubTarget is IRequiresData<HDBuiltinData> iRequireBuiltinData)
+            // Apply data object to SubTarget
+            requiresData.data = data;
+        }
+
+        public void ValidateDataForSubTarget<T>(SubTarget subTarget, T data) where T : HDTargetData
+        {
+            if(!(subTarget is IRequiresData<T> requiresData))
             {
-                if(m_BuiltinData == null)
-                    m_BuiltinData = new HDBuiltinData();
-                
-                iRequireBuiltinData.ProcessData(m_BuiltinData);
+                m_Datas.Remove(data);
             }
         }
 
@@ -217,8 +245,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             ClearUnusedData();
             
             m_SerializedSubTarget = SerializationHelper.Serialize<SubTarget>(m_ActiveSubTarget);
-            m_SerializedSystemData = SerializationHelper.Serialize<HDSystemData>(m_SystemData);
-            m_SerializedBuiltinData = SerializationHelper.Serialize<HDBuiltinData>(m_BuiltinData);
+            m_SerializedDatas = SerializationHelper.Serialize<HDTargetData>(m_Datas);
         }
 
         public void OnAfterDeserialize()
@@ -227,24 +254,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return;
             
             m_ActiveSubTarget = SerializationHelper.Deserialize<SubTarget>(m_SerializedSubTarget, GraphUtil.GetLegacyTypeRemapping());
-            m_SystemData = SerializationHelper.Deserialize<HDSystemData>(m_SerializedSystemData, GraphUtil.GetLegacyTypeRemapping());
-            m_BuiltinData = SerializationHelper.Deserialize<HDBuiltinData>(m_SerializedBuiltinData, GraphUtil.GetLegacyTypeRemapping());
+            m_Datas = SerializationHelper.Deserialize<HDTargetData>(m_SerializedDatas, GraphUtil.GetLegacyTypeRemapping());
             m_ActiveSubTarget.target = this;
-        }
-
-        void ClearUnusedData()
-        {
-            // SystemData
-            if(!(m_ActiveSubTarget is IRequiresData<HDSystemData> iRequireSystemData))
-            {
-                m_SystemData = null;
-            }
-
-            // BuiltinData
-            if(!(m_ActiveSubTarget is IRequiresData<HDBuiltinData> iRequireBuiltinData))
-            {
-                m_BuiltinData = null;
-            }
         }
 #endregion
     }

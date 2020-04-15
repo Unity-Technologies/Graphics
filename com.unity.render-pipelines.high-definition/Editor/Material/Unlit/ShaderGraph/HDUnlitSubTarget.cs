@@ -9,16 +9,10 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDUnlitSubTarget : SubTarget<HDTarget>, ISerializationCallbackReceiver,
-        IRequiresData<HDSystemData>, IRequiresData<HDBuiltinData>
+    sealed class HDUnlitSubTarget : SubTarget<HDTarget>,
+        IRequiresData<HDSystemData>, IRequiresData<HDBuiltinData>, IRequiresData<HDUnlitData>
     {
         const string kAssetGuid = "4516595d40fa52047a77940183dc8e74";
-
-        // TODO: Remove when Peter's serialization lands
-        [SerializeField]
-        SerializationHelper.JSONSerializedElement m_SerializedUnlitData;
-
-        HDUnlitData m_UnlitData;
 
         // Templates
         // TODO: Why do the raytracing passes use the template for the pipeline agnostic Unlit master node?
@@ -37,22 +31,42 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest));
 
         // Material Data
-        public HDSystemData systemData { get; set; }
-        public HDBuiltinData builtinData { get; set; }
-        public HDUnlitData unlitData
+        HDSystemData m_SystemData;
+        HDBuiltinData m_BuiltinData;
+        HDUnlitData m_UnlitData;
+
+        // Interface Properties
+        HDSystemData IRequiresData<HDSystemData>.data
+        {
+            get => m_SystemData;
+            set => m_SystemData = value;
+        }
+        HDBuiltinData IRequiresData<HDBuiltinData>.data
+        {
+            get => m_BuiltinData;
+            set => m_BuiltinData = value;
+        }
+        HDUnlitData IRequiresData<HDUnlitData>.data
         {
             get => m_UnlitData;
             set => m_UnlitData = value;
         }
 
-        public void ProcessData(HDSystemData data)
+        // Public properties
+        public HDSystemData systemData
         {
-            this.systemData = data;
+            get => m_SystemData;
+            set => m_SystemData = value;
         }
-
-        public void ProcessData(HDBuiltinData data)
+        public HDBuiltinData builtinData
         {
-            this.builtinData = data;
+            get => m_BuiltinData;
+            set => m_BuiltinData = value;
+        }
+        public HDUnlitData unlitData
+        {
+            get => m_UnlitData;
+            set => m_UnlitData = value;
         }
 
         public override bool IsActive() => true;
@@ -203,19 +217,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             HDUnlitGUI.SetupMaterialKeywordsAndPass(material);
         }
-
-        // TODO: Remove this
-#region Serialization
-        public void OnBeforeSerialize()
-        {
-            m_SerializedUnlitData = SerializationHelper.Serialize<HDUnlitData>(m_UnlitData);
-        }
-
-        public void OnAfterDeserialize()
-        {
-            m_UnlitData = SerializationHelper.Deserialize<HDUnlitData>(m_SerializedUnlitData, GraphUtil.GetLegacyTypeRemapping());
-        }
-#endregion
 
 #region SubShaders
         static class SubShaders
