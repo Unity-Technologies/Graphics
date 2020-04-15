@@ -131,13 +131,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdriSky.enableDistortion.value == true)
             {
-                m_SkyHDRIMaterial.EnableKeyword("USE_FLOWMAP");
-                m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Flowmap, hdriSky.flowmap.value);
-                m_SkyHDRIMaterial.SetFloat(HDShaderIDs._FlowSpeed, 0.5f / hdriSky.loopTime.value);
-                m_SkyHDRIMaterial.SetFloat(HDShaderIDs._FlowStrength, hdriSky.amplitude.value);
+                if (hdriSky.procedural.value == true)
+                {
+                    m_SkyHDRIMaterial.EnableKeyword("PROCEDURAL");
+                    m_SkyHDRIMaterial.DisableKeyword("USE_FLOWMAP");
+                }
+                else
+                {
+                    m_SkyHDRIMaterial.EnableKeyword("USE_FLOWMAP");
+                    m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Flowmap, hdriSky.flowmap.value);
+                }
+                float rot = -Mathf.Deg2Rad*hdriSky.rotationDistortion.value;
+                Vector4 distortion = new Vector4(0.5f / hdriSky.loopTime.value, hdriSky.amplitude.value, Mathf.Cos(rot), Mathf.Sin(rot));
+                m_SkyHDRIMaterial.SetVector(HDShaderIDs._DistortionParam, distortion);
             }
             else
-                m_SkyHDRIMaterial.DisableKeyword("USE_FLOWMAP");
+                m_SkyHDRIMaterial.EnableKeyword("NO_DISTORTION");
 
             m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));

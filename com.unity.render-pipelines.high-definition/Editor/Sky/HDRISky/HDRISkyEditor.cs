@@ -14,7 +14,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_UpperHemisphereLuxValue;
         SerializedDataParameter m_UpperHemisphereLuxColor;
         SerializedDataParameter m_EnableDistortion;
+        SerializedDataParameter m_Procedural;
         SerializedDataParameter m_Flowmap;
+        SerializedDataParameter m_RotationDistortion;
         SerializedDataParameter m_LoopTime;
         SerializedDataParameter m_Amplitude;
         SerializedDataParameter m_EnableBackplate;
@@ -51,7 +53,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
 
             m_EnableDistortion          = Unpack(o.Find(x => x.enableDistortion));
+            m_Procedural                = Unpack(o.Find(x => x.procedural));
             m_Flowmap                   = Unpack(o.Find(x => x.flowmap));
+            m_RotationDistortion        = Unpack(o.Find(x => x.rotationDistortion));
             m_LoopTime                  = Unpack(o.Find(x => x.loopTime));
             m_Amplitude                 = Unpack(o.Find(x => x.amplitude));
 
@@ -129,7 +133,14 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_EnableDistortion.value.boolValue)
             {
                 EditorGUI.indentLevel++;
-                PropertyField(m_Flowmap);
+                PropertyField(m_Procedural, new GUIContent("Procedural"));
+                if (!m_Procedural.value.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_Flowmap);
+                    EditorGUI.indentLevel--;
+                }
+                PropertyField(m_RotationDistortion, new GUIContent("Distortion Rotation"));
                 PropertyField(m_LoopTime);
                 PropertyField(m_Amplitude);
                 EditorGUI.indentLevel--;
