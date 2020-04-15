@@ -127,25 +127,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                             return 1;
                         var value = entry1.title[i].CompareTo(entry2.title[i]);
                         if (value != 0)
-                        {                            
+                        {
                             // Make sure that leaves go before nodes
                             if (entry1.title.Length != entry2.title.Length && (i == entry1.title.Length - 1 || i == entry2.title.Length - 1))
                             {
-                                //once nodes are sorted, sort slot entries by slot order instead of alphebetically 
+                                //once nodes are sorted, sort slot entries by slot order instead of alphebetically
                                 var alphaOrder = entry1.title.Length < entry2.title.Length ? -1 : 1;
-                                var slotOrder = entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);                     
+                                var slotOrder = entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);
                                 return alphaOrder.CompareTo(slotOrder);
-                            }                                                         
-                            
+                            }
+
                             return value;
                         }
                     }
                     return 0;
                 });
 
-            
+
             currentNodeEntries = nodeEntries;
-        }       
+        }
 
         void AddEntries(AbstractMaterialNode node, string[] title, List<NodeEntry> addNodeEntries)
         {
@@ -179,7 +179,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var materialSlot = (MaterialSlot)slot;
                     return !materialSlot.IsCompatibleStageWith(connectedSlot);
                 });
-            
+
             foreach (var slot in m_Slots)
             {
                 //var entryTitle = new string[title.Length];
@@ -196,7 +196,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
     class SearcherProvider : SearchWindowProvider
-    {        
+    {
         public Searcher.Searcher LoadSearchWindow()
         {
             if (regenerateEntries)
@@ -204,10 +204,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 GenerateNodeEntries();
                 regenerateEntries = false;
             }
-            //create empty root for searcher tree 
+            //create empty root for searcher tree
             var root = new List<SearcherItem>();
             var dummyEntry = new NodeEntry();
-            
+
             foreach (var nodeEntry in currentNodeEntries)
             {
                 SearcherItem item = null;
@@ -245,18 +245,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (parent.Depth == 0 && !root.Contains(parent))
                         root.Add(parent);
                 }
-                
+
             }
 
             var nodeDatabase = SearcherDatabase.Create(root, string.Empty, false);
-            
-            return new Searcher.Searcher(nodeDatabase, new SearchWindowAdapter("Create Node"));             
+
+            return new Searcher.Searcher(nodeDatabase, new SearchWindowAdapter("Create Node"));
         }
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
             if(entry == null || (entry as SearchNodeItem).NodeGUID.node == null)
                 return false;
-           
+
             var nodeEntry = (entry as SearchNodeItem).NodeGUID;
             var node = CopyNodeForGraph(nodeEntry.node);
 
@@ -299,18 +299,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             else if(newNode is PropertyNode propertyNode)
             {
                 propertyNode.owner = m_Graph;
-                propertyNode.propertyGuid = ((PropertyNode)oldNode).propertyGuid;
+                propertyNode.property = ((PropertyNode)oldNode).property;
                 propertyNode.owner = null;
             }
             else if(newNode is KeywordNode keywordNode)
             {
                 keywordNode.owner = m_Graph;
-                keywordNode.keywordGuid = ((KeywordNode)oldNode).keywordGuid;
+                keywordNode.keyword = ((KeywordNode)oldNode).keyword;
                 keywordNode.owner = null;
             }
             return newNode;
         }
     }
-    
+
 
 }

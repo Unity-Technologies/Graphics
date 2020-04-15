@@ -190,9 +190,9 @@ namespace UnityEditor.ShaderGraph
 
         protected override void CalculateNodeHasError()
         {
-            if (keyword == null || !owner.keywords.Any(x => x == keyword)
+            if (keyword == null || !owner.keywords.Any(x => x == keyword))
             {
-                owner.AddConcretizationError(guid, "Keyword Node has no associated keyword.");
+                owner.AddConcretizationError(objectId, "Keyword Node has no associated keyword.");
                 hasError = true;
             }
         }

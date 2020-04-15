@@ -88,7 +88,7 @@ namespace UnityEditor.Graphing
             {
                 // get the input details
                 var outputSlotRef = edge.outputSlot;
-                var inputNode = node.owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                var inputNode = outputSlotRef.node;
                 // If this is a redirect node we continue to look for the top one
                 if (inputNode is RedirectNodeData redirectNode)
                 {

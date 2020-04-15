@@ -161,12 +161,12 @@ namespace UnityEditor.ShaderGraph
 
             return property.referenceName;
         }
-        
+
         protected override void CalculateNodeHasError()
         {
             if (property == null || !owner.properties.Any(x => x == property))
             {
-                owner.AddConcretizationError(guid, "Property Node has no associated Blackboard property.");
+                owner.AddConcretizationError(objectId, "Property Node has no associated Blackboard property.");
             }
         }
 
@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderGraph
             // Get precision from Property
             if (property == null)
             {
-                owner.AddConcretizationError(guid, string.Format("No matching poperty found on owner for node {0}", guid));
+                owner.AddConcretizationError(objectId, string.Format("No matching poperty found on owner for node {0}", objectId));
                 hasError = true;
                 return;
             }

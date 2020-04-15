@@ -447,7 +447,7 @@ namespace UnityEditor.ShaderGraph
                 bool inputError = tempSlots.Any(x => x.hasError);
                 if(inputError)
                 {
-                    owner.AddConcretizationError(guid, string.Format("Node {0} had input error", guid));
+                    owner.AddConcretizationError(objectId, string.Format("Node {0} had input error", objectId));
                     hasError = true;
                 }
 
@@ -484,7 +484,7 @@ namespace UnityEditor.ShaderGraph
                 GetOutputSlots(tempSlots);
                 if(tempSlots.Any(x => x.hasError))
                 {
-                    owner.AddConcretizationError(guid, string.Format("Node {0} had output error", guid));
+                    owner.AddConcretizationError(objectId, string.Format("Node {0} had output error", objectId));
                     hasError = true;
                 }
                 CalculateNodeHasError();
@@ -528,7 +528,7 @@ namespace UnityEditor.ShaderGraph
                     var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
                     if (!slot.IsCompatibleWith(outputSlot))
                     {
-                        owner.AddConcretizationError(guid, $"Slot {slot.RawDisplayName()} cannot accept input of type {outputSlot.concreteValueType}.");
+                        owner.AddConcretizationError(objectId, $"Slot {slot.RawDisplayName()} cannot accept input of type {outputSlot.concreteValueType}.");
                         hasError = true;
                         return;
                     }

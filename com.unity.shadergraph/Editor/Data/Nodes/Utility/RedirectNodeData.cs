@@ -119,7 +119,7 @@ namespace UnityEditor.ShaderGraph
         protected override string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
         {
             var slotRef = NodeUtils.DepthFirstCollectRedirectNodeFromNode(this);
-            var fromLeftNode = owner.GetNodeFromGuid<AbstractMaterialNode>(slotRef.nodeGuid);
+            var fromLeftNode = slotRef.node;
             if (fromLeftNode is RedirectNodeData)
             {
                 return GetSlotValue(kInputSlotID, generationMode);
@@ -158,7 +158,7 @@ namespace UnityEditor.ShaderGraph
 
             bool noInputs = false;
             bool noOutputs = false;
-            var slots = new List<ISlot>();
+            var slots = new List<MaterialSlot>();
 
             GetInputSlots(slots);
             foreach (var inSlot in slots)
@@ -177,7 +177,7 @@ namespace UnityEditor.ShaderGraph
 
             if(noInputs && !noOutputs)
             {
-                owner.AddValidationError(guid, "Node has no inputs and default value will be 0.", ShaderCompilerMessageSeverity.Warning);
+                owner.AddValidationError(objectId, "Node has no inputs and default value will be 0.", ShaderCompilerMessageSeverity.Warning);
             }
         }
     }

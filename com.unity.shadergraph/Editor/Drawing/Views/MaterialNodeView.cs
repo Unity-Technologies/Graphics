@@ -172,7 +172,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.graph.messageManager?.ClearAllFromProvider(this);
                 if (!validTarget)
                 {
-                    m_GraphView.graph.messageManager?.AddOrAppendError(this, node.guid,
+                    m_GraphView.graph.messageManager?.AddOrAppendError(this, node.objectId,
                         new ShaderMessage("The active Master Node is not compatible with the current Render Pipeline," +
                                           " or no Render Pipeline is assigned." +
                                           " Assign a Render Pipeline in the graphics settings that is compatible with this Master Node.",

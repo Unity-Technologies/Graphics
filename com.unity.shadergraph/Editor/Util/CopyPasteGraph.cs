@@ -79,7 +79,7 @@ namespace UnityEditor.Graphing.Util
                 {
                     if (!node.canCopyNode)
                     {
-                        throw new InvalidOperationException($"Cannot copy node {node.name} ({node.guid}).");
+                        throw new InvalidOperationException($"Cannot copy node {node.name} ({node.objectId}).");
                     }
 
                     AddNode(node);

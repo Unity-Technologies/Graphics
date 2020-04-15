@@ -951,13 +951,13 @@ namespace UnityEditor.ShaderGraph
             messageManager?.AddOrAppendError(this, id, new ShaderMessage("Validation: " + errorMessage, severity));
         }
 
-        public void AddSetupError(Guid id, string errorMessage,
+        public void AddSetupError(string id, string errorMessage,
             ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
             messageManager?.AddOrAppendError(this, id, new ShaderMessage("Setup: " + errorMessage, severity));
         }
 
-        public void AddConcretizationError(Guid id, string errorMessage,
+        public void AddConcretizationError(string id, string errorMessage,
             ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
             messageManager?.AddOrAppendError(this, id, new ShaderMessage("Concretization: " + errorMessage, severity));
@@ -1251,8 +1251,8 @@ namespace UnityEditor.ShaderGraph
             {
                 if(type.IsAbstract || type.IsGenericType || !type.IsClass)
                     continue;
-                
-                var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
+
+                var masterNode = outputNode as IMasterNode;
                 var target = (Target)Activator.CreateInstance(type);
                 if(!target.isHidden && target.IsValid(masterNode))
                 {

@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_CanChangeShaderGUI.OverrideEnabled && m_CanChangeShaderGUI.ShaderGUIOverride != null && !ValidCustomEditorType(m_CanChangeShaderGUI.ShaderGUIOverride))
             {
                 m_MasterNode.owner.messageManager?.ClearNodesFromProvider(this, m_MasterNode.ToEnumerable());
-                m_MasterNode.owner.messageManager?.AddOrAppendError(this, m_MasterNode.guid,
+                m_MasterNode.owner.messageManager?.AddOrAppendError(this, m_MasterNode.objectId,
                     new ShaderMessage(string.Format(k_InvalidShaderGUI, m_CanChangeShaderGUI.ShaderGUIOverride), ShaderCompilerMessageSeverity.Warning));
             }
             else

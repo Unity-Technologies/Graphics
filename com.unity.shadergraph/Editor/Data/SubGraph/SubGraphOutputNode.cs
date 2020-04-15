@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
         static string s_MissingOutputSlot = "A Sub Graph must have at least one output slot";
         static List<ConcreteSlotValueType> s_ValidSlotTypes = new List<ConcreteSlotValueType>()
         {
-            ConcreteSlotValueType.Vector1, 
+            ConcreteSlotValueType.Vector1,
             ConcreteSlotValueType.Vector2,
             ConcreteSlotValueType.Vector3,
             ConcreteSlotValueType.Vector4,
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph
             else if (!s_ValidSlotTypes.Contains(slots.FirstOrDefault().concreteValueType))
             {
                 IsFirstSlotValid = false;
-                owner.AddValidationError(guid, "Preview can only compile if the first output slot is a Vector, Matrix, or Boolean type. Please adjust slot types.", ShaderCompilerMessageSeverity.Error);
+                owner.AddValidationError(objectId, "Preview can only compile if the first output slot is a Vector, Matrix, or Boolean type. Please adjust slot types.", ShaderCompilerMessageSeverity.Error);
             }
         }
 

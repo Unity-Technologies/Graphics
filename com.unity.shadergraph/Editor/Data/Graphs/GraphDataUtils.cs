@@ -10,8 +10,8 @@ namespace UnityEditor.ShaderGraph
         {
             public static void ApplyActionLeafFirst(GraphData graph, Action<AbstractMaterialNode> action)
             {
-                var temporaryMarks = PooledHashSet<Guid>.Get();
-                var permanentMarks = PooledHashSet<Guid>.Get();
+                var temporaryMarks = PooledHashSet<string>.Get();
+                var permanentMarks = PooledHashSet<string>.Get();
                 var slots = ListPool<MaterialSlot>.Get();
 
                 // Make sure we process a node's children before the node itself.
@@ -23,19 +23,19 @@ namespace UnityEditor.ShaderGraph
                 while (stack.Count > 0)
                 {
                     var node = stack.Pop();
-                    if (permanentMarks.Contains(node.guid))
+                    if (permanentMarks.Contains(node.objectId))
                     {
                         continue;
                     }
 
-                    if (temporaryMarks.Contains(node.guid))
+                    if (temporaryMarks.Contains(node.objectId))
                     {
                         action.Invoke(node);
-                        permanentMarks.Add(node.guid);
+                        permanentMarks.Add(node.objectId);
                     }
                     else
                     {
-                        temporaryMarks.Add(node.guid);
+                        temporaryMarks.Add(node.objectId);
                         stack.Push(node);
                         node.GetInputSlots(slots);
                         foreach (var inputSlot in slots)
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
                             foreach (var edge in nodeEdges)
                             {
                                 var fromSocketRef = edge.outputSlot;
-                                var childNode = graph.GetNodeFromGuid(fromSocketRef.nodeGuid);
+                                var childNode = fromSocketRef.node;
                                 if (childNode != null)
                                 {
                                     stack.Push(childNode);
