@@ -7,6 +7,9 @@ using static PerformanceTestUtils;
 using static PerformanceMetricNames;
 using UnityEngine.VFX;
 using System.Reflection;
+using UnityEditor.VFX.UI;
+using UnityEngine.TestTools;
+using System.Collections;
 
 namespace UnityEditor.VFX.PerformanceTest
 {
@@ -14,14 +17,7 @@ namespace UnityEditor.VFX.PerformanceTest
     {
         const int k_BuildTimeout = 10 * 60 * 1000;
 
-        [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
-        public void MeasureLoadLibraryTime()
-        {
-            UnityEngine.Debug.unityLogger.logEnabled = false;
-            VFXLibrary.ClearLibrary();
-            VFXLibrary.Load();
-            UnityEngine.Debug.unityLogger.logEnabled = true;
-        }
+
 
         static IEnumerable<string> allVisualEffectAsset
         {
@@ -44,10 +40,18 @@ namespace UnityEditor.VFX.PerformanceTest
                     yield return mode.ToString();
             }
         }
-        
+
+        private static Type GetVisualEffectResourceType()
+        {
+            var visualEffectResouceType = AppDomain.CurrentDomain.GetAssemblies().Select(o => o.GetType("UnityEditor.VFX.VisualEffectResource"))
+                                                                    .Where(o => o != null)
+                                                                    .FirstOrDefault();
+            return visualEffectResouceType;
+        }
 
         private static MethodInfo k_fnGetResource = typeof(VisualEffectObjectExtensions).GetMethod("GetResource");
         private static MethodInfo k_fnGetOrCreateGraph = typeof(VisualEffectResourceExtensions).GetMethod("GetOrCreateGraph");
+        private static MethodInfo k_fnGetAsset = GetVisualEffectResourceType().GetProperty("asset").GetMethod;
 
         private static void LoadVFXGraph(string vfxAssetName, out string fullPath, out VFXGraph graph)
         {
@@ -75,7 +79,68 @@ namespace UnityEditor.VFX.PerformanceTest
         static readonly string[] allForceShaderValidation = { "ShaderValidation_On", "ShaderValidation_Off" };
 
         [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
-        public void MeasureCompilationTime([ValueSource("allForceShaderValidation")] string forceShaderValidationModeName, [ValueSource("allCompilationMode")] string compilationModeName, [ValueSource("allVisualEffectAsset")] string vfxAssetPath)
+        public void Load_VFXLibrary()
+        {
+            UnityEngine.Debug.unityLogger.logEnabled = false;
+            VFXLibrary.ClearLibrary();
+            VFXLibrary.Load();
+            UnityEngine.Debug.unityLogger.logEnabled = true;
+        }
+
+        [Timeout(k_BuildTimeout), Version("1"), UnityTest, Performance]
+        public IEnumerator VFXViewWindow_Open_And_Render([ValueSource("allVisualEffectAsset")] string vfxAssetPath)
+        {
+            UnityEngine.Debug.unityLogger.logEnabled = false;
+
+            VFXGraph graph;
+            string fullPath;
+            LoadVFXGraph(vfxAssetPath, out fullPath, out graph);
+
+            var window = EditorWindow.GetWindow<VFXViewWindow>();
+            window.Show();
+            window.maximized = true;
+            window.autoCompile = false;
+            window.Repaint();
+
+            yield return null;
+            var asset = k_fnGetAsset.Invoke(graph.visualEffectResource, new object[] { }) as VisualEffectAsset;
+            window.LoadAsset(asset, null);
+            window.graphView.FrameAll();
+
+            for (int i = 0; i < 16; ++i) //Render n frames
+            {
+                window.Repaint();
+                yield return null;
+            }
+
+            window.Close();
+            yield return null; //Ensure window is closed for next test
+
+            UnityEngine.Debug.unityLogger.logEnabled = true;
+        }
+
+        //Measure backup (for undo/redo & Duplicate) time for every existing asset
+        [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
+        public void Backup_And_Restore([ValueSource("allVisualEffectAsset")] string vfxAssetPath)
+        {
+            UnityEngine.Debug.unityLogger.logEnabled = false;
+
+            VFXGraph graph;
+            string fullPath;
+            LoadVFXGraph(vfxAssetPath, out fullPath, out graph);
+
+            if (graph)
+            {
+                var backup = graph.Backup();
+                graph.Restore(backup);
+                AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+            }
+
+            UnityEngine.Debug.unityLogger.logEnabled = true;
+        }
+
+        [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
+        public void Compilation([ValueSource("allForceShaderValidation")] string forceShaderValidationModeName, [ValueSource("allCompilationMode")] string compilationModeName, [ValueSource("allVisualEffectAsset")] string vfxAssetPath)
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
 
@@ -93,26 +158,6 @@ namespace UnityEditor.VFX.PerformanceTest
                 graph.SetExpressionGraphDirty();
                 graph.SetForceShaderValidation(forceShaderValidationMode, false);
                 graph.SetCompilationMode(compilationMode, false);
-                AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
-            }
-
-            UnityEngine.Debug.unityLogger.logEnabled = true;
-        }
-
-        //Measure backup (for undo/redo & Duplicate) time for every existing asset
-        [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
-        public void MeasureBackup([ValueSource("allVisualEffectAsset")] string vfxAssetPath)
-        {
-            UnityEngine.Debug.unityLogger.logEnabled = false;
-
-            VFXGraph graph;
-            string fullPath;
-            LoadVFXGraph(vfxAssetPath, out fullPath, out graph);
-
-            if (graph)
-            {
-                var backup = graph.Backup();
-                graph.Restore(backup);
                 AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
             }
 
