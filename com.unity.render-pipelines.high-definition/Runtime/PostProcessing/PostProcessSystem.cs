@@ -351,6 +351,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
+                RTHandle currentExposureTexture = GetExposureTexture(camera);
+
                 if (IsExposureFixed())
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FixedExposure)))
@@ -358,8 +360,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         DoFixedExposure(cmd, camera);
                     }
                 }
+                else
+                {
+                    if (camera.resetPostProcessingHistory)
+                    {
+                        currentExposureTexture = m_EmptyExposureTexture;
+                    }
+                }
 
-                cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, GetExposureTexture(camera));
+                cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, currentExposureTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, GetPreviousExposureTexture(camera));
             }
         }
@@ -464,8 +473,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
 
                             PoolSource(ref source, destination);
+                        }
                     }
-                }
                 }
 
                 if (m_PostProcessEnabled)
@@ -843,13 +852,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!Application.isPlaying || camera.resetPostProcessingHistory)
                 adaptationMode = AdaptationMode.Fixed;
-
-            if (camera.resetPostProcessingHistory)
-            {
-                kernel = cs.FindKernel("KReset");
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
-                cmd.DispatchCompute(cs, kernel, 1, 1, 1);
-            }
 
             m_ExposureVariants[0] = 1; // (int)exposureSettings.luminanceSource.value;
             m_ExposureVariants[1] = (int)m_Exposure.meteringMode.value;
