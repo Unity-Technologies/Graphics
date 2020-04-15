@@ -669,6 +669,10 @@ namespace UnityEngine.Rendering.Universal
                     shadowCascadesCount = 4;
                     break;
 
+                case ShadowCascadesOption.ThreeCascades:
+                    shadowCascadesCount = 3;
+                    break;
+
                 case ShadowCascadesOption.TwoCascades:
                     shadowCascadesCount = 2;
                     break;
@@ -690,6 +694,10 @@ namespace UnityEngine.Rendering.Universal
 
                 case 2:
                     shadowData.mainLightShadowCascadesSplit = new Vector3(settings.cascade2Split, 1.0f, 0.0f);
+                    break;
+
+                case 3:
+                    shadowData.mainLightShadowCascadesSplit = new Vector3(settings.cascade3Split.x, settings.cascade3Split.y, 0.0f);
                     break;
 
                 default:

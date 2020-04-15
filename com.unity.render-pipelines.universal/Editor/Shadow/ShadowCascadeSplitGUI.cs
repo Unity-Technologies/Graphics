@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.Universal
             *  @param  normalizedCascadePartition      The array of partition sizes in the range 0.0f - 1.0f; expects ONE entry if cascades = 2, and THREE if cascades=4
             *                                          The last entry will be automatically determined by summing up the array, and doing 1.0f - sum
             */
-        public static void HandleCascadeSliderGUI(ref float[] normalizedCascadePartitions)
+        public static void HandleCascadeSliderGUI(ref float[] normalizedCascadePartitions, float distance, EditorUtils.Unit unit)
         {
             EditorGUILayout.BeginHorizontal();
             GUILayout.Space(EditorGUI.indentLevel * 15f);
@@ -109,7 +109,17 @@ namespace UnityEditor.Rendering.Universal
                 // cascade box percentage text
                 GUI.color = Color.white;
                 Rect textRect = partitionRect;
-                var cascadeText = string.Format("{0}\n{1:F1}%", i, currentPartition * 100.0f);
+
+                string cascadeText = "";
+                if (unit == EditorUtils.Unit.Percent)
+                {
+                    cascadeText = $"{i}\n{currentPartition * 100.0f:F1}%";
+                }
+                else
+                {
+                    var m = currentPartition* distance;
+                    cascadeText = $"{i}\n{m:F1}m";
+                }
 
                 GUI.Label(textRect, cascadeText, s_TextCenteredStyle);
 

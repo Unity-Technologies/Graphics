@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
     {
         NoCascades,
         TwoCascades,
+        ThreeCascades,
         FourCascades,
     }
 
@@ -145,6 +146,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDistance = 50.0f;
         [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.NoCascades;
         [SerializeField] float m_Cascade2Split = 0.25f;
+        [SerializeField] Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
         [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
@@ -575,6 +577,11 @@ namespace UnityEngine.Rendering.Universal
         public float cascade2Split
         {
             get { return m_Cascade2Split; }
+        }
+
+        public Vector2 cascade3Split
+        {
+            get { return m_Cascade3Split; }
         }
 
         public Vector3 cascade4Split
