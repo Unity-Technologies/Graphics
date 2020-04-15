@@ -37,6 +37,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
+            // We probably should declare these names in the base class,
+            // as they must be the same across all ScriptableRenderer types for camera stacking to work.
             k_ColorTextureHandle.Init("_CameraColorTexture");
             k_DepthTextureHandle.Init("_CameraDepthAttachment");
             k_AfterPostProcessColorHandle.Init("_AfterPostProcessTexture");
@@ -127,8 +129,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
             else    // Overlay camera
             {
-                m_CreateColorTexture = false;
-                m_CreateDepthTexture = false;
+                // These render textures are created by the base camera, but it's the responsibility of the last overlay camera's ScriptableRenderer
+                // to release the textures in its FinishRendering().
+                m_CreateColorTexture = true;
+                m_CreateDepthTexture = true;
+
                 colorTargetHandle = k_ColorTextureHandle;
                 depthTargetHandle = k_DepthTextureHandle;
             }
@@ -146,13 +151,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             EnqueuePass(m_Render2DLightingPass);
 
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
-            // and only upscale the low-res RT to fullscreen when blitting it to camera target.
+            // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
+            // so FXAA is not supported (you don't want to apply FXAA when everything is intentionally pixelated).
             bool ppcUpscaleRT = ppc != null && ppc.upscaleRT && ppc.isRunning;
 
             bool requireFinalPostProcessPass =
                 lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
-
-            RenderTargetHandle currentTargetHandle = colorTargetHandle;
 
             if (cameraHasPostProcess)
             {
@@ -169,18 +173,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     postProcessDestHandle == RenderTargetHandle.CameraTarget);
 
                 EnqueuePass(m_PostProcessPass);
-                currentTargetHandle = postProcessDestHandle;
+                colorTargetHandle = postProcessDestHandle;
             }
 
             if (requireFinalPostProcessPass)
             {
-                m_FinalPostProcessPass.SetupFinalPass(currentTargetHandle);
+                m_FinalPostProcessPass.SetupFinalPass(colorTargetHandle);
                 EnqueuePass(m_FinalPostProcessPass);
-                currentTargetHandle = RenderTargetHandle.CameraTarget;
             }
-            else if (lastCameraInStack && currentTargetHandle != RenderTargetHandle.CameraTarget)
+            else if (lastCameraInStack && colorTargetHandle != RenderTargetHandle.CameraTarget)
             {
-                m_FinalBlitPass.Setup(cameraTargetDescriptor, currentTargetHandle);
+                m_FinalBlitPass.Setup(cameraTargetDescriptor, colorTargetHandle);
                 EnqueuePass(m_FinalBlitPass);
             }
         }
