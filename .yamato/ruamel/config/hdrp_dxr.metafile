@@ -20,7 +20,6 @@ test_platforms:
 platforms:
   - name: Win
     os: windows
-    standalone_split: false
     apis:
       - name: DX12
         cmd: -force-d3d12

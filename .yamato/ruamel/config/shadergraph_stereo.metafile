@@ -22,7 +22,6 @@ test_platforms:
 platforms:
   - name: Win
     os: windows
-    standalone_split: true
     apis: # TODO no apis specified
       - name: ''
         cmd: ''

@@ -2,21 +2,19 @@ from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import project_filepath_specific, project_job_id_build, project_job_id_test
 from .commands._cmd_mapper import get_cmd
 from ._project_base import _job
+from .project_standalone_build import Project_StandaloneBuildJob
 
-def get_job_definition(project, editor, platform, api, test_platform):
+def get_job_definition(project, editor, platform, api, test_platform, build_job):
 
     cmd = get_cmd(platform["name"], api["name"], 'standalone') 
     job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project, platform, api, test_platform["args"]))
 
-    if platform["standalone_split"]:
-        
-        yml_file= project_filepath_specific(project["name"], platform["name"], api["name"])
-        job_id_build = project_job_id_build(project["name"],platform["name"], api["name"], editor["version"]) 
+    if build_job is not None:
         
         job['skip_checkout'] = True
         job['dependencies'].append(
             {
-                'path' : f'{yml_file}#{job_id_build}',
+                'path' : f'{project_filepath_specific(project["name"], platform["name"], api["name"])}#{build_job.job_id}',
                 'rerun' : f'{editor["rerun_strategy"]}'
             }
         )
@@ -24,12 +22,21 @@ def get_job_definition(project, editor, platform, api, test_platform):
     return job
 
 
+def get_StandaloneBuildJob(project, editor, platform, api):
+    try:
+        return Project_StandaloneBuildJob(project, editor, platform, api)
+    except:
+        return None
+
 class Project_StandaloneJob():
     
     def __init__(self, project, editor, platform, api, test_platform):
+        self.build_job = get_StandaloneBuildJob(project, editor, platform, api)
+
         self.project_name = project["name"]
         self.job_id = project_job_id_test(project["name"],platform["name"],api["name"],test_platform["name"],editor["version"])
-        self.yml = get_job_definition(project, editor, platform, api, test_platform)
+        self.yml = get_job_definition(project, editor, platform, api, test_platform, self.build_job)
+
 
     
     

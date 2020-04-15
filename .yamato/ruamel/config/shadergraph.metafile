@@ -22,7 +22,6 @@ test_platforms:
 platforms:
   - name: Win
     os: windows
-    standalone_split: true
     apis:
       - name: DX11
         cmd: -force-d3d11
@@ -45,7 +44,6 @@ platforms:
       - il2cpp
   - name: OSX
     os: macos
-    standalone_split: true
     apis:
       - name: Metal
         cmd: 
@@ -58,7 +56,6 @@ platforms:
       - il2cpp
   - name: OSX
     os: macos
-    standalone_split: true
     apis:
       - name: OpenGLCore
         cmd:
@@ -71,7 +68,6 @@ platforms:
       - il2cpp 
   - name: Linux
     os: linux
-    standalone_split: true
     apis: 
       - name: OpenGLCore
         cmd: -force-glcore
