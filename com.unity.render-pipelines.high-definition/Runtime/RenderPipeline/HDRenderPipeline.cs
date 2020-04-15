@@ -103,10 +103,10 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly XRSystem m_XRSystem;
 
         // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
-        bool m_previousLightsUseLinearIntensity;
-        bool m_previoulightsUseColorTemperature;
-        bool m_previousSRPBatcher;
-        ShadowmaskMode m_previousShadowMaskMode;
+        bool m_PreviousLightsUseLinearIntensity;
+        bool m_PreviouslightsUseColorTemperature;
+        bool m_PreviousSRPBatcher;
+        ShadowmaskMode m_PreviousShadowMaskMode;
 
         bool m_FrameSettingsHistoryEnabled = false;
 
@@ -674,15 +674,15 @@ namespace UnityEngine.Rendering.HighDefinition
             Shader.globalRenderPipeline = "HDRenderPipeline";
 
             // HD use specific GraphicsSettings
-            m_previousLightsUseLinearIntensity = GraphicsSettings.lightsUseLinearIntensity;
+            m_PreviousLightsUseLinearIntensity = GraphicsSettings.lightsUseLinearIntensity;
             GraphicsSettings.lightsUseLinearIntensity = true;
-            m_previoulightsUseColorTemperature = GraphicsSettings.lightsUseColorTemperature;
+            m_PreviouslightsUseColorTemperature = GraphicsSettings.lightsUseColorTemperature;
             GraphicsSettings.lightsUseColorTemperature = true;
-            m_previousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
+            m_PreviousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
 
             // In case shadowmask mode isn't setup correctly, force it to correct usage (as there is no UI to fix it)
-            m_previousShadowMaskMode = QualitySettings.shadowmaskMode;
+            m_PreviousShadowMaskMode = QualitySettings.shadowmaskMode;
             QualitySettings.shadowmaskMode = ShadowmaskMode.DistanceShadowmask;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
@@ -796,10 +796,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Shader.globalRenderPipeline = "";
 
-            GraphicsSettings.lightsUseLinearIntensity = m_previousLightsUseLinearIntensity;
-            GraphicsSettings.lightsUseColorTemperature = m_previoulightsUseColorTemperature;
-            GraphicsSettings.useScriptableRenderPipelineBatching = m_previousSRPBatcher;
-            QualitySettings.shadowmaskMode = m_previousShadowMaskMode;
+            GraphicsSettings.lightsUseLinearIntensity = m_PreviousLightsUseLinearIntensity;
+            GraphicsSettings.lightsUseColorTemperature = m_PreviouslightsUseColorTemperature;
+            GraphicsSettings.useScriptableRenderPipelineBatching = m_PreviousSRPBatcher;
+            QualitySettings.shadowmaskMode = m_PreviousShadowMaskMode;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
 
