@@ -20,12 +20,25 @@ namespace UnityEngine.Rendering
             {
                 if (s_Instance == null)
                 {
-                    GameObject go = new GameObject("Default " + typeof(TType)) { hideFlags = HideFlags.HideAndDontSave };
+                    GameObject go = new GameObject("Default " + typeof(TType).Name) { hideFlags = HideFlags.HideAndDontSave };
                     go.SetActive(false);
                     s_Instance = go.AddComponent<TType>();
                 }
 
                 return s_Instance;
+            }
+        }
+
+        /// <summary>
+        /// Release the component singleton.
+        /// </summary>
+        public static void Release()
+        {
+            if (s_Instance != null)
+            {
+                var go = s_Instance.gameObject;
+                CoreUtils.Destroy(go);
+                s_Instance = null;
             }
         }
     }
