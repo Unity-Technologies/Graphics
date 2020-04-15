@@ -67,6 +67,19 @@ namespace UnityEditor.ShaderGraph
                 return NeededCoordinateSpace.None;
         }
 
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            properties.AddShaderProperty(new Vector1ShaderProperty()
+            {
+                overrideReferenceName = "_SkinMatrixIndex",
+                gpuInstanced = true,
+                hidden = true,
+                value = 0
+            });
+
+            base.CollectShaderProperties(properties, generationMode);
+        }
+
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             sb.AppendLine("$precision3 {0} = 0;", GetVariableNameForSlot(kPositionOutputSlotId));
