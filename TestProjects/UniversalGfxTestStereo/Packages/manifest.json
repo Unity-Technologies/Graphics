@@ -13,6 +13,7 @@
     "com.unity.testframework.graphics": "7.2.2-preview",
     "com.unity.ugui": "1.0.0",
     "com.unity.xr.legacyinputhelpers": "2.1.2",
+    "com.unity.xr.mock-hmd": "1.0.1-preview.6",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
