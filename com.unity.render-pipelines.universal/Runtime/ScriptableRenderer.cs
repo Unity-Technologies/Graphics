@@ -606,7 +606,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                 {
                     int depthAttachmentIdx = -1;
-                    var colorCount = RenderingUtils.GetValidAttachmentCount(renderPass.colorAttachmentDescriptors);
+                    var colorCount = RenderingUtils.GetValidColorAttachmentCount(renderPass.colorAttachmentDescriptors);
 
                     if (!renderPassStarted)
                     {
@@ -630,8 +630,13 @@ namespace UnityEngine.Rendering.Universal
                                     && rp.colorAttachmentDescriptors[i].loadAction != RenderBufferLoadAction.DontCare)
                                     break;
 
-                                if (!RenderingUtils.Contains(attachmentList.ToArray(), rp.colorAttachmentDescriptors[i]))
+                                if (!RenderingUtils.Contains(attachmentList.ToArray(),
+                                        rp.colorAttachmentDescriptors[i]))
+                                {
                                     attachmentList.Add(rp.colorAttachmentDescriptors[i]);
+                                    if (rp.colorAttachmentDescriptors[i].format == RenderTextureFormat.Depth)
+                                        depthAttachmentIdx = attachmentList.Count - 1;
+                                }
                             }
 
                             if (rp.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None)
@@ -670,8 +675,13 @@ namespace UnityEngine.Rendering.Universal
 
                         if (idx != -1)
                         {
+                            if (attachmentCopy[idx].format == RenderTextureFormat.Depth)
+                                depthAttachmentIdx = idx;
+
                             attachmentCopy[idx] = ScriptableRenderPass.EmptyAttachment;
-                            colorIndices[i] = idx;
+
+                            if (idx != depthAttachmentIdx)
+                                colorIndices[i] = idx;
                         }
                     }
 

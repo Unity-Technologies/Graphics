@@ -228,14 +228,14 @@ namespace UnityEngine.Rendering.Universal
             return nonNullColorBuffers;
         }
 
-        internal static uint GetValidAttachmentCount(AttachmentDescriptor[] attachments)
+        internal static uint GetValidColorAttachmentCount(AttachmentDescriptor[] attachments)
         {
             uint nonNullAttachments = 0;
             if (attachments != null)
             {
                 foreach (var handle in attachments)
                 {
-                    if (handle.loadStoreTarget != 0 && handle != ScriptableRenderPass.EmptyAttachment)
+                    if (handle.loadStoreTarget != 0 && handle != ScriptableRenderPass.EmptyAttachment && handle.format != RenderTextureFormat.Depth)
                         ++nonNullAttachments;
                     else
                         return nonNullAttachments; // break on first failure

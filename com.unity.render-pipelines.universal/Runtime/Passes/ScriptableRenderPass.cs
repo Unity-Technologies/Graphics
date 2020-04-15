@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.Universal
         {
             overrideCameraTarget = true;
 
-            uint nonNullColorAttachments = RenderingUtils.GetValidAttachmentCount(colorAttachments);
+            uint nonNullColorAttachments = RenderingUtils.GetValidColorAttachmentCount(colorAttachments);
             if (nonNullColorAttachments > SystemInfo.supportedRenderTargetCount)
                 Debug.LogError("Trying to set " + nonNullColorAttachments +
                                " renderTargets, which is more than the maximum supported:" +
