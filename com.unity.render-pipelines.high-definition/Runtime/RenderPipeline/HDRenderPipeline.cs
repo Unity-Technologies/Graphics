@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
         bool m_PreviousLightsUseLinearIntensity;
-        bool m_PreviouslightsUseColorTemperature;
+        bool m_PreviousLightsUseColorTemperature;
         bool m_PreviousSRPBatcher;
         ShadowmaskMode m_PreviousShadowMaskMode;
 
@@ -668,7 +668,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // HD use specific GraphicsSettings
             m_PreviousLightsUseLinearIntensity = GraphicsSettings.lightsUseLinearIntensity;
             GraphicsSettings.lightsUseLinearIntensity = true;
-            m_PreviouslightsUseColorTemperature = GraphicsSettings.lightsUseColorTemperature;
+            m_PreviousLightsUseColorTemperature = GraphicsSettings.lightsUseColorTemperature;
             GraphicsSettings.lightsUseColorTemperature = true;
             m_PreviousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
@@ -789,7 +789,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Shader.globalRenderPipeline = "";
 
             GraphicsSettings.lightsUseLinearIntensity = m_PreviousLightsUseLinearIntensity;
-            GraphicsSettings.lightsUseColorTemperature = m_PreviouslightsUseColorTemperature;
+            GraphicsSettings.lightsUseColorTemperature = m_PreviousLightsUseColorTemperature;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_PreviousSRPBatcher;
             QualitySettings.shadowmaskMode = m_PreviousShadowMaskMode;
 
