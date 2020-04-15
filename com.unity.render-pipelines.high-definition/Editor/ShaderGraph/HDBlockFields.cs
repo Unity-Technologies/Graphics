@@ -66,6 +66,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new ColorControl(Color.white, false), ShaderStage.Fragment);
             public static BlockFieldDescriptor RefractionDistance = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionDistance", "SURFACEDESCRIPTION_REFRACTIONDISTANCE", 
                 new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor NormalAlpha = new BlockFieldDescriptor(SurfaceDescription.name, "NormalAlpha", "SURFACEDESCRIPTION_NORMALALPHA", 
+                new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor MAOSAlpha = new BlockFieldDescriptor(SurfaceDescription.name, "MAOSAlpha", "SURFACEDESCRIPTION_MAOSALPHA", 
+                new FloatControl(1.0f), ShaderStage.Fragment);
         }
     }
 }

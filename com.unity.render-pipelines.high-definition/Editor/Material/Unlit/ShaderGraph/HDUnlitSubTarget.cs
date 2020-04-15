@@ -23,7 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public HDUnlitSubTarget()
         {
             displayName = "Unlit";
-            unlitData = new HDUnlitData();
         }
 
         // Render State
