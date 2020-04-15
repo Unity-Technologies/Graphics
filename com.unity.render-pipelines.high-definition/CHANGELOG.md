@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed path validation when creating new volume profile (case 1229933)
 - Fix for range compression factor for probes going negative (now clamped to positive values).
 - Fixed various object leaks in HDRP.
+- Fix for assertion triggering sometimes when saving a newly created lit shader graph (case 1230996)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
