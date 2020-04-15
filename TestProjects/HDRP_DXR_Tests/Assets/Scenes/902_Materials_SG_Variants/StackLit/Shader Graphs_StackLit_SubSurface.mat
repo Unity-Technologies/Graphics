@@ -35,10 +35,11 @@ Material:
     - _AlphaCutoffEnable: 0
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
+    - _AlphaToMask: 0
     - _BlendMode: 0
     - _CullMode: 2
     - _CullModeForward: 2
-    - _DiffusionProfileHash: 0
+    - _DiffusionProfileHash: 3.3412218
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 0
@@ -68,7 +69,8 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
-    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: -5.8700237e+22, g: -0.0000003144885, b: 1.9852604e+29,
+        a: -1.2453132e+13}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
