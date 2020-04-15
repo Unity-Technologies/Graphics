@@ -5,6 +5,8 @@ using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -137,6 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Track list of materials asking for specific preprocessor step
         List<BaseShaderPreprocessor> shaderProcessorsList;
 
+        internal static event System.Action<Shader, ShaderSnippetData, int, double> shaderPreprocessed;
 
         uint m_TotalVariantsInputCount;
         uint m_TotalVariantsOutputCount;
@@ -229,6 +232,9 @@ namespace UnityEditor.Rendering.HighDefinition
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
                 && ShaderBuildPreprocessor.hdrpAssets.Any(hdrpAsset => hdrpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
 
+            Stopwatch shaderStripingWatch = new Stopwatch();
+            shaderStripingWatch.Start();
+
             using (new ExportShaderStrip(exportLog, "Temp/shader-strip.json", shader, snippet, inputData, this))
             {
 
@@ -296,6 +302,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
+
+            shaderStripingWatch.Stop();
+            shaderPreprocessed?.Invoke(shader, snippet, inputData.Count, shaderStripingWatch.Elapsed.TotalMilliseconds);
         }
     }
 
