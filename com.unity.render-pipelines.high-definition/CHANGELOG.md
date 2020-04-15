@@ -528,6 +528,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed MSAA depth resolve when there is no motion vectors
 - Fixed various object leaks in HDRP.
 - Fixed compile error with XR SubsystemManager.
+- Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
