@@ -78,8 +78,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var node = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
                     node.Init(field);
                     AddEntries(node, new string[]{ field.name }, nodeEntries);
-                    currentNodeEntries = nodeEntries;
                 }
+
+                currentNodeEntries = nodeEntries;
                 return;
             }
             
@@ -223,11 +224,12 @@ namespace UnityEditor.ShaderGraph.Drawing
     {        
         public Searcher.Searcher LoadSearchWindow()
         {
-            if (regenerateEntries)
-            {
+            //if (regenerateEntries)
+            //{
                 GenerateNodeEntries();
                 regenerateEntries = false;
-            }
+            //}
+
             //create empty root for searcher tree 
             var root = new List<SearcherItem>();
             var dummyEntry = new NodeEntry();
@@ -349,6 +351,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 keywordNode.owner = m_Graph;
                 keywordNode.keywordGuid = ((KeywordNode)oldNode).keywordGuid;
                 keywordNode.owner = null;
+            }
+            else if(newNode is BlockNode blockNode)
+            {
+                blockNode.owner = m_Graph;
+                blockNode.Init(((BlockNode)oldNode).descriptor);
             }
             return newNode;
         }
