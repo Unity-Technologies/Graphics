@@ -91,15 +91,6 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.IsFalse(node.hasError);
         }
 
-        // [Test]
-        // public void TestNodeGUIDCanBeRewritten()
-        // {
-        //     var node = new TestNode();
-        //     var guid = node.guid;
-        //     var newGuid = node.RewriteGuid();
-        //     Assert.AreNotEqual(guid, newGuid);
-        // }
-
         class TestableNode : TestNode
         {
             public const int Input0 = 0;
