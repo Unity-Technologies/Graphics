@@ -94,14 +94,6 @@ half3 GetPackedNormal(half4 p)
     return p.gba * 2.0 - 1.0;
 }
 
-// Trigonometric function utility
-float2 CosSin(float theta)
-{
-    float sn, cs;
-    sincos(theta, sn, cs);
-    return float2(cs, sn);
-}
-
 // Normal vector comparer (for geometry-aware weighting)
 half CompareNormal(half3 d1, half3 d2)
 {
@@ -124,24 +116,6 @@ float3 ReconstructViewPos(float3 uvDepth, float2 p11_22, float2 p13_31)
     float3 viewPos = float3(((uvDepth.xy * 2.0 - 1.0 - p13_31) / p11_22), uvDepth.z);
     viewPos.xy *= IsPerspectiveProjection() ? uvDepth.z : 1.0;
     return viewPos;
-}
-
-// Sample point picker
-float3 PickSamplePoint(float2 uv, float index)
-{
-    // Uniformly distributed points on a unit sphere
-    // http://mathworld.wolfram.com/SpherePointPicking.html
-    float gn = InterleavedGradientNoise(uv * DOWNSAMPLE * SCREEN_PARAMS.xy, index);
-
-    // This was added to avoid a NVIDIA driver issue.
-    //                                      vvvvvvvvvvvv
-    float u     = frac(RANDOM(0.0 + index + uv.x * 1e-10) + gn);
-    float theta =     (RANDOM(1.0 + index + uv.x * 1e-10) + gn);
-    float3 v    = SampleSphereUniform(u, theta);
-
-    // Make them distributed between [0, _Radius]
-    float l =  sqrt((index + 1.0) / SAMPLE_COUNT) * RADIUS;
-    return v * l;
 }
 
 // Try reconstructing normal accurately from depth buffer.
@@ -226,6 +200,17 @@ float3 SampleNormal(float2 uv, float2 p11_22, float2 p13_31)
     //#endif
 }
 
+// Sample point picker
+float3 PickSamplePoint(float2 uv, float randAddon, float index)
+{
+    // Uniformly distributed points on a unit sphere
+    // http://mathworld.wolfram.com/SpherePointPicking.html
+    float gn = InterleavedGradientNoise(uv * DOWNSAMPLE * SCREEN_PARAMS.xy, index);
+    float u     = frac(RANDOM(      randAddon) + gn);
+    float theta =     (RANDOM(1.0 + randAddon) + gn);
+    return SampleSphereUniform(u, theta);
+}
+
 // Distance-based AO estimator based on Morgan 2011
 // "Alchemy screen-space ambient obscurance algorithm"
 // http://graphics.cs.williams.edu/papers/AlchemyHPG11/
@@ -246,6 +231,10 @@ float4 SSAO(Varyings input) : SV_Target
     // Reconstruct the view-space position.
     float3 vpos_o = ReconstructViewPos(float3(uv, depth_o), p11_22, p13_31);
 
+    // This was added to avoid a NVIDIA driver issue.
+    float randAddon = uv.x * 1e-10;
+
+    float samplePointRadiusMultiplier = RADIUS / SAMPLE_COUNT;
     float ao = 0.0;
     for (int s = 0; s < int(SAMPLE_COUNT); s++)
     {
@@ -255,7 +244,10 @@ float4 SSAO(Varyings input) : SV_Target
         #endif
 
         // Sample point
-        float3 v_s1 = PickSamplePoint(uv.xy, s).xyz;
+        float3 v_s1 = PickSamplePoint(uv.xy, randAddon + s, s);
+
+        // Make it distributed between [0, _Radius]
+        v_s1 *= (s + 1.0) * samplePointRadiusMultiplier;
 
         v_s1 = faceforward(v_s1, -norm_o, v_s1);
         float3 vpos_s1 = vpos_o + v_s1;
@@ -284,7 +276,7 @@ float4 SSAO(Varyings input) : SV_Target
     // Apply contrast
     ao = PositivePow(ao * INTENSITY / SAMPLE_COUNT, kContrast);
 
-        return PackAONormal(ao, norm_o);
+    return PackAONormal(ao, norm_o);
 }
 
 // Geometry-aware separable bilateral filter
