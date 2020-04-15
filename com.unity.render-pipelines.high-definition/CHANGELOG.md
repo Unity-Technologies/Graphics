@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for assertion triggering sometimes when saving a newly created lit shader graph (case 1230996)
 - Fixed an issue with the specularFGD term being used when the material has a clear coat (lit shader).
 - Fixed MSAA depth resolve when there is no motion vectors
+- Fix issue causing wrong planar reflection rendering when more than one camera is present.
  
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
