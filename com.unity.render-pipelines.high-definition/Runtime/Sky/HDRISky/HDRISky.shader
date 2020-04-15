@@ -183,12 +183,13 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float2 GetFlow(float3 dir)
     {
         dir = RotationUp(dir, _FlowCosSin);
+
 #ifdef USE_FLOWMAP
         return SAMPLE_TEXTURECUBE_LOD(_Flowmap, sampler_Flowmap, dir, 0).rg * 2.0 - 1.0;
 #elif PROCEDURAL
         // source: https://www.gdcvault.com/play/1020146/Moving-the-Heavens-An-Artistic
         float3 d = float3(0, 1, 0) - dir;
-        return normalize(d - dot(d, dir) * dir).zx;
+        return (dir.y > 0) * normalize(d - dot(d, dir) * dir).zx;
 #else
         return float2(0.0, 0.0);
 #endif

@@ -131,6 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdriSky.enableDistortion.value == true)
             {
+                m_SkyHDRIMaterial.DisableKeyword("NO_DISTORTION");
                 if (hdriSky.procedural.value == true)
                 {
                     m_SkyHDRIMaterial.EnableKeyword("PROCEDURAL");
@@ -138,6 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
+                    m_SkyHDRIMaterial.DisableKeyword("PROCEDURAL");
                     m_SkyHDRIMaterial.EnableKeyword("USE_FLOWMAP");
                     m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Flowmap, hdriSky.flowmap.value);
                 }
