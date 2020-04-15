@@ -224,11 +224,11 @@ namespace UnityEditor.ShaderGraph.Drawing
     {        
         public Searcher.Searcher LoadSearchWindow()
         {
-            //if (regenerateEntries)
-            //{
+            if (regenerateEntries)
+            {
                 GenerateNodeEntries();
                 regenerateEntries = false;
-            //}
+            }
 
             //create empty root for searcher tree 
             var root = new List<SearcherItem>();
