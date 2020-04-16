@@ -199,9 +199,12 @@ namespace UnityEngine.Rendering.Universal
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, false, false, context, true);
 
                 //DeferredConfig.kGBufferLightingIndex] is used as output of GBufferPass so continue rendering to it
-                m_DrawSkyboxPass.ConfigureTarget(m_GBufferPass.colorAttachmentDescriptors[DeferredConfig.kGBufferLightingIndex]);
+                m_DrawSkyboxPass.ConfigureTarget(
+                    m_GBufferPass.colorAttachmentDescriptors[DeferredConfig.kGBufferLightingIndex],
+                    ScriptableRenderPass.EmptyAttachment);
                 EnqueueRenderPass(m_DrawSkyboxPass, cameraTargetDescriptor);
-                m_RenderTransparentForwardPass.ConfigureTarget(m_GBufferPass.colorAttachmentDescriptors[DeferredConfig.kGBufferLightingIndex]);
+                m_RenderTransparentForwardPass.ConfigureTarget(m_GBufferPass.colorAttachmentDescriptors[DeferredConfig.kGBufferLightingIndex],
+                    ScriptableRenderPass.EmptyAttachment);
                 EnqueueRenderPass(m_RenderTransparentForwardPass, cameraTargetDescriptor);
                 return;
             }
@@ -322,7 +325,7 @@ namespace UnityEngine.Rendering.Universal
                 opaqueDescriptor.ConfigureTarget(m_OpaqueColor.Identifier(), false, true); //Seems like store is required, though used inside the renderPass
 
                 m_CopyColorPass.ConfigureInputAttachment(m_CameraColorDescriptor);
-                m_CopyColorPass.ConfigureTarget(opaqueDescriptor);
+                m_CopyColorPass.ConfigureTarget(opaqueDescriptor, m_CameraDepthDescriptor);
 
                 EnqueueRenderPass(m_CopyColorPass, cameraTargetDescriptor);
             }

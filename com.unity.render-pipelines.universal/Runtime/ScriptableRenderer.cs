@@ -708,6 +708,9 @@ namespace UnityEngine.Rendering.Universal
                     if (!renderPassStarted)
                     {
                         var attachmentDescriptors = new NativeArray<AttachmentDescriptor>(attachmentList.ToArray(), Allocator.Temp);
+                        //It should be set, but in some RenderPass breakage cases we need to be sure
+                        if (depthAttachmentIdx == -1)
+                            depthAttachmentIdx = RenderingUtils.GetDepthAttachmentIndex(attachmentDescriptors.ToArray());
                         context.BeginRenderPass(descriptor.width, descriptor.height, descriptor.sampleCount, attachmentDescriptors, depthAttachmentIdx);
                         attachmentDescriptors.Dispose();
                         renderPassStarted = true;

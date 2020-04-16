@@ -269,17 +269,27 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        //TODO: what should we do about Transient attachments? Currently can only exclude them from this
+        //TODO: what should we do about Transient attachments? Currently can only exclude them from this.
         internal static bool Contains(AttachmentDescriptor[] source, AttachmentDescriptor value)
         {
             foreach (var identifier in source)
             {
-                if (identifier == value &&
-                    identifier.loadAction != RenderBufferLoadAction.DontCare &&
-                    identifier.storeAction != RenderBufferStoreAction.DontCare)
+                bool isTransient = identifier.loadAction == RenderBufferLoadAction.DontCare &&
+                                   identifier.storeAction == RenderBufferStoreAction.DontCare;
+                if (identifier == value && !isTransient)
                     return true;
             }
             return false;
+        }
+
+        internal static int GetDepthAttachmentIndex(AttachmentDescriptor[] source)
+        {
+            for (int i = 0; i < source.Length; ++i)
+            {
+                if (source[i].format == RenderTextureFormat.Depth)
+                    return i;
+            }
+            return -1;
         }
 
         /// <summary>
