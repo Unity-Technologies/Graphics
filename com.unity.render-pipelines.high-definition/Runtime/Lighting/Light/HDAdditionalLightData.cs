@@ -2311,14 +2311,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UpdateBounds();
 
-            bool wentThroughCachedShadowSystem = lightIdxForCachedShadows >= 0;
-            if (wentThroughCachedShadowSystem)
-                HDShadowManager.cachedShadowManager.EvictLight(this);
-
-            if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
-            {
-                HDShadowManager.cachedShadowManager.RegisterLight(this);
-            }
+            RefreshCachedShadow();
 
 #if UNITY_EDITOR
             // If modification are due to change on prefab asset that are non overridden on this prefab instance
@@ -2653,7 +2646,19 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateAreaLightEmissiveMesh(fromTimeLine: fromTimeLine);
         }
 
-#endregion
+        internal void RefreshCachedShadow()
+        {
+            bool wentThroughCachedShadowSystem = lightIdxForCachedShadows >= 0;
+            if (wentThroughCachedShadowSystem)
+                HDShadowManager.cachedShadowManager.EvictLight(this);
+
+            if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
+            {
+                HDShadowManager.cachedShadowManager.RegisterLight(this);
+            }
+        }
+
+        #endregion
 
 #region User API functions
 
@@ -2793,19 +2798,40 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Set the shadow resolution.
         /// </summary>
         /// <param name="resolution">Must be between 16 and 16384</param>
-        public void SetShadowResolution(int resolution) => shadowResolution.@override = resolution;
+        public void SetShadowResolution(int resolution)
+        {
+            if (shadowResolution.@override != resolution)
+            {
+                shadowResolution.@override = resolution;
+                RefreshCachedShadow();
+            }
+        }
 
         /// <summary>
         /// Set the shadow resolution quality level.
         /// </summary>
         /// <param name="level">The quality level to use</param>
-        public void SetShadowResolutionLevel(int level) => shadowResolution.level = level;
+        public void SetShadowResolutionLevel(int level)
+        {
+            if (shadowResolution.level != level)
+            {
+                shadowResolution.level = level;
+                RefreshCachedShadow();
+            }
+        }
 
         /// <summary>
         /// Set whether the shadow resolution use the override value.
         /// </summary>
         /// <param name="useOverride">True to use the override value, false otherwise.</param>
-        public void SetShadowResolutionOverride(bool useOverride) => shadowResolution.useOverride = useOverride;
+        public void SetShadowResolutionOverride(bool useOverride)
+        {
+            if (shadowResolution.useOverride != useOverride)
+            {
+                shadowResolution.useOverride = useOverride;
+                RefreshCachedShadow();
+            }
+        } 
 
         /// <summary>
         /// Set the near plane of the shadow.
