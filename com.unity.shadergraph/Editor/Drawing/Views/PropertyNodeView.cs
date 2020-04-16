@@ -71,12 +71,12 @@ namespace UnityEditor.ShaderGraph
 
         public PropertyInfo[] GetPropertyInfo()
         {
-            throw new NotImplementedException();
+            return this.GetType().GetProperties();
         }
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
-            throw new NotImplementedException();
+            // Currently unimplemented
         }
 
         public PropertySheet GetInspectorContent()

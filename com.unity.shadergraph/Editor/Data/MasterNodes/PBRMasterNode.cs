@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "PBR")]
-    class PBRMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class PBRMasterNode : AbstractMaterialNode, IMasterNode, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string AlbedoSlotName = "Albedo";
         public const string NormalSlotName = "Normal";
@@ -128,6 +128,7 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         NormalDropOffSpace m_NormalDropOffSpace;
+        [Inspectable("Fragment Normal Space", NormalDropOffSpace.Tangent)]
         public NormalDropOffSpace normalDropOffSpace
         {
             get { return m_NormalDropOffSpace; }
@@ -161,25 +162,47 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // This property exists to expose shaderGUI Override info. to the inspector
+        [Inspectable("ShaderGUI", null)]
+        public ShaderGUIOverrideInfo ShaderGUIInfo
+        {
+            get => new ShaderGUIOverrideInfo(this.OverrideEnabled, this.ShaderGUIOverride);
+            set
+            {
+                this.ShaderGUIOverride = value.ShaderGUIOverride;
+                this.OverrideEnabled = value.OverrideEnabled;
+            }
+        }
+
         [SerializeField] private string m_ShaderGUIOverride;
+
         public string ShaderGUIOverride
         {
             get => m_ShaderGUIOverride;
-            set => m_ShaderGUIOverride = value;
+            set
+            {
+                this.owner.owner.RegisterCompleteObjectUndo("Changed ShaderGUI Field");
+                m_ShaderGUIOverride = value;
+                Dirty(ModificationScope.Graph);
+            }
         }
 
         [SerializeField] private bool m_OverrideEnabled;
+
         public bool OverrideEnabled
         {
             get => m_OverrideEnabled;
-            set => m_OverrideEnabled = value;
+            set
+            {
+                this.owner.owner.RegisterCompleteObjectUndo("Changed ShaderGUI Override Enabled");
+                m_OverrideEnabled = value;
+            }
         }
 
         public PBRMasterNode()
         {
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -236,11 +259,6 @@ namespace UnityEditor.ShaderGraph
                 AlphaSlotId,
                 AlphaThresholdSlotId
             }, true);
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            return new PBRSettingsView(this);
         }
 
         public string renderQueueTag

@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Xml;
+using Drawing.Inspector;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -18,7 +20,7 @@ using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    sealed class MaterialGraphView : GraphView
+    sealed class MaterialGraphView : GraphView, IInspectable
     {
         public MaterialGraphView()
         {
@@ -42,7 +44,60 @@ namespace UnityEditor.ShaderGraph.Drawing
             this.graph = graph;
         }
 
+        [Inspectable("GraphData", null)]
         public GraphData graph { get; private set; }
+
+        private Action m_InspectorUpdateDelegate;
+
+        public string displayName => this.graph.path;
+
+        public object GetObjectToInspect()
+        {
+            return this.graph;
+        }
+
+        public PropertyInfo[] GetPropertyInfo()
+        {
+            return this.GetType().GetProperties();
+        }
+
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        {
+            m_InspectorUpdateDelegate = inspectorUpdateDelegate;
+            if (propertyDrawer is GraphDataPropertyDrawer graphDataPropertyDrawer)
+            {
+                graphDataPropertyDrawer.GetPropertyData(this.ChangeTargetSettings, ChangeConcretePrecision);
+            }
+        }
+
+        void ChangeTargetSettings()
+        {
+            // #TODO: Inspector - Uncomment when Matt lands stacks into master
+            //graph.UpdateActiveBlocks();
+            this.m_InspectorUpdateDelegate();
+        }
+        void ChangeConcretePrecision(ConcretePrecision newValue)
+        {
+            var graphEditorView = this.GetFirstAncestorOfType<GraphEditorView>();
+            if(graphEditorView == null)
+                return;
+
+            graph.owner.RegisterCompleteObjectUndo("Change Precision");
+            if (graph.concretePrecision == newValue)
+                return;
+
+            graph.concretePrecision = newValue;
+            var nodeList = this.Query<MaterialNodeView>().ToList();
+            graphEditorView.colorManager.SetNodesDirty(nodeList);
+
+            graph.ValidateGraph();
+            graphEditorView.colorManager.UpdateNodeViews(nodeList);
+            foreach (var node in graph.GetNodes<AbstractMaterialNode>())
+            {
+                node.Dirty(ModificationScope.Graph);
+            }
+        }
+
         public Action onConvertToSubgraphClick { get; set; }
         public Vector2 cachedMousePosition { get; private set; }
 

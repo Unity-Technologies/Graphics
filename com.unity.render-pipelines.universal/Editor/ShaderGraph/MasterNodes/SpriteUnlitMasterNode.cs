@@ -5,6 +5,7 @@ using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Experimental.Rendering.Universal
@@ -12,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
     [Serializable]
     [Title("Master", "Sprite Unlit (Experimental)")]
     [FormerName("UnityEditor.Experimental.Rendering.LWRP.SpriteUnlitMasterNode")]
-    class SpriteUnlitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class SpriteUnlitMasterNode : AbstractMaterialNode, IMasterNode, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionName = "Vertex Position";
         public const string NormalName = "Vertex Normal";
@@ -24,6 +25,18 @@ namespace UnityEditor.Experimental.Rendering.Universal
         public const int ColorSlotId = 0;
         public const int VertNormalSlotId = 10;
         public const int VertTangentSlotId = 11;
+
+        // This property exists to expose shaderGUI Override info. to the inspector
+        [Inspectable("ShaderGUI", null)]
+        public ShaderGUIOverrideInfo ShaderGUIInfo
+        {
+            get => new ShaderGUIOverrideInfo(this.OverrideEnabled, this.ShaderGUIOverride);
+            set
+            {
+                this.ShaderGUIOverride = value.ShaderGUIOverride;
+                this.OverrideEnabled = value.OverrideEnabled;
+            }
+        }
 
         [SerializeField] private string m_ShaderGUIOverride;
         public string ShaderGUIOverride
@@ -63,11 +76,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 VertTangentSlotId,
                 ColorSlotId,
             });
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            return new SpriteSettingsView(this);
         }
 
         public string renderQueueTag => $"{RenderQueue.Transparent}";

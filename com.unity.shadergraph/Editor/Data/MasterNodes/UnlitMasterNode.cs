@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Unlit")]
-    class UnlitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class UnlitMasterNode : AbstractMaterialNode, IMasterNode, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
@@ -31,6 +31,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         SurfaceType m_SurfaceType;
 
+        [Inspectable("Surface", SurfaceType.Opaque)]
         public SurfaceType surfaceType
         {
             get { return m_SurfaceType; }
@@ -47,6 +48,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         AlphaMode m_AlphaMode;
 
+        [Inspectable("Blend", AlphaMode.Additive)]
         public AlphaMode alphaMode
         {
             get { return m_AlphaMode; }
@@ -63,6 +65,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         bool m_TwoSided;
 
+        [Inspectable("Two Sided", false)]
         public ToggleData twoSided
         {
             get { return new ToggleData(m_TwoSided); }
@@ -103,6 +106,18 @@ namespace UnityEditor.ShaderGraph
 
                 m_DOTSInstancing = value.isOn;
                 Dirty(ModificationScope.Graph);
+            }
+        }
+
+        // This property exists to expose shaderGUI Override info. to the inspector
+        [Inspectable("ShaderGUI", null)]
+        public ShaderGUIOverrideInfo ShaderGUIInfo
+        {
+            get => new ShaderGUIOverrideInfo(this.OverrideEnabled, this.ShaderGUIOverride);
+            set
+            {
+                this.ShaderGUIOverride = value.ShaderGUIOverride;
+                this.OverrideEnabled = value.OverrideEnabled;
             }
         }
 
@@ -149,11 +164,6 @@ namespace UnityEditor.ShaderGraph
                 AlphaSlotId,
                 AlphaThresholdSlotId
             });
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            return new UnlitSettingsView(this);
         }
 
         public string renderQueueTag

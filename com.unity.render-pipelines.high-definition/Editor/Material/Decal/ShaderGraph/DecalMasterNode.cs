@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Serializable]
     [Title("Master", "Decal (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DecalMasterNode")]
-    class DecalMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class DecalMasterNode : AbstractMaterialNode, IMasterNode, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -110,6 +110,18 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             SlotMask activeMask = GetActiveSlotMask();
             return (activeMask & mask) != 0;
+        }
+
+        // This property exists to expose shaderGUI Override info. to the inspector
+        [Inspectable("ShaderGUI", null)]
+        public ShaderGUIOverrideInfo ShaderGUIInfo
+        {
+            get => new ShaderGUIOverrideInfo(this.OverrideEnabled, this.ShaderGUIOverride);
+            set
+            {
+                this.ShaderGUIOverride = value.ShaderGUIOverride;
+                this.OverrideEnabled = value.OverrideEnabled;
+            }
         }
 
         [SerializeField] private string m_ShaderGUIOverride;
@@ -231,11 +243,6 @@ namespace UnityEditor.Rendering.HighDefinition
             RemoveSlotsNameNotMatching(validSlots, true);
         }
 
-        public VisualElement CreateSettingsElement()
-        {
-            return new DecalSettingsView(this);
-        }
-
         public string renderQueueTag
         {
             get
@@ -347,6 +354,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_AffectsMetal = true;
 
+        [Inspectable("Affects Metal", true)]
         public ToggleData affectsMetal
         {
             get { return new ToggleData(m_AffectsMetal); }
@@ -354,6 +362,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AffectsMetal == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Affects Metal Change");
                 m_AffectsMetal = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -362,6 +371,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_AffectsAO = true;
 
+        [Inspectable("Affects AO", true)]
         public ToggleData affectsAO
         {
             get { return new ToggleData(m_AffectsAO); }
@@ -369,6 +379,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AffectsAO == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Affects AO Change");
                 m_AffectsAO = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -377,6 +388,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_AffectsSmoothness = true;
 
+        [Inspectable("Affects Smoothness", true)]
         public ToggleData affectsSmoothness
         {
             get { return new ToggleData(m_AffectsSmoothness); }
@@ -384,6 +396,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AffectsSmoothness == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Affects Smoothness Change");
                 m_AffectsSmoothness = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -392,6 +405,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_AffectsAlbedo = true;
 
+        [Inspectable("Affects BaseColor", true)]
         public ToggleData affectsAlbedo
         {
             get { return new ToggleData(m_AffectsAlbedo); }
@@ -399,6 +413,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AffectsAlbedo == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Affects Albedo Change");
                 m_AffectsAlbedo = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -407,6 +422,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_AffectsNormal = true;
 
+        [Inspectable("Affects Normal", true)]
         public ToggleData affectsNormal
         {
             get { return new ToggleData(m_AffectsNormal); }
@@ -414,6 +430,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AffectsNormal == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Affects Normal Change");
                 m_AffectsNormal = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -422,6 +439,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_AffectsEmission = true;
 
+        [Inspectable("Affects Emission", true)]
         public ToggleData affectsEmission
         {
             get { return new ToggleData(m_AffectsEmission); }
@@ -429,6 +447,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AffectsEmission == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Affects Emission Change");
                 m_AffectsEmission = value.isOn;
                 Dirty(ModificationScope.Graph);
             }

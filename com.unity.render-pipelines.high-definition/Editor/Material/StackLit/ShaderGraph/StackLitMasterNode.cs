@@ -12,6 +12,7 @@ using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -25,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "StackLit (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.StackLitMasterNode")]
-    class StackLitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class StackLitMasterNode : AbstractMaterialNode, IMasterNode, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -245,9 +246,47 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_SurfaceType == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Surface Type Change");
                 m_SurfaceType = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
+            }
+        }
+
+        public AlphaMode GetAlphaMode(AlphaModeLit alphaModeLit)
+        {
+            switch (alphaModeLit)
+            {
+                case AlphaModeLit.Alpha:
+                    return AlphaMode.Alpha;
+                case AlphaModeLit.Premultiply:
+                    return AlphaMode.Premultiply;
+                case AlphaModeLit.Additive:
+                    return AlphaMode.Additive;
+                default:
+                {
+                    Debug.LogWarning("Not supported: " + alphaModeLit);
+                    return AlphaMode.Alpha;
+                }
+
+            }
+        }
+
+        public AlphaModeLit GetAlphaModeLit(AlphaMode alphaMode)
+        {
+            switch (alphaMode)
+            {
+                case AlphaMode.Alpha:
+                    return AlphaModeLit.Alpha;
+                case AlphaMode.Premultiply:
+                    return AlphaModeLit.Premultiply;
+                case AlphaMode.Additive:
+                    return AlphaModeLit.Additive;
+                default:
+                {
+                    Debug.LogWarning("Not supported: " + alphaMode);
+                    return AlphaModeLit.Alpha;
+                }
             }
         }
 
@@ -262,6 +301,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_AlphaMode == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Alpha Mode Change");
                 m_AlphaMode = value;
                 Dirty(ModificationScope.Graph);
             }
@@ -277,6 +317,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_BlendPreserveSpecular == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Blend Preserve Specular Change");
                 m_BlendPreserveSpecular = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -292,6 +333,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_TransparencyFog == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Transparency Fog Change");
                 m_TransparencyFog = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -307,6 +349,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_Distortion == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Distortion Change");
                 m_Distortion = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -324,6 +367,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_DistortionMode == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Distortion Mode Change");
                 m_DistortionMode = value;
                 UpdateNodeAfterDeserialization(); // TODOTODO: no need, ModificationScope.Graph is enough?
                 Dirty(ModificationScope.Topological);
@@ -340,6 +384,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_DistortionDepthTest == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Distortion Depth Test Change");
                 m_DistortionDepthTest = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -348,6 +393,8 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_AlphaTest;
 
+
+        [Inspectable("Alpha Clipping", false)]
         public ToggleData alphaTest
         {
             get { return new ToggleData(m_AlphaTest); }
@@ -355,6 +402,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AlphaTest == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Alpha Test Change");
                 m_AlphaTest = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -369,9 +417,12 @@ namespace UnityEditor.Rendering.HighDefinition
             get { return m_SortPriority; }
             set
             {
-                if (m_SortPriority == value)
+                var newValue = HDRenderQueue.ClampsTransparentRangePriority(value);
+                if (m_SortPriority == newValue)
                     return;
-                m_SortPriority = value;
+
+                this.owner.owner.RegisterCompleteObjectUndo("Sort Priority Change");
+                m_SortPriority = newValue;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -387,6 +438,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_DoubleSidedMode == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Double-Sided Mode Change");
                 m_DoubleSidedMode = value;
                 Dirty(ModificationScope.Topological);
             }
@@ -394,6 +446,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         [SerializeField]
         NormalDropOffSpace m_NormalDropOffSpace;
+
+        [Inspectable("Fragment Normal Space", NormalDropOffSpace.Tangent)]
         public NormalDropOffSpace normalDropOffSpace
         {
             get { return m_NormalDropOffSpace; }
@@ -402,6 +456,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_NormalDropOffSpace == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Normal Space Drop-Off Mode Change");
                 m_NormalDropOffSpace = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -421,6 +476,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_BaseParametrization == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Base Parametrization Change");
                 m_BaseParametrization = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -437,6 +493,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_EnergyConservingSpecular == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Energy Conserving Specular Change");
                 m_EnergyConservingSpecular = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -453,6 +510,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_DualSpecularLobeParametrization == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Dual Specular Lobe Parametrization Change");
                 m_DualSpecularLobeParametrization = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -473,6 +531,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_Anisotropy == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Anisotropy Change");
                 m_Anisotropy = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -489,6 +548,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_Coat == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Coat Change");
                 m_Coat = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -505,6 +565,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_CoatNormal == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Coat Normal Change");
                 m_CoatNormal = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -521,6 +582,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_DualSpecularLobe == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("DualSpecularLobe Change");
                 m_DualSpecularLobe = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -537,6 +599,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_CapHazinessWrtMetallic == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("CapHazinessWrtMetallic Change");
                 m_CapHazinessWrtMetallic = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -553,6 +616,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_Iridescence == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Iridescence Change");
                 m_Iridescence = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -569,6 +633,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_SubsurfaceScattering == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("SubsurfaceScattering Change");
                 m_SubsurfaceScattering = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -585,6 +650,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_Transmission == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Transmission Change");
                 m_Transmission = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -596,6 +662,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_ReceiveDecals = true;
 
+        [Inspectable("Receive Decals", true)]
         public ToggleData receiveDecals
         {
             get { return new ToggleData(m_ReceiveDecals); }
@@ -603,6 +670,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_ReceiveDecals == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Receive Decals Change");
                 m_ReceiveDecals = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -611,6 +679,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_ReceiveSSR = true;
 
+        [Inspectable("Receive SSR", true)]
         public ToggleData receiveSSR
         {
             get { return new ToggleData(m_ReceiveSSR); }
@@ -618,6 +687,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_ReceiveSSR == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Receive SSR Change");
                 m_ReceiveSSR = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -626,6 +696,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_AddPrecomputedVelocity = false;
 
+        [Inspectable("Add Precomputed Velocity", false)]
         public ToggleData addPrecomputedVelocity
         {
             get { return new ToggleData(m_AddPrecomputedVelocity); }
@@ -633,6 +704,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AddPrecomputedVelocity == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Add Precomputed Velocity");
                 m_AddPrecomputedVelocity = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -641,6 +713,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_GeometricSpecularAA;
 
+        [Inspectable("Geometric Specular AA", false)]
         public ToggleData geometricSpecularAA
         {
             get { return new ToggleData(m_GeometricSpecularAA); }
@@ -648,6 +721,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_GeometricSpecularAA == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Specular AA Change");
                 m_GeometricSpecularAA = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -681,6 +755,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_ScreenSpaceSpecularOcclusionBaseMode == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("ScreenSpaceSpecularOcclusionBaseMode Change");
                 m_ScreenSpaceSpecularOcclusionBaseMode = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -695,9 +770,14 @@ namespace UnityEditor.Rendering.HighDefinition
             get { return m_DataBasedSpecularOcclusionBaseMode; }
             set
             {
+                // StackLitMasterNode.SpecularOcclusionBaseModeSimple should always be a subset of StackLitMasterNode.SpecularOcclusionBaseMode:
+                if (Equals(this.dataBasedSpecularOcclusionBaseMode, (StackLitMasterNode.SpecularOcclusionBaseMode) value))
+                    return;
+
                 if (m_DataBasedSpecularOcclusionBaseMode == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("DataBasedSpecularOcclusionBaseMode Change");
                 m_DataBasedSpecularOcclusionBaseMode = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -715,6 +795,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_ScreenSpaceSpecularOcclusionAOConeSize == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("ScreenSpaceSpecularOcclusionAOConeSize Change");
                 m_ScreenSpaceSpecularOcclusionAOConeSize = value;
                 Dirty(ModificationScope.Graph);
             }
@@ -732,6 +813,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_ScreenSpaceSpecularOcclusionAOConeDir == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("ScreenSpaceSpecularOcclusionAOConeDir Change");
                 m_ScreenSpaceSpecularOcclusionAOConeDir = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -749,6 +831,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_DataBasedSpecularOcclusionAOConeSize == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("DataBasedSpecularOcclusionAOConeSize Change");
                 m_DataBasedSpecularOcclusionAOConeSize = value;
                 Dirty(ModificationScope.Graph);
             }
@@ -783,6 +866,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_SpecularOcclusionConeFixupMethod == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("SpecularOcclusionConeFixupMethod Change");
                 m_SpecularOcclusionConeFixupMethod = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -801,6 +885,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AnisotropyForAreaLights == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("AnisotropyForAreaLights Change");
                 m_AnisotropyForAreaLights = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -816,6 +901,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_RecomputeStackPerLight == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("RecomputeStackPerLight Change");
                 m_RecomputeStackPerLight = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -831,6 +917,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_HonorPerLightMinRoughness == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("HonorPerLightMinRoughness Change");
                 m_HonorPerLightMinRoughness = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -846,6 +933,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_ShadeBaseUsingRefractedAngles == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("ShadeBaseUsingRefractedAngles Change");
                 m_ShadeBaseUsingRefractedAngles = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -861,6 +949,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_Debug == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("StackLit Debug Change");
                 m_Debug = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -876,6 +965,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_DevMode == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("StackLit DevMode Change");
                 m_DevMode = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -892,6 +982,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_overrideBakedGI == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("overrideBakedGI Change");
                 m_overrideBakedGI = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -908,6 +999,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_depthOffset == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("DepthOffset Change");
                 m_depthOffset = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -924,6 +1016,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_ZWrite == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("ZWrite Change");
                 m_ZWrite = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -940,6 +1033,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_transparentCullMode == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Transparent Cull Mode Change");
                 m_transparentCullMode = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
@@ -956,6 +1050,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_ZTest == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
                 m_ZTest = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
@@ -972,6 +1067,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_SupportLodCrossFade == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Support LOD CrossFade Change");
                 m_SupportLodCrossFade = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Node);
@@ -1005,6 +1101,27 @@ namespace UnityEditor.Rendering.HighDefinition
             hash |= (RequiresSplitLighting() ? 0 : 1) << 3;
 
             return hash;
+        }
+
+        // This struct, and the corresponding property below it, exist to expose the StackLitMasterNode to the inspector for drawing settings
+        public struct StackLitSettings
+        {
+            // Empty struct
+        }
+
+        [Inspectable("Stack Lit Settings", null)]
+        public StackLitSettings HDStackLitSettings { get; private set; }
+
+        // This property exists to expose shaderGUI Override info. to the inspector
+        [Inspectable("ShaderGUI", null)]
+        public ShaderGUIOverrideInfo ShaderGUIInfo
+        {
+            get => new ShaderGUIOverrideInfo(this.OverrideEnabled, this.ShaderGUIOverride);
+            set
+            {
+                this.ShaderGUIOverride = value.ShaderGUIOverride;
+                this.OverrideEnabled = value.OverrideEnabled;
+            }
         }
 
         [SerializeField] private string m_ShaderGUIOverride;
@@ -1277,11 +1394,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             RemoveSlotsNameNotMatching(validSlots, true);
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            return new StackLitSettingsView(this);
         }
 
         public string renderQueueTag

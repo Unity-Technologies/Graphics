@@ -18,6 +18,7 @@ PropertyRow > #container{
 
 PropertyRow > #container > #label {
     width: 200px;
+    margin-right: 60px;
     height: 24px;
     justify-content: center;
 }

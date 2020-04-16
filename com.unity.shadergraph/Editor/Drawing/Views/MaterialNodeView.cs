@@ -161,15 +161,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 AddToClassList("master");
                 bool validTarget = false;
-                foreach(ITargetImplementation activeTarget in node.owner.validImplementations)
+                foreach (ITargetImplementation activeTarget in node.owner.validImplementations)
                 {
                     //if we have a valid active target implementation and render pipeline, don't display the error
                     if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
-                {
+                    {
                         validTarget = true;
                         break;
                     }
                 }
+
                 //if no active target implementations are valid with the current pipeline, display the error
                 m_GraphView.graph.messageManager?.ClearAllFromProvider(this);
                 if (!validTarget)
@@ -181,35 +182,35 @@ namespace UnityEditor.ShaderGraph.Drawing
                             ShaderCompilerMessageSeverity.Error));
                 }
             }
-
-            m_NodeSettingsView = new NodeSettingsView();
-            m_NodeSettingsView.visible = false;
-            Add(m_NodeSettingsView);
-
-            m_SettingsButton = new VisualElement {name = "settings-button"};
-            m_SettingsButton.Add(new VisualElement { name = "icon" });
-
-            m_Settings = new VisualElement();
-            AddDefaultSettings();
-
-            // Add Node type specific settings
-            var nodeTypeSettings = node as IHasSettings;
-            if (nodeTypeSettings != null)
-                m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
-
-            // Add manipulators
-            m_SettingsButton.AddManipulator(new Clickable(() =>
-                {
-                    UpdateSettingsExpandedState();
-                }));
-
-            if(m_Settings.childCount > 0)
+            else // #TODO: Inspector - Temporary workaround to prevent adding settings cog wheels to master nodes
+                 // while Sai gets the remaining nodes ported over to the Inspector (specifically SubGraphs and CustomFunctionNodes)
             {
-                m_ButtonContainer = new VisualElement { name = "button-container" };
-                m_ButtonContainer.style.flexDirection = FlexDirection.Row;
-                m_ButtonContainer.Add(m_SettingsButton);
-                m_ButtonContainer.Add(m_CollapseButton);
-                m_TitleContainer.Add(m_ButtonContainer);
+                m_NodeSettingsView = new NodeSettingsView();
+                m_NodeSettingsView.visible = false;
+                Add(m_NodeSettingsView);
+
+                m_SettingsButton = new VisualElement {name = "settings-button"};
+                m_SettingsButton.Add(new VisualElement {name = "icon"});
+
+                m_Settings = new VisualElement();
+                AddDefaultSettings();
+
+                // Add Node type specific settings
+                var nodeTypeSettings = node as IHasSettings;
+                if (nodeTypeSettings != null)
+                    m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
+
+                // Add manipulators
+                m_SettingsButton.AddManipulator(new Clickable(() => { UpdateSettingsExpandedState(); }));
+
+                if (m_Settings.childCount > 0)
+                {
+                    m_ButtonContainer = new VisualElement {name = "button-container"};
+                    m_ButtonContainer.style.flexDirection = FlexDirection.Row;
+                    m_ButtonContainer.Add(m_SettingsButton);
+                    m_ButtonContainer.Add(m_CollapseButton);
+                    m_TitleContainer.Add(m_ButtonContainer);
+                }
             }
 
             // Register OnMouseHover callbacks for node highlighting
@@ -448,15 +449,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public PropertyInfo[] GetPropertyInfo()
-            {
+        {
             return this.node.GetType().GetProperties();
-            }
-
-        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
-            {
-            // Currently unimplemented
         }
 
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        {
+            if (propertyDrawer is ShaderGUIOverridePropertyDrawer shaderGuiOverridePropertyDrawer)
+            {
+                shaderGuiOverridePropertyDrawer.GetPropertyData(node);
+            }
+        }
 
         private void SetSelfSelected()
         {

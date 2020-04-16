@@ -248,7 +248,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
 
                 CreateMasterPreview();
-                CreateInspector();
+                // TODO: Inspector - When Matt integrates his stacks work, the inspector will need to trigger preview updates
+                CreateInspector(() => { });
 
                 UpdateSubWindowsVisibility();
 
@@ -294,15 +295,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSubWindowsVisibility()
         {
+            // if (m_UserViewSettings.isBlackboardVisible)
+            //     m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
+            // else
+            //     m_BlackboardProvider.blackboard.RemoveFromHierarchy();
+
+            // if (m_UserViewSettings.isBlackboardVisible)
+            //     m_BlackboardProvider.blackboard.style.display = DisplayStyle.Flex;
+            // else
+            //     m_BlackboardProvider.blackboard.style.display = DisplayStyle.None;
+
             // Master Preview and Blackboard both need to keep their layouts when hidden in order to restore user preferences.
             // Because of their differences we do this is different ways, for now. + Blackboard needs to be effectively removed when hidden to avoid bugs.
             m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
-
-            if (m_UserViewSettings.isBlackboardVisible)
-                m_BlackboardProvider.blackboard.style.display = DisplayStyle.Flex;
-            else
-                m_BlackboardProvider.blackboard.style.display = DisplayStyle.None;
-
+            m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
             m_InspectorView.visible = m_UserViewSettings.isInspectorVisible;
         }
 
@@ -336,10 +342,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
         }
 
-        void CreateInspector()
+        void CreateInspector(Action previewUpdateDelegate)
         {
-            m_InspectorView = new InspectorView(m_Graph, graphView);
+            m_InspectorView = new InspectorView(graphView, previewUpdateDelegate);
             m_InspectorView.visible = m_UserViewSettings.isInspectorVisible;
+            m_GraphView.Add(m_InspectorView);
             m_GraphView.OnSelectionChange += selectedObjects => m_InspectorView.Update();
         }
 
@@ -1047,6 +1054,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSerializedWindowLayout()
         {
+            m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_InspectorView.layout, m_GraphView.layout);
+            m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
+
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);
             m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
 

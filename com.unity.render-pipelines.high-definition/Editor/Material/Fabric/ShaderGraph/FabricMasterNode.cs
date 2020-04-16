@@ -11,6 +11,7 @@ using UnityEngine.Rendering;
 using UnityEditor.Rendering.HighDefinition.Drawing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -21,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "Fabric (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.FabricMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.FabricMasterNode")]
-    class FabricMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class FabricMasterNode : AbstractMaterialNode, IMasterNode, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -167,9 +168,47 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_SurfaceType == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Surface Type Change");
                 m_SurfaceType = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
+            }
+        }
+
+        public AlphaMode GetAlphaMode(AlphaModeFabric alphaModeLit)
+        {
+            switch (alphaModeLit)
+            {
+                case AlphaModeFabric.Alpha:
+                    return AlphaMode.Alpha;
+                case AlphaModeFabric.Premultiply:
+                    return AlphaMode.Premultiply;
+                case AlphaModeFabric.Additive:
+                    return AlphaMode.Additive;
+                default:
+                {
+                    Debug.LogWarning("Not supported: " + alphaModeLit);
+                    return AlphaMode.Alpha;
+                }
+
+            }
+        }
+
+        public AlphaModeFabric GetAlphaModeLit(AlphaMode alphaMode)
+        {
+            switch (alphaMode)
+            {
+                case AlphaMode.Alpha:
+                    return AlphaModeFabric.Alpha;
+                case AlphaMode.Premultiply:
+                    return AlphaModeFabric.Premultiply;
+                case AlphaMode.Additive:
+                    return AlphaModeFabric.Additive;
+                default:
+                {
+                    Debug.LogWarning("Not supported: " + alphaMode);
+                    return AlphaModeFabric.Alpha;
+                }
             }
         }
 
@@ -181,9 +220,13 @@ namespace UnityEditor.Rendering.HighDefinition
             get { return m_AlphaMode; }
             set
             {
+                // Make sure the mapping is correct by handling each case.
+                var newValue =  GetAlphaMode((AlphaModeFabric)value);
+
                 if (m_AlphaMode == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Alpha Mode Change");
                 m_AlphaMode = value;
                 Dirty(ModificationScope.Graph);
             }
@@ -199,6 +242,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_BlendPreserveSpecular == value.isOn)
                     return;
+
+                this.owner.owner.RegisterCompleteObjectUndo("Blend Preserve Specular Change");
                 m_BlendPreserveSpecular = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -214,6 +259,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_TransparencyFog == value.isOn)
                     return;
+
+                this.owner.owner.RegisterCompleteObjectUndo("Transparency Fog Change");
                 m_TransparencyFog = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -222,6 +269,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_AlphaTest;
 
+        [Inspectable("Alpha Clipping", false)]
         public ToggleData alphaTest
         {
             get { return new ToggleData(m_AlphaTest); }
@@ -229,6 +277,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AlphaTest == value.isOn)
                     return;
+
+                this.owner.owner.RegisterCompleteObjectUndo("Alpha Test Change");
                 m_AlphaTest = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -243,9 +293,12 @@ namespace UnityEditor.Rendering.HighDefinition
             get { return m_SortPriority; }
             set
             {
-                if (m_SortPriority == value)
+                var newValue = HDRenderQueue.ClampsTransparentRangePriority(value);
+                if (m_SortPriority == newValue)
                     return;
-                m_SortPriority = value;
+
+                this.owner.owner.RegisterCompleteObjectUndo("Sort Priority Change");
+                m_SortPriority = newValue;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -261,6 +314,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_DoubleSidedMode == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Double-Sided Mode Change");
                 m_DoubleSidedMode = value;
                 Dirty(ModificationScope.Topological);
             }
@@ -277,6 +331,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_MaterialType == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Material Type Change");
                 m_MaterialType = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -286,6 +341,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_ReceiveDecals = true;
 
+        [Inspectable("Receive Decals", true)]
         public ToggleData receiveDecals
         {
             get { return new ToggleData(m_ReceiveDecals); }
@@ -293,6 +349,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_ReceiveDecals == value.isOn)
                     return;
+
+                this.owner.owner.RegisterCompleteObjectUndo("Decal Change");
                 m_ReceiveDecals = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -300,6 +358,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         [SerializeField]
         bool m_ReceivesSSR = true;
+
+        [Inspectable("Receive SSR", true)]
         public ToggleData receiveSSR
         {
             get { return new ToggleData(m_ReceivesSSR); }
@@ -307,6 +367,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_ReceivesSSR == value.isOn)
                     return;
+
+                this.owner.owner.RegisterCompleteObjectUndo("SSR Change");
                 m_ReceivesSSR = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -315,6 +377,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_AddPrecomputedVelocity = false;
 
+        [Inspectable("Add Precomputed Velocity", false)]
         public ToggleData addPrecomputedVelocity
         {
             get { return new ToggleData(m_AddPrecomputedVelocity); }
@@ -322,6 +385,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AddPrecomputedVelocity == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Add Precomputed Velocity");
                 m_AddPrecomputedVelocity = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -337,6 +401,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_EnergyConservingSpecular == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("Energy Conserving Specular Change");
                 m_EnergyConservingSpecular = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -352,6 +417,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_Transmission == value.isOn)
                     return;
+
+                this.owner.owner.RegisterCompleteObjectUndo("Transmission Change");
                 m_Transmission = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
@@ -368,6 +435,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_SubsurfaceScattering == value.isOn)
                     return;
+
+                this.owner.owner.RegisterCompleteObjectUndo("SSS Change");
                 m_SubsurfaceScattering = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
@@ -377,6 +446,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         SpecularOcclusionMode m_SpecularOcclusionMode;
 
+        [Inspectable("Specular Occlusion Mode", SpecularOcclusionMode.Off)]
         public SpecularOcclusionMode specularOcclusionMode
         {
             get { return m_SpecularOcclusionMode; }
@@ -385,6 +455,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_SpecularOcclusionMode == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Specular Occlusion Mode Change");
                 m_SpecularOcclusionMode = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -394,6 +465,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_overrideBakedGI;
 
+        [Inspectable("Override Baked GI", false)]
         public ToggleData overrideBakedGI
         {
             get { return new ToggleData(m_overrideBakedGI); }
@@ -401,6 +473,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_overrideBakedGI == value.isOn)
                     return;
+
+                this.owner.owner.RegisterCompleteObjectUndo("overrideBakedGI Change");
                 m_overrideBakedGI = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -410,6 +484,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_depthOffset;
 
+        [Inspectable("Depth Offset", false)]
         public ToggleData depthOffset
         {
             get { return new ToggleData(m_depthOffset); }
@@ -417,6 +492,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_depthOffset == value.isOn)
                     return;
+
+                this.owner.owner.RegisterCompleteObjectUndo("DepthOffset Change");
                 m_depthOffset = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -433,6 +510,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_ZWrite == value.isOn)
                     return;
+                this.owner.owner.RegisterCompleteObjectUndo("ZWrite Change");
                 m_ZWrite = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
@@ -449,6 +527,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_transparentCullMode == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("Transparent Cull Mode Change");
                 m_transparentCullMode = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
@@ -465,6 +544,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_ZTest == value)
                     return;
 
+                this.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
                 m_ZTest = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
@@ -474,6 +554,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_SupportLodCrossFade;
 
+        [Inspectable("Support LOD CrossFade", false)]
         public ToggleData supportLodCrossFade
         {
             get { return new ToggleData(m_SupportLodCrossFade); }
@@ -481,6 +562,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_SupportLodCrossFade == value.isOn)
                     return;
+
+                this.owner.owner.RegisterCompleteObjectUndo("Support LOD CrossFade Change");
                 m_SupportLodCrossFade = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Node);
@@ -515,6 +598,27 @@ namespace UnityEditor.Rendering.HighDefinition
             hash |= (RequiresSplitLighting() ? 0 : 1) << 2;
 
             return hash;
+        }
+
+        // This struct, and the corresponding property below it, exist to expose the master node to the inspector for drawing settings
+        public struct FabricSettings
+        {
+            // Empty struct
+        }
+
+        [Inspectable("HDRP Fabric Settings", null)]
+        public FabricSettings HDFabricSettings { get; private set; }
+
+        // This property exists to expose shaderGUI Override info. to the inspector
+        [Inspectable("ShaderGUI", null)]
+        public ShaderGUIOverrideInfo ShaderGUIInfo
+        {
+            get => new ShaderGUIOverrideInfo(this.OverrideEnabled, this.ShaderGUIOverride);
+            set
+            {
+                this.ShaderGUIOverride = value.ShaderGUIOverride;
+                this.OverrideEnabled = value.OverrideEnabled;
+            }
         }
 
         [SerializeField] private string m_ShaderGUIOverride;
@@ -690,11 +794,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             RemoveSlotsNameNotMatching(validSlots, true);
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            return new FabricSettingsView(this);
         }
 
         public string renderQueueTag
