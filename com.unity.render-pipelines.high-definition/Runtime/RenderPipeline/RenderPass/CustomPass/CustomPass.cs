@@ -289,14 +289,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         protected virtual void Cleanup() {}
 
-        // TODO: mark obsolete all the Set* functions and add a variant that takes a CustomPassContext.
-
         /// <summary>
         /// Bind the camera color buffer as the current render target
         /// </summary>
         /// <param name="cmd"></param>
         /// <param name="bindDepth">if true we bind the camera depth buffer in addition to the color</param>
         /// <param name="clearFlags"></param>
+        [Obsolete("Use directly CoreUtils.SetRenderTarget with the render target of your choice.")]
         protected void SetCameraRenderTarget(CommandBuffer cmd, bool bindDepth = true, ClearFlag clearFlags = ClearFlag.None)
         {
             if (!isExecuting)
@@ -314,6 +313,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd"></param>
         /// <param name="bindDepth">if true we bind the custom depth buffer in addition to the color</param>
         /// <param name="clearFlags"></param>
+        [Obsolete("Use directly CoreUtils.SetRenderTarget with the render target of your choice.")]
         protected void SetCustomRenderTarget(CommandBuffer cmd, bool bindDepth = true, ClearFlag clearFlags = ClearFlag.None)
         {
             if (!isExecuting)
