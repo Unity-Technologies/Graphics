@@ -64,12 +64,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Physical settings
         //
 
-        /// <summary>
-        /// Sets the distance to the focus point from the Camera.
-        /// </summary>
-        [Tooltip("Sets the distance to the focus point from the Camera.")]
-        public MinFloatParameter focusDistance = new MinFloatParameter(10f, 0.1f);
-
         // -------------------------------------------
         // Manual settings
         // Note: because they can't mathematically be mapped to physical settings, interpolating

@@ -1200,7 +1200,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
                     float F = camera.camera.focalLength / 1000f;
                     float A = camera.camera.focalLength / m_PhysicalCamera.aperture;
-                    float P = m_DepthOfField.focusDistance.value;
+                    float P = camera.physicalParameters.focusDistance;
                     float maxCoC = (A * F) / Mathf.Max((P - F), 1e-6f);
 
                     kernel = cs.FindKernel("KMainPhysical");
