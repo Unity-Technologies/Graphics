@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for baked AO (no input for now) in AxF
 - Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
 - Added support for rasterized area light shadows in StackLit
+- Added Light decomposition lighting debugging modes and support in AOV
+- Added exposure compensation to Fixed exposure mode
 
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
@@ -55,6 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed raytracing shader compilation on Metal
 - Fixed an issue that was collapsing the volume components in the HDRP default settings
 - Fixed warning about missing bound decal buffer
+- Fixed the debug exposure mode for display sky reflection and debug view baked lighting
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
@@ -64,6 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
+- Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
 
 ## [7.3.0] - 2020-03-11
 
@@ -280,8 +284,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with MipRatio debug mode showing _DebugMatCapTexture not being set.
 - Fixed missing initialization of input params in Blit for VR.
 - Fix Inf source in LTC for area lights.
-<<<<<<< HEAD
-=======
 - Fix issue with AO being misaligned when multiple view are visible.
 - Fix issue that caused the clamp of camera rotation motion for motion blur to be ineffective.
 - Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
@@ -371,7 +373,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed culling of planar reflection probes that change position (case 1218651)
 - Fixed null reference when processing lightprobe (case 1235285)
 - Fix issue causing wrong planar reflection rendering when more than one camera is present.
->>>>>>> 5dea391dea... Fix issues causing planar probes to be broken with multiple cameras in the scene (#4)
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
