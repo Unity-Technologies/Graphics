@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Computes the transform from viewport to normalized device coordinates
-        internal Matrix4x4 ComputeInverseViewportMatrix(HDCamera hdCamera)
+        private Matrix4x4 ComputeInverseViewportMatrix(HDCamera hdCamera)
         {
             float verticalFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
             Vector2 lensShift = hdCamera.camera.GetGateFittedLensShift();
@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, hdCamera.screenSize, Matrix4x4.identity, false, hdCamera.camera.aspect);
         }
 
-        internal Vector4 ComputeDoFConstants(HDCamera hdCamera, PathTracing settings)
+        private Vector4 ComputeDoFConstants(HDCamera hdCamera, PathTracing settings)
         {
             // focalLength is in mm, so we need to convert to meters. We also want the aperture radius, not diameter, so we divide by two.
             float apertureRadius = 0.5f * 0.001f * hdCamera.camera.focalLength / hdCamera.physicalParameters.aperture;
