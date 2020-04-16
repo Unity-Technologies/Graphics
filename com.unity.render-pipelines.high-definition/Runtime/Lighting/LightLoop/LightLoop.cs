@@ -311,6 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer    lightData { get; private set; }
             public ComputeBuffer    envLightData { get; private set; }
             public ComputeBuffer    decalData { get; private set; }
+            public ComputeBuffer    lightFlagData { get; private set; }
 
             public void Initialize(int directionalCount, int punctualCount, int areaLightCount, int envLightCount, int decalCount)
             {
@@ -318,6 +319,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData = new ComputeBuffer(punctualCount + areaLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
                 envLightData = new ComputeBuffer(envLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
                 decalData = new ComputeBuffer(decalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
+                lightFlagData = new ComputeBuffer(512, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightFlagData)));
             }
 
             public void Cleanup()
@@ -326,6 +328,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SafeRelease(lightData);
                 CoreUtils.SafeRelease(envLightData);
                 CoreUtils.SafeRelease(decalData);
+                CoreUtils.SafeRelease(lightFlagData);
             }
         }
 
@@ -478,6 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<DirectionalLightData> directionalLights;
             public List<LightData> lights;
             public List<EnvLightData> envLights;
+            public List<LightFlagData> lightFlags;
             public int punctualLightCount;
             public int areaLightCount;
 
@@ -494,6 +498,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 directionalLights.Clear();
                 lights.Clear();
                 envLights.Clear();
+                lightFlags.Clear();
                 punctualLightCount = 0;
                 areaLightCount = 0;
 
@@ -509,6 +514,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 directionalLights = new List<DirectionalLightData>();
                 lights = new List<LightData>();
                 envLights = new List<EnvLightData>();
+                lightFlags = new List<LightFlagData>();
 
                 lightsPerView = new List<LightsPerView>();
                 for (int i = 0; i < TextureXR.slices; ++i)

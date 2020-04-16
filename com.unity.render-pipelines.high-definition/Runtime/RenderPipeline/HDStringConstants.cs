@@ -159,6 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
         public static readonly int _EnvLightCount = Shader.PropertyToID("_EnvLightCount");
         public static readonly int _EnvProxyCount = Shader.PropertyToID("_EnvProxyCount");
+        public static readonly int _LightFlagDatas = Shader.PropertyToID("_LightFlagDatas");
         public static readonly int _NumTileBigTileX = Shader.PropertyToID("_NumTileBigTileX");
         public static readonly int _NumTileBigTileY = Shader.PropertyToID("_NumTileBigTileY");
         public static readonly int _NumTileFtplX = Shader.PropertyToID("_NumTileFtplX");

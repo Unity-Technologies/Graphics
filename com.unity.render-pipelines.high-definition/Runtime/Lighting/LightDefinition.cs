@@ -169,8 +169,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   isRayTracedContactShadow;
         public float   penumbraTint;
 
-        public Vector3 padding;
+        public float   padding;
         public float   boxLightSafeExtent;
+        public int     lightFlagIndex;
+        public int     lightFlagCount;
     };
 
 
