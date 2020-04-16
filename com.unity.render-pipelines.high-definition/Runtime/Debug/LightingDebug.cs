@@ -10,24 +10,10 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>No lighting debug mode.</summary>
         None,
-        // Caution: Shader code assume that all lighting decomposition mode are contiguous
-        // i.e start with DiffuseLighting and end with EmissiveLighting. Keep those boundary.
         /// <summary>Display only diffuse lighting.</summary>
         DiffuseLighting,
         /// <summary>Display only specular lighting.</summary>
         SpecularLighting,
-        /// <summary>Display only direct diffuse lighting.</summary>
-        DirectDiffuseLighting,
-        /// <summary>Display only direct specular lighting.</summary>
-        DirectSpecularLighting,
-        /// <summary>Display only indirect diffuse lighting.</summary>
-        IndirectDiffuseLighting,
-        /// <summary>Display only reflection.</summary>
-        ReflectionLighting,
-        /// <summary>Display only refraction.</summary>
-        RefractionLighting,
-        /// <summary>Display only Emissive lighting.</summary>
-        EmissiveLighting,
         /// <summary>Display lux values.</summary>
         LuxMeter,
         /// <summary>Display luminance values.</summary>
@@ -42,6 +28,18 @@ namespace UnityEngine.Rendering.HighDefinition
         IndirectDiffuseOcclusion,
         /// <summary>Display indirect specular occlusion.</summary>
         IndirectSpecularOcclusion
+        /// <summary>Display only direct diffuse lighting.</summary>
+        DirectDiffuseLighting,
+        /// <summary>Display only direct specular lighting.</summary>
+        DirectSpecularLighting,
+        /// <summary>Display only indirect diffuse lighting.</summary>
+        IndirectDiffuseLighting,
+        /// <summary>Display only reflection.</summary>
+        ReflectionLighting,
+        /// <summary>Display only refraction.</summary>
+        RefractionLighting,
+        /// <summary>Display only Emissive lighting.</summary>
+        EmissiveLighting,
     }
 
     /// <summary>
