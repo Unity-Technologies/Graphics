@@ -159,6 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_AdvancedSwitch(SerializedProbeVolume serialized, Editor owner)
         {
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
@@ -174,6 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     serialized.advancedFade.boolValue = advanced;
                 }
             }
+#endif
         }
 
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
@@ -189,6 +191,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.size.vector3Value = tmpClamp;
             }
 
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
             Vector3 s = serialized.size.vector3Value;
             EditorGUI.BeginChangeCheck();
             if (serialized.advancedFade.boolValue)
@@ -266,6 +269,8 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.lightLayers);
             EditorGUILayout.PropertyField(serialized.volumeBlendMode, Styles.s_VolumeBlendModeLabel);
             EditorGUILayout.Slider(serialized.weight, 0.0f, 1.0f, Styles.s_WeightLabel);
+#endif
+
             EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
         }
     }

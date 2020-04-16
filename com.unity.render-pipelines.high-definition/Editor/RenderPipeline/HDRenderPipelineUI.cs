@@ -878,6 +878,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
                     EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
 
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth, Styles.probeVolumeAtlasWidth);
                 if (EditorGUI.EndChangeCheck())
@@ -912,6 +913,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue = GlobalProbeVolumeSettings.@default.atlasHeight;
                     serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue = GlobalProbeVolumeSettings.@default.atlasDepth;
                 }
+#endif
 
                 --EditorGUI.indentLevel;
             }

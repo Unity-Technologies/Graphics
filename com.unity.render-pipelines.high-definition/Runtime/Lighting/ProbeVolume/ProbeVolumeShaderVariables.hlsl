@@ -14,8 +14,11 @@
     StructuredBuffer<OrientedBBox> _ProbeVolumeBounds;
     StructuredBuffer<ProbeVolumeEngineData> _ProbeVolumeDatas;
 
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE != PROBEVOLUMESENCODINGMODES_ADAPTIVE
     TEXTURE3D(_ProbeVolumeAtlasSH);
     TEXTURE2D(_ProbeVolumeAtlasOctahedralDepth);
+#endif
+
 #endif
 
 #endif // endof PROBE_VOLUME_SHADER_VARIABLES

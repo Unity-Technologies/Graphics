@@ -766,6 +766,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FaceIndex                      = Shader.PropertyToID("_FaceIndex");
 
         // Probe Volumes
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
         public static readonly int _ProbeVolumeAtlasSH             = Shader.PropertyToID("_ProbeVolumeAtlasSH");
         public static readonly int _ProbeVolumeAtlasResolutionAndSliceCount = Shader.PropertyToID("_ProbeVolumeAtlasResolutionAndSliceCount");
         public static readonly int _ProbeVolumeAtlasResolutionAndSliceCountInverse = Shader.PropertyToID("_ProbeVolumeAtlasResolutionAndSliceCountInverse");
@@ -785,6 +786,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ProbeVolumeAtlasOctahedralDepthWriteTexture = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthWriteTexture");
         public static readonly int _ProbeVolumeAtlasOctahedralDepthScaleBiasTexels = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthScaleBiasTexels");
         public static readonly int _ProbeVolumeAtlasOctahedralDepthRWTexture = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthRWTexture");
+        public static readonly int _ProbeVolumeAtlasSliceMode = Shader.PropertyToID("_ProbeVolumeAtlasSliceMode");
+#endif
         public static readonly int _FilterSampleCount              = Shader.PropertyToID("_FilterSampleCount");
         public static readonly int _FilterSharpness                = Shader.PropertyToID("_FilterSharpness");
         public static readonly int _AtlasTextureSH                 = Shader.PropertyToID("_AtlasTextureSH");
@@ -794,7 +797,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AtlasTextureOctahedralDepth    = Shader.PropertyToID("_AtlasTextureOctahedralDepth");
         public static readonly int _AtlasTextureOctahedralDepthScaleBias = Shader.PropertyToID("_AtlasTextureOctahedralDepthScaleBias");
         public static readonly int _ValidRange                     = Shader.PropertyToID("_ValidRange");
-        public static readonly int _ProbeVolumeAtlasSliceMode      = Shader.PropertyToID("_ProbeVolumeAtlasSliceMode");
     }
 
     // Shared material property names

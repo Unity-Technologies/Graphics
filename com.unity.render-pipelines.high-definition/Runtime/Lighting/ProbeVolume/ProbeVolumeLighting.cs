@@ -84,6 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Pre-allocate sort keys array to max size to avoid creating allocations / garbage at runtime.
         uint[] m_ProbeVolumeSortKeys = new uint[k_MaxVisibleProbeVolumeCount];
 
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
         static ComputeShader s_ProbeVolumeAtlasBlitCS = null;
         static ComputeShader s_ProbeVolumeAtlasOctahedralDepthBlitCS = null;
         static ComputeShader s_ProbeVolumeAtlasOctahedralDepthConvolveCS = null;
@@ -113,6 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_ProbeVolumeAtlasOctahedralDepthRTHandle;
         Texture2DAtlasDynamic probeVolumeAtlasOctahedralDepth = null;
         bool isClearProbeVolumeAtlasRequested = false;
+#endif
 
         // Preallocated scratch memory for storing ambient probe packed SH coefficients, which are used as a fallback when probe volume weight < 1.0.
         static Vector4[] s_AmbientProbeFallbackPackedCoeffs = new Vector4[7];
@@ -124,6 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_SupportProbeVolume = asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
 
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
             s_ProbeVolumeAtlasWidth = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasWidth;
             s_ProbeVolumeAtlasHeight = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasHeight;
             s_ProbeVolumeAtlasDepth = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasDepth;
@@ -132,11 +135,13 @@ namespace UnityEngine.Rendering.HighDefinition
             s_ProbeVolumeAtlasOctahedralDepthWidth = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth;
             s_ProbeVolumeAtlasOctahedralDepthHeight = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight;
             k_MaxProbeVolumeAtlasOctahedralDepthProbeCount = (s_ProbeVolumeAtlasOctahedralDepthWidth / k_ProbeOctahedralDepthWidth) * (s_ProbeVolumeAtlasOctahedralDepthHeight / k_ProbeOctahedralDepthWidth);
+#endif
 
             if (m_SupportProbeVolume)
             {
                 CreateProbeVolumeBuffers();
 
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
                 s_ProbeVolumeAtlasBlitCS = asset.renderPipelineResources.shaders.probeVolumeAtlasBlitCS;
                 s_ProbeVolumeAtlasBlitKernel = s_ProbeVolumeAtlasBlitCS.FindKernel("ProbeVolumeAtlasBlitKernel");
 
@@ -144,15 +149,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_ProbeVolumeAtlasOctahedralDepthBlitKernel = s_ProbeVolumeAtlasOctahedralDepthBlitCS.FindKernel("ProbeVolumeAtlasOctahedralDepthBlitKernel");
                 s_ProbeVolumeAtlasOctahedralDepthConvolveCS = asset.renderPipelineResources.shaders.probeVolumeAtlasOctahedralDepthConvolveCS;
                 s_ProbeVolumeAtlasOctahedralDepthConvolveKernel = s_ProbeVolumeAtlasOctahedralDepthConvolveCS.FindKernel("ProbeVolumeAtlasOctahedralDepthConvolveKernel");
+#endif
             }
             else
             {
                 CreateProbeVolumeBuffersDefault();
             }
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
-        #endif
+#endif
         }
 
         internal void CreateProbeVolumeBuffersDefault()
@@ -167,6 +173,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleProbeVolumeData = new List<ProbeVolumeEngineData>();
             s_VisibleProbeVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             s_VisibleProbeVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
+
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
             s_ProbeVolumeAtlasBlitDataBuffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(SphericalHarmonicsL1)));
             s_ProbeVolumeAtlasBlitDataValidityBuffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(float)));
             s_ProbeVolumeAtlasOctahedralDepthBuffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(float)));
@@ -202,6 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 k_MaxVisibleProbeVolumeCount,
                 m_ProbeVolumeAtlasOctahedralDepthRTHandle
             );
+#endif
         }
 
         internal void DestroyProbeVolumeBuffers()
@@ -210,6 +219,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(s_VisibleProbeVolumeDataBufferDefault);
             CoreUtils.SafeRelease(s_VisibleProbeVolumeBoundsBuffer);
             CoreUtils.SafeRelease(s_VisibleProbeVolumeDataBuffer);
+
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
             CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataBuffer);
             CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataValidityBuffer);
             CoreUtils.SafeRelease(s_ProbeVolumeAtlasOctahedralDepthBuffer);
@@ -225,6 +236,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (probeVolumeAtlasOctahedralDepth != null)
                 probeVolumeAtlasOctahedralDepth.Release();
+#endif
 
             m_VisibleProbeVolumeBounds = null;
             m_VisibleProbeVolumeData = null;
@@ -234,13 +246,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DestroyProbeVolumeBuffers();
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
-        #endif
+#endif
         }
 
         internal void OnLightingDataCleared()
         {
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
             // User requested all lighting data to be cleared.
             // Clear out all block allocations in atlas, and clear out texture data.
             // Clearing out texture data is not strictly necessary,
@@ -248,6 +261,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Note: We do this lazily, in order to trigger the clear during the
             // next frame's render loop on the command buffer.
             isClearProbeVolumeAtlasRequested = true;
+#endif
         }
 
         unsafe void UpdateShaderVariablesGlobalProbeVolumesDefault(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
@@ -281,6 +295,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._EnableProbeVolumes = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) ? 1u : 0u;
             cb._ProbeVolumeCount = (uint)m_VisibleProbeVolumeBounds.Count;
+
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
             cb._ProbeVolumeAtlasResolutionAndSliceCount = new Vector4(
                     s_ProbeVolumeAtlasWidth,
                     s_ProbeVolumeAtlasHeight,
@@ -299,6 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 1.0f / (float)m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.width,
                 1.0f / (float)m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.height
             );
+#endif
 
             var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
             LeakMitigationMode leakMitigationMode = (settings == null)
@@ -346,18 +363,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBuffer);
+
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
             cmd.SetGlobalTexture(HDShaderIDs._ProbeVolumeAtlasSH, m_ProbeVolumeAtlasSHRTHandle);
             cmd.SetGlobalTexture(HDShaderIDs._ProbeVolumeAtlasOctahedralDepth, m_ProbeVolumeAtlasOctahedralDepthRTHandle);
+#endif
         }
 
         internal void PushProbeVolumesGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd)
         {
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBufferDefault);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBufferDefault);
+
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
             cmd.SetGlobalTexture(HDShaderIDs._ProbeVolumeAtlasSH, TextureXR.GetBlackTexture3D());
             cmd.SetGlobalTexture(HDShaderIDs._ProbeVolumeAtlasOctahedralDepth, Texture2D.blackTexture);
+#endif
         }
 
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
         internal void ReleaseProbeVolumeFromAtlas(ProbeVolume volume)
         {
             if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
@@ -578,6 +602,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRenderTarget(m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt, 0, CubemapFace.Unknown, 0);
             cmd.ClearRenderTarget(false, true, Color.black, 0.0f);
         }
+#endif
 
         ProbeVolumeList PrepareVisibleProbeVolumeList(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd)
         {
@@ -594,7 +619,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareProbeVolumeList)))
             {
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
                 ClearProbeVolumeAtlasIfRequested(cmd);
+#endif
 
                 Vector3 camPosition = hdCamera.camera.transform.position;
                 Vector3 camOffset = Vector3.zero;// World-origin-relative
@@ -645,6 +672,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Handle camera-relative rendering.
                     obb.center -= camOffset;
 
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
                     // Frustum cull on the CPU for now. TODO: do it on the GPU.
                     if (GeometryUtils.Overlap(obb, hdCamera.frustum, hdCamera.frustum.planes.Length, hdCamera.frustum.corners.Length))
                     {
@@ -652,18 +680,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         m_ProbeVolumeSortKeys[sortCount++] = PackProbeVolumeSortKey(volume.parameters.volumeBlendMode, logVolume, probeVolumesIndex);
                     }
+#endif
                 }
 
                 CoreUnsafeUtils.QuickSort(m_ProbeVolumeSortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
 
                 for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                 {
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
                     // In 1. we have already classify and sorted the probe volume, we need to use this sorted order here
                     uint sortKey = m_ProbeVolumeSortKeys[sortIndex];
                     int probeVolumesIndex;
                     UnpackProbeVolumeSortKey(sortKey, out probeVolumesIndex);
 
                     ProbeVolume volume = volumes[probeVolumesIndex];
+#else
+                    ProbeVolume volume = volumes[sortIndex];
+#endif
 
                     // TODO: cache these?
                     var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
@@ -674,11 +707,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TODO: cache these?
                     var data = volume.parameters.ConvertToEngineData();
 
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
                     // Note: The system is not aware of slice packing in Z.
                     // Need to modify scale and bias terms just before uploading to GPU.
                     // TODO: Should we make it aware earlier up the chain?
                     data.scale.z = data.scale.z / (float)m_ProbeVolumeAtlasSHRTDepthSliceCount;
                     data.bias.z = data.bias.z / (float)m_ProbeVolumeAtlasSHRTDepthSliceCount;
+#endif
 
                     m_VisibleProbeVolumeBounds.Add(obb);
                     m_VisibleProbeVolumeData.Add(data);
@@ -691,6 +726,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 probeVolumes.bounds = m_VisibleProbeVolumeBounds;
                 probeVolumes.data = m_VisibleProbeVolumeData;
 
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
                 // For now, only upload one volume per frame.
                 // This is done:
                 // 1) To timeslice upload cost across N frames for N volumes.
@@ -731,11 +767,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 PushProbeVolumesGlobalParams(hdCamera, cmd);
-
+#endif
                 return probeVolumes;
             }
+
         }
 
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
         internal static float CalculateProbeVolumeLogVolume(Vector3 size)
         {
             //Notes:
@@ -786,7 +824,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 textureViewResolution = new Vector3(s_ProbeVolumeAtlasWidth, s_ProbeVolumeAtlasHeight, s_ProbeVolumeAtlasDepth);
             Vector4 atlasTextureOctahedralDepthScaleBias = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             if (UnityEditor.Selection.activeGameObject != null)
             {
                 var selectedProbeVolume = UnityEditor.Selection.activeGameObject.GetComponent<ProbeVolume>();
@@ -811,7 +849,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
-        #endif
+#endif
 
             // Note: The system is not aware of slice packing in Z.
             // Need to modify scale and bias terms just before uploading to GPU.
@@ -844,6 +882,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
             cmd.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("ProbeVolume"), MeshTopology.Triangles, 3, 1, propertyBlock);
         }
+#endif
 
     } // class ProbeVolumeLighting
 } // namespace UnityEngine.Experimental.Rendering.HDPipeline

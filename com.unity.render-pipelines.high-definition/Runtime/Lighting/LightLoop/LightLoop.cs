@@ -4294,6 +4294,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDebug)))
                 {
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
                     if (lightingDebug.probeVolumeDebugMode == ProbeVolumeDebugMode.VisualizeAtlas)
                     {
                         HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -4301,7 +4302,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         hdrp.DisplayProbeVolumeAtlas(cmd, debugDisplayProbeVolumeMaterial, x, y, overlaySize, overlaySize, lightingDebug.probeVolumeMinValue, lightingDebug.probeVolumeMaxValue, (int)lightingDebug.probeVolumeAtlasSliceMode);
                         HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                     }
-
+#endif
                 }
             }
         }

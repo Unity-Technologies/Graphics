@@ -17,11 +17,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             this.root = root;
 
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
             atlasWidth = root.Find((GlobalProbeVolumeSettings s) => s.atlasWidth);
             atlasHeight = root.Find((GlobalProbeVolumeSettings s) => s.atlasHeight);
             atlasDepth = root.Find((GlobalProbeVolumeSettings s) => s.atlasDepth);
             atlasOctahedralDepthWidth = root.Find((GlobalProbeVolumeSettings s) => s.atlasOctahedralDepthWidth);
             atlasOctahedralDepthHeight = root.Find((GlobalProbeVolumeSettings s) => s.atlasOctahedralDepthHeight);
+#endif
         }
     }
 }

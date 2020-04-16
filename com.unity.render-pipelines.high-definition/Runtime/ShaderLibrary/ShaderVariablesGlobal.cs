@@ -233,9 +233,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint     _EnableRecursiveRayTracing;
 
         // Probe Volumes
+#if !PROBEVOLUMES_ENCODING_ADAPTIVE
         public Vector4  _ProbeVolumeAtlasResolutionAndSliceCount;
         public Vector4  _ProbeVolumeAtlasResolutionAndSliceCountInverse;
         public Vector4  _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
+#endif
 
         public int      _ProbeVolumeLeakMitigationMode;
         public float    _ProbeVolumeNormalBiasWS;

@@ -21,7 +21,7 @@ float ProbeVolumeComputeFadeFactor(
 
     return dstF * fade;
 }
-
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE != PROBEVOLUMESENCODINGMODES_ADAPTIVE
 void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
     out float weights[8],
     float3 probeVolumeTexel3DMin,
@@ -124,6 +124,7 @@ void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
         weights[i] = clamp(weights[i], (RECURSIVE ? 0.1 : 0.0), 1.01);
     }
 }
+#endif
 
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
 float3 EvaluateProbeVolumesMaterialPass(inout float probeVolumeHierarchyWeight, PositionInputs posInput, float3 normalWS, uint renderingLayers)
@@ -131,6 +132,11 @@ float3 EvaluateProbeVolumesMaterialPass(inout float probeVolumeHierarchyWeight, 
 float3 EvaluateProbeVolumesLightLoop(inout float probeVolumeHierarchyWeight, PositionInputs posInput, float3 normalWS, uint renderingLayers, uint featureFlags)
 #endif
 {
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_ADAPTIVE
+
+    return float3(0, 0, 0);
+#else
+
 #if !SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
     if (probeVolumeHierarchyWeight >= 1.0) { return float3(0.0, 0.0, 0.0); }
 #endif
@@ -484,6 +490,7 @@ float3 EvaluateProbeVolumesLightLoop(inout float probeVolumeHierarchyWeight, Pos
     }
 
     return probeVolumeDiffuseLighting;
+#endif
 }
 
 // Fallback to global ambient probe lighting when probe volume lighting weight is not fully saturated.
