@@ -102,6 +102,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
 - Added a frame setting for alpha to mask.
 - Added support for custom passes in the AOV API
+- Added Light decomposition lighting debugging modes and support in AOV
+- Added exposure compensation to Fixed exposure mode
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -522,6 +524,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed path validation when creating new volume profile (case 1229933)
 - Fix reflection hierarchy for CARPAINT in AxF.
 - Fix precise fresnel for delta lights for SVBRDF in AxF.
+- Fixed the debug exposure mode for display sky reflection and debug view baked lighting
+- Fixed MSAA depth resolve when there is no motion vectors
+- Fixed various object leaks in HDRP.
+- Fixed compile error with XR SubsystemManager.
+- Fix for assertion triggering sometimes when saving a newly created lit shader graph (case 1230996)
+- Fixed culling of planar reflection probes that change position (case 1218651)
+- Fixed null reference when processing lightprobe (case 1235285)
+- Fix issue causing wrong planar reflection rendering when more than one camera is present.
+- Fix black screen in XR when HDRP package is present but not used.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -631,6 +642,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
 - Moved scene view camera settings for HDRP from the preferences window to the scene view camera settings window.
 - Updated shaders to be compatible with Microsoft's DXC.
+- Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
 
 ## [7.1.1] - 2019-09-05
 
@@ -650,6 +662,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added override Ambient Occlusion option on debug windows
 - Added Custom Post Processes with 3 injection points: Before Transparent, Before Post Process and After Post Process
 - Added draft of minimal interactive path tracing (experimental) based on DXR API - Support only 4 area light, lit and unlit shader (non-shadergraph)
+- Small adjustments to TAA anti flicker (more aggressive on high values).
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation

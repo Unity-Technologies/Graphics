@@ -59,7 +59,6 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     float4 _DebugLightingMaterialValidatePureMetalColor;
     float4 _MousePixelCoord;
     float4 _MouseClickPixelCoord;
-    float _DebugExposure;
     int _MatcapMixAlbedo;
     float _MatcapViewScale;
     int _DebugSingleShadowIndex;

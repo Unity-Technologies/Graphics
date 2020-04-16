@@ -35,7 +35,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _MousePixelCoord;  // xy unorm, zw norm
         public Vector4 _MouseClickPixelCoord;  // xy unorm, zw norm
 
-        public float _DebugExposure;
         public int _MatcapMixAlbedo;
         public float _MatcapViewScale;
         public int _DebugSingleShadowIndex;
@@ -1126,11 +1125,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
 
-            if (DebugNeedsExposure() || data.lightingDebugSettings.displaySkyReflection
-                    || data.lightingDebugSettings.displayPlanarReflectionProbeAtlas
-                    || data.lightingDebugSettings.displayCookieAtlas
-                    || data.lightingDebugSettings.displayCookieCubeArray)
-                list.Add(new DebugUI.FloatField { displayName = "Debug Exposure", getter = () => data.lightingDebugSettings.debugExposure, setter = value => data.lightingDebugSettings.debugExposure = value });
+            list.Add(new DebugUI.FloatField { displayName = "Debug Exposure Compensation", getter = () => data.lightingDebugSettings.debugExposure, setter = value => data.lightingDebugSettings.debugExposure = value });
 
             m_DebugLightingItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelLighting, true);
@@ -1547,7 +1542,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsDebugDisplayRemovePostprocess()
         {
-            // We want to keep post process when only the override more are enabled and none of the other
             return data.materialDebugSettings.IsDebugDisplayEnabled() || data.lightingDebugSettings.IsDebugDisplayRemovePostprocess() || data.mipMapDebugSettings.IsDebugDisplayEnabled();
         }
 
@@ -1572,16 +1566,30 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal bool DebugHideSky(HDCamera hdCamera)
+        {
+            return (IsMatcapViewEnabled(hdCamera) ||
+                    GetDebugLightingMode() ==  DebugLightingMode.DiffuseLighting ||
+                    GetDebugLightingMode() == DebugLightingMode.SpecularLighting ||
+                    GetDebugLightingMode() == DebugLightingMode.DirectDiffuseLighting ||
+                    GetDebugLightingMode() == DebugLightingMode.DirectSpecularLighting ||
+                    GetDebugLightingMode() == DebugLightingMode.IndirectDiffuseLighting ||
+                    GetDebugLightingMode() == DebugLightingMode.ReflectionLighting ||
+                    GetDebugLightingMode() == DebugLightingMode.RefractionLighting
+                    );
+        }
+
         internal bool DebugNeedsExposure()
         {
             DebugLightingMode debugLighting = data.lightingDebugSettings.debugLightingMode;
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
             ProbeVolumeDebugMode debugProbeVolume = data.lightingDebugSettings.probeVolumeDebugMode;
-            return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
-                (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
-                (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
-                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.RayTracedGlobalIllumination ||
-                (debugLighting == DebugLightingMode.ProbeVolume || debugProbeVolume == ProbeVolumeDebugMode.VisualizeAtlas);
+            return  (debugLighting == DebugLightingMode.DirectDiffuseLighting || debugLighting == DebugLightingMode.DirectSpecularLighting || debugLighting == DebugLightingMode.IndirectDiffuseLighting || debugLighting == DebugLightingMode.ReflectionLighting || debugLighting == DebugLightingMode.RefractionLighting || debugLighting == DebugLightingMode.EmissiveLighting ||
+                    debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
+                    (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
+                    (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
+                    (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.RayTracedGlobalIllumination ||
+                    (debugLighting == DebugLightingMode.ProbeVolume || debugProbeVolume == ProbeVolumeDebugMode.VisualizeAtlas);
         }
     }
 }
