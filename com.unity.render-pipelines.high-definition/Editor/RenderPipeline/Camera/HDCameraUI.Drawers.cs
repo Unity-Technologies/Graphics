@@ -377,6 +377,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         cam.focalLength.floatValue = focalLengthVal;
                 }
 
+                EditorGUILayout.PropertyField(p.focusDistance, focusDistanceContent);
                 EditorGUILayout.PropertyField(p.aperture, apertureContent);
                 EditorGUILayout.PropertyField(cam.lensShift, lensShiftContent);
             }

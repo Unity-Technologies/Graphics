@@ -22,6 +22,10 @@ float4x4 _PixelCoordToViewDirWS;
 int      _RaytracingCameraSkyEnabled;
 float3   _RaytracingCameraClearColor;
 
+// DoF related parameters
+float4x4 _InvViewportTransform;
+float4   _PathTracedDoFConstants;     // x: aperture radius, y: focus distance, zw: unused
+
 // Output(s)
 RWTexture2D<float4> _RadianceTexture;
 
@@ -53,6 +57,13 @@ void MissMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
 }
 
+float2 UniformPointWithinCircle(float radius, float u1, float u2)
+{
+    float r = radius * sqrt(u1);
+    float theta = 2 * u2 * PI;
+	return float2(r * cos(theta), r * sin(theta));
+}
+
 [shader("raygeneration")]
 void RayGen()
 {
@@ -66,12 +77,47 @@ void RayGen()
     jitteredPixelCoord.x += GetSample(currentPixelCoord, _RaytracingSampleIndex, 40);
     jitteredPixelCoord.y += GetSample(currentPixelCoord, _RaytracingSampleIndex, 41);
 
-    // Compute the ray direction, from those coordinates
-    float3 directionWS = -normalize(mul(jitteredPixelCoord, (float3x3)_PixelCoordToViewDirWS));
+    float3 directionWS;
+    float3 cameraPosWS;
+
+    float apertureRadius = _PathTracedDoFConstants.x;
+    if (apertureRadius == 0.0)
+    {
+        // Compute the ray direction, from those coordinates for a pinhole camera
+        directionWS = -normalize(mul(jitteredPixelCoord, (float3x3)_PixelCoordToViewDirWS));
+        cameraPosWS = _WorldSpaceCameraPos;
+    }
+    else
+    {
+        float focusDistance = _PathTracedDoFConstants.y;
+
+        // Apply the inverse viewport transform to go from vieport coordinates to NDC
+        jitteredPixelCoord = mul(jitteredPixelCoord, (float3x3)_InvViewportTransform);
+
+        // Sample the lens apperture
+        float r1 = GetSample(currentPixelCoord, _RaytracingSampleIndex, 106);
+        float r2 = GetSample(currentPixelCoord, _RaytracingSampleIndex, 107);
+        float2 uv = UniformPointWithinCircle(apertureRadius, r1, r2);
+
+        // Compute the new ray origin
+        float3x3 camera = -_ViewMatrix;
+        // camera[0] = left, camera[1] = up, camera[2] = forward
+        float3 focusPoint = _WorldSpaceCameraPos + camera[2] * focusDistance;
+        cameraPosWS = _WorldSpaceCameraPos + camera[0] * uv.x + camera[1] * uv.y;
+
+        // create the new orthonormal basis
+        float3 newForward = normalize(cameraPosWS - focusPoint);
+        float3 newLeft = cross(camera[1], newForward);
+        float3 newUp = cross(newLeft, newForward);
+
+        // Compute the ray direction using the new orthonormal basis
+        float3x3 newRotation = float3x3(newLeft, newUp, newForward);
+        directionWS = -normalize(mul(jitteredPixelCoord, newRotation));
+    }
 
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;
-    rayDescriptor.Origin = _WorldSpaceCameraPos;
+    rayDescriptor.Origin = cameraPosWS;
     rayDescriptor.Direction = directionWS;
     rayDescriptor.TMin = _RaytracingCameraNearPlane;
     rayDescriptor.TMax = FLT_INF;

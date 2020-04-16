@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Lens
         // Note: focalLength is already defined in the regular camera component
         [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture = 16f;
+        [SerializeField] [Min(0f)] float m_FocusDistance = 1.0f;
 
         // Aperture shape
         [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount = 5;
@@ -110,6 +111,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get => m_Anamorphism;
             set => m_Anamorphism = Mathf.Clamp(value, -1f, 1f);
+        }
+
+        /// <summary>
+        /// The focus distancec of the camera.
+        /// </summary>
+        public float focusDistance
+        {
+            get => m_FocusDistance;
+            set => m_FocusDistance = Mathf.Max(value, 0f);
         }
 
         /// <summary>
