@@ -971,7 +971,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool resolutionChanged = (hdCamera.actualWidth > m_MaxCameraWidth) || (hdCamera.actualHeight > m_MaxCameraHeight);
 
-            if (resolutionChanged || LightLoopNeedResize(hdCamera, m_TileAndClusterData))
+            if (resolutionChanged)
             {
                 // update recorded window resolution
                 m_MaxCameraWidth = Mathf.Max(m_MaxCameraWidth, hdCamera.actualWidth);
@@ -1789,7 +1789,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // The HDProbe store only one RenderData per probe, however RenderData can be view dependent (e.g. planar probes).
                             // To avoid that the render data for the wrong view is used, we previously store a copy of the render data
-                            // for each viewer and we are going to set it on the probe right before said viewer is rendered. 
+                            // for each viewer and we are going to set it on the probe right before said viewer is rendered.
                             foreach (var probeDataPair in renderRequest.viewDependentProbesData)
                             {
                                 var probe = probeDataPair.Item2;
@@ -2122,7 +2122,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     void Callback(CommandBuffer c, HDCamera cam)
                     {
                         var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                        var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam);
+                        var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam, m_ProbeVolumeClusterData);
                         PushProbeVolumeLightListGlobalParams(globalParams, c);
                     }
                 }
@@ -2130,7 +2130,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     BuildGPULightListProbeVolumesCommon(hdCamera, cmd);
                     var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                    var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera);
+                    var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_ProbeVolumeClusterData);
                     PushProbeVolumeLightListGlobalParams(globalParams, cmd);
                 }
             }
@@ -2297,7 +2297,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     void Callback(CommandBuffer c, HDCamera cam)
                     {
                         var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                        var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam);
+                        var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam, m_TileAndClusterData);
                         PushLightLoopGlobalParams(globalParams, c);
                     }
                 }
