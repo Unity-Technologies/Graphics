@@ -106,7 +106,7 @@ void RayGen()
         // create the new orthonormal basis
         float3 newForward = normalize(cameraPosWS - focusPoint);
         float3 newRight = cross(newForward, _ViewMatrix[1]);
-        float3 newUp = cross(newLeft, newForward);
+        float3 newUp = cross(newRight, newForward);
 
         // Compute the ray direction using the new orthonormal basis
         float3x3 newRotation = float3x3(newRight, newUp, newForward);
