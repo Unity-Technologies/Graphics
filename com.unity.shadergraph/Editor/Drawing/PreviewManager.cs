@@ -441,6 +441,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         private static readonly ProfilerMarker ProcessCompletedShaderCompilationsMarker = new ProfilerMarker("ProcessCompletedShaderCompilations");
+        private int compileFailRekicks = 0;
         void ProcessCompletedShaderCompilations()
         {
             // Check for shaders that finished compiling and set them to redraw
@@ -455,7 +456,19 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if (shaderData.passesCompiling != renderData.shaderData.mat.passCount)
                     {
-                        Debug.LogWarning("WARNING, shader pass count changed while compiling preview shader, preview may not complete");
+                        // attempt to re-kick the compilation a few times
+                        compileFailRekicks++;
+                        if (compileFailRekicks <= 3)
+                        {
+                            renderData.shaderData.passesCompiling = 0;
+                            m_NodesNeedsRecompile.Add(node);
+                            nodesCompiled.Add(node);
+                            continue;
+                        }
+                        else if (compileFailRekicks == 4)
+                        {
+                            Debug.LogWarning("Unexpected error in compiling preview shaders: some previews might not update. You can try to re-open the Shader Graph window, or select <b>Help > Report a Bug</b> in the menu and report this bug.");
+                        }
                     }
 
                     // check that all passes have compiled
