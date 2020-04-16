@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static void Initialize()
         {
-            customPassUtilsMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassUtils);
+            customPassUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassUtils);
             downSamplePassIndex = customPassUtilsMaterial.FindPass("Downsample");
             verticalBlurPassIndex = customPassUtilsMaterial.FindPass("VerticalBlur");
             horizontalBlurPassIndex = customPassUtilsMaterial.FindPass("HorizontalBlur");
