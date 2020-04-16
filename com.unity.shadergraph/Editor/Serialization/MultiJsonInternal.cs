@@ -253,5 +253,35 @@ namespace UnityEditor.ShaderGraph.Serialization
                 isSerializing = false;
             }
         }
+
+        public static void PopulateValueMap(JsonObject mainObject)
+        {
+            if (isSerializing)
+            {
+                throw new InvalidOperationException("Nested MultiJson serialization is not supported.");
+            }
+
+            try
+            {
+                isSerializing = true;
+
+                serializedSet.Add(mainObject.objectId);
+                serializationQueue.Add(mainObject);
+
+                // Not a foreach because the queue is populated by `JsonRef<T>`s as we go.
+                for (var i = 0; i < serializationQueue.Count; i++)
+                {
+                    var value = serializationQueue[i];
+                    EditorJsonUtility.ToJson(value, true);
+                    valueMap[value.objectId] = value;
+                }
+            }
+            finally
+            {
+                serializationQueue.Clear();
+                serializedSet.Clear();
+                isSerializing = false;
+            }
+        }
     }
 }

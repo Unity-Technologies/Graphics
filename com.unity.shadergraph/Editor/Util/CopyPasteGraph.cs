@@ -62,6 +62,8 @@ namespace UnityEditor.ShaderGraph
                     AddNote(stickyNote);
             }
 
+            var nodeSet = new HashSet<AbstractMaterialNode>();
+
             if (nodes != null)
             {
                 foreach (var node in nodes.Distinct())
@@ -71,6 +73,7 @@ namespace UnityEditor.ShaderGraph
                         throw new InvalidOperationException($"Cannot copy node {node.name} ({node.objectId}).");
                     }
 
+                    nodeSet.Add(node);
                     AddNode(node);
                     foreach (var edge in NodeUtils.GetAllEdges(node))
                         AddEdge((Edge)edge);
@@ -100,43 +103,44 @@ namespace UnityEditor.ShaderGraph
                 foreach (var metaKeyword in metaKeywords.Distinct())
                     AddMetaKeyword(metaKeyword);
             }
+
+            m_Edges = m_Edges
+                .Distinct()
+                .Where(edge => nodeSet.Contains(edge.inputSlot.node))
+                .ToList();
         }
 
-        public void AddGroup(GroupData group)
+        void AddGroup(GroupData group)
         {
             m_Groups.Add(group);
         }
 
-        public void AddNote(StickyNoteData stickyNote)
+        void AddNote(StickyNoteData stickyNote)
         {
             m_StickyNotes.Add(stickyNote);
         }
 
-        public void AddNode(AbstractMaterialNode node)
+        void AddNode(AbstractMaterialNode node)
         {
             m_Nodes.Add(node);
         }
 
-        public void AddEdge(Edge edge)
+        void AddEdge(Edge edge)
         {
-            // This should probably be optimized
-            if (!m_Edges.Contains(edge))
-            {
-                m_Edges.Add(edge);
-            }
+            m_Edges.Add(edge);
         }
 
-        public void AddInput(ShaderInput input)
+        void AddInput(ShaderInput input)
         {
             m_Inputs.Add(input);
         }
 
-        public void AddMetaProperty(AbstractShaderProperty metaProperty)
+        void AddMetaProperty(AbstractShaderProperty metaProperty)
         {
             m_MetaProperties.Add(metaProperty);
         }
 
-        public void AddMetaKeyword(ShaderKeyword metaKeyword)
+        void AddMetaKeyword(ShaderKeyword metaKeyword)
         {
             m_MetaKeywords.Add(metaKeyword);
         }
@@ -178,12 +182,12 @@ namespace UnityEditor.ShaderGraph
             get { return m_SourceGraphGuid; }
         }
 
-        internal static CopyPasteGraph FromJson(string copyBuffer)
+        internal static CopyPasteGraph FromJson(string copyBuffer, GraphData targetGraph)
         {
             try
             {
                 // TODO: Provide existing graph for hooking up references
-                return MultiJson.Deserialize<CopyPasteGraph>(copyBuffer, true);
+                return MultiJson.Deserialize<CopyPasteGraph>(copyBuffer, targetGraph);
             }
             catch
             {

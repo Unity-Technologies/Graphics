@@ -678,14 +678,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool CanPasteSerializedDataImplementation(string serializedData)
         {
-            return CopyPasteGraph.FromJson(serializedData) != null;
+            return CopyPasteGraph.FromJson(serializedData, graph) != null;
         }
 
         void UnserializeAndPasteImplementation(string operationName, string serializedData)
         {
             graph.owner.RegisterCompleteObjectUndo(operationName);
 
-            var pastedGraph = CopyPasteGraph.FromJson(serializedData);
+            var pastedGraph = CopyPasteGraph.FromJson(serializedData, graph);
             this.InsertCopyPasteGraph(pastedGraph);
         }
 
