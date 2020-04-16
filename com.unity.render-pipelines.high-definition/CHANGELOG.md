@@ -537,6 +537,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the specularFGD term being used when the material has a clear coat (lit shader).
 - Fixed white flash happening with auto-exposure in some cases (case 1223774)
 - Fixed NaN which can appear with real time reflection and inf value
+- Fixed an issue that was collapsing the volume components in the HDRP default settings
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
