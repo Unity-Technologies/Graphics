@@ -11,7 +11,10 @@
 void ApplyDebugToLighting(LightLoopContext context, inout BuiltinData builtinData, inout AggregateLighting aggregateLighting)
 {
 #ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode >= DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING && _DebugLightingMode <= DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING ||
+        _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_SPECULAR_LIGHTING ||
+        _DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTION_LIGHTING ||
+        _DebugLightingMode == DEBUGLIGHTINGMODE_REFRACTION_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
     {
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_SPECULAR_LIGHTING ||
