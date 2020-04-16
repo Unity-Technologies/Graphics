@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cullingParameters.cullingMask |= (uint)(int)layerMask;
         }
 
-        protected ShaderTagId[] GetShaderTagIds()
+        ShaderTagId[] GetShaderTagIds()
         {
             if (shaderPass == ShaderPass.DepthPrepass)
                 return depthShaderTags;
