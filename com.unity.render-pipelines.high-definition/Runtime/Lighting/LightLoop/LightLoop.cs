@@ -2409,15 +2409,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var probe = cullResults.visibleReflectionProbes[probeIndex];
 
+                    if (probe.reflectionProbe == null
+                        || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled
+                        || !aovRequest.IsLightEnabled(probe.reflectionProbe.gameObject))
+                        continue;
+
                     ref ProcessedProbeData processedData = ref m_ProcessedReflectionProbeData[probeIndex];
                     PreprocessReflectionProbeData(ref processedData, probe, hdCamera);
 
                     if (TrivialRejectProbe(processedData, hdCamera))
-                        continue;
-
-                    if (probe.reflectionProbe == null
-                        || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled
-                        || !aovRequest.IsLightEnabled(probe.reflectionProbe.gameObject))
                         continue;
 
                     // Work around the data issues.
@@ -3150,7 +3150,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
                     // to changes to the inner workings of the lists.
                     // Also, we clear all the lists and to be resilient to changes in pipeline.
-                    ClearLightList(hdCamera, cmd, resources.tileAndClusterData.bigTileLightList);
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                        ClearLightList(hdCamera, cmd, resources.tileAndClusterData.bigTileLightList);
                     ClearLightList(hdCamera, cmd, resources.tileAndClusterData.lightList);
                     ClearLightList(hdCamera, cmd, resources.tileAndClusterData.perVoxelOffset);
 
