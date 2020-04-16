@@ -11,6 +11,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/MipMapDebug.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/ColorPickerDebug.cs.hlsl"
 
+
 // Local shader variables
 static DirectionalShadowType g_DebugShadowAttenuation = 0;
 

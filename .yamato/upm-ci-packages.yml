@@ -3,6 +3,7 @@ editors:
   - version: 2020.1
   - version: fast-trunk
   - version: fast-2020.1
+  - version: CUSTOM-REVISION
 packages:
   - name: Core
     id: core
