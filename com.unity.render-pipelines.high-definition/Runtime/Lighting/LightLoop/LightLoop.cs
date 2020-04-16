@@ -2180,6 +2180,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int directionalLightcount = 0;
             int punctualLightcount = 0;
             int areaLightCount = 0;
+            int lightFlagOffset = 0;
 
             // Now that all the lights have requested a shadow resolution, we can layout them in the atlas
             // And if needed rescale the whole atlas
@@ -2227,8 +2228,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 var additionalLightData = processedData.additionalLightData;
 
                 int shadowIndex = -1;
-
-                int lightFlagOffset = 0;
 
                 // Manage shadow requests
                 if (additionalLightData.WillRenderShadowMap())
