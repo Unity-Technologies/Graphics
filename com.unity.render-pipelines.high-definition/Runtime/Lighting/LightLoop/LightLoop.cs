@@ -2506,15 +2506,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var probe = cullResults.visibleReflectionProbes[probeIndex];
 
+                    if (probe.reflectionProbe == null
+                        || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled
+                        || !aovRequest.IsLightEnabled(probe.reflectionProbe.gameObject))
+                        continue;
+
                     ref ProcessedProbeData processedData = ref m_ProcessedReflectionProbeData[probeIndex];
                     PreprocessReflectionProbeData(ref processedData, probe, hdCamera);
 
                     if (TrivialRejectProbe(processedData, hdCamera))
-                        continue;
-
-                    if (probe.reflectionProbe == null
-                        || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled
-                        || !aovRequest.IsLightEnabled(probe.reflectionProbe.gameObject))
                         continue;
 
                     // Work around the data issues.

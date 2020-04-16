@@ -104,6 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for custom passes in the AOV API
 - Added Light decomposition lighting debugging modes and support in AOV
 - Added exposure compensation to Fixed exposure mode
+- Added support for rasterized area light shadows in StackLit
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -528,6 +529,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed MSAA depth resolve when there is no motion vectors
 - Fixed various object leaks in HDRP.
 - Fixed compile error with XR SubsystemManager.
+- Fix for assertion triggering sometimes when saving a newly created lit shader graph (case 1230996)
+- Fixed culling of planar reflection probes that change position (case 1218651)
+- Fixed null reference when processing lightprobe (case 1235285)
+- Fix issue causing wrong planar reflection rendering when more than one camera is present.
+- Fix black screen in XR when HDRP package is present but not used.
+- Fixed an issue with the specularFGD term being used when the material has a clear coat (lit shader).
+- Fixed white flash happening with auto-exposure in some cases (case 1223774)
+- Fixed NaN which can appear with real time reflection and inf value
+- Fixed an issue that was collapsing the volume components in the HDRP default settings
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
