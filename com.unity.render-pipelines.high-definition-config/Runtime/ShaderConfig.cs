@@ -21,6 +21,13 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL(PackingRules.Exact)]
+    public enum ProbeVolumesEncodingModes
+    {
+        Regular = 0,
+        Adaptive = 1,
+    }
+
+    [GenerateHLSL(PackingRules.Exact)]
     public enum ShaderOptions
     {
         CameraRelativeRendering = 1, // Rendering sets the origin of the world to the position of the primary (scene view) camera
@@ -36,6 +43,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
         XrMaxViews = 1,
 #endif
+
+        // Select the encoding of ProbeVolumes: Regular (simple 3D textures) or Adaptive (an adaptive brick structure).
+        ProbeVolumesEncodingMode = ProbeVolumesEncodingModes.Adaptive,
 
         // Warning: Probe Volumes is a highly experimental feature. It is disabled by default for this reason.
         // It's functionality is subject to breaking changes and whole sale removal.
@@ -63,6 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_XrMaxViews = (int)ShaderOptions.XrMaxViews;
         public static int s_PrecomputedAtmosphericAttenuation = (int)ShaderOptions.PrecomputedAtmosphericAttenuation;
         public static ProbeVolumesEvaluationModes s_ProbeVolumesEvaluationMode = (ProbeVolumesEvaluationModes)ShaderOptions.ProbeVolumesEvaluationMode;
+        public static ProbeVolumesEncodingModes s_ProbeVolumeEncodingMode = (ProbeVolumesEncodingModes)ShaderOptions.ProbeVolumesEncodingMode;
         public static int s_ProbeVolumesAdditiveBlending = (int)ShaderOptions.ProbeVolumesAdditiveBlending;
         public static int s_AreaLights = (int)ShaderOptions.AreaLights;
         public static int s_BarnDoor = (int)ShaderOptions.BarnDoor;
