@@ -545,8 +545,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (scope == ModificationScope.Topological)
             {
                 // #TODO: Inspector - Temporary workaround to only allow nodes that aren't master nodes to try and recreate their settings
-                var masterNode = (IMasterNode) node;
-                if (masterNode == null)
+                var masterNode = node as IMasterNode;
+                if (masterNode is null)
                 {
                     RecreateSettings();
                 }
