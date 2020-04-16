@@ -82,14 +82,28 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Do we provide an upsample function ?
-        // public static void UpSample(CustomPassContext ctx, RTHandle source, RTHandle destination)
-        // {
-        //     Debug.Log("TODO");
-        // }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="sourceMip"></param>
+        /// <param name="destMip"></param>
         public static void Copy(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sourceMip = 0, int destMip = 0)
             => Copy(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sourceMip, destMip);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="sourceScaleBias"></param>
+        /// <param name="destScaleBias"></param>
+        /// <param name="sourceMip"></param>
+        /// <param name="destMip"></param>
         public static void Copy(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sourceMip = 0, int destMip = 0)
         {
             if (source == destination)
@@ -107,9 +121,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="sampleCount"></param>
+        /// <param name="radius"></param>
+        /// <param name="sourceMip"></param>
+        /// <param name="destMip"></param>
         public static void VerticalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
             => VerticalGaussianBlur(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sampleCount, radius, sourceMip, destMip);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="sourceScaleBias"></param>
+        /// <param name="destScaleBias"></param>
+        /// <param name="sampleCount"></param>
+        /// <param name="radius"></param>
+        /// <param name="sourceMip"></param>
+        /// <param name="destMip"></param>
         public static void VerticalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
         {
             if (source == destination)
@@ -128,9 +164,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="sampleCount"></param>
+        /// <param name="radius"></param>
+        /// <param name="sourceMip"></param>
+        /// <param name="destMip"></param>
         public static void HorizontalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
             => HorizontalGaussianBlur(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sampleCount, radius, sourceMip, destMip);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="sourceScaleBias"></param>
+        /// <param name="destScaleBias"></param>
+        /// <param name="sampleCount"></param>
+        /// <param name="radius"></param>
+        /// <param name="sourceMip"></param>
+        /// <param name="destMip"></param>
         public static void HorizontalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
         {
             if (source == destination)
@@ -149,9 +207,35 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="tempTarget"></param>
+        /// <param name="sampleCount"></param>
+        /// <param name="radius"></param>
+        /// <param name="sourceMip"></param>
+        /// <param name="destMip"></param>
+        /// <param name="downSample"></param>
         public static void GaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, RTHandle tempTarget, int sampleCount = 9, float radius = 5, int sourceMip = 0, int destMip = 0, bool downSample = true)
             => GaussianBlur(ctx, source, destination, tempTarget, fullScreenScaleBias, fullScreenScaleBias, sampleCount, radius, sourceMip, destMip, downSample);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="tempTarget"></param>
+        /// <param name="sourceScaleBias"></param>
+        /// <param name="destScaleBias"></param>
+        /// <param name="sampleCount"></param>
+        /// <param name="radius"></param>
+        /// <param name="sourceMip"></param>
+        /// <param name="destMip"></param>
+        /// <param name="downSample"></param>
         public static void GaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, RTHandle tempTarget, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 9, float radius = 5, int sourceMip = 0, int destMip = 0, bool downSample = true)
         {
             if (source == tempTarget || destination == tempTarget)
@@ -187,11 +271,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Simpler version of ScriptableRenderContext.DrawRenderers to draw HDRP materials.
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="renderQueueFilter"></param>
+        /// <param name="overrideMaterial"></param>
+        /// <param name="overideMaterialIndex"></param>
         public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overideMaterialIndex = 0)
         {
+            PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
+
             var result = new RendererListDesc(litForwardTags, ctx.cullingResults, ctx.hdCamera.camera)
             {
-                rendererConfiguration = PerObjectData.None,
+                rendererConfiguration = renderConfig,
                 renderQueueRange = GetRenderQueueRangeFromRenderQueueType(renderQueueFilter),
                 sortingCriteria = SortingCriteria.BackToFront,
                 excludeObjectMotionVectors = false,
@@ -202,35 +296,10 @@ namespace UnityEngine.Rendering.HighDefinition
             HDUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
         }
 
-        public static void DrawShadowMap(in CustomPassContext ctx, RTHandle destination, Camera view, LayerMask layerMask)
-        {
-            var result = new RendererListDesc(litForwardTags, ctx.cullingResults, ctx.hdCamera.camera)
-            {
-                rendererConfiguration = PerObjectData.None,
-                renderQueueRange = RenderQueueRange.all,
-                sortingCriteria = SortingCriteria.BackToFront,
-                excludeObjectMotionVectors = false,
-                layerMask = layerMask,
-                // stateBlock = new RenderStateBlock(RenderStateMask.Depth){ depthState = new DepthState(true, CompareFunction.LessEqual)},
-            };
-
-            var hdrp = HDRenderPipeline.currentPipeline;
-            // ctx.hdCamera.SetupGlobalParams(ctx.cmd, hdrp.m_)
-
-            CoreUtils.SetRenderTarget(ctx.cmd, destination, ClearFlag.Depth);
-            HDUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
-        }
-
-        // Render objects from the view in parameter
-        public static void RenderFrom(in CustomPassContext ctx, RTHandle destination, Camera view, LayerMask layerMask)
-        {
-            
-        }
-
         /// <summary>
         /// Generate gaussian weights for a given number of samples
         /// </summary>
-        /// <param name="weightCount"></param>
+        /// <param name="weightCount">number of weights you want to generate</param>
         /// <returns>a GPU compute buffer containing the weights</returns>
         internal static ComputeBuffer GetGaussianWeights(int weightCount)
 		{
@@ -268,6 +337,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return gpuWeights;
 		}
 
+        /// <summary>
+        /// Convert a Custom Pass render queue type to a RenderQueueRange that can be used in DrawRenderers
+        /// </summary>
+        /// <param name="type">The type of render queue</param>
+        /// <returns>The converted render queue range</returns>
         public static RenderQueueRange GetRenderQueueRangeFromRenderQueueType(CustomPass.RenderQueueType type)
         {
             switch (type)

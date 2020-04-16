@@ -178,11 +178,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 SetCustomPassTarget(cmd);
 
                 // Create the custom pass context:
+                bool msaa = IsMSAAEnabled(hdCamera);
                 CustomPassContext ctx = new CustomPassContext(
                     renderContext, cmd, hdCamera,
-                    cullingResult, targets.cameraColorBuffer,
-                    rtManager.GetDepthStencilBuffer(IsMSAAEnabled(hdCamera)),
-                    rtManager.GetNormalBuffer(IsMSAAEnabled(hdCamera)),
+                    cullingResult, msaa ? targets.cameraColorMSAABuffer : targets.cameraColorBuffer,
+                    rtManager.GetDepthStencilBuffer(msaa),
+                    rtManager.GetNormalBuffer(msaa),
                     targets.customColorBuffer,
                     targets.customDepthBuffer,
                     userMaterialPropertyBlock
