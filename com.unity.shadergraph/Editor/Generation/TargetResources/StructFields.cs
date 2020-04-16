@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
             public static FieldDescriptor instanceID = new FieldDescriptor(Attributes.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
             public static FieldDescriptor vertexID = new FieldDescriptor(Attributes.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint,
-                "VERTEXID", subscriptOptions: StructFieldOptions.Optional);
+                "SV_VertexID", subscriptOptions: StructFieldOptions.Optional);
         }
 
         public struct Varyings
