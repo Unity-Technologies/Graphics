@@ -62,69 +62,45 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return m_Renderer2DData;
         }
 
-        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        void CreateRenderTextures(
+            ref CameraData cameraData,
+            bool forceCreateColorTexture,
+            FilterMode colorTextureFilterMode,
+            CommandBuffer cmd,
+            out RenderTargetHandle colorTargetHandle,
+            out RenderTargetHandle depthTargetHandle)
         {
-            ref CameraData cameraData = ref renderingData.cameraData;
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
-            bool cameraHasPostProcess = renderingData.cameraData.postProcessEnabled;
-            bool stackHasPostProcess = renderingData.postProcessingEnabled;
-            bool lastCameraInStack = cameraData.resolveFinalTarget;
-
-            PixelPerfectCamera ppc = null;
-            RenderTargetHandle colorTargetHandle;
-            RenderTargetHandle depthTargetHandle;
 
             if (cameraData.renderType == CameraRenderType.Base)
             {
-                cameraData.camera.TryGetComponent(out ppc);
-                Vector2Int ppcOffscreenRTSize = ppc != null ? ppc.offscreenRTSize : Vector2Int.zero;
-                bool ppcUsesOffscreenRT = ppcOffscreenRTSize != Vector2Int.zero;
-                
-                m_CreateColorTexture = ppcUsesOffscreenRT || cameraHasPostProcess || cameraData.isHdrEnabled || cameraData.isSceneViewCamera || !cameraData.isDefaultViewport
-                    || !m_UseDepthStencilBuffer || !lastCameraInStack;
+                m_CreateColorTexture = forceCreateColorTexture
+                    || cameraData.postProcessEnabled
+                    || cameraData.isHdrEnabled
+                    || cameraData.isSceneViewCamera
+                    || !cameraData.isDefaultViewport
+                    || !m_UseDepthStencilBuffer
+                    || !cameraData.resolveFinalTarget;
 
-                m_CreateDepthTexture = !lastCameraInStack && m_UseDepthStencilBuffer;
+                m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;
 
-                // Pixel Perfect Camera may request a different RT size than camera VP size.
-                // In that case we need to modify cameraTargetDescriptor here so that all the passes would use the same size.
-                if (ppcUsesOffscreenRT)
+                colorTargetHandle = m_CreateColorTexture ? k_ColorTextureHandle : RenderTargetHandle.CameraTarget;
+                depthTargetHandle = m_CreateDepthTexture ? k_DepthTextureHandle : colorTargetHandle;
+
+                if (m_CreateColorTexture)
                 {
-                    cameraTargetDescriptor.width = ppcOffscreenRTSize.x;
-                    cameraTargetDescriptor.height = ppcOffscreenRTSize.y;
+                    var colorDescriptor = cameraTargetDescriptor;
+                    colorDescriptor.depthBufferBits = m_CreateDepthTexture || !m_UseDepthStencilBuffer ? 0 : 32;
+                    cmd.GetTemporaryRT(k_ColorTextureHandle.id, colorDescriptor, colorTextureFilterMode);
                 }
 
-                colorTargetHandle = RenderTargetHandle.CameraTarget;
-                depthTargetHandle = RenderTargetHandle.CameraTarget;
-
-                if (m_CreateColorTexture || m_CreateDepthTexture)
+                if (m_CreateDepthTexture)
                 {
-                    CommandBuffer cmd = CommandBufferPool.Get("Create Camera Textures");
-
-                    if (m_CreateColorTexture)
-                    {
-                        var filterMode = ppc != null ? ppc.finalBlitFilterMode : FilterMode.Bilinear;
-                        var colorDescriptor = cameraTargetDescriptor;
-                        colorDescriptor.depthBufferBits = m_CreateDepthTexture || !m_UseDepthStencilBuffer ? 0 : 32;
-                        cmd.GetTemporaryRT(k_ColorTextureHandle.id, colorDescriptor, filterMode);
-
-                        colorTargetHandle = k_ColorTextureHandle;
-                    }
-
-                    if (m_CreateDepthTexture)
-                    {
-                        var depthDescriptor = cameraTargetDescriptor;
-                        depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                        depthDescriptor.depthBufferBits = 32;
-                        depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
-                        cmd.GetTemporaryRT(k_DepthTextureHandle.id, depthDescriptor, FilterMode.Point);
-
-                        depthTargetHandle = k_DepthTextureHandle;
-                    }
-                    else
-                        depthTargetHandle = colorTargetHandle;
-
-                    context.ExecuteCommandBuffer(cmd);
-                    CommandBufferPool.Release(cmd);
+                    var depthDescriptor = cameraTargetDescriptor;
+                    depthDescriptor.colorFormat = RenderTextureFormat.Depth;
+                    depthDescriptor.depthBufferBits = 32;
+                    depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
+                    cmd.GetTemporaryRT(k_DepthTextureHandle.id, depthDescriptor, FilterMode.Point);
                 }
             }
             else    // Overlay camera
@@ -137,6 +113,48 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 colorTargetHandle = k_ColorTextureHandle;
                 depthTargetHandle = k_DepthTextureHandle;
             }
+        }
+
+        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            ref CameraData cameraData = ref renderingData.cameraData;
+            ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
+            bool stackHasPostProcess = renderingData.postProcessingEnabled;
+            bool lastCameraInStack = cameraData.resolveFinalTarget;
+            var colorTextureFilterMode = FilterMode.Bilinear;
+
+            PixelPerfectCamera ppc = null;
+            bool ppcUsesOffscreenRT = false;
+            bool ppcUpscaleRT = false;
+
+            // Pixel Perfect Camera doesn't support camera stacking.
+            if (cameraData.renderType == CameraRenderType.Base && lastCameraInStack)
+            {
+                cameraData.camera.TryGetComponent(out ppc);
+                if (ppc != null)
+                {
+                    if (ppc.offscreenRTSize != Vector2Int.zero)
+                    {
+                        ppcUsesOffscreenRT = true;
+
+                        // Pixel Perfect Camera may request a different RT size than camera VP size.
+                        // In that case we need to modify cameraTargetDescriptor here so that all the passes would use the same size.
+                        cameraTargetDescriptor.width = ppc.offscreenRTSize.x;
+                        cameraTargetDescriptor.height = ppc.offscreenRTSize.y;
+                    }
+
+                    colorTextureFilterMode = ppc.finalBlitFilterMode;
+                    ppcUpscaleRT = ppc.upscaleRT && ppc.isRunning;
+                }
+            }
+
+            RenderTargetHandle colorTargetHandle;
+            RenderTargetHandle depthTargetHandle;
+
+            CommandBuffer cmd = CommandBufferPool.Get("Create Camera Textures");
+            CreateRenderTextures(ref cameraData, ppcUsesOffscreenRT, colorTextureFilterMode, cmd, out colorTargetHandle, out depthTargetHandle);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
 
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
 
@@ -153,12 +171,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
             // so FXAA is not supported (you don't want to apply FXAA when everything is intentionally pixelated).
-            bool ppcUpscaleRT = ppc != null && ppc.upscaleRT && ppc.isRunning;
-
             bool requireFinalPostProcessPass =
                 lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
-            if (cameraHasPostProcess)
+            if (cameraData.postProcessEnabled)
             {
                 RenderTargetHandle postProcessDestHandle =
                     lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? RenderTargetHandle.CameraTarget : k_AfterPostProcessColorHandle;
