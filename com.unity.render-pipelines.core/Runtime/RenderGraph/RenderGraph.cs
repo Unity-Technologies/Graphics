@@ -94,6 +94,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Maximum number of MRTs supported by Render Graph.</summary>
         public static readonly int kMaxMRTCount = 8;
 
+        [DebuggerDisplay("RenderPass ({name})")]
         internal abstract class RenderPass
         {
             internal RenderFunc<PassData> GetExecuteDelegate<PassData>()
