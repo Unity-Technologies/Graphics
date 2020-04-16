@@ -544,7 +544,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Update slots to match node modification
             if (scope == ModificationScope.Topological)
             {
-                RecreateSettings();
+                // #TODO: Inspector - Temporary workaround to only allow nodes that aren't master nodes to try and recreate their settings
+                var masterNode = (IMasterNode) node;
+                if (masterNode == null)
+                {
+                    RecreateSettings();
+                }
 
                 var slots = node.GetSlots<MaterialSlot>().ToList();
 
