@@ -1,791 +1,348 @@
-// using System;
-// using UnityEditor.UIElements;
-// using UnityEngine;
-// using UnityEngine.UIElements;
-// using UnityEditor.Graphing.Util;
-// using UnityEditor.ShaderGraph;
-// using UnityEditor.ShaderGraph.Internal;
-// using UnityEditor.ShaderGraph.Drawing;
-// using UnityEditor.ShaderGraph.Drawing.Controls;
-// using UnityEngine.Rendering.HighDefinition;
-// using UnityEngine.Rendering;
-
-// namespace UnityEditor.Rendering.HighDefinition.Drawing
-// {
-//     class HDLitSettingsView : MasterNodeSettingsView
-//     {
-//         HDLitMasterNode m_Node;
-
-//         IntegerField m_SortPriorityField;
-
-//         Label CreateLabel(string text, int indentLevel)
-//         {
-//             string label = "";
-//             for (var i = 0; i < indentLevel; i++)
-//             {
-//                 label += "    ";
-//             }
-//             return new Label(label + text);
-//         }
-
-//         public HDLitSettingsView(HDLitMasterNode node) : base(node)
-//         {
-//             m_Node = node;
-//             PropertySheet ps = new PropertySheet();
-
-//             int indentLevel = 0;
-
-//             ps.Add(new PropertyRow(CreateLabel("Ray Tracing (Preview)", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.rayTracing.isOn;
-//                     toggle.RegisterValueChangedCallback(ChangeRayTracingFlag);
-//                 });
-//             });
-
-//             ps.Add(new PropertyRow(CreateLabel("Surface Type", indentLevel)), (row) =>
-//             {
-//                 row.Add(new EnumField(SurfaceType.Opaque), (field) =>
-//                 {
-//                     field.value = m_Node.surfaceType;
-//                     field.RegisterValueChangedCallback(ChangeSurfaceType);
-//                 });
-//             });
-
-//             ++indentLevel;
-//             switch (m_Node.surfaceType)
-//             {
-//                 case SurfaceType.Opaque:
-//                     ps.Add(new PropertyRow(CreateLabel("Rendering Pass", indentLevel)), (row) =>
-//                     {
-//                         var valueList = HDSubShaderUtilities.GetRenderingPassList(true, false);
-
-//                         row.Add(new PopupField<HDRenderQueue.RenderQueueType>(valueList, HDRenderQueue.RenderQueueType.Opaque, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName), (field) =>
-//                         {
-//                             field.value = HDRenderQueue.GetOpaqueEquivalent(m_Node.renderingPass);
-//                             field.RegisterValueChangedCallback(ChangeRenderingPass);
-//                         });
-//                     });
-//                     break;
-//                 case SurfaceType.Transparent:
-//                     ps.Add(new PropertyRow(CreateLabel("Rendering Pass", indentLevel)), (row) =>
-//                     {
-//                         Enum defaultValue;
-//                         switch (m_Node.renderingPass) // Migration
-//                         {
-//                             default: //when deserializing without issue, we still need to init the default to something even if not used.
-//                             case HDRenderQueue.RenderQueueType.Transparent:
-//                                 defaultValue = HDRenderQueue.TransparentRenderQueue.Default;
-//                                 break;
-//                             case HDRenderQueue.RenderQueueType.PreRefraction:
-//                                 defaultValue = HDRenderQueue.TransparentRenderQueue.BeforeRefraction;
-//                                 break;
-//                         }
-
-//                         var valueList = HDSubShaderUtilities.GetRenderingPassList(false, false);
-
-//                         row.Add(new PopupField<HDRenderQueue.RenderQueueType>(valueList, HDRenderQueue.RenderQueueType.Transparent, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName), (field) =>
-//                         {
-//                             field.value = HDRenderQueue.GetTransparentEquivalent(m_Node.renderingPass);
-//                             field.RegisterValueChangedCallback(ChangeRenderingPass);
-//                         });
-//                     });
-//                     break;
-//                 default:
-//                     throw new ArgumentException("Unknown SurfaceType");
-//             }
-//             --indentLevel;
-
-//             if (m_Node.surfaceType == SurfaceType.Transparent)
-//             {
-//                 ++indentLevel;
-
-//                 if (!m_Node.HasRefraction())
-//                 {
-//                     ps.Add(new PropertyRow(CreateLabel("Blending Mode", indentLevel)), (row) =>
-//                     {
-//                         row.Add(new EnumField(HDLitMasterNode.AlphaModeLit.Additive), (field) =>
-//                         {
-//                             field.value = GetAlphaModeLit(m_Node.alphaMode);
-//                             field.RegisterValueChangedCallback(ChangeBlendMode);
-//                         });
-//                     });
-
-//                     ++indentLevel;
-//                     ps.Add(new PropertyRow(CreateLabel("Preserve Specular Lighting", indentLevel)), (row) =>
-//                     {
-//                         row.Add(new Toggle(), (toggle) =>
-//                         {
-//                             toggle.value = m_Node.blendPreserveSpecular.isOn;
-//                             toggle.OnToggleChanged(ChangeBlendPreserveSpecular);
-//                         });
-//                     });
-//                     --indentLevel;
-//                 }
-
-//                 m_SortPriorityField = new IntegerField();
-//                 ps.Add(new PropertyRow(CreateLabel("Sorting Priority", indentLevel)), (row) =>
-//                 {
-//                     row.Add(m_SortPriorityField, (field) =>
-//                     {
-//                         field.value = m_Node.sortPriority;
-//                         field.RegisterValueChangedCallback(ChangeSortPriority);
-//                     });
-//                 });
-
-//                 ps.Add(new PropertyRow(CreateLabel("Receive Fog", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.transparencyFog.isOn;
-//                         toggle.OnToggleChanged(ChangeTransparencyFog);
-//                     });
-//                 });
-
-//                 ps.Add(new PropertyRow(CreateLabel("Back Then Front Rendering", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.backThenFrontRendering.isOn;
-//                         toggle.OnToggleChanged(ChangeBackThenFrontRendering);
-//                     });
-//                 });
-
-//                 ps.Add(new PropertyRow(CreateLabel("Transparent Depth Prepass", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.alphaTestDepthPrepass.isOn;
-//                         toggle.OnToggleChanged(ChangeAlphaTestPrepass);
-//                     });
-//                 });
-
-//                 ps.Add(new PropertyRow(CreateLabel("Transparent Depth Postpass", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.alphaTestDepthPostpass.isOn;
-//                         toggle.OnToggleChanged(ChangeAlphaTestPostpass);
-//                     });
-//                 });
-
-//                 ps.Add(new PropertyRow(CreateLabel("Transparent Writes Motion Vector", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.transparentWritesMotionVec.isOn;
-//                         toggle.OnToggleChanged(ChangeTransparentWritesMotionVec);
-//                     });
-//                 });
-
-//                 if (m_Node.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction)
-//                 {
-//                     ps.Add(new PropertyRow(CreateLabel("Refraction Model", indentLevel)), (row) =>
-//                     {
-//                         row.Add(new EnumField(ScreenSpaceRefraction.RefractionModel.None), (field) =>
-//                         {
-//                             field.value = m_Node.refractionModel;
-//                             field.RegisterValueChangedCallback(ChangeRefractionModel);
-//                         });
-//                     });
-//                 }
-
-//                 ps.Add(new PropertyRow(CreateLabel("Distortion", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.distortion.isOn;
-//                         toggle.OnToggleChanged(ChangeDistortion);
-//                     });
-//                 });
-
-//                 if (m_Node.distortion.isOn)
-//                 {
-//                     ++indentLevel;
-//                     ps.Add(new PropertyRow(CreateLabel("Distortion Blend Mode", indentLevel)), (row) =>
-//                     {
-//                         row.Add(new EnumField(DistortionMode.Add), (field) =>
-//                         {
-//                             field.value = m_Node.distortionMode;
-//                             field.RegisterValueChangedCallback(ChangeDistortionMode);
-//                         });
-//                     });
-//                     ps.Add(new PropertyRow(CreateLabel("Distortion Depth Test", indentLevel)), (row) =>
-//                     {
-//                         row.Add(new Toggle(), (toggle) =>
-//                         {
-//                             toggle.value = m_Node.distortionDepthTest.isOn;
-//                             toggle.OnToggleChanged(ChangeDistortionDepthTest);
-//                         });
-//                     });
-//                     --indentLevel;
-//                 }
-
-//                 ps.Add(new PropertyRow(CreateLabel("Depth Write", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.zWrite.isOn;
-//                         toggle.OnToggleChanged(ChangeZWrite);
-//                     });
-//                 });
-
-//                 if (m_Node.doubleSidedMode == DoubleSidedMode.Disabled)
-//                 {
-//                     ps.Add(new PropertyRow(CreateLabel("Cull Mode", indentLevel)), (row) =>
-//                     {
-//                         row.Add(new EnumField(m_Node.transparentCullMode), (e) =>
-//                         {
-//                             e.value = m_Node.transparentCullMode;
-//                             e.RegisterValueChangedCallback(ChangeTransparentCullMode);
-//                         });
-//                     });
-//                 }
-
-//                 ps.Add(new PropertyRow(CreateLabel("Depth Test", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new EnumField(m_Node.zTest), (e) =>
-//                     {
-//                         e.value = m_Node.zTest;
-//                         e.RegisterValueChangedCallback(ChangeZTest);
-//                     });
-//                 });
-
-//                 --indentLevel;
-//             }
-
-//             ps.Add(new PropertyRow(CreateLabel("Double-Sided", indentLevel)), (row) =>
-//             {
-//                 row.Add(new EnumField(DoubleSidedMode.Disabled), (field) =>
-//                 {
-//                     field.value = m_Node.doubleSidedMode;
-//                     field.RegisterValueChangedCallback(ChangeDoubleSidedMode);
-//                 });
-//             });
-
-//             ps.Add(new PropertyRow(CreateLabel("Fragment Normal Space", indentLevel)), (row) =>
-//             {
-//                 row.Add(new EnumField(NormalDropOffSpace.Tangent), (field) =>
-//                 {
-//                     field.value = m_Node.normalDropOffSpace;
-//                     field.RegisterValueChangedCallback(ChangeSpaceOfNormalDropOffMode);
-//                 });
-//             });
-
-//             ps.Add(new PropertyRow(CreateLabel("Alpha Clipping", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.alphaTest.isOn;
-//                     toggle.OnToggleChanged(ChangeAlphaTest);
-//                 });
-//             });
-
-//             if (m_Node.alphaTest.isOn)
-//             {
-//                 ++indentLevel;
-//                 ps.Add(new PropertyRow(CreateLabel("Use Shadow Threshold", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.alphaTestShadow.isOn;
-//                         toggle.OnToggleChanged(ChangeAlphaTestShadow);
-//                     });
-//                 });
-
-//                 ps.Add(new PropertyRow(CreateLabel("Alpha to Mask", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.alphaToMask.isOn;
-//                         toggle.OnToggleChanged(ChangeAlphaToMask);
-//                     });
-//                 });
-//                 --indentLevel;
-//             }
-
-//             ps.Add(new PropertyRow(CreateLabel("Material Type", indentLevel)), (row) =>
-//             {
-//                 row.Add(new EnumField(HDLitMasterNode.MaterialType.Standard), (field) =>
-//                 {
-//                     field.value = m_Node.materialType;
-//                     field.RegisterValueChangedCallback(ChangeMaterialType);
-//                 });
-//             });
-
-//             ++indentLevel;
-//             if (m_Node.materialType == HDLitMasterNode.MaterialType.SubsurfaceScattering)
-//             {
-//                 ps.Add(new PropertyRow(CreateLabel("Transmission", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.sssTransmission.isOn;
-//                         toggle.OnToggleChanged(ChangeSSSTransmission);
-//                     });
-//                 });
-//             }
-
-//             if (m_Node.materialType == HDLitMasterNode.MaterialType.SpecularColor)
-//             {
-//                 ps.Add(new PropertyRow(CreateLabel("Energy Conserving Specular", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.energyConservingSpecular.isOn;
-//                         toggle.OnToggleChanged(ChangeEnergyConservingSpecular);
-//                     });
-//                 });
-//             }
-//             --indentLevel;
-
-//             ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.receiveDecals.isOn;
-//                     toggle.OnToggleChanged(ChangeDecal);
-//                 });
-//             });
-
-//             ps.Add(new PropertyRow(CreateLabel("Receive SSR", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     if (m_Node.surfaceType == SurfaceType.Transparent)
-//                     {
-//                         toggle.value = m_Node.receiveSSRTransparent.isOn;
-//                         toggle.OnToggleChanged(ChangeSSRTransparent);
-//                     }
-//                     else
-//                     {
-//                         toggle.value = m_Node.receiveSSR.isOn;
-//                         toggle.OnToggleChanged(ChangeSSR);
-//                     }
-//                 });
-//             });
-
-//             ps.Add(new PropertyRow(CreateLabel("Add Precomputed Velocity", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.addPrecomputedVelocity.isOn;
-//                     toggle.OnToggleChanged(ChangeAddPrecomputedVelocity);
-//                 });
-//             });
-
-
-//             ps.Add(new PropertyRow(CreateLabel("Geometric Specular AA", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.specularAA.isOn;
-//                     toggle.OnToggleChanged(ChangeSpecularAA);
-//                 });
-//             });
-
-//             ps.Add(new PropertyRow(CreateLabel("Specular Occlusion Mode", indentLevel)), (row) =>
-//             {
-//                 row.Add(new EnumField(SpecularOcclusionMode.Off), (field) =>
-//                 {
-//                     field.value = m_Node.specularOcclusionMode;
-//                     field.RegisterValueChangedCallback(ChangeSpecularOcclusionMode);
-//                 });
-//             });
-
-//             ps.Add(new PropertyRow(CreateLabel("Override Baked GI", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.overrideBakedGI.isOn;
-//                     toggle.OnToggleChanged(ChangeoverrideBakedGI);
-//                 });
-//             });
-
-//             ps.Add(new PropertyRow(CreateLabel("Depth Offset", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.depthOffset.isOn;
-//                     toggle.OnToggleChanged(ChangeDepthOffset);
-//                 });
-//             });
-//             ps.Add(new PropertyRow(CreateLabel("Support LOD CrossFade", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.supportLodCrossFade.isOn;
-//                     toggle.OnToggleChanged(ChangeSupportLODCrossFade);
-//                 });
-//             });
-
-//             Add(ps);
-//             Add(GetShaderGUIOverridePropertySheet());
-//         }
-
-//         void ChangeRayTracingFlag(ChangeEvent<bool> evt)
-//         {
-//             if (Equals(m_Node.rayTracing, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Ray Tracing Flag Change");
-//             ToggleData rt = m_Node.rayTracing;
-//             rt.isOn = evt.newValue;
-//             m_Node.rayTracing = rt;
-//         }
-
-//         void ChangeSurfaceType(ChangeEvent<Enum> evt)
-//         {
-//             if (Equals(m_Node.surfaceType, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Surface Type Change");
-//             m_Node.surfaceType = (SurfaceType)evt.newValue;
-
-//             UpdateRenderingPassValue(m_Node.renderingPass);
-//         }
-
-//         void ChangeDoubleSidedMode(ChangeEvent<Enum> evt)
-//         {
-//             if (Equals(m_Node.doubleSidedMode, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Double-Sided Mode Change");
-//             m_Node.doubleSidedMode = (DoubleSidedMode)evt.newValue;
-//         }
-
-//         void ChangeSpaceOfNormalDropOffMode(ChangeEvent<Enum> evt)
-//         {
-//               if (Equals(m_Node.normalDropOffSpace, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Normal Space Drop-Off Mode Change");
-//             m_Node.normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
-//         }
-
-//         void ChangeMaterialType(ChangeEvent<Enum> evt)
-//         {
-//             if (Equals(m_Node.materialType, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Material Type Change");
-//             m_Node.materialType = (HDLitMasterNode.MaterialType)evt.newValue;
-//         }
-
-//         void ChangeSSSTransmission(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("SSS Transmission Change");
-//             ToggleData td = m_Node.sssTransmission;
-//             td.isOn = evt.newValue;
-//             m_Node.sssTransmission = td;
-//         }
-
-//         void ChangeBlendMode(ChangeEvent<Enum> evt)
-//         {
-//             // Make sure the mapping is correct by handling each case.
-
-//             AlphaMode alphaMode = GetAlphaMode((HDLitMasterNode.AlphaModeLit)evt.newValue);
-
-//             if (Equals(m_Node.alphaMode, alphaMode))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Mode Change");
-//             m_Node.alphaMode = alphaMode;
-//         }
-
-//         void ChangeRenderingPass(ChangeEvent<HDRenderQueue.RenderQueueType> evt)
-//         {
-//             switch (evt.newValue)
-//             {
-//                 case HDRenderQueue.RenderQueueType.Overlay:
-//                 case HDRenderQueue.RenderQueueType.Unknown:
-//                 case HDRenderQueue.RenderQueueType.Background:
-//                     throw new ArgumentException("Unexpected kind of RenderQueue, was " + evt.newValue);
-//                 default:
-//                     break;
-//             };
-//             UpdateRenderingPassValue(evt.newValue);
-//         }
-
-//         void UpdateRenderingPassValue(HDRenderQueue.RenderQueueType newValue)
-//         {
-//             HDRenderQueue.RenderQueueType renderingPass;
-//             switch (m_Node.surfaceType)
-//             {
-//                 case SurfaceType.Opaque:
-//                     renderingPass = HDRenderQueue.GetOpaqueEquivalent(newValue);
-//                     break;
-//                 case SurfaceType.Transparent:
-//                     renderingPass = HDRenderQueue.GetTransparentEquivalent(newValue);
-//                     break;
-//                 default:
-//                     throw new ArgumentException("Unknown SurfaceType");
-//             }
-
-//             if (Equals(m_Node.renderingPass, renderingPass))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Rendering Pass Change");
-//             m_Node.renderingPass = renderingPass;
-//         }
-
-//         void ChangeBlendPreserveSpecular(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Blend Preserve Specular Change");
-//             ToggleData td = m_Node.blendPreserveSpecular;
-//             td.isOn = evt.newValue;
-//             m_Node.blendPreserveSpecular = td;
-//         }
-
-//         void ChangeTransparencyFog(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Transparency Fog Change");
-//             ToggleData td = m_Node.transparencyFog;
-//             td.isOn = evt.newValue;
-//             m_Node.transparencyFog = td;
-//         }
-
-//         void ChangeRefractionModel(ChangeEvent<Enum> evt)
-//         {
-//             if (Equals(m_Node.refractionModel, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Refraction Model Change");
-//             m_Node.refractionModel = (ScreenSpaceRefraction.RefractionModel)evt.newValue;
-//         }
-
-//         void ChangeDistortion(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Distortion Change");
-//             ToggleData td = m_Node.distortion;
-//             td.isOn = evt.newValue;
-//             m_Node.distortion = td;
-//         }
-
-//         void ChangeDistortionMode(ChangeEvent<Enum> evt)
-//         {
-//             if (Equals(m_Node.distortionMode, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Distortion Mode Change");
-//             m_Node.distortionMode = (DistortionMode)evt.newValue;
-//         }
-
-//         void ChangeDistortionDepthTest(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Distortion Depth Test Change");
-//             ToggleData td = m_Node.distortionDepthTest;
-//             td.isOn = evt.newValue;
-//             m_Node.distortionDepthTest = td;
-//         }
-
-//         void ChangeBackThenFrontRendering(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Back Then Front Rendering Change");
-//             ToggleData td = m_Node.backThenFrontRendering;
-//             td.isOn = evt.newValue;
-//             m_Node.backThenFrontRendering = td;
-//         }
-
-//         void ChangeSortPriority(ChangeEvent<int> evt)
-//         {
-//             m_Node.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(evt.newValue);
-//             // Force the text to match.
-//             m_SortPriorityField.value = m_Node.sortPriority;
-//             if (Equals(m_Node.sortPriority, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Sort Priority Change");
-//         }
-
-//         void ChangeAlphaTest(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Change");
-//             ToggleData td = m_Node.alphaTest;
-//             td.isOn = evt.newValue;
-//             m_Node.alphaTest = td;
-//         }
-
-//         void ChangeAlphaTestPrepass(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Prepass Change");
-//             ToggleData td = m_Node.alphaTestDepthPrepass;
-//             td.isOn = evt.newValue;
-//             m_Node.alphaTestDepthPrepass = td;
-//         }
-
-//         void ChangeAlphaTestPostpass(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Postpass Change");
-//             ToggleData td = m_Node.alphaTestDepthPostpass;
-//             td.isOn = evt.newValue;
-//             m_Node.alphaTestDepthPostpass = td;
-//         }
-//         void ChangeTransparentWritesMotionVec(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Transparent Writes Motion Vector Change");
-//             ToggleData td = m_Node.transparentWritesMotionVec;
-//             td.isOn = evt.newValue;
-//             m_Node.transparentWritesMotionVec = td;
-//         }
-//         void ChangeAlphaTestShadow(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Shadow Change");
-//             ToggleData td = m_Node.alphaTestShadow;
-//             td.isOn = evt.newValue;
-//             m_Node.alphaTestShadow = td;
-//         }
-
-//         void ChangeDecal(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Decal Change");
-//             ToggleData td = m_Node.receiveDecals;
-//             td.isOn = evt.newValue;
-//             m_Node.receiveDecals = td;
-//         }
-
-//         void ChangeSSR(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("SSR Change");
-//             ToggleData td = m_Node.receiveSSR;
-//             td.isOn = evt.newValue;
-//             m_Node.receiveSSR = td;
-//         }
-
-//         void ChangeSSRTransparent(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("SSR Change");
-//             ToggleData td = m_Node.receiveSSRTransparent;
-//             td.isOn = evt.newValue;
-//             m_Node.receiveSSRTransparent = td;
-//         }
-
-//         void ChangeAddPrecomputedVelocity(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Add Precomputed Velocity");
-//             ToggleData td = m_Node.addPrecomputedVelocity;
-//             td.isOn = evt.newValue;
-//             m_Node.addPrecomputedVelocity = td;
-//         }
-
-//         void ChangeSpecularAA(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Specular AA Change");
-//             ToggleData td = m_Node.specularAA;
-//             td.isOn = evt.newValue;
-//             m_Node.specularAA = td;
-//         }
-
-//         void ChangeEnergyConservingSpecular(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Energy Conserving Specular Change");
-//             ToggleData td = m_Node.energyConservingSpecular;
-//             td.isOn = evt.newValue;
-//             m_Node.energyConservingSpecular = td;
-//         }
-
-//         void ChangeSpecularOcclusionMode(ChangeEvent<Enum> evt)
-//         {
-//             if (Equals(m_Node.specularOcclusionMode, evt.newValue))
-//             return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Specular Occlusion Mode Change");
-//             m_Node.specularOcclusionMode = (SpecularOcclusionMode)evt.newValue;
-//         }
-
-//         void ChangeoverrideBakedGI(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("overrideBakedGI Change");
-//             ToggleData td = m_Node.overrideBakedGI;
-//             td.isOn = evt.newValue;
-//             m_Node.overrideBakedGI = td;
-//         }
-
-//         void ChangeDepthOffset(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("DepthOffset Change");
-//             ToggleData td = m_Node.depthOffset;
-//             td.isOn = evt.newValue;
-//             m_Node.depthOffset = td;
-//         }
-
-//         void ChangeSupportLODCrossFade(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Support LOD CrossFade Change");
-//             ToggleData td = m_Node.supportLodCrossFade;
-//             td.isOn = evt.newValue;
-//             m_Node.supportLodCrossFade = td;
-//         }
-
-//         void ChangeAlphaToMask(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha to Mask Change");
-//             ToggleData td = m_Node.alphaToMask;
-//             td.isOn = evt.newValue;
-//             m_Node.alphaToMask = td;
-//         }
-
-//         void ChangeZWrite(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("ZWrite Change");
-//             ToggleData td = m_Node.zWrite;
-//             td.isOn = evt.newValue;
-//             m_Node.zWrite = td;
-//         }
-
-//         void ChangeTransparentCullMode(ChangeEvent<Enum> evt)
-//         {
-//             if (Equals(m_Node.transparentCullMode, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Transparent Cull Mode Change");
-//             m_Node.transparentCullMode = (TransparentCullMode)evt.newValue;
-//         }
-
-//         void ChangeZTest(ChangeEvent<Enum> evt)
-//         {
-//             if (Equals(m_Node.zTest, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
-//             m_Node.zTest = (CompareFunction)evt.newValue;
-//         }
-
-//         public AlphaMode GetAlphaMode(HDLitMasterNode.AlphaModeLit alphaModeLit)
-//         {
-//             switch (alphaModeLit)
-//             {
-//                 case HDLitMasterNode.AlphaModeLit.Alpha:
-//                     return AlphaMode.Alpha;
-//                 case HDLitMasterNode.AlphaModeLit.Premultiply:
-//                     return AlphaMode.Premultiply;
-//                 case HDLitMasterNode.AlphaModeLit.Additive:
-//                     return AlphaMode.Additive;
-//                 default:
-//                     {
-//                         Debug.LogWarning("Not supported: " + alphaModeLit);
-//                         return AlphaMode.Alpha;
-//                     }
-//             }
-//         }
-
-//         public HDLitMasterNode.AlphaModeLit GetAlphaModeLit(AlphaMode alphaMode)
-//         {
-//             switch (alphaMode)
-//             {
-//                 case AlphaMode.Alpha:
-//                     return HDLitMasterNode.AlphaModeLit.Alpha;
-//                 case AlphaMode.Premultiply:
-//                     return HDLitMasterNode.AlphaModeLit.Premultiply;
-//                 case AlphaMode.Additive:
-//                     return HDLitMasterNode.AlphaModeLit.Additive;
-//                 default:
-//                     {
-//                         Debug.LogWarning("Not supported: " + alphaMode);
-//                         return HDLitMasterNode.AlphaModeLit.Alpha;
-//                     }
-//             }
-//         }
-//     }
-// }
+using System;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.ShaderGraph;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
+
+namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
+{
+    class HDLitSettingsView
+    {
+        HDSystemData systemData;
+        HDBuiltinData builtinData;
+        HDLightingData lightingData;
+        HDLitData litData;
+
+        IntegerField m_SortPriorityField;
+
+        public HDLitSettingsView(HDLitSubTarget subTarget)
+        {
+            systemData = subTarget.systemData;
+            builtinData = subTarget.builtinData;
+            lightingData = subTarget.lightingData;
+            litData = subTarget.litData;
+        }
+
+        public void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        {
+            context.AddProperty("Ray Tracing (Preview)", 0, new Toggle() { value = litData.rayTracing }, (evt) =>
+            {
+                if (Equals(litData.rayTracing, evt.newValue))
+                    return;
+
+                litData.rayTracing = evt.newValue;
+                onChange();
+            });
+
+            // Render State
+            DoRenderStateArea(ref context, 0, onChange);
+
+            context.AddProperty("Refraction Model", 1, new EnumField(ScreenSpaceRefraction.RefractionModel.None) { value = litData.refractionModel }, systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction, (evt) =>
+            {
+                if (Equals(litData.refractionModel, evt.newValue))
+                    return;
+
+                litData.refractionModel = (ScreenSpaceRefraction.RefractionModel)evt.newValue;
+                onChange();
+            });
+
+            // Distortion
+            DoDistortionArea(ref context, 1, onChange);
+
+            // Alpha Test
+            // TODO: AlphaTest is in SystemData but Alpha to Mask is in BuiltinData?
+            context.AddProperty("Alpha Clipping", 0, new Toggle() { value = systemData.alphaTest }, (evt) =>
+            {
+                if (Equals(systemData.alphaTest, evt.newValue))
+                    return;
+
+                systemData.alphaTest = evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Use Shadow Threshold", 1, new Toggle() { value = lightingData.alphaTestShadow }, systemData.alphaTest, (evt) =>
+            {
+                if (Equals(lightingData.alphaTestShadow, evt.newValue))
+                    return;
+
+                lightingData.alphaTestShadow = evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Alpha to Mask", 1, new Toggle() { value = builtinData.alphaToMask }, systemData.alphaTest, (evt) =>
+            {
+                if (Equals(builtinData.alphaToMask, evt.newValue))
+                    return;
+
+                builtinData.alphaToMask = evt.newValue;
+                onChange();
+            });
+
+            // Misc
+            context.AddProperty("Double-Sided Mode", 0, new EnumField(DoubleSidedMode.Disabled) { value = systemData.doubleSidedMode }, (evt) =>
+            {
+                if (Equals(systemData.doubleSidedMode, evt.newValue))
+                    return;
+
+                systemData.doubleSidedMode = (DoubleSidedMode)evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Fragment Normal Space", 0, new EnumField(NormalDropOffSpace.Tangent) { value = lightingData.normalDropOffSpace }, (evt) =>
+            {
+                if (Equals(lightingData.normalDropOffSpace, evt.newValue))
+                    return;
+
+                lightingData.normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
+                onChange();
+            });
+
+            // Material
+            context.AddProperty("Material Type", 0, new EnumField(HDLitData.MaterialType.Standard) { value = litData.materialType }, (evt) =>
+            {
+                if (Equals(litData.materialType, evt.newValue))
+                    return;
+
+                litData.materialType = (HDLitData.MaterialType)evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Transmission", 1, new Toggle() { value = litData.sssTransmission }, litData.materialType == HDLitData.MaterialType.SubsurfaceScattering, (evt) =>
+            {
+                if (Equals(litData.sssTransmission, evt.newValue))
+                    return;
+
+                litData.sssTransmission = evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Energy Conserving Specular", 1, new Toggle() { value = lightingData.energyConservingSpecular }, litData.materialType == HDLitData.MaterialType.SpecularColor, (evt) =>
+            {
+                if (Equals(lightingData.energyConservingSpecular, evt.newValue))
+                    return;
+
+                lightingData.energyConservingSpecular = evt.newValue;
+                onChange();
+            });
+
+            // Misc Cont.
+            context.AddProperty("Receive Decals", 0, new Toggle() { value = lightingData.receiveDecals }, (evt) =>
+            {
+                if (Equals(lightingData.receiveDecals, evt.newValue))
+                    return;
+
+                lightingData.receiveDecals = evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Receive SSR", 0, new Toggle() { value = lightingData.receiveSSR }, (evt) =>
+            {
+                if (Equals(lightingData.receiveSSR, evt.newValue))
+                    return;
+
+                lightingData.receiveSSR = evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Add Precomputed Velocity", 0, new Toggle() { value = builtinData.addPrecomputedVelocity }, (evt) =>
+            {
+                if (Equals(builtinData.addPrecomputedVelocity, evt.newValue))
+                    return;
+
+                builtinData.addPrecomputedVelocity = evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Geometric Specular AA", 0, new Toggle() { value = lightingData.specularAA }, (evt) =>
+            {
+                if (Equals(lightingData.specularAA, evt.newValue))
+                    return;
+
+                lightingData.specularAA = evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Specular Occlusion Mode", 0, new EnumField(SpecularOcclusionMode.Off) { value = lightingData.specularOcclusionMode }, (evt) =>
+            {
+                if (Equals(lightingData.specularOcclusionMode, evt.newValue))
+                    return;
+
+                lightingData.specularOcclusionMode = (SpecularOcclusionMode)evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Override Baked GI", 0, new Toggle() { value = lightingData.overrideBakedGI }, (evt) =>
+            {
+                if (Equals(lightingData.overrideBakedGI, evt.newValue))
+                    return;
+
+                lightingData.overrideBakedGI = evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Depth Offset", 0, new Toggle() { value = builtinData.depthOffset }, (evt) =>
+            {
+                if (Equals(builtinData.depthOffset, evt.newValue))
+                    return;
+
+                builtinData.depthOffset = evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Support LOD CrossFade", 0, new Toggle() { value = systemData.supportLodCrossFade }, (evt) =>
+            {
+                if (Equals(systemData.supportLodCrossFade, evt.newValue))
+                    return;
+
+                systemData.supportLodCrossFade = evt.newValue;
+                onChange();
+            });
+        }
+
+        void DoRenderStateArea(ref TargetPropertyGUIContext context, int indentLevel, Action onChange)
+        {
+            context.AddProperty("Surface Type", indentLevel, new EnumField(SurfaceType.Opaque) { value = systemData.surfaceType }, (evt) =>
+            {
+                if (Equals(systemData.surfaceType, evt.newValue))
+                    return;
+
+                systemData.surfaceType = (SurfaceType)evt.newValue;
+                systemData.TryChangeRenderingPass(systemData.renderingPass);
+                onChange();
+            });
+
+            var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(systemData.surfaceType == SurfaceType.Opaque, false);
+            var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderingPass) : HDRenderQueue.GetTransparentEquivalent(systemData.renderingPass);
+            var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            context.AddProperty("Rendering Pass", indentLevel + 1, new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue }, (evt) =>
+            {
+                if(systemData.TryChangeRenderingPass(evt.newValue))
+                {
+                    onChange();
+                }
+            });
+
+            context.AddProperty("Blending Mode", indentLevel + 1, new EnumField(BlendMode.Alpha) { value = systemData.blendMode }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(systemData.blendMode, evt.newValue))
+                    return;
+
+                systemData.blendMode = (BlendMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Preserve Specular Lighting", indentLevel + 1, new Toggle() { value = lightingData.blendPreserveSpecular }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(lightingData.blendPreserveSpecular, evt.newValue))
+                    return;
+
+                lightingData.blendPreserveSpecular = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Receive Fog", indentLevel + 1, new Toggle() { value = builtinData.transparencyFog }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(builtinData.transparencyFog, evt.newValue))
+                    return;
+
+                builtinData.transparencyFog = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Depth Test", indentLevel + 1, new EnumField(systemData.zTest) { value = systemData.zTest }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(systemData.zTest, evt.newValue))
+                    return;
+
+                systemData.zTest = (CompareFunction)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Depth Write", indentLevel + 1, new Toggle() { value = systemData.zWrite }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(systemData.zWrite, evt.newValue))
+                    return;
+
+                systemData.zWrite = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Cull Mode", indentLevel + 1, new EnumField(systemData.transparentCullMode) { value = systemData.transparentCullMode }, systemData.surfaceType == SurfaceType.Transparent && systemData.doubleSidedMode != DoubleSidedMode.Disabled, (evt) =>
+            {
+                if (Equals(systemData.transparentCullMode, evt.newValue))
+                    return;
+
+                systemData.transparentCullMode = (TransparentCullMode)evt.newValue;
+                onChange();
+            });
+
+            m_SortPriorityField = new IntegerField() { value = systemData.sortPriority };
+            context.AddProperty("Sorting Priority", indentLevel + 1, m_SortPriorityField, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                var newValue = HDRenderQueue.ClampsTransparentRangePriority(evt.newValue);
+                if (Equals(systemData.sortPriority, newValue))
+                    return;
+                
+                m_SortPriorityField.value = newValue;
+                systemData.sortPriority = evt.newValue;
+                onChange();
+            });
+
+
+            context.AddProperty("Back Then Front Rendering", indentLevel + 1, new Toggle() { value = lightingData.backThenFrontRendering }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(lightingData.backThenFrontRendering, evt.newValue))
+                    return;
+
+                lightingData.backThenFrontRendering = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Transparent Depth Prepass", indentLevel + 1, new Toggle() { value = systemData.alphaTestDepthPrepass }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(systemData.alphaTestDepthPrepass, evt.newValue))
+                    return;
+
+                systemData.alphaTestDepthPrepass = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Transparent Depth Postpass", indentLevel + 1, new Toggle() { value = systemData.alphaTestDepthPostpass }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(systemData.alphaTestDepthPostpass, evt.newValue))
+                    return;
+
+                systemData.alphaTestDepthPostpass = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Transparent Writes Motion Vector", indentLevel + 1, new Toggle() { value = builtinData.transparentWritesMotionVec }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(builtinData.transparentWritesMotionVec, evt.newValue))
+                    return;
+
+                builtinData.transparentWritesMotionVec = evt.newValue;
+                onChange();
+            });
+        }
+
+        void DoDistortionArea(ref TargetPropertyGUIContext context, int indentLevel, Action onChange)
+        {
+            context.AddProperty("Distortion", indentLevel, new Toggle() { value = builtinData.distortion }, (evt) =>
+            {
+                if (Equals(builtinData.distortion, evt.newValue))
+                    return;
+
+                builtinData.distortion = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Distortion Blend Mode", indentLevel + 1, new EnumField(DistortionMode.Add) { value = builtinData.distortionMode }, builtinData.distortion, (evt) =>
+            {
+                if (Equals(builtinData.distortionMode, evt.newValue))
+                    return;
+
+                builtinData.distortionMode = (DistortionMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Distortion Depth Test", indentLevel + 1, new Toggle() { value = builtinData.distortionDepthTest }, builtinData.distortion, (evt) =>
+            {
+                if (Equals(builtinData.distortionDepthTest, evt.newValue))
+                    return;
+
+                builtinData.distortionDepthTest = evt.newValue;
+                onChange();
+            });
+        }
+    }
+}

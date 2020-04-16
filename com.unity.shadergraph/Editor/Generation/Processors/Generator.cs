@@ -85,7 +85,13 @@ namespace UnityEditor.ShaderGraph
             var activeFields = new ActiveFields();
             if(outputNode == null)
             {
-                var context = new TargetFieldContext(pass, blocks);
+                // HDRP needs to know if there are any Dots properties active
+                // Ideally we can determine this in the Target without exposing the PropertyCollector
+                var shaderProperties = new PropertyCollector();
+                m_GraphData.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
+                bool hasDotsProperties = shaderProperties.GetDotsInstancingPropertiesCount(GenerationMode.ForReals) > 0;
+
+                var context = new TargetFieldContext(pass, blocks, hasDotsProperties);
                 target.GetFields(ref context);
                 var fields = GenerationUtils.GetActiveFieldsFromConditionals(context.conditionalFields.ToArray());
                 foreach(FieldDescriptor field in fields)
