@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for specular AA from geometric curvature in AxF
 - Added support for baked AO (no input for now) in AxF
 - Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
+- Added support for rasterized area light shadows in StackLit
 
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
