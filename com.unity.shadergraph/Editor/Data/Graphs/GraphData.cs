@@ -1056,8 +1056,110 @@ namespace UnityEditor.ShaderGraph
         }
 
         internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes,
-            List<IEdge> remappedEdges)
+            List<Edge> remappedEdges)
         {
+            var groupGuidMap = new Dictionary<Guid, Guid>();
+            foreach (var group in graphToPaste.groups)
+            {
+                var position = group.position;
+                position.x += 30;
+                position.y += 30;
+
+                GroupData newGroup = new GroupData(group.title, position);
+
+                var oldGuid = group.guid;
+                var newGuid = newGroup.guid;
+                groupGuidMap[oldGuid] = newGuid;
+
+                AddGroup(newGroup);
+                m_PastedGroups.Add(newGroup);
+            }
+
+            foreach (var stickyNote in graphToPaste.stickyNotes)
+            {
+                var position = stickyNote.position;
+                position.x += 30;
+                position.y += 30;
+
+                StickyNoteData pastedStickyNote = new StickyNoteData(stickyNote.title, stickyNote.content, position);
+                if (groupGuidMap.ContainsKey(stickyNote.groupGuid))
+                {
+                    pastedStickyNote.groupGuid = groupGuidMap[stickyNote.groupGuid];
+                }
+
+                AddStickyNote(pastedStickyNote);
+                m_PastedStickyNotes.Add(pastedStickyNote);
+            }
+
+            var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
+            foreach (var node in nodeList)
+            {
+                AbstractMaterialNode pastedNode = node;
+
+                // Check if the property nodes need to be made into a concrete node.
+                if (node is PropertyNode propertyNode)
+                {
+                    // If the property is not in the current graph, do check if the
+                    // property can be made into a concrete node.
+                    if (!m_Properties.SelectValue().Contains(propertyNode.property))
+                    {
+                        // If the property is in the serialized paste graph, make the property node into a property node.
+                        if (graphToPaste.metaProperties.Contains(propertyNode.property))
+                        {
+                            pastedNode = propertyNode.property.ToConcreteNode();
+                            pastedNode.drawState = node.drawState;
+                            // TODO: Potentially some patching up of edges here??
+                        }
+                    }
+                }
+
+                // If the node has a group guid and no group has been copied, reset the group guid.
+                // Check if the node is inside a group
+                if (node.groupGuid != Guid.Empty)
+                {
+                    if (groupGuidMap.ContainsKey(node.groupGuid))
+                    {
+                        var absNode = pastedNode;
+                        absNode.groupGuid = groupGuidMap[node.groupGuid];
+                        pastedNode = absNode;
+                    }
+                    else
+                    {
+                        pastedNode.groupGuid = Guid.Empty;
+                    }
+                }
+
+                remappedNodes.Add(pastedNode);
+                AddNode(pastedNode);
+
+                // add the node to the pasted node list
+                m_PastedNodes.Add(pastedNode);
+
+                // Check if the keyword nodes need to have their keywords copied.
+                if (node is KeywordNode keywordNode)
+                {
+                    // If the keyword is not in the current graph and is in the serialized paste graph copy it.
+                    if (!keywords.Contains(keywordNode.keyword))
+                    {
+                        if (graphToPaste.metaKeywords.Contains(keywordNode.keyword))
+                        {
+                            SanitizeGraphInputName(keywordNode.keyword);
+                            SanitizeGraphInputReferenceName(keywordNode.keyword, keywordNode.keyword.overrideReferenceName);
+                            AddGraphInput(keywordNode.keyword);
+                        }
+                    }
+
+                    // Always update Keyword nodes to handle any collisions resolved on the Keyword
+                    keywordNode.UpdateNode();
+                }
+            }
+
+            foreach (var edge in graphToPaste.edges)
+            {
+                remappedEdges.Add((Edge)Connect(edge.outputSlot, edge.inputSlot));
+            }
+
+            ValidateGraph();
         }
 
         public override void OnBeforeSerialize()

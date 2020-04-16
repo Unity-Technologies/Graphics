@@ -12,6 +12,7 @@ using UnityEditor.Graphs;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using Node = UnityEditor.Experimental.GraphView.Node;
@@ -656,7 +657,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var groups = elements.OfType<ShaderGroup>().Select(x => x.userData);
             var nodes = elements.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.canCopyNode);
-            var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
+            var edges = elements.OfType<Edge>().Select(x => (Graphing.Edge)x.userData);
             var inputs = selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput).ToList();
             var notes = elements.OfType<StickyNote>().Select(x => x.userData);
 
@@ -672,7 +673,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             inputs.Sort((x, y) => graph.GetGraphInputIndex(x) > graph.GetGraphInputIndex(y) ? 1 : -1);
 
             var copyPasteGraph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, metaKeywords, notes);
-            return JsonUtility.ToJson(copyPasteGraph, true);
+            return MultiJson.Serialize(copyPasteGraph);
         }
 
         bool CanPasteSerializedDataImplementation(string serializedData)
@@ -1144,7 +1145,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             using (var remappedNodesDisposable = ListPool<AbstractMaterialNode>.GetDisposable())
             {
 
-                using (var remappedEdgesDisposable = ListPool<IEdge>.GetDisposable())
+                using (var remappedEdgesDisposable = ListPool<Graphing.Edge>.GetDisposable())
                 {
                     var remappedNodes = remappedNodesDisposable.value;
                     var remappedEdges = remappedEdgesDisposable.value;
