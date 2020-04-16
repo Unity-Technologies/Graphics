@@ -102,7 +102,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     DrawGeneralContent,
                     DrawGeneralAdvancedContent
                     ),
-                CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawShapeContent),
+                CED.TernaryConditional((serialized, owner) => serialized.type == HDLightType.Spot || serialized.type == HDLightType.Point && !serialized.settings.isCompletelyBaked,
+                    CED.AdvancedFoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
+                        (serialized, owner) => GetAdvanced(AdvancedMode.Shape, serialized, owner),
+                        (serialized, owner) => SwitchAdvanced(AdvancedMode.Shape, serialized, owner),
+                        DrawShapeContent,
+                        CED.FoldoutGroup(s_Styles.lightFlagsSubHeader, Expandable.LightFlags, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLightFlags)
+                        ),
+                    CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState, 
+                        DrawShapeContent
+                        )
+                ),
                 CED.Conditional((serialized, owner) => serialized.type == HDLightType.Directional && !serialized.settings.isCompletelyBaked,
                     CED.FoldoutGroup(s_Styles.celestialBodyHeader, Expandable.CelestialBody, k_ExpandedState, DrawCelestialBodyContent)),
                 //CED.TernaryConditional((serialized, owner) => serialized.type == HDLightType.Directional && !serialized.settings.isCompletelyBaked,
@@ -1150,6 +1160,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawLightFlags(SerializedHDLight serialized, Editor owner)
         {
+            EditorGUILayout.HelpBox("TODO: Light Flags.", MessageType.Info);
         }
 
         static void SetLightsDirty(Editor owner)
