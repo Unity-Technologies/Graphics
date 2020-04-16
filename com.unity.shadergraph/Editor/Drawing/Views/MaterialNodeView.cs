@@ -546,7 +546,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // #TODO: Inspector - Temporary workaround to only allow nodes that aren't master nodes to try and recreate their settings
                 var masterNode = node as IMasterNode;
-                if (masterNode is null)
+                if (masterNode == null)
                 {
                     RecreateSettings();
                 }
