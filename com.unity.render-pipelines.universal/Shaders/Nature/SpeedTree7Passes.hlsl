@@ -1,8 +1,8 @@
 #ifndef UNIVERSAL_SPEEDTREE7_PASSES_INCLUDED
 #define UNIVERSAL_SPEEDTREE7_PASSES_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "SpeedTree7CommonPasses.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
 void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 {
