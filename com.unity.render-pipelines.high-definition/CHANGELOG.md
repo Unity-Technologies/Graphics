@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed white flash happening with auto-exposure in some cases (case 1223774)
 - Fixed NaN which can appear with real time reflection and inf value
 - Fixed raytracing shader compilation on Metal
+- Fixed an issue that was collapsing the volume components in the HDRP default settings
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
