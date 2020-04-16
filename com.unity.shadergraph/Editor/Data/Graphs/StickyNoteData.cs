@@ -1,24 +1,12 @@
-﻿using System;
+using System;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class StickyNoteData : ISerializationCallbackReceiver, IGroupItem
+    class StickyNoteData : JsonObject, IGroupItem
     {
-        [NonSerialized]
-        Guid m_Guid;
-
-        public Guid guid => m_Guid;
-
-        [SerializeField]
-        string m_GuidSerialized;
-
-        public Guid RewriteGuid()
-        {
-            m_Guid = Guid.NewGuid();
-            return m_Guid;
-        }
 
         [SerializeField]
         string m_Title;
@@ -66,44 +54,24 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        string m_GroupGuidSerialized;
+        string m_GroupId;
 
-        [NonSerialized]
-        Guid m_GroupGuid;
-
-        public Guid groupGuid
+        public string groupId
         {
-            get { return m_GroupGuid; }
-            set { m_GroupGuid = value; }
+            get { return m_GroupId; }
+            set { m_GroupId = value; }
         }
 
+        public StickyNoteData() : base() {}
+        public bool groupIdIsEmpty => string.IsNullOrEmpty(m_GroupId) || m_GroupId.Equals(emptyObjectId);
         public StickyNoteData(string title, string content, Rect position)
         {
-            m_Guid = Guid.NewGuid();
             m_Title = title;
             m_Position = position;
             m_Content = content;
-            m_GroupGuid = Guid.Empty;
+            m_GroupId = emptyObjectId;
         }
 
-        public void OnBeforeSerialize()
-        {
-            m_GuidSerialized = guid.ToString();
-            m_GroupGuidSerialized = groupGuid.ToString();
-        }
-
-        public void OnAfterDeserialize()
-        {
-            if (!string.IsNullOrEmpty(m_GuidSerialized))
-            {
-                m_Guid = new Guid(m_GuidSerialized);
-            }
-
-            if (!string.IsNullOrEmpty(m_GroupGuidSerialized))
-            {
-                m_GroupGuid = new Guid(m_GroupGuidSerialized);
-            }
-        }
     }
 }
 

@@ -12,11 +12,8 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     abstract class AbstractMaterialNode : JsonObject, IGroupItem
     {
-        [NonSerialized]
-        Guid m_GroupGuid;
-
         [SerializeField]
-        string m_GroupGuidSerialized;
+        string m_GroupId = emptyObjectId;
 
         [SerializeField]
         private string m_Name;
@@ -37,6 +34,8 @@ namespace UnityEditor.ShaderGraph
 
         OnNodeModified m_OnModified;
 
+        public bool groupIdIsEmpty => string.IsNullOrEmpty(m_GroupId) || m_GroupId.Equals(emptyObjectId);
+
         public void RegisterCallback(OnNodeModified callback)
         {
             m_OnModified += callback;
@@ -53,10 +52,10 @@ namespace UnityEditor.ShaderGraph
                 m_OnModified(this, scope);
         }
 
-        public Guid groupGuid
+        public string groupId
         {
-            get { return m_GroupGuid; }
-            set { m_GroupGuid = value; }
+            get { return m_GroupId; }
+            set { m_GroupId = value; }
         }
 
         public string name
@@ -682,11 +681,6 @@ namespace UnityEditor.ShaderGraph
             return this.GetInputSlots<MaterialSlot>().Where(x => !owner.GetEdges(GetSlotReference(x.id)).Any());
         }
 
-        public override void OnBeforeSerialize()
-        {
-            m_GroupGuidSerialized = m_GroupGuid.ToString();
-        }
-
         public override void OnAfterMultiDeserialize(string json)
         {
             if (m_NodeVersion != GetCompiledNodeVersion())
@@ -694,11 +688,6 @@ namespace UnityEditor.ShaderGraph
                 UpgradeNodeWithVersion(m_NodeVersion, GetCompiledNodeVersion());
                 m_NodeVersion = GetCompiledNodeVersion();
             }
-
-            if (!string.IsNullOrEmpty(m_GroupGuidSerialized))
-                m_GroupGuid = new Guid(m_GroupGuidSerialized);
-            else
-                m_GroupGuid = Guid.Empty;
 
             foreach (var s in m_Slots.SelectValue())
                 s.owner = this;

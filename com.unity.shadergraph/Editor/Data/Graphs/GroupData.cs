@@ -1,28 +1,12 @@
-﻿using System;
+using System;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class GroupData : ISerializationCallbackReceiver
+    public class GroupData : JsonObject 
     {
-        [NonSerialized]
-        Guid m_Guid;
-
-        public Guid guid
-        {
-            get { return m_Guid; }
-        }
-
-        public Guid RewriteGuid()
-        {
-            m_Guid = Guid.NewGuid();
-            return m_Guid;
-        }
-
-        [SerializeField]
-        string m_GuidSerialized;
-
         [SerializeField]
         string m_Title;
 
@@ -41,25 +25,14 @@ namespace UnityEditor.ShaderGraph
             set { m_Position = value; }
         }
 
+        public GroupData() : base() { }
+
         public GroupData(string title, Vector2 position)
         {
-            m_Guid = Guid.NewGuid();
             m_Title = title;
             m_Position = position;
         }
 
-        public void OnBeforeSerialize()
-        {
-            m_GuidSerialized = guid.ToString();
-        }
-
-        public void OnAfterDeserialize()
-        {
-            if (!string.IsNullOrEmpty(m_GuidSerialized))
-            {
-                m_Guid = new Guid(m_GuidSerialized);
-            }
-        }
     }
 }
 

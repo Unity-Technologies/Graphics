@@ -14,5 +14,7 @@ namespace UnityEditor.ShaderGraph.Legacy
         public string m_PropertyGuidSerialized;
 
         public string m_KeywordGuidSerialized;
+
+        public string m_GroupGuidSerialized;
     }
 }

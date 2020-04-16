@@ -6,6 +6,8 @@ namespace UnityEditor.ShaderGraph.Serialization
     [Serializable]
     public class JsonObject : ISerializationCallbackReceiver
     {
+        public static string emptyObjectId = Guid.Empty.ToString("N");
+
         [SerializeField]
         string m_Type;
 
@@ -14,6 +16,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         public string objectId => m_ObjectId;
 
+        public bool objectIdIsEmpty => m_ObjectId.Equals(emptyObjectId);
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             m_Type = $"{GetType().FullName}";

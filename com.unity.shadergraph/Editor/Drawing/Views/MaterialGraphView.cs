@@ -245,10 +245,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             // If they are in the same group we also add in the Redirect Node
             // var groupGuidOutputNode = graph.GetNodeFromGuid(outputSlot.slotReference.nodeGuid).groupGuid;
             // var groupGuidInputNode = graph.GetNodeFromGuid(inputSlot.slotReference.nodeGuid).groupGuid;
-            var groupId = Guid.Empty;
-            if (outputSlot.owner.groupGuid == inputSlot.owner.groupGuid)
+            var groupId = Serialization.JsonObject.emptyObjectId;
+            if (outputSlot.owner.groupId == inputSlot.owner.groupId)
             {
-                groupId = inputSlot.owner.groupGuid;
+                groupId = inputSlot.owner.groupId;
             }
 
             RedirectNodeData.Create(graph, outputSlot.valueType, contentViewContainer.WorldToLocal(position), inputSlot.slotReference,
@@ -583,7 +583,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var propNode = new PropertyNode();
                 propNode.drawState = node.drawState;
-                propNode.groupGuid = node.groupGuid;
+                propNode.groupId = node.groupId;
                 graph.AddNode(propNode);
                 propNode.property = prop;
 

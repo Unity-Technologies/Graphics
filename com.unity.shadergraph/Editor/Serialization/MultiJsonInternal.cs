@@ -68,7 +68,11 @@ namespace UnityEditor.ShaderGraph.Serialization
                 var jsonEnd = str.IndexOf(separatorStr, jsonBegin, StringComparison.Ordinal);
                 if (jsonEnd == -1)
                 {
-                    jsonEnd = str.LastIndexOf("}", StringComparison.Ordinal) + 1;
+                    jsonEnd = str.IndexOf("\n\r\n", jsonBegin, StringComparison.Ordinal);
+                    if (jsonEnd == -1)
+                    {
+                        jsonEnd = str.LastIndexOf("}", StringComparison.Ordinal) + 1;
+                    }
                 }
 
                 var json = str.Substring(jsonBegin, jsonEnd - jsonBegin);
