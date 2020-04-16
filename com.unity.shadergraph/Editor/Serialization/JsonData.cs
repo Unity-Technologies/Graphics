@@ -33,6 +33,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                     if (MultiJsonInternal.valueMap.TryGetValue(m_Id, out var value))
                     {
                         m_Value = (T)value;
+                        m_Id = m_Value.objectId;
                     }
                     else
                     {

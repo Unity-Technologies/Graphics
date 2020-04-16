@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
 
@@ -114,7 +115,10 @@ namespace UnityEditor.ShaderGraph.Serialization
             return (JsonObject)Activator.CreateInstance(type, true);
         }
 
-        public static JsonObject Deserialize(List<MultiJsonEntry> entries)
+        private static FieldInfo s_ObjectIdField =
+            typeof(JsonObject).GetField("m_ObjectId", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        public static JsonObject Deserialize(List<MultiJsonEntry> entries, bool rewriteIds)
         {
             if (isDeserializing)
             {
@@ -131,12 +135,23 @@ namespace UnityEditor.ShaderGraph.Serialization
                     try
                     {
                         var value = CreateInstance(entry.type);
-                        if (entry.id == null)
+                        var id = entry.id;
+
+                        if (id != null)
                         {
-                            entries[index] = entry = new MultiJsonEntry(entry.type, value.objectId, entry.json);
+                            // Need to make sure that references looking for the old ID will find it in spite of
+                            // ID rewriting.
+                            valueMap[id] = value;
                         }
 
-                        valueMap[entry.id] = value;
+                        if (rewriteIds || entry.id == null)
+                        {
+                            id = value.objectId;
+                            entries[index] = new MultiJsonEntry(entry.type, id, entry.json);
+                            valueMap[id] = value;
+                        }
+
+                        s_ObjectIdField.SetValue(value, id);
                     }
                     catch (Exception e)
                     {
@@ -157,6 +172,8 @@ namespace UnityEditor.ShaderGraph.Serialization
                     {
                         var value = valueMap[entry.id];
                         EditorJsonUtility.FromJsonOverwrite(entry.json, value);
+                        // Set ID again as it could be overwritten from JSON.
+                        s_ObjectIdField.SetValue(value, entry.id);
                         value.OnAfterDeserialize(entry.json);
                     }
                     catch (Exception e)
