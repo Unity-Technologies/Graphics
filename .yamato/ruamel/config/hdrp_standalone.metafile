@@ -1,5 +1,5 @@
 project:
-  name: HDRP_Standalone #TODO only standalone
+  name: HDRP_Standalone 
   folder: HDRP_RuntimeTests
 editors:
   - version: 2020.1

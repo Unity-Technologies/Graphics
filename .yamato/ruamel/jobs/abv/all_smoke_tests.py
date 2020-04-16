@@ -13,12 +13,6 @@ def get_job_definition(editor, test_platforms):
 
     job = {
         'name': f'All Smoke Tests - {editor["version"]}',
-        'agent': {
-            'type':'Unity::VM',
-            'image':'cds-ops/ubuntu-18.04-agent:stable',
-            'flavor':'b1.small'
-        }, 
-        'commands': ['dir'],
         'dependencies': dependencies
     }
 

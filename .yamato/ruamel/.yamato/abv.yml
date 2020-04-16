@@ -60,12 +60,6 @@ smoke_test_editmode_2020.1:
               -  "**/test-results/**"
 all_smoke_tests_2020.1:
     name: All Smoke Tests - 2020.1
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
-    commands:
-      -  dir
     dependencies:
       -  path: .yamato/abv.yml#smoke_test_Standalone_2020.1
          rerun: on-new-revision
@@ -75,10 +69,6 @@ all_smoke_tests_2020.1:
          rerun: on-new-revision
 all_project_ci_2020.1:
     name: _ABV for SRP repository - 2020.1
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
     dependencies:
       -  path: .yamato/packages.yml#all_package_ci_2020.1
          rerun: always
@@ -98,12 +88,6 @@ all_project_ci_2020.1:
          rerun: always
       -  path: .yamato/vfx_lwrp/vfx_lwrp-all.yml#All_VFX_LWRP_2020.1
          rerun: always
-    commands:
-      -  dir
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 all_project_ci_nightly_2020.1:
     name: _Nightly ABV against 2020.1
     dependencies:
@@ -141,12 +125,6 @@ all_project_ci_nightly_2020.1:
              frequency: 0 * * ?
 trunk_verification_2020.1:
     name: Trunk verification - 2020.1
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
-    commands:
-      -  dir
     dependencies:
       -  path: .yamato/universal/universal-win-dx11.yml#Universal_Win_DX11_playmode_2020.1
          rerun: always
@@ -228,12 +206,6 @@ smoke_test_editmode_fast-2020.1:
               -  "**/test-results/**"
 all_smoke_tests_fast-2020.1:
     name: All Smoke Tests - fast-2020.1
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
-    commands:
-      -  dir
     dependencies:
       -  path: .yamato/abv.yml#smoke_test_Standalone_fast-2020.1
          rerun: on-new-revision
@@ -243,10 +215,6 @@ all_smoke_tests_fast-2020.1:
          rerun: on-new-revision
 all_project_ci_fast-2020.1:
     name: _ABV for SRP repository - fast-2020.1
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
     dependencies:
       -  path: .yamato/packages.yml#all_package_ci_fast-2020.1
          rerun: always
@@ -266,12 +234,6 @@ all_project_ci_fast-2020.1:
          rerun: always
       -  path: .yamato/vfx_lwrp/vfx_lwrp-all.yml#All_VFX_LWRP_fast-2020.1
          rerun: always
-    commands:
-      -  dir
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
     triggers:
         expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
 all_project_ci_nightly_fast-2020.1:
@@ -311,12 +273,6 @@ all_project_ci_nightly_fast-2020.1:
              frequency: 0 * * ?
 trunk_verification_fast-2020.1:
     name: Trunk verification - fast-2020.1
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
-    commands:
-      -  dir
     dependencies:
       -  path: .yamato/universal/universal-win-dx11.yml#Universal_Win_DX11_playmode_fast-2020.1
          rerun: always
@@ -398,12 +354,6 @@ smoke_test_editmode_trunk:
               -  "**/test-results/**"
 all_smoke_tests_trunk:
     name: All Smoke Tests - trunk
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
-    commands:
-      -  dir
     dependencies:
       -  path: .yamato/abv.yml#smoke_test_Standalone_trunk
          rerun: on-new-revision
@@ -413,10 +363,6 @@ all_smoke_tests_trunk:
          rerun: on-new-revision
 all_project_ci_trunk:
     name: _ABV for SRP repository - trunk
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
     dependencies:
       -  path: .yamato/packages.yml#all_package_ci_trunk
          rerun: always
@@ -436,12 +382,6 @@ all_project_ci_trunk:
          rerun: always
       -  path: .yamato/vfx_lwrp/vfx_lwrp-all.yml#All_VFX_LWRP_trunk
          rerun: always
-    commands:
-      -  dir
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 all_project_ci_nightly_trunk:
     name: _Nightly ABV against trunk
     dependencies:
@@ -479,12 +419,6 @@ all_project_ci_nightly_trunk:
              frequency: 0 * * ?
 trunk_verification_trunk:
     name: Trunk verification - trunk
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
-    commands:
-      -  dir
     dependencies:
       -  path: .yamato/universal/universal-win-dx11.yml#Universal_Win_DX11_playmode_trunk
          rerun: always
@@ -566,12 +500,6 @@ smoke_test_editmode_fast-trunk:
               -  "**/test-results/**"
 all_smoke_tests_fast-trunk:
     name: All Smoke Tests - fast-trunk
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
-    commands:
-      -  dir
     dependencies:
       -  path: .yamato/abv.yml#smoke_test_Standalone_fast-trunk
          rerun: on-new-revision
@@ -581,10 +509,6 @@ all_smoke_tests_fast-trunk:
          rerun: on-new-revision
 all_project_ci_fast-trunk:
     name: _ABV for SRP repository - fast-trunk
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
     dependencies:
       -  path: .yamato/packages.yml#all_package_ci_fast-trunk
          rerun: always
@@ -604,12 +528,6 @@ all_project_ci_fast-trunk:
          rerun: always
       -  path: .yamato/vfx_lwrp/vfx_lwrp-all.yml#All_VFX_LWRP_fast-trunk
          rerun: always
-    commands:
-      -  dir
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 all_project_ci_nightly_fast-trunk:
     name: _Nightly ABV against fast-trunk
     dependencies:
@@ -647,12 +565,6 @@ all_project_ci_nightly_fast-trunk:
              frequency: 0 * * ?
 trunk_verification_fast-trunk:
     name: Trunk verification - fast-trunk
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
-    commands:
-      -  dir
     dependencies:
       -  path: .yamato/universal/universal-win-dx11.yml#Universal_Win_DX11_playmode_fast-trunk
          rerun: always
@@ -737,12 +649,6 @@ smoke_test_editmode_CUSTOM-REVISION:
               -  "**/test-results/**"
 all_smoke_tests_CUSTOM-REVISION:
     name: All Smoke Tests - CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
-    commands:
-      -  dir
     dependencies:
       -  path: .yamato/abv.yml#smoke_test_Standalone_CUSTOM-REVISION
          rerun: on-new-revision
@@ -754,10 +660,6 @@ all_smoke_tests_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
 all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository - CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
     dependencies:
       -  path: .yamato/packages.yml#all_package_ci_CUSTOM-REVISION
          rerun: always
@@ -777,12 +679,6 @@ all_project_ci_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/vfx_lwrp/vfx_lwrp-all.yml#All_VFX_LWRP_CUSTOM-REVISION
          rerun: always
-    commands:
-      -  dir
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
     variables:
         CUSTOM_REVISION: custom_revision_not_set
 all_project_ci_nightly_CUSTOM-REVISION:
@@ -822,12 +718,6 @@ all_project_ci_nightly_CUSTOM-REVISION:
              frequency: 0 * * ?
 trunk_verification_CUSTOM-REVISION:
     name: Trunk verification - CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-        flavor: b1.small
-    commands:
-      -  dir
     dependencies:
       -  path: .yamato/universal/universal-win-dx11.yml#Universal_Win_DX11_playmode_CUSTOM-REVISION
          rerun: always

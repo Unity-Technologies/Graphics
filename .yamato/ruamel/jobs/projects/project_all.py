@@ -19,14 +19,6 @@ def get_job_definition(project_name, editor, dependencies_in_all):
 
     job = {
         'name' : f'All {project_name} CI - {editor["version"]}',
-        'agent' : {
-            'flavor' : 'b1.small',
-            'type' : 'Unity::VM', #TODO not to be hardcoded
-            'image' : 'cds-ops/ubuntu-18.04-agent:stable'
-        },
-        'commands' : [
-            'dir'
-        ],
         'dependencies' : dependencies
     }
 

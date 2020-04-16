@@ -1,11 +1,5 @@
 All_HDRP_DXR_2020.1:
     name: All HDRP_DXR CI - 2020.1
-    agent:
-        flavor: b1.small
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-agent:stable
-    commands:
-      -  dir
     dependencies:
       -  path: .yamato/hdrp_dxr/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_Standalone_2020.1
          rerun: on-new-revision

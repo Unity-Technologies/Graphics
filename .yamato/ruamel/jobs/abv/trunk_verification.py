@@ -19,12 +19,6 @@ def get_job_definition(editor, projects, test_platforms):  # TODO only run for 2
 
     job = {
         'name': f'Trunk verification - {editor["version"]}',
-        'agent': {
-            'type':'Unity::VM',
-            'image':'cds-ops/ubuntu-18.04-agent:stable',
-            'flavor':'b1.small'
-        }, 
-        'commands': ['dir'],
         'dependencies': dependencies
     }
 

@@ -16,20 +16,7 @@ def get_job_definition(editor, projects):  # only run for 2020.1 and trunk
 
     job = {
         'name' : f'_ABV for SRP repository - {editor["version"]}',
-        'agent' : {
-            'type':'Unity::VM',
-            'image':'cds-ops/ubuntu-18.04-agent:stable',
-            'flavor':'b1.small'
-        },
-        'dependencies' : dependencies,
-        'commands' : ['dir'],
-        'artifacts' : {
-            'logs':{
-                'paths':[
-                    dss('**/test-results/**') 
-                ]
-            }
-        },
+        'dependencies' : dependencies
     }
 
     if editor['version'] == 'CUSTOM-REVISION':
