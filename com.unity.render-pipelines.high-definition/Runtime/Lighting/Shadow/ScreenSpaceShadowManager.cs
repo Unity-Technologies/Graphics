@@ -235,12 +235,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // First of all we handle the directional light
                 RenderDirectionalLightScreenSpaceShadow(cmd, hdCamera);
 
-                // We handle the other light sources
-                RenderLightScreenSpaceShadows(hdCamera, cmd);
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                {
+                    // We handle the other light sources
+                    RenderLightScreenSpaceShadows(hdCamera, cmd);
 
-                // We do render the debug view
-                EvaluateShadowDebugView(cmd, hdCamera);
-
+                    // We do render the debug view
+                    EvaluateShadowDebugView(cmd, hdCamera);
+                }
                 // Bind the right texture
                 cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, m_ScreenSpaceShadowTextureArray);
             }
