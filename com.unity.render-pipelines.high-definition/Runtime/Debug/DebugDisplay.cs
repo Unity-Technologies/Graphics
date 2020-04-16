@@ -1240,9 +1240,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         children = { new DebugUI.Value() { displayName = "Interpolated Value",
                             getter = () => {
                                 timer += Time.deltaTime;
-                                if (timer < refreshRate) {
+                                if (timer < refreshRate)
                                     return "";
-                                }
                                 timer -= refreshRate;
                                 if (data.volumeDebugSettings.selectedCameraIndex != 0)
                                 {

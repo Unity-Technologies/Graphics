@@ -271,7 +271,7 @@ namespace UnityEngine.Rendering
             /// Get column visibility.
             /// </summary>
             /// <param name="index">Index of the column.</param>
-            /// <param name="visible">True if the column should be visible.</param>
+            /// <returns>True if the column is visible.</returns>
             public bool GetColumnVisibility(int index)
             {
 #if UNITY_EDITOR
@@ -351,6 +351,9 @@ namespace UnityEngine.Rendering
 #else
             bool[] m_Header = null;
 
+            /// <summary>
+            /// The visible columns
+            /// </summary>
             public bool[] VisibleColumns
             {
                 get
