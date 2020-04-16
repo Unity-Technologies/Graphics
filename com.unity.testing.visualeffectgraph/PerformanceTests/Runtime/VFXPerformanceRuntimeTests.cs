@@ -16,7 +16,6 @@ namespace UnityEditor.VFX.PerformanceTest
 {
     public class VFXRuntimePerformanceTests : PerformanceTests
     {
-        const int WarmupCount = 20;
         const int GlobalTimeout = 120 * 1000;
 
         static IEnumerable<CounterTestDescription> GetCounterTests()
@@ -115,7 +114,11 @@ namespace UnityEditor.VFX.PerformanceTest
             //yield return MeasureProfilingSamplers(allMarkerName, WarmupCount, 300);
             UnityEngine.Debug.unityLogger.logEnabled = true;
         }
+    }
 
+    public class VFXRuntimeMemoryTests : PerformanceTests
+    {
+        const int GlobalTimeout = 120 * 1000;
         [Timeout(GlobalTimeout), Version("1"), UnityTest, UseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
         public IEnumerator Memory(GraphicsTestCase testCase)
         {
