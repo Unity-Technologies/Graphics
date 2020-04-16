@@ -135,6 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
             c.curvature = curvature;
             c.barrelClipping = barrelClipping;
             c.anamorphism = anamorphism;
+            c.focusDistance = focusDistance;
         }
     }
 
