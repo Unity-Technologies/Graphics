@@ -45,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
             BakedShadow = 1 << 7,
             ShadowQuality = 1 << 8,
             CelestialBody = 1 << 9,
+            LightFlags = 1 << 10,
         }
 
         enum AdvancedMode
@@ -144,8 +145,10 @@ namespace UnityEditor.Rendering.HighDefinition
                                 CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Low, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.lowShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLowShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => serialized.type != HDLightType.Area,
-                                    CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent)
-                                )
+                                    CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent),
+                                CED.Conditional((serialized, owner) => GetAdvanced(AdvancedMode.Shadow, serialized, owner),
+                                    CED.FoldoutGroup(s_Styles.lightFlagsSubHeader, Expandable.LightFlags, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLightFlags))
+                                ) 
                             ),
                             CED.noop //will only add parameter in first sub header
                         ),
@@ -1143,6 +1146,10 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.kernelSize, s_Styles.kernelSize);
             EditorGUILayout.PropertyField(serialized.lightAngle, s_Styles.lightAngle);
             EditorGUILayout.PropertyField(serialized.maxDepthBias, s_Styles.maxDepthBias);
+        }
+
+        static void DrawLightFlags(SerializedHDLight serialized, Editor owner)
+        {
         }
 
         static void SetLightsDirty(Editor owner)
