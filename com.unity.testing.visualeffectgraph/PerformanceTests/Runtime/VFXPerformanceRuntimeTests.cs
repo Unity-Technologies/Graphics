@@ -73,20 +73,11 @@ namespace UnityEditor.VFX.PerformanceTest
             }
         }
 
-        static IEnumerable<ProfilingSampler> allMarker
-        {
-            get
-            {
-                foreach (var marker in allMarkerName)
-                {
-                    yield return new ProfilingSampler(marker);
-                }
-            }
-        }
-
         [Timeout(GlobalTimeout), Version("1"), UnityTest, UseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
         public IEnumerator Counters(GraphicsTestCase testCase)
         {
+            UnityEngine.Debug.unityLogger.logEnabled = false;
+
             UnityEngine.SceneManagement.SceneManager.LoadScene(testCase.ScenePath);
             yield return null;
 
@@ -108,19 +99,27 @@ namespace UnityEditor.VFX.PerformanceTest
             var previousCaptureFrameRate = Time.captureFramerate;
             var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
             var previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
+
+            Time.captureFramerate = captureFrameRate;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = period;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = period;
+
             while (waitFrameCount-- > 0)
                 yield return null;
             Time.captureFramerate = previousCaptureFrameRate;
             UnityEngine.VFX.VFXManager.fixedTimeStep = previousFixedTimeStep;
             UnityEngine.VFX.VFXManager.maxDeltaTime = previousMaxDeltaTime;
 
-            yield return MeasureProfilingSamplers(allMarker, WarmupCount, 300);
+            yield return null;
+            //TODO : Custom capture using Recorder
+            //yield return MeasureProfilingSamplers(allMarkerName, WarmupCount, 300);
+            UnityEngine.Debug.unityLogger.logEnabled = true;
         }
 
         [Timeout(GlobalTimeout), Version("1"), UnityTest, UseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
-        public IEnumerator Memory([ValueSource(nameof(GetMemoryTests))] MemoryTestDescription testDescription)
+        public IEnumerator Memory(GraphicsTestCase testCase)
         {
-            yield return ReportMemoryUsage(testDescription);
+            yield return null;
         }
     }
 }
