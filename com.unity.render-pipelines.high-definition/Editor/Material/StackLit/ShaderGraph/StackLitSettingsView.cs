@@ -13,7 +13,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class StackLitSettingsView : VisualElement
+    class StackLitSettingsView : MasterNodeSettingsView
     {
         StackLitMasterNode m_Node;
 
@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
-        public StackLitSettingsView(StackLitMasterNode node)
+        public StackLitSettingsView(StackLitMasterNode node) : base(node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
@@ -158,6 +158,20 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                     toggle.OnToggleChanged(ChangeAlphaTest);
                 });
             });
+
+            if (m_Node.alphaTest.isOn)
+            {
+                ++indentLevel;
+                ps.Add(new PropertyRow(CreateLabel("Alpha to Mask", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.alphaToMask.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaToMask);
+                    });
+                });
+                --indentLevel;
+            }
 
             ps.Add(new PropertyRow(CreateLabel("Double-Sided", indentLevel)), (row) =>
             {
@@ -581,6 +595,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             --indentLevel; //...Advanced options
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeSurfaceType(ChangeEvent<Enum> evt)
@@ -698,6 +713,14 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             ToggleData td = m_Node.alphaTest;
             td.isOn = evt.newValue;
             m_Node.alphaTest = td;
+        }
+
+        void ChangeAlphaToMask(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha to Mask Change");
+            ToggleData td = m_Node.alphaToMask;
+            td.isOn = evt.newValue;
+            m_Node.alphaToMask = td;
         }
 
         void ChangeReceiveDecals(ChangeEvent<bool> evt)

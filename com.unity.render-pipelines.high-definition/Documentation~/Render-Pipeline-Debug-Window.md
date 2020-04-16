@@ -6,6 +6,7 @@ The **Render Pipeline Debug** window is a specific window for the Scriptable Ren
 - [Display Stats](#StatsPanel)
 - [Material](#MaterialPanel)
 - [Lighting](#LightingPanel)
+- [Volume](#VolumePanel)
 - [Rendering](#RenderingPanel)
 - [Camera](#CameraPanel)
 
@@ -114,7 +115,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **- Punctual Lights**                | Enable the checkbox to see [Punctual Lights](Glossary.html#PunctualLight) in your Scene. Disable this checkbox to remove Punctual Lights from your Scene's lighting. |
 | **- Area Lights**                    | Enable the checkbox to see Area Lights in your Scene. Disable this checkbox to remove Aera Lights from your Scene's lighting. |
 | **- Reflection Probes**              | Enable the checkbox to see Reflection Probes in your Scene. Disable this checkbox to remove Reflection Probes from your Scene's lighting. |
-| **Debug Mode**                       | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, and Directional Light shadow cascades. |
+| **Debug Mode**                       | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, direct diffuse lighting, direct specular lighting, indirect diffuse lighting, indirect specular lighting, emissive lighting and Directional Light shadow cascades. |
 | **Hierarchy Debug Mode**             | Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for. |
 | **Light Layers Visualization**       | Enable the checkbox to visualize light layers of objects in your Scene. |
 | **- Use Selected Light**             | Enable the checkbox to visualize objects affected by the selected light. |
@@ -146,6 +147,20 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **- Max Debug Light Count**          | Use the slider to rescale the gradient. Lower this value to make the screen turn red faster. Use this property to change the maximum acceptable number of lights for your application and still see areas in red. This property only appears when you enable the **Display Light Volumes** checkbox. |
 | **Debug Exposure**                   | Set the exposure that HDRP applies when you select a **Lighting Debug Mode**. This is useful because HDRP does not apply normal Scene exposure when it is in debug mode. |
 | **Debug Overlay Screen Ratio**       | Set the size of the debug overlay textures with a ratio of the screen size. The default value is 0.33 which is 33% of the screen size. |
+
+<a name="VolumePanel"></a>
+
+## Volume panel
+
+The **Volume** panel has tools that you can use to visualize the Volume Components affecting a camera.
+
+| **Debug Option**       | **Description**                                      |
+| ---------------------- | ---------------------------------------------------- |
+| **Component**          | Use the drop-down to select which volume component to visualize. |
+| **Camera**             | Use the drop-down to select which camera to use as volume anchor. |
+| **Parameter**          | List of parameters for the selected component. |
+| **Interpolated Value** | Current value affecting the choosen camera for each parameter. |
+| **Other columns**      | One column for each volume. Shows the corresponding parameter's value in each volume if it impacts the final interpolated value. |
 
 <a name="RenderingPanel"></a>
 

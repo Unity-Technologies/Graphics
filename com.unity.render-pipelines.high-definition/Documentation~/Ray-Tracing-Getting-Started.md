@@ -184,7 +184,10 @@ d3d12: generating mipmaps for array textures is not yet supported.
 There is no support for ray tracing on other platform than DX12 for now.
 
 HDRP ray tracing in Unity 2019.3 has the following limitations:
-- Does not support deformers (skin, vertex animation).
+- Does not support deformers (skinning, blend shape, alembic, vertex animation).
+- Does not support tessellation
+- Does not support per pixel displacement (parallax occlusion mapping, height map, depth offset)
 - Does not support VFX and Terrain.
 - Does not support several of HDRP's Materials. This includes Hair, StackLit, Eye, and AxF Materials.
 - Does not have correct culling for shadows. It uses frustum culling instead.
+HDRP ray tracing in Unity 2020.1 and above add support for skinning, blend shapes and alembic.

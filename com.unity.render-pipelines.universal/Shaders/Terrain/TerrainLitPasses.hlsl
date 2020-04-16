@@ -96,7 +96,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.viewDirectionWS = viewDirWS;
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    input.shadowCoord = input.shadowCoord;
+    input.shadowCoord = IN.shadowCoord;
 #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     input.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
 #else
@@ -164,7 +164,7 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
 
     // avoid risk of NaN when normalizing.
 #if HAS_HALF
-    nrm.z += 0.01h;     
+    nrm.z += 0.01h;
 #else
     nrm.z += 1e-5f;
 #endif
@@ -395,7 +395,7 @@ struct AttributesLean
 struct VaryingsLean
 {
     float4 clipPos      : SV_POSITION;
-#ifdef _ALPHATEST_ON		
+#ifdef _ALPHATEST_ON
     float2 texcoord     : TEXCOORD0;
 #endif
     UNITY_VERTEX_OUTPUT_STEREO
@@ -419,11 +419,11 @@ VaryingsLean ShadowPassVertex(AttributesLean v)
 #endif
 
 	o.clipPos = clipPos;
-	
-#ifdef _ALPHATEST_ON		
+
+#ifdef _ALPHATEST_ON
 	o.texcoord = v.texcoord;
-#endif	
-	
+#endif
+
 	return o;
 }
 
@@ -431,7 +431,7 @@ half4 ShadowPassFragment(VaryingsLean IN) : SV_TARGET
 {
 #ifdef _ALPHATEST_ON
 	ClipHoles(IN.texcoord);
-#endif	
+#endif
     return 0;
 }
 
@@ -444,9 +444,9 @@ VaryingsLean DepthOnlyVertex(AttributesLean v)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     TerrainInstancing(v.position, v.normalOS);
     o.clipPos = TransformObjectToHClip(v.position.xyz);
-#ifdef _ALPHATEST_ON		
+#ifdef _ALPHATEST_ON
 	o.texcoord = v.texcoord;
-#endif	
+#endif
 	return o;
 }
 
