@@ -10,6 +10,10 @@ namespace UnityEditor.ShaderGraph
         public bool useInPreview;
         public bool virtualTextureFeedback;
 
+        // Templates
+        public string passTemplatePath;
+        public string sharedTemplateDirectory;
+
         // Port mask
         public int[] vertexPorts;
         public int[] pixelPorts;
@@ -23,10 +27,6 @@ namespace UnityEditor.ShaderGraph
         public DefineCollection defines;
         public KeywordCollection keywords;
         public IncludeCollection includes;
-
-        // Custom Template
-        public string passTemplatePath;
-        public string sharedTemplateDirectory;
 
         // Methods
         public bool Equals(PassDescriptor other)
