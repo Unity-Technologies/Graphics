@@ -533,6 +533,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed null reference when processing lightprobe (case 1235285)
 - Fix issue causing wrong planar reflection rendering when more than one camera is present.
 - Fix black screen in XR when HDRP package is present but not used.
+- Fixed an issue with the specularFGD term being used when the material has a clear coat (lit shader).
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
