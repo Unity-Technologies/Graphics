@@ -7,9 +7,9 @@ All_ShaderGraph_Stereo_2020.1:
     commands:
       -  dir
     dependencies:
-      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-win-.yml#ShaderGraph_Stereo_Win__Standalone_2020.1
+      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_2020.1
          rerun: on-new-revision
-      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-win-.yml#ShaderGraph_Stereo_Win__editmode_2020.1
+      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_2020.1
          rerun: on-new-revision
-      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-win-.yml#ShaderGraph_Stereo_Win__playmode_2020.1
+      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_playmode_2020.1
          rerun: on-new-revision

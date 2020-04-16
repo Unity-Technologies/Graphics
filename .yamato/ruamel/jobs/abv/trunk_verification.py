@@ -1,7 +1,7 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import *
 
-def get_job_definition(editor, projects, test_platforms):  # only run for 2020.1 and trunk
+def get_job_definition(editor, projects, test_platforms):  # TODO only run for 2020.1 and trunk
     dependencies = []
     for project in projects:
         if project["name"] in ['HDRP_Standalone', 'Universal_Stereo','ShaderGraph_Stereo']:

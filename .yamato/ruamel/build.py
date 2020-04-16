@@ -19,11 +19,6 @@ from jobs.abv.smoke_test import ABV_SmokeTestJob
 from jobs.abv.trunk_verification import ABV_TrunkVerificationJob
 
 
-# TODO:
-# - variables to store path names (change only once)
-# - functions to generate job ids (and names)
-# - see if less duplication possible among the jobs
-# - squash reused cmd like npm install, artifacts links etc
 
 def load_yml(filepath):
     with open(filepath) as f:
@@ -52,7 +47,7 @@ def create_project_specific_jobs(metafile_name):
                         if job.build_job is not None:
                             yml[job.build_job.job_id] = job.build_job.yml
                     
-                    elif platform["name"].lower() != "android": # skip for only android
+                    elif platform["name"].lower() != "android": # android only has standalone, so run this block only for != android
                         job = Project_NotStandaloneJob(project, editor, platform, api, test_platform)
                         yml[job.job_id] = job.yml
                     

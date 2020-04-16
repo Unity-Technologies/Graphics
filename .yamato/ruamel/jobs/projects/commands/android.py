@@ -33,7 +33,7 @@ def cmd_standalone_build(project, platform, api):
         f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT%',
         f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\\NDK %ANDROID_NDK_ROOT%'
         ])
-    if api["name"].lower() =='Vulkan':
+    if api["name"].lower() =='vulkan':
         base.append(f'utr\\utr --suite=playmode --platform=Android --testproject={TEST_PROJECTS_DIR}\{project["folder"]} --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --scripting-backend=il2cpp --timeout=1200 --build-only')
     else:
         base.append(f'utr\\utr --suite=playmode --platform=Android --testproject={TEST_PROJECTS_DIR}\{project["folder"]} --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --scripting-backend=il2cpp --timeout=1200 --build-only')

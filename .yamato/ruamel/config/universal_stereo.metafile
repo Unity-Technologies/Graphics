@@ -24,7 +24,7 @@ platforms:
     os: windows
     apis: # TODO no apis specified
       - name: ''
-        cmd: ''
+        cmd: 
     agent_default:
       type: Unity::VM::GPU
       image: sdet/gamecode_win10:stable

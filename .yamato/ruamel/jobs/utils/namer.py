@@ -33,16 +33,16 @@ def package_job_id_test_all(editor_version):
 
 # project specific
 def project_filepath_specific(project_name, platform_name, api_name):
-    return f'{parent_dir}/{project_name}/{project_name}-{platform_name}-{api_name}.yml'.lower()
+    return f'{parent_dir}/{project_name}/{project_name}-{platform_name}-{api_name}.yml'.lower().replace('-.','.')
 
 def project_filepath_all(project_name):
     return f'{parent_dir}/{project_name}/{project_name}-all.yml'.lower()
 
 def project_job_id_test(project_name, platform_name, api_name, test_platform_name, editor_version):
-    return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{editor_version}'
+    return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{editor_version}'.replace('__','_')
 
 def project_job_id_build(project_name, platform_name, api_name, editor_version):
-    return f'Build_{project_name}_{platform_name}_{api_name}_Player_{editor_version}'
+    return f'Build_{project_name}_{platform_name}_{api_name}_Player_{editor_version}'.replace('__','_')
 
 def project_job_id_all(project_name, editor_version):
     return f'All_{project_name}_{ editor_version}'

@@ -12,7 +12,7 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
     else:
         job_name = f'{project_name} on {platform["name"]}_{api["name"]}_{test_platform_name} on version {editor["version"]}'
 
-    agent = platform.get(f'agent_{test_platform_name.lower().replace(" ","_")}', platform['agent_default'])
+    agent = platform.get(f'agent_{test_platform_name.lower().replace(" ","_")}', platform['agent_default']) # replace(" ","_") called for playmode XR
     
     job = {
         'name' : job_name,

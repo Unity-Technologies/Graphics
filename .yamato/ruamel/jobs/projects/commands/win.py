@@ -11,8 +11,9 @@ def _cmd_base(project, components):
 def cmd_not_standalone(project, platform, api, test_platform_args):
     base = _cmd_base(project, platform["components"])
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr\\utr {test_platform_args} --extra-editor-arg="{api["cmd"]}" --testproject=. --editor-location=.Editor --artifacts_path=test-results'
+        f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr\\utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path=test-results'
     ])
+    base[-1] += f' --extra-editor-arg="{api["cmd"]}"' if api.get("cmd", None) != None  else ''
     return base
 
 def cmd_standalone(project, platform, api, test_platform_args):
