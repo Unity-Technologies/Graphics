@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,11 +7,13 @@ using UnityEngine.VFX;
 using UnityEngine.Rendering;
 using NUnit.Framework;
 using UnityEngine.TestTools;
-using static PerformanceTestUtils;
 using Unity.PerformanceTesting;
 using UnityEngine.VFX.Test;
 using UnityEngine.TestTools.Graphics;
 using Object = UnityEngine.Object;
+using UnityEngine.Profiling;
+using static PerformanceTestUtils;
+using static PerformanceMetricNames;
 
 namespace UnityEditor.VFX.PerformanceTest
 {
@@ -110,8 +113,38 @@ namespace UnityEditor.VFX.PerformanceTest
             UnityEngine.VFX.VFXManager.maxDeltaTime = previousMaxDeltaTime;
 
             yield return null;
-            //TODO : Custom capture using Recorder
-            //yield return MeasureProfilingSamplers(allMarkerName, WarmupCount, 300);
+
+            var samplers = allMarkerName.Select(name =>
+            {
+                (Recorder recorder, SampleGroup cpu, SampleGroup gpu) newSample;
+                newSample = (   Recorder.Get(name),
+                                new SampleGroup(FormatSampleGroupName(k_Timing, k_CPU, name), SampleUnit.Millisecond, false),
+                                new SampleGroup(FormatSampleGroupName(k_Timing, k_GPU, name), SampleUnit.Millisecond, false));
+                return newSample;
+            }).ToArray();
+
+            foreach (var sampler in samplers)
+                sampler.recorder.enabled = true;
+
+            // Wait for the markers to be initialized
+            for (int i = 0; i < 20; i++)
+                yield return null;
+
+            for (int i = 0; i < 120; i++)
+            {
+                foreach (var sampler in samplers)
+                {
+                    if (sampler.recorder.elapsedNanoseconds > 0)
+                        Measure.Custom(sampler.cpu, (double)sampler.recorder.elapsedNanoseconds / 1000000.0);
+                    if (sampler.recorder.gpuElapsedNanoseconds > 0)
+                        Measure.Custom(sampler.gpu, (double)sampler.recorder.gpuElapsedNanoseconds / 1000000.0);
+                }
+                yield return null;
+            }
+
+            foreach (var sampler in samplers)
+                sampler.recorder.enabled = false;
+
             UnityEngine.Debug.unityLogger.logEnabled = true;
         }
     }
