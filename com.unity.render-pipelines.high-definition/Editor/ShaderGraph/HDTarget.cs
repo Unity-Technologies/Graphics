@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         Custom
     }
 
-    sealed class HDTarget : Target, ISerializationCallbackReceiver
+    sealed class HDTarget : Target, IHasMetadata, ISerializationCallbackReceiver
     {
         // Constants
         const string kAssetGuid = "61d9843d4027e3e4a924953135f76f3c";
@@ -151,6 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     return;
 
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
+                ProcessSubTargetDatas();
                 onChange();
             });
 
@@ -180,6 +181,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // SubTarget
             m_ActiveSubTarget.ProcessPreviewMaterial(material);
+        }
+
+        public override object saveContext => m_ActiveSubTarget?.saveContext;
+        
+        // IHasMetaData
+        public string identifier
+        {
+            get
+            {
+                if(m_ActiveSubTarget is IHasMetadata subTargetHasMetaData)
+                    return subTargetHasMetaData.identifier;
+
+                return null;
+            }
+        }
+
+        public ScriptableObject GetMetadataObject()
+        {
+            if(m_ActiveSubTarget is IHasMetadata subTargetHasMetaData)
+                return subTargetHasMetaData.GetMetadataObject();
+
+            return null;
         }
 
         void ProcessSubTargetDatas()

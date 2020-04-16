@@ -9,7 +9,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDDecalSubTarget : SubTarget<HDTarget>,
+    sealed class HDDecalSubTarget : SubTarget<HDTarget>, IHasMetadata,
         IRequiresData<HDSystemData>, IRequiresData<DecalData>
     {
         const string kAssetGuid = "3ec927dfcb5d60e4883b2c224857b6c2";
@@ -120,6 +120,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void ProcessPreviewMaterial(Material material)
         {
+        }
+
+        // IHasMetaData
+        public string identifier => "HDDecalSubTarget";
+
+        public ScriptableObject GetMetadataObject()
+        {
+            var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
+            hdMetadata.shaderID = HDShaderUtils.ShaderID.SG_Decal;
+            return hdMetadata;
         }
 
 #region SubShaders

@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 systemData.alphaTest = evt.newValue;
                 onChange();
             });
-            context.AddProperty("Alpha to Mask", 0, new Toggle() { value = builtinData.alphaToMask }, (evt) =>
+            context.AddProperty("Alpha to Mask", 1, new Toggle() { value = builtinData.alphaToMask }, systemData.alphaTest, (evt) =>
             {
                 if (Equals(builtinData.alphaToMask, evt.newValue))
                     return;

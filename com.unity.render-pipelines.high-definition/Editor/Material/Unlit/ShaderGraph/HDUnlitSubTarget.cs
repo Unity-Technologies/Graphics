@@ -9,7 +9,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDUnlitSubTarget : SubTarget<HDTarget>,
+    sealed class HDUnlitSubTarget : SubTarget<HDTarget>, IHasMetadata,
         IRequiresData<HDSystemData>, IRequiresData<HDBuiltinData>, IRequiresData<HDUnlitData>
     {
         const string kAssetGuid = "4516595d40fa52047a77940183dc8e74";
@@ -215,6 +215,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest);
 
             HDUnlitGUI.SetupMaterialKeywordsAndPass(material);
+        }
+
+        // IHasMetaData
+        public string identifier => "HDUnlitSubTarget";
+
+        public ScriptableObject GetMetadataObject()
+        {
+            var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
+            hdMetadata.shaderID = HDShaderUtils.ShaderID.SG_Unlit;
+            return hdMetadata;
         }
 
 #region SubShaders

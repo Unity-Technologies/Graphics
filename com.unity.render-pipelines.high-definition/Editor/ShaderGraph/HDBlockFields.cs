@@ -66,10 +66,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new ColorControl(Color.white, false), ShaderStage.Fragment);
             public static BlockFieldDescriptor RefractionDistance = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionDistance", "SURFACEDESCRIPTION_REFRACTIONDISTANCE", 
                 new FloatControl(1.0f), ShaderStage.Fragment);
+
+            // --------------------------------------------------
+            // Decal
+
             public static BlockFieldDescriptor NormalAlpha = new BlockFieldDescriptor(SurfaceDescription.name, "NormalAlpha", "SURFACEDESCRIPTION_NORMALALPHA", 
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor MAOSAlpha = new BlockFieldDescriptor(SurfaceDescription.name, "MAOSAlpha", "SURFACEDESCRIPTION_MAOSALPHA", 
                 new FloatControl(1.0f), ShaderStage.Fragment);
+
+            // --------------------------------------------------
+            // Eye
+
+            public static BlockFieldDescriptor IrisNormal = new BlockFieldDescriptor(SurfaceDescription.name, "IrisNormal", "SURFACEDESCRIPTION_IRISNORMAL",
+                new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
+            public static BlockFieldDescriptor IOR = new BlockFieldDescriptor(SurfaceDescription.name, "IOR", "SURFACEDESCRIPTION_IOR", 
+                new FloatControl(1.4f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Mask = new BlockFieldDescriptor(SurfaceDescription.name, "Mask", "SURFACEDESCRIPTION_MASK", 
+                new Vector2Control(new Vector2(1.0f, 0.0f)), ShaderStage.Fragment);
         }
     }
 }
