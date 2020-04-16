@@ -241,7 +241,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             material.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: systemData.alphaTest);
 
-            EyeGUI.SetupMaterialKeywordsAndPass(material);
+            FabricGUI.SetupMaterialKeywordsAndPass(material);
         }
 
         int ComputeMaterialNeedsUpdateHash()

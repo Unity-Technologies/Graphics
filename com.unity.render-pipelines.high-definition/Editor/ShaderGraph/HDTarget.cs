@@ -150,6 +150,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(activeSubTargetIndex, m_SubTargetField.index))
                     return;
 
+                var systemData = m_Datas.FirstOrDefault(x => x is HDSystemData) as HDSystemData;
+                if(systemData != null)
+                {
+                    // Force material update hash
+                    systemData.materialNeedsUpdateHash = -1;
+                }
+
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
                 ProcessSubTargetDatas();
                 onChange();

@@ -84,6 +84,26 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(1.4f), ShaderStage.Fragment);
             public static BlockFieldDescriptor Mask = new BlockFieldDescriptor(SurfaceDescription.name, "Mask", "SURFACEDESCRIPTION_MASK", 
                 new Vector2Control(new Vector2(1.0f, 0.0f)), ShaderStage.Fragment);
+
+            // --------------------------------------------------
+            // Hair
+
+            public static BlockFieldDescriptor Transmittance = new BlockFieldDescriptor(SurfaceDescription.name, "Transmittance", "SURFACEDESCRIPTION_TRANSMITTANCE", 
+                new Vector3Control(0.3f * new Vector3(1.0f, 0.65f, 0.3f)), ShaderStage.Fragment);
+            public static BlockFieldDescriptor RimTransmissionIntensity = new BlockFieldDescriptor(SurfaceDescription.name, "RimTransmissionIntensity", "SURFACEDESCRIPTION_RIMTRANSMISSIONINTENSITY", 
+                new FloatControl(0.2f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor HairStrandDirection = new BlockFieldDescriptor(SurfaceDescription.name, "HairStrandDirection", "SURFACEDESCRIPTION_HAIRSTRANDDIRECTION", 
+                new Vector3Control(new Vector3(0, -1, 0)), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SpecularTint = new BlockFieldDescriptor(SurfaceDescription.name, "SpecularTint", "SURFACEDESCRIPTION_SPECULARTINT",
+                new ColorControl(Color.white, false), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SpecularShift = new BlockFieldDescriptor(SurfaceDescription.name, "SpecularShift", "SURFACEDESCRIPTION_SPECULARSHIFT", 
+                new FloatControl(0.1f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SecondarySpecularTint = new BlockFieldDescriptor(SurfaceDescription.name, "SecondarySpecularTint", "SURFACEDESCRIPTION_SECONDARYSPECULARTINT",
+                new ColorControl(Color.grey, false), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SecondarySmoothness = new BlockFieldDescriptor(SurfaceDescription.name, "SecondarySmoothness", "SURFACEDESCRIPTION_SECONDARYSMOOTHNESS", 
+                new FloatControl(0.5f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SecondarySpecularShift = new BlockFieldDescriptor(SurfaceDescription.name, "SecondarySpecularShift", "SURFACEDESCRIPTION_SECONDARYSPECULARSHIFT", 
+                new FloatControl(-0.1f), ShaderStage.Fragment);
         }
     }
 }
