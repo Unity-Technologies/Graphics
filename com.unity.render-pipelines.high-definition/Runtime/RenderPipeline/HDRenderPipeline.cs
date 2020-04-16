@@ -4321,7 +4321,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_FullScreenDebugPushed = true;
                 var stringsz = shader.GetTexturePropertyNames();
-                shader.SetTexture("_MainTex", textureID);
                 cmd.SetGlobalTexture("_MainTex", textureID);
                 cmd.Blit(textureID, m_DebugFullScreenTempBuffer, shader,0);
             }
