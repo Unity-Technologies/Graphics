@@ -26,7 +26,6 @@ namespace UnityEditor.VFX
                 VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
                 if (resource == null)
                     return;
-                Debug.Log("Sanitizing graph");
 
                 resource.GetOrCreateGraph().SanitizeForImport();
             }
