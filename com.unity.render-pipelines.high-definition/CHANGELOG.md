@@ -108,6 +108,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 - Fixed cubemap thumbnail generation at project load time. 
 - Half fixed shuriken particle light that cast shadows (only the first one will be correct)
+- Fixed an issue with the specularFGD term being used when the material has a clear coat (lit shader).
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
