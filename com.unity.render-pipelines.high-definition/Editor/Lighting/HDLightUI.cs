@@ -158,9 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Low, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.lowShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLowShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => serialized.type != HDLightType.Area,
-                                    CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent),
-                                CED.Conditional((serialized, owner) => GetAdvanced(AdvancedMode.Shadow, serialized, owner),
-                                    CED.FoldoutGroup(s_Styles.lightFlagsSubHeader, Expandable.LightFlags, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLightFlags))
+                                    CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent)
                                 ) 
                             ),
                             CED.noop //will only add parameter in first sub header
@@ -1175,8 +1173,30 @@ namespace UnityEditor.Rendering.HighDefinition
                 labelWidth = EditorGUIUtility.labelWidth - (rect.x - labelWidth);
                 if (GUI.Button(rect, "Add Light Flag"))
                 {
-                    
+                    (serialized.serializedObject.targetObject as HDAdditionalLightData).AddLightFlag();
                 }
+                
+                EditorGUI.indentLevel++;
+                labelWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = 0;
+                GUIContent removeLabel = new GUIContent("Remove", "Destroy the light flag");
+                float removeWidth = GUI.skin.button.CalcSize(removeLabel).x;
+                const float hSpace = 2;
+                var flags = (serialized.serializedObject.targetObject as HDAdditionalLightData).lightFlags;
+                foreach (var f in flags)
+                {
+                    rect = EditorGUILayout.GetControlRect(true);
+                    rect.width -= removeWidth + hSpace;
+                    bool enabled = GUI.enabled;
+                    GUI.enabled = false;
+                    EditorGUI.ObjectField(rect, f, typeof(LightFlag), !EditorUtility.IsPersistent(owner.target));
+                    GUI.enabled = enabled;
+                    rect.x += rect.width + hSpace; rect.width = removeWidth;
+                    if (GUI.Button(rect, removeLabel))
+                        Undo.DestroyObjectImmediate(f.gameObject);
+                }
+                EditorGUIUtility.labelWidth = labelWidth;
+                EditorGUI.indentLevel--;
             }
         }
 
