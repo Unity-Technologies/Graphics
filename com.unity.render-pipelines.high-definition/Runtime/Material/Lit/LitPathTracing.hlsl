@@ -103,7 +103,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         mtlData.subsurfaceWeightFactor = subsurfaceWeight;
 
         SSS::Result subsurfaceResult;
-        float3 meanFreePath = -0.001 / (_ShapeParamsAndMaxScatterDists[mtlData.bsdfData.diffusionProfileIndex].rgb * _WorldScalesAndFilterRadiiAndThicknessRemaps[mtlData.bsdfData.diffusionProfileIndex].x);
+        float3 meanFreePath = 0.001 / (_ShapeParamsAndMaxScatterDists[mtlData.bsdfData.diffusionProfileIndex].rgb * _WorldScalesAndFilterRadiiAndThicknessRemaps[mtlData.bsdfData.diffusionProfileIndex].x);
 
         if (!SSS::RandomWalk(shadingPosition, mtlData.bsdfData.normalWS, mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult))
             return false;
