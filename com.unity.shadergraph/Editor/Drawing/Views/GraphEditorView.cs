@@ -259,6 +259,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SearchWindowProvider = ScriptableObject.CreateInstance<SearcherProvider>();
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
             m_GraphView.nodeCreationRequest = NodeCreationRequest;
+            //regenerate entries when graph view is refocused, to propogate subgraph changes
+            m_GraphView.RegisterCallback<FocusInEvent>( evt => { m_SearchWindowProvider.regenerateEntries = true; });
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
@@ -564,6 +566,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews(true);
+            if(m_Graph.addedInputs.Count() > 0 || m_Graph.removedInputs.Count() > 0)
+                m_SearchWindowProvider.regenerateEntries = true;
             m_BlackboardProvider.HandleGraphChanges();
             m_GroupHashSet.Clear();
 
