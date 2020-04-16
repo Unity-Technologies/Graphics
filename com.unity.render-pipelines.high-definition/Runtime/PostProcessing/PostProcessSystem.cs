@@ -351,29 +351,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                RTHandle currentExposureTexture = GetExposureTexture(camera);
-
                 // Fix exposure is store in Exposure Textures at the beginning of the frame as there is no need for color buffer
                 // Dynamic exposure (Auto, curve) is store in Exposure Textures at the end of the frame (as it rely on color buffer)
                 // Texture current and previous are swapped at the beginning of the frame.
-                if (IsExposureFixed())
+                bool isFixedExposure = IsExposureFixed();
+                if (isFixedExposure)
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FixedExposure)))
                     {
                         DoFixedExposure(cmd, camera);
                     }
                 }
-                else
-                {
-                    // When we use Dynamic Exposure and we reset history we can't use pre-exposure (as there is no information)
-                    // For this reasons we put neutral value at the beginning of the frame in Exposure textures and
-                    // apply processed exposure from color buffer at the end of the Frame, only for a single frame.
-                    // After that we re-use the pre-exposure system
-                    if (camera.resetPostProcessingHistory)
-                    {
-                        currentExposureTexture = m_EmptyExposureTexture; // Use neutral texture
-                    }
-                }
+
+                // Note: GetExposureTexture(camera) must be call AFTER the call of DoFixedExposure to be correctly taken into account
+                // When we use Dynamic Exposure and we reset history we can't use pre-exposure (as there is no information)
+                // For this reasons we put neutral value at the beginning of the frame in Exposure textures and
+                // apply processed exposure from color buffer at the end of the Frame, only for a single frame.
+                // After that we re-use the pre-exposure system
+                RTHandle currentExposureTexture = (camera.resetPostProcessingHistory && !isFixedExposure) ? m_EmptyExposureTexture : GetExposureTexture(camera);
 
                 cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, currentExposureTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, GetPreviousExposureTexture(camera));
