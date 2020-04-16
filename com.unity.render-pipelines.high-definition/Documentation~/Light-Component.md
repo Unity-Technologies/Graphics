@@ -184,7 +184,7 @@ These settings define the volumetric behavior of this Light. Alter these setting
 
 ### **Shadows**
 
-Use this section to adjust the Shadows cast by this Light. Note that Area Lights can't currently cast shadows for GameObjects that use a **StackLit** Material.
+Use this section to adjust the Shadows cast by this Light.
 
 Unity exposes extra properties in this section depending on the **Mode** you set in the [General](#GeneralProperties) section. Unity also exposes extra properties depending on the **Filtering Quality** set in your Unity Project’s [HDRP Asset](HDRP-Asset.html).
 

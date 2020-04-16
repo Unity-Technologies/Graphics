@@ -104,6 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for custom passes in the AOV API
 - Added Light decomposition lighting debugging modes and support in AOV
 - Added exposure compensation to Fixed exposure mode
+- Added support for rasterized area light shadows in StackLit
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
