@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         // Render State
         string renderType => HDRenderTypeTags.HDLitShader.ToString();
-        public string renderQueue
+        string renderQueue
         {
             get
             {

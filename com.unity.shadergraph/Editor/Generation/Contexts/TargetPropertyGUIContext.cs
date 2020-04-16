@@ -55,6 +55,19 @@ namespace UnityEditor.ShaderGraph
             var propertyRow = new PropertyRow(new Label(labelText));
             propertyRow.Add(field);
             properties.Add(propertyRow);
-        }        
+        }
+
+        public void AddLabel(string label, int indentLevel)
+        {
+            string labelText = "";
+            for (var i = 0; i < indentLevel; i++)
+            {
+                labelText += "    ";
+            }
+            labelText += label;
+
+            var propertyRow = new PropertyRow(new Label(labelText));
+            properties.Add(propertyRow);
+        }     
     }
 }
