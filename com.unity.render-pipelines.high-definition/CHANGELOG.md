@@ -33,6 +33,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for issue that prevented scene from being completely saved when baked reflection probes are present and lighting is set to auto generate.
 - Fixed the depth buffer copy made before custom pass after opaque and normal injection point.
 - Fixed a weird behavior in the scalable settings drawing when the space becomes tiny (1212045).
+- Fixed an usage of a a compute buffer not bound (1229964)
+- Fixed an issue where unncessarily serialized members in StaticLightingSky component would change each time the scene is changed.
+- Fix issues in the post process system with RenderTexture being invalid in some cases, causing rendering problems.
+- Fixed an issue where changing the default volume profile from another inspector would not update the default volume editor.
+- Fix for range compression factor for probes going negative (now clamped to positive values).
+- Fixed path validation when creating new volume profile (case 1229933)
+- Fixed various object leaks in HDRP.
+- Fix for assertion triggering sometimes when saving a newly created lit shader graph (case 1230996)
 - Fixed an issue with the specularFGD term being used when the material has a clear coat (lit shader).
 
 ### Changed
