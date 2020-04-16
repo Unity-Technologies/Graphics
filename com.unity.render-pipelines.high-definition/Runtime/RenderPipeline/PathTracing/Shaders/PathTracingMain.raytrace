@@ -100,14 +100,14 @@ void RayGen()
         float2 uv = UniformPointWithinCircle(apertureRadius, r1, r2);
 
         // Compute the new ray origin
-        float3x3 camera = -_ViewMatrix;
+        float3x3 camera = _ViewMatrix;
         // camera[0] = left, camera[1] = up, camera[2] = forward
         float3 focusPoint = _WorldSpaceCameraPos + camera[2] * focusDistance;
         cameraPosWS = _WorldSpaceCameraPos + camera[0] * uv.x + camera[1] * uv.y;
 
         // create the new orthonormal basis
-        float3 newForward = normalize(cameraPosWS - focusPoint);
-        float3 newLeft = cross(camera[1], newForward);
+        float3 newForward = normalize(focusPoint - cameraPosWS);
+        float3 newLeft = cross(newForward, camera[1]);
         float3 newUp = cross(newLeft, newForward);
 
         // Compute the ray direction using the new orthonormal basis
