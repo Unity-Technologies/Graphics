@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the `Position` node would change coordinate spaces from `World` to `Absolute World` when shaders recompile. [1184617](https://issuetracker.unity3d.com/product/unity/issues/guid/1184617/)
 - Optimized loading a large Shader Graph. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
 - Fixed a bug where `Scene Depth` nodes would stop working after adding a keyword on the blackboard. [1203333](https://issuetracker.unity3d.com/product/unity/issues/guid/1203333/)
+- Fixed an issue where you could not select a custom mesh for the master priview [1205791](https://issuetracker.unity3d.com/product/unity/issues/guid/1205791/)
 
 ## [8.0.1] - 2020-05-25
 
