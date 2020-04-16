@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display indirect diffuse occlusion.</summary>
         IndirectDiffuseOcclusion,
         /// <summary>Display indirect specular occlusion.</summary>
-        IndirectSpecularOcclusion
+        IndirectSpecularOcclusion,
         /// <summary>Display only direct diffuse lighting.</summary>
         DirectDiffuseLighting,
         /// <summary>Display only direct specular lighting.</summary>
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display only refraction.</summary>
         RefractionLighting,
         /// <summary>Display only Emissive lighting.</summary>
-        EmissiveLighting,
+        EmissiveLighting
     }
 
     /// <summary>
