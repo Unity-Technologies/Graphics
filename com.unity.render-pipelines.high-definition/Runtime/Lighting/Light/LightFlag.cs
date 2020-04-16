@@ -1,14 +1,5 @@
-﻿namespace UnityEngine.Rendering
+﻿namespace UnityEngine.Rendering.HighDefinition
 {
-    [GenerateHLSL(PackingRules.Exact, false)]
-    public struct LightFlagData
-    {
-        public Vector4 plane;
-
-        public float feather;
-        public Vector3 unused;
-    }
-
     public class LightFlag : MonoBehaviour
     {
         [Tooltip("How much to feather the clipped edge")]

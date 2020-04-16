@@ -175,6 +175,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public int     lightFlagCount;
     };
 
+    [GenerateHLSL(PackingRules.Exact, false)]
+    public struct LightFlagData
+    {
+        public Vector4 plane;
+
+        public float feather;
+        public Vector3 unused;
+    }
 
     [GenerateHLSL]
     enum EnvShapeType

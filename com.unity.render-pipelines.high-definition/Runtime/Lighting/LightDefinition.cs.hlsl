@@ -127,6 +127,15 @@ struct LightData
     int lightFlagCount;
 };
 
+// Generated from UnityEngine.Rendering.HighDefinition.LightFlagData
+// PackingRules = Exact
+struct LightFlagData
+{
+    float4 plane;
+    float feather;
+    float3 unused;
+};
+
 // Generated from UnityEngine.Rendering.HighDefinition.EnvLightData
 // PackingRules = Exact
 struct EnvLightData

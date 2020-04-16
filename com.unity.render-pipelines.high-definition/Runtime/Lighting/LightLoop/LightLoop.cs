@@ -1278,7 +1278,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal void GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, VisibleLight light, Light lightComponent,
-            int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot)
+            int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot, ref int lightFlagOffset)
         {
             var processedData = m_ProcessedLightData[lightIndex];
             var additionalLightData = processedData.additionalLightData;
@@ -1507,6 +1507,15 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.shadowIndex = shadowIndex;
             // Keep track of the shadow map (for indirect lighting and transparents)
             additionalLightData.shadowIndex = shadowIndex;
+
+            // Punctual light flags
+            for (int i = 0; i < additionalLightData.lightFlags.Length; i++)
+            {
+                m_lightList.lightFlags.Add(additionalLightData.lightFlags[i].FlagParams);
+            }
+            lightData.lightFlagIndex = lightFlagOffset;
+            lightData.lightFlagCount = additionalLightData.lightFlags.Length;
+            lightFlagOffset += lightData.lightFlagCount;
 
             //Value of max smoothness is derived from Radius. Formula results from eyeballing. Radius of 0 results in 1 and radius of 2.5 results in 0.
             float maxSmoothness = Mathf.Clamp01(1.1725f / (1.01f + Mathf.Pow(1.0f * (additionalLightData.shapeRadius + 0.1f), 2f)) - 0.15f);
@@ -2219,6 +2228,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int shadowIndex = -1;
 
+                int lightFlagOffset = 0;
+
                 // Manage shadow requests
                 if (additionalLightData.WillRenderShadowMap())
                 {
@@ -2259,7 +2270,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
 
                     // Punctual, area, projector lights - the rendering side.
-                    GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, lightIndex, shadowIndex, ref lightDimensions, debugDisplaySettings, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot);
+                    GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, lightIndex, shadowIndex, ref lightDimensions, debugDisplaySettings, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot, ref lightFlagOffset);
 
                     switch (lightCategory)
                     {
@@ -3163,6 +3174,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightLoopLightData.lightData.SetData(m_lightList.lights);
             m_LightLoopLightData.envLightData.SetData(m_lightList.envLights);
             m_LightLoopLightData.decalData.SetData(DecalSystem.m_DecalDatas, 0, 0, Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen)); // don't add more than the size of the buffer
+            m_LightLoopLightData.lightFlagData.SetData(m_lightList.lightFlags);
 
             // These two buffers have been set in Rebuild(). At this point, view 0 contains combined data from all views
             m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].bounds);
@@ -3265,6 +3277,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, param.lightList.envLights.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, param.lightData.decalData);
                 cmd.SetGlobalInt(HDShaderIDs._DecalCount, DecalSystem.m_DecalDatasCount);
+                cmd.SetGlobalBuffer(HDShaderIDs._LightFlagDatas, param.lightData.lightFlagData);
 
                 cmd.SetGlobalInt(HDShaderIDs._EnableSSRefraction, param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1 : 0);
 
