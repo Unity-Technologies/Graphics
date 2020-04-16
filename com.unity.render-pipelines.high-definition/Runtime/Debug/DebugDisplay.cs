@@ -1233,11 +1233,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
 
                     // First row for volume info
+                    float timer = 0.0f, refreshRate = 0.2f;
                     var row = new DebugUI.Table.Row()
                     {
                         displayName = "Volume Info",
                         children = { new DebugUI.Value() { displayName = "Interpolated Value",
                             getter = () => {
+                                timer += Time.deltaTime;
+                                if (timer < refreshRate) {
+                                    return "";
+                                }
+                                timer -= refreshRate;
                                 if (data.volumeDebugSettings.selectedCameraIndex != 0)
                                 {
                                     var newVolumes = data.volumeDebugSettings.GetVolumes();
@@ -1256,6 +1262,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         } }
                     };
+                    row.opened = true;
 
                     foreach (var volume in volumes)
                     {
