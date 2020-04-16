@@ -177,6 +177,13 @@ namespace UnityEngine.Rendering.Universal
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
             bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
             createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                // XRTODO: remove this XR special case once URP handles msaa/size mismatch between depth RT and color RT(for now we create intermediate depth to ensure they match)
+                createDepthTexture |= createColorTexture && cameraTargetDescriptor.msaaSamples != cameraData.xr.renderTargetDesc.msaaSamples;
+            }
+#endif
 
 #if UNITY_ANDROID
             if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)

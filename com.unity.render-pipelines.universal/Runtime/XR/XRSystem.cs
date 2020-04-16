@@ -84,24 +84,20 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static int UpdateMSAALevel(int level)
+        internal static void UpdateMSAALevel(int level)
         {
             GetDisplaySubsystem();
 
             for (int i = 0; i < displayList.Count; i++)
                 displayList[i].SetMSAALevel(level);
-
-            return (displayList.Count > 0) ? level : 1;
         }
 
-        internal static float UpdateRenderScale(float renderScale)
+        internal static void UpdateRenderScale(float renderScale)
         {
             GetDisplaySubsystem();
 
             for (int i = 0; i < displayList.Count; i++)
                 displayList[i].scaleOfAllRenderTargets = renderScale;
-
-            return (displayList.Count > 0) ? renderScale : 1.0f;
         }
 
         // Compute the maximum number of views (slices) to allocate for texture arrays

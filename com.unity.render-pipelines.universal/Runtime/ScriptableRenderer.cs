@@ -779,6 +779,7 @@ namespace UnityEngine.Rendering.Universal
             ClearFlag clearFlags,
             Color clearColor)
         {
+            // XRTODO: Revisit the logic. Why treat CameraTarget depth specially?
             if (depthAttachment == BuiltinRenderTextureType.CameraTarget)
             {
                 SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
