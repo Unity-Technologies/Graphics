@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NaN which can appear with real time reflection and inf value
 - Fixed raytracing shader compilation on Metal
 - Fixed an issue that was collapsing the volume components in the HDRP default settings
+- Fixed warning about missing bound decal buffer
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
