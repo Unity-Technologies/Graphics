@@ -69,7 +69,7 @@ To preview an effect, you can:
 
 This lets you edit parameters directly in the Scene, see the lighting on your effect, and use the [Target GameObject Panel](VisualEffectGraphWindow.md#target-visual-effect-gameobject) features for the specific target instance of your effect.
 
-## Manipulating Graph Elements
+## Manipulating graph elements
 When you open an Asset inside the Visual Effect Graph window, you can see and edit the graph for that specific Asset.
 
 A Visual Effect Graph contains [Operator Nodes](Operators.md) and [Blocks](Blocks.md). Each Node is in charge of processing its input properties. You can link Nodes together to perform a series of calculations. All Nodes end up connecting into a Block (or a context) : A Block defines an operation on an effect, based on its input properties.
