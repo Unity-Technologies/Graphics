@@ -22,16 +22,16 @@ def get_job_definition(project, editor, platform, api, test_platform, build_job)
     return job
 
 
-def get_StandaloneBuildJob(project, editor, platform, api):
+def get_StandaloneBuildJob(project, editor, platform, api, test_platform):
     try:
-        return Project_StandaloneBuildJob(project, editor, platform, api)
+        return Project_StandaloneBuildJob(project, editor, platform, api, test_platform)
     except:
         return None
 
 class Project_StandaloneJob():
     
     def __init__(self, project, editor, platform, api, test_platform):
-        self.build_job = get_StandaloneBuildJob(project, editor, platform, api)
+        self.build_job = get_StandaloneBuildJob(project, editor, platform, api, test_platform)
 
         self.project_name = project["name"]
         self.job_id = project_job_id_test(project["name"],platform["name"],api["name"],test_platform["name"],editor["version"])

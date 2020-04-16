@@ -26,7 +26,7 @@ def cmd_standalone(project, platform, api, test_platform_args):
     return base
 
         
-def cmd_standalone_build(project, platform, api):
+def cmd_standalone_build(project, platform, api, test_platform_args):
     base = _cmd_base(project, platform["components"])
     base.extend([  
         f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME%',

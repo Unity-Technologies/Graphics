@@ -22,10 +22,10 @@ def cmd_standalone(project, platform, api, test_platform_args):
     ])
     return base
 
-def cmd_standalone_build(project, platform, api):
+def cmd_standalone_build(project, platform, api, test_platform_args):
     base = _cmd_base(project, platform["components"])
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr/utr --suite=playmode --platform=StandaloneOSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only'
+        f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr/utr {test_platform_args}OSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only'
     ])
     return base
 

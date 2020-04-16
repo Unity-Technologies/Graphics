@@ -37,7 +37,7 @@ def cmd_standalone(project, platform, api, test_platform_args):
         export YAMATO_JOB_ID=$YAMATO_JOB_ID
         export YAMATO_JOBDEFINITION_NAME=$YAMATO_JOBDEFINITION_NAME
         export YAMATO_PROJECT_ID=$YAMATO_PROJECT_ID
-        ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP -T "./utr --suite=playmode --platform=StandaloneOSX --player-load-path=~/{REPOSITORY_NAME}/build/players --artifacts_path=~/{REPOSITORY_NAME}/build/test-results --player-connection-ip=127.0.0.1"
+        ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP -T "./utr {test_platform_args}OSX --player-load-path=~/{REPOSITORY_NAME}/build/players --artifacts_path=~/{REPOSITORY_NAME}/build/test-results --player-connection-ip=127.0.0.1"
         
         UTR_RESULT=$?
         mkdir -p build/test-results/
@@ -45,11 +45,11 @@ def cmd_standalone(project, platform, api, test_platform_args):
         exit $UTR_RESULT''')
      ]
 
-def cmd_standalone_build(project, platform, api):
+def cmd_standalone_build(project, platform, api, test_platform_args):
     return  [
         f'git clone git@github.cds.internal.unity3d.com:unity/utr.git {TEST_PROJECTS_DIR}/{project["folder"]}/utr',
         f'pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade',
         f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && unity-downloader-cli --source-file ../../unity_revision.txt {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
-        f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr/utr --suite=playmode --platform=StandaloneOSX --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildOSXMetal" --testproject=. --editor-location=.Editor --artifacts_path=build-results --timeout=3600 --player-save-path=../../build/players --build-only'
+        f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr/utr {test_platform_args}OSX --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildOSXMetal" --testproject=. --editor-location=.Editor --artifacts_path=build-results --timeout=3600 --player-save-path=../../build/players --build-only'
     ]
 
