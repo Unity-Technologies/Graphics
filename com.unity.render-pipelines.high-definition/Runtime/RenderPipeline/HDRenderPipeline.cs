@@ -1193,9 +1193,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Raise or remove the depth msaa flag based on the frame setting
             CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR && ENABLE_VIRTUALTEXTURES
             //Set VTDebug mode based on useTexArray
-            m_VTDebugBlit = new Material(Shader.Find("Hidden/DebugVTBlit"));
+            if (!m_VTDebugBlit) m_VTDebugBlit = new Material(Shader.Find("Hidden/DebugVTBlit"));
             if (m_VTDebugBlit)
             {
                 if (TextureXR.useTexArray) m_VTDebugBlit.EnableKeyword("USE_TEXARRAY");
