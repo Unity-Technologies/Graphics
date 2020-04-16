@@ -61,7 +61,7 @@ float2 UniformPointWithinCircle(float radius, float u1, float u2)
 {
     float r = radius * sqrt(u1);
     float theta = 2 * u2 * PI;
-	return float2(r * cos(theta), r * sin(theta));
+    return float2(r * cos(theta), r * sin(theta));
 }
 
 [shader("raygeneration")]
@@ -83,13 +83,13 @@ void RayGen()
     float apertureRadius = _PathTracedDoFConstants.x;
     if (apertureRadius == 0.0)
     {
-        // Compute the ray direction, from those coordinates for a pinhole camera
+        // Compute the ray direction from those coordinates (fast path for zero aperture)
         directionWS = -normalize(mul(jitteredPixelCoord, (float3x3)_PixelCoordToViewDirWS));
         cameraPosWS = _WorldSpaceCameraPos;
     }
     else
     {
-        float focusDistance = _PathTracedDoFConstants.y;
+        // Compute the ray origin and direction for a lens with non-zero aperture
 
         // Apply the inverse viewport transform to go from vieport coordinates to NDC
         jitteredPixelCoord = mul(jitteredPixelCoord, (float3x3)_InvViewportTransform);
@@ -100,10 +100,11 @@ void RayGen()
         float2 uv = UniformPointWithinCircle(apertureRadius, r1, r2);
 
         // Compute the new ray origin ( _ViewMatrix[0] = right, _ViewMatrix[1] = up, _ViewMatrix[2] = forward )
+        float focusDistance = _PathTracedDoFConstants.y;
         float3 focusPoint = _WorldSpaceCameraPos - _ViewMatrix[2] * focusDistance;
         cameraPosWS = _WorldSpaceCameraPos + _ViewMatrix[0] * uv.x + _ViewMatrix[1] * uv.y;
 
-        // create the new orthonormal basis
+        // Create the new orthonormal basis
         float3 newForward = normalize(cameraPosWS - focusPoint);
         float3 newRight = cross(newForward, _ViewMatrix[1]);
         float3 newUp = cross(newRight, newForward);
