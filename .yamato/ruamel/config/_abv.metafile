@@ -28,3 +28,22 @@ test_platforms:
     args: --suite=playmode
   - name: editmode
     args: --suite=editor --platform=editmode
+abv_config:
+  trigger_editor:
+    fast-2020.1
+nightly_config:
+  allowed_editors:
+    - 2020.1
+    - trunk
+  additional_jobs: # additional project jobs to run nightly (in addition to ABV and smoke tests)
+    - project_name: Universal
+      platform_name: Android
+      api_name: OpenGLES3
+      test_platform_names:
+        - Standalone
+    - project_name: Universal
+      platform_name: Android
+      api_name: Vulkan
+      test_platform_names:
+        - Standalone
+

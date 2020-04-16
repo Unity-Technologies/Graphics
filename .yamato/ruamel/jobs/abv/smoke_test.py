@@ -1,6 +1,7 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import *
 from ..utils.constants import VAR_UPM_REGISTRY, TEST_PROJECTS_DIR
+from ..utils.shared import add_custom_revision_var
 
 default_agent = {
     'type':'Unity::VM',
@@ -42,14 +43,12 @@ def get_job_definition(editor, test_platform):  # only run for 2020.1 and trunk
     }
 
 
-    if editor['version'] == 'CUSTOM-REVISION':
-        job['variables']['CUSTOM_REVISION'] = 'custom_revision_not_set'
-    
     if test_platform['name'].lower() == 'standalone':
         job['commands'].append(f'cd {TEST_PROJECTS_DIR}/SRP_SmokeTest && utr/utr {test_platform["args"]}Windows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200')
     else:
         job['commands'].append(f'cd {TEST_PROJECTS_DIR}/SRP_SmokeTest && utr/utr {test_platform["args"]} --testproject=. --editor-location=.Editor --artifacts_path=test-results')
     
+    job = add_custom_revision_var(job, editor["version"])
     return job
 
 

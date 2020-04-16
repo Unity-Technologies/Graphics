@@ -126,11 +126,12 @@ def create_abv_jobs(metafile_name):
         job = ABV_AllSmokeTestsJob(editor, metafile["test_platforms"])
         yml[job.job_id] = job.yml
 
-        job = ABV_AllProjectCiJob(editor, metafile["projects"])
+        job = ABV_AllProjectCiJob(editor, metafile["projects"], metafile["abv_config"]["trigger_editor"])
         yml[job.job_id] = job.yml
 
-        job = ABV_AllProjectCiNightlyJob(editor, metafile["projects"], metafile["test_platforms"])
-        yml[job.job_id] = job.yml
+        if editor["version"] in metafile["nightly_config"]["allowed_editors"]:
+            job = ABV_AllProjectCiNightlyJob(editor, metafile["projects"], metafile["test_platforms"], metafile["nightly_config"])
+            yml[job.job_id] = job.yml
 
         job = ABV_TrunkVerificationJob(editor, metafile["projects"], metafile["test_platforms"])
         yml[job.job_id] = job.yml

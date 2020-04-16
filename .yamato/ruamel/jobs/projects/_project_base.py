@@ -4,6 +4,7 @@ from ruamel.yaml.scalarstring import PlainScalarString as pss
 from .commands._cmd_mapper import get_cmd
 from ..utils.namer import *
 from ..utils.constants import VAR_UPM_REGISTRY
+from ..utils.shared import add_custom_revision_var
 
 def _job(project_name, test_platform_name, editor, platform, api, cmd):
 
@@ -36,7 +37,5 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
         },
     }
 
-    if editor['version'] == 'CUSTOM-REVISION':
-        job['variables']['CUSTOM_REVISION'] = 'custom_revision_not_set'
-
+    job = add_custom_revision_var(job, editor["version"])
     return job

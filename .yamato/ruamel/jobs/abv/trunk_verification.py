@@ -1,5 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import *
+from ..utils.shared import add_custom_revision_var
 
 def get_job_definition(editor, projects, test_platforms):  # TODO only run for 2020.1 and trunk
     dependencies = []
@@ -21,10 +22,8 @@ def get_job_definition(editor, projects, test_platforms):  # TODO only run for 2
         'name': f'Trunk verification - {editor["version"]}',
         'dependencies': dependencies
     }
-
-    if editor['version'] == 'CUSTOM-REVISION':
-        job['variables'] = {'CUSTOM_REVISION':'custom_revision_not_set'}
     
+    job = add_custom_revision_var(job, editor["version"])
     return job
 
 

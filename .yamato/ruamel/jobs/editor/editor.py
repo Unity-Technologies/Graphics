@@ -1,6 +1,7 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import editor_job_id
 from ..utils.constants import VAR_UPM_REGISTRY
+from ..utils.shared import add_custom_revision_var
 
 def get_job_definition(platform, editor, agent):
     platform_os = 'windows' if platform["os"] == 'android' else platform["os"]
@@ -28,9 +29,7 @@ def get_job_definition(platform, editor, agent):
         },
     }
 
-    if editor['version'] == 'CUSTOM-REVISION':
-        job['variables']['CUSTOM_REVISION'] = 'custom_revision_not_set'
-
+    job = add_custom_revision_var(job, editor["version"])
     return job
 
 

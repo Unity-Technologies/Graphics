@@ -91,33 +91,17 @@ all_project_ci_2020.1:
 all_project_ci_nightly_2020.1:
     name: _Nightly ABV against 2020.1
     dependencies:
-      -  path: .yamato/packages.yml#all_package_ci_2020.1
-         rerun: always
-      -  path: .yamato/universal/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_2020.1
-         rerun: always
-      -  path: .yamato/universal/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_2020.1
-         rerun: always
-      -  path: .yamato/universal/universal-all.yml#All_Universal_2020.1
-         rerun: always
-      -  path: .yamato/universal_stereo/universal_stereo-all.yml#All_Universal_Stereo_2020.1
-         rerun: always
-      -  path: .yamato/shadergraph/shadergraph-all.yml#All_ShaderGraph_2020.1
-         rerun: always
-      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-all.yml#All_ShaderGraph_Stereo_2020.1
-         rerun: always
-      -  path: .yamato/hdrp/hdrp-all.yml#All_HDRP_2020.1
-         rerun: always
-      -  path: .yamato/hdrp_standalone/hdrp_standalone-all.yml#All_HDRP_Standalone_2020.1
-         rerun: always
-      -  path: .yamato/vfxmain/vfxmain-all.yml#All_VFXMain_2020.1
-         rerun: always
-      -  path: .yamato/vfx_lwrp/vfx_lwrp-all.yml#All_VFX_LWRP_2020.1
+      -  path: .yamato/abv.yml#all_project_ci_2020.1
          rerun: always
       -  path: .yamato/abv.yml#smoke_test_Standalone_2020.1
          rerun: always
       -  path: .yamato/abv.yml#smoke_test_playmode_2020.1
          rerun: always
       -  path: .yamato/abv.yml#smoke_test_editmode_2020.1
+         rerun: always
+      -  path: .yamato/universal/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_2020.1
+         rerun: always
+      -  path: .yamato/universal/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_2020.1
          rerun: always
     triggers:
         recurring:
@@ -236,41 +220,6 @@ all_project_ci_fast-2020.1:
          rerun: always
     triggers:
         expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
-all_project_ci_nightly_fast-2020.1:
-    name: _Nightly ABV against fast-2020.1
-    dependencies:
-      -  path: .yamato/packages.yml#all_package_ci_fast-2020.1
-         rerun: always
-      -  path: .yamato/universal/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_fast-2020.1
-         rerun: always
-      -  path: .yamato/universal/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_fast-2020.1
-         rerun: always
-      -  path: .yamato/universal/universal-all.yml#All_Universal_fast-2020.1
-         rerun: always
-      -  path: .yamato/universal_stereo/universal_stereo-all.yml#All_Universal_Stereo_fast-2020.1
-         rerun: always
-      -  path: .yamato/shadergraph/shadergraph-all.yml#All_ShaderGraph_fast-2020.1
-         rerun: always
-      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-all.yml#All_ShaderGraph_Stereo_fast-2020.1
-         rerun: always
-      -  path: .yamato/hdrp/hdrp-all.yml#All_HDRP_fast-2020.1
-         rerun: always
-      -  path: .yamato/hdrp_standalone/hdrp_standalone-all.yml#All_HDRP_Standalone_fast-2020.1
-         rerun: always
-      -  path: .yamato/vfxmain/vfxmain-all.yml#All_VFXMain_fast-2020.1
-         rerun: always
-      -  path: .yamato/vfx_lwrp/vfx_lwrp-all.yml#All_VFX_LWRP_fast-2020.1
-         rerun: always
-      -  path: .yamato/abv.yml#smoke_test_Standalone_fast-2020.1
-         rerun: always
-      -  path: .yamato/abv.yml#smoke_test_playmode_fast-2020.1
-         rerun: always
-      -  path: .yamato/abv.yml#smoke_test_editmode_fast-2020.1
-         rerun: always
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: 0 * * ?
 trunk_verification_fast-2020.1:
     name: Trunk verification - fast-2020.1
     dependencies:
@@ -385,33 +334,17 @@ all_project_ci_trunk:
 all_project_ci_nightly_trunk:
     name: _Nightly ABV against trunk
     dependencies:
-      -  path: .yamato/packages.yml#all_package_ci_trunk
-         rerun: always
-      -  path: .yamato/universal/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_trunk
-         rerun: always
-      -  path: .yamato/universal/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_trunk
-         rerun: always
-      -  path: .yamato/universal/universal-all.yml#All_Universal_trunk
-         rerun: always
-      -  path: .yamato/universal_stereo/universal_stereo-all.yml#All_Universal_Stereo_trunk
-         rerun: always
-      -  path: .yamato/shadergraph/shadergraph-all.yml#All_ShaderGraph_trunk
-         rerun: always
-      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-all.yml#All_ShaderGraph_Stereo_trunk
-         rerun: always
-      -  path: .yamato/hdrp/hdrp-all.yml#All_HDRP_trunk
-         rerun: always
-      -  path: .yamato/hdrp_standalone/hdrp_standalone-all.yml#All_HDRP_Standalone_trunk
-         rerun: always
-      -  path: .yamato/vfxmain/vfxmain-all.yml#All_VFXMain_trunk
-         rerun: always
-      -  path: .yamato/vfx_lwrp/vfx_lwrp-all.yml#All_VFX_LWRP_trunk
+      -  path: .yamato/abv.yml#all_project_ci_trunk
          rerun: always
       -  path: .yamato/abv.yml#smoke_test_Standalone_trunk
          rerun: always
       -  path: .yamato/abv.yml#smoke_test_playmode_trunk
          rerun: always
       -  path: .yamato/abv.yml#smoke_test_editmode_trunk
+         rerun: always
+      -  path: .yamato/universal/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_trunk
+         rerun: always
+      -  path: .yamato/universal/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_trunk
          rerun: always
     triggers:
         recurring:
@@ -528,41 +461,6 @@ all_project_ci_fast-trunk:
          rerun: always
       -  path: .yamato/vfx_lwrp/vfx_lwrp-all.yml#All_VFX_LWRP_fast-trunk
          rerun: always
-all_project_ci_nightly_fast-trunk:
-    name: _Nightly ABV against fast-trunk
-    dependencies:
-      -  path: .yamato/packages.yml#all_package_ci_fast-trunk
-         rerun: always
-      -  path: .yamato/universal/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_fast-trunk
-         rerun: always
-      -  path: .yamato/universal/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_fast-trunk
-         rerun: always
-      -  path: .yamato/universal/universal-all.yml#All_Universal_fast-trunk
-         rerun: always
-      -  path: .yamato/universal_stereo/universal_stereo-all.yml#All_Universal_Stereo_fast-trunk
-         rerun: always
-      -  path: .yamato/shadergraph/shadergraph-all.yml#All_ShaderGraph_fast-trunk
-         rerun: always
-      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-all.yml#All_ShaderGraph_Stereo_fast-trunk
-         rerun: always
-      -  path: .yamato/hdrp/hdrp-all.yml#All_HDRP_fast-trunk
-         rerun: always
-      -  path: .yamato/hdrp_standalone/hdrp_standalone-all.yml#All_HDRP_Standalone_fast-trunk
-         rerun: always
-      -  path: .yamato/vfxmain/vfxmain-all.yml#All_VFXMain_fast-trunk
-         rerun: always
-      -  path: .yamato/vfx_lwrp/vfx_lwrp-all.yml#All_VFX_LWRP_fast-trunk
-         rerun: always
-      -  path: .yamato/abv.yml#smoke_test_Standalone_fast-trunk
-         rerun: always
-      -  path: .yamato/abv.yml#smoke_test_playmode_fast-trunk
-         rerun: always
-      -  path: .yamato/abv.yml#smoke_test_editmode_fast-trunk
-         rerun: always
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: 0 * * ?
 trunk_verification_fast-trunk:
     name: Trunk verification - fast-trunk
     dependencies:
@@ -681,41 +579,6 @@ all_project_ci_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-all_project_ci_nightly_CUSTOM-REVISION:
-    name: _Nightly ABV against CUSTOM-REVISION
-    dependencies:
-      -  path: .yamato/packages.yml#all_package_ci_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/universal/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/universal/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/universal/universal-all.yml#All_Universal_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/universal_stereo/universal_stereo-all.yml#All_Universal_Stereo_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/shadergraph/shadergraph-all.yml#All_ShaderGraph_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/shadergraph_stereo/shadergraph_stereo-all.yml#All_ShaderGraph_Stereo_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/hdrp/hdrp-all.yml#All_HDRP_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/hdrp_standalone/hdrp_standalone-all.yml#All_HDRP_Standalone_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/vfxmain/vfxmain-all.yml#All_VFXMain_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/vfx_lwrp/vfx_lwrp-all.yml#All_VFX_LWRP_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/abv.yml#smoke_test_Standalone_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/abv.yml#smoke_test_playmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/abv.yml#smoke_test_editmode_CUSTOM-REVISION
-         rerun: always
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: 0 * * ?
 trunk_verification_CUSTOM-REVISION:
     name: Trunk verification - CUSTOM-REVISION
     dependencies:

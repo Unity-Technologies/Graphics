@@ -1,8 +1,9 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import *
+from ..utils.shared import add_custom_revision_var
 
 
-def get_job_definition(editor, projects):  # only run for 2020.1 and trunk
+def get_job_definition(editor, projects, abv_trigger_editor): 
     dependencies = [{
         'path': f'{packages_filepath()}#{package_job_id_test_all(editor["version"])}',
         'rerun': 'always'
@@ -19,15 +20,16 @@ def get_job_definition(editor, projects):  # only run for 2020.1 and trunk
         'dependencies' : dependencies
     }
 
-    if editor['version'] == 'CUSTOM-REVISION':
-        job['variables'] = {'CUSTOM_REVISION':'custom_revision_not_set'}
-    elif editor['version'] == 'fast-2020.1':
+
+    if editor['version'] == abv_trigger_editor:
         job['triggers'] = {'expression': 'pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]'}
+    
+    job = add_custom_revision_var(job, editor["version"])
     return job
 
 
 class ABV_AllProjectCiJob():
     
-    def __init__(self, editor, projects):
+    def __init__(self, editor, projects, abv_trigger_editor):
         self.job_id = abv_job_id_all_project_ci(editor["version"])
-        self.yml = get_job_definition(editor, projects)
+        self.yml = get_job_definition(editor, projects, abv_trigger_editor)
