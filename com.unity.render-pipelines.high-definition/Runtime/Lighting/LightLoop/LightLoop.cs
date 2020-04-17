@@ -1040,18 +1040,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        //bool LightLoopNeedResize(HDCamera hdCamera, TileAndClusterData tileAndClusterData)
-        //{
-        //    return tileAndClusterData.lightList == null || tileAndClusterData.tileList == null || tileAndClusterData.tileFeatureFlags == null ||
-        //        tileAndClusterData.AABBBoundsBuffer == null || tileAndClusterData.convexBoundsBuffer == null || tileAndClusterData.lightVolumeDataBuffer == null ||
-        //        (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass &&
-        //            (tileAndClusterData.probeVolumesAABBBoundsBuffer == null || tileAndClusterData.probeVolumesConvexBoundsBuffer == null || tileAndClusterData.probeVolumesLightVolumeDataBuffer == null)
-        //        ) ||
-        //        (tileAndClusterData.bigTileLightList == null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass)) ||
-        //        (tileAndClusterData.dispatchIndirectBuffer == null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.DeferredTile)) ||
-        //        (tileAndClusterData.perVoxelLightLists == null) || (hdCamera.viewCount > m_MaxViewCount);
-        //}
-
         void LightLoopReleaseResolutionDependentBuffers()
         {
             m_MaxViewCount = 1;

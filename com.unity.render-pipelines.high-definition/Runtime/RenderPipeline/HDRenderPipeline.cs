@@ -969,6 +969,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Resize(HDCamera hdCamera)
         {
+            // m_MaxCameraWidth and m_MaxCameraHeight start at 0 so we will at least go through this once at first frame to allocate the buffers for the first time.
             bool resolutionChanged = (hdCamera.actualWidth > m_MaxCameraWidth) || (hdCamera.actualHeight > m_MaxCameraHeight);
 
             if (resolutionChanged)
