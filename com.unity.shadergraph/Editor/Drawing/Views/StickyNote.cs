@@ -255,7 +255,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Change change {get; protected set; }
     }
 
-    class StickyNote : GraphElement, IResizable, IInspectable
+    class StickyNote : GraphElement, IResizable
     {
         GraphData m_Graph;
         public new StickyNoteData userData
@@ -423,20 +423,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public string displayName => $"{m_Title.text} (Sticky Note)";
-        public object GetObjectToInspect()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public PropertyInfo[] GetPropertyInfo()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
-        {
-            throw new NotImplementedException();
-        }
 
         public StickyNote(string uiFile, Rect position, GraphData graph)
         {
