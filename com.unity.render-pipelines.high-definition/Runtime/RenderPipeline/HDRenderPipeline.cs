@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly XRSystem m_XRSystem;
 
         bool m_FrameSettingsHistoryEnabled = false;
-        bool m_DisableCookieForLightBaking = false;
+        bool m_PreviousDisableCookieForLightBaking = false;
 
         /// <summary>
         /// This functions allows the user to have an approximation of the number of rays that were traced for a given frame.
@@ -664,9 +664,6 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseLinearIntensity = true;
             GraphicsSettings.lightsUseColorTemperature = true;
 
-            m_DisableCookieForLightBaking = UnityEditor.EditorSettings.disableCookiesInLightmapper;
-            UnityEditor.EditorSettings.disableCookiesInLightmapper = false;
-
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
@@ -694,6 +691,10 @@ namespace UnityEngine.Rendering.HighDefinition
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
 
 #if UNITY_EDITOR
+            // HDRP always enable baking of cookie by default
+            m_PreviousDisableCookieForLightBaking = UnityEditor.EditorSettings.disableCookiesInLightmapper;
+            UnityEditor.EditorSettings.disableCookiesInLightmapper = false;
+
             SceneViewDrawMode.SetupDrawMode();
 
             if (UnityEditor.PlayerSettings.colorSpace == ColorSpace.Gamma)
@@ -783,9 +784,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Reset srp batcher state just in case
             GraphicsSettings.useScriptableRenderPipelineBatching = false;
 
-            UnityEditor.EditorSettings.disableCookiesInLightmapper = m_DisableCookieForLightBaking;
-
             Lightmapping.ResetDelegate();
+
+#if UNITY_EDITOR
+            UnityEditor.EditorSettings.disableCookiesInLightmapper = m_PreviousDisableCookieForLightBaking;
+#endif
         }
 
         void InitializeDebugMaterials()
