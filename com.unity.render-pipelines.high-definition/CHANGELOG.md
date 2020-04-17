@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NaN which can appear with real time reflection and inf value
 - Fixed warning about missing bound decal buffer
 - Fix black screen in XR when HDRP package is present but not used.
+- Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
