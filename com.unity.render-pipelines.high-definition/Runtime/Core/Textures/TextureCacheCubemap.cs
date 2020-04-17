@@ -125,8 +125,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_CubeBlitMaterial)
                 {
-                    m_CubeMipLevelPropName = HDShaderIDs._CubeMipLvl;
-                    m_cubeSrcTexPropName   = HDShaderIDs._SrcCubeTexture;
+                    m_CubeMipLevelPropName = Shader.PropertyToID("_cubeMipLvl");
+                    m_cubeSrcTexPropName = Shader.PropertyToID("_srcCubeTexture");
                 }
             }
             else

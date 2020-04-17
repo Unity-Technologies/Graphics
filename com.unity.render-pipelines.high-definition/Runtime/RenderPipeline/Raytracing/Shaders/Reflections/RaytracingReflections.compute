@@ -163,7 +163,7 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     // Override the roughness by the clearcoat value of this is a clear coat
     float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, currentCoord);
     normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
-
+    
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
 

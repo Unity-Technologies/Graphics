@@ -3,9 +3,6 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
-using System;
-using System.Collections.Generic;
-
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
@@ -31,9 +28,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ShadowTint;
 
         RTHandle m_IntensityTexture;
+        Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
         Texture2D m_ReadBackTexture;
-        Material m_CubeToHemiLatLong;
-
         public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
@@ -67,9 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
             var hdrp = HDRenderPipeline.defaultAsset;
             if (hdrp != null)
-            {
-                m_CubeToHemiLatLong         = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToHemiPanoPS);
-            }
+                m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
             m_ReadBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
         }
 
@@ -85,50 +79,28 @@ namespace UnityEditor.Rendering.HighDefinition
         public void GetUpperHemisphereLuxValue()
         {
             Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
-            if (hdri == null || m_CubeToHemiLatLong == null)
+
+            // null material can happen when no HDRP asset is present.
+            if (hdri == null || m_IntegrateHDRISkyMaterial == null)
                 return;
 
-            RTHandle latLongMap = RTHandles.Alloc(  4*hdri.width, hdri.width,
-                                                    colorFormat: GraphicsFormat.R32G32B32A32_SFloat,
-                                                    enableRandomWrite: true);
-            m_CubeToHemiLatLong.SetTexture  (HDShaderIDs._SrcCubeTexture,           hdri);
-            m_CubeToHemiLatLong.SetInt      (HDShaderIDs._CubeMipLvl,               0);
-            m_CubeToHemiLatLong.SetInt      (HDShaderIDs._CubeArrayIndex,           0);
-            m_CubeToHemiLatLong.SetInt      (HDShaderIDs._BuildPDF,                 0);
-            m_CubeToHemiLatLong.SetInt      (HDShaderIDs._PreMultiplyByJacobian,    1);
-            m_CubeToHemiLatLong.SetInt      (HDShaderIDs._PreMultiplyByCosTheta,    1);
-            m_CubeToHemiLatLong.SetInt      (HDShaderIDs._PreMultiplyBySolidAngle,  0);
-            m_CubeToHemiLatLong.SetVector   (HDShaderIDs._Sizes, new Vector4(      (float)latLongMap.rt.width,        (float)latLongMap.rt.height,
-                                                                             1.0f/((float)latLongMap.rt.width), 1.0f/((float)latLongMap.rt.height)));
-            Graphics.Blit(Texture2D.whiteTexture, latLongMap.rt, m_CubeToHemiLatLong, 0);
+            m_IntegrateHDRISkyMaterial.SetTexture(HDShaderIDs._Cubemap, hdri);
 
-            RTHandle totalRows = GPUScan.ComputeOperation(latLongMap, null, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, latLongMap.rt.graphicsFormat);
-            RTHandle totalCols = GPUScan.ComputeOperation(totalRows,  null, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   latLongMap.rt.graphicsFormat);
+            Graphics.Blit(Texture2D.whiteTexture, m_IntensityTexture.rt, m_IntegrateHDRISkyMaterial);
 
-            RenderTexture.active = totalCols.rt;
-            m_ReadBackTexture.ReadPixels(new Rect(0.0f, 0.0f, 1.0f, 1.0f), 0, 0);
+            // Copy the rendertexture containing the lux value inside a Texture2D
+            RenderTexture.active = m_IntensityTexture.rt;
+            m_ReadBackTexture.ReadPixels(new Rect(0.0f, 0.0f, 1, 1), 0, 0);
             RenderTexture.active = null;
 
+            // And then the value inside this texture
             Color hdriIntensity = m_ReadBackTexture.GetPixel(0, 0);
-
-            // (2.0f*PI)*(0.5f*PI) == (PI^2)
-            float coef   =                         (Mathf.PI*Mathf.PI)
-                            / // --------------------------------------------------------
-                                    ((float)(latLongMap.rt.width*latLongMap.rt.height));
-            float ref3   = (hdriIntensity.r + hdriIntensity.g + hdriIntensity.b)/3.0f;
-            float maxRef = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
-
-            m_UpperHemisphereLuxValue.value.floatValue = coef*ref3;
-
-            totalCols.Release();
-            totalRows.Release();
-            latLongMap.Release();
-
-            if (maxRef == 0.0f)
-                maxRef = 1.0f;
-
-            m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/maxRef, hdriIntensity.g/maxRef, hdriIntensity.b/maxRef);
-            m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 50% to not have too dark or too bright shadow
+            m_UpperHemisphereLuxValue.value.floatValue = hdriIntensity.a;
+            float max = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
+            if (max == 0.0f)
+                max = 1.0f;
+            m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/max, hdriIntensity.g/max, hdriIntensity.b/max);
+            m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 25% to not have too dark or too bright shadow
         }
 
         public override void OnInspectorGUI()

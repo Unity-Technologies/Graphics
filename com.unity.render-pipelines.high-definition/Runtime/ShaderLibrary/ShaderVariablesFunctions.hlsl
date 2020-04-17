@@ -148,14 +148,4 @@ float3 TransformPreviousObjectToWorld(float3 positionOS)
     return mul(previousModelMatrix, float4(positionOS, 1.0)).xyz;
 }
 
-float SampleToPDFMeasure(float3 value)
-{
-    return (value.r + value.g + value.b)*(1.0f/3.0f);
-}
-
-float SampleToPDFMeasure(float4 value)
-{
-    return SampleToPDFMeasure(value.rgb);
-}
-
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
