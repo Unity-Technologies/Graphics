@@ -125,11 +125,7 @@ void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
     }
 }
 
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-float3 EvaluateProbeVolumesMaterialPass(inout float probeVolumeHierarchyWeight, PositionInputs posInput, float3 normalWS, uint renderingLayers)
-#else // SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-float3 EvaluateProbeVolumesLightLoop(inout float probeVolumeHierarchyWeight, PositionInputs posInput, float3 normalWS, uint renderingLayers, uint featureFlags)
-#endif
+float3 EvaluateProbeVolumes(inout float probeVolumeHierarchyWeight, PositionInputs posInput, float3 normalWS, uint renderingLayers)
 {
 #if !SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
     if (probeVolumeHierarchyWeight >= 1.0) { return float3(0.0, 0.0, 0.0); }
@@ -139,11 +135,7 @@ float3 EvaluateProbeVolumesLightLoop(inout float probeVolumeHierarchyWeight, Pos
     float3 positionRWS = posInput.positionWS;
     float positionLinearDepth = posInput.linearDepth;
 
-    if (_EnableProbeVolumes
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-        && (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
-#endif
-    )
+    if (_EnableProbeVolumes)
     {
 
         uint probeVolumeStart, probeVolumeCount;
