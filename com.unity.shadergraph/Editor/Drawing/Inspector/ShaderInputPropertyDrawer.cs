@@ -558,6 +558,7 @@ namespace Drawing.Inspector
                     state.filter = (TextureSamplerState.FilterMode) newValue;
                     samplerStateShaderProperty.value = state;
                     this._postChangeValueCallback(false, ModificationScope.Graph);
+                    this.inspectorUpdateDelegate();
                 },
                 samplerStateShaderProperty.value.filter,
                 "Filter",
@@ -572,6 +573,7 @@ namespace Drawing.Inspector
                     state.wrap = (TextureSamplerState.WrapMode) newValue;
                     samplerStateShaderProperty.value = state;
                     this._postChangeValueCallback(false, ModificationScope.Graph);
+                    this.inspectorUpdateDelegate();
                 },
                 samplerStateShaderProperty.value.wrap,
                 "Wrap",
