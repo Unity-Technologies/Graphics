@@ -538,6 +538,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed white flash happening with auto-exposure in some cases (case 1223774)
 - Fixed NaN which can appear with real time reflection and inf value
 - Fixed an issue that was collapsing the volume components in the HDRP default settings
+- Fixed warning about missing bound decal buffer
 - Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
 
 ### Changed
