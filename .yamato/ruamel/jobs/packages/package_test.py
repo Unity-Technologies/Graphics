@@ -23,7 +23,7 @@ def get_job_definition(package, platform, editor):
         }
     }
 
-    [job["dependencies"].append(f'{packages_filepath()}#{package_job_id_pack(package["id"])}') for dep in package["dependencies"]]
+    [job["dependencies"].append(f'{packages_filepath()}#{package_job_id_pack(dep)}') for dep in package["dependencies"]]
 
     if package.get('hascodependencies', None) is not None:
         job["commands"].append(platform["copycmd"])
