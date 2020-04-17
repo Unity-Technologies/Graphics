@@ -143,5 +143,12 @@ namespace UnityEditor.ShaderGraph
         {
             return $"Unity_LinearBlendSkinning_{concretePrecision.ToShaderString()}";
         }
+        protected override void CalculateNodeHasError()
+        {
+#if !HYBRID_RENDERER_0_4_0_OR_NEWER
+            owner.AddSetupError(guid, "Could not find 0.4.0 version or newer of Hybrid Renderer installed");
+            hasError = true;
+#endif
+        }
     }
 }

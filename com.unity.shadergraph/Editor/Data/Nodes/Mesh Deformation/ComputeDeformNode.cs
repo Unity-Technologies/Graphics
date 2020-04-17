@@ -35,6 +35,10 @@ namespace UnityEditor.ShaderGraph
             owner.AddSetupError(guid, "ENABLE_COMPUTE_DEFORMATIONS define needs to be enabled in Player Settings for Compute Deformation node to work");
             hasError = true;
 #endif
+#if !HYBRID_RENDERER_0_4_0_OR_NEWER
+            owner.AddSetupError(guid, "Could not find 0.4.0 version or newer of Hybrid Renderer installed");
+            hasError = true;
+#endif
         }
 
         public bool RequiresVertexID(ShaderStageCapability stageCapability = ShaderStageCapability.All)
