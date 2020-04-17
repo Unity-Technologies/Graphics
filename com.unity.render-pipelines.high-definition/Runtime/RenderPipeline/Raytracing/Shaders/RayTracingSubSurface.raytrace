@@ -74,11 +74,11 @@ void RayGenSubSurface()
     // Read the SSS Data
     SSSData sssData;
     DECODE_FROM_SSSBUFFER(posInput.positionSS, sssData);
-    float3 shapeParam  = _ShapeParams[sssData.diffusionProfileIndex].rgb * _WorldScales[sssData.diffusionProfileIndex].x;
+    float3 shapeParam  = _ShapeParamsAndMaxScatterDists[sssData.diffusionProfileIndex].rgb * _WorldScalesAndFilterRadiiAndThicknessRemaps[sssData.diffusionProfileIndex].x;
 
     // Deduce our scattering distance
     // For some reason the value in shapeParam is negative, convert it to milimeters while we are there.
-    float3 scatteringDistance = -1.0 / shapeParam * 0.001;
+    float3 scatteringDistance = 1.0 / shapeParam * 0.001;
 
     // Define which sample in the sequence we are up to.
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;

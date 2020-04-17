@@ -1439,7 +1439,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                !pass.Equals(HDPasses.StackLit.MotionVectors)),
+                                                                                !pass.Equals(HDStackLitSubTarget.StackLitPasses.MotionVectors)),
 
                 // Material
                 new ConditionalField(HDFields.Anisotropy,                   anisotropy.isOn),

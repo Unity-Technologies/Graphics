@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewContainer.Add(m_PreviewImage);
 
                 // Hook up preview image to preview manager
-                m_PreviewRenderData = previewManager.GetPreview(inNode);
+                m_PreviewRenderData = previewManager.GetPreviewRenderData(inNode);
                 m_PreviewRenderData.onPreviewChanged += UpdatePreviewTexture;
                 UpdatePreviewTexture();
 
@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 AddToClassList("master");
                 bool validTarget = false;
-                foreach(ITargetImplementation activeTarget in node.owner.validImplementations)
+                foreach(Target activeTarget in node.owner.validTargets)
                 {
                     //if we have a valid active target implementation and render pipeline, don't display the error
                     if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
@@ -741,7 +741,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                     m_PreviewImage.MarkDirtyRepaint();
 
-                if (m_PreviewRenderData.shaderData.isCompiling)
+                if (m_PreviewRenderData.shaderData.isOutOfDate)
                     m_PreviewImage.tintColor = new Color(1.0f, 1.0f, 1.0f, 0.3f);
                 else
                     m_PreviewImage.tintColor = Color.white;
