@@ -612,6 +612,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Shader deferredTilePixelShader { get { return defaultResources.shaders.deferredTilePS; } }
 
         ShaderVariablesLightList m_ShaderVariablesLightListCB = new ShaderVariablesLightList();
+        ShaderVariablesLightList m_ShaderVariablesProbeVolumeLightListCB = new ShaderVariablesLightList();
 
         static int s_GenAABBKernel;
         static int s_GenListPerTileKernel;
@@ -3121,7 +3122,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var h = (int)hdCamera.screenSize.y;
 
             parameters.totalLightCount = buildForProbeVolumes ? m_ProbeVolumeCount : m_TotalLightCount;
-            parameters.lightListCB = m_ShaderVariablesLightListCB;
             parameters.runLightList = parameters.totalLightCount > 0;
             parameters.clearLightLists = false;
 
@@ -3215,7 +3215,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Fill the shared constant buffer.
-            ref var cb = ref m_ShaderVariablesLightListCB;
+            // We don't fill directly the one in the parameter struct because we will need those parameters for volumetric lighting as well.
+            ref var cb = ref (buildForProbeVolumes ? ref m_ShaderVariablesProbeVolumeLightListCB : ref m_ShaderVariablesLightListCB);
             var temp = new Matrix4x4();
             temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
             temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
@@ -3270,6 +3271,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount)
                     : 0;
             cb._ProbeVolumeIndexShift = (uint)probeVolumeIndexShift;
+
+            // Copy the constant buffer into the parameter struct.
+            parameters.lightListCB = cb;
 
             return parameters;
         }
