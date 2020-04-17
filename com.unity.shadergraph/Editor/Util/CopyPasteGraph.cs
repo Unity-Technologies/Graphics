@@ -186,8 +186,9 @@ namespace UnityEditor.ShaderGraph
         {
             try
             {
-                // TODO: Provide existing graph for hooking up references
-                return MultiJson.Deserialize<CopyPasteGraph>(copyBuffer, targetGraph);
+                var graph = new CopyPasteGraph();
+                MultiJson.Deserialize(graph, copyBuffer, targetGraph);
+                return graph;
             }
             catch
             {

@@ -58,10 +58,9 @@ namespace UnityEditor.ShaderGraph
         public static void GetDependencyPaths(string assetPath, List<string> dependencies)
         {
             var textGraph = File.ReadAllText(assetPath, Encoding.UTF8);
-            var minimalGraphDataName = typeof(MinimalGraphData).FullName;
-            var entries = MultiJsonInternal.Parse(textGraph, minimalGraphDataName);
+            var entries = MultiJsonInternal.Parse(textGraph);
 
-            if (entries[0].type == minimalGraphDataName)
+            if (string.IsNullOrWhiteSpace(entries[0].type))
             {
                 var minimalGraphData = JsonUtility.FromJson<MinimalGraphData>(textGraph);
                 foreach (var node in minimalGraphData.m_SerializableNodes)

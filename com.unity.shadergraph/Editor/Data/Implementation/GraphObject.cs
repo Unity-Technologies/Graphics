@@ -82,9 +82,8 @@ namespace UnityEditor.Graphing
         GraphData DeserializeGraph()
         {
             var json = m_SerializedGraph.JSONnodeData;
-            var deserializedGraph = MultiJson.Deserialize<GraphData>(json);
-            deserializedGraph.isSubGraph = m_IsSubGraph;
-            deserializedGraph.assetGuid = m_AssetGuid;
+            var deserializedGraph = new GraphData {isSubGraph = m_IsSubGraph, assetGuid = m_AssetGuid};
+            MultiJson.Deserialize(deserializedGraph, json);
             m_DeserializedVersion = m_SerializedVersion;
             m_SerializedGraph = default;
             return deserializedGraph;

@@ -822,10 +822,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
                 graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
-                graphObject.graph = MultiJson.Deserialize<GraphData>(textGraph);
-                graphObject.graph.assetGuid = assetGuid;
-                graphObject.graph.isSubGraph = isSubGraph;
-                graphObject.graph.messageManager = messageManager;
+                graphObject.graph = new GraphData
+                {
+                    assetGuid = assetGuid, isSubGraph = isSubGraph, messageManager = messageManager
+                };
+                MultiJson.Deserialize(graphObject.graph, textGraph);
                 graphObject.graph.OnEnable();
                 graphObject.graph.ValidateGraph();
 

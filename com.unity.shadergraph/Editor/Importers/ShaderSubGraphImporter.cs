@@ -40,11 +40,12 @@ namespace UnityEditor.ShaderGraph
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
             graphAsset.assetGuid = subGraphGuid;
             var textGraph = File.ReadAllText(subGraphPath, Encoding.UTF8);
-            var graphData = MultiJson.Deserialize<GraphData>(textGraph);
-            graphData.isSubGraph = true;
-            graphData.assetGuid = subGraphGuid;
             var messageManager = new MessageManager();
-            graphData.messageManager = messageManager;
+            var graphData = new GraphData
+            {
+                isSubGraph = true, assetGuid = subGraphGuid, messageManager = messageManager
+            };
+            MultiJson.Deserialize(graphData, textGraph);
 
             try
             {

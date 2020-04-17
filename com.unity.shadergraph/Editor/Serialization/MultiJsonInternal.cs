@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             return map;
         }
 
-        public static List<MultiJsonEntry> Parse(string str, string mainTypeFallback)
+        public static List<MultiJsonEntry> Parse(string str)
         {
             var result = new List<MultiJsonEntry>();
             const string separatorStr = "\n\n";
@@ -78,16 +78,9 @@ namespace UnityEditor.ShaderGraph.Serialization
                 var json = str.Substring(jsonBegin, jsonEnd - jsonBegin);
 
                 JsonUtility.FromJsonOverwrite(json, raw);
-                if (string.IsNullOrWhiteSpace(raw.type))
+                if (startIndex != 0 && string.IsNullOrWhiteSpace(raw.type))
                 {
-                    if (startIndex == 0)
-                    {
-                        raw.type = mainTypeFallback;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException($"Type is null or whitespace in JSON:\n{json}");
-                    }
+                    throw new InvalidOperationException($"Type is null or whitespace in JSON:\n{json}");
                 }
 
                 result.Add(new MultiJsonEntry(raw.type, raw.id, json));
@@ -122,7 +115,7 @@ namespace UnityEditor.ShaderGraph.Serialization
         private static FieldInfo s_ObjectIdField =
             typeof(JsonObject).GetField("m_ObjectId", BindingFlags.Instance | BindingFlags.NonPublic);
 
-        public static JsonObject Deserialize(List<MultiJsonEntry> entries, bool rewriteIds)
+        public static void Deserialize(JsonObject root, List<MultiJsonEntry> entries, bool rewriteIds)
         {
             if (isDeserializing)
             {
@@ -138,7 +131,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                     var entry = entries[index];
                     try
                     {
-                        var value = CreateInstance(entry.type);
+                        var value = index == 0 ? root : CreateInstance(entry.type);
                         var id = entry.id;
 
                         if (id != null)
@@ -200,8 +193,6 @@ namespace UnityEditor.ShaderGraph.Serialization
                         Debug.LogException(e);
                     }
                 }
-
-                return valueMap[entries[0].id];
             }
             finally
             {
