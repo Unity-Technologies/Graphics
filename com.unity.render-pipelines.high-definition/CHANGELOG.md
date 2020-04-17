@@ -106,6 +106,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added exposure compensation to Fixed exposure mode
 - Added support for rasterized area light shadows in StackLit
 - Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
+- Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
