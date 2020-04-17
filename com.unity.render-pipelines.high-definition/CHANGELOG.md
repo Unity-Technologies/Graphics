@@ -107,6 +107,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for rasterized area light shadows in StackLit
 - Added support for texture-weighted automatic exposure
 - Added support for POM for emissive map
+- Added alpha channel support in motion blur pass.
+- Added the HDRP Compositor Tool (in Preview).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
