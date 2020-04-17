@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static MaterialPropertyBlock    propertyBlock = new MaterialPropertyBlock();
         static Material                 customPassUtilsMaterial;
+        static Material                 customPassRenderersUtilsMaterial;
 
         static Dictionary<int, ComputeBuffer> gaussianWeightsCache = new Dictionary<int, ComputeBuffer>();
 
@@ -34,6 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static int verticalBlurPassIndex;
         static int horizontalBlurPassIndex;
         static int copyPassIndex;
+        static int depthPassIndex;
 
         internal static void Initialize()
         {
@@ -42,6 +44,9 @@ namespace UnityEngine.Rendering.HighDefinition
             verticalBlurPassIndex = customPassUtilsMaterial.FindPass("VerticalBlur");
             horizontalBlurPassIndex = customPassUtilsMaterial.FindPass("HorizontalBlur");
             copyPassIndex = customPassUtilsMaterial.FindPass("Copy");
+
+            customPassRenderersUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassRenderersUtils);
+            depthPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthPass");
         }
 
         /// <summary>
@@ -360,6 +365,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     return HDRenderQueue.k_RenderQueue_All;
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="view"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="renderQueueFilter"></param>
+        /// <param name="overrideMaterial"></param>
+        /// <param name="overrideMaterialIndex"></param>
+        public static void RenderFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask = default(LayerMask), CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0)
+        {
+            using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, view))
+            {
+                DrawRenderers(ctx, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex);
+            }
+        }
+
+        public static void RenderDepthFromCamera(in CustomPassContext ctx, Camera view, RTHandle target, LayerMask layerMask = default(LayerMask), CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All)
+        {
+            RenderFromCamera(ctx, view, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, depthPassIndex);
         }
 
         // TODO when rendergraph is available: a PostProcess pass which does the copy with a temp target
