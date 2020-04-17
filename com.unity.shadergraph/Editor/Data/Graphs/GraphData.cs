@@ -111,7 +111,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<JsonData<GroupData>> m_GroupDatas = new List<JsonData<GroupData>>();
 
-        public IEnumerable<GroupData> groups
+        public DataValueEnumerable<GroupData> groups
         {
             get { return m_GroupDatas.SelectValue(); }
         }
@@ -171,7 +171,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<JsonData<StickyNoteData>> m_StickyNoteDatas = new List<JsonData<StickyNoteData>>();
 
-        public IEnumerable<StickyNoteData> stickyNotes => m_StickyNoteDatas.SelectValue();
+        public DataValueEnumerable<StickyNoteData> stickyNotes => m_StickyNoteDatas.SelectValue();
 
         [NonSerialized]
         List<StickyNoteData> m_AddedStickyNotes = new List<StickyNoteData>();
