@@ -3,9 +3,9 @@ from ..utils.namer import *
 from ..utils.constants import VAR_UPM_REGISTRY, TEST_PROJECTS_DIR, PATH_TEST_RESULTS_padded, PATH_TEST_RESULTS, PATH_UNITY_REVISION
 from ..utils.shared import add_custom_revision_var
 
-def get_job_definition(editor, test_platform, smoke_test_agents):  # only run for 2020.1 and trunk
-    agent = dict(smoke_test_agents["agent_win"])
-    agent_gpu = dict(smoke_test_agents["agent_win_gpu"])
+def get_job_definition(editor, test_platform, smoke_test):  # only run for 2020.1 and trunk
+    agent = dict(smoke_test["agent_win"])
+    agent_gpu = dict(smoke_test["agent_win_gpu"])
     
     job = {
         'name': f'SRP Smoke Test - {test_platform["name"]}_{editor["version"]}',
@@ -14,9 +14,9 @@ def get_job_definition(editor, test_platform, smoke_test_agents):  # only run fo
             'UPM_REGISTRY': VAR_UPM_REGISTRY
         },
         'commands': [
-            f'git clone git@github.cds.internal.unity3d.com:unity/utr.git {TEST_PROJECTS_DIR}/SRP_SmokeTest/utr',
+            f'git clone git@github.cds.internal.unity3d.com:unity/utr.git {TEST_PROJECTS_DIR}/{smoke_test["folder"]}/utr',
             f'pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade',
-            f'cd {TEST_PROJECTS_DIR}/SRP_SmokeTest && unity-downloader-cli --source-file ../../{PATH_UNITY_REVISION} -c editor --wait --published-only'
+            f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && unity-downloader-cli --source-file ../../{PATH_UNITY_REVISION} -c editor --wait --published-only'
         ],
         'dependencies': [
             {
@@ -45,6 +45,6 @@ def get_job_definition(editor, test_platform, smoke_test_agents):  # only run fo
 
 class ABV_SmokeTestJob():
     
-    def __init__(self, editor, test_platform, smoke_test_agents):
+    def __init__(self, editor, test_platform, smoke_test):
         self.job_id = abv_job_id_smoke_test(editor["version"], test_platform["name"])
-        self.yml = get_job_definition(editor, test_platform, smoke_test_agents)
+        self.yml = get_job_definition(editor, test_platform, smoke_test)

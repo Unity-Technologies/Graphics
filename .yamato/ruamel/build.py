@@ -120,7 +120,7 @@ def create_abv_jobs(metafile_name):
 
     for editor in metafile["editors"]:
         for test_platform in metafile['test_platforms']:
-            job = ABV_SmokeTestJob(editor, test_platform, metafile["smoke_test_agents"])
+            job = ABV_SmokeTestJob(editor, test_platform, metafile["smoke_test"])
             yml[job.job_id] = job.yml
         
         job = ABV_AllSmokeTestsJob(editor, metafile["test_platforms"])

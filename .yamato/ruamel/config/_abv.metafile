@@ -46,7 +46,8 @@ nightly_config:
       api_name: Vulkan
       test_platform_names:
         - Standalone
-smoke_test_agents: 
+smoke_test: 
+  folder: SRP_SmokeTest
   agent_win: # used for editmode
     type: Unity::VM
     image: sdet/gamecode_win10:stable
