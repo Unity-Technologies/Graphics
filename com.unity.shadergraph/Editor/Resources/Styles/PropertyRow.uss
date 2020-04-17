@@ -18,7 +18,7 @@ PropertyRow > #container{
 
 PropertyRow > #container > #label {
     width: 200px;
-    margin-right: 60px;
+    margin-right: 30px;
     height: 24px;
     justify-content: center;
 }
@@ -30,5 +30,6 @@ PropertyRow > #container > #label > Label {
 PropertyRow > #container > #content{
     flex-grow: 1;
     height: auto;
+    width: 100px;
     justify-content: center;
 }
