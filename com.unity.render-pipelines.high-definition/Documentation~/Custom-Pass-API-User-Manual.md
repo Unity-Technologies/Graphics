@@ -4,7 +4,7 @@
 
 ### Gaussian Blur
 
-The gaussian blur function will allow you to blur an image with an arbitrary radius and quality (number of samples). For performance reasons, you also have the possibility to run the blur kernel after a downsample pass.
+The Gaussian blur function allows you to blur an image with an arbitrary radius and quality (number of samples). For performance reasons, you can run the blur kernel after a downsample pass. This decreases the resource intensity of the blur effect but also decreases the quality.
 
 Here's an example of Custom Pass that blurs the camera color buffer:
 
@@ -21,40 +21,40 @@ class GaussianBlur : CustomPass
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
         halfResTarget = RTHandles.Alloc(
-            // Note the * 0.5 here, it will allocate a half res target, which saves a lot of memory
+            // Note the * 0.5f here. This allocates a half-resolution target, which saves a lot of memory.
             Vector2.one * 0.5f, TextureXR.slices, dimension: TextureXR.dimension,
-            // We don't need alpha for this effect so we use an HDR no alpha texture format
+            // Since alpha is unnecessary for Gaussian blur, this effect uses an HDR texture format with no alpha channel.
             colorFormat: GraphicsFormat.B10G11R11_UFloatPack32,
-            // Never forget to name your textures, it'll be very useful for debugging
+            // When creating textures, be sure to name them as it is useful for debugging.
             useDynamicScale: true, name: "Half Res Custom Pass"
         );
     }
 
     protected override void Execute(CustomPassContext ctx)
     {
-        // We choose an arbitrary 8 pixel radius for our blur
+        // Specifies the radius for the blur in pixels. This example uses an 8 pixel radius.
         float radius = 8.0f;
-        // Precision of the blur, also affect the cost of the shader, 9 is a good value for real time apps
+        // Specifies the precision of the blur. This also affects the resource intensity of the blue. A value of 9 is good for real-time applications.
         int sampleCount = 9;
 
-        // In case you have multiple camera at different resolution, make the blur coherent across these cameras.
+        // In cases where you have multiple cameras with different resolutions, this makes the blur coherent across these cameras.
         radius *= ctx.cameraColorBuffer.rtHandleProperties.rtHandleScale.x;
 
-        // Our gaussian blur call, with the camera color buffer in source and destination
-        // The half res target is used as temporary render target between the passes of our blur
-        // Note that it's content will be cleared by the Gaussian Blur function.
+        // The actual Gaussian blur call. It specifies the current camera's color buffer as the source and destination.
+        // This uses the half-resolution target as a temporary render target between the blur passes.
+        // Note that the Gaussian blur function clears the content of the half-resolution buffer when it finishes.
         CustomPassUtils.GaussianBlur(
             ctx, ctx.cameraColorBuffer, ctx.cameraColorBuffer, halfResTarget,
             sampleCount, radius, downSample: true
         );
     }
 
-    // Release the GPU memory, otherwise it'll leak
+    // Releases the GPU memory allocated for the half-resolution target. This is important otherwise the memory will leak.
     protected override void Cleanup() => halfResTarget.Release();   
 }
 ```
 
-Note that we use a half res target `halfResTarget` because we first do a downsample pass. Alternatively you can also use the custom pass buffer we provide in HDRP, even if it's not a half res buffer, the algorithm will use only half of the texture.
+Note that this example uses a half-resolution target, halfResTarget, because the example first processes a downsample pass. Alternatively, you can also use the custom pass buffer that HDRP provides. Even if this is not a half-resolution buffer, the algorithm only uses half of the texture.
 
 <!-- TODO
 
