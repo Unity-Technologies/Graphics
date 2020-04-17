@@ -115,7 +115,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **- Punctual Lights**                | Enable the checkbox to see [Punctual Lights](Glossary.html#PunctualLight) in your Scene. Disable this checkbox to remove Punctual Lights from your Scene's lighting. |
 | **- Area Lights**                    | Enable the checkbox to see Area Lights in your Scene. Disable this checkbox to remove Aera Lights from your Scene's lighting. |
 | **- Reflection Probes**              | Enable the checkbox to see Reflection Probes in your Scene. Disable this checkbox to remove Reflection Probes from your Scene's lighting. |
-| **Debug Mode**                       | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, and Directional Light shadow cascades. |
+| **Debug Mode**                       | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, direct diffuse lighting, direct specular lighting, indirect diffuse lighting, indirect specular lighting, emissive lighting and Directional Light shadow cascades. |
 | **Hierarchy Debug Mode**             | Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for. |
 | **Light Layers Visualization**       | Enable the checkbox to visualize light layers of objects in your Scene. |
 | **- Use Selected Light**             | Enable the checkbox to visualize objects affected by the selected light. |
