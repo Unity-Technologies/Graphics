@@ -306,7 +306,7 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
 
     - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only'
 
-    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Library/Application\ Support/Veertu/Anka/addons/change_res 1920x1080x72'
+    - /Library/Application\ Support/Veertu/Anka/addons/change_res 1920x1080x72
 
     {% if testplatform.name == "Standalone" %}
     - |
