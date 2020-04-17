@@ -4800,13 +4800,14 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             void IDisposable.Dispose()
             {
-                if (m_CurrentHDCamera == null)
+                var hdrp = HDRenderPipeline.currentPipeline;
+
+                if (hdrp.m_CurrentHDCamera == null)
                 {
                     Debug.LogError("OverrideCameraRendering can only be called inside the render loop !");
                     return;
                 }
 
-                var hdrp = HDRenderPipeline.currentPipeline;
                 hdrp.m_CurrentHDCamera.UpdateShaderVariablesGlobalCB(ref hdrp.m_ShaderVariablesGlobalCB, hdrp.m_FrameCount);
                 ConstantBuffer.PushGlobal(cmd, hdrp.m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
             }
