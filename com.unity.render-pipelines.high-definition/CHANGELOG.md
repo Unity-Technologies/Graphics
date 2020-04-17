@@ -105,6 +105,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Light decomposition lighting debugging modes and support in AOV
 - Added exposure compensation to Fixed exposure mode
 - Added support for rasterized area light shadows in StackLit
+- Added a DisplayInfo attribute to specify a name override and a display order for Volume Component fields (used only in default inspector for now).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
