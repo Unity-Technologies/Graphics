@@ -1,5 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import package_job_id_publish, packages_filepath, package_job_id_pack, package_job_id_test
+from ..utils.constants import PATH_PACKAGES
 
 
 def get_job_definition(package, platforms):
@@ -22,7 +23,7 @@ def get_job_definition(package, platforms):
         'artifacts':{
             'packages':{
                 'paths':[
-                    dss("upm-ci~/packages/*.tgz")
+                    dss(PATH_PACKAGES)
                 ]
             }
         }

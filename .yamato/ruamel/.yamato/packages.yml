@@ -10,7 +10,7 @@ pack_core:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "packages/**/*"
 publish_core:
     name: Publish Core
     agent:
@@ -27,7 +27,7 @@ publish_core:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "packages/**/*"
 pack_lwrp:
     name: Pack Lightweight
     agent:
@@ -40,7 +40,7 @@ pack_lwrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "packages/**/*"
 publish_lwrp:
     name: Publish Lightweight
     agent:
@@ -57,7 +57,7 @@ publish_lwrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "packages/**/*"
 pack_shadergraph:
     name: Pack ShaderGraph
     agent:
@@ -70,7 +70,7 @@ pack_shadergraph:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "packages/**/*"
 publish_shadergraph:
     name: Publish ShaderGraph
     agent:
@@ -87,7 +87,7 @@ publish_shadergraph:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "packages/**/*"
 pack_hdrp:
     name: Pack HDRP
     agent:
@@ -100,7 +100,7 @@ pack_hdrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "packages/**/*"
 publish_hdrp:
     name: Publish HDRP
     agent:
@@ -117,7 +117,7 @@ publish_hdrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "packages/**/*"
 pack_universal:
     name: Pack Universal
     agent:
@@ -130,7 +130,7 @@ pack_universal:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "packages/**/*"
 publish_universal:
     name: Publish Universal
     agent:
@@ -147,7 +147,7 @@ publish_universal:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "packages/**/*"
 pack_vfx:
     name: Pack VFX
     agent:
@@ -160,7 +160,7 @@ pack_vfx:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "packages/**/*"
 publish_vfx:
     name: Publish VFX
     agent:
@@ -177,7 +177,7 @@ publish_vfx:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "packages/**/*"
 pack_config:
     name: Pack Config
     agent:
@@ -190,7 +190,7 @@ pack_config:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "packages/**/*"
 publish_config:
     name: Publish Config
     agent:
@@ -207,7 +207,7 @@ publish_config:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "packages/**/*"
 test_core_win_trunk:
     name: Test Core win trunk
     agent:
@@ -225,7 +225,7 @@ test_core_win_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_win_trunk_dependencies:
     name: Test Core win trunk - dependencies
     agent:
@@ -244,7 +244,7 @@ test_core_win_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_win_trunk:
     name: Test Lightweight win trunk
     agent:
@@ -266,7 +266,7 @@ test_lwrp_win_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_win_trunk_dependencies:
     name: Test Lightweight win trunk - dependencies
     agent:
@@ -289,7 +289,7 @@ test_lwrp_win_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_win_trunk:
     name: Test ShaderGraph win trunk
     agent:
@@ -309,7 +309,7 @@ test_shadergraph_win_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_win_trunk_dependencies:
     name: Test ShaderGraph win trunk - dependencies
     agent:
@@ -330,7 +330,7 @@ test_shadergraph_win_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_win_trunk:
     name: Test HDRP win trunk
     agent:
@@ -353,7 +353,7 @@ test_hdrp_win_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_win_trunk_dependencies:
     name: Test HDRP win trunk - dependencies
     agent:
@@ -377,7 +377,7 @@ test_hdrp_win_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_win_trunk:
     name: Test Universal win trunk
     agent:
@@ -398,7 +398,7 @@ test_universal_win_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_win_trunk_dependencies:
     name: Test Universal win trunk - dependencies
     agent:
@@ -420,7 +420,7 @@ test_universal_win_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_win_trunk:
     name: Test VFX win trunk
     agent:
@@ -441,7 +441,7 @@ test_vfx_win_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_win_trunk_dependencies:
     name: Test VFX win trunk - dependencies
     agent:
@@ -463,7 +463,7 @@ test_vfx_win_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_win_trunk:
     name: Test Config win trunk
     agent:
@@ -483,7 +483,7 @@ test_config_win_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_win_trunk_dependencies:
     name: Test Config win trunk - dependencies
     agent:
@@ -504,7 +504,7 @@ test_config_win_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_mac_trunk:
     name: Test Core mac trunk
     agent:
@@ -522,7 +522,7 @@ test_core_mac_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_mac_trunk_dependencies:
     name: Test Core mac trunk - dependencies
     agent:
@@ -541,7 +541,7 @@ test_core_mac_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_mac_trunk:
     name: Test Lightweight mac trunk
     agent:
@@ -563,7 +563,7 @@ test_lwrp_mac_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_mac_trunk_dependencies:
     name: Test Lightweight mac trunk - dependencies
     agent:
@@ -586,7 +586,7 @@ test_lwrp_mac_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_mac_trunk:
     name: Test ShaderGraph mac trunk
     agent:
@@ -606,7 +606,7 @@ test_shadergraph_mac_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_mac_trunk_dependencies:
     name: Test ShaderGraph mac trunk - dependencies
     agent:
@@ -627,7 +627,7 @@ test_shadergraph_mac_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_mac_trunk:
     name: Test HDRP mac trunk
     agent:
@@ -650,7 +650,7 @@ test_hdrp_mac_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_mac_trunk_dependencies:
     name: Test HDRP mac trunk - dependencies
     agent:
@@ -674,7 +674,7 @@ test_hdrp_mac_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_mac_trunk:
     name: Test Universal mac trunk
     agent:
@@ -695,7 +695,7 @@ test_universal_mac_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_mac_trunk_dependencies:
     name: Test Universal mac trunk - dependencies
     agent:
@@ -717,7 +717,7 @@ test_universal_mac_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_mac_trunk:
     name: Test VFX mac trunk
     agent:
@@ -738,7 +738,7 @@ test_vfx_mac_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_mac_trunk_dependencies:
     name: Test VFX mac trunk - dependencies
     agent:
@@ -760,7 +760,7 @@ test_vfx_mac_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_mac_trunk:
     name: Test Config mac trunk
     agent:
@@ -780,7 +780,7 @@ test_config_mac_trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_mac_trunk_dependencies:
     name: Test Config mac trunk - dependencies
     agent:
@@ -801,7 +801,7 @@ test_config_mac_trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_win_2020.1:
     name: Test Core win 2020.1
     agent:
@@ -819,7 +819,7 @@ test_core_win_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_win_2020.1_dependencies:
     name: Test Core win 2020.1 - dependencies
     agent:
@@ -838,7 +838,7 @@ test_core_win_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_win_2020.1:
     name: Test Lightweight win 2020.1
     agent:
@@ -860,7 +860,7 @@ test_lwrp_win_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_win_2020.1_dependencies:
     name: Test Lightweight win 2020.1 - dependencies
     agent:
@@ -883,7 +883,7 @@ test_lwrp_win_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_win_2020.1:
     name: Test ShaderGraph win 2020.1
     agent:
@@ -903,7 +903,7 @@ test_shadergraph_win_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_win_2020.1_dependencies:
     name: Test ShaderGraph win 2020.1 - dependencies
     agent:
@@ -924,7 +924,7 @@ test_shadergraph_win_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_win_2020.1:
     name: Test HDRP win 2020.1
     agent:
@@ -947,7 +947,7 @@ test_hdrp_win_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_win_2020.1_dependencies:
     name: Test HDRP win 2020.1 - dependencies
     agent:
@@ -971,7 +971,7 @@ test_hdrp_win_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_win_2020.1:
     name: Test Universal win 2020.1
     agent:
@@ -992,7 +992,7 @@ test_universal_win_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_win_2020.1_dependencies:
     name: Test Universal win 2020.1 - dependencies
     agent:
@@ -1014,7 +1014,7 @@ test_universal_win_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_win_2020.1:
     name: Test VFX win 2020.1
     agent:
@@ -1035,7 +1035,7 @@ test_vfx_win_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_win_2020.1_dependencies:
     name: Test VFX win 2020.1 - dependencies
     agent:
@@ -1057,7 +1057,7 @@ test_vfx_win_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_win_2020.1:
     name: Test Config win 2020.1
     agent:
@@ -1077,7 +1077,7 @@ test_config_win_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_win_2020.1_dependencies:
     name: Test Config win 2020.1 - dependencies
     agent:
@@ -1098,7 +1098,7 @@ test_config_win_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_mac_2020.1:
     name: Test Core mac 2020.1
     agent:
@@ -1116,7 +1116,7 @@ test_core_mac_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_mac_2020.1_dependencies:
     name: Test Core mac 2020.1 - dependencies
     agent:
@@ -1135,7 +1135,7 @@ test_core_mac_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_mac_2020.1:
     name: Test Lightweight mac 2020.1
     agent:
@@ -1157,7 +1157,7 @@ test_lwrp_mac_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_mac_2020.1_dependencies:
     name: Test Lightweight mac 2020.1 - dependencies
     agent:
@@ -1180,7 +1180,7 @@ test_lwrp_mac_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_mac_2020.1:
     name: Test ShaderGraph mac 2020.1
     agent:
@@ -1200,7 +1200,7 @@ test_shadergraph_mac_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_mac_2020.1_dependencies:
     name: Test ShaderGraph mac 2020.1 - dependencies
     agent:
@@ -1221,7 +1221,7 @@ test_shadergraph_mac_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_mac_2020.1:
     name: Test HDRP mac 2020.1
     agent:
@@ -1244,7 +1244,7 @@ test_hdrp_mac_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_mac_2020.1_dependencies:
     name: Test HDRP mac 2020.1 - dependencies
     agent:
@@ -1268,7 +1268,7 @@ test_hdrp_mac_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_mac_2020.1:
     name: Test Universal mac 2020.1
     agent:
@@ -1289,7 +1289,7 @@ test_universal_mac_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_mac_2020.1_dependencies:
     name: Test Universal mac 2020.1 - dependencies
     agent:
@@ -1311,7 +1311,7 @@ test_universal_mac_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_mac_2020.1:
     name: Test VFX mac 2020.1
     agent:
@@ -1332,7 +1332,7 @@ test_vfx_mac_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_mac_2020.1_dependencies:
     name: Test VFX mac 2020.1 - dependencies
     agent:
@@ -1354,7 +1354,7 @@ test_vfx_mac_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_mac_2020.1:
     name: Test Config mac 2020.1
     agent:
@@ -1374,7 +1374,7 @@ test_config_mac_2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_mac_2020.1_dependencies:
     name: Test Config mac 2020.1 - dependencies
     agent:
@@ -1395,7 +1395,7 @@ test_config_mac_2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_win_fast-trunk:
     name: Test Core win fast-trunk
     agent:
@@ -1413,7 +1413,7 @@ test_core_win_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_win_fast-trunk_dependencies:
     name: Test Core win fast-trunk - dependencies
     agent:
@@ -1432,7 +1432,7 @@ test_core_win_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_win_fast-trunk:
     name: Test Lightweight win fast-trunk
     agent:
@@ -1454,7 +1454,7 @@ test_lwrp_win_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_win_fast-trunk_dependencies:
     name: Test Lightweight win fast-trunk - dependencies
     agent:
@@ -1477,7 +1477,7 @@ test_lwrp_win_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_win_fast-trunk:
     name: Test ShaderGraph win fast-trunk
     agent:
@@ -1497,7 +1497,7 @@ test_shadergraph_win_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_win_fast-trunk_dependencies:
     name: Test ShaderGraph win fast-trunk - dependencies
     agent:
@@ -1518,7 +1518,7 @@ test_shadergraph_win_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_win_fast-trunk:
     name: Test HDRP win fast-trunk
     agent:
@@ -1541,7 +1541,7 @@ test_hdrp_win_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_win_fast-trunk_dependencies:
     name: Test HDRP win fast-trunk - dependencies
     agent:
@@ -1565,7 +1565,7 @@ test_hdrp_win_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_win_fast-trunk:
     name: Test Universal win fast-trunk
     agent:
@@ -1586,7 +1586,7 @@ test_universal_win_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_win_fast-trunk_dependencies:
     name: Test Universal win fast-trunk - dependencies
     agent:
@@ -1608,7 +1608,7 @@ test_universal_win_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_win_fast-trunk:
     name: Test VFX win fast-trunk
     agent:
@@ -1629,7 +1629,7 @@ test_vfx_win_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_win_fast-trunk_dependencies:
     name: Test VFX win fast-trunk - dependencies
     agent:
@@ -1651,7 +1651,7 @@ test_vfx_win_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_win_fast-trunk:
     name: Test Config win fast-trunk
     agent:
@@ -1671,7 +1671,7 @@ test_config_win_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_win_fast-trunk_dependencies:
     name: Test Config win fast-trunk - dependencies
     agent:
@@ -1692,7 +1692,7 @@ test_config_win_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_mac_fast-trunk:
     name: Test Core mac fast-trunk
     agent:
@@ -1710,7 +1710,7 @@ test_core_mac_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_mac_fast-trunk_dependencies:
     name: Test Core mac fast-trunk - dependencies
     agent:
@@ -1729,7 +1729,7 @@ test_core_mac_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_mac_fast-trunk:
     name: Test Lightweight mac fast-trunk
     agent:
@@ -1751,7 +1751,7 @@ test_lwrp_mac_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_mac_fast-trunk_dependencies:
     name: Test Lightweight mac fast-trunk - dependencies
     agent:
@@ -1774,7 +1774,7 @@ test_lwrp_mac_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_mac_fast-trunk:
     name: Test ShaderGraph mac fast-trunk
     agent:
@@ -1794,7 +1794,7 @@ test_shadergraph_mac_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_mac_fast-trunk_dependencies:
     name: Test ShaderGraph mac fast-trunk - dependencies
     agent:
@@ -1815,7 +1815,7 @@ test_shadergraph_mac_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_mac_fast-trunk:
     name: Test HDRP mac fast-trunk
     agent:
@@ -1838,7 +1838,7 @@ test_hdrp_mac_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_mac_fast-trunk_dependencies:
     name: Test HDRP mac fast-trunk - dependencies
     agent:
@@ -1862,7 +1862,7 @@ test_hdrp_mac_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_mac_fast-trunk:
     name: Test Universal mac fast-trunk
     agent:
@@ -1883,7 +1883,7 @@ test_universal_mac_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_mac_fast-trunk_dependencies:
     name: Test Universal mac fast-trunk - dependencies
     agent:
@@ -1905,7 +1905,7 @@ test_universal_mac_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_mac_fast-trunk:
     name: Test VFX mac fast-trunk
     agent:
@@ -1926,7 +1926,7 @@ test_vfx_mac_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_mac_fast-trunk_dependencies:
     name: Test VFX mac fast-trunk - dependencies
     agent:
@@ -1948,7 +1948,7 @@ test_vfx_mac_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_mac_fast-trunk:
     name: Test Config mac fast-trunk
     agent:
@@ -1968,7 +1968,7 @@ test_config_mac_fast-trunk:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_mac_fast-trunk_dependencies:
     name: Test Config mac fast-trunk - dependencies
     agent:
@@ -1989,7 +1989,7 @@ test_config_mac_fast-trunk_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_win_fast-2020.1:
     name: Test Core win fast-2020.1
     agent:
@@ -2007,7 +2007,7 @@ test_core_win_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_win_fast-2020.1_dependencies:
     name: Test Core win fast-2020.1 - dependencies
     agent:
@@ -2026,7 +2026,7 @@ test_core_win_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_win_fast-2020.1:
     name: Test Lightweight win fast-2020.1
     agent:
@@ -2048,7 +2048,7 @@ test_lwrp_win_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_win_fast-2020.1_dependencies:
     name: Test Lightweight win fast-2020.1 - dependencies
     agent:
@@ -2071,7 +2071,7 @@ test_lwrp_win_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_win_fast-2020.1:
     name: Test ShaderGraph win fast-2020.1
     agent:
@@ -2091,7 +2091,7 @@ test_shadergraph_win_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_win_fast-2020.1_dependencies:
     name: Test ShaderGraph win fast-2020.1 - dependencies
     agent:
@@ -2112,7 +2112,7 @@ test_shadergraph_win_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_win_fast-2020.1:
     name: Test HDRP win fast-2020.1
     agent:
@@ -2135,7 +2135,7 @@ test_hdrp_win_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_win_fast-2020.1_dependencies:
     name: Test HDRP win fast-2020.1 - dependencies
     agent:
@@ -2159,7 +2159,7 @@ test_hdrp_win_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_win_fast-2020.1:
     name: Test Universal win fast-2020.1
     agent:
@@ -2180,7 +2180,7 @@ test_universal_win_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_win_fast-2020.1_dependencies:
     name: Test Universal win fast-2020.1 - dependencies
     agent:
@@ -2202,7 +2202,7 @@ test_universal_win_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_win_fast-2020.1:
     name: Test VFX win fast-2020.1
     agent:
@@ -2223,7 +2223,7 @@ test_vfx_win_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_win_fast-2020.1_dependencies:
     name: Test VFX win fast-2020.1 - dependencies
     agent:
@@ -2245,7 +2245,7 @@ test_vfx_win_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_win_fast-2020.1:
     name: Test Config win fast-2020.1
     agent:
@@ -2265,7 +2265,7 @@ test_config_win_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_win_fast-2020.1_dependencies:
     name: Test Config win fast-2020.1 - dependencies
     agent:
@@ -2286,7 +2286,7 @@ test_config_win_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_mac_fast-2020.1:
     name: Test Core mac fast-2020.1
     agent:
@@ -2304,7 +2304,7 @@ test_core_mac_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_core_mac_fast-2020.1_dependencies:
     name: Test Core mac fast-2020.1 - dependencies
     agent:
@@ -2323,7 +2323,7 @@ test_core_mac_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_mac_fast-2020.1:
     name: Test Lightweight mac fast-2020.1
     agent:
@@ -2345,7 +2345,7 @@ test_lwrp_mac_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_lwrp_mac_fast-2020.1_dependencies:
     name: Test Lightweight mac fast-2020.1 - dependencies
     agent:
@@ -2368,7 +2368,7 @@ test_lwrp_mac_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_mac_fast-2020.1:
     name: Test ShaderGraph mac fast-2020.1
     agent:
@@ -2388,7 +2388,7 @@ test_shadergraph_mac_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_shadergraph_mac_fast-2020.1_dependencies:
     name: Test ShaderGraph mac fast-2020.1 - dependencies
     agent:
@@ -2409,7 +2409,7 @@ test_shadergraph_mac_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_mac_fast-2020.1:
     name: Test HDRP mac fast-2020.1
     agent:
@@ -2432,7 +2432,7 @@ test_hdrp_mac_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_hdrp_mac_fast-2020.1_dependencies:
     name: Test HDRP mac fast-2020.1 - dependencies
     agent:
@@ -2456,7 +2456,7 @@ test_hdrp_mac_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_mac_fast-2020.1:
     name: Test Universal mac fast-2020.1
     agent:
@@ -2477,7 +2477,7 @@ test_universal_mac_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_universal_mac_fast-2020.1_dependencies:
     name: Test Universal mac fast-2020.1 - dependencies
     agent:
@@ -2499,7 +2499,7 @@ test_universal_mac_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_mac_fast-2020.1:
     name: Test VFX mac fast-2020.1
     agent:
@@ -2520,7 +2520,7 @@ test_vfx_mac_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_vfx_mac_fast-2020.1_dependencies:
     name: Test VFX mac fast-2020.1 - dependencies
     agent:
@@ -2542,7 +2542,7 @@ test_vfx_mac_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_mac_fast-2020.1:
     name: Test Config mac fast-2020.1
     agent:
@@ -2562,7 +2562,7 @@ test_config_mac_fast-2020.1:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 test_config_mac_fast-2020.1_dependencies:
     name: Test Config mac fast-2020.1 - dependencies
     agent:
@@ -2583,7 +2583,7 @@ test_config_mac_fast-2020.1_dependencies:
     artifacts:
         logs:
             paths:
-              -  "**/upm-ci~/test-results/**/*"
+              -  "**/test-results/**"
 all_package_ci_trunk:
     name: Pack and test all packages - trunk
     agent:

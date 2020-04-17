@@ -1,11 +1,11 @@
-from ...utils.constants import TEST_PROJECTS_DIR
+from ...utils.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
 
 def _cmd_base(project, components):
     return [
         f'git clone git@github.cds.internal.unity3d.com:unity/utr.git utr',
         f'pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade',
-        f'unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/unity_revision.txt -p WindowsEditor {"".join([f"-c {c} " for c in components])} --wait --published-only'
+        f'unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/{PATH_UNITY_REVISION} -p WindowsEditor {"".join([f"-c {c} " for c in components])} --wait --published-only'
     ]
 
 
@@ -20,7 +20,7 @@ def cmd_standalone(project, platform, api, test_platform_args):
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
         set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-        utr\\utr --suite=playmode --platform=Android --editor-location=WindowsEditor --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200 --player-connection-ip=%BOKKEN_DEVICE_IP%'''),
+        utr\\utr --suite=playmode --platform=Android --editor-location=WindowsEditor --artifacts_path={PATH_TEST_RESULTS} --player-load-path=players --scripting-backend=il2cpp --timeout=1200 --player-connection-ip=%BOKKEN_DEVICE_IP%'''),
         f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ])
     return base
@@ -34,7 +34,7 @@ def cmd_standalone_build(project, platform, api, test_platform_args):
         f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\\NDK %ANDROID_NDK_ROOT%'
         ])
     if api["name"].lower() =='vulkan':
-        base.append(f'utr\\utr --suite=playmode --platform=Android --testproject={TEST_PROJECTS_DIR}\{project["folder"]} --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --scripting-backend=il2cpp --timeout=1200 --build-only')
+        base.append(f'utr\\utr --suite=playmode --platform=Android --testproject={TEST_PROJECTS_DIR}\{project["folder"]} --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --editor-location=WindowsEditor --artifacts_path={PATH_TEST_RESULTS} --player-save-path=players --scripting-backend=il2cpp --timeout=1200 --build-only')
     else:
-        base.append(f'utr\\utr --suite=playmode --platform=Android --testproject={TEST_PROJECTS_DIR}\{project["folder"]} --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --scripting-backend=il2cpp --timeout=1200 --build-only')
+        base.append(f'utr\\utr --suite=playmode --platform=Android --testproject={TEST_PROJECTS_DIR}\{project["folder"]} --editor-location=WindowsEditor --artifacts_path={PATH_TEST_RESULTS} --player-save-path=players --scripting-backend=il2cpp --timeout=1200 --build-only')
     return base

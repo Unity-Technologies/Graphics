@@ -3,7 +3,7 @@ from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ruamel.yaml.scalarstring import PlainScalarString as pss
 from .commands._cmd_mapper import get_cmd
 from ..utils.namer import *
-from ..utils.constants import VAR_UPM_REGISTRY
+from ..utils.constants import VAR_UPM_REGISTRY, PATH_TEST_RESULTS_padded
 from ..utils.shared import add_custom_revision_var
 
 def _job(project_name, test_platform_name, editor, platform, api, cmd):
@@ -31,7 +31,7 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
         'artifacts' : {
             'logs':{
                 'paths':[
-                    dss('**/test-results/**') # TODO linux paths
+                    dss(PATH_TEST_RESULTS_padded) 
                 ]
             }
         },

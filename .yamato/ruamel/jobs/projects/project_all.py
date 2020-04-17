@@ -1,6 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import *
-
+from ..utils.shared import add_custom_revision_var
 
 def get_job_definition(project_name, editor, dependencies_in_all):
     dependencies = []
@@ -22,9 +22,7 @@ def get_job_definition(project_name, editor, dependencies_in_all):
         'dependencies' : dependencies
     }
 
-    if editor['version'] == 'CUSTOM-REVISION':
-        job['variables'] = {'CUSTOM_REVISION': 'custom_revision_not_set'}
-
+    job = add_custom_revision_var(job, editor["version"])
     return job
 
 

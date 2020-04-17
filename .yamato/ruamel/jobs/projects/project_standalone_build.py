@@ -1,5 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import project_job_id_build
+from ..utils.constants import PATH_PLAYERS
 from .commands._cmd_mapper import get_cmd
 from ._project_base import _job
 
@@ -10,7 +11,7 @@ def get_job_definition(project, editor, platform, api, test_platform):
     
     job['artifacts']['players'] = {
         'paths':[
-            dss('players/**')
+            dss(PATH_PLAYERS)
         ]
     }
     

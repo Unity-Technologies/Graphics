@@ -1,6 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import *
-from ..utils.constants import VAR_UPM_REGISTRY, TEST_PROJECTS_DIR
+from ..utils.constants import VAR_UPM_REGISTRY, TEST_PROJECTS_DIR, PATH_TEST_RESULTS_padded, PATH_TEST_RESULTS, PATH_UNITY_REVISION
 from ..utils.shared import add_custom_revision_var
 
 default_agent = {
@@ -25,7 +25,7 @@ def get_job_definition(editor, test_platform):  # only run for 2020.1 and trunk
         'commands': [
             f'git clone git@github.cds.internal.unity3d.com:unity/utr.git {TEST_PROJECTS_DIR}/SRP_SmokeTest/utr',
             f'pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade',
-            f'cd {TEST_PROJECTS_DIR}/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only'
+            f'cd {TEST_PROJECTS_DIR}/SRP_SmokeTest && unity-downloader-cli --source-file ../../{PATH_UNITY_REVISION} -c editor --wait --published-only'
         ],
         'dependencies': [
             {
@@ -36,7 +36,7 @@ def get_job_definition(editor, test_platform):  # only run for 2020.1 and trunk
         'artifacts' : {
             'logs':{
                 'paths':[
-                    dss('**/test-results/**')
+                    dss(PATH_TEST_RESULTS_padded)
                 ]
             }
         },
@@ -44,9 +44,9 @@ def get_job_definition(editor, test_platform):  # only run for 2020.1 and trunk
 
 
     if test_platform['name'].lower() == 'standalone':
-        job['commands'].append(f'cd {TEST_PROJECTS_DIR}/SRP_SmokeTest && utr/utr {test_platform["args"]}Windows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200')
+        job['commands'].append(f'cd {TEST_PROJECTS_DIR}/SRP_SmokeTest && utr/utr {test_platform["args"]}Windows64 --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200')
     else:
-        job['commands'].append(f'cd {TEST_PROJECTS_DIR}/SRP_SmokeTest && utr/utr {test_platform["args"]} --testproject=. --editor-location=.Editor --artifacts_path=test-results')
+        job['commands'].append(f'cd {TEST_PROJECTS_DIR}/SRP_SmokeTest && utr/utr {test_platform["args"]} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}')
     
     job = add_custom_revision_var(job, editor["version"])
     return job
