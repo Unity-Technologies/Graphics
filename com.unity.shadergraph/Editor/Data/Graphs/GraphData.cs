@@ -1157,7 +1157,11 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var edge in graphToPaste.edges)
             {
-                remappedEdges.Add((Edge)Connect(edge.outputSlot, edge.inputSlot));
+                var newEdge = (Edge)Connect(edge.outputSlot, edge.inputSlot);
+                if (newEdge != null)
+                {
+                    remappedEdges.Add(newEdge);
+                }
             }
 
             ValidateGraph();
