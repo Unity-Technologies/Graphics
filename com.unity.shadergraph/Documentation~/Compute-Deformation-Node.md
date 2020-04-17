@@ -2,10 +2,7 @@
 
 ## Description
 
-Node for passing compute deformed data to vertex shader.
-Requires DeformedVertexData to be provided by user in _DeformedMeshData buffer.
-The node uses the property _ComputeMeshIndex to know where the DeformedVertexData associated with the current mesh are located in the _DeformedMeshData buffer.
-Requires Hybrid Renderer and DOTS Animation to output data, unless a custom solution is being used.
+This node lets you pass compute deformed data to a vertex shader. You must provide `DeformedVertexData` in the `_DeformedMeshData` buffer. The node uses the `_ComputeMeshIndex` property to calculate where the `DeformedVertexData` associated with the current mesh are located in the `_DeformedMeshData` buffer. To output data, you must either install both the DOTS Hybrid Renderer and DOTS Animation packages, or use a custom solution.
 
 ## Ports
 | Name         | Direction  | Type    | Stage  | Description |
