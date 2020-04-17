@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
-    public partial class HDAdditionalLightData : MonoBehaviour
+    public partial class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
     {
         internal static class ScalableSettings
         {
@@ -2943,5 +2943,32 @@ namespace UnityEngine.Rendering.HighDefinition
             : type != HDLightType.Directional
                 ? ShadowMapType.PunctualAtlas
                 : ShadowMapType.CascadedDirectional;
+
+        void OnEnable()
+        {
+            if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
+                m_ShadowMapRenderedSinceLastRequest = false;
+            SetEmissiveMeshRendererEnabled(true);
+        }
+
+        /// <summary>
+        /// Deserialization callback
+        /// </summary>
+        void ISerializationCallbackReceiver.OnAfterDeserialize() { }
+
+        /// <summary>
+        /// Serialization callback
+        /// </summary>
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            // When reseting, Light component can be not available (will be called later in Reset)
+            if (m_Light == null || m_Light.Equals(null))
+                return;
+
+            UpdateBounds();
+        }
+
+        void Reset()
+            => UpdateBounds();
     }
 }
