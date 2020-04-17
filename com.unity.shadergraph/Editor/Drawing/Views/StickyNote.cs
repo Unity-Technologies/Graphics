@@ -171,6 +171,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
       class ResizableElement : VisualElement
     {
+        Dictionary<Resizer, VisualElement> m_Resizers = new Dictionary<Resizer, VisualElement>();
+
+        List<Manipulator> m_Manipulators = new List<Manipulator>();
+
         public ResizableElement() : this("uxml/Resizable")
         {
             pickingMode = PickingMode.Ignore;
@@ -217,10 +221,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             Left =          1 << 2,
             Right =         1 << 3,
         }
-
-        Dictionary<Resizer, VisualElement> m_Resizers = new Dictionary<Resizer, VisualElement>();
-
-        List<Manipulator> m_Manipulators = new List<Manipulator>();
 
         // Lets visual element owners bind a callback to when any resize operation is completed
         public void BindOnResizeCallback(EventCallback<MouseUpEvent> mouseUpEvent)

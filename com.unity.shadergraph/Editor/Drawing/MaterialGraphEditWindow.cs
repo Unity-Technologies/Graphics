@@ -238,6 +238,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphEditorView.HandleGraphChanges(true);
                     graphObject.graph.ClearChanges();
                     graphObject.HandleUndoRedo();
+
                 }
 
                 if (graphObject.isDirty || wasUndoRedoPerformed)
@@ -246,7 +247,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphObject.isDirty = false;
                 }
 
-                // Why is this called twice?
+                // Called again to handle changes from deserialization in case an undo/redo was performed
                 graphEditorView.HandleGraphChanges(wasUndoRedoPerformed);
                 graphObject.graph.ClearChanges();
             }

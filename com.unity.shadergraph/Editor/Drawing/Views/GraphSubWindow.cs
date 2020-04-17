@@ -37,11 +37,14 @@ namespace Drawing.Views
 
         private const string UxmlName = "GraphSubWindow";
 
-        // Each sub-window will override these if they need to
-        protected virtual string windowTitle => "SubWindow";
+        // These are used as default values for styling and layout purposes
+        // They can be overriden if a child class wants to roll its own style and layout behavior
         protected virtual string layoutKey => "ShaderGraph.SubWindow";
-        protected virtual string elementName => "GraphSubWindow";
         protected virtual string styleName => "GraphSubWindow";
+
+        // Each sub-window will override these if they need to
+        protected virtual string elementName => "";
+        protected virtual string windowTitle => "";
 
         public GraphView graphView
         {

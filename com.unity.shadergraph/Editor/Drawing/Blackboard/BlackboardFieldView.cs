@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         private Action m_propertyViewUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
 
-        public string displayName
+        public string inspectorTitle
         {
             get
             {

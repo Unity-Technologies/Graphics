@@ -253,7 +253,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
 
                 CreateMasterPreview();
-                // TODO: Inspector - When Matt integrates his stacks work, the inspector will need to trigger preview updates
+                // When Matt integrates his stacks work, the inspector will need to trigger preview updates
                 CreateInspector(() => { });
 
                 UpdateSubWindowsVisibility();

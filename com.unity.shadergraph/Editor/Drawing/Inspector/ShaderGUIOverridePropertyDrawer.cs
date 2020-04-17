@@ -143,7 +143,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback

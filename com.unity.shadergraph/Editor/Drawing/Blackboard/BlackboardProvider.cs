@@ -275,6 +275,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddInputRow(input, index: m_Graph.GetGraphInputIndex(input));
             }
 
+            // This tries to maintain the selection the user had before the undo/redo was performed,
+            // if the user hasn't added or removed any inputs
             if (wasUndoRedoPerformed && m_Graph.addedInputs.Count() == m_Graph.removedInputs.Count())
             {
                 oldSelection = selection;

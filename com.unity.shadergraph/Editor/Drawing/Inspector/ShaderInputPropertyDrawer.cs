@@ -67,10 +67,9 @@ namespace Drawing.Inspector
         public VisualElement DrawProperty(
             PropertyInfo propertyInfo,
             object actualObject,
-            Inspectable attribute)
+            InspectableAttribute attribute)
         {
             var propertySheet = new PropertySheet();
-            // #TODO Handle child classes, needs extra work?
             shaderInput = actualObject as ShaderInput;
             BuildExposedField(propertySheet);
             BuildReferenceNameField(propertySheet);
@@ -197,7 +196,6 @@ namespace Drawing.Inspector
                 BuildGpuInstancingField(propertySheet, property);
         }
 
-        // #TODO: Current Blackboard calls ValidateGraph() after changing this property, is this actually needed?
         private void BuildPrecisionField(PropertySheet propertySheet, AbstractShaderProperty property)
         {
             var enumPropertyDrawer = new EnumPropertyDrawer();

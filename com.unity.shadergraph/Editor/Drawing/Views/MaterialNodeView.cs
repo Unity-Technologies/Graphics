@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         MaterialGraphView m_GraphView;
 
-        public string displayName => $"{node.name} (Node)";
+        public string inspectorTitle => $"{node.name} (Node)";
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, MaterialGraphView graphView)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialNodeView"));

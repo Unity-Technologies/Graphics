@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph
 
         public VisualElement colorElement => null;
 
-        public string displayName
+        public string inspectorTitle
         {
             get
             {

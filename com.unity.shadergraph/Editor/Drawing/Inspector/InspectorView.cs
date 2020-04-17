@@ -4,9 +4,11 @@ using System.Linq;
 using System.Reflection;
 using Drawing.Views;
  using ICSharpCode.NRefactory.Ast;
+ using UnityEditor;
  using UnityEditor.Experimental.GraphView;
  using UnityEditor.Graphing;
  using UnityEditor.ShaderGraph.Drawing;
+ using UnityEngine;
  using UnityEngine.UIElements;
 
  namespace Drawing.Inspector
@@ -20,39 +22,37 @@ using Drawing.Views;
         private IPropertyDrawer m_graphSettingsPropertyDrawer = new GraphDataPropertyDrawer();
 
         private Action m_previewUpdateDelegate;
-
-        public int currentlyDisplayedPropertyCount { get; private set; } = 0;
-
         protected override string windowTitle => "Inspector";
         protected override string elementName => "InspectorView";
         protected override string styleName => "InspectorView";
 
-        static IEnumerable<Type> GetPropertyDrawerTypes(Assembly assembly)
+        void RegisterPropertyDrawer(Type propertyDrawerType)
         {
-            foreach(Type type in assembly.GetTypes())
-            {
-                if (type.GetCustomAttributes(typeof(SGPropertyDrawer), true).Length > 0)
-                {
-                    yield return type;
-                }
-            }
+            if(typeof(IPropertyDrawer).IsAssignableFrom(propertyDrawerType) == false)
+                Debug.Log("Attempted to register a property drawer that doesn't inherit from IPropertyDrawer!");
+
+            var customAttribute = propertyDrawerType.GetCustomAttribute<SGPropertyDrawer>();
+            if(customAttribute != null)
+                m_PropertyDrawerList.Add(propertyDrawerType);
+            else
+                Debug.Log("Attempted to register a property drawer that isn't marked up with the SGPropertyDrawer attribute!");
         }
 
         public InspectorView(GraphView graphView, Action updatePreviewDelegate) : base(graphView)
         {
             this.m_previewUpdateDelegate = updatePreviewDelegate;
 
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            var unregisteredPropertyDrawerTypes = TypeCache.GetTypesDerivedFrom<IPropertyDrawer>().ToList();
+
+            foreach (var type in unregisteredPropertyDrawerTypes)
             {
-                m_PropertyDrawerList.AddRange(GetPropertyDrawerTypes(assembly));
+                RegisterPropertyDrawer(type);
             }
         }
 
 #region Selection
         public void Update()
         {
-            currentlyDisplayedPropertyCount = selection.Count;
-
             // Remove current properties
             for (int i = 0; i < m_ContentContainer.childCount; ++i)
             {
@@ -126,22 +126,12 @@ using Drawing.Views;
     public static class InspectorUtils
     {
         internal static void GatherInspectorContent(
-            List<Type> rawPropertyDrawerList,
+            List<Type> propertyDrawerList,
             VisualElement propertySheet,
             IInspectable inspectable,
             Action propertyChangeCallback,
             IPropertyDrawer propertyDrawerToUse = null)
         {
-            var registeredPropertyDrawerList = new List<Type>();
-
-            foreach (var type in rawPropertyDrawerList)
-            {
-                RegisterPropertyDrawer(registeredPropertyDrawerList, type);
-            }
-
-            // #TODO: Inspector - Comment out when Matt lands stacks into master
-            //RegisterPropertyDrawer(propertyDrawerList, typeof(TargetPropertyDrawer));
-
             var dataObject = inspectable.GetObjectToInspect();
             if (dataObject == null)
                 throw new NullReferenceException("DataObject returned by Inspectable is null!");
@@ -152,13 +142,13 @@ using Drawing.Views;
 
             foreach (var propertyInfo in properties)
             {
-                var attribute = propertyInfo.GetCustomAttribute<Inspectable>();
+                var attribute = propertyInfo.GetCustomAttribute<InspectableAttribute>();
                 if (attribute == null)
                     continue;
 
                 var propertyType = propertyInfo.PropertyType;
 
-                if (IsPropertyTypeHandled(registeredPropertyDrawerList, propertyType, out var propertyDrawerTypeToUse))
+                if (IsPropertyTypeHandled(propertyDrawerList, propertyType, out var propertyDrawerTypeToUse))
                 {
                     var propertyDrawerInstance = propertyDrawerToUse ??
                                                  (IPropertyDrawer) Activator.CreateInstance(propertyDrawerTypeToUse);
@@ -170,18 +160,6 @@ using Drawing.Views;
                     propertySheet.Add(propertyGUI);
                 }
             }
-        }
-
-        private static void RegisterPropertyDrawer(List<Type> propertyDrawerList, Type propertyDrawerType)
-        {
-            if(typeof(IPropertyDrawer).IsAssignableFrom(propertyDrawerType) == false)
-                throw new Exception("Attempted to register a property drawer that doesn't inherit from IPropertyDrawer!");
-
-            var customAttribute = propertyDrawerType.GetCustomAttribute<SGPropertyDrawer>();
-            if(customAttribute != null)
-                propertyDrawerList.Add(propertyDrawerType);
-            else
-                throw new Exception("Attempted to register a property drawer that isn't marked up with the SGPropertyDrawer attribute!");
         }
 
         private static bool IsPropertyTypeHandled(List<Type> propertyDrawerList, Type typeOfProperty,

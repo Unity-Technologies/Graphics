@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private Action m_InspectorUpdateDelegate;
 
-        public string displayName => this.graph.path;
+        public string inspectorTitle => this.graph.path;
 
         public object GetObjectToInspect()
         {
@@ -73,8 +73,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ChangeTargetSettings()
         {
-            // #TODO: Inspector - Uncomment when Matt lands stacks into master
-            //graph.UpdateActiveBlocks();
             this.m_InspectorUpdateDelegate();
         }
         void ChangeConcretePrecision(ConcretePrecision newValue)

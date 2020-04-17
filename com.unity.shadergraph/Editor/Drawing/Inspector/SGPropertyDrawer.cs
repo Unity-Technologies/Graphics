@@ -29,7 +29,7 @@ namespace Drawing.Inspector
     {
         Action inspectorUpdateDelegate { get; set; }
 
-        VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute);
+        VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute);
     }
 
     [SGPropertyDrawer(typeof(Enum))]
@@ -66,7 +66,7 @@ namespace Drawing.Inspector
         public VisualElement DrawProperty(
             PropertyInfo propertyInfo,
             object actualObject,
-            Inspectable attribute)
+            InspectableAttribute attribute)
         {
             return this.CreateGUI(newEnumValue =>
                     propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newEnumValue}),
@@ -112,7 +112,7 @@ namespace Drawing.Inspector
         public VisualElement DrawProperty(
             PropertyInfo propertyInfo,
             object actualObject,
-            Inspectable attribute)
+            InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -158,7 +158,7 @@ namespace Drawing.Inspector
         public VisualElement DrawProperty(
             PropertyInfo propertyInfo,
             object actualObject,
-            Inspectable attribute)
+            InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -201,7 +201,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -239,7 +239,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -280,7 +280,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -320,7 +320,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -414,7 +414,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -509,7 +509,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -606,7 +606,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -645,7 +645,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -685,7 +685,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -725,7 +725,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -765,7 +765,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -805,7 +805,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -1163,7 +1163,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
@@ -1205,7 +1205,7 @@ namespace Drawing.Inspector
 
         public Action inspectorUpdateDelegate { get; set; }
 
-        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, Inspectable attribute)
+        public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
