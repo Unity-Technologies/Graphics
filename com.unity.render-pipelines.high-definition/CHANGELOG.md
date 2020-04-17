@@ -544,6 +544,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that was collapsing the volume components in the HDRP default settings
 - Fixed warning about missing bound decal buffer
 - Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
+- Fixed PBR shader ZTest rendering in deferred.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
