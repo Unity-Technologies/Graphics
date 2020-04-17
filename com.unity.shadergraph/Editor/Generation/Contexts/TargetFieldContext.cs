@@ -8,12 +8,14 @@ namespace UnityEditor.ShaderGraph
         public List<ConditionalField> conditionalFields { get; private set; }
         public PassDescriptor pass { get; private set; }
         public List<BlockFieldDescriptor> blocks { get; private set; }
+        public bool hasDotsProperties { get; private set; }
 
-        public TargetFieldContext(PassDescriptor pass, List<BlockFieldDescriptor> blocks)
+        public TargetFieldContext(PassDescriptor pass, List<BlockFieldDescriptor> blocks, bool hasDotsProperties)
         {
             conditionalFields = new List<ConditionalField>();
             this.pass = pass;
             this.blocks = blocks;
+            this.hasDotsProperties = hasDotsProperties;
         }
 
         public void AddField(FieldDescriptor field, bool conditional = true)

@@ -380,19 +380,28 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ShaderUtil.ClearShaderMessages(oldShader);
 
                 UpdateShaderGraphOnDisk(path);
-
-                // TODO: Re-enable onSaveGraph
-                // if (GraphData.onSaveGraph != null)
-                // {
-                //     var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
-                //     if (shader != null)
-                //     {
-                //         GraphData.onSaveGraph(shader, graphObject.graph.subGraphOutputNode.saveContext);
-                //     }
-                // }
+                OnSaveGraph(path);
             }
 
             UpdateTitle();
+        }
+
+        void OnSaveGraph(string path)
+        {
+            if(GraphData.onSaveGraph == null)
+                return;
+
+            if(graphObject.graph.isSubGraph)
+                return;
+
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+            if(shader == null)
+                return;
+
+            foreach(var target in graphObject.graph.activeTargets)
+            {
+                GraphData.onSaveGraph(shader, target.saveContext);
+            }
         }
 
         public void SaveAs()
@@ -425,13 +434,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (success)
                         {
                             ShaderGraphImporterEditor.ShowGraphEditWindow(newPath);
-                            // This is for updating material dependencies so we exclude subgraphs here.
-                            if (GraphData.onSaveGraph != null && extension != ShaderSubGraphImporter.Extension)
-                            {
-                                var shader = AssetDatabase.LoadAssetAtPath<Shader>(newPath);
-                                // Retrieve graph context, note that if we're here the output node will always be a master node
-                                GraphData.onSaveGraph(shader, (graphObject.graph.subGraphOutputNode as AbstractMaterialNode).saveContext);
-                            }
+                            OnSaveGraph(newPath);
                         }
                     }
 

@@ -159,6 +159,25 @@ namespace UnityEditor.ShaderGraph
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
         }
 
+        public static bool TryGetMetadataOfType<T>(this Shader shader, out T obj) where T : ScriptableObject
+        {
+            obj = null;
+            if(!shader.IsShaderGraph())
+                return false;
+
+            var path = AssetDatabase.GetAssetPath(shader);
+            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
+            {
+                if (asset is T metadataAsset)
+                {
+                    obj = metadataAsset;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static bool IsShaderGraph(this Shader shader)
         {
             var path = AssetDatabase.GetAssetPath(shader);
