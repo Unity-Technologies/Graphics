@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("const DeformedVertexData vertexData = _DeformedMeshData[asuint(_ComputeMeshIndex) + vertexID];");
                     sb.AppendLine("positionOut = vertexData.Position;");
                     sb.AppendLine("normalOut = vertexData.Normal;");
-                    sb.AppendLine("tangentOut = vertexData.Tangent;");
+                    sb.AppendLine("tangentOut = vertexData.Tangent.xyz;");
                 }
                 sb.AppendLine("}");
             });
