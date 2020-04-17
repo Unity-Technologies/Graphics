@@ -3098,6 +3098,68 @@ namespace UnityEngine.Rendering.HighDefinition
             var w = (int)hdCamera.screenSize.x;
             var h = (int)hdCamera.screenSize.y;
 
+            // Fill the shared constant buffer.
+            // We don't fill directly the one in the parameter struct because we will need those parameters for volumetric lighting as well.
+            ref var cb = ref (buildForProbeVolumes ? ref m_ShaderVariablesProbeVolumeLightListCB : ref m_ShaderVariablesLightListCB);
+            var temp = new Matrix4x4();
+            temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
+            temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
+            temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
+            temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+
+            // camera to screen matrix (and it's inverse)
+            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+            {
+                var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : camera.projectionMatrix;
+                m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
+
+                for (int i = 0; i < 16; ++i)
+                {
+                    var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
+                    var invTempMatrix = tempMatrix.inverse;
+                    cb.g_mScrProjectionArr[viewIndex * 16 + i] = tempMatrix[i];
+                    cb.g_mInvScrProjectionArr[viewIndex * 16 + i] = invTempMatrix[i];
+                }
+            }
+
+            // camera to screen matrix (and it's inverse)
+            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+            {
+                temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+                temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+                temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
+                temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+
+                for (int i = 0; i < 16; ++i)
+                {
+                    var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
+                    var invTempMatrix = tempMatrix.inverse;
+                    cb.g_mProjectionArr[viewIndex * 16 + i] = tempMatrix[i];
+                    cb.g_mInvProjectionArr[viewIndex * 16 + i] = invTempMatrix[i];
+                }
+            }
+
+            var decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
+            int totalLightCount = buildForProbeVolumes ? m_ProbeVolumeCount : m_TotalLightCount;
+
+            cb.g_iNrVisibLights = totalLightCount;
+            cb.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
+            cb.g_viDimensions = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
+            cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
+            cb.g_BaseFeatureFlags = 0; // Filled for each individual pass.
+            cb.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
+            cb._EnvLightIndexShift = (uint)m_lightList.lights.Count;
+            cb._DecalIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count);
+            cb._DensityVolumeIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
+
+            int probeVolumeIndexShift = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)
+                    ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount)
+                    : 0;
+            cb._ProbeVolumeIndexShift = (uint)probeVolumeIndexShift;
+
+            // Copy the constant buffer into the parameter struct.
+            parameters.lightListCB = cb;
+
             parameters.totalLightCount = buildForProbeVolumes ? m_ProbeVolumeCount : m_TotalLightCount;
             parameters.runLightList = parameters.totalLightCount > 0;
             parameters.clearLightLists = false;
@@ -3194,66 +3256,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.buildDispatchIndirectShader.EnableKeyword("IS_DRAWPROCEDURALINDIRECT");
             }
 
-            // Fill the shared constant buffer.
-            // We don't fill directly the one in the parameter struct because we will need those parameters for volumetric lighting as well.
-            ref var cb = ref (buildForProbeVolumes ? ref m_ShaderVariablesProbeVolumeLightListCB : ref m_ShaderVariablesLightListCB);
-            var temp = new Matrix4x4();
-            temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
-            temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
-            temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
-            temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-
-            // camera to screen matrix (and it's inverse)
-            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-            {
-                var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : camera.projectionMatrix;
-                m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
-
-                for (int i = 0; i < 16; ++i)
-                {
-                    var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
-                    var invTempMatrix = tempMatrix.inverse;
-                    cb.g_mScrProjectionArr[viewIndex * 16 + i] = tempMatrix[i];
-                    cb.g_mInvScrProjectionArr[viewIndex * 16 + i] = invTempMatrix[i];
-                }
-            }
-
-            // camera to screen matrix (and it's inverse)
-            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-            {
-                temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
-                temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
-                temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
-                temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-
-                for (int i = 0; i < 16; ++i)
-                {
-                    var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
-                    var invTempMatrix = tempMatrix.inverse;
-                    cb.g_mProjectionArr[viewIndex * 16 + i] = tempMatrix[i];
-                    cb.g_mInvProjectionArr[viewIndex * 16 + i] = invTempMatrix[i];
-                }
-            }
-
-            var decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
-
-            cb.g_iNrVisibLights = parameters.totalLightCount;
-            cb.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
-            cb.g_viDimensions = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
-            cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
-            cb.g_BaseFeatureFlags = 0; // Filled for each individual pass.
-            cb.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
-            cb._EnvLightIndexShift = (uint)m_lightList.lights.Count;
-            cb._DecalIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count);
-            cb._DensityVolumeIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
-
-            int probeVolumeIndexShift = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)
-                    ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount)
-                    : 0;
-            cb._ProbeVolumeIndexShift = (uint)probeVolumeIndexShift;
-
-            // Copy the constant buffer into the parameter struct.
-            parameters.lightListCB = cb;
 
             return parameters;
         }
