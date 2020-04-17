@@ -196,6 +196,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
         }
 
+        // Computes the transform from unormilezed viewport/pixel coordinates to normalized device coordinates
+        internal static Matrix4x4 ComputeInverseViewportMatrix(HDCamera hdCamera)
+        {
+            float verticalFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+            Vector2 lensShift = hdCamera.camera.GetGateFittedLensShift();
+
+            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, hdCamera.screenSize, Matrix4x4.identity, false, hdCamera.camera.aspect);
+        }
+
         internal static float ComputZPlaneTexelSpacing(float planeDepth, float verticalFoV, float resolutionY)
         {
             float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);

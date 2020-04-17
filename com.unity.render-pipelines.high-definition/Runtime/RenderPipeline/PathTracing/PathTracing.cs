@@ -102,15 +102,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SubFrameManager.Reset();
         }
 
-        // Computes the transform from viewport to normalized device coordinates
-        private Matrix4x4 ComputeInverseViewportMatrix(HDCamera hdCamera)
-        {
-            float verticalFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-            Vector2 lensShift = hdCamera.camera.GetGateFittedLensShift();
-
-            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, hdCamera.screenSize, Matrix4x4.identity, false, hdCamera.camera.aspect);
-        }
-
         private Vector4 ComputeDoFConstants(HDCamera hdCamera, PathTracing settings)
         {
             // focalLength is in mm, so we need to convert to meters. We also want the aperture radius, not diameter, so we divide by two.
@@ -299,7 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Additional data for path tracing
                 cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._RadianceTexture, m_RadianceTexture);
                 cmd.SetRayTracingMatrixParam(pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, hdCamera.mainViewConstants.pixelCoordToViewDirWS);
-                cmd.SetRayTracingMatrixParam(pathTracingShader, HDShaderIDs._InvViewportTransform, ComputeInverseViewportMatrix(hdCamera));
+                cmd.SetRayTracingMatrixParam(pathTracingShader, HDShaderIDs._InvViewportTransform, HDUtils.ComputeInverseViewportMatrix(hdCamera));
                 cmd.SetRayTracingVectorParam(pathTracingShader, HDShaderIDs._PathTracedDoFConstants, ComputeDoFConstants(hdCamera, m_PathTracingSettings));
 
                 // Run the computation
