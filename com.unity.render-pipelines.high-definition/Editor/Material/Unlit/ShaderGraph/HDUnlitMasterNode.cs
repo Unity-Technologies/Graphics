@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Serializable]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDUnlitMasterNode")]
     [Title("Master", "Unlit (HDRP)")]
-    class HDUnlitMasterNode : AbstractMaterialNode, IMasterNode, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class HDUnlitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
@@ -48,15 +48,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int VertexTangentSlotId = 14;
         public const int ShadowTintSlotId = 15;
 
-        // This struct exists to expose the HDUnlitMasterNode to the inspector for drawing settings
-        public struct HDUnlitSettings
-        {
-            // Empty struct
-        }
-
-        [Inspectable("HDRP Unlit Settings", null)]
-        public HDUnlitSettings HDRPUnlitSettings { get; private set; }
-
         // Don't support Multiply
         public enum AlphaModeLit
         {
@@ -76,7 +67,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_SurfaceType == value)
                     return;
 
-                this.owner.owner.RegisterCompleteObjectUndo("Surface Type Change");
                 m_SurfaceType = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -94,48 +84,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_AlphaMode == value)
                     return;
 
-                this.owner.owner.RegisterCompleteObjectUndo("Alpha Mode Change");
                 m_AlphaMode = value;
                 Dirty(ModificationScope.Graph);
             }
         }
-
-        public AlphaMode GetAlphaMode(AlphaModeLit alphaModeLit)
-        {
-            switch (alphaModeLit)
-            {
-                case HDUnlitMasterNode.AlphaModeLit.Alpha:
-                    return AlphaMode.Alpha;
-                case HDUnlitMasterNode.AlphaModeLit.Premultiply:
-                    return AlphaMode.Premultiply;
-                case HDUnlitMasterNode.AlphaModeLit.Additive:
-                    return AlphaMode.Additive;
-                default:
-                {
-                    Debug.LogWarning("Not supported: " + alphaModeLit);
-                    return AlphaMode.Alpha;
-                }
-            }
-        }
-
-        public AlphaModeLit GetAlphaModeLit(AlphaMode alphaMode)
-        {
-            switch (alphaMode)
-            {
-                case AlphaMode.Alpha:
-                    return HDUnlitMasterNode.AlphaModeLit.Alpha;
-                case AlphaMode.Premultiply:
-                    return HDUnlitMasterNode.AlphaModeLit.Premultiply;
-                case AlphaMode.Additive:
-                    return HDUnlitMasterNode.AlphaModeLit.Additive;
-                default:
-                {
-                    Debug.LogWarning("Not supported: " + alphaMode);
-                    return HDUnlitMasterNode.AlphaModeLit.Alpha;
-                }
-            }
-        }
-
 
         [SerializeField]
         HDRenderQueue.RenderQueueType m_RenderingPass = HDRenderQueue.RenderQueueType.Opaque;
@@ -148,30 +100,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_RenderingPass == value)
                     return;
 
-                switch (value)
-                {
-                    case HDRenderQueue.RenderQueueType.Overlay:
-                    case HDRenderQueue.RenderQueueType.Unknown:
-                    case HDRenderQueue.RenderQueueType.Background:
-                        throw new ArgumentException("Unexpected kind of RenderQueue, was " + value);
-                    default:
-                        break;
-                };
-
-                HDRenderQueue.RenderQueueType renderingPass;
-                switch (surfaceType)
-                {
-                    case SurfaceType.Opaque:
-                        renderingPass = HDRenderQueue.GetOpaqueEquivalent(value);
-                        break;
-                    case SurfaceType.Transparent:
-                        renderingPass = HDRenderQueue.GetTransparentEquivalent(value);
-                        break;
-                    default:
-                        throw new ArgumentException("Unknown SurfaceType");
-                }
-
-                this.owner.owner.RegisterCompleteObjectUndo("Rendering Pass Change");
                 m_RenderingPass = value;
                 Dirty(ModificationScope.Graph);
             }
@@ -187,7 +115,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_TransparencyFog == value.isOn)
                     return;
-                this.owner.owner.RegisterCompleteObjectUndo("Transparency Fog Change");
                 m_TransparencyFog = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -208,7 +135,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_Distortion == value.isOn)
                     return;
-                this.owner.owner.RegisterCompleteObjectUndo("Distortion Change");
                 m_Distortion = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -225,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_DistortionMode == value)
                     return;
-                this.owner.owner.RegisterCompleteObjectUndo("Distortion Mode Change");
+
                 m_DistortionMode = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -242,7 +168,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_DistortionOnly == value.isOn)
                     return;
-                this.owner.owner.RegisterCompleteObjectUndo("Distortion Only Change");
                 m_DistortionOnly = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -258,7 +183,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_DistortionDepthTest == value.isOn)
                     return;
-                this.owner.owner.RegisterCompleteObjectUndo("Distortion Depth Test Change");
                 m_DistortionDepthTest = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -267,7 +191,6 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_AlphaTest;
 
-        [Inspectable("Alpha Clipping", false)]
         public ToggleData alphaTest
         {
             get { return new ToggleData(m_AlphaTest); }
@@ -275,7 +198,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AlphaTest == value.isOn)
                     return;
-                this.owner.owner.RegisterCompleteObjectUndo("Alpha Test Change");
                 m_AlphaTest = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
@@ -306,11 +228,9 @@ namespace UnityEditor.Rendering.HighDefinition
             get { return m_SortPriority; }
             set
             {
-                var newSortPriority = HDRenderQueue.ClampsTransparentRangePriority(value);
-                if (m_SortPriority == newSortPriority)
+                if (m_SortPriority == value)
                     return;
-                this.owner.owner.RegisterCompleteObjectUndo("Sort Priority Change");
-                m_SortPriority = newSortPriority;
+                m_SortPriority = value;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -325,7 +245,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_DoubleSided == value.isOn)
                     return;
-                this.owner.owner.RegisterCompleteObjectUndo("Double-Sided Change");
                 m_DoubleSided = value.isOn;
                 Dirty(ModificationScope.Topological);
             }
@@ -341,7 +260,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_ZWrite == value.isOn)
                     return;
-                this.owner.owner.RegisterCompleteObjectUndo("ZWrite Change");
                 m_ZWrite = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
@@ -357,7 +275,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_transparentCullMode == value)
                     return;
 
-                this.owner.owner.RegisterCompleteObjectUndo("Transparent Cull Mode Change");
                 m_transparentCullMode = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
@@ -374,7 +291,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_ZTest == value)
                     return;
 
-                this.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
                 m_ZTest = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
@@ -384,7 +300,6 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_AddPrecomputedVelocity = false;
 
-        [Inspectable("Add Precomputed Velocity", false)]
         public ToggleData addPrecomputedVelocity
         {
             get { return new ToggleData(m_AddPrecomputedVelocity); }
@@ -392,7 +307,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_AddPrecomputedVelocity == value.isOn)
                     return;
-                this.owner.owner.RegisterCompleteObjectUndo("Add Precomputed Velocity");
                 m_AddPrecomputedVelocity = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
@@ -402,7 +316,6 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_EnableShadowMatte = false;
 
-        [Inspectable("Shadow Matte", false)]
         public ToggleData enableShadowMatte
         {
             get { return new ToggleData(m_EnableShadowMatte); }
@@ -410,7 +323,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_EnableShadowMatte == value.isOn)
                     return;
-                this.owner.owner.RegisterCompleteObjectUndo("Shadow Matte");
                 m_EnableShadowMatte = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
@@ -430,18 +342,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 m_DOTSInstancing = value.isOn;
                 Dirty(ModificationScope.Graph);
-            }
-        }
-
-        // This property exists to expose shaderGUI Override info. to the inspector
-        [Inspectable("ShaderGUI", null)]
-        public ShaderGUIOverrideInfo ShaderGUIInfo
-        {
-            get => new ShaderGUIOverrideInfo(this.OverrideEnabled, this.ShaderGUIOverride);
-            set
-            {
-                this.ShaderGUIOverride = value.ShaderGUIOverride;
-                this.OverrideEnabled = value.OverrideEnabled;
             }
         }
 
@@ -508,6 +408,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             RemoveSlotsNameNotMatching(validSlots, true);
+        }
+
+        public VisualElement CreateSettingsElement()
+        {
+            return new HDUnlitSettingsView(this);
         }
 
         public string renderQueueTag
