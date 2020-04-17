@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
     abstract class AbstractMaterialNode : JsonObject, IGroupItem
     {
         [SerializeField]
-        string m_GroupId = emptyObjectId;
+        JsonRef<GroupData> m_Group = null;
 
         [SerializeField]
         private string m_Name;
@@ -34,7 +34,18 @@ namespace UnityEditor.ShaderGraph
 
         OnNodeModified m_OnModified;
 
-        public bool groupIdIsEmpty => string.IsNullOrEmpty(m_GroupId) || m_GroupId.Equals(emptyObjectId);
+        public GroupData group
+        {
+            get => m_Group;
+            set
+            {
+                if (m_Group == value)
+                    return;
+
+                m_Group = value;
+                Dirty(ModificationScope.Topological);
+            }
+        }
 
         public void RegisterCallback(OnNodeModified callback)
         {
@@ -50,12 +61,6 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_OnModified != null)
                 m_OnModified(this, scope);
-        }
-
-        public string groupId
-        {
-            get { return m_GroupId; }
-            set { m_GroupId = value; }
         }
 
         public string name

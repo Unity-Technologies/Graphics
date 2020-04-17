@@ -18,12 +18,12 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Static version for testability
-        public static RedirectNodeData Create(GraphData graph, SlotValueType edgeType, Vector2 absolutePosition, SlotReference inputRef, SlotReference outputRef, string groupId)
+        public static RedirectNodeData Create(GraphData graph, SlotValueType edgeType, Vector2 absolutePosition, SlotReference inputRef, SlotReference outputRef, GroupData group)
         {
             var nodeData = new RedirectNodeData();
             nodeData.AddSlots(edgeType);
             nodeData.SetPosition(absolutePosition);
-            nodeData.groupId = groupId;
+            nodeData.group = group;
 
             // Hard-coded for single input-output. Changes would be needed for multi-input redirects
             var nodeInSlotRef = nodeData.GetSlotReference(RedirectNodeData.kInputSlotID);

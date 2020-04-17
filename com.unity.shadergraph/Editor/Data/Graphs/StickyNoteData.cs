@@ -54,22 +54,27 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        string m_GroupId;
+        JsonRef<GroupData> m_Group = null;
 
-        public string groupId
+        public GroupData group
         {
-            get { return m_GroupId; }
-            set { m_GroupId = value; }
+            get => m_Group;
+            set
+            {
+                if (m_Group == value)
+                    return;
+
+                m_Group = value;
+            }
         }
 
+
         public StickyNoteData() : base() {}
-        public bool groupIdIsEmpty => string.IsNullOrEmpty(m_GroupId) || m_GroupId.Equals(emptyObjectId);
         public StickyNoteData(string title, string content, Rect position)
         {
             m_Title = title;
             m_Position = position;
             m_Content = content;
-            m_GroupId = emptyObjectId;
         }
 
     }

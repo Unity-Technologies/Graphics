@@ -245,14 +245,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             // If they are in the same group we also add in the Redirect Node
             // var groupGuidOutputNode = graph.GetNodeFromGuid(outputSlot.slotReference.nodeGuid).groupGuid;
             // var groupGuidInputNode = graph.GetNodeFromGuid(inputSlot.slotReference.nodeGuid).groupGuid;
-            var groupId = Serialization.JsonObject.emptyObjectId;
-            if (outputSlot.owner.groupId == inputSlot.owner.groupId)
+            GroupData group = null; 
+            if (outputSlot.owner.group == inputSlot.owner.group)
             {
-                groupId = inputSlot.owner.groupId;
+                group = inputSlot.owner.group;
             }
 
             RedirectNodeData.Create(graph, outputSlot.valueType, contentViewContainer.WorldToLocal(position), inputSlot.slotReference,
-                outputSlot.slotReference, groupId);
+                outputSlot.slotReference, group);
         }
 
         void SelectUnusedNodes(DropdownMenuAction action)
@@ -583,7 +583,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var propNode = new PropertyNode();
                 propNode.drawState = node.drawState;
-                propNode.groupId = node.groupId;
+                propNode.group = node.group;
                 graph.AddNode(propNode);
                 propNode.property = prop;
 
