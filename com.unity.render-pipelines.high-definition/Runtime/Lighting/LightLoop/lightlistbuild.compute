@@ -28,14 +28,6 @@
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
 
-uniform int g_iNrVisibLights;
-uniform uint2 g_viDimensions;
-uniform float4x4 g_mInvScrProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
-uniform float4x4 g_mScrProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
-uniform uint g_isOrthographic;
-uniform int _EnvLightIndexShift;
-uniform int _DecalIndexShift;
-uniform uint g_BaseFeatureFlags;
 
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
@@ -329,8 +321,10 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     // to make it work correctly
     int shiftIndex[CATEGORY_LIST_SIZE];
     ZERO_INITIALIZE_ARRAY(int, shiftIndex, CATEGORY_LIST_SIZE);
-    shiftIndex[CATEGORY_LIST_SIZE - 2] = _EnvLightIndexShift;
-    shiftIndex[CATEGORY_LIST_SIZE - 1] = _DecalIndexShift;
+
+    shiftIndex[LIGHTCATEGORY_ENV] = _EnvLightIndexShift;
+    shiftIndex[LIGHTCATEGORY_DECAL] = _DecalIndexShift;
+    shiftIndex[LIGHTCATEGORY_PROBE_VOLUME] = _ProbeVolumeIndexShift;
 
     for(int category=0; category<CATEGORY_LIST_SIZE; category++)
     {

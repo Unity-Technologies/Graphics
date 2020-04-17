@@ -79,14 +79,21 @@ void KERNEL_NAME(uint3 groupId          : SV_GroupID,
 
 #else
 
-    bool isFirstThread = WaveIsFirstLane();
+    // Need to workaround a warning incorrectly triggered when on Xbox One, so instead of using WaveIsFirstLane()
+    // we check the groupThreadId as in the non intrinsic version.
+    //bool isFirstThread = WaveIsFirstLane();
+    bool isFirstThread = groupThreadId.x == 0 && groupThreadId.y == 0;
     uint coarseStencilValue = WaveActiveBitOr(resolvedStencil);
 
 #endif
 
+    //This temp is needed outside the if(isFirstThread) condition to workaround a DXC DXIL codegen
+    // issue https://github.com/microsoft/DirectXShaderCompiler/issues/2743 until it's fixed
+    uint perThreadCoarseStencilValue = coarseStencilValue;
+
     if (isFirstThread)
     {
         uint addressIndex = Get1DAddressFromPixelCoord(groupId.xy, _CoarseStencilBufferSize.xy, groupId.z);
-        _CoarseStencilBuffer[addressIndex] = coarseStencilValue;
+        _CoarseStencilBuffer[addressIndex] = perThreadCoarseStencilValue;
     }
 }
