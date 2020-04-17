@@ -2592,33 +2592,19 @@ all_package_ci_trunk:
         flavor: b1.large
     dependencies:
       -  .yamato/packages.yml#test_core_win_trunk
-      -  .yamato/packages.yml#test_core_win_trunk_dependencies
       -  .yamato/packages.yml#test_lwrp_win_trunk
-      -  .yamato/packages.yml#test_lwrp_win_trunk_dependencies
       -  .yamato/packages.yml#test_shadergraph_win_trunk
-      -  .yamato/packages.yml#test_shadergraph_win_trunk_dependencies
       -  .yamato/packages.yml#test_hdrp_win_trunk
-      -  .yamato/packages.yml#test_hdrp_win_trunk_dependencies
       -  .yamato/packages.yml#test_universal_win_trunk
-      -  .yamato/packages.yml#test_universal_win_trunk_dependencies
       -  .yamato/packages.yml#test_vfx_win_trunk
-      -  .yamato/packages.yml#test_vfx_win_trunk_dependencies
       -  .yamato/packages.yml#test_config_win_trunk
-      -  .yamato/packages.yml#test_config_win_trunk_dependencies
       -  .yamato/packages.yml#test_core_mac_trunk
-      -  .yamato/packages.yml#test_core_mac_trunk_dependencies
       -  .yamato/packages.yml#test_lwrp_mac_trunk
-      -  .yamato/packages.yml#test_lwrp_mac_trunk_dependencies
       -  .yamato/packages.yml#test_shadergraph_mac_trunk
-      -  .yamato/packages.yml#test_shadergraph_mac_trunk_dependencies
       -  .yamato/packages.yml#test_hdrp_mac_trunk
-      -  .yamato/packages.yml#test_hdrp_mac_trunk_dependencies
       -  .yamato/packages.yml#test_universal_mac_trunk
-      -  .yamato/packages.yml#test_universal_mac_trunk_dependencies
       -  .yamato/packages.yml#test_vfx_mac_trunk
-      -  .yamato/packages.yml#test_vfx_mac_trunk_dependencies
       -  .yamato/packages.yml#test_config_mac_trunk
-      -  .yamato/packages.yml#test_config_mac_trunk_dependencies
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
       -  upm-ci package izon -t
@@ -2631,33 +2617,19 @@ all_package_ci_2020.1:
         flavor: b1.large
     dependencies:
       -  .yamato/packages.yml#test_core_win_2020.1
-      -  .yamato/packages.yml#test_core_win_2020.1_dependencies
       -  .yamato/packages.yml#test_lwrp_win_2020.1
-      -  .yamato/packages.yml#test_lwrp_win_2020.1_dependencies
       -  .yamato/packages.yml#test_shadergraph_win_2020.1
-      -  .yamato/packages.yml#test_shadergraph_win_2020.1_dependencies
       -  .yamato/packages.yml#test_hdrp_win_2020.1
-      -  .yamato/packages.yml#test_hdrp_win_2020.1_dependencies
       -  .yamato/packages.yml#test_universal_win_2020.1
-      -  .yamato/packages.yml#test_universal_win_2020.1_dependencies
       -  .yamato/packages.yml#test_vfx_win_2020.1
-      -  .yamato/packages.yml#test_vfx_win_2020.1_dependencies
       -  .yamato/packages.yml#test_config_win_2020.1
-      -  .yamato/packages.yml#test_config_win_2020.1_dependencies
       -  .yamato/packages.yml#test_core_mac_2020.1
-      -  .yamato/packages.yml#test_core_mac_2020.1_dependencies
       -  .yamato/packages.yml#test_lwrp_mac_2020.1
-      -  .yamato/packages.yml#test_lwrp_mac_2020.1_dependencies
       -  .yamato/packages.yml#test_shadergraph_mac_2020.1
-      -  .yamato/packages.yml#test_shadergraph_mac_2020.1_dependencies
       -  .yamato/packages.yml#test_hdrp_mac_2020.1
-      -  .yamato/packages.yml#test_hdrp_mac_2020.1_dependencies
       -  .yamato/packages.yml#test_universal_mac_2020.1
-      -  .yamato/packages.yml#test_universal_mac_2020.1_dependencies
       -  .yamato/packages.yml#test_vfx_mac_2020.1
-      -  .yamato/packages.yml#test_vfx_mac_2020.1_dependencies
       -  .yamato/packages.yml#test_config_mac_2020.1
-      -  .yamato/packages.yml#test_config_mac_2020.1_dependencies
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
       -  upm-ci package izon -t
@@ -2670,33 +2642,19 @@ all_package_ci_fast-trunk:
         flavor: b1.large
     dependencies:
       -  .yamato/packages.yml#test_core_win_fast-trunk
-      -  .yamato/packages.yml#test_core_win_fast-trunk_dependencies
       -  .yamato/packages.yml#test_lwrp_win_fast-trunk
-      -  .yamato/packages.yml#test_lwrp_win_fast-trunk_dependencies
       -  .yamato/packages.yml#test_shadergraph_win_fast-trunk
-      -  .yamato/packages.yml#test_shadergraph_win_fast-trunk_dependencies
       -  .yamato/packages.yml#test_hdrp_win_fast-trunk
-      -  .yamato/packages.yml#test_hdrp_win_fast-trunk_dependencies
       -  .yamato/packages.yml#test_universal_win_fast-trunk
-      -  .yamato/packages.yml#test_universal_win_fast-trunk_dependencies
       -  .yamato/packages.yml#test_vfx_win_fast-trunk
-      -  .yamato/packages.yml#test_vfx_win_fast-trunk_dependencies
       -  .yamato/packages.yml#test_config_win_fast-trunk
-      -  .yamato/packages.yml#test_config_win_fast-trunk_dependencies
       -  .yamato/packages.yml#test_core_mac_fast-trunk
-      -  .yamato/packages.yml#test_core_mac_fast-trunk_dependencies
       -  .yamato/packages.yml#test_lwrp_mac_fast-trunk
-      -  .yamato/packages.yml#test_lwrp_mac_fast-trunk_dependencies
       -  .yamato/packages.yml#test_shadergraph_mac_fast-trunk
-      -  .yamato/packages.yml#test_shadergraph_mac_fast-trunk_dependencies
       -  .yamato/packages.yml#test_hdrp_mac_fast-trunk
-      -  .yamato/packages.yml#test_hdrp_mac_fast-trunk_dependencies
       -  .yamato/packages.yml#test_universal_mac_fast-trunk
-      -  .yamato/packages.yml#test_universal_mac_fast-trunk_dependencies
       -  .yamato/packages.yml#test_vfx_mac_fast-trunk
-      -  .yamato/packages.yml#test_vfx_mac_fast-trunk_dependencies
       -  .yamato/packages.yml#test_config_mac_fast-trunk
-      -  .yamato/packages.yml#test_config_mac_fast-trunk_dependencies
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
       -  upm-ci package izon -t
@@ -2709,33 +2667,19 @@ all_package_ci_fast-2020.1:
         flavor: b1.large
     dependencies:
       -  .yamato/packages.yml#test_core_win_fast-2020.1
-      -  .yamato/packages.yml#test_core_win_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_lwrp_win_fast-2020.1
-      -  .yamato/packages.yml#test_lwrp_win_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_shadergraph_win_fast-2020.1
-      -  .yamato/packages.yml#test_shadergraph_win_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_hdrp_win_fast-2020.1
-      -  .yamato/packages.yml#test_hdrp_win_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_universal_win_fast-2020.1
-      -  .yamato/packages.yml#test_universal_win_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_vfx_win_fast-2020.1
-      -  .yamato/packages.yml#test_vfx_win_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_config_win_fast-2020.1
-      -  .yamato/packages.yml#test_config_win_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_core_mac_fast-2020.1
-      -  .yamato/packages.yml#test_core_mac_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_lwrp_mac_fast-2020.1
-      -  .yamato/packages.yml#test_lwrp_mac_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_shadergraph_mac_fast-2020.1
-      -  .yamato/packages.yml#test_shadergraph_mac_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_hdrp_mac_fast-2020.1
-      -  .yamato/packages.yml#test_hdrp_mac_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_universal_mac_fast-2020.1
-      -  .yamato/packages.yml#test_universal_mac_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_vfx_mac_fast-2020.1
-      -  .yamato/packages.yml#test_vfx_mac_fast-2020.1_dependencies
       -  .yamato/packages.yml#test_config_mac_fast-2020.1
-      -  .yamato/packages.yml#test_config_mac_fast-2020.1_dependencies
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
       -  upm-ci package izon -t

@@ -6,7 +6,7 @@ def get_job_definition(packages, agent, platforms, editor):
     for platform in platforms:
         for package in packages:
             dependencies.append(f'{packages_filepath()}#{package_job_id_test(package["id"],platform["name"],editor["version"])}')
-            dependencies.append(f'{packages_filepath()}#{package_job_id_test_dependencies(package["id"],platform["name"],editor["version"])}')
+            #dependencies.append(f'{packages_filepath()}#{package_job_id_test_dependencies(package["id"],platform["name"],editor["version"])}')
     
     job = {
         'name': f'Pack and test all packages - { editor["version"] }',

@@ -35,9 +35,9 @@ def get_job_definition(editor, test_platform, smoke_test):  # only run for 2020.
 
 
     if test_platform['name'].lower() == 'standalone':
-        job['commands'].append(f'cd {TEST_PROJECTS_DIR}/SRP_SmokeTest && utr/utr {test_platform["args"]}Windows64 --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200')
+        job['commands'].append(f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr/utr {test_platform["args"]}Windows64 --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200')
     else:
-        job['commands'].append(f'cd {TEST_PROJECTS_DIR}/SRP_SmokeTest && utr/utr {test_platform["args"]} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}')
+        job['commands'].append(f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr/utr {test_platform["args"]} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}')
     
     job = add_custom_revision_var(job, editor["version"])
     return job
