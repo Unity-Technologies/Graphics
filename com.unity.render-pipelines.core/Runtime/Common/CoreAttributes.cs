@@ -11,6 +11,6 @@ namespace UnityEngine.Rendering
         /// <summary>Display name used in UI.</summary>
         public string name;
         /// <summary>Display order used in UI.</summary>
-        public string order;
+        public int order;
     }
 }
