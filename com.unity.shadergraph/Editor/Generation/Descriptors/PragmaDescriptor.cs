@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
             return string.Join(" ", rendererStrings);
         }
 
-        public static PragmaDescriptor Target(double value) => new PragmaDescriptor { value = $"target {string.Format("{0:0.0}", value)}" };
+        public static PragmaDescriptor Target(ShaderModel value) => new PragmaDescriptor { value = $"target {value.ToShaderString()}" };
         public static PragmaDescriptor Vertex(string value) => new PragmaDescriptor { value = $"vertex {value}" };
         public static PragmaDescriptor Fragment(string value) => new PragmaDescriptor { value = $"fragment {value}" };
         public static PragmaDescriptor Geometry(string value) => new PragmaDescriptor { value = $"geometry {value}" };
@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph
         public static PragmaDescriptor PreferHlslCC(Platform[] renderers) => new PragmaDescriptor { value = $"prefer_hlslcc {GetPlatformList(renderers)}" };
         public static PragmaDescriptor InstancingOptions(InstancingOptions value) => new PragmaDescriptor { value = $"instancing_options {value.ToShaderString()}" };
         public static PragmaDescriptor MultiCompileInstancing => new PragmaDescriptor { value = "multi_compile_instancing" };
+        public static PragmaDescriptor DOTSInstancing => new PragmaDescriptor { value = "multi_compile _ DOTS_INSTANCING_ON" };
         public static PragmaDescriptor MultiCompileFog => new PragmaDescriptor { value = "multi_compile_fog" };
         public static PragmaDescriptor EditorSyncCompilation => new PragmaDescriptor { value = "editor_sync_compilation" };
     }

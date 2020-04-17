@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool receiveSSR)
+        public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool receiveSSR, bool recieveSSRTransparent = false)
         {
             BaseLitGUI.ComputeStencilProperties(receiveSSR, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
@@ -73,8 +73,8 @@ namespace UnityEditor.Rendering.HighDefinition
             );
 
             // All these properties values will be patched with the material keyword update
-            collector.AddIntProperty("_StencilRef", stencilRef); 
-            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask); 
+            collector.AddIntProperty("_StencilRef", stencilRef);
+            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask);
             // Depth prepass
             collector.AddIntProperty("_StencilRefDepth", stencilRefDepth); // Nothing
             collector.AddIntProperty("_StencilWriteMaskDepth", stencilWriteMaskDepth); // StencilUsage.TraceReflectionRay
@@ -85,18 +85,19 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors);
             collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors);
             // Gbuffer
-            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); 
-            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); 
+            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer);
+            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer);
             collector.AddIntProperty("_ZTestGBuffer", 4);
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
             collector.AddToggleProperty(kReceivesSSR, receiveSSR);
+            collector.AddToggleProperty(kReceivesSSRTransparent, recieveSSRTransparent);
 
         }
 
         public static void AddBlendingStatesShaderProperties(
             PropertyCollector collector, SurfaceType surface, BlendMode blend, int sortingPriority,
-            bool zWrite, TransparentCullMode transparentCullMode, CompareFunction zTest,
+            bool alphaToMask, bool zWrite, TransparentCullMode transparentCullMode, CompareFunction zTest,
             bool backThenFrontRendering, bool fogOnTransparent)
         {
             collector.AddFloatProperty("_SurfaceType", (int)surface);
@@ -107,6 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddFloatProperty("_DstBlend", 0.0f);
             collector.AddFloatProperty("_AlphaSrcBlend", 1.0f);
             collector.AddFloatProperty("_AlphaDstBlend", 0.0f);
+            collector.AddToggleProperty("_AlphaToMask", alphaToMask);
             collector.AddToggleProperty(kZWrite, (surface == SurfaceType.Transparent) ? zWrite : true);
             collector.AddToggleProperty(kTransparentZWrite, zWrite);
             collector.AddFloatProperty("_CullMode", (int)CullMode.Back);
@@ -161,6 +163,11 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
+        public static void AddRayTracingProperty(PropertyCollector collector, bool isRayTracing)
+        {
+            collector.AddToggleProperty("_RayTracing", isRayTracing);
+        }
+        
         public static string RenderQueueName(HDRenderQueue.RenderQueueType value)
         {
             switch (value)
@@ -178,18 +185,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 case HDRenderQueue.RenderQueueType.AfterPostprocessTransparent:
                     return "After Post-process";
 
-                case HDRenderQueue.RenderQueueType.RaytracingOpaque:
-                {
-                    if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
-                        return "RayTracing";
-                    return "None";
-                }
-                case HDRenderQueue.RenderQueueType.RaytracingTransparent:
-                {
-                    if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
-                        return "RayTracing";
-                    return "None";
-                }
                 default:
                     return "None";
             }
@@ -198,15 +193,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque, bool needAfterPostProcess)
         {
             // We can't use RenderPipelineManager.currentPipeline here because this is called before HDRP is created by SG window
-            bool supportsRayTracing = HDRenderPipeline.GatherRayTracingSupport(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings);
             var result = new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>();
             if (opaque)
             {
                 result.Add(HDRenderQueue.RenderQueueType.Opaque);
                 if (needAfterPostProcess)
                     result.Add(HDRenderQueue.RenderQueueType.AfterPostProcessOpaque);
-                if (supportsRayTracing)
-                    result.Add(HDRenderQueue.RenderQueueType.RaytracingOpaque);
             }
             else
             {
@@ -215,8 +207,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 result.Add(HDRenderQueue.RenderQueueType.LowTransparent);
                 if (needAfterPostProcess)
                     result.Add(HDRenderQueue.RenderQueueType.AfterPostprocessTransparent);
-                if (supportsRayTracing)
-                    result.Add(HDRenderQueue.RenderQueueType.RaytracingTransparent);
             }
 
             return result;

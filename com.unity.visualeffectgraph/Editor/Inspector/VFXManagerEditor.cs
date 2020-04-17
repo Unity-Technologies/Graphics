@@ -21,12 +21,14 @@ class VFXManagerEditor : Editor
 
     void OnEnable()
     {
-        m_TimeProperties = new SerializedProperty[] {
+        m_TimeProperties = new SerializedProperty[]
+        {
             serializedObject.FindProperty("m_FixedTimeStep"),
             serializedObject.FindProperty("m_MaxDeltaTime")
         };
 
-        m_ShaderProperties = new SerializedProperty[] {
+        m_ShaderProperties = new SerializedProperty[]
+        {
             serializedObject.FindProperty("m_IndirectShader"),
             serializedObject.FindProperty("m_CopyBufferShader"),
             serializedObject.FindProperty("m_SortShader"),
@@ -40,7 +42,7 @@ class VFXManagerEditor : Editor
     public override void OnInspectorGUI()
     {
         // trying to detect a C++ reset by checking if all shaders have been reset to null
-        if(!m_ShaderProperties.Any(t => t != null && t.objectReferenceValue != null))
+        if (!m_ShaderProperties.Any(t => t != null && t.objectReferenceValue != null))
             CheckVFXManager();
 
         serializedObject.Update();
@@ -62,35 +64,38 @@ class VFXManagerEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 
+    private static bool SetBuiltInShaderIfNeeded(SerializedObject obj, string shaderName, string shaderPath)
+    {
+        var shaderProperty = obj.FindProperty(shaderName);
+        if (shaderProperty.objectReferenceValue == null)
+        {
+            var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>(shaderPath);
+            if (shader != null)
+            {
+                shaderProperty.objectReferenceValue = shader;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static void CheckVFXManager()
     {
         UnityObject vfxmanager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/VFXManager.asset").FirstOrDefault();
+
         if (vfxmanager == null)
             return;
 
         SerializedObject obj = new SerializedObject(vfxmanager);
-        var indirectShaderProperty = obj.FindProperty("m_IndirectShader");
-        if (indirectShaderProperty.objectReferenceValue == null)
-        {
-            indirectShaderProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/Shaders/VFXFillIndirectArgs.compute");
-        }
-        var copyShaderProperty = obj.FindProperty("m_CopyBufferShader");
-        if (copyShaderProperty.objectReferenceValue == null)
-        {
-            copyShaderProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/Shaders/VFXCopyBuffer.compute");
-        }
-        var sortProperty = obj.FindProperty("m_SortShader");
-        if (sortProperty.objectReferenceValue == null)
-        {
-            sortProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/Shaders/Sort.compute");
-        }
+        bool shaderModified = false;
 
-        var updateStripProperty = obj.FindProperty("m_StripUpdateShader");
-        if (updateStripProperty != null && updateStripProperty.objectReferenceValue == null)
-        {
-            updateStripProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/Shaders/UpdateStrips.compute");
-        }
+        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_IndirectShader",     "Packages/com.unity.visualeffectgraph/Shaders/VFXFillIndirectArgs.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_CopyBufferShader",   "Packages/com.unity.visualeffectgraph/Shaders/VFXCopyBuffer.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_SortShader",         "Packages/com.unity.visualeffectgraph/Shaders/Sort.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded(obj, "m_StripUpdateShader",  "Packages/com.unity.visualeffectgraph/Shaders/UpdateStrips.compute");
 
-        obj.ApplyModifiedPropertiesWithoutUndo();
+        if (shaderModified)
+            obj.ApplyModifiedPropertiesWithoutUndo();
     }
 }

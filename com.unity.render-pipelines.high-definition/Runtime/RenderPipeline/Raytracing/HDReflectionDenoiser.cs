@@ -57,8 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle intermediateBuffer1 = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
 
             // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
-            var historyScale = new Vector2(hdCamera.actualWidth / (float)historySignal.rt.width, hdCamera.actualHeight / (float)historySignal.rt.height);
-            cmd.SetComputeVectorParam(m_ReflectionDenoiserCS, HDShaderIDs._RTHandleScaleHistory, historyScale);
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_TemporalAccumulationKernel, HDShaderIDs._DenoiseInputTexture, noisySignal);
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_TemporalAccumulationKernel, HDShaderIDs._HistoryBuffer, historySignal);
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_TemporalAccumulationKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
@@ -77,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_BilateralFilterHKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_BilateralFilterHKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBuffer1);
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_BilateralFilterHKernel, HDShaderIDs._ReflectionFilterMapping, m_ReflectionFilterMapping);
-            cmd.SetComputeFloatParam(m_ReflectionDenoiserCS, HDShaderIDs._RaytracingReflectionMinSmoothness, settings.minSmoothness.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingReflectionMinSmoothness, settings.minSmoothness.value);
             cmd.DispatchCompute(m_ReflectionDenoiserCS, s_BilateralFilterHKernel, numTilesX, numTilesY, hdCamera.viewCount);
 
             // Horizontal pass of the bilateral filter
@@ -87,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_BilateralFilterVKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_BilateralFilterVKernel, HDShaderIDs._DenoiseOutputTextureRW, outputSignal);
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_BilateralFilterVKernel, HDShaderIDs._ReflectionFilterMapping, m_ReflectionFilterMapping);
-            cmd.SetComputeFloatParam(m_ReflectionDenoiserCS, HDShaderIDs._RaytracingReflectionMinSmoothness, settings.minSmoothness.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingReflectionMinSmoothness, settings.minSmoothness.value);
             cmd.DispatchCompute(m_ReflectionDenoiserCS, s_BilateralFilterVKernel, numTilesX, numTilesY, hdCamera.viewCount);
         }
     }

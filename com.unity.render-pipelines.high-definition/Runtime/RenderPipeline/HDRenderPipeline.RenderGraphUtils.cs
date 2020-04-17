@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the luxmeter is enabled, the sky isn't rendered so we clear the background color
                 m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
                 // If the matcap view is enabled, the sky isn't updated so we clear the background color
-                m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera) ||
+                m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
                 // If we want the sky but the sky don't exist, still clear with background color
                 (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid(hdCamera)) ||
                 // Special handling for Preview we force to clear with background color (i.e black)
@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // We set the background color to black when the luxmeter is enabled to avoid picking the sky color
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
-                m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
+                m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 clearColor = Color.black;
 
             return clearColor;
@@ -66,7 +66,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // XR Specific
         class XRRenderingPassData
         {
-            public Camera camera;
             public XRPass xr;
         }
 
@@ -76,13 +75,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<XRRenderingPassData>("Start XR single-pass", out var passData))
                 {
-                    passData.camera = hdCamera.camera;
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
                     (XRRenderingPassData data, RenderGraphContext context) =>
                     {
-                        data.xr.StartSinglePass(context.cmd, data.camera, context.renderContext);
+                        data.xr.StartSinglePass(context.cmd);
                     });
                 }
             }
@@ -94,13 +92,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<XRRenderingPassData>("Stop XR single-pass", out var passData))
                 {
-                    passData.camera = hdCamera.camera;
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
                     (XRRenderingPassData data, RenderGraphContext context) =>
                     {
-                        data.xr.StopSinglePass(context.cmd, data.camera, context.renderContext);
+                        data.xr.StopSinglePass(context.cmd);
                     });
                 }
             }
@@ -122,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (EndCameraXRPassData data, RenderGraphContext ctx) =>
                     {
-                        data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera, ctx.renderContext);
+                        data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera);
                     });
                 }
             }
@@ -131,10 +128,10 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderOcclusionMeshesPassData
         {
             public HDCamera hdCamera;
-            public RenderGraphMutableResource depthBuffer;
+            public TextureHandle depthBuffer;
         }
 
-        void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource depthBuffer)
+        void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer)
         {
             if (hdCamera.xr.enabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
             {

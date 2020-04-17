@@ -177,7 +177,7 @@ namespace UnityEditor.ShaderGraph
         const string k_SetErrorMessage = "Cannot set a {0} property on a PreviewProperty with type {1}.";
         const string k_GetErrorMessage = "Cannot get a {0} property on a PreviewProperty with type {1}.";
 
-        public void SetMaterialPropertyBlockValue(Material mat)
+        public void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock mat)
         {
             if ((propType == PropertyType.Texture2D || propType == PropertyType.Texture2DArray || propType == PropertyType.Texture3D) && textureValue != null)
                 mat.SetTexture(name, m_ClassData.textureValue);
@@ -203,14 +203,6 @@ namespace UnityEditor.ShaderGraph
                 for (int i = 0; i < 8; i++)
                     mat.SetVector(string.Format("{0}_AlphaKey{1}", name, i), i < m_ClassData.gradientValue.alphaKeys.Length ? GradientUtil.AlphaKeyToVector(m_ClassData.gradientValue.alphaKeys[i]) : Vector2.zero);
             }
-        }
-    }
-
-    static class PreviewPropertyExtensions
-    {
-        public static void SetPreviewProperty(this Material mat, PreviewProperty previewProperty)
-        {
-            previewProperty.SetMaterialPropertyBlockValue(mat);
         }
     }
 }
