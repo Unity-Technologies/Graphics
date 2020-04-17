@@ -1127,6 +1127,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // Populates the light list with light flags for a given light.
+        internal void FillLightFlags(ref LightData lightData, HDAdditionalLightData additionalLightData, ref int lightFlagOffset)
+        {
+            int lightFlagIndex = 0;
+
+            for (; lightFlagIndex < additionalLightData.lightFlags.Length; lightFlagIndex++)
+            {
+                if ((lightFlagOffset + lightFlagIndex) >= m_MaxLightFlagsOnScreen) 
+                    continue;
+
+                m_lightList.lightFlags.Add(additionalLightData.lightFlags[lightFlagIndex].flagData);
+            }
+
+            lightData.lightFlagIndex = lightFlagOffset;
+            lightData.lightFlagCount = lightFlagIndex;
+            lightFlagOffset += lightData.lightFlagCount;
+        }
+
         internal void GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, VisibleLight light, Light lightComponent, int lightIndex, int shadowIndex,
             DebugDisplaySettings debugDisplaySettings, int sortedIndex, bool isPhysicallyBasedSkyActive, ref int screenSpaceShadowIndex, ref int screenSpaceShadowslot)
         {
@@ -1512,17 +1530,7 @@ namespace UnityEngine.Rendering.HighDefinition
             additionalLightData.shadowIndex = shadowIndex;
 
             // Punctual light flags
-            int count = 0;
-            for (; count < additionalLightData.lightFlags.Length; count++)
-            {
-                if ((lightFlagOffset + count) >= m_MaxLightFlagsOnScreen) 
-                    continue;
-
-                m_lightList.lightFlags.Add(additionalLightData.lightFlags[count].flagData);
-            }
-            lightData.lightFlagIndex = lightFlagOffset;
-            lightData.lightFlagCount = count;
-            lightFlagOffset += lightData.lightFlagCount;
+            FillLightFlags(ref lightData, additionalLightData, ref lightFlagOffset);
 
             //Value of max smoothness is derived from Radius. Formula results from eyeballing. Radius of 0 results in 1 and radius of 2.5 results in 0.
             float maxSmoothness = Mathf.Clamp01(1.1725f / (1.01f + Mathf.Pow(1.0f * (additionalLightData.shapeRadius + 0.1f), 2f)) - 0.15f);
