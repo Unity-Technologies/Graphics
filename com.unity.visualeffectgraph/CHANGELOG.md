@@ -100,6 +100,7 @@ The version number for this package has increased due to a version update of a r
 - Filter out unrelevant events from event desc while compiling
 - Missing Packing.hlsl include while using an unlit shadergraph.
 - Remove some shader warnings
+- Fixed Sample Flipbbook Texture File Names
 
 ## [7.1.1] - 2019-09-05
 ### Added
