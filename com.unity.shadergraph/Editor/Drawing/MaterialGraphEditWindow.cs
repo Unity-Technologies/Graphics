@@ -17,10 +17,16 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.VersionControl;
 
+using Unity.Profiling;
+
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class MaterialGraphEditWindow : EditorWindow
     {
+        // For conversion to Sub Graph: keys for remembering the user's desired path
+        const string k_PrevSubGraphPathKey = "SHADER_GRAPH_CONVERT_TO_SUB_GRAPH_PATH";
+        const string k_PrevSubGraphPathDefaultValue = "?"; // Special character that NTFS does not allow, so that no directory could match it.
+
         [SerializeField]
         string m_Selected;
 
@@ -42,14 +48,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         [NonSerialized]
         bool m_Deleted;
 
-        GraphEditorView m_GraphEditorView;
-
         MessageManager m_MessageManager;
         MessageManager messageManager
         {
             get { return m_MessageManager ?? (m_MessageManager = new MessageManager()); }
         }
 
+        GraphEditorView m_GraphEditorView;
         GraphEditorView graphEditorView
         {
             get { return m_GraphEditorView; }
@@ -62,6 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 m_GraphEditorView = value;
+
                 if (m_GraphEditorView != null)
                 {
                     m_GraphEditorView.saveRequested += UpdateAsset;
@@ -383,7 +389,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shader != null)
                     {
                         GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as AbstractMaterialNode).saveContext);
-                    }                    
+                    }
                 }
             }
 
@@ -400,13 +406,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (selectedGuid != null && graphObject != null)
             {
-                var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
-                if (string.IsNullOrEmpty(path) || graphObject == null)
+                var pathAndFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                if (string.IsNullOrEmpty(pathAndFile) || graphObject == null)
                     return false;
 
+                // The asset's name needs to be removed from the path, otherwise SaveFilePanel assumes it's a folder
+                string path = Path.GetDirectoryName(pathAndFile);
+
                 var extension = graphObject.graph.isSubGraph ? ShaderSubGraphImporter.Extension : ShaderGraphImporter.Extension;
-                var newPath = EditorUtility.SaveFilePanel("Save Graph As", path, Path.GetFileNameWithoutExtension(path), extension);
+                var newPath = EditorUtility.SaveFilePanelInProject("Save Graph As...", Path.GetFileNameWithoutExtension(pathAndFile), extension, "", path);
                 newPath = newPath.Replace(Application.dataPath, "Assets");
+
                 if (newPath != path)
                 {
                     if (!string.IsNullOrEmpty(newPath))
@@ -444,7 +454,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var graphView = graphEditorView.graphView;
 
-            var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "");
+            string path;
+            string sessionStateResult = SessionState.GetString(k_PrevSubGraphPathKey, k_PrevSubGraphPathDefaultValue);
+            string pathToOriginSG = Path.GetDirectoryName(AssetDatabase.GUIDToAssetPath(selectedGuid));
+
+            if (!sessionStateResult.Equals(k_PrevSubGraphPathDefaultValue))
+            {
+                path = sessionStateResult;
+            }
+            else
+            {
+                path = pathToOriginSG;
+            }
+
+            path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "", path);
             path = path.Replace(Application.dataPath, "Assets");
             if (path.Length == 0)
                 return;
@@ -719,8 +742,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if(FileUtilities.WriteShaderGraphToDisk(path, subGraph))
+            if (FileUtilities.WriteShaderGraphToDisk(path, subGraph))
                 AssetDatabase.ImportAsset(path);
+
+            // Store path for next time
+            if (!pathToOriginSG.Equals(Path.GetDirectoryName(path)))
+            {
+                SessionState.SetString(k_PrevSubGraphPathKey, Path.GetDirectoryName(path));
+            }
+            else
+            {
+                // Or continue to make it so that next time it will open up in the converted-from SG's directory
+                SessionState.EraseString(k_PrevSubGraphPathKey);
+            }
 
             var loadedSubGraph = AssetDatabase.LoadAssetAtPath(path, typeof(SubGraphAsset)) as SubGraphAsset;
             if (loadedSubGraph == null)
@@ -764,6 +798,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AssetDatabase.ImportAsset(path);
         }
 
+        private static readonly ProfilerMarker GraphLoadMarker = new ProfilerMarker("GraphLoad");
+        private static readonly ProfilerMarker CreateGraphEditorViewMarker = new ProfilerMarker("CreateGraphEditorView");
         public void Initialize(string assetGuid)
         {
             try
@@ -803,21 +839,27 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 selectedGuid = assetGuid;
 
-                var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                graphObject = CreateInstance<GraphObject>();
-                graphObject.hideFlags = HideFlags.HideAndDontSave;
-                graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
-                graphObject.graph.assetGuid = assetGuid;
-                graphObject.graph.isSubGraph = isSubGraph;
-                graphObject.graph.messageManager = messageManager;
-                graphObject.graph.OnEnable();
-                graphObject.graph.ValidateGraph();
-
-                graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                using (GraphLoadMarker.Auto())
                 {
-                    viewDataKey = selectedGuid,
-                    assetName = asset.name.Split('/').Last()
-                };
+                    var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                    graphObject = CreateInstance<GraphObject>();
+                    graphObject.hideFlags = HideFlags.HideAndDontSave;
+                    graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
+                    graphObject.graph.assetGuid = assetGuid;
+                    graphObject.graph.isSubGraph = isSubGraph;
+                    graphObject.graph.messageManager = messageManager;
+                    graphObject.graph.OnEnable();
+                    graphObject.graph.ValidateGraph();
+                }
+
+                using (CreateGraphEditorViewMarker.Auto())
+                {
+                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                    {
+                        viewDataKey = selectedGuid,
+                        assetName = asset.name.Split('/').Last()
+                    };
+                }
 
                 Texture2D icon = GetThemeIcon(graphObject.graph);
 
@@ -850,12 +892,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnGeometryChanged(GeometryChangedEvent evt)
         {
+            // this callback is only so we can run post-layout behaviors after the graph loads for the first time
+            // we immediately unregister it so it doesn't get called again
             graphEditorView.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             if (m_FrameAllAfterLayout)
                 graphEditorView.graphView.FrameAll();
             m_FrameAllAfterLayout = false;
-            foreach (var node in m_GraphObject.graph.GetNodes<AbstractMaterialNode>())
-                node.Dirty(ModificationScope.Node);
         }
     }
 }

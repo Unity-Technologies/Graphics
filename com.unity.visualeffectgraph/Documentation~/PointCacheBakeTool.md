@@ -23,7 +23,7 @@ The tool window prompts with two **Bake Modes** at the top :
 
 ![](Images/PCacheToolMesh.png)
 
-When using Mesh baking mode. The window displays the following Mesh Baking properties : 
+When using Mesh baking mode. The window displays the following Mesh Baking properties :
 
 * **Mesh** (Mesh) : The Mesh object to use for the Baking
 * **Distribution** (Enum): The Point Scattering technique used.
@@ -52,7 +52,7 @@ After Setting a Mesh into the Mesh Property, The following UI becomes visible:
 
 
 
-When using Texture baking mode. The window displays the following Mesh Baking properties : 
+When using Texture baking mode. The window displays the following Mesh Baking properties :
 
 - **Texture** (Texture) : The 2D Texture object to use for the Baking
 - **Decimation Threshold** (Enum): The decimation threshold mode used.
@@ -73,4 +73,3 @@ After Setting a Texture into the Mesh Property, The following UI becomes visible
   - Width: the width (in pixels) of the texture
   - Height: the height (in pixels) of the texture
   - Pixels Count : the number pixels (width * height) of the texture
-

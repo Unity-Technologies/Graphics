@@ -10,8 +10,7 @@ using Object = System.Object;
 
 namespace UnityEditor.VFX.UI
 {
-
-    class VFXUIDebug : VFXObject
+    class VFXUIDebug
     {
         public enum Modes
         {
@@ -30,7 +29,6 @@ namespace UnityEditor.VFX.UI
 
         class CurveContent : ImmediateModeElement
         {
-
             class VerticalBar
             {
                 Mesh m_Mesh;
@@ -86,7 +84,6 @@ namespace UnityEditor.VFX.UI
                 {
                     return m_Mesh;
                 }
-
 
                 public void AddPoint(float value)
                 {
@@ -175,14 +172,14 @@ namespace UnityEditor.VFX.UI
                 var worldClipProp = typeof(VisualElement).GetMethod("get_worldClip", BindingFlags.NonPublic | BindingFlags.Instance);
                 if (worldClipProp != null)
                 {
-                    return delegate (VisualElement elt)
+                    return delegate(VisualElement elt)
                     {
                         return (Rect)worldClipProp.Invoke(elt, null);
                     };
                 }
 
                 Debug.LogError("could not retrieve get_worldClip");
-                return delegate (VisualElement elt)
+                return delegate(VisualElement elt)
                 {
                     return new Rect();
                 };
@@ -269,14 +266,14 @@ namespace UnityEditor.VFX.UI
                     case Modes.Efficiency:
                         return null;
                     case Modes.Alive:
+                    {
+                        float max = -1;
+                        foreach (var switchableCurve in m_VFXCurves)
                         {
-                            float max = -1;
-                            foreach (var switchableCurve in m_VFXCurves)
-                            {
-                                max = Mathf.Max(switchableCurve.curve.GetMax(), max);
-                            }
-                            return max;
+                            max = Mathf.Max(switchableCurve.curve.GetMax(), max);
                         }
+                        return max;
+                    }
                     default:
                         return null;
                 }
@@ -287,31 +284,29 @@ namespace UnityEditor.VFX.UI
                 switch (m_DebugUI.m_CurrentMode)
                 {
                     case Modes.Efficiency:
-                        {
-                            var stat = m_DebugUI.m_VFX.GetParticleSystemInfo(switchableCurve.id);
-                            float efficiency = (float)stat.aliveCount / (float)stat.capacity;
+                    {
+                        var stat = m_DebugUI.m_VFX.GetParticleSystemInfo(switchableCurve.id);
+                        float efficiency = (float)stat.aliveCount / (float)stat.capacity;
 
-                            m_CurveMat.SetFloat("_OrdinateScale", 1.0f);
-                            switchableCurve.curve.AddPoint(efficiency);
-                            m_DebugUI.UpdateSystemInfoEntry(switchableCurve.id, stat);
-
-                        }
-                        break;
+                        m_CurveMat.SetFloat("_OrdinateScale", 1.0f);
+                        switchableCurve.curve.AddPoint(efficiency);
+                        m_DebugUI.UpdateSystemInfoEntry(switchableCurve.id, stat);
+                    }
+                    break;
                     case Modes.Alive:
-                        {
-                            var stat = m_DebugUI.m_VFX.GetParticleSystemInfo(switchableCurve.id);
-                            float maxAlive = (float)data;
+                    {
+                        var stat = m_DebugUI.m_VFX.GetParticleSystemInfo(switchableCurve.id);
+                        float maxAlive = (float)data;
 
-                            var superior2 = 1u << (int)Mathf.CeilToInt(Mathf.Log(maxAlive, 2.0f));
-                            m_DebugUI.m_YaxisElts[1].text = (superior2 / 2).ToString();
-                            m_DebugUI.m_YaxisElts[2].text = superior2.ToString();
+                        var superior2 = 1u << (int)Mathf.CeilToInt(Mathf.Log(maxAlive, 2.0f));
+                        m_DebugUI.m_YaxisElts[1].text = (superior2 / 2).ToString();
+                        m_DebugUI.m_YaxisElts[2].text = superior2.ToString();
 
-                            m_CurveMat.SetFloat("_OrdinateScale", 1.0f / (float)superior2);
-                            switchableCurve.curve.AddPoint(stat.aliveCount);
-                            m_DebugUI.UpdateSystemInfoEntry(switchableCurve.id, stat);
-
-                        }
-                        break;
+                        m_CurveMat.SetFloat("_OrdinateScale", 1.0f / (float)superior2);
+                        switchableCurve.curve.AddPoint(stat.aliveCount);
+                        m_DebugUI.UpdateSystemInfoEntry(switchableCurve.id, stat);
+                    }
+                    break;
                     default:
                         break;
                 }
@@ -404,7 +399,6 @@ namespace UnityEditor.VFX.UI
 
                 m_BarMat.SetFloat("_AbscissaOffset", 0);
             }
-
 
             protected override void ImmediateRepaint()
             {
@@ -552,15 +546,14 @@ namespace UnityEditor.VFX.UI
                 default:
                     break;
             }
-            m_Curves.Notify(e);
+            if (m_Curves != null)
+                m_Curves.Notify(e);
         }
 
         static Color GetColor(int i)
         {
             return Color.HSVToRGB((i * 0.618033988749895f) % 1.0f, 0.6f, 1.0f).gamma;
         }
-
-
 
         void RegisterParticleSystems()
         {
@@ -633,7 +626,6 @@ namespace UnityEditor.VFX.UI
             // recover debug data
             RegisterParticleSystems();
         }
-
 
         void Alive()
         {
@@ -911,7 +903,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            return () => { };
+            return () => {};
         }
 
         Action<EventBase> CapacitySetter(string systemName, out bool isSystemInSubGraph)
@@ -932,7 +924,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
             isSystemInSubGraph = false;
-            return (e) => { };
+            return (e) => {};
         }
 
         void UpdateSystemInfoEntry(int systemId, VFXParticleSystemInfo stat)
