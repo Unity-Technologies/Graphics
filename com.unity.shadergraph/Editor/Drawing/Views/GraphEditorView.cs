@@ -302,18 +302,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSubWindowsVisibility()
         {
+            // Blackboard needs to be effectively removed when hidden to avoid bugs.
             if (m_UserViewSettings.isBlackboardVisible)
                  m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
-             else
-                 m_BlackboardProvider.blackboard.RemoveFromHierarchy();
+            else
+                m_BlackboardProvider.blackboard.RemoveFromHierarchy();
 
-             if (m_UserViewSettings.isBlackboardVisible)
-                 m_BlackboardProvider.blackboard.style.display = DisplayStyle.Flex;
-             else
-                 m_BlackboardProvider.blackboard.style.display = DisplayStyle.None;
-
-            // Master Preview and Blackboard both need to keep their layouts when hidden in order to restore user preferences.
-            // Because of their differences we do this is different ways, for now. + Blackboard needs to be effectively removed when hidden to avoid bugs.
+            // Master Preview, Inspector and Blackboard all need to keep their layouts when hidden in order to restore user preferences.
+            // Because of their differences we do this is different ways, for now.
             m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
             m_InspectorView.visible = m_UserViewSettings.isInspectorVisible;
         }
@@ -1026,10 +1022,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (updateNodePorts)
                 {
-                sourceNodeView.gvNode.RefreshPorts();
-                targetNodeView.gvNode.RefreshPorts();
-                sourceNodeView.UpdatePortInputTypes();
-                targetNodeView.UpdatePortInputTypes();
+                    sourceNodeView.gvNode.RefreshPorts();
+                    targetNodeView.gvNode.RefreshPorts();
+                    sourceNodeView.UpdatePortInputTypes();
+                    targetNodeView.UpdatePortInputTypes();
                 }
 
                 return edgeView;

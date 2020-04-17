@@ -257,9 +257,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var selection = new List<ISelectable>(blackboard.selection);
 
-            // How to maintain selections if the entire graph is basically reinitialized every time undo/redo occurs?
-            // Provider is persistent, might have to store some last selected entry thing maybe?
-            // Need to account for change in count of inputs removed or if the same element isn't there then dont select it, somehow
             foreach (var inputGuid in m_Graph.removedInputs)
             {
                 BlackboardRow row;
