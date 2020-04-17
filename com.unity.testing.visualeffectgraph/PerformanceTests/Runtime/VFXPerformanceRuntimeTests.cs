@@ -75,11 +75,8 @@ namespace UnityEditor.VFX.PerformanceTest
             }
         }
 
-        [Timeout(GlobalTimeout), Version("1"), UnityTest, UseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
-        public IEnumerator Counters(GraphicsTestCase testCase)
+        public static IEnumerator Load_And_Prepare(GraphicsTestCase testCase)
         {
-            UnityEngine.Debug.unityLogger.logEnabled = false;
-
             UnityEngine.SceneManagement.SceneManager.LoadScene(testCase.ScenePath);
             yield return null;
 
@@ -111,9 +108,17 @@ namespace UnityEditor.VFX.PerformanceTest
             Time.captureFramerate = previousCaptureFrameRate;
             UnityEngine.VFX.VFXManager.fixedTimeStep = previousFixedTimeStep;
             UnityEngine.VFX.VFXManager.maxDeltaTime = previousMaxDeltaTime;
-
             yield return null;
+        }
 
+        [Timeout(GlobalTimeout), Version("1"), UnityTest, UseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
+        public IEnumerator Counters(GraphicsTestCase testCase)
+        {
+            UnityEngine.Debug.unityLogger.logEnabled = false;
+
+            yield return Load_And_Prepare(testCase);
+
+            //TODO : Avoid too much garbage here
             var samplers = allMarkerName.Select(name =>
             {
                 (Recorder recorder, SampleGroup cpu, SampleGroup gpu) newSample;
@@ -155,7 +160,51 @@ namespace UnityEditor.VFX.PerformanceTest
         [Timeout(GlobalTimeout), Version("1"), UnityTest, UseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
         public IEnumerator Memory(GraphicsTestCase testCase)
         {
+            var totalMemoryAllocated = Profiler.GetTotalAllocatedMemoryLong();
+            var totalMemoryAllocatedForGraphicsDriver = Profiler.GetAllocatedMemoryForGraphicsDriver();
+
+            UnityEngine.Debug.unityLogger.logEnabled = false;
+            yield return VFXRuntimePerformanceTests.Load_And_Prepare(testCase);
+
+            var allVisualEffect = Resources.FindObjectsOfTypeAll<VisualEffect>();
+            var allVisualEffectAsset = Resources.FindObjectsOfTypeAll<VisualEffectAsset>();
+
+            var results = new List<(string name, long size)>();
+            long totalMemoryVfx = 0;
+            foreach (var visualEffect in allVisualEffect)
+            {
+                var asset = visualEffect.visualEffectAsset;
+                var name = "VisualEffectComponent." + (asset != null ? asset.name : "null");
+                long currSize = Profiler.GetRuntimeMemorySizeLong(visualEffect);
+                totalMemoryVfx += currSize;
+                results.Add((name, currSize));
+            }
+
+            foreach (var visualEffectAsset in allVisualEffectAsset)
+            {
+                var name = "VisualEffectAsset." + visualEffectAsset;
+                long currSize = Profiler.GetRuntimeMemorySizeLong(visualEffectAsset);
+                totalMemoryVfx += currSize;
+                results.Add((name, currSize));
+            }
+
+            //Apply delta of whole memory
+            totalMemoryAllocated = Profiler.GetTotalAllocatedMemoryLong() - totalMemoryAllocated;
+            totalMemoryAllocatedForGraphicsDriver = Profiler.GetAllocatedMemoryForGraphicsDriver() - totalMemoryAllocatedForGraphicsDriver;
+
+            foreach (var result in results)
+                Measure.Custom(new SampleGroup(FormatSampleGroupName(k_Memory, result.name), SampleUnit.Byte, false), result.size);
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryVfx"), SampleUnit.Byte, false), totalMemoryVfx);
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocated"), SampleUnit.Byte, false), totalMemoryAllocated);
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocatedForGraphicsDriver"), SampleUnit.Byte, false), totalMemoryAllocatedForGraphicsDriver);
+
             yield return null;
+            //Force garbage collection to avoid unexpected state in following test
+            GC.Collect();
+            Resources.UnloadUnusedAssets();
+            yield return null;
+
+            UnityEngine.Debug.unityLogger.logEnabled = true;
         }
     }
 }
