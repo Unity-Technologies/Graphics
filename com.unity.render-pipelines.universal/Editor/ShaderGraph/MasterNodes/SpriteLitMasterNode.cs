@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 
@@ -13,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
     [Serializable]
     [Title("Master", "Sprite Lit (Experimental)")]
     [FormerName("UnityEditor.Experimental.Rendering.LWRP.SpriteLitMasterNode")]
-    class SpriteLitMasterNode : AbstractMaterialNode, IMasterNode, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class SpriteLitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionName = "Vertex Position";
         public const string NormalName = "Vertex Normal";
@@ -28,18 +27,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         public const int NormalSlotId = 2;
         public const int VertNormalSlotId = 10;
         public const int VertTangentSlotId = 11;
-
-        // This property exists to expose shaderGUI Override info. to the inspector
-        [Inspectable("ShaderGUI", null)]
-        public ShaderGUIOverrideInfo ShaderGUIInfo
-        {
-            get => new ShaderGUIOverrideInfo(this.OverrideEnabled, this.ShaderGUIOverride);
-            set
-            {
-                this.ShaderGUIOverride = value.ShaderGUIOverride;
-                this.OverrideEnabled = value.OverrideEnabled;
-            }
-        }
 
         [SerializeField] private string m_ShaderGUIOverride;
         public string ShaderGUIOverride
@@ -83,6 +70,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 MaskSlotId,
                 NormalSlotId,
             });
+        }
+
+        public VisualElement CreateSettingsElement()
+        {
+            return new SpriteSettingsView(this);
         }
 
         public string renderQueueTag => $"{RenderQueue.Transparent}";
