@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -65,7 +66,15 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         bool CacheSerializedObjects()
         {
-            m_SerializedProperties = new SerializedCompositionManager(serializedObject);
+            try
+            {
+                m_SerializedProperties = new SerializedCompositionManager(serializedObject);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            
             m_SerializedLayerProperties = new List<SerializedCompositionLayer>();
             m_SerializedShaderProperties = new List<SerializedShaderProperty>();
 

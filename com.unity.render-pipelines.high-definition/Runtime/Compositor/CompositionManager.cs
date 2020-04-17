@@ -686,7 +686,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
                 m_ShaderVariablesGlobalCB._WorldSpaceCameraPos_Internal = new Vector3(0.0f, 0.0f, 0.0f);
                 cmd.SetViewport(new Rect(0, 0, camera.camera.pixelWidth, camera.camera.pixelHeight));
-                cmd.ClearRenderTarget(true, false, Color.black);
+                cmd.ClearRenderTarget(true, false, Color.red);
             }
 
             if (camera.camera.targetTexture)
