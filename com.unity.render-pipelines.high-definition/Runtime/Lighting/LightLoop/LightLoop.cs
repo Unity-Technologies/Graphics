@@ -536,9 +536,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return viewMatrix;
         }
 
-        // Keep track of the maximum number of XR instanced views
-        int m_MaxViewCount = 1;
-
         // Matrix used for LightList building, keep them around to avoid GC
         Matrix4x4[] m_LightListProjMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
 
@@ -1020,7 +1017,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void LightLoopReleaseResolutionDependentBuffers()
         {
-            m_MaxViewCount = 1;
             m_TileAndClusterData.ReleaseResolutionDependentBuffers();
             if (m_ProbeVolumeClusterData != null)
                 m_ProbeVolumeClusterData.ReleaseResolutionDependentBuffers();
@@ -1033,7 +1029,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void LightLoopAllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
         {
-            m_MaxViewCount = Math.Max(hdCamera.viewCount, m_MaxViewCount);
             m_TileAndClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount, m_MaxLightsOnScreen);
             if (m_ProbeVolumeClusterData != null)
                 m_ProbeVolumeClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount, k_MaxVisibleProbeVolumeCount);

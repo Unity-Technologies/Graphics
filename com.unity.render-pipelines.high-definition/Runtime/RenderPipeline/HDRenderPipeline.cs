@@ -222,6 +222,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Detect when windows size is changing
         int m_MaxCameraWidth;
         int m_MaxCameraHeight;
+        // Keep track of the maximum number of XR instanced views
+        int m_MaxViewCount = 1;
 
         // Use to detect frame changes
         int m_FrameCount;
@@ -970,13 +972,14 @@ namespace UnityEngine.Rendering.HighDefinition
         void Resize(HDCamera hdCamera)
         {
             // m_MaxCameraWidth and m_MaxCameraHeight start at 0 so we will at least go through this once at first frame to allocate the buffers for the first time.
-            bool resolutionChanged = (hdCamera.actualWidth > m_MaxCameraWidth) || (hdCamera.actualHeight > m_MaxCameraHeight);
+            bool resolutionChanged = (hdCamera.actualWidth > m_MaxCameraWidth) || (hdCamera.actualHeight > m_MaxCameraHeight) || (hdCamera.viewCount > m_MaxViewCount);
 
             if (resolutionChanged)
             {
                 // update recorded window resolution
                 m_MaxCameraWidth = Mathf.Max(m_MaxCameraWidth, hdCamera.actualWidth);
                 m_MaxCameraHeight = Mathf.Max(m_MaxCameraHeight, hdCamera.actualHeight);
+                m_MaxViewCount = Math.Max(m_MaxViewCount, hdCamera.viewCount);
 
                 if (m_MaxCameraWidth > 0 && m_MaxCameraHeight > 0)
                 {
