@@ -29,6 +29,14 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kPositionOutputSlotId, kNormalOutputSlotId, kTangentOutputSlotId });
         }
 
+        protected override void CalculateNodeHasError()
+        {
+#if !ENABLE_COMPUTE_DEFORMATIONS
+            owner.AddSetupError(guid, "ENABLE_COMPUTE_DEFORMATIONS define needs to be enabled in Player Settings for Compute Deformation node to work");
+            hasError = true;
+#endif
+        }
+
         public bool RequiresVertexID(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
             return true;
