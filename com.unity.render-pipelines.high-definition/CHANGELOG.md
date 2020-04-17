@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+- Added Pipeline for Importance Sampling (Marginals Generation)
 - Enable by default Cookie for Light Baking
 - Add warning if disabled and use Baking & Cookies
 - Ray tracing support for VR single-pass
