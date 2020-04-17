@@ -651,6 +651,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved scene view camera settings for HDRP from the preferences window to the scene view camera settings window.
 - Updated shaders to be compatible with Microsoft's DXC.
 - Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
+- Further optimized PrepareLightsForGPU (3x faster with few shadows, 1.4x faster with a lot of shadows or equivalently cost reduced by 68% to 37%).
 
 ## [7.1.1] - 2019-09-05
 
