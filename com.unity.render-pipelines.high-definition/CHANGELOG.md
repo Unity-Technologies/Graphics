@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+- Enable by default Cookie for Light Baking
+- Add warning if disabled and use Baking & Cookies
 - Ray tracing support for VR single-pass
 - Added sharpen filter shader parameter and UI for TemporalAA to control image quality instead of hardcoded value
 - Added frame settings option for custom post process and custom passes as well as custom color buffer format option.
@@ -106,6 +108,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added exposure compensation to Fixed exposure mode
 - Added support for rasterized area light shadows in StackLit
 - Added support for texture-weighted automatic exposure
+- Added support for POM for emissive map
+- Added alpha channel support in motion blur pass.
+- Added the HDRP Compositor Tool (in Preview).
 - Added a ray tracing mode option in the HDRP asset that allows to override and shader stripping.
 
 ### Fixed
@@ -542,6 +547,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that was collapsing the volume components in the HDRP default settings
 - Fixed warning about missing bound decal buffer
 - Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
+- Fixed PBR shader ZTest rendering in deferred.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
