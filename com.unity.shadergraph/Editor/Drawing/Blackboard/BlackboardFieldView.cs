@@ -10,6 +10,7 @@ using UnityEditor.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditorInternal;
 
@@ -178,7 +179,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             switch(property)
             {
                 case BooleanShaderProperty booleanProperty:
-                    booleanProperty.value = (bool) newValue;
+                    booleanProperty.value = ((ToggleData)newValue).isOn;
                     break;
                 case Vector1ShaderProperty vector1Property:
                     vector1Property.value = (float) newValue;
