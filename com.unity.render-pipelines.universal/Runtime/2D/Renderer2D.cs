@@ -25,6 +25,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         Renderer2DData m_Renderer2DData;
 
+        internal bool createColorTexture => m_CreateColorTexture;
+        internal bool createDepthTexture => m_CreateDepthTexture;
+
         public Renderer2D(Renderer2DData data) : base(data)
         {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
