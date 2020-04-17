@@ -451,6 +451,327 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void ToSubGraph()
         {
+            var graphView = graphEditorView.graphView;
+
+            string path;
+            string sessionStateResult = SessionState.GetString(k_PrevSubGraphPathKey, k_PrevSubGraphPathDefaultValue);
+            string pathToOriginSG = Path.GetDirectoryName(AssetDatabase.GUIDToAssetPath(selectedGuid));
+
+            if (!sessionStateResult.Equals(k_PrevSubGraphPathDefaultValue))
+            {
+                path = sessionStateResult;
+            }
+            else
+            {
+                path = pathToOriginSG;
+            }
+
+            path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "", path);
+            path = path.Replace(Application.dataPath, "Assets");
+            if (path.Length == 0)
+                return;
+
+            graphObject.RegisterCompleteObjectUndo("Convert To Subgraph");
+
+            var nodes = graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray();
+            var bounds = Rect.MinMaxRect(float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity, float.NegativeInfinity);
+            foreach (var node in nodes)
+            {
+                var center = node.drawState.position.center;
+                bounds = Rect.MinMaxRect(
+                        Mathf.Min(bounds.xMin, center.x),
+                        Mathf.Min(bounds.yMin, center.y),
+                        Mathf.Max(bounds.xMax, center.x),
+                        Mathf.Max(bounds.yMax, center.y));
+            }
+            var middle = bounds.center;
+            bounds.center = Vector2.zero;
+
+            // Collect graph inputs
+            var graphInputs = graphView.selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
+
+            // Collect the property nodes and get the corresponding properties
+            var propertyNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).property);
+            var metaProperties = graphView.graph.properties.Where(x => propertyNodes.Contains(x));
+
+            // Collect the keyword nodes and get the corresponding keywords
+            var keywordNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is KeywordNode)).Select(x => ((KeywordNode)x.node).keyword);
+            var metaKeywords = graphView.graph.keywords.Where(x => keywordNodes.Contains(x));
+
+            var copyPasteGraph = new CopyPasteGraph(
+                    graphView.graph.assetGuid,
+                    graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
+                    graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                    graphView.selection.OfType<Edge>().Select(x => x.userData as Graphing.Edge),
+                    graphInputs,
+                    metaProperties,
+                    metaKeywords,
+                    graphView.selection.OfType<StickyNote>().Select(x => x.userData),
+                    true);
+
+            var deserialized = CopyPasteGraph.FromJson(MultiJson.Serialize(copyPasteGraph), graphView.graph);
+            if (deserialized == null)
+                return;
+
+            var subGraph = new GraphData { isSubGraph = true };
+            subGraph.path = "Sub Graphs";
+            var subGraphOutputNode = new SubGraphOutputNode();
+            {
+                var drawState = subGraphOutputNode.drawState;
+                drawState.position = new Rect(new Vector2(bounds.xMax + 200f, 0f), drawState.position.size);
+                subGraphOutputNode.drawState = drawState;
+            }
+            subGraph.AddNode(subGraphOutputNode);
+            subGraph.outputNode = subGraphOutputNode;
+
+            // Always copy deserialized keyword inputs
+            foreach (ShaderKeyword keyword in deserialized.metaKeywords)
+            {
+                var copiedInput = (ShaderKeyword)keyword.Copy();
+                subGraph.SanitizeGraphInputName(copiedInput);
+                subGraph.SanitizeGraphInputReferenceName(copiedInput, keyword.overrideReferenceName);
+                subGraph.AddGraphInput(copiedInput);
+
+                // Update the keyword nodes that depends on the copied keyword
+                var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keyword == keyword);
+                foreach (var node in dependentKeywordNodes)
+                {
+                    node.owner = graphView.graph;
+                    node.keyword = copiedInput;
+                }
+            }
+
+            foreach (GroupData groupData in deserialized.groups)
+            {
+                subGraph.CreateGroup(groupData);
+            }
+
+            foreach (var node in deserialized.GetNodes<AbstractMaterialNode>())
+            {
+                var drawState = node.drawState;
+                drawState.position = new Rect(drawState.position.position - middle, drawState.position.size);
+                node.drawState = drawState;
+
+                // Checking if the group guid is also being copied.
+                // If not then nullify that guid
+                // TODO: Fix up after nodes store their group as JsonRef
+                // if (node.groupGuid != Guid.Empty)
+                // {
+                //     node.groupGuid = !groupGuidMap.ContainsKey(node.groupGuid) ? Guid.Empty : groupGuidMap[node.groupGuid];
+                // }
+
+                subGraph.AddNode(node);
+            }
+
+            foreach (var note in deserialized.stickyNotes)
+            {
+                // TODO: Fix up after sticky notes store their group as JsonRef
+                // if (note.groupGuid != Guid.Empty)
+                // {
+                //     note.groupGuid = !groupGuidMap.ContainsKey(note.groupGuid) ? Guid.Empty : groupGuidMap[note.groupGuid];
+                // }
+
+                subGraph.AddStickyNote(note);
+            }
+
+            // figure out what needs remapping
+            var externalOutputSlots = new List<Graphing.Edge>();
+            var externalInputSlots = new List<Graphing.Edge>();
+            foreach (var edge in deserialized.edges)
+            {
+                var outputSlot = edge.outputSlot;
+                var inputSlot = edge.inputSlot;
+
+                var outputSlotExistsInSubgraph = subGraph.ContainsNode(outputSlot.node);
+                var inputSlotExistsInSubgraph = subGraph.ContainsNode(inputSlot.node);
+
+                // pasting nice internal links!
+                if (outputSlotExistsInSubgraph && inputSlotExistsInSubgraph)
+                {
+                    subGraph.Connect(outputSlot, inputSlot);
+                }
+                // one edge needs to go to outside world
+                else if (outputSlotExistsInSubgraph)
+                {
+                    externalInputSlots.Add(edge);
+                }
+                else if (inputSlotExistsInSubgraph)
+                {
+                    externalOutputSlots.Add(edge);
+                }
+            }
+
+            // Find the unique edges coming INTO the graph
+            var uniqueIncomingEdges = externalOutputSlots.GroupBy(
+                    edge => edge.outputSlot,
+                    edge => edge,
+                    (key, edges) => new { slotRef = key, edges = edges.ToList() });
+
+            var externalInputNeedingConnection = new List<KeyValuePair<IEdge, AbstractShaderProperty>>();
+
+            var amountOfProps = uniqueIncomingEdges.Count();
+            const int height = 40;
+            const int subtractHeight = 20;
+            var propPos = new Vector2(0, -((amountOfProps / 2) + height) - subtractHeight);
+
+            foreach (var group in uniqueIncomingEdges)
+            {
+                var sr = group.slotRef;
+                var fromNode = sr.node;
+                var fromSlot = sr.slot;
+
+                AbstractShaderProperty prop;
+                switch (fromSlot.concreteValueType)
+                {
+                    case ConcreteSlotValueType.Texture2D:
+                        prop = new Texture2DShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Texture2DArray:
+                        prop = new Texture2DArrayShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Texture3D:
+                        prop = new Texture3DShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Cubemap:
+                        prop = new CubemapShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Vector4:
+                        prop = new Vector4ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Vector3:
+                        prop = new Vector3ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Vector2:
+                        prop = new Vector2ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Vector1:
+                        prop = new Vector1ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Boolean:
+                        prop = new BooleanShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Matrix2:
+                        prop = new Matrix2ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Matrix3:
+                        prop = new Matrix3ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Matrix4:
+                        prop = new Matrix4ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.SamplerState:
+                        prop = new SamplerStateShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Gradient:
+                        prop = new GradientShaderProperty();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                var materialGraph = graphObject.graph;
+                var fromProperty = fromNode is PropertyNode fromPropertyNode
+                    ? materialGraph.properties.FirstOrDefault(p => p == fromPropertyNode.property)
+                    : null;
+                prop.displayName = fromProperty != null
+                    ? fromProperty.displayName
+                    : fromSlot.concreteValueType.ToString();
+                prop.displayName = GraphUtil.SanitizeName(subGraph.addedInputs.Select(p => p.displayName), "{0} ({1})",
+                    prop.displayName);
+
+                subGraph.AddGraphInput(prop);
+                var propNode = new PropertyNode();
+                {
+                    var drawState = propNode.drawState;
+                    drawState.position = new Rect(new Vector2(bounds.xMin - 300f, 0f) + propPos,
+                        drawState.position.size);
+                    propPos += new Vector2(0, height);
+                    propNode.drawState = drawState;
+                }
+                subGraph.AddNode(propNode);
+                propNode.property = prop;
+
+                foreach (var edge in group.edges)
+                {
+                    subGraph.Connect(
+                        new SlotReference(propNode, PropertyNode.OutputSlotId),
+                        edge.inputSlot);
+                    externalInputNeedingConnection.Add(new KeyValuePair<IEdge, AbstractShaderProperty>(edge, prop));
+                }
+            }
+
+            var uniqueOutgoingEdges = externalInputSlots.GroupBy(
+                    edge => edge.outputSlot,
+                    edge => edge,
+                    (key, edges) => new { slot = key, edges = edges.ToList() });
+
+            var externalOutputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
+            foreach (var group in uniqueOutgoingEdges)
+            {
+                var outputNode = subGraph.outputNode as SubGraphOutputNode;
+
+                AbstractMaterialNode node = group.edges[0].outputSlot.node;
+                MaterialSlot slot = node.FindSlot<MaterialSlot>(group.edges[0].outputSlot.slotId);
+                var slotId = outputNode.AddSlot(slot.concreteValueType);
+
+                var inputSlotRef = new SlotReference(outputNode, slotId);
+
+                foreach (var edge in group.edges)
+                {
+                    var newEdge = subGraph.Connect(edge.outputSlot, inputSlotRef);
+                    externalOutputsNeedingConnection.Add(new KeyValuePair<IEdge, IEdge>(edge, newEdge));
+                }
+            }
+
+            if (FileUtilities.WriteShaderGraphToDisk(path, subGraph))
+                AssetDatabase.ImportAsset(path);
+
+            // Store path for next time
+            if (!pathToOriginSG.Equals(Path.GetDirectoryName(path)))
+            {
+                SessionState.SetString(k_PrevSubGraphPathKey, Path.GetDirectoryName(path));
+            }
+            else
+            {
+                // Or continue to make it so that next time it will open up in the converted-from SG's directory
+                SessionState.EraseString(k_PrevSubGraphPathKey);
+            }
+
+            var loadedSubGraph = AssetDatabase.LoadAssetAtPath(path, typeof(SubGraphAsset)) as SubGraphAsset;
+            if (loadedSubGraph == null)
+                return;
+
+            var subGraphNode = new SubGraphNode();
+            var ds = subGraphNode.drawState;
+            ds.position = new Rect(middle - new Vector2(100f, 150f), Vector2.zero);
+            subGraphNode.drawState = ds;
+
+            // Add the subgraph into the group if the nodes was all in the same group group
+            var firstNode = copyPasteGraph.GetNodes<AbstractMaterialNode>().FirstOrDefault();
+            if (firstNode != null && copyPasteGraph.GetNodes<AbstractMaterialNode>().All(x => x.groupId == firstNode.groupId))
+            {
+                subGraphNode.groupId = firstNode.groupId;
+            }
+
+            graphObject.graph.AddNode(subGraphNode);
+            subGraphNode.asset = loadedSubGraph;
+
+            foreach (var edgeMap in externalInputNeedingConnection)
+            {
+                graphObject.graph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode, edgeMap.Value.guid.GetHashCode()));
+            }
+
+            foreach (var edgeMap in externalOutputsNeedingConnection)
+            {
+                graphObject.graph.Connect(new SlotReference(subGraphNode, edgeMap.Value.inputSlot.slotId), edgeMap.Key.inputSlot);
+            }
+
+            graphObject.graph.RemoveElements(
+                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                new IEdge[] {},
+                new GroupData[] {},
+                graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
+            graphObject.graph.ValidateGraph();
         }
 
         void UpdateShaderGraphOnDisk(string path)
