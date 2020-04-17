@@ -460,6 +460,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Basic },
             { Pragma.MultiCompileInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
             { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
@@ -471,6 +472,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Basic },
             { Pragma.MultiCompileInstancing },
             { Pragma.EditorSyncCompilation },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
             { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
