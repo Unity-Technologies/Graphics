@@ -293,6 +293,14 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipeline/Accumulation/Shaders/Accumulation.compute")]
             public ComputeShader accumulationCS;
 
+            // Compositor
+            [Reload("Runtime/Compositor/Shaders/AlphaInjection.shader")]
+            public Shader alphaInjectionPS;
+            [Reload("Runtime/Compositor/Shaders/ChromaKeying.shader")]
+            public Shader chromaKeyingPS;
+            [Reload("Runtime/Compositor/Shaders/CustomClear.shader")]
+            public Shader customClearPS;
+
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
             public IEnumerable<ComputeShader> GetAllComputeShaders()
