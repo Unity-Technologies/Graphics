@@ -267,10 +267,10 @@ Shader ""Hidden/GraphErrorShader2""
                 portNodeSets[portIndex] = nodeSet;
             }
 
-            var portPropertySets = new HashSet<Guid>[ports.Count];
+            var portPropertySets = new HashSet<string>[ports.Count];
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
             {
-                portPropertySets[portIndex] = new HashSet<Guid>();
+                portPropertySets[portIndex] = new HashSet<string>();
             }
 
             foreach (var node in nodes)
@@ -285,7 +285,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var portNodeSet = portNodeSets[portIndex];
                     if (portNodeSet.Contains(node))
                     {
-                        portPropertySets[portIndex].Add(propertyNode.property.guid);
+                        portPropertySets[portIndex].Add(propertyNode.property.objectId);
                     }
                 }
             }
@@ -365,7 +365,7 @@ Shader ""Hidden/GraphErrorShader2""
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
                     var portPropertySet = portPropertySets[portIndex];
-                    if (portPropertySet.Contains(property.guid))
+                    if (portPropertySet.Contains(property.objectId))
                     {
                         portCodeIndices[portIndex].Add(codeSnippets.Count);
                     }
@@ -494,7 +494,7 @@ Shader ""Hidden/GraphErrorShader2""
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
                     var portPropertySet = portPropertySets[portIndex];
-                    if (portPropertySet.Contains(property.guid))
+                    if (portPropertySet.Contains(property.objectId))
                 {
                         portCodeIndices[portIndex].Add(codeIndex);
                         portPropertyIndices[portIndex].Add(propertyIndex);
