@@ -105,6 +105,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Light decomposition lighting debugging modes and support in AOV
 - Added exposure compensation to Fixed exposure mode
 - Added support for rasterized area light shadows in StackLit
+- Added support for texture-weighted automatic exposure
+- Added support for POM for emissive map
 - Added alpha channel support in motion blur pass.
 - Added the HDRP Compositor Tool (in Preview).
 
@@ -541,6 +543,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NaN which can appear with real time reflection and inf value
 - Fixed an issue that was collapsing the volume components in the HDRP default settings
 - Fixed warning about missing bound decal buffer
+- Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -651,6 +654,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved scene view camera settings for HDRP from the preferences window to the scene view camera settings window.
 - Updated shaders to be compatible with Microsoft's DXC.
 - Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
+- Further optimized PrepareLightsForGPU (3x faster with few shadows, 1.4x faster with a lot of shadows or equivalently cost reduced by 68% to 37%).
 
 ## [7.1.1] - 2019-09-05
 
