@@ -103,6 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly XRSystem m_XRSystem;
 
         bool m_FrameSettingsHistoryEnabled = false;
+        bool m_DisableCookieForLightBaking = false;
 
         /// <summary>
         /// This functions allows the user to have an approximation of the number of rays that were traced for a given frame.
@@ -671,6 +672,9 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseLinearIntensity = true;
             GraphicsSettings.lightsUseColorTemperature = true;
 
+            m_DisableCookieForLightBaking = UnityEditor.EditorSettings.disableCookiesInLightmapper;
+            UnityEditor.EditorSettings.disableCookiesInLightmapper = false;
+
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
@@ -786,6 +790,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Reset srp batcher state just in case
             GraphicsSettings.useScriptableRenderPipelineBatching = false;
+
+            UnityEditor.EditorSettings.disableCookiesInLightmapper = m_DisableCookieForLightBaking;
 
             Lightmapping.ResetDelegate();
         }
