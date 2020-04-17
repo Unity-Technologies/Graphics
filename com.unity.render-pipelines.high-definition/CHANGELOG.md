@@ -106,6 +106,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added exposure compensation to Fixed exposure mode
 - Added support for rasterized area light shadows in StackLit
 - Added support for texture-weighted automatic exposure
+- Added support for POM for emissive map
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
