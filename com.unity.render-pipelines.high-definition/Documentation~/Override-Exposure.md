@@ -65,9 +65,8 @@ To configure **Automatic Mode**, select the **Metering Mode**. This tells the Ca
 
 ![](Images/Override-Exposure3.png)
 
-- **Mask Weighted**: The Camera applies a weight to every pixel in the buffer and then uses them to measure the exposure. The weighting is specified by the texture provided in the **Weight Texture Mask** field. Note that if no texture is provided, then this metering mode is equivalent to Average.
-
-
+- **Mask Weighted**: The Camera applies a weight to every pixel in the buffer then uses the weights to measure the exposure. To specify the weighting, this technique uses the Texture set in the **Weight Texture Mask** field. Note that, if you do not provide a Texture, this metering mode is equivalent to **Average**.
+  
 
 Next, set the **Limit Min** and **Limit Max** to define the minimum and maximum exposure values respectively. Move between light and dark areas of your Scene and alter each property until you find the perfect values for your Scene.
 
