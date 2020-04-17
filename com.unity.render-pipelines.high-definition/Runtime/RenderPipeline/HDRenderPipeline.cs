@@ -4766,7 +4766,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public struct OverrideCameraRendering : IDisposable
         {
-            CommandBuffer cmd;
+            CommandBuffer   cmd;
+            Camera          overrideCamera;
 
             /// <summary>
             /// Overrides the current camera, changing all the matrices and view parameters for the new one.
@@ -4784,6 +4785,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public OverrideCameraRendering(CommandBuffer cmd, Camera overrideCamera)
             {
                 this.cmd = cmd;
+                this.overrideCamera = overrideCamera;
+
+                if (!IsContextValid(overrideCamera))
+                    return;
+                
                 var hdrp = HDRenderPipeline.currentPipeline;
                 var hdCamera = HDCamera.GetOrCreate(overrideCamera);
 
@@ -4795,19 +4801,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 ConstantBuffer.PushGlobal(cmd, hdrp.m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
             }
 
-            /// <summary>
-            /// Reset the camera settings to the original camera
-            /// </summary>
-            void IDisposable.Dispose()
+            bool IsContextValid(Camera overrideCamera)
             {
                 var hdrp = HDRenderPipeline.currentPipeline;
 
                 if (hdrp.m_CurrentHDCamera == null)
                 {
                     Debug.LogError("OverrideCameraRendering can only be called inside the render loop !");
-                    return;
+                    return false;
                 }
 
+                if (overrideCamera == hdrp.m_CurrentHDCamera.camera)
+                    return false;
+                
+                return true;
+            }
+
+            /// <summary>
+            /// Reset the camera settings to the original camera
+            /// </summary>
+            void IDisposable.Dispose()
+            {
+                if (!IsContextValid(overrideCamera))
+                    return;
+
+                var hdrp = HDRenderPipeline.currentPipeline;
                 hdrp.m_CurrentHDCamera.UpdateShaderVariablesGlobalCB(ref hdrp.m_ShaderVariablesGlobalCB, hdrp.m_FrameCount);
                 ConstantBuffer.PushGlobal(cmd, hdrp.m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
             }
