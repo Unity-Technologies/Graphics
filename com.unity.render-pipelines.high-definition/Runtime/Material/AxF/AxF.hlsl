@@ -375,6 +375,31 @@ float GetScalarRoughnessFromAnisoRoughness(float roughnessT, float roughnessB)
     return 0.5 * (roughnessT + roughnessB);
 }
 
+float GetScalarRoughness(float3 roughness)
+{
+    float singleRoughness = 0.5;
+
+#if defined(_AXF_BRDF_TYPE_SVBRDF)
+
+    singleRoughness = (HasAnisotropy()) ? GetScalarRoughnessFromAnisoRoughness(roughness.x, roughness.y) : roughness.x;
+
+#elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
+    float sumCoeffXRoughness = 0.0;
+    float sumCoeff = 0.0;
+    UNITY_UNROLL
+    for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++) // TODO remove all variable lobecnt code
+    {
+        float coeff = _CarPaint2_CTCoeffs[lobeIndex];
+        float spread = roughness[lobeIndex];
+        sumCoeff += coeff;
+        sumCoeffXRoughness += spread * coeff;
+    }
+    singleRoughness = min(1.0, SafeDiv(sumCoeffXRoughness,sumCoeff));
+#endif
+
+    return singleRoughness;
+}
+
 NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
 {
     NormalData normalData;
@@ -389,31 +414,9 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     {
         normalData.normalWS = surfaceData.normalWS;
 
-#if defined(_AXF_BRDF_TYPE_SVBRDF)
-        float roughness = (HasAnisotropy()) ? GetScalarRoughnessFromAnisoRoughness(surfaceData.specularLobe.x, surfaceData.specularLobe.y) : surfaceData.specularLobe.x;
-        normalData.perceptualRoughness = RoughnessToPerceptualRoughness(roughness);
-
-#elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
         // Hack: try to get a "single equivalent" roughness
-        normalData.perceptualRoughness = 0.0;
-
-        float sumCoeffXRoughness = 0.0;
-        float sumCoeff = 0.0;
-
-        UNITY_UNROLL
-        for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
-        {
-            float coeff = _CarPaint2_CTCoeffs[lobeIndex];
-            float spread = _CarPaint2_CTSpreads[lobeIndex];
-
-            sumCoeff += coeff;
-            sumCoeffXRoughness += spread * coeff;
-        }
-        normalData.perceptualRoughness = RoughnessToPerceptualRoughness(min(1.0, SafeDiv(sumCoeffXRoughness,sumCoeff)));
-#else
-        // This is only possible if the AxF is a BTF type. However, there is a bunch of ifdefs do not support this third case
-        normalData.perceptualRoughness = 0.0;
-#endif
+        float roughness = GetScalarRoughness(surfaceData.specularLobe);
+        normalData.perceptualRoughness = RoughnessToPerceptualRoughness(roughness);
     }
 
     return normalData;
@@ -487,6 +490,7 @@ float3  RefractSaturateToTIR(float3 incoming, float3 normal, float eta, out floa
         float sinThetaCrit = saturate(rcp(eta));
         float cosThetaCrit = sqrt(1 - Sq(sinThetaCrit));
         float3 incOrthoN = (incoming - c * normal) * /*normalize the ortho component:*/rcp(sqrt(sinIncSq));
+        // Note: sqrt(sinIncSq) shouldn't be close to 0, since b < 0 <=> (sinIncSq) > 1/Sq(eta) and eta shouldn't be close to 1/sqrt(eps)!
 
         criticalDir = sinThetaCrit * incOrthoN + cosThetaCrit * normal;
 
@@ -543,7 +547,7 @@ float CT_F(float H_V, float F0)
     return F0 + (1.0 - F0) * f_1_sub_cos_fifth;
 }
 
-float  MultiLobesCookTorrance(float NdotL, float NdotV, float NdotH, float VdotH)
+float  MultiLobesCookTorrance(BSDFData bsdfData, float NdotL, float NdotV, float NdotH, float VdotH)
 {
     // Ensure numerical stability
     if (NdotV < 0.00174532836589830883577820272085 || NdotL < 0.00174532836589830883577820272085) //sin(0.1 deg )
@@ -554,7 +558,7 @@ float  MultiLobesCookTorrance(float NdotL, float NdotV, float NdotH, float VdotH
     {
         float   F0 = _CarPaint2_CTF0s[lobeIndex];
         float   coeff = _CarPaint2_CTCoeffs[lobeIndex];
-        float   spread = _CarPaint2_CTSpreads[lobeIndex];
+        float   spread = bsdfData.roughness[lobeIndex]; // _CarPaint2_CTSpreads[lobeIndex];
 
         specularIntensity += coeff * CT_D(NdotH, spread) * CT_F(VdotH, F0);
     }
@@ -684,10 +688,14 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     BSDFData    bsdfData;
     //  ZERO_INITIALIZE(BSDFData, data);
 
+    bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
+    bsdfData.specularOcclusion = surfaceData.specularOcclusion;
+
     bsdfData.normalWS = surfaceData.normalWS;
     bsdfData.tangentWS = surfaceData.tangentWS;
     bsdfData.biTangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
 
+    bsdfData.roughness = 0;
     //-----------------------------------------------------------------------------
 #ifdef _AXF_BRDF_TYPE_SVBRDF
     bsdfData.diffuseColor = surfaceData.diffuseColor;
@@ -696,7 +704,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.fresnelF0 = surfaceData.fresnelF0; // See AxfData.hlsl: the actual sampled texture is always 1 channel, if we ever find otherwise, we will use the others.
     bsdfData.height_mm = surfaceData.height_mm;
 
-    bsdfData.roughness = HasAnisotropy() ? surfaceData.specularLobe : surfaceData.specularLobe.xx;
+    bsdfData.roughness.xy = HasAnisotropy() ? surfaceData.specularLobe.xy : surfaceData.specularLobe.xx;
 
     bsdfData.clearcoatColor = surfaceData.clearcoatColor;
     bsdfData.clearcoatNormalWS = HasClearcoat() ? surfaceData.clearcoatNormalWS : surfaceData.normalWS;
@@ -717,7 +725,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     bsdfData.specularColor = GetCarPaintSpecularColor();
     bsdfData.fresnelF0 = GetCarPaintFresnelF0();
-    bsdfData.roughness = 0;
+    bsdfData.roughness.xyz = surfaceData.specularLobe.xyz; // the later stores per lobe possibly modified (for geometric specular AA) _CarPaint2_CTSpreads
     bsdfData.height_mm = 0;
 #endif
 
@@ -744,8 +752,8 @@ struct PreLightData
     float3  viewWS_UnderCoat;   // View vector after optional clear-coat refraction.
 
     // IBL
-    float3  iblDominantDirectionWS_UnderCoat;   // Dominant specular direction, used for IBL in EvaluateBSDF_Env()
-    float3  iblDominantDirectionWS_Clearcoat;   // Dominant specular direction, used for IBL in EvaluateBSDF_Env() and also in area lights when clearcoat is enabled
+    float3  iblDominantDirectionWS_BottomLobeOnTop; // Dominant specular direction, for bottom lobe but as it exit on top, used for IBL in EvaluateBSDF_Env()
+    float3  iblDominantDirectionWS_Clearcoat;       // Dominant specular direction, used for IBL in EvaluateBSDF_Env() and also in area lights when clearcoat is enabled
 #ifdef _AXF_BRDF_TYPE_SVBRDF
     float   iblPerceptualRoughness;
     float3  specularFGD;
@@ -983,7 +991,7 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
 }
 #endif //...#if defined(_AXF_BRDF_TYPE_CAR_PAINT)
 
-float3 FindAverageBaseLobeDirOnTop(BSDFData bsdfData, PreLightData preLightData)
+float3 FindAverageBaseLobeDirOnTop(BSDFData bsdfData, PreLightData preLightData, out float3 lobeDirUndercoat)
 {
     float3 outDir;
 
@@ -1010,6 +1018,7 @@ float3 FindAverageBaseLobeDirOnTop(BSDFData bsdfData, PreLightData preLightData)
     float3 incomingSaturated;
     float rayIntensity;
     outDir = RefractSaturateToTIR(-vRefractedBottomReflected, -bsdfData.clearcoatNormalWS, bsdfData.clearcoatIOR, rayIntensity, incomingSaturated);
+    lobeDirUndercoat = -incomingSaturated; // incoming is away from the top interface from under the surface so *-1 to reverse quadrant.
 #endif
     return outDir;
 
@@ -1045,13 +1054,19 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     // Handle IBL +  multiscattering
     // todo_dir:
     // todo_dir todo_modes todo_pseudorefract: cant use undercoat like that, but better than to lose the bottom normal effect for now...
-    preLightData.iblDominantDirectionWS_UnderCoat = reflect(-preLightData.viewWS_UnderCoat, bsdfData.normalWS);
+    float3 reflectedLobeDirUndercoat = reflect(-preLightData.viewWS_UnderCoat, bsdfData.normalWS);
+    preLightData.iblDominantDirectionWS_BottomLobeOnTop = reflectedLobeDirUndercoat;
     if (HasClearcoatAndRefraction())
     {
-        preLightData.iblDominantDirectionWS_UnderCoat = FindAverageBaseLobeDirOnTop(bsdfData, preLightData); // much better
+        preLightData.iblDominantDirectionWS_BottomLobeOnTop = FindAverageBaseLobeDirOnTop(bsdfData, preLightData, reflectedLobeDirUndercoat); // much better
+        // reflectedLobeDirUndercoat is now adjusted to correspond to the refracted-back on top direction returned by FindAverageBaseLobeDirOnTop()
+
+        //sanity check: If both normals are equal, then this shouldn't change the output: 
+        //preLightData.iblDominantDirectionWS_BottomLobeOnTop = reflect(-viewWS_Clearcoat, bsdfData.clearcoatNormalWS);
+        //reflectedLobeDirUndercoat = reflect(-preLightData.viewWS_UnderCoat, bsdfData.normalWS);
     }
     preLightData.iblDominantDirectionWS_Clearcoat = reflect(-viewWS_Clearcoat, bsdfData.clearcoatNormalWS);
-    //preLightData.iblDominantDirectionWS_UnderCoat = preLightData.iblDominantDirectionWS_Clearcoat;
+    //preLightData.iblDominantDirectionWS_BottomLobeOnTop = preLightData.iblDominantDirectionWS_Clearcoat;
 
 #ifdef _AXF_BRDF_TYPE_SVBRDF
     // @TODO => Anisotropic IBL?
@@ -1103,10 +1118,31 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     preLightData.specularCTFGDReflectivity = 0;
     preLightData.ltcTransformSpecularCT = (float3x3[MAX_CT_LOBE_COUNT])0;
 
-    // TODO_diffuseFGDColor: better one, averaged maybe...
+    // TODO_diffuseFGDColor: better one, averaged maybe: ie depending on roughness also
     preLightData.singleBRDFColor = 1.0;
     float thetaH = 0; //acos(clamp(NdotH, 0, 1));
     float thetaD = acos(clamp(preLightData.NdotV_UnderCoat, 0, 1));
+    // The above is the same as 
+    //float3 lightDir = reflect(-preLightData.viewWS_UnderCoat, bsdfData.normalWS);
+    //float3 H = normalize(preLightData.viewWS_UnderCoat + lightDir);
+    //float NdotH = dot(bsdfData.normalWS, H);
+    //float LdotH = dot(H, lightDir);
+    //thetaH = acos(clamp(NdotH, 0, 1));
+    //thetaD = acos(clamp(LdotH, 0, 1));
+
+    // Also, could use reflectedLobeDirUndercoat here (and see TODO_diffuseFGDColor: if we make it depends on roughness, one per lobe)
+    // This is relevant only if both normals aren't the same obviously.
+    // In the case of CARPAINT, this means a clearcoat normal map.
+    // (ie orange peel)
+    if (false)
+    {
+        float3 H = normalize(preLightData.viewWS_UnderCoat + reflectedLobeDirUndercoat);
+        float NdotH = dot(bsdfData.normalWS, H);
+
+        float LdotH = dot(H, reflectedLobeDirUndercoat);
+        thetaH = acos(clamp(NdotH, 0, 1));
+        thetaD = acos(clamp(LdotH, 0, 1));
+    }
 
     preLightData.singleBRDFColor *= GetBRDFColor(thetaH, thetaD);
     preLightData.singleFlakesComponent = CarPaint_BTF(thetaH, thetaD, bsdfData);
@@ -1116,7 +1152,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     {
         float   F0 = _CarPaint2_CTF0s[lobeIndex];
         float   coeff = _CarPaint2_CTCoeffs[lobeIndex];
-        float   spread = _CarPaint2_CTSpreads[lobeIndex];
+        float   spread = bsdfData.roughness[lobeIndex]; // _CarPaint2_CTSpreads[lobeIndex];
 #if !USE_COOK_TORRANCE_MULTI_LOBES
         // Computes weighted average of roughness values
         sumCoeff += coeff;
@@ -1161,8 +1197,9 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     float oneOverLobeCnt = rcp(CARPAINT2_LOBE_COUNT);
     preLightData.iblPerceptualRoughness = RoughnessToPerceptualRoughness(sumRoughness * oneOverLobeCnt);
     tempF0 = sumF0 * oneOverLobeCnt;
-    // todo_BeckmannToGGX
+    // todo_BeckmannToGGX    
     GetPreIntegratedFGDCookTorranceAndLambert(NdotV_UnderCoat, preLightData.iblPerceptualRoughness, tempF0 * preLightData.singleBRDFColor, specularFGD, diffuseFGD, reflectivity);
+    preLightData.iblPerceptualRoughness = PerceptualRoughnessBeckmannToGGX(preLightData.iblPerceptualRoughness);
     specularFGD *= GetPreIntegratedFGDCookTorranceSampleMutiplier();
     preLightData.specularCTFGDSingleLobe = specularFGD * sumCoeff;
 #endif
@@ -1415,7 +1452,7 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
     float  F = 1.0;
     switch (_SVBRDF_BRDFVariants & 3)
     {
-    case 1: F_FresnelDieletricSafe(Fresnel0ToIorSafe(bsdfData.fresnelF0.r), LdotH); break;
+    case 1: F = F_FresnelDieletricSafe(Fresnel0ToIorSafe(bsdfData.fresnelF0.r), LdotH); break;
     case 2: F = F_Schlick(bsdfData.fresnelF0.r, LdotH); break;
     }
 
@@ -1423,8 +1460,8 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
     float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.biTangentWS), dot(H, bsdfData.normalWS));
     //float2  rotH = tsH.xy / tsH.z;
     float2  rotH = tsH.xy / max(0.00001, tsH.z);
-    //float2  roughness = bsdfData.roughness;
-    float2  roughness = max(0.0001, bsdfData.roughness);
+    //float2  roughness = bsdfData.roughness.xy;
+    float2  roughness = max(0.0001, bsdfData.roughness.xy);
     //if (bsdfData.roughness.y == 0.0) bsdfData.specularColor = float3(1,0,0);
 
     if (roughness.x * roughness.y <= 0.0001 && tsH.z < 1.0)
@@ -1448,7 +1485,7 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
 
 float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
 {
-    float2  exponents = exp2(bsdfData.roughness);
+    float2  exponents = exp2(bsdfData.roughness.xy);
 
     // Evaluate normal distribution function
     float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.biTangentWS), dot(H, bsdfData.normalWS));
@@ -1619,6 +1656,7 @@ CBSDF EvaluateBSDF(float3 viewWS_Clearcoat, float3 lightWS_Clearcoat, PreLightDa
 float3 GetCarPaintSpecularFGDForLobe(PreLightData preLightData, uint lobeIndex)
 {
     return lerp(preLightData.specularCTFGDAtZeroF0[lobeIndex], preLightData.specularCTFGDReflectivity[lobeIndex], _CarPaint2_CTF0s[lobeIndex]*preLightData.singleBRDFColor);
+    //return lerp(preLightData.specularCTFGDAtZeroF0[lobeIndex], preLightData.specularCTFGDReflectivity[lobeIndex], _CarPaint2_CTF0s[lobeIndex])*preLightData.singleBRDFColor;
 }
 
 
@@ -1685,7 +1723,7 @@ CBSDF EvaluateBSDF(float3 viewWS_Clearcoat, float3 lightWS_Clearcoat, PreLightDa
     float3  diffuseTerm = Lambert();
 
     // Apply multi-lobes Cook-Torrance
-    float3  specularTerm = MultiLobesCookTorrance(NdotL, NdotV, NdotH, VdotH);
+    float3  specularTerm = MultiLobesCookTorrance(bsdfData, NdotL, NdotV, NdotH, VdotH);
 
     // Apply BRDF color
     float3  BRDFColor = GetBRDFColor(thetaH, thetaD);
@@ -1959,7 +1997,7 @@ DirectLighting  EvaluateBSDF_Line(  LightLoopContext lightLoopContext,
     // We project the point onto the area light's plane using the reflected view direction and recompute the light direction from this position
     // todo_dir:
 #if 0
-    float3  bestLightWS_Specular = ComputeBestLightDirection_Line(lightPositionRWS, preLightData.iblDominantDirectionWS_UnderCoat, lightData);
+    float3  bestLightWS_Specular = ComputeBestLightDirection_Line(lightPositionRWS, preLightData.iblDominantDirectionWS_BottomLobeOnTop, lightData);
 
     // todo_dir todo_pseudorefract
     // refract light dir here for GetBRDFColor since it is a fresnel-like effect, but
@@ -2178,7 +2216,7 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
     // We project the point onto the area light's plane using the reflected view direction and recompute the light direction from this position
     // TODO_dir:
 #if 0
-    float3  bestLightWS_Specular = ComputeBestLightDirection_Rectangle(lightPositionRWS, preLightData.iblDominantDirectionWS_UnderCoat, lightData);
+    float3  bestLightWS_Specular = ComputeBestLightDirection_Rectangle(lightPositionRWS, preLightData.iblDominantDirectionWS_BottomLobeOnTop, lightData);
 
     // TODO_dir: refract light dir for GetBRDFColor here since it is a fresnel-like effect, but
     // compute LTC / env fetching using *non refracted dir*
@@ -2345,7 +2383,7 @@ float GetEnvMipLevel(EnvLightData lightData, float iblPerceptualRoughness)
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
-        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(iblPerceptualRoughness, _ColorPyramidScale.z);
+        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(iblPerceptualRoughness, _ColorPyramidLodCount);
     }
     else
     {
@@ -2398,24 +2436,43 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float   weight = 1.0;
 
     // TODO_dir: this shouldn't be undercoat.
-    float3  environmentSamplingDirectionWS_UnderCoat = preLightData.iblDominantDirectionWS_UnderCoat;
+    float3  envSamplingDirForBottomLayer = preLightData.iblDominantDirectionWS_BottomLobeOnTop;
 
 #if defined(_AXF_BRDF_TYPE_SVBRDF)
     float3  envLighting = 0.0;
 
 
     float   NdotV = ClampNdotV(preLightData.NdotV_UnderCoat);
+    // Here we use bsdfData.clearcoatNormalWS: if there's no coat, bsdfData.clearcoatNormalWS == bsdfData.normalWS anyway.
+    // The reason is that, normally, since GetModifiedEnvSamplingDir (off-specular effect) is roughness dependent,
+    // we would have to store another direction (lightData is only used to escape the modification in case of planar probe)
+    // and in case of carpaint, one for each lobe. However, if we would like to "correctly" take into account the effect, we would have
+    // to calculate the effect on the bottom layer where directions are different, and then use FindAverageBaseLobeDirOnTop().
+    // We decide to just apply the effect on top instead.
+    // (FindAverageBaseLobeDirOnTop is alreayd an approximation ignoring under-horizon or TIR. If we saturated to the critical angle undercoat 
+    // and thus grazing when exiting on top, a tilt back for off-specular effect might in fact have no effect since the lobe could still
+    // be under horizon. On the other hand, if we didn't have to saturate, a little tilt-back toward normal (from GetModifiedEnvSamplingDir)
+    // should have translated into a bigger one on top because of angle range decompression.)
+    envSamplingDirForBottomLayer = GetModifiedEnvSamplingDir(lightData, bsdfData.clearcoatNormalWS, preLightData.iblDominantDirectionWS_BottomLobeOnTop, preLightData.iblPerceptualRoughness, NdotV);
 
-    environmentSamplingDirectionWS_UnderCoat = GetModifiedEnvSamplingDir(lightData, bsdfData.normalWS, preLightData.iblDominantDirectionWS_UnderCoat, preLightData.iblPerceptualRoughness, NdotV);
+    // Note: using _influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)    
+    EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
+    // ...here the normal is only used for normal fading mode of the influence volume.
 
-    // Note: using _influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
-    EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, _influenceShapeType, environmentSamplingDirectionWS_UnderCoat, weight);
+    // Another problem with having even two fetch directions is the reflection hierarchy that only supports one weight.
+    // (TODO: We could have a vector tracking multiplied weights already applied per lobe that we update and that is 
+    // passed back by the light loop but otherwise opaque to it, with the single hierarchyWeight tracked alongside.
+    // That way no "overlighting" would be done and by returning the hierarchyWeight = min(all weights) up to now, 
+    // we could potentially avoid artifacts in having eg the clearcoat reflection not available from one influence volume
+    // while the base has full weight reflection. This ends up always preventing a blend for the coat reflection when the 
+    // bottom reflection is full. Lit doesn't have this problem too much in practice since only GetModifiedEnvSamplingDir
+    // changes the direction vs the coat.)
 
     float   IBLMipLevel;
     IBLMipLevel = GetEnvMipLevel(lightData, preLightData.iblPerceptualRoughness);
 
     // Sample the pre-integrated environment lighting
-    float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, environmentSamplingDirectionWS_UnderCoat, IBLMipLevel, lightData.rangeCompressionFactorCompensation);
+    float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, IBLMipLevel, lightData.rangeCompressionFactorCompensation);
     weight *= preLD.w; // Used by planar reflection to discard pixel
 
     envLighting = GetSpecularIndirectDimmer() * preLightData.specularFGD * preLD.xyz;
@@ -2425,39 +2482,37 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float3  envLighting = 0.0;
 
-    float   NdotV = ClampNdotV(preLightData.NdotV_UnderCoat);
-
     // A part of this BRDF depends on thetaH and thetaD and should thus have entered
     // the split sum pre-integration. We do a further approximation by pulling those
     // terms out and evaluating them in the specular dominant direction,
-    // for BRDFColor and flakes.
-    float3  viewWS_UnderCoat = preLightData.viewWS_UnderCoat;
-    float3  lightWS_UnderCoat = environmentSamplingDirectionWS_UnderCoat;
+    // for BRDFColor and flakes, see GetPreLightData.
 
-    float3  H = normalize(viewWS_UnderCoat + lightWS_UnderCoat);
-    float   NdotH = dot(bsdfData.normalWS, H);
-    float   VdotH = dot(viewWS_UnderCoat, H);
-
-    // TODO_dir: so this is just thetaH = 0, etc. CHECK and remove.
-    float   thetaH = acos(clamp(NdotH, 0, 1));
-    float   thetaD = acos(clamp(VdotH, 0, 1));
+    // Note: we don't use GetModifiedEnvSamplingDir() per lobe here, and see comment above about reflection hierarchy.
+    EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
 
     #if USE_COOK_TORRANCE_MULTI_LOBES
 
     // Multi-lobes approach
     // Each CT lobe samples the environment with the appropriate roughness
-    float   sumWeights = 0.0;
+    float probeSkipFactor = 1;
     for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
     {
         float   coeff = _CarPaint2_CTCoeffs[lobeIndex];
 
         float   lobeMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[lobeIndex]);
-        float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, lightWS_UnderCoat, lobeMipLevel, lightData.rangeCompressionFactorCompensation);
+        float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, lobeMipLevel, lightData.rangeCompressionFactorCompensation);
 
         //todotodo: try removing coeff
         envLighting += coeff * GetCarPaintSpecularFGDForLobe(preLightData, lobeIndex) * preLD.xyz;
-        sumWeights += preLD.w;
+        // Note: preLD.w is only used by planar probes, returning 0 if outside captured direction or 1 otherwise (the influence volume weight fades, not this).
+        // Since this is only used for planar probes, even if we had used GetModifiedEnvSamplingDir() above, all directions would be the same in that case anyway
+        // since GetModifiedEnvSamplingDir() doesn't do anything for planar probes.
+        // For that reason, only one preLD.w needs to be used, no need to average them, they should all be the same.
+        // sumWeights += preLD.w;
+        probeSkipFactor = preLD.w;
     }
+    // See discussion about reflection hierarchy above for SVBRDF, same thing here: When we will evaluate the coat, we will ignore its weight.
+    weight *= probeSkipFactor;
     envLighting *= GetSpecularIndirectDimmer();
     //now already in rebuilt specularFGD: envLighting *= GetBRDFColor(thetaH, thetaD);
 
@@ -2465,8 +2520,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     //TODO_FLAKES
     float   flakesMipLevel = 0;   // Flakes are supposed to be perfect mirrors
     //envLighting += preLightData.flakesFGD * CarPaint_BTF(thetaH, thetaD, bsdfData) * SampleEnv(lightLoopContext, lightData.envIndex, lightWS_UnderCoat, flakesMipLevel, lightData.rangeCompressionFactorCompensation).xyz;
-    envLighting += preLightData.singleFlakesComponent * SampleEnv(lightLoopContext, lightData.envIndex, lightWS_UnderCoat, flakesMipLevel, lightData.rangeCompressionFactorCompensation).xyz;
-    weight *= sumWeights / CARPAINT2_LOBE_COUNT;
+    envLighting += preLightData.singleFlakesComponent * SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, flakesMipLevel, lightData.rangeCompressionFactorCompensation).xyz;
 
     #else // USE_COOK_TORRANCE_MULTI_LOBES
 
@@ -2476,10 +2530,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     IBLMipLevel = GetEnvMipLevel(lightData, preLightData.iblPerceptualRoughness);
 
     // Sample the actual environment lighting
-    float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, lightWS_UnderCoat, IBLMipLevel, lightData.rangeCompressionFactorCompensation);
+    float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, IBLMipLevel, lightData.rangeCompressionFactorCompensation);
     float3  envLighting;
 
-    envLighting = preLightData.specularCTFGDSingleLobe * GetSpecularIndirectDimmer() * GetBRDFColor(thetaH, thetaD);
+    envLighting = preLightData.specularCTFGDSingleLobe * GetSpecularIndirectDimmer();
     //TODO_FLAKES
     //envLighting += preLightData.flakesFGD * CarPaint_BTF(thetaH, thetaD, bsdfData);
     envLighting += preLightData.singleFlakesComponent;
@@ -2534,9 +2588,11 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 {
     // There is no AmbientOcclusion from data with AxF, but let's apply our SSAO
     AmbientOcclusionFactor aoFactor;
-    GetScreenSpaceAmbientOcclusionMultibounce(  posInput.positionSS, preLightData.NdotV_UnderCoat,
-                                                RoughnessToPerceptualRoughness(GetScalarRoughnessFromAnisoRoughness(bsdfData.roughness.x, bsdfData.roughness.y)),
-                                                1.0, 1.0, GetColorBaseDiffuse(bsdfData), GetColorBaseFresnelF0(bsdfData), aoFactor);
+    GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV_UnderCoat,
+                                              RoughnessToPerceptualRoughness(GetScalarRoughness(bsdfData.roughness)),
+                                              bsdfData.ambientOcclusion, bsdfData.specularOcclusion,
+                                              GetColorBaseDiffuse(bsdfData), GetColorBaseFresnelF0(bsdfData), aoFactor);
+
     ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
 
     diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
