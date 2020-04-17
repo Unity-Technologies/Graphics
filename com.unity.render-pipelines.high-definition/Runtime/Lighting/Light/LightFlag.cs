@@ -5,7 +5,7 @@
         [Tooltip("How much to feather the clipped edge")]
         public float m_Feather = 1.0f;
 
-        public LightFlagData FlagParams
+        public LightFlagData flagData
         {
             get
             {
