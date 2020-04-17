@@ -460,9 +460,6 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     #pragma shader_feature_local _MATERIAL_FEATURE_TRANSMISSION
 
-    // enable dithering LOD crossfade
-    #pragma multi_compile _ LOD_FADE_CROSSFADE
-
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
@@ -534,6 +531,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             // Note: Require _ObjectId and _PassValue variables
 
@@ -576,6 +574,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -623,6 +622,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
@@ -666,6 +666,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
@@ -706,6 +707,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -745,6 +747,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
@@ -795,6 +798,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
