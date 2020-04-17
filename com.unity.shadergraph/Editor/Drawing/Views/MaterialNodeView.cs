@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewContainer.Add(m_PreviewImage);
 
                 // Hook up preview image to preview manager
-                m_PreviewRenderData = previewManager.GetPreview(inNode);
+                m_PreviewRenderData = previewManager.GetPreviewRenderData(inNode);
                 m_PreviewRenderData.onPreviewChanged += UpdatePreviewTexture;
                 UpdatePreviewTexture();
 
@@ -161,7 +161,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 AddToClassList("master");
                 bool validTarget = false;
-                foreach (ITargetImplementation activeTarget in node.owner.validImplementations)
+                foreach(Target activeTarget in node.owner.validTargets)
                 {
                     //if we have a valid active target implementation and render pipeline, don't display the error
                     if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
@@ -182,35 +182,35 @@ namespace UnityEditor.ShaderGraph.Drawing
                             ShaderCompilerMessageSeverity.Error));
                 }
             }
-            else // #TODO: Inspector - Temporary workaround to prevent adding settings cog wheels to master nodes
-                 // while Sai gets the remaining nodes ported over to the Inspector (specifically SubGraphs and CustomFunctionNodes)
-            {
-                m_NodeSettingsView = new NodeSettingsView();
-                m_NodeSettingsView.visible = false;
-                Add(m_NodeSettingsView);
 
-                m_SettingsButton = new VisualElement {name = "settings-button"};
+            m_NodeSettingsView = new NodeSettingsView();
+            m_NodeSettingsView.visible = false;
+            Add(m_NodeSettingsView);
+
+            m_SettingsButton = new VisualElement {name = "settings-button"};
                 m_SettingsButton.Add(new VisualElement {name = "icon"});
 
-                m_Settings = new VisualElement();
-                AddDefaultSettings();
+            m_Settings = new VisualElement();
+            AddDefaultSettings();
 
-                // Add Node type specific settings
-                var nodeTypeSettings = node as IHasSettings;
-                if (nodeTypeSettings != null)
-                    m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
+            // Add Node type specific settings
+            var nodeTypeSettings = node as IHasSettings;
+            if (nodeTypeSettings != null)
+                m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
 
-                // Add manipulators
-                m_SettingsButton.AddManipulator(new Clickable(() => { UpdateSettingsExpandedState(); }));
-
-                if (m_Settings.childCount > 0)
+            // Add manipulators
+            m_SettingsButton.AddManipulator(new Clickable(() =>
                 {
+                    UpdateSettingsExpandedState();
+                }));
+
+            if(m_Settings.childCount > 0)
+            {
                     m_ButtonContainer = new VisualElement {name = "button-container"};
-                    m_ButtonContainer.style.flexDirection = FlexDirection.Row;
-                    m_ButtonContainer.Add(m_SettingsButton);
-                    m_ButtonContainer.Add(m_CollapseButton);
-                    m_TitleContainer.Add(m_ButtonContainer);
-                }
+                m_ButtonContainer.style.flexDirection = FlexDirection.Row;
+                m_ButtonContainer.Add(m_SettingsButton);
+                m_ButtonContainer.Add(m_CollapseButton);
+                m_TitleContainer.Add(m_ButtonContainer);
             }
 
             // Register OnMouseHover callbacks for node highlighting
@@ -366,6 +366,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 GraphUtil.OpenFile(path);
         }
 
+        string ConvertToShader(GenerationMode mode)
+        {
+            var generator = new Generator(node.owner, node, mode, node.name);
+            return generator.generatedShader;
+        }
+
         void AddDefaultSettings()
         {
             PropertySheet ps = new PropertySheet();
@@ -437,11 +443,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        string ConvertToShader(GenerationMode mode)
-        {
-            var generator = new Generator(node.owner, node, mode, node.name);
-            return generator.generatedShader;
-        }
 
         public object GetObjectToInspect()
         {
@@ -544,12 +545,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Update slots to match node modification
             if (scope == ModificationScope.Topological)
             {
-                // #TODO: Inspector - Temporary workaround to only allow nodes that aren't master nodes to try and recreate their settings
-                var masterNode = node as IMasterNode;
-                if (masterNode == null)
-                {
-                    RecreateSettings();
-                }
+                RecreateSettings();
 
                 var slots = node.GetSlots<MaterialSlot>().ToList();
 
@@ -773,7 +769,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                     m_PreviewImage.MarkDirtyRepaint();
 
-                if (m_PreviewRenderData.shaderData.isCompiling)
+                if (m_PreviewRenderData.shaderData.isOutOfDate)
                     m_PreviewImage.tintColor = new Color(1.0f, 1.0f, 1.0f, 0.3f);
                 else
                     m_PreviewImage.tintColor = Color.white;
