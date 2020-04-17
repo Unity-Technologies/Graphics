@@ -893,7 +893,6 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
@@ -937,7 +936,6 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
 
@@ -978,7 +976,6 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
 
@@ -1040,7 +1037,6 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_RAYTRACING_SUB_SURFACE
 
@@ -1073,7 +1069,6 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
             #define SKIP_RASTERIZED_SHADOWS
