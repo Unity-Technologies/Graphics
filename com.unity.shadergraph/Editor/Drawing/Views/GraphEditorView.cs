@@ -300,6 +300,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 c.screenMousePosition - m_EditorWindow.position.position, null);
         }
 
+
+        // Master Preview, Inspector and Blackboard all need to keep their layouts when hidden in order to restore user preferences.
+        // Because of their differences we do this is different ways, for now.
         void UpdateSubWindowsVisibility()
         {
             // Blackboard needs to be effectively removed when hidden to avoid bugs.
@@ -308,10 +311,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
                 m_BlackboardProvider.blackboard.RemoveFromHierarchy();
 
-            // Master Preview, Inspector and Blackboard all need to keep their layouts when hidden in order to restore user preferences.
-            // Because of their differences we do this is different ways, for now.
+            // Same for the inspector
+            if (m_UserViewSettings.isInspectorVisible)
+                m_GraphView.Insert(m_GraphView.childCount, m_InspectorView);
+            else
+                m_InspectorView.RemoveFromHierarchy();
+
             m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
-            m_InspectorView.visible = m_UserViewSettings.isInspectorVisible;
         }
 
         Action<Group, string> m_GraphViewGroupTitleChanged;
