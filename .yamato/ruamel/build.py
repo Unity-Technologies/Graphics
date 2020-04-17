@@ -89,10 +89,10 @@ def create_package_jobs(metafile_name):
     yml = {}
 
     for package in metafile["packages"]:
-        job = Package_PackJob(package)
+        job = Package_PackJob(package, metafile["agent_win"])
         yml[job.job_id] = job.yml
 
-        job = Package_PublishJob(package, metafile["platforms"])
+        job = Package_PublishJob(package, metafile["agent_win"], metafile["platforms"])
         yml[job.job_id] = job.yml
 
     for editor in metafile["editors"]:
@@ -105,10 +105,10 @@ def create_package_jobs(metafile_name):
                 yml[job.job_id] = job.yml
 
     for editor in metafile["editors"]:
-        job = Package_AllPackageCiJob(metafile["packages"], metafile["platforms"], editor)
+        job = Package_AllPackageCiJob(metafile["packages"], metafile["agent_win"], metafile["platforms"], editor)
         yml[job.job_id] = job.yml
     
-    job = Package_PublishAllJob(metafile["packages"])
+    job = Package_PublishAllJob(metafile["packages"], metafile["agent_ubuntu"])
     yml[job.job_id] = job.yml
 
     dump_yml(packages_filepath(), yml)
@@ -120,7 +120,7 @@ def create_abv_jobs(metafile_name):
 
     for editor in metafile["editors"]:
         for test_platform in metafile['test_platforms']:
-            job = ABV_SmokeTestJob(editor, test_platform)
+            job = ABV_SmokeTestJob(editor, test_platform, metafile["smoke_test_agents"])
             yml[job.job_id] = job.yml
         
         job = ABV_AllSmokeTestsJob(editor, metafile["test_platforms"])

@@ -1,7 +1,7 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import packages_filepath, package_job_id_test_all, package_job_id_test, package_job_id_test_dependencies
 
-def get_job_definition(packages, platforms, editor):
+def get_job_definition(packages, agent, platforms, editor):
     dependencies = []
     for platform in platforms:
         for package in packages:
@@ -10,11 +10,7 @@ def get_job_definition(packages, platforms, editor):
     
     job = {
         'name': f'Pack and test all packages - { editor["version"] }',
-        'agent':{
-            'type':'Unity::VM',
-            'image':'package-ci/win10:stable',
-            'flavor':'b1.large'
-        },
+        'agent':dict(agent),
         'dependencies': dependencies,
         'commands': [
             f'npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm',
@@ -27,9 +23,9 @@ def get_job_definition(packages, platforms, editor):
 
 class Package_AllPackageCiJob():
     
-    def __init__(self, packages, platforms, editor):
+    def __init__(self, packages, agent, platforms, editor):
         self.job_id = package_job_id_test_all(editor["version"])
-        self.yml = get_job_definition(packages,platforms, editor)
+        self.yml = get_job_definition(packages, agent, platforms, editor)
 
 
     

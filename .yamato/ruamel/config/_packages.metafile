@@ -81,3 +81,11 @@ platforms:
         flavor: m1.mac
       copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
+agent_win: # used for pack and publish jobs (test agents are specified under platforms)
+  type: Unity::VM
+  image: package-ci/win10:stable
+  flavor: b1.large
+agent_ubuntu: # used for publish all
+  type: Unity::VM
+  image: package-ci/ubuntu:stable
+  flavor: b1.large

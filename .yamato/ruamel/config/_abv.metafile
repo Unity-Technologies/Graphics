@@ -46,4 +46,13 @@ nightly_config:
       api_name: Vulkan
       test_platform_names:
         - Standalone
+smoke_test_agents: 
+  agent_win: # used for editmode
+    type: Unity::VM
+    image: sdet/gamecode_win10:stable
+    flavor: b1.large
+  agent_win_gpu: # used for non-editmode
+    type: Unity::VM::GPU
+    image: sdet/gamecode_win10:stable
+    flavor: b1.large
 

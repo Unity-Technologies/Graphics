@@ -3,22 +3,13 @@ from ..utils.namer import *
 from ..utils.constants import VAR_UPM_REGISTRY, TEST_PROJECTS_DIR, PATH_TEST_RESULTS_padded, PATH_TEST_RESULTS, PATH_UNITY_REVISION
 from ..utils.shared import add_custom_revision_var
 
-default_agent = {
-    'type':'Unity::VM',
-    'image':'sdet/gamecode_win10:stable',
-    'flavor':'b1.large'
-}
-
-default_agent_gpu = {
-    'type':'Unity::VM::GPU',
-    'image':'sdet/gamecode_win10:stable',
-    'flavor':'b1.large'
-}
-
-def get_job_definition(editor, test_platform):  # only run for 2020.1 and trunk
+def get_job_definition(editor, test_platform, smoke_test_agents):  # only run for 2020.1 and trunk
+    agent = dict(smoke_test_agents["agent_win"])
+    agent_gpu = dict(smoke_test_agents["agent_win_gpu"])
+    
     job = {
         'name': f'SRP Smoke Test - {test_platform["name"]}_{editor["version"]}',
-        'agent': dict(default_agent) if test_platform["name"] == 'editmode' else dict(default_agent_gpu), # TODO if editmode then ::VM, else ::VM::GPU,
+        'agent': agent if test_platform["name"] == 'editmode' else agent_gpu,
         'variables':{
             'UPM_REGISTRY': VAR_UPM_REGISTRY
         },
@@ -54,6 +45,6 @@ def get_job_definition(editor, test_platform):  # only run for 2020.1 and trunk
 
 class ABV_SmokeTestJob():
     
-    def __init__(self, editor, test_platform):
+    def __init__(self, editor, test_platform, smoke_test_agents):
         self.job_id = abv_job_id_smoke_test(editor["version"], test_platform["name"])
-        self.yml = get_job_definition(editor, test_platform)
+        self.yml = get_job_definition(editor, test_platform, smoke_test_agents)
