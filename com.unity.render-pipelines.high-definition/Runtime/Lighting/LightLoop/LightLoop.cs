@@ -614,12 +614,37 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderVariablesLightList m_ShaderVariablesLightListCB = new ShaderVariablesLightList();
         ShaderVariablesLightList m_ShaderVariablesProbeVolumeLightListCB = new ShaderVariablesLightList();
 
+
+        enum ClusterPrepassSource : int
+        {
+            None = 0,
+            BigTile = 1,
+            Count = 2,
+        }
+
+        enum ClusterDepthSource : int
+        {
+            NoDepth = 0,
+            Depth = 1,
+            MSAA_Depth = 2,
+            Count = 3,
+        }
+
+        static string[,] s_ClusterKernelNames = new string[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count]
+        {
+            { "TileLightListGen_NoDepthRT", "TileLightListGen_DepthRT", "TileLightListGen_DepthRT_MSAA" },
+            { "TileLightListGen_NoDepthRT_SrcBigTile", "TileLightListGen_DepthRT_SrcBigTile", "TileLightListGen_DepthRT_MSAA_SrcBigTile" }
+        };
+        static string[,] s_ClusterObliqueKernelNames = new string[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count]
+        {
+            { "TileLightListGen_NoDepthRT", "TileLightListGen_DepthRT_Oblique", "TileLightListGen_DepthRT_MSAA_Oblique" },
+            { "TileLightListGen_NoDepthRT_SrcBigTile", "TileLightListGen_DepthRT_SrcBigTile_Oblique", "TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique" }
+        };
+
         static int s_GenAABBKernel;
         static int s_GenListPerTileKernel;
-        static int s_GenListPerVoxelKernel;
-        static int s_GenListPerVoxelKernelOblique;
-        static int s_ProbeVolumesGenListPerVoxelKernelOblique;
-        static int s_ProbeVolumesGenListPerVoxelKernel;
+        static int[,] s_ClusterKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
+        static int[,] s_ClusterObliqueKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
         static int s_ClearVoxelAtomicKernel;
         static int s_ClearDispatchIndirectKernel;
         static int s_BuildIndirectKernel;
@@ -655,33 +680,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static Material s_DeferredTileSplitLightingMat;     // stencil-test set to touch split-lighting pixels only
         static Material s_DeferredTileMat;                  // fallback when regular and split-lighting pixels must be touch
         static String[] s_variantNames = new String[LightDefinitions.s_NumFeatureVariants];
-
-        enum ClusterPrepassSource : int
-        {
-            None = 0,
-            BigTile = 1,
-            Count = 2,
-        }
-
-        enum ClusterDepthSource : int
-        {
-            NoDepth = 0,
-            Depth = 1,
-            MSAA_Depth = 2,
-            Count = 3,
-        }
-
-        static string[,] s_ClusterKernelNames = new string[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count]
-        {
-            { "TileLightListGen_NoDepthRT", "TileLightListGen_DepthRT", "TileLightListGen_DepthRT_MSAA" },
-            { "TileLightListGen_NoDepthRT_SrcBigTile", "TileLightListGen_DepthRT_SrcBigTile", "TileLightListGen_DepthRT_MSAA_SrcBigTile" }
-        };
-        static string[,] s_ClusterObliqueKernelNames = new string[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count]
-        {
-            { "TileLightListGen_NoDepthRT", "TileLightListGen_DepthRT_Oblique", "TileLightListGen_DepthRT_MSAA_Oblique" },
-            { "TileLightListGen_NoDepthRT_SrcBigTile", "TileLightListGen_DepthRT_SrcBigTile_Oblique", "TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique" }
-        };
-        // clustered light list specific buffers and data end
 
         ContactShadows m_ContactShadows = null;
         bool m_EnableContactShadow = false;
@@ -834,7 +832,18 @@ namespace UnityEngine.Rendering.HighDefinition
             // Cluster
             {
                 s_ClearVoxelAtomicKernel = clearClusterAtomicIndexShader.FindKernel("ClearAtomic");
+
+                for (int i = 0; i < (int)ClusterPrepassSource.Count; ++i)
+                {
+                    for (int j = 0; j < (int)ClusterDepthSource.Count; ++j)
+                    {
+                        s_ClusterKernels[i, j] = buildPerVoxelLightListShader.FindKernel(s_ClusterKernelNames[i, j]);
+                        s_ClusterObliqueKernels[i, j] = buildPerVoxelLightListShader.FindKernel(s_ClusterObliqueKernelNames[i, j]);
+                    }
+                }
             }
+
+            s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel("TileLightListGen");
 
             s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
 
@@ -998,38 +1007,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_indirectLightingController = hdCamera.volumeStack.GetComponent<IndirectLightingController>();
 
             m_ContactShadowIndex = 0;
-
-            // Cluster
-            {
-                var clustPrepassSourceIdx = frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
-                var clustDepthSourceIdx = ClusterDepthSource.NoDepth;
-                if (k_UseDepthBuffer)
-                {
-                    if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
-                        clustDepthSourceIdx = ClusterDepthSource.MSAA_Depth;
-                    else
-                        clustDepthSourceIdx = ClusterDepthSource.Depth;
-                }
-                var kernelName = s_ClusterKernelNames[(int)clustPrepassSourceIdx, (int)clustDepthSourceIdx];
-                var kernelObliqueName = s_ClusterObliqueKernelNames[(int)clustPrepassSourceIdx, (int)clustDepthSourceIdx];
-
-                s_GenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(kernelName);
-                s_GenListPerVoxelKernelOblique = buildPerVoxelLightListShader.FindKernel(kernelObliqueName);
-            }
-
-            s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel("TileLightListGen");
-
-            // Cluster Probe Volumes
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
-            {
-                var clustPrepassSourceIdx = frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
-                var clustDepthSourceIdx = ClusterDepthSource.NoDepth;
-                var kernelName = s_ClusterKernelNames[(int)clustPrepassSourceIdx, (int)clustDepthSourceIdx];
-                var kernelObliqueName = s_ClusterObliqueKernelNames[(int)clustPrepassSourceIdx, (int)clustDepthSourceIdx];
-
-                s_ProbeVolumesGenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(kernelName);
-                s_ProbeVolumesGenListPerVoxelKernelOblique = buildPerVoxelLightListShader.FindKernel(kernelObliqueName);
-            }
 
             m_TextureCaches.NewFrame();
 
@@ -3195,12 +3172,15 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numTilesFPTL = parameters.numTilesFPTLX * parameters.numTilesFPTLY;
 
             // Cluster
+            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            var clustPrepassSourceIdx = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
+            var clustDepthSourceIdx = ClusterDepthSource.NoDepth;
+            if (tileAndClusterData.clusterNeedsDepth)
+                clustDepthSourceIdx = msaa ? ClusterDepthSource.MSAA_Depth : ClusterDepthSource.Depth;
+
             parameters.buildPerVoxelLightListShader = buildPerVoxelLightListShader;
             parameters.clearClusterAtomicIndexShader = clearClusterAtomicIndexShader;
-            if (buildForProbeVolumes)
-                parameters.buildPerVoxelLightListKernel = isProjectionOblique ? s_GenListPerVoxelKernelOblique : s_GenListPerVoxelKernel;
-            else
-                parameters.buildPerVoxelLightListKernel = isProjectionOblique ? s_ProbeVolumesGenListPerVoxelKernelOblique : s_ProbeVolumesGenListPerVoxelKernel;
+            parameters.buildPerVoxelLightListKernel = isProjectionOblique ? s_ClusterObliqueKernels[(int)clustPrepassSourceIdx, (int)clustDepthSourceIdx] : s_ClusterKernels[(int)clustPrepassSourceIdx, (int)clustDepthSourceIdx];
             parameters.numTilesClusterX = GetNumTileClusteredX(hdCamera);
             parameters.numTilesClusterY = GetNumTileClusteredY(hdCamera);
 
