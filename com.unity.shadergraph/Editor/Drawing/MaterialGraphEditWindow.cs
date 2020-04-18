@@ -17,6 +17,8 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.VersionControl;
 
+using Unity.Profiling;
+
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class MaterialGraphEditWindow : EditorWindow
@@ -796,6 +798,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AssetDatabase.ImportAsset(path);
         }
 
+        private static readonly ProfilerMarker GraphLoadMarker = new ProfilerMarker("GraphLoad");
+        private static readonly ProfilerMarker CreateGraphEditorViewMarker = new ProfilerMarker("CreateGraphEditorView");
         public void Initialize(string assetGuid)
         {
             try
@@ -835,21 +839,27 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 selectedGuid = assetGuid;
 
-                var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                graphObject = CreateInstance<GraphObject>();
-                graphObject.hideFlags = HideFlags.HideAndDontSave;
-                graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
-                graphObject.graph.assetGuid = assetGuid;
-                graphObject.graph.isSubGraph = isSubGraph;
-                graphObject.graph.messageManager = messageManager;
-                graphObject.graph.OnEnable();
-                graphObject.graph.ValidateGraph();
-
-                graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                using (GraphLoadMarker.Auto())
                 {
-                    viewDataKey = selectedGuid,
-                    assetName = asset.name.Split('/').Last()
-                };
+                    var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                    graphObject = CreateInstance<GraphObject>();
+                    graphObject.hideFlags = HideFlags.HideAndDontSave;
+                    graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
+                    graphObject.graph.assetGuid = assetGuid;
+                    graphObject.graph.isSubGraph = isSubGraph;
+                    graphObject.graph.messageManager = messageManager;
+                    graphObject.graph.OnEnable();
+                    graphObject.graph.ValidateGraph();
+                }
+
+                using (CreateGraphEditorViewMarker.Auto())
+                {
+                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                    {
+                        viewDataKey = selectedGuid,
+                        assetName = asset.name.Split('/').Last()
+                    };
+                }
 
                 Texture2D icon = GetThemeIcon(graphObject.graph);
 

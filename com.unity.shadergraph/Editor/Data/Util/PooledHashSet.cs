@@ -4,7 +4,7 @@ using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph
 {
-    class PooledHashSet<T> : HashSet<T>
+    class PooledHashSet<T> : HashSet<T>, IDisposable
     {
         static Stack<PooledHashSet<T>> s_Pool = new Stack<PooledHashSet<T>>();
         bool m_Active;
