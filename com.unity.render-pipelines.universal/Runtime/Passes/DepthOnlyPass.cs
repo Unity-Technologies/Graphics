@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
-            ConfigureTarget(depthAttachmentHandle.Identifier());
+            ConfigureTarget(new RenderTargetIdentifier(depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1));
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

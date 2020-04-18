@@ -172,6 +172,11 @@ namespace UnityEngine.Rendering.Universal
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
             m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing || isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
 
+            // XRTODO: CopyDepth pass is disabled in XR due to required work to handle camera matrices in URP and y-flip.
+            // IF this condition is removed make sure the CopyDepthPass.cs is working properly on all XR modes. This requires PureXR SDK integration.
+            if (cameraData.xr.enabled && requiresDepthTexture)
+                requiresDepthPrepass = true;
+
             bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
