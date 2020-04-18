@@ -110,6 +110,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added alpha channel support in motion blur pass.
 - Added the HDRP Compositor Tool (in Preview).
 - Added a ray tracing mode option in the HDRP asset that allows to override and shader stripping.
+- Added support for arbitrary resolution scaling of Volumetric Lighting to the Fog volume component.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -662,6 +663,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Raytracing: Remove the LOD cross fade multi compile for ray tracing.
 - Cookie are now supported in lightmaper. All lights casting cookie and baked will now include cookie influence.
 - Avoid building the mip chain a second time for SSR for transparent objects.
+- Replaced "High Quality" Subsurface Scattering with a set of Quality Levels.
+- Replaced "High Quality" Volumetric Lighting with "Screen Resolution Percentage" and "Volume Slice Count" on the Fog volume component.
 
 ## [7.1.1] - 2019-09-05
 
