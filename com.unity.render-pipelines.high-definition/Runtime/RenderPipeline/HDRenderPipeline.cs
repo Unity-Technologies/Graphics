@@ -103,6 +103,9 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly XRSystem m_XRSystem;
 
         bool m_FrameSettingsHistoryEnabled = false;
+#if UNITY_EDITOR
+        bool m_PreviousDisableCookieForLightBaking = false;
+#endif
 
         /// <summary>
         /// This functions allows the user to have an approximation of the number of rays that were traced for a given frame.
@@ -698,6 +701,10 @@ namespace UnityEngine.Rendering.HighDefinition
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
 
 #if UNITY_EDITOR
+            // HDRP always enable baking of cookie by default
+            m_PreviousDisableCookieForLightBaking = UnityEditor.EditorSettings.disableCookiesInLightmapper;
+            UnityEditor.EditorSettings.disableCookiesInLightmapper = false;
+
             SceneViewDrawMode.SetupDrawMode();
 
             if (UnityEditor.PlayerSettings.colorSpace == ColorSpace.Gamma)
@@ -788,6 +795,10 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.useScriptableRenderPipelineBatching = false;
 
             Lightmapping.ResetDelegate();
+
+#if UNITY_EDITOR
+            UnityEditor.EditorSettings.disableCookiesInLightmapper = m_PreviousDisableCookieForLightBaking;
+#endif
         }
 
         void InitializeDebugMaterials()
@@ -962,6 +973,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ConstantBuffer.ReleaseAll();
 
             CameraCaptureBridge.enabled = false;
+
+            HDUtils.ReleaseComponentSingletons();
         }
 
 
@@ -1174,6 +1187,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Indices of render request to render before this one
             public List<int> dependsOnRenderRequestIndices;
             public CameraSettings cameraSettings;
+            public List<(HDProbe.RenderData, HDProbe)> viewDependentProbesData;
         }
         struct HDCullingResults
         {
@@ -1393,7 +1407,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         },
                         dependsOnRenderRequestIndices = ListPool<int>.Get(),
                         index = renderRequests.Count,
-                        cameraSettings = CameraSettings.From(hdCamera)
+                        cameraSettings = CameraSettings.From(hdCamera),
+                        viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
                         // TODO: store DecalCullResult
                     };
                     renderRequests.Add(request);
@@ -1477,6 +1492,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             parentCamera = visibleInRenderRequest.hdCamera.camera;
 
+                            var renderDatas = ListPool<HDProbe.RenderData>.Get();
+
                             AddHDProbeRenderRequests(
                                 visibleProbe,
                                 viewerTransform,
@@ -1484,8 +1501,16 @@ namespace UnityEngine.Rendering.HighDefinition
                                 HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
                                 parentCamera,
                                 visibleInRenderRequest.hdCamera.camera.fieldOfView,
-                                visibleInRenderRequest.hdCamera.camera.aspect
+                                visibleInRenderRequest.hdCamera.camera.aspect,
+                                ref renderDatas
                             );
+
+                            foreach (var renderData in renderDatas)
+                            {
+                                visibleInRenderRequest.viewDependentProbesData.Add((renderData, visibleProbe));
+                            }
+
+                            ListPool<HDProbe.RenderData>.Release(renderDatas);
                         }
                     }
                     else
@@ -1500,7 +1525,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                 visibleInOneViewer = true;
                         }
                         if (visibleInOneViewer)
-                            AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, parentCamera);
+                        {
+                            var renderDatas = ListPool<HDProbe.RenderData>.Get();
+                            AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, parentCamera, referenceFieldOfView: 90, referenceAspect: 1, ref renderDatas);
+                            ListPool<HDProbe.RenderData>.Release(renderDatas);
+                        }
                     }
                 }
                 foreach (var pair in renderRequestIndicesWhereTheProbeIsVisible)
@@ -1514,8 +1543,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     List<(int index, float weight)> visibilities,
                     ulong overrideSceneCullingMask,
                     Camera parentCamera,
-                    float referenceFieldOfView = 90,
-                    float referenceAspect = 1
+                    float referenceFieldOfView,
+                    float referenceAspect,
+                    ref List<HDProbe.RenderData> renderDatas
                 )
                 {
                     var position = ProbeCapturePositionSettings.ComputeFrom(
@@ -1614,16 +1644,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (!visibleProbe.realtimeTexture.IsCreated())
                             visibleProbe.realtimeTexture.Create();
 
-                        visibleProbe.SetRenderData(
-                            ProbeSettings.Mode.Realtime,
-                            new HDProbe.RenderData(
+                        var renderData = new HDProbe.RenderData(
                                 camera.worldToCameraMatrix,
                                 camera.projectionMatrix,
                                 camera.transform.position,
                                 camera.transform.rotation,
                                 cameraSettings[j].frustum.fieldOfView,
                                 cameraSettings[j].frustum.aspect
-                            )
+                            );
+
+                        renderDatas.Add(renderData);
+
+                        visibleProbe.SetRenderData(
+                            ProbeSettings.Mode.Realtime,
+                            renderData
                         );
 
                         // TODO: Assign the actual final target to render to.
@@ -1640,7 +1674,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             clearCameraSettings = true,
                             dependsOnRenderRequestIndices = ListPool<int>.Get(),
                             index = renderRequests.Count,
-                            cameraSettings = cameraSettings[j]
+                            cameraSettings = cameraSettings[j],
+                            viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
                             // TODO: store DecalCullResult
                         };
 
@@ -1763,6 +1798,15 @@ namespace UnityEngine.Rendering.HighDefinition
                                 target.id = m_TemporaryTargetForCubemaps;
                             }
 
+                            // The HDProbe store only one RenderData per probe, however RenderData can be view dependent (e.g. planar probes).
+                            // To avoid that the render data for the wrong view is used, we previously store a copy of the render data
+                            // for each viewer and we are going to set it on the probe right before said viewer is rendered. 
+                            foreach (var probeDataPair in renderRequest.viewDependentProbesData)
+                            {
+                                var probe = probeDataPair.Item2;
+                                var probeRenderData = probeDataPair.Item1;
+                                probe.SetRenderData(ProbeSettings.Mode.Realtime, probeRenderData);
+                            }
 
                             // var aovRequestIndex = 0;
                             foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
@@ -1802,6 +1846,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     renderRequest.hdCamera.camera.targetTexture = null;
 
                                 ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
+                                ListPool<(HDProbe.RenderData, HDProbe)>.Release(renderRequest.viewDependentProbesData);
 
                                 // Culling results can be shared between render requests: clear only when required
                                 if (!skipClearCullingResults.Contains(renderRequest.index))
@@ -3134,6 +3179,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // We still bind black textures to make sure that something is bound (can be a problem on some platforms)
                 m_DbufferManager.BindBlackTextures(cmd);
+                
+                // Bind buffer to make sure that something is bound .
+                cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_DbufferManager.propertyMaskBuffer);
+
                 return;
             }
 

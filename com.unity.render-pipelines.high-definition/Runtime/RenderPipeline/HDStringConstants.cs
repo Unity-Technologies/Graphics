@@ -567,6 +567,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Deferred Lighting
         public static readonly int _RaytracingLitBufferRW           = Shader.PropertyToID("_RaytracingLitBufferRW");
         public static readonly int _RaytracingDiffuseRay            = Shader.PropertyToID("_RaytracingDiffuseRay");
+        public static readonly int _RayTracingDiffuseLightingOnly   = Shader.PropertyToID("_RayTracingDiffuseLightingOnly");
 
         // Ray binning
         public static readonly int _RayBinResult                    = Shader.PropertyToID("_RayBinResult");
@@ -597,6 +598,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ExposureParams                 = Shader.PropertyToID("_ExposureParams");
         public static readonly int _AdaptationParams               = Shader.PropertyToID("_AdaptationParams");
         public static readonly int _ExposureCurveTexture           = Shader.PropertyToID("_ExposureCurveTexture");
+        public static readonly int _ExposureWeightMask             = Shader.PropertyToID("_ExposureWeightMask");
         public static readonly int _Variants                       = Shader.PropertyToID("_Variants");
         public static readonly int _InputTexture                   = Shader.PropertyToID("_InputTexture");
         public static readonly int _OutputTexture                  = Shader.PropertyToID("_OutputTexture");
