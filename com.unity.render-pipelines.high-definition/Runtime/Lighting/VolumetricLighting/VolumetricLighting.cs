@@ -58,11 +58,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _AmbientProbeCoeffs[7 * 4];  // 3 bands of SH, packed, rescaled and convolved with the phase function
 
         public float _VBufferVoxelSize;
+        public float _HaveToPad;
+        public float _OtherwiseTheBuffer;
+        public float _IsFilledWithGarbage;
         public Vector4 _VBufferPrevViewportSize;
         public Vector4 _VBufferHistoryViewportScale;
         public Vector4 _VBufferHistoryViewportLimit;
-        public Vector4 _VBufferPrevDepthEncodingParams;
-        public Vector4 _VBufferPrevDepthDecodingParams;
+        public Vector4 _VBufferPrevDistanceEncodingParams;
+        public Vector4 _VBufferPrevDistanceDecodingParams;
 
         // TODO: Remove if equals to the ones in global CB?
         public uint _NumTileBigTileX;
@@ -743,8 +746,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._VBufferPrevViewportSize = new Vector4(pvp.x, pvp.y, 1.0f / pvp.x, 1.0f / pvp.y);
             cb._VBufferHistoryViewportScale = prevParams.ComputeViewportScale(historyBufferSize);
             cb._VBufferHistoryViewportLimit = prevParams.ComputeViewportLimit(historyBufferSize);
-            cb._VBufferPrevDepthEncodingParams = prevParams.depthEncodingParams;
-            cb._VBufferPrevDepthDecodingParams = prevParams.depthDecodingParams;
+            cb._VBufferPrevDistanceEncodingParams = prevParams.depthEncodingParams;
+            cb._VBufferPrevDistanceDecodingParams = prevParams.depthDecodingParams;
             cb._NumTileBigTileX = (uint)GetNumTileBigTileX(hdCamera);
             cb._NumTileBigTileY = (uint)GetNumTileBigTileY(hdCamera);
         }

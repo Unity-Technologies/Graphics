@@ -548,8 +548,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                            _VBufferPrevViewportSize,
                                            _VBufferHistoryViewportScale,
                                            _VBufferHistoryViewportLimit,
-                                           _VBufferPrevDepthEncodingParams,
-                                           _VBufferPrevDepthDecodingParams,
+                                           _VBufferPrevDistanceEncodingParams,
+                                           _VBufferPrevDistanceDecodingParams,
                                            false, true) * float4(GetInversePreviousExposureMultiplier().xxx, 1);
 
         bool reprojSuccess = (_VBufferHistoryIsValid != 0) && (reprojValue.a != 0);
