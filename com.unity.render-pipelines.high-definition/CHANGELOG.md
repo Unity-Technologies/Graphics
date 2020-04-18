@@ -661,6 +661,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Raytracing: Removed the dynamic lightmap multicompile.
 - Raytracing: Remove the LOD cross fade multi compile for ray tracing.
 - Cookie are now supported in lightmaper. All lights casting cookie and baked will now include cookie influence.
+- Avoid building the mip chain a second time for SSR for transparent objects.
 
 ## [7.1.1] - 2019-09-05
 
