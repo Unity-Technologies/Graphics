@@ -279,10 +279,10 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         {
             float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
                                          posInput.positionNDC,
-                                         fogFragDist,
+                                         fogFragDist,   
                                          _VBufferViewportSize,
-                                         _VBufferLightingViewportScale,
-                                         _VBufferLightingViewportLimit,
+                                         _VBufferLightingViewportScale.xyz,
+                                         _VBufferLightingViewportLimit.xyz,
                                          _VBufferDistanceEncodingParams,
                                          _VBufferDistanceDecodingParams,
                                          true, false);
