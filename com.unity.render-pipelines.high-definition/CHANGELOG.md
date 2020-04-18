@@ -68,6 +68,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
+- Cookie are now supported in lightmaper. All lights casting cookie and baked will now include cookie influence.
 
 ## [7.3.0] - 2020-03-11
 
