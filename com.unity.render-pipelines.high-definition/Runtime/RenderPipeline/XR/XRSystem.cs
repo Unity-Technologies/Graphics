@@ -73,7 +73,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
         {
+        	if (GraphicsSettings.currentRenderPipeline == null)
+                return;
+
+        #if UNITY_2020_2_OR_NEWER
+            SubsystemManager.GetSubsystems(displayList);
+        #else
             SubsystemManager.GetInstances(displayList);
+        #endif
 
             for (int i = 0; i < displayList.Count; i++)
             {
@@ -123,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 // Enable XR layout only for gameview camera
-                bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
+                bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null && HDUtils.TryGetAdditionalCameraDataOrDefault(camera).xrRendering;
 
                 if (customLayout != null && customLayout(new XRLayout() { camera = camera, xrSystem = this }))
                 {
@@ -161,7 +168,12 @@ namespace UnityEngine.Rendering.HighDefinition
         bool RefreshXrSdk()
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
+
+        #if UNITY_2020_2_OR_NEWER
+            SubsystemManager.GetSubsystems(displayList);
+        #else
             SubsystemManager.GetInstances(displayList);
+        #endif
 
             if (displayList.Count > 0)
             {

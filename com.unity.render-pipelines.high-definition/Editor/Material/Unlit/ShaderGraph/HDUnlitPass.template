@@ -153,6 +153,11 @@ Pass
         ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
         builtinData.opacity = surfaceDescription.Alpha;
 
+        #ifdef _ALPHATEST_ON
+            // Used for sharpening by alpha to mask
+            $DoAlphaTest: builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThreshold;
+        #endif
+
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
         #if (SHADERPASS == SHADERPASS_DISTORTION)

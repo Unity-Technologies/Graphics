@@ -94,6 +94,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an alpha blend option for recursive rendering
 - Added support for stack lit for ray tracing effects.
 - Added support for hair for ray tracing effects.
+- Added support for alpha to coverage for HDRP shaders and shader graph
+- Added support for Quality Levels to Subsurface Scattering.
+- Added option to disable XR rendering on the camera settings.
+- Added support for specular AA from geometric curvature in AxF
+- Added support for baked AO (no input for now) in AxF
+- Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
+- Added a frame setting for alpha to mask.
+- Added support for custom passes in the AOV API
+- Added Light decomposition lighting debugging modes and support in AOV
+- Added exposure compensation to Fixed exposure mode
+- Added support for rasterized area light shadows in StackLit
+- Added support for texture-weighted automatic exposure
+- Added support for POM for emissive map
+- Added alpha channel support in motion blur pass.
+- Added the HDRP Compositor Tool (in Preview).
+- Added a ray tracing mode option in the HDRP asset that allows to override and shader stripping.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -493,6 +509,43 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Half fixed shuriken particle light that cast shadows (only the first one will be correct)
 - Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
 - Fixed custom pass GC alloc issue in CustomPassVolume.GetActiveVolumes().
+- Fixed a bug where instanced shadergraph shaders wouldn't compile on PS4.
+- Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
+- Fixed shadow cascade tooltip when using the metric mode (case 1229232)
+- Fixed how the area light influence volume is computed to match rasterization.
+- Focus on Decal uses the extends of the projectors
+- Fixed usage of light size data that are not available at runtime.
+- Fixed the depth buffer copy made before custom pass after opaque and normal injection point.
+- Fix for issue that prevented scene from being completely saved when baked reflection probes are present and lighting is set to auto generate.
+- Fixed drag area width at left of Light's intensity field in Inspector.
+- Fixed light type resolution when performing a reset on HDAdditionalLightData (case 1220931)
+- Fixed reliance on atan2 undefined behavior in motion vector debug shader.
+- Fixed an usage of a a compute buffer not bound (1229964)
+- Fixed an issue where changing the default volume profile from another inspector would not update the default volume editor.
+- Fix issues in the post process system with RenderTexture being invalid in some cases, causing rendering problems.
+- Fixed an issue where unncessarily serialized members in StaticLightingSky component would change each time the scene is changed.
+- Fixed a weird behavior in the scalable settings drawing when the space becomes tiny (1212045).
+- Fixed a regression in the ray traced indirect diffuse due to the new probe system.
+- Fix for range compression factor for probes going negative (now clamped to positive values).
+- Fixed path validation when creating new volume profile (case 1229933)
+- Fix reflection hierarchy for CARPAINT in AxF.
+- Fix precise fresnel for delta lights for SVBRDF in AxF.
+- Fixed the debug exposure mode for display sky reflection and debug view baked lighting
+- Fixed MSAA depth resolve when there is no motion vectors
+- Fixed various object leaks in HDRP.
+- Fixed compile error with XR SubsystemManager.
+- Fix for assertion triggering sometimes when saving a newly created lit shader graph (case 1230996)
+- Fixed culling of planar reflection probes that change position (case 1218651)
+- Fixed null reference when processing lightprobe (case 1235285)
+- Fix issue causing wrong planar reflection rendering when more than one camera is present.
+- Fix black screen in XR when HDRP package is present but not used.
+- Fixed an issue with the specularFGD term being used when the material has a clear coat (lit shader).
+- Fixed white flash happening with auto-exposure in some cases (case 1223774)
+- Fixed NaN which can appear with real time reflection and inf value
+- Fixed an issue that was collapsing the volume components in the HDRP default settings
+- Fixed warning about missing bound decal buffer
+- Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
+- Fixed PBR shader ZTest rendering in deferred.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -598,6 +651,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed a few resources used by ray tracing shaders to be global resources (using register space1) for improved CPU performance.
 - All custom pass volumes are now executed for one injection point instead of the first one.
 - Hidden unsupported choice in emission in Materials
+- Temporal Anti aliasing improvements.
+- Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
+- Moved scene view camera settings for HDRP from the preferences window to the scene view camera settings window.
+- Updated shaders to be compatible with Microsoft's DXC.
+- Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
+- Further optimized PrepareLightsForGPU (3x faster with few shadows, 1.4x faster with a lot of shadows or equivalently cost reduced by 68% to 37%).
+- Raytracing: Replaced the DIFFUSE_LIGHTING_ONLY multicompile by a uniform.
+- Raytracing: Removed the dynamic lightmap multicompile.
+- Raytracing: Remove the LOD cross fade multi compile for ray tracing.
+- Cookie are now supported in lightmaper. All lights casting cookie and baked will now include cookie influence.
 - Avoid building the mip chain a second time for SSR for transparent objects.
 
 ## [7.1.1] - 2019-09-05
@@ -618,6 +681,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added override Ambient Occlusion option on debug windows
 - Added Custom Post Processes with 3 injection points: Before Transparent, Before Post Process and After Post Process
 - Added draft of minimal interactive path tracing (experimental) based on DXR API - Support only 4 area light, lit and unlit shader (non-shadergraph)
+- Small adjustments to TAA anti flicker (more aggressive on high values).
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation
