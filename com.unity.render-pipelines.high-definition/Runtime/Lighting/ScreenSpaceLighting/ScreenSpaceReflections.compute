@@ -42,8 +42,16 @@
     RW_TEXTURE2D(float4, _SsrDebugTexture);
 #endif
 
-// Given that for transparent objects we do not trace in a depth buffer that contains them 
-// we need a seperate texture for the mip chain and for the depth source
+// For opaque we do the following operation:
+// - Render opaque object in depth buffer
+// - Generate depth pyramid from opaque depth buffer
+// - Trigger ray from position recover from depth pyramid and raymarch with depth pyramid
+// For transparent reflection we chose to not regenerate a depth pyramid to save performance. So we have
+// - Generate depth pyramid from opaque depth buffer
+// - Trigger ray from position recover from depth buffer (use depth pyramid) and raymarch with depth pyramid
+// - Render transparent object with reflection in depth buffer in transparent prepass
+// - Trigger ray from position recover from new depth buffer and raymarch with opaque depth pyramid
+// So we need a seperate texture for the mip chain and for the depth source when doing the transprent reflection
 #ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
 TEXTURE2D_X(_DepthTexture);
 #endif
