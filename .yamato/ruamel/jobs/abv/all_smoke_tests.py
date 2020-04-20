@@ -2,27 +2,26 @@ from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import *
 from ..utils.yml_job import YMLJob
 
-
-def get_job_definition(editor, test_platforms):
-
-    # define dependencies
-    dependencies = []
-    for test_platform in test_platforms:
-        dependencies.append({
-            'path': f'{abv_filepath()}#{abv_job_id_smoke_test(editor["version"],test_platform["name"])}',
-            'rerun': 'on-new-revision'
-        })
-
-    # construct job
-    job = YMLJob()
-    job.set_name(f'All Smoke Tests - {editor["version"]}')
-    job.add_dependencies(dependencies)
-    job.add_var_custom_revision(editor["version"])
-    return job
-
-
 class ABV_AllSmokeTestsJob():
     
     def __init__(self, editor, test_platforms):
         self.job_id = abv_job_id_all_smoke_tests(editor["version"])
-        self.yml = get_job_definition(editor, test_platforms).yml
+        self.yml = self.get_job_definition(editor, test_platforms).yml
+
+
+    def get_job_definition(self,editor, test_platforms):
+
+        # define dependencies
+        dependencies = []
+        for test_platform in test_platforms:
+            dependencies.append({
+                'path': f'{abv_filepath()}#{abv_job_id_smoke_test(editor["version"],test_platform["name"])}',
+                'rerun': 'on-new-revision'
+            })
+
+        # construct job
+        job = YMLJob()
+        job.set_name(f'All Smoke Tests - {editor["version"]}')
+        job.add_dependencies(dependencies)
+        job.add_var_custom_revision(editor["version"])
+        return job

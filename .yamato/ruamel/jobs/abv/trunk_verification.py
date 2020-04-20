@@ -2,35 +2,35 @@ from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import *
 from ..utils.yml_job import YMLJob
 
-def get_job_definition(editor, projects, test_platforms):  # only run for 2020.1 and trunk
-    
-    # define dependencies
-    dependencies = []
-    for project in projects:
-        if project["name"] in ['HDRP_Standalone', 'Universal_Stereo','ShaderGraph_Stereo']:
-            continue
-        for test_platform in test_platforms:
-            if test_platform["name"] == 'Standalone':
-                continue
-            elif test_platform["name"] == 'editmode' and project["name"] == 'VFX_LWRP':
-                continue
-            else:
-                dependencies.append({
-                    'path' : f'{project_filepath_specific(project["name"], "Win", "DX11")}#{project_job_id_test(project["name"], "Win", "DX11", test_platform["name"], editor["version"])}',
-                    'rerun': 'always'
-                })
-    
-
-    # construct job
-    job = YMLJob()
-    job.set_name(f'Trunk verification - {editor["version"]}')
-    job.add_dependencies(dependencies)
-    job.add_var_custom_revision(editor["version"])
-    return job
-
-
 class ABV_TrunkVerificationJob():
     
     def __init__(self, editor, projects, test_platforms):
         self.job_id = abv_job_id_trunk_verification(editor["version"])
-        self.yml = get_job_definition(editor, projects, test_platforms).yml
+        self.yml = self.get_job_definition(editor, projects, test_platforms).yml
+
+    
+    def get_job_definition(self, editor, projects, test_platforms):  # only run for 2020.1 and trunk
+        
+        # define dependencies
+        dependencies = []
+        for project in projects:
+            if project["name"] in ['HDRP_Standalone', 'Universal_Stereo','ShaderGraph_Stereo']:
+                continue
+            for test_platform in test_platforms:
+                if test_platform["name"] == 'Standalone':
+                    continue
+                elif test_platform["name"] == 'editmode' and project["name"] == 'VFX_LWRP':
+                    continue
+                else:
+                    dependencies.append({
+                        'path' : f'{project_filepath_specific(project["name"], "Win", "DX11")}#{project_job_id_test(project["name"], "Win", "DX11", test_platform["name"], editor["version"])}',
+                        'rerun': 'always'
+                    })
+        
+
+        # construct job
+        job = YMLJob()
+        job.set_name(f'Trunk verification - {editor["version"]}')
+        job.add_dependencies(dependencies)
+        job.add_var_custom_revision(editor["version"])
+        return job
