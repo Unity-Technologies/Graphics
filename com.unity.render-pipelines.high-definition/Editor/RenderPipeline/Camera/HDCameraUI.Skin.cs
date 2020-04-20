@@ -45,7 +45,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent curvatureContent = EditorGUIUtility.TrTextContent("Curvature");
         static readonly GUIContent barrelClippingContent = EditorGUIUtility.TrTextContent("Barrel Clipping");
         static readonly GUIContent anamorphismContent = EditorGUIUtility.TrTextContent("Anamorphism");
-        static readonly GUIContent focusDistanceContent = EditorGUIUtility.TrTextContent("Focus Distance", "Sets the distance to the focus point from the Camera.");
 
         static readonly GUIContent antialiasingContent = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
         static readonly GUIContent SMAAQualityPresetContent = EditorGUIUtility.TrTextContent("SMAA Quality Preset", "The quality preset for SMAA, low has the best performance but worst quality, High has the highest quality but worst performance.");

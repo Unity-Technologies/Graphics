@@ -18,7 +18,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty curvature;
         public SerializedProperty barrelClipping;
         public SerializedProperty anamorphism;
-        public SerializedProperty focusDistance;
 
         public SerializedProperty antialiasing;
         public SerializedProperty SMAAQuality;
@@ -71,7 +70,6 @@ namespace UnityEditor.Rendering.HighDefinition
             curvature = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Curvature");
             barrelClipping = serializedAdditionalDataObject.FindProperty("physicalParameters.m_BarrelClipping");
             anamorphism = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Anamorphism");
-            focusDistance = serializedAdditionalDataObject.FindProperty("physicalParameters.m_FocusDistance");
 
             antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);

@@ -17,7 +17,6 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_MinDepth;
         SerializedDataParameter m_MaxDepth;
         SerializedDataParameter m_MaxIntensity;
-        SerializedDataParameter m_EnableDepthOfField;
 
         public override void OnEnable()
         {
@@ -29,7 +28,6 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MinDepth = Unpack(o.Find(x => x.minimumDepth));
             m_MaxDepth = Unpack(o.Find(x => x.maximumDepth));
             m_MaxIntensity = Unpack(o.Find(x => x.maximumIntensity));
-            m_EnableDepthOfField = Unpack(o.Find(x => x.enableDepthOfField));
         }
 
         public override void OnInspectorGUI()
@@ -55,7 +53,6 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                     PropertyField(m_MinDepth);
                     PropertyField(m_MaxDepth);
                     PropertyField(m_MaxIntensity);
-                    PropertyField(m_EnableDepthOfField);
                     EditorGUI.indentLevel--;
 
                     // Make sure MaxDepth is always greater or equal than MinDepth

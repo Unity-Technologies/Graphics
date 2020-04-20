@@ -48,12 +48,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Defines the maximum intensity value computed for a path segment.")]
         public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
-
-        /// <summary>
-        /// Defines the maximum intensity value computed for a path segment.
-        /// </summary>
-        [Tooltip("Enables path-traced defocus blur / depth of field.")]
-        public BoolParameter enableDepthOfField = new BoolParameter(false);
     }
 
     public partial class HDRenderPipeline
@@ -107,7 +101,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // focalLength is in mm, so we need to convert to meters. We also want the aperture radius, not diameter, so we divide by two.
             float apertureRadius = 0.5f * 0.001f * hdCamera.camera.focalLength / hdCamera.physicalParameters.aperture;
 
-            return new Vector4(settings.enableDepthOfField.value ? apertureRadius : 0.0f, hdCamera.physicalParameters.focusDistance, 0.0f, 0.0f) ;
+            var dofSettings = hdCamera.volumeStack.GetComponent<DepthOfField>();
+            bool enableDof = (dofSettings.focusMode.value == DepthOfFieldMode.UsePhysicalCamera);
+
+            return new Vector4(enableDof ? apertureRadius : 0.0f, dofSettings.focusDistance.value, 0.0f, 0.0f);
         }
 
 #if UNITY_EDITOR
