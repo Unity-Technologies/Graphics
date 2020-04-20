@@ -9,15 +9,15 @@
 // This means storing tone mapped radiance and transmittance instead of optical depth.
 // See "A Fresh Look at Generalized Sampling", p. 51.
 //
-// if (clampToBorder), samples outside of the buffer return 0 (we perform a smooth fade).
+// if (clampToBorder), samples outside of the buffer return 0 (border color).
 // Otherwise, the sampler simply clamps the texture coordinate to the edge of the texture.
 // Warning: clamping to border may not work as expected with the quadratic filter due to its extent.
 float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float2 positionNDC,
                      float  linearDistance,
                      float4 VBufferViewportSize,
-                     float2 VBufferUvScale,
-                     float2 VBufferUvLimit,
+                     float3 VBufferViewportScale,
+                     float3 VBufferViewportLimit,
                      float4 VBufferDistanceEncodingParams,
                      float4 VBufferDistanceDecodingParams,
                      bool   quadraticFilterXY,
@@ -27,17 +27,19 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
     float2 uv = positionNDC;
     float  w  = EncodeLogarithmicDepthGeneralized(linearDistance, VBufferDistanceEncodingParams);
 
-    bool coordIsInsideFrustum = true;
+    bool coordIsInsideFrustum;
 
     if (clampToBorder)
     {
-        // Coordinates are always clamped to edge. We just introduce a clipping operation.
+        // Coordinates are always clamped to the edge. We just introduce a clipping operation.
         float3 positionCS = float3(uv, w) * 2 - 1;
 
         coordIsInsideFrustum = Max3(abs(positionCS.x), abs(positionCS.y), abs(positionCS.z)) < 1;
     }
-
-    float4 result = 0;
+    else
+    {
+        coordIsInsideFrustum = true; // No clipping, only clamping
+    }
 
     #if defined(UNITY_STEREO_INSTANCING_ENABLED)
         // With XR single-pass, one 3D buffer is used to store all views (split along w)
@@ -51,6 +53,8 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
         w = clamp(w, lowerSliceRange + limitSliceRange, upperSliceRange - limitSliceRange);
     #endif
 
+    float4 result = 0;
+
     if (coordIsInsideFrustum)
     {
         if (quadraticFilterXY)
@@ -62,21 +66,30 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
             float2 weights[2], offsets[2];
             BiquadraticFilter(1 - fc, weights, offsets); // Inverse-translate the filter centered around 0.5
 
-            const float2 ssToUv = VBufferViewportSize.zw * VBufferUvScale;
+            // Don't want to pass another shader parameter...
+            const float2 rcpBufDim = VBufferViewportScale.xy * VBufferViewportSize.zw; // (vp_dim / buf_dim) * (1 / vp_dim)
 
-            // The sampler clamps to edge. This takes care of 4 frustum faces out of 6.
-            // Due to the RTHandle scaling system, we must take care of the other 2 manually.
+            // And these are the texture coordinates.
+            // TODO: will the compiler eliminate redundant computations?
+            float2 texUv0 = (ic + float2(offsets[0].x, offsets[0].y)) * rcpBufDim; // Top left
+            float2 texUv1 = (ic + float2(offsets[1].x, offsets[0].y)) * rcpBufDim; // Top right
+            float2 texUv2 = (ic + float2(offsets[0].x, offsets[1].y)) * rcpBufDim; // Bottom left
+            float2 texUv3 = (ic + float2(offsets[1].x, offsets[1].y)) * rcpBufDim; // Bottom right
+            float  texW   = w * VBufferViewportScale.z;
+
+            // The sampler clamps to the edge (so UVWs < 0 are OK).
             // TODO: perform per-sample (4, in this case) bilateral filtering, rather than per-pixel. This should reduce leaking.
-            result = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[0].y)) * ssToUv, VBufferUvLimit), w), 0)  // Top left
-                   + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[0].y)) * ssToUv, VBufferUvLimit), w), 0)  // Top right
-                   + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[1].y)) * ssToUv, VBufferUvLimit), w), 0)  // Bottom left
-                   + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[1].y)) * ssToUv, VBufferUvLimit), w), 0); // Bottom right
+            result = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, min(float3(texUv0, texW), VBufferViewportLimit), 0)
+                   + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, min(float3(texUv1, texW), VBufferViewportLimit), 0)
+                   + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, min(float3(texUv2, texW), VBufferViewportLimit), 0)
+                   + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, min(float3(texUv3, texW), VBufferViewportLimit), 0);
         }
         else
         {
-            // The sampler clamps to edge. This takes care of 4 frustum faces out of 6.
-            // Due to the RTHandle scaling system, we must take care of the other 2 manually.
-            result = SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(uv * VBufferUvScale, VBufferUvLimit), w), 0);
+            // And these are the texture coordinates.
+            float3 texUVW = float3(uv, w) * VBufferViewportScale;
+            // The sampler clamps to the edge (so UVWs < 0 are OK).
+            result = SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, min(texUVW, VBufferViewportLimit), 0);
         }
     }
 
@@ -88,22 +101,22 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float3   cameraPositionWS,
                      float4x4 viewProjMatrix,
                      float4   VBufferViewportSize,
-                     float2   VBufferUvScale,
-                     float2   VBufferUvLimit,
+                     float3   VBufferViewportScale,
+                     float3   VBufferViewportLimit,
                      float4   VBufferDistanceEncodingParams,
                      float4   VBufferDistanceDecodingParams,
                      bool     quadraticFilterXY,
                      bool     clampToBorder)
 {
-    float2 positionNDC = ComputeNormalizedDeviceCoordinates(positionWS, viewProjMatrix);
+    float2 positionNDC    = ComputeNormalizedDeviceCoordinates(positionWS, viewProjMatrix);
     float  linearDistance = distance(positionWS, cameraPositionWS);
 
     return SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                          positionNDC,
                          linearDistance,
                          VBufferViewportSize,
-                         VBufferUvScale,
-                         VBufferUvLimit,
+                         VBufferViewportScale,
+                         VBufferViewportLimit,
                          VBufferDistanceEncodingParams,
                          VBufferDistanceDecodingParams,
                          quadraticFilterXY,
