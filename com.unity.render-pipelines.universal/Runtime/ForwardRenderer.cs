@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled && m_XROcclusionMeshPass != null)
+            if (cameraData.xr.hasValidOcclusionMesh)
             {
                 m_XROcclusionMeshPass.Setup(m_ActiveCameraDepthAttachment);
                 EnqueuePass(m_XROcclusionMeshPass);

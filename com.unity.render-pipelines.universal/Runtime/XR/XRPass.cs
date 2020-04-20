@@ -97,6 +97,22 @@ namespace UnityEngine.Rendering.Universal
 
         // Occlusion mesh rendering
         Material occlusionMeshMaterial = null;
+        internal bool hasValidOcclusionMesh
+        {
+            get
+            {
+                if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
+                {
+                    for (int viewId = 0; viewId < viewCount; ++viewId)
+                    {
+                        if (views[viewId].occlusionMesh != null)
+                            return true;
+                    }
+                }
+
+                return false;
+            }
+        }
 
         // Ability to override mirror view behavior for each pass
         internal delegate void CustomMirrorView(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport);
