@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
                 passData.shadowGlobalParameters = PrepareShadowGlobalParameters(hdCamera);
-                passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera);
+                passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera, m_TileAndClusterData);
                 passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, buildForProbeVolumes: false);
                 // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
                 passData.buildGPULightListResources = PrepareBuildGPULightListResources(m_TileAndClusterData, null, null, isGBufferNeeded: true);
