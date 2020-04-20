@@ -1,5 +1,5 @@
 project:
-  name: HDRP_DXR #TODO no editmode, check if linux should be included
+  name: HDRP_DXR
   folder: HDRP_DXR_Tests
 editors:
   - version: 2020.1

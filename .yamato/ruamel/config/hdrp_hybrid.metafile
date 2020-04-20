@@ -1,6 +1,6 @@
 project:
-  name: HDRP 
-  folder: HDRP_Tests
+  name: HDRP_Hybrid
+  folder: HDRP_HybridTests
 editors:
   - version: 2020.1
     rerun_strategy: on-new-revision
@@ -44,7 +44,7 @@ platforms:
     components:
       - editor
       - il2cpp
-  - name: OSX #TODO metal doesnt have editmode
+  - name: OSX #TODO metal doesnt have editmode. for hybrid also exclude standalone
     os: macos
     apis:
       - name: Metal
@@ -79,6 +79,6 @@ all:
     - platform_name: Win
       api_name: DX11
       test_platform_names:
-        - editmode
         - playmode
         - playmode XR
+        - Standalone

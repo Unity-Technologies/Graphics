@@ -1,6 +1,6 @@
 project:
-  name: HDRP 
-  folder: HDRP_Tests
+  name: Universal_Hybrid
+  folder: UniversalHybridTest
 editors:
   - version: 2020.1
     rerun_strategy: on-new-revision
@@ -13,10 +13,10 @@ editors:
   # - version: CUSTOM-REVISION
   #   rerun_strategy: always
 test_platforms:
+  - name: Standalone
+    args: --suite=playmode --platform=Standalone
   - name: playmode
     args: --suite=playmode
-  - name: playmode XR
-    args: --suite=playmode --extra-editor-arg="-xr-tests"
   - name: editmode
     args: --suite=editor --platform=editmode
 platforms:
@@ -25,15 +25,13 @@ platforms:
     apis:
       - name: DX11
         cmd: -force-d3d11
-      - name: DX12
-        cmd: -force-d3d12
       - name: Vulkan
         cmd: -force-vulkan
     agent_default:
       type: Unity::VM::GPU
       image: sdet/gamecode_win10:stable
       flavor: b1.large
-    agent_standalone_build: #TODO remove
+    agent_standalone_build:
       type: Unity::VM
       image: sdet/gamecode_win10:stable
       flavor: b1.xlarge
@@ -44,7 +42,7 @@ platforms:
     components:
       - editor
       - il2cpp
-  - name: OSX #TODO metal doesnt have editmode
+  - name: OSX
     os: macos
     apis:
       - name: Metal
@@ -56,6 +54,18 @@ platforms:
     components:
       - editor
       - il2cpp
+#  - name: OSX
+#    os: macos
+#    apis:
+#      - name: OpenGLCore
+#        cmd:
+#    agent_default:
+#      type: Unity::VM::osx
+#      image: buildfarm/mac:stable
+#      flavor: m1.mac
+#    components:
+#      - editor
+#      - il2cpp 
   - name: Linux
     os: linux
     apis: 
@@ -74,11 +84,33 @@ platforms:
     components:
       - editor
       - il2cpp
+  - name: Android
+    os: android
+    apis:
+      - name: OpenGLES3
+        cmd:
+      - name: Vulkan
+        cmd: 
+    agent_default:
+      type: Unity::mobile::android
+      image: mobile/android-execution-r19:stable
+      flavor: b1.large
+    agent_standalone_build:
+      type: Unity::VM
+      image: mobile/android-execution-r19:stable
+      flavor: b1.large
+    components:
+      - editor
+      - il2cpp
+      - android
 all:
   dependencies:
     - platform_name: Win
       api_name: DX11
       test_platform_names:
-        - editmode
         - playmode
-        - playmode XR
+    - platform_name: OSX
+      api_name: Metal
+      test_platform_names:
+        - Standalone
+        - playmode 
