@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                               hdCamera,
                                                               prepassOutput.resolvedNormalBuffer,
                                                               prepassOutput.resolvedMotionVectorsBuffer,
+                                                              prepassOutput.depthBuffer,
                                                               prepassOutput.depthPyramidTexture,
                                                               prepassOutput.stencilBuffer,
                                                               clearCoatMask);

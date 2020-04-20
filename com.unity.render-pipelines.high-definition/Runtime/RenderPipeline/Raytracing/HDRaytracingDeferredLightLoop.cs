@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._SkyTexture, buffers.skyTexture);
 
             // Only compute diffuse lighting if required
-            CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", parameters.diffuseLightingOnly);
+            cmd.SetGlobalInt(HDShaderIDs._RayTracingDiffuseLightingOnly, parameters.diffuseLightingOnly ? 1 : 0);
             CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
 
             // All rays are diffuse if we are evaluating diffuse lighting only
@@ -253,9 +253,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingIntParams(parameters.gBufferRaytracingRT, "_RaytracingHalfResolution", parameters.halfResolution ? 1 : 0);
                 cmd.DispatchRays(parameters.gBufferRaytracingRT, m_RayGenGBuffer, widthResolution, heightResolution, (uint)parameters.viewCount);
             }
-
-            // Disable the diffuse lighting only flag
-            CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", false);
 
             // Now let's do the deferred shading pass on the samples
             int currentKernel = parameters.deferredRaytracingCS.FindKernel(parameters.halfResolution ? "RaytracingDeferredHalf" : "RaytracingDeferred");

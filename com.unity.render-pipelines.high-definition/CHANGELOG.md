@@ -105,6 +105,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Light decomposition lighting debugging modes and support in AOV
 - Added exposure compensation to Fixed exposure mode
 - Added support for rasterized area light shadows in StackLit
+- Added support for texture-weighted automatic exposure
+- Added support for POM for emissive map
+- Added alpha channel support in motion blur pass.
+- Added the HDRP Compositor Tool (in Preview).
+- Added a ray tracing mode option in the HDRP asset that allows to override and shader stripping.
+- Added support for arbitrary resolution scaling of Volumetric Lighting to the Fog volume component.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -537,6 +543,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the specularFGD term being used when the material has a clear coat (lit shader).
 - Fixed white flash happening with auto-exposure in some cases (case 1223774)
 - Fixed NaN which can appear with real time reflection and inf value
+- Fixed an issue that was collapsing the volume components in the HDRP default settings
+- Fixed warning about missing bound decal buffer
+- Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
+- Fixed PBR shader ZTest rendering in deferred.
+- Replaced commands incompatible with async compute in light list build process.
+- Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -647,6 +659,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved scene view camera settings for HDRP from the preferences window to the scene view camera settings window.
 - Updated shaders to be compatible with Microsoft's DXC.
 - Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
+- Further optimized PrepareLightsForGPU (3x faster with few shadows, 1.4x faster with a lot of shadows or equivalently cost reduced by 68% to 37%).
+- Raytracing: Replaced the DIFFUSE_LIGHTING_ONLY multicompile by a uniform.
+- Raytracing: Removed the dynamic lightmap multicompile.
+- Raytracing: Remove the LOD cross fade multi compile for ray tracing.
+- Cookie are now supported in lightmaper. All lights casting cookie and baked will now include cookie influence.
+- Avoid building the mip chain a second time for SSR for transparent objects.
+- Replaced "High Quality" Subsurface Scattering with a set of Quality Levels.
+- Replaced "High Quality" Volumetric Lighting with "Screen Resolution Percentage" and "Volume Slice Count" on the Fog volume component.
 
 ## [7.1.1] - 2019-09-05
 
