@@ -58,7 +58,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _HeightFogBaseHeight;
     float _GlobalFogAnisotropy;
     float4 _VBufferViewportSize;
-    float4 _VBufferSharedUvScaleAndLimit;
+    float4 _VBufferLightingViewportScale;
+    float4 _VBufferLightingViewportLimit;
     float4 _VBufferDistanceEncodingParams;
     float4 _VBufferDistanceDecodingParams;
     uint _VBufferSliceCount;

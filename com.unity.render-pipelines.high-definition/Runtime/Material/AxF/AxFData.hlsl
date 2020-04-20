@@ -113,7 +113,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Create mirrored UVs to hide flakes tiling
     surfaceData.flakesUV = _CarPaint2_FlakeTiling * UV0;
 
-    surfaceData.flakesMipLevel = _CarPaint2_BTFFlakeMap.CalculateLevelOfDetail(sampler_CarPaint2_BTFFlakeMap, surfaceData.flakesUV);
+    surfaceData.flakesMipLevel = CALCULATE_TEXTURE2D_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, surfaceData.flakesUV);
 
     // TODO_FLAKES: this isn't really tiling
     if ((int(surfaceData.flakesUV.y) & 1) == 0)
