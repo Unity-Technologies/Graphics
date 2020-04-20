@@ -100,25 +100,39 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for screen space reflection."));
                 PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of reflection rays."));
                 PropertyField(m_ClampValue, EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity."));
-                PropertyField(m_Mode, EditorGUIUtility.TrTextContent("Mode", "Controls which version of the effect should be used."));
 
-                EditorGUI.indentLevel++;
-                switch (m_Mode.value.GetEnumValue<RayTracingMode>())
+                if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
                 {
-                    case RayTracingMode.Performance:
+                    PropertyField(m_Mode, EditorGUIUtility.TrTextContent("Mode", "Controls which version of the effect should be used."));
+                    EditorGUI.indentLevel++;
+                    switch (m_Mode.value.GetEnumValue<RayTracingMode>())
                     {
-                        PropertyField(m_UpscaleRadius, EditorGUIUtility.TrTextContent("Upscale Radius", "Controls the size of the upscale radius."));
-                        PropertyField(m_FullResolution, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
+                        case RayTracingMode.Performance:
+                            {
+                                PropertyField(m_UpscaleRadius, EditorGUIUtility.TrTextContent("Upscale Radius", "Controls the size of the upscale radius."));
+                                PropertyField(m_FullResolution, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
+                            }
+                            break;
+                        case RayTracingMode.Quality:
+                            {
+                                PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for reflections."));
+                                PropertyField(m_BounceCount, EditorGUIUtility.TrTextContent("Bounce Count", "Number of bounces for reflection rays."));
+                            }
+                            break;
                     }
-                    break;
-                    case RayTracingMode.Quality:
-                    {
-                        PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for reflections."));
-                        PropertyField(m_BounceCount, EditorGUIUtility.TrTextContent("Bounce Count", "Number of bounces for reflection rays."));
-                    }
-                    break;
+                    EditorGUI.indentLevel--;
                 }
-                EditorGUI.indentLevel--;
+                else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality)
+                {
+                    PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for reflections."));
+                    PropertyField(m_BounceCount, EditorGUIUtility.TrTextContent("Bounce Count", "Number of bounces for reflection rays."));
+                }
+                else
+                {
+                    PropertyField(m_UpscaleRadius, EditorGUIUtility.TrTextContent("Upscale Radius", "Controls the size of the upscale radius."));
+                    PropertyField(m_FullResolution, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
+                }
+                
                 PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced reflections."));
                 {
                     EditorGUI.indentLevel++;

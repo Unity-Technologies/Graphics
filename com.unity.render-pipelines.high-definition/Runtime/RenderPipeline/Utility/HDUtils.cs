@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
         /// <summary>Default HDAdditionalCameraData</summary>
         static internal HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
-        
+
         static List<CustomPassVolume> m_TempCustomPassVolumeList = new List<CustomPassVolume>();
 
         static Texture3D m_ClearTexture3D;
@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Set the renderPipelineAsset, either on the quality settings if it was unset from there or in GraphicsSettings.
-        // IMPORTANT: RenderPipelineManager.currentPipeline won't be HDRP until a camera.Render() call is made. 
+        // IMPORTANT: RenderPipelineManager.currentPipeline won't be HDRP until a camera.Render() call is made.
         internal static void RestoreRenderPipelineAsset(bool wasUnsetFromQuality, RenderPipelineAsset renderPipelineAsset)
         {
             if(wasUnsetFromQuality)
@@ -589,20 +589,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 rt.Create();
         }
 
-        internal static Vector4 ComputeUvScaleAndLimit(Vector2Int viewportResolution, Vector2Int bufferSize)
+        internal static float ComputeViewportScale(int viewportSize, int bufferSize)
         {
-            Vector2 rcpBufferSize = new Vector2(1.0f / bufferSize.x, 1.0f / bufferSize.y);
+            float rcpBufferSize = 1.0f / bufferSize;
 
-            // vp_scale = vp_dim / tex_dim.
-            Vector2 uvScale = new Vector2(viewportResolution.x * rcpBufferSize.x,
-                                          viewportResolution.y * rcpBufferSize.y);
-
-            // clamp to (vp_dim - 0.5) / tex_dim.
-            Vector2 uvLimit = new Vector2((viewportResolution.x - 0.5f) * rcpBufferSize.x,
-                                          (viewportResolution.y - 0.5f) * rcpBufferSize.y);
-
-            return new Vector4(uvScale.x, uvScale.y, uvLimit.x, uvLimit.y);
+            // Scale by (vp_dim / buf_dim).
+            return viewportSize * rcpBufferSize;
         }
+
+        internal static float ComputeViewportLimit(int viewportSize, int bufferSize)
+        {
+            float rcpBufferSize = 1.0f / bufferSize;
+
+            // Clamp to (vp_dim - 0.5) / buf_dim.
+            return (viewportSize - 0.5f) * rcpBufferSize;
+        }
+
+        internal static Vector4 ComputeViewportScaleAndLimit(Vector2Int viewportSize, Vector2Int bufferSize)
+        {
+            return new Vector4(ComputeViewportScale(viewportSize.x, bufferSize.x),  // Scale(x)
+                               ComputeViewportScale(viewportSize.y, bufferSize.y),  // Scale(y)
+                               ComputeViewportLimit(viewportSize.x, bufferSize.x),  // Limit(x)
+                               ComputeViewportLimit(viewportSize.y, bufferSize.y)); // Limit(y)
+        }
+
 
 #if UNITY_EDITOR
         // This function can't be in HDEditorUtils because we need it in HDRenderPipeline.cs (and HDEditorUtils is in an editor asmdef)
@@ -997,6 +1007,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
             DisplayUnsupportedMessage(msg);
+        }
+
+        internal static void ReleaseComponentSingletons()
+        {
+            ComponentSingleton<HDAdditionalReflectionData>.Release();
+            ComponentSingleton<HDAdditionalLightData>.Release();
+            ComponentSingleton<HDAdditionalCameraData>.Release();
         }
     }
 }
