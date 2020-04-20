@@ -35,7 +35,9 @@ namespace UnityEngine.Rendering.HighDefinition
         static int verticalBlurPassIndex;
         static int horizontalBlurPassIndex;
         static int copyPassIndex;
-        static int depthPassIndex;
+        static int depthToColorPassIndex;
+        static int normalToColorPassIndex;
+        static int tangentToColorPassIndex;
 
         internal static void Initialize()
         {
@@ -46,7 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
             copyPassIndex = customPassUtilsMaterial.FindPass("Copy");
 
             customPassRenderersUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassRenderersUtils);
-            depthPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthPass");
+            depthToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthToColorPass");
+            normalToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("NormalToColorPass");
+            tangentToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("TangentToColorPass");
         }
 
         /// <summary>
@@ -377,7 +381,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="overrideMaterial"></param>
         /// <param name="overrideMaterialIndex"></param>
         public static void RenderFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask = default(LayerMask), CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0)
+            => RenderFromCamera(ctx, view, null, null, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex);
+
+        public static void RenderFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetColor, RTHandle targetDepth, LayerMask layerMask = default(LayerMask), CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0)
         {
+            // if (targetColor != null)
+            // CoreUtils.SetRenderTarget(ctx.cmd, targetColor, )
             using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, view))
             {
                 DrawRenderers(ctx, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex);
@@ -386,7 +395,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static void RenderDepthFromCamera(in CustomPassContext ctx, Camera view, RTHandle target, LayerMask layerMask = default(LayerMask), CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All)
         {
-            RenderFromCamera(ctx, view, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, depthPassIndex);
+            // if (target.rt.dep)
+            RenderFromCamera(ctx, view, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, depthToColorPassIndex);
         }
 
         // TODO when rendergraph is available: a PostProcess pass which does the copy with a temp target

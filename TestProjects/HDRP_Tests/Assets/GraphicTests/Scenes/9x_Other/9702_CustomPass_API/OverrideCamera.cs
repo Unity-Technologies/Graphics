@@ -28,11 +28,29 @@ class OverrideCamera : CustomPass
         if (customCamera0 == null || customCamera1 == null || customCamera2 == null || customCamera3 == null)
             return;
 
+        // Render from camera 0
         using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, customCamera0))
         {
-            // CoreUtils.SetRenderTarget(ctx.cmd, temp);
-            // CustomPassUtils.DrawRenderers(ctx, -1);
+            CoreUtils.SetRenderTarget(ctx.cmd, temp, ClearFlag.Color);
+            CustomPassUtils.DrawRenderers(ctx, -1);
         }
+        CustomPassUtils.Copy(
+            ctx, temp, ctx.cameraColorBuffer,
+            CustomPassUtils.fullScreenScaleBias,
+            new Vector4(.5f, .5f, 0f, 0f)
+        );
+
+        // Render from camera 1
+        using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, customCamera1))
+        {
+            CoreUtils.SetRenderTarget(ctx.cmd, temp, ClearFlag.Color);
+            CustomPassUtils.DrawRenderers(ctx, -1);
+        }
+        CustomPassUtils.Copy(
+            ctx, temp, ctx.cameraColorBuffer,
+            CustomPassUtils.fullScreenScaleBias,
+            new Vector4(.5f, .5f, .5f, 0f)
+        );
     }
 
     protected override void Cleanup() => temp.Release();
