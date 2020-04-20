@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeGgxIblSampleData(CommandBuffer cmd)
         {
-            m_ComputeGgxIblSampleDataCS.SetTexture(m_ComputeGgxIblSampleDataKernel, "output", m_GgxIblSampleData);
+            m_ComputeGgxIblSampleDataCS.SetTexture(m_ComputeGgxIblSampleDataKernel, "outputResult", m_GgxIblSampleData);
             cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeGgxIblSampleDataKernel, 1, 1, 1);
         }
 
