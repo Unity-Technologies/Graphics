@@ -408,13 +408,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ContactShadowsParameters     parameters;
             public LightLoopLightData           lightLoopLightData;
-            public TileAndClusterData           tileAndClusterData;
             public TextureHandle                depthTexture;
             public TextureHandle                contactShadowsTexture;
+            public ComputeBufferHandle          lightList;
             public HDShadowManager              shadowManager;
         }
 
-        TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, int firstMipOffsetY)
+        TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, BuildGPULightListOutput lightLists, int firstMipOffsetY)
         {
             if (!WillRenderContactShadow())
                 return renderGraph.ImportTexture(TextureXR.GetClearTexture(), HDShaderIDs._ContactShadowTexture);
@@ -429,7 +429,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
                 passData.lightLoopLightData = m_LightLoopLightData;
-                passData.tileAndClusterData = m_TileAndClusterData;
+                passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.shadowManager = m_ShadowManager;
                 passData.contactShadowsTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -443,7 +443,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var res = context.resources;
                     data.shadowManager.PushGlobalParameters(context.cmd);
 
-                    RenderContactShadows(data.parameters, res.GetTexture(data.contactShadowsTexture), res.GetTexture(data.depthTexture), data.lightLoopLightData, data.tileAndClusterData, context.cmd);
+                    RenderContactShadows(data.parameters, res.GetTexture(data.contactShadowsTexture), res.GetTexture(data.depthTexture), data.lightLoopLightData, res.GetComputeBuffer(data.lightList), context.cmd);
                 });
             }
 
