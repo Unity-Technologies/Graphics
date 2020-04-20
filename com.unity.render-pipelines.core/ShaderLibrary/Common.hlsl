@@ -686,25 +686,25 @@ TEMPLATE_3_FLT(RangeRemap, min, max, t, return saturate((t - min) / (max - min))
 // Texture utilities
 // ----------------------------------------------------------------------------
 
-float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale, float bias = 0.0f)
+float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale, float bias = 0.0)
 {
-    float2 ddx_ = scale*uvdx;
-    float2 ddy_ = scale*uvdy;
+    float2 ddx_ = scale * uvdx;
+    float2 ddy_ = scale * uvdy;
     float  d    = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
 
-    return max(0.5f*log2(d) - bias, 0.0f);
+    return max(0.5 * log2(d) - bias, 0.0);
 }
 
-float ComputeTextureLOD(float2 uv, float bias = 0.0f)
+float ComputeTextureLOD(float2 uv, float bias = 0.0)
 {
     float2 ddx_ = ddx(uv);
     float2 ddy_ = ddy(uv);
 
-    return ComputeTextureLOD(ddx_, ddy_, 1.0f, bias);
+    return ComputeTextureLOD(ddx_, ddy_, 1.0, bias);
 }
 
 // x contains width, w contains height
-float ComputeTextureLOD(float2 uv, float2 texelSize, float bias = 0.0f)
+float ComputeTextureLOD(float2 uv, float2 texelSize, float bias = 0.0)
 {
     uv *= texelSize;
 
@@ -712,11 +712,11 @@ float ComputeTextureLOD(float2 uv, float2 texelSize, float bias = 0.0f)
 }
 
 // LOD clamp is optional and happens outside the function.
-float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale, float bias = 0.0f)
+float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale, float bias = 0.0)
 {
     float d = Max3(dot(duvw_dx, duvw_dx), dot(duvw_dy, duvw_dy), dot(duvw_dz, duvw_dz));
 
-    return max(0.5f*log2(d*(scale*scale)) - bias, 0.0f);
+    return max(0.5f * log2(d * (scale * scale)) - bias, 0.0);
 }
 
 
