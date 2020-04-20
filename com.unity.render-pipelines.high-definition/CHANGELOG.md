@@ -111,6 +111,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the HDRP Compositor Tool (in Preview).
 - Added a ray tracing mode option in the HDRP asset that allows to override and shader stripping.
 - Added support for arbitrary resolution scaling of Volumetric Lighting to the Fog volume component.
+- Added range attenuation for box-shaped spotlights.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
