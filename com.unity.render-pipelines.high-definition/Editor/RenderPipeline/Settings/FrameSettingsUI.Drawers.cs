@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering;
-using Utilities;
+
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -19,27 +19,27 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static class MaterialQualityModeExtensions
     {
-        public static MaterialQuality Into(this MaterialQualityMode quality)
+        public static UnityEngine.Rendering.MaterialQuality Into(this MaterialQualityMode quality)
         {
             switch (quality)
             {
-                case MaterialQualityMode.High: return MaterialQuality.High;
-                case MaterialQualityMode.Medium: return MaterialQuality.Medium;
-                case MaterialQualityMode.Low: return MaterialQuality.Low;
-                case MaterialQualityMode.FromQualitySettings: return (MaterialQuality)0;
+                case MaterialQualityMode.High: return UnityEngine.Rendering.MaterialQuality.High;
+                case MaterialQualityMode.Medium: return UnityEngine.Rendering.MaterialQuality.Medium;
+                case MaterialQualityMode.Low: return UnityEngine.Rendering.MaterialQuality.Low;
+                case MaterialQualityMode.FromQualitySettings: return (UnityEngine.Rendering.MaterialQuality)0;
                 default: throw new ArgumentOutOfRangeException(nameof(quality));
             }
         }
 
-        public static MaterialQualityMode Into(this MaterialQuality quality)
+        public static MaterialQualityMode Into(this UnityEngine.Rendering.MaterialQuality quality)
         {
-            if (quality == (MaterialQuality) 0)
+            if (quality == (UnityEngine.Rendering.MaterialQuality) 0)
                 return MaterialQualityMode.FromQualitySettings;
             switch (quality)
             {
-                case MaterialQuality.High: return MaterialQualityMode.High;
-                case MaterialQuality.Medium: return MaterialQualityMode.Medium;
-                case MaterialQuality.Low: return MaterialQualityMode.Low;
+                case UnityEngine.Rendering.MaterialQuality.High: return MaterialQualityMode.High;
+                case UnityEngine.Rendering.MaterialQuality.Medium: return MaterialQualityMode.Medium;
+                case UnityEngine.Rendering.MaterialQuality.Low: return MaterialQualityMode.Low;
                 default: throw new ArgumentOutOfRangeException(nameof(quality));
             }
         }
@@ -254,7 +254,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             area.AmmendInfo(FrameSettingsField.MaterialQualityLevel,
                 overridedDefaultValue: defaultFrameSettings.materialQuality.Into(),
-                customGetter: () => ((MaterialQuality)serialized.materialQuality.intValue).Into(),
+                customGetter: () => ((UnityEngine.Rendering.MaterialQuality)serialized.materialQuality.intValue).Into(),
                 customSetter: v => serialized.materialQuality.intValue = (int)((MaterialQualityMode)v).Into()
             );
 
