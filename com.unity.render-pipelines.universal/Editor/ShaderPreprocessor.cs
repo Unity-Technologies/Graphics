@@ -233,7 +233,6 @@ namespace UnityEditor.Rendering.Universal
 
 
             int prevVariantCount = compilerDataList.Count;
-            Debug.Log(ShaderBuildPreprocessor.supportedFeatures);
             for (int i = 0; i < compilerDataList.Count; ++i)
             {
                 if (StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]))
