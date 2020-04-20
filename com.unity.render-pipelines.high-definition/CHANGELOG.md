@@ -547,6 +547,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed warning about missing bound decal buffer
 - Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
 - Fixed PBR shader ZTest rendering in deferred.
+- Replaced commands incompatible with async compute in light list build process.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
