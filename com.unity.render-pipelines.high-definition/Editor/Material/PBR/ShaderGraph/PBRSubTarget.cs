@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitMinimal,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = PBRRenderStates.GBuffer,
-                pragmas = CorePragmas.InstancedRenderingLayer,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = PBRKeywords.GBuffer,
                 includes = PBRIncludes.GBuffer,
             };
@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.Meta,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.Meta,
-                pragmas = CorePragmas.InstancedRenderingLayer,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = PBRKeywords.LodFadeCrossfade,
                 includes = PBRIncludes.Meta,
             };
@@ -116,7 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = PBRRenderStates.ShadowCaster,
-                pragmas = CorePragmas.InstancedRenderingLayer,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = PBRKeywords.LodFadeCrossfade,
                 includes = PBRIncludes.DepthOnly,
             };
@@ -141,7 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = PBRRenderStates.SceneSelection,
-                pragmas = CorePragmas.InstancedRenderingLayerEditorSync,
+                pragmas = CorePragmas.DotsInstancedInV2OnlyEditorSync,
                 defines = CoreDefines.SceneSelection,
                 keywords = PBRKeywords.LodFadeCrossfade,
                 includes = PBRIncludes.DepthOnly,
@@ -168,7 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitFull,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = PBRRenderStates.DepthOnly,
-                pragmas = CorePragmas.InstancedRenderingLayer,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
                 keywords = PBRKeywords.DepthMotionVectors,
                 includes = PBRIncludes.DepthOnly,
@@ -197,7 +197,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Conditional State
                 renderStates = PBRRenderStates.MotionVectors,
-                pragmas = CorePragmas.InstancedRenderingLayer,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
                 keywords = PBRKeywords.DepthMotionVectors,
                 includes = PBRIncludes.MotionVectors,
@@ -224,7 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitMinimal,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = PBRRenderStates.Forward,
-                pragmas = CorePragmas.InstancedRenderingLayer,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.Forward,
                 keywords = PBRKeywords.Forward,
                 includes = PBRIncludes.Forward,

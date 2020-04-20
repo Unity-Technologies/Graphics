@@ -15,16 +15,7 @@
     StructuredBuffer<ProbeVolumeEngineData> _ProbeVolumeDatas;
 
     TEXTURE3D(_ProbeVolumeAtlasSH);
-    float4 _ProbeVolumeAtlasResolutionAndSliceCount;
-    float4 _ProbeVolumeAtlasResolutionAndSliceCountInverse;
     TEXTURE2D(_ProbeVolumeAtlasOctahedralDepth);
-    float4 _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
-    int _ProbeVolumeLeakMitigationMode;
-    float _ProbeVolumeNormalBiasWS;
-    float _ProbeVolumeBilateralFilterWeightMin;
-    float _ProbeVolumeBilateralFilterWeight;
-
-    float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
 #endif
 
 #endif // endof PROBE_VOLUME_SHADER_VARIABLES
