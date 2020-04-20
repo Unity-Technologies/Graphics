@@ -3,20 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    sealed class ContextData : ISerializationCallbackReceiver
+    sealed class ContextData
     {
-        [SerializeField]
-        List<string> m_SerializableBlockGuids = new List<string>();
-
         [SerializeField]
         Vector2 m_Position;
 
-        [NonSerialized]
-        List<BlockNode> m_Blocks = new List<BlockNode>();
+        [SerializeField]
+        List<JsonRef<BlockNode>> m_Blocks = new List<JsonRef<BlockNode>>();
 
         [NonSerialized]
         ShaderStage m_ShaderStage;
@@ -25,9 +23,7 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
-        public List<string> serializeableBlockGuids => m_SerializableBlockGuids;
-
-        public List<BlockNode> blocks => m_Blocks;
+        public List<JsonRef<BlockNode>> blocks => m_Blocks;
 
         public Vector2 position
         {
@@ -39,19 +35,6 @@ namespace UnityEditor.ShaderGraph
         {
             get => m_ShaderStage;
             set => m_ShaderStage = value;
-        }
-
-        public void OnBeforeSerialize()
-        {
-            m_SerializableBlockGuids = new List<string>();
-            foreach(var block in blocks)
-            {
-                m_SerializableBlockGuids.Add(block.guid.ToString());
-            }
-        }
-
-        public void OnAfterDeserialize()
-        {
         }
     }
 }

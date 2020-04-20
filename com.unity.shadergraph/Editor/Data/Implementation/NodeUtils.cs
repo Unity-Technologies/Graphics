@@ -154,7 +154,7 @@ namespace UnityEditor.Graphing
             {
                 foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
                 {
-                    var inputNode = node.owner.GetNodeFromGuid(((Edge)edge).inputSlot.nodeGuid);
+                    var inputNode = ((Edge)edge).inputSlot.node;
                     if (inputNode != null)
                     {
                         hasDownstream = true;

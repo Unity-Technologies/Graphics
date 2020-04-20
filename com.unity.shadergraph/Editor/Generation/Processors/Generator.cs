@@ -269,7 +269,7 @@ namespace UnityEditor.ShaderGraph
                             continue;
                         
                         // Attempt to get BlockNode from the stack
-                        var block = contextData.blocks.FirstOrDefault(x => x.descriptor == blockFieldDescriptor);
+                        var block = contextData.blocks.FirstOrDefault(x => x.value.descriptor == blockFieldDescriptor).value;
 
                         // If the BlockNode doesnt exist in the stack we need to create one
                         // TODO: Can we do the code gen without a node instance?

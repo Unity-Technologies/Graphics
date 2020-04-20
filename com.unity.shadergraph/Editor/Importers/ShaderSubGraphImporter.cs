@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
             asset.functionName = $"SG_{asset.hlslName}_{asset.assetGuid}";
             asset.path = graph.path;
 
-            var outputNode = graph.subGraphOutputNode;
+            var outputNode = graph.outputNode;
 
             asset.outputs.Clear();
             outputNode.GetInputSlots(asset.outputs);

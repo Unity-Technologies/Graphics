@@ -712,7 +712,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var externalOutputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
             foreach (var group in uniqueOutgoingEdges)
             {
-                var outputNode = subGraph.subGraphOutputNode;
+                var outputNode = subGraph.outputNode as SubGraphOutputNode;
 
                 AbstractMaterialNode node = group.edges[0].outputSlot.node;
                 MaterialSlot slot = node.FindSlot<MaterialSlot>(group.edges[0].outputSlot.slotId);
@@ -752,9 +752,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Add the subgraph into the group if the nodes was all in the same group group
             var firstNode = copyPasteGraph.GetNodes<AbstractMaterialNode>().FirstOrDefault();
-            if (firstNode != null && copyPasteGraph.GetNodes<AbstractMaterialNode>().All(x => x.groupId == firstNode.groupId))
+            if (firstNode != null && copyPasteGraph.GetNodes<AbstractMaterialNode>().All(x => x.group == firstNode.group))
             {
-                subGraphNode.groupId = firstNode.groupId;
+                subGraphNode.group = firstNode.group;
             }
 
             graphObject.graph.AddNode(subGraphNode);

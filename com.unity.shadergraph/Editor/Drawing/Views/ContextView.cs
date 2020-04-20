@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -81,7 +82,14 @@ namespace UnityEditor.ShaderGraph
                 contextData.blocks.Remove(blockDatas[i]);
             }
 
-            contextData.blocks.InsertRange(insertIndex, blockDatas);
+            int count = elements.Count();
+            var refs = new JsonRef<BlockNode>[count];
+            for(int i = 0; i < count; i++)
+            {
+                refs[i] = blockDatas[i];
+            }
+
+            contextData.blocks.InsertRange(insertIndex, refs);
         }
 
         protected override bool AcceptsElement(GraphElement element, ref int proposedIndex, int maxIndex)

@@ -296,7 +296,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // Test against all current BlockNodes in the Context
                 // Never allow duplicate BlockNodes
-                if(contextView.contextData.blocks.Where(x => x.name == blockNode.name).FirstOrDefault() != null)
+                if(contextView.contextData.blocks.Where(x => x.value.name == blockNode.name).FirstOrDefault().value != null)
                     return false;
                 
                 // Insert block to Data
@@ -352,6 +352,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 blockNode.owner = m_Graph;
                 blockNode.Init(((BlockNode)oldNode).descriptor);
+                blockNode.owner = null;
             }
             return newNode;
         }

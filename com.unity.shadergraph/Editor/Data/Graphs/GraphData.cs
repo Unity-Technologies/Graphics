@@ -280,7 +280,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         JsonRef<AbstractMaterialNode> m_OutputNode;
 
-        public SubGraphOutputNode outputNode
+        public AbstractMaterialNode outputNode
         {
             get => m_OutputNode;
             set => m_OutputNode = value;
@@ -628,7 +628,7 @@ namespace UnityEditor.ShaderGraph
             blockNode.contextData = contextData;
             
             // Add to ContextData
-            if(index == -1 || index >= contextData.blocks.Count)
+            if(index == -1 || index >= contextData.blocks.Count())
             {
                 contextData.blocks.Add(blockNode);
             }
@@ -654,11 +654,11 @@ namespace UnityEditor.ShaderGraph
             // Set Blocks as active based on supported Block list
             foreach(var vertexBlock in vertexContext.blocks)
             {
-                vertexBlock.isActive = context.blocks.Contains(vertexBlock.descriptor);
+                vertexBlock.value.isActive = context.blocks.Contains(vertexBlock.value.descriptor);
             }
             foreach(var fragmentBlock in fragmentContext.blocks)
             {
-                fragmentBlock.isActive = context.blocks.Contains(fragmentBlock.descriptor);
+                fragmentBlock.value.isActive = context.blocks.Contains(fragmentBlock.value.descriptor);
             }
         }
 
@@ -862,6 +862,9 @@ namespace UnityEditor.ShaderGraph
 
         public bool ContainsNode(AbstractMaterialNode node)
         {
+            if(node == null)
+                return false;
+            
             return m_NodeDictionary.TryGetValue(node.objectId, out var foundNode) && node == foundNode;
         }
 
@@ -1429,18 +1432,6 @@ namespace UnityEditor.ShaderGraph
                 return null;
             }
 
-            // TODO: Upgrade this
-            var deserializedTargets = SerializationHelper.Deserialize<Target>(m_SerializedTargets, GraphUtil.GetLegacyTypeRemapping());
-            m_ActiveTargetBitmask = 0;
-            foreach(var deserializedTarget in deserializedTargets)
-            {
-                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == deserializedTarget.GetType());
-                var targetIndex = m_ValidTargets.IndexOf(activeTargetCurrent);
-                m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
-                m_ValidTargets[targetIndex] = deserializedTarget;
-            }
-            UpdateActiveTargets();
-
             MultiJsonInternal.Enqueue(value, json);
 
             return value;
@@ -1597,6 +1588,7 @@ namespace UnityEditor.ShaderGraph
 
             if(m_Version == 1)
             {
+                var subgraphOuput = GetNodes<SubGraphOutputNode>();
                 isSubGraph = subgraphOuput.Any();
                 if (!isSubGraph)
                 {
@@ -1641,16 +1633,18 @@ namespace UnityEditor.ShaderGraph
                 // we do not need to serialize the Stage value on the ContextData
                 contextData.shaderStage = stage;
 
-                var blockCount = contextData.serializeableBlockGuids.Count;
+                var blocks = contextData.blocks.SelectValue().ToList();
+                var blockCount = blocks.Count;
                 for(int i = 0; i < blockCount; i++)
                 {
                     // Deserialize the BlockNode guids on the ContextData
                     // This needs to be done here as BlockNodes are deserialized before GraphData
-                    var blockGuid = new Guid(contextData.serializeableBlockGuids[i]);
-                    var block = GetNodeFromGuid<BlockNode>(blockGuid);
-                    contextData.blocks.Add(block);
+                    // var blockGuid = new Guid(contextData.serializeableBlockGuids[i]);
+                    // var block = GetNodeFromGuid<BlockNode>(blockGuid);
+                    // contextData.blocks.Add(block);
 
                     // Update NonSerialized data on the BlockNode
+                    var block = blocks[i];
                     block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
                     block.contextData = contextData;
                     block.index = i;
@@ -1660,6 +1654,18 @@ namespace UnityEditor.ShaderGraph
             // First deserialize the ContextDatas
             DeserializeContextData(m_VertexContext, ShaderStage.Vertex);
             DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
+
+            // TODO: Upgrade this
+            var deserializedTargets = SerializationHelper.Deserialize<Target>(m_SerializedTargets, GraphUtil.GetLegacyTypeRemapping());
+            m_ActiveTargetBitmask = 0;
+            foreach(var deserializedTarget in deserializedTargets)
+            {
+                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == deserializedTarget.GetType());
+                var targetIndex = m_ValidTargets.IndexOf(activeTargetCurrent);
+                m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
+                m_ValidTargets[targetIndex] = deserializedTarget;
+            }
+            UpdateActiveTargets();
         }
 
         public void OnEnable()
@@ -1675,37 +1681,6 @@ namespace UnityEditor.ShaderGraph
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
-        }
-
-        public void UpdateTargets()
-        {
-            if(outputNode == null)
-                return;
-
-            // Clear current Targets
-            m_ValidTargets.Clear();
-
-            // SubGraph Target is always PreviewTarget
-            if(outputNode is SubGraphOutputNode)
-            {
-                m_ValidTargets.Add(new PreviewTarget());
-                return;
-            }
-
-            // Find all valid Targets
-            var typeCollection = TypeCache.GetTypesDerivedFrom<Target>();
-            foreach(var type in typeCollection)
-            {
-                if(type.IsAbstract || type.IsGenericType || !type.IsClass)
-                    continue;
-
-                var masterNode = outputNode as IMasterNode;
-                var target = (Target)Activator.CreateInstance(type);
-                if(!target.isHidden && target.IsValid(masterNode))
-                {
-                    m_ValidTargets.Add(target);
-                }
-            }
         }
     }
 

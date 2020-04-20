@@ -178,7 +178,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
-                var generator = new Generator(graph, graph.subGraphOutputNode, GenerationMode.ForReals, shaderName);
+                var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, shaderName);
                 shaderString = generator.generatedShader;
                 configuredTextures = generator.configuredTextures;
                 sourceAssetDependencyPaths = generator.assetDependencyPaths;
@@ -250,13 +250,13 @@ Shader ""Hidden/GraphErrorShader2""
 
             foreach(var vertexBlock in graph.vertexContext.blocks)
             {
-                vertexBlock.GetInputSlots(ports);
+                vertexBlock.value.GetInputSlots(ports);
                 NodeUtils.DepthFirstCollectNodesFromNode(nodes, vertexBlock);
             }
 
             foreach(var fragmentBlock in graph.fragmentContext.blocks)
             {
-                fragmentBlock.GetInputSlots(ports);
+                fragmentBlock.value.GetInputSlots(ports);
                 NodeUtils.DepthFirstCollectNodesFromNode(nodes, fragmentBlock);
             }
 
