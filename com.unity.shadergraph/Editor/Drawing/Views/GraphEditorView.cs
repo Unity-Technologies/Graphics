@@ -579,7 +579,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     nodeView.Dispose();
                     m_GraphView.RemoveElement((Node)nodeView);
 
-                    if (!node.groupIdIsEmpty)
+                    if (node.group != null)
                     {
                         var shaderGroup = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().First(g => g.userData == node.group);
                         m_GroupHashSet.Add(shaderGroup);

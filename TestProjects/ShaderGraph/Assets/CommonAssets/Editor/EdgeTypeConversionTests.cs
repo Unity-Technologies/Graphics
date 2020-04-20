@@ -109,7 +109,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var outputNode = edge.outputSlot.node;
                 var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
 
-                RedirectNodeData.Create(m_Graph, outputSlot.valueType, Vector2.zero, edge.inputSlot, edge.outputSlot, JsonObject.emptyObjectId);
+                RedirectNodeData.Create(m_Graph, outputSlot.valueType, Vector2.zero, edge.inputSlot, edge.outputSlot, null);
 
                 m_Graph.ValidateGraph();
 
