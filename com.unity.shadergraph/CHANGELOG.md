@@ -25,12 +25,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added AlphaToMask render state.
 - Added a field to the Master Nodes that overrides the generated shader's ShaderGUI, which determines how a Material that uses a Shader Graph looks.
 - Added Redirect Nodes. You can now double-click an edge to add a control point that allows you to route edges around other nodes and connect multiple output edges.
+- Added `Compute Deformation` Node to read deformed vertex data from Dots Deformations.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
 - Copied nodes are now pasted at the cursor location instead of slightly offset from their original location
 - Error messages reported on Sub Graph output nodes for invalid previews now present clearer information, with documentation support.
-- Updated legacy COLOR output semantic to SV_Target in pixel shader for compatibility with DXC
+- Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -92,7 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the `Position` node would change coordinate spaces from `World` to `Absolute World` when shaders recompile. [1184617](https://issuetracker.unity3d.com/product/unity/issues/guid/1184617/)
 - Fixed a bug where instanced shaders wouldn't compile on PS4.
 - Optimized loading a large Shader Graph. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
-- Fixed NaN issue in triplanar SG node when blend goes to 0.
+- Fixed issue where `Linear Blend Skinning` node could not be converted to Sub Graph [1227087](https://issuetracker.unity3d.com/issues/shadergraph-linear-blend-skinning-node-reports-an-error-and-prevents-shader-compilation-when-used-within-a-sub-graph)
 
 ## [7.1.1] - 2019-09-05
 ### Added
