@@ -1343,6 +1343,52 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // Only for spot + point lights
+        [SerializeField]
+        LightFlag[] m_LightFlags;
+
+        public LightFlag[] lightFlags
+        {
+            get
+            {
+                ValidateLightFlags();
+                return m_LightFlags;
+            }
+        }
+
+        void OnTransformChildrenChanged()
+        {
+            InValidateLightFlags();
+        }
+
+        void InValidateLightFlags()
+        {
+            m_LightFlags = null;
+        }
+
+        void ValidateLightFlags()
+        {
+            var flags = new List<LightFlag>();
+            GetComponentsInChildren(flags);
+
+            if (flags.Count == 0)
+            {
+                m_LightFlags = new LightFlag[0];
+            }
+
+            for (int i = flags.Count - 1; i >= 0; --i)
+            {
+                if (flags[i].transform.parent != transform)
+                    flags.RemoveAt(i);
+            }
+
+            foreach (var f in flags)
+                m_LightFlags = flags.ToArray();
+
+            if (m_LightFlags == null)
+                m_LightFlags = new LightFlag[0];
+        }
+
         /// <summary>
         /// True if the light affects volumetric fog, false otherwise 
         /// </summary>
@@ -2873,6 +2919,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 shapeWidth = size.x;
                 shapeHeight = size.y;
             }
+        }
+
+        public LightFlag AddLightFlag(LightFlag copyFrom = null)
+        {
+            var go = new GameObject("Flag", typeof(LightFlag));
+#if UNITY_EDITOR
+            Undo.RegisterCreatedObjectUndo(go, "Add Light Flag");
+            Undo.SetTransformParent(go.transform, transform, "Add Light Flag");
+            EditorUtility.SetDirty(this);
+#else
+            go.transform.parent = transform.parent;
+#endif
+            var flag = go.GetComponent<LightFlag>();
+            if (copyFrom == null)
+            {
+                flag.transform.localPosition = Vector3.zero;
+                flag.transform.localRotation = Quaternion.identity;
+                flag.m_Feather = 1;
+            }
+            else
+            {
+                flag.transform.localPosition = copyFrom.transform.localPosition;
+                flag.transform.localRotation = copyFrom.transform.localRotation;
+                flag.m_Feather = copyFrom.m_Feather;
+            }
+
+            return flag;
         }
 
 #if UNITY_EDITOR

@@ -407,7 +407,20 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
     }
 #endif
 
-    return cookie;
+    return cookie;  
+}
+
+float EvaluateLightFlag_Punctual(PositionInputs posInput, LightData light)
+{
+    float visibility = 1;
+
+    for (int i = light.lightFlagIndex; i < light.lightFlagIndex + light.lightFlagCount; i++)
+    {
+        LightFlagData lightFlag = FetchLightFlag(i);
+        visibility *= EvaluateShadowPlane(GetAbsolutePositionWS(posInput.positionWS), lightFlag.plane, lightFlag.feather);
+    }
+
+    return visibility;
 }
 
 // Returns unassociated (non-premultiplied) color with alpha (attenuation).
@@ -420,6 +433,7 @@ float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs 
 
     color.a *= PunctualLightAttenuation(distances, light.rangeAttenuationScale, light.rangeAttenuationBias,
                                         light.angleScale, light.angleOffset);
+    color.a *= EvaluateLightFlag_Punctual(posInput, light);
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
     // Height fog attenuation.

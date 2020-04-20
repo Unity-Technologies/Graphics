@@ -121,8 +121,19 @@ struct LightData
     float specularDimmer;
     float isRayTracedContactShadow;
     float penumbraTint;
-    float3 padding;
+    float padding;
     float boxLightSafeExtent;
+    int lightFlagIndex;
+    int lightFlagCount;
+};
+
+// Generated from UnityEngine.Rendering.HighDefinition.LightFlagData
+// PackingRules = Exact
+struct LightFlagData
+{
+    float4 plane;
+    float feather;
+    float3 unused;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.EnvLightData
