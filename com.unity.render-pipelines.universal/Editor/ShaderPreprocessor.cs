@@ -78,6 +78,18 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderCompilerData compilerData)
         {
+            if (!CoreUtils.HasFlag(features, ShaderFeatures.ShaderQualityLow) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_ShaderQualityLow))
+                return true;
+
+            if (!CoreUtils.HasFlag(features, ShaderFeatures.ShaderQualityMedium) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_ShaderQualityMedium))
+                return true;
+
+            if (!CoreUtils.HasFlag(features, ShaderFeatures.ShaderQualityHigh) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_ShaderQualityHigh))
+                return true;
+
             // strip main light shadows and cascade variants
             if (!CoreUtils.HasFlag(features, ShaderFeatures.MainLightShadows))
             {
@@ -92,47 +104,31 @@ namespace UnityEditor.Rendering.Universal
             bool isAdditionalLightPerPixel = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel);
             bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
 
-            bool isShaderQualityLow = compilerData.shaderKeywordSet.IsEnabled(m_ShaderQualityLow);
-            bool isShaderQualityMedium = compilerData.shaderKeywordSet.IsEnabled(m_ShaderQualityMedium);
-            bool isShaderQualityHigh = compilerData.shaderKeywordSet.IsEnabled(m_ShaderQualityHigh);
-
             // Additional light are shaded per-vertex. Strip additional lights per-pixel and shadow variants
-            if (CoreUtils.HasFlag(features, ShaderFeatures.VertexLighting) &&
-                (isAdditionalLightPerPixel || isAdditionalLightShadow))
+            if ((isAdditionalLightPerPixel || isAdditionalLightShadow) &&
+                CoreUtils.HasFlag(features, ShaderFeatures.VertexLighting))
                 return true;
 
             // No additional lights
-            if (!CoreUtils.HasFlag(features, ShaderFeatures.AdditionalLights) &&
-                (isAdditionalLightPerPixel || isAdditionalLightPerVertex || isAdditionalLightShadow))
+            if ((isAdditionalLightPerPixel || isAdditionalLightPerVertex || isAdditionalLightShadow)&&
+                !CoreUtils.HasFlag(features, ShaderFeatures.AdditionalLights))
                 return true;
 
             // No additional light shadows
-            if (!CoreUtils.HasFlag(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
+            if (isAdditionalLightShadow && !CoreUtils.HasFlag(features, ShaderFeatures.AdditionalLightShadows))
                 return true;
 
             if (!CoreUtils.HasFlag(features, ShaderFeatures.SoftShadows) &&
                 compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
 
-            if (compilerData.shaderKeywordSet.IsEnabled(m_MixedLightingSubtractive) &&
-                !CoreUtils.HasFlag(features, ShaderFeatures.MixedLighting))
+            if (!CoreUtils.HasFlag(features, ShaderFeatures.MixedLighting) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_MixedLightingSubtractive))
                 return true;
 
-            bool isBuiltInTerrainLit = shader.name.Contains("Universal Render Pipeline/Terrain/Lit");
-            if (isBuiltInTerrainLit && compilerData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) &&
-               !CoreUtils.HasFlag(features, ShaderFeatures.TerrainHoles))
-                return true;
-
-            if (!CoreUtils.HasFlag(features, ShaderFeatures.ShaderQualityLow) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_ShaderQualityLow))
-                return true;
-
-            if (!CoreUtils.HasFlag(features, ShaderFeatures.ShaderQualityMedium) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_ShaderQualityMedium))
-                return true;
-
-            if (!CoreUtils.HasFlag(features, ShaderFeatures.ShaderQualityHigh) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_ShaderQualityHigh))
+            if (!CoreUtils.HasFlag(features, ShaderFeatures.TerrainHoles) &&
+                shader.name.Contains("Universal Render Pipeline/Terrain/Lit") &&
+                compilerData.shaderKeywordSet.IsEnabled(m_AlphaTestOn))
                 return true;
 
             return false;
@@ -237,7 +233,7 @@ namespace UnityEditor.Rendering.Universal
 
 
             int prevVariantCount = compilerDataList.Count;
-           
+            Debug.Log(ShaderBuildPreprocessor.supportedFeatures);
             for (int i = 0; i < compilerDataList.Count; ++i)
             {
                 if (StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]))

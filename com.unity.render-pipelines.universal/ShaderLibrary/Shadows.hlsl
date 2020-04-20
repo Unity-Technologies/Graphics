@@ -215,18 +215,6 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
     return mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 }
 
-half ComputeShadowFade(float3 positionWS, float shadowStrength)
-{
-#if FADE_SHADOWS
-    float3 fragToCamVec = _WorldSpaceCameraPos - positionWS;
-    float distanceFragToCam2 = dot(fragToCamVec, fragToCamVec);
-    float shadowDist = _MainLightShadowParams.z;
-    return shadowStrength * (1 - saturate((distanceFragToCam2 - shadowDist * 0.8) / (shadowDist - shadowDist * 0.8)));
-#else
-    return shadowStrength;
-#endif
-}
-
 half MainLightRealtimeShadow(float4 shadowCoord)
 {
 #if !defined(MAIN_LIGHT_CALCULATE_SHADOWS)
@@ -237,16 +225,6 @@ half MainLightRealtimeShadow(float4 shadowCoord)
     return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
 }
 
-half MainLightRealtimeShadow(float3 positionWS, float4 shadowCoord)
-{
-    half4 shadowParams = GetMainLightShadowParams();
-    shadowParams.x = ComputeShadowFade(positionWS, shadowParams.x);
-#if !defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    return 1.0h;
-#endif  
-    ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
-    return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
-}
 half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 {
 #if !defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
@@ -270,7 +248,6 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 #endif
 
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
-    shadowParams.x = ComputeShadowFade(positionWS, shadowParams.x);
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
 }
 
@@ -289,6 +266,20 @@ float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection
     positionWS = normalWS * scale.xxx + positionWS;
     return positionWS;
 }
+
+float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
+{
+#if FADE_SHADOWS
+    float3 fragToCamVec = _WorldSpaceCameraPos - positionWS;
+    float distanceFragToCam2 = dot(fragToCamVec, fragToCamVec);
+    float shadowDist = _MainLightShadowParams.z;
+    float fade = saturate((distanceFragToCam2 - shadowDist * 0.8) / (shadowDist - shadowDist * 0.8));
+    return shadowAttenuation + (1 - shadowAttenuation) * fade;
+#else
+    return shadowAttenuation;
+#endif
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Deprecated                                                                 /

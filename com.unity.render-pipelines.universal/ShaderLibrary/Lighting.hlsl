@@ -110,14 +110,10 @@ Light GetMainLight()
     return light;
 }
 
-Light GetMainLight(float3 positionWS, float4 shadowCoord)
+Light GetMainLight(float4 shadowCoord)
 {
     Light light = GetMainLight();
-#ifdef FADE_SHADOWS
-    light.shadowAttenuation = MainLightRealtimeShadow(positionWS, shadowCoord);
-#else
     light.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
-#endif
     return light;
 }
 
@@ -604,7 +600,8 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
     
-    Light mainLight = GetMainLight(inputData.positionWS, inputData.shadowCoord);
+    Light mainLight = GetMainLight(inputData.shadowCoord);
+    mainLight.shadowAttenuation = ApplyShadowFade(mainLight.shadowAttenuation, inputData.positionWS);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
@@ -615,6 +612,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, inputData.positionWS);
         color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
     }
 #endif
@@ -629,7 +627,8 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
-    Light mainLight = GetMainLight(inputData.positionWS, inputData.shadowCoord);
+    Light mainLight = GetMainLight(inputData.shadowCoord);
+    mainLight.shadowAttenuation = ApplyShadowFade(mainLight.shadowAttenuation, inputData.positionWS);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
@@ -641,6 +640,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, inputData.positionWS);
         half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
