@@ -1325,11 +1325,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.positionRWS = visibleLightAxisAndPosition.Position;
 
-            bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
-
             lightData.range = light.range;
 
-            if (applyRangeAttenuation)
+            if (additionalLightData.applyRangeAttenuation)
             {
                 lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
                 lightData.rangeAttenuationBias  = 1.0f;

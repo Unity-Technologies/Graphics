@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for rasterized area light shadows in StackLit
 - Added Light decomposition lighting debugging modes and support in AOV
 - Added exposure compensation to Fixed exposure mode
+- Added range attenuation for box-shaped spotlights.
 
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
