@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float apertureRadius = 0.5f * 0.001f * hdCamera.camera.focalLength / hdCamera.physicalParameters.aperture;
 
             var dofSettings = hdCamera.volumeStack.GetComponent<DepthOfField>();
-            bool enableDof = (dofSettings.focusMode.value == DepthOfFieldMode.UsePhysicalCamera);
+            bool enableDof = (dofSettings.focusMode.value == DepthOfFieldMode.UsePhysicalCamera) && !(hdCamera.camera.cameraType == CameraType.SceneView);
 
             return new Vector4(enableDof ? apertureRadius : 0.0f, dofSettings.focusDistance.value, 0.0f, 0.0f);
         }
