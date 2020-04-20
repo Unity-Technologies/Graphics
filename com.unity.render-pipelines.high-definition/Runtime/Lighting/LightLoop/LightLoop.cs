@@ -2816,6 +2816,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int buildPerVoxelLightListKernel;
             public int numTilesClusterX;
             public int numTilesClusterY;
+            public bool clusterNeedsDepth;
 
             // Build dispatch indirect
             public ComputeShader buildMaterialFlagsShader;
@@ -2837,10 +2838,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer convexBoundsBuffer;
             public ComputeBuffer AABBBoundsBuffer;
             public ComputeBuffer globalLightListAtomic;
-            public ComputeBuffer probeVolumesLightVolumeDataBuffer;
-            public ComputeBuffer probeVolumesConvexBoundsBuffer;
-            public ComputeBuffer probeVolumesAABBBoundsBuffer;
-            public ComputeBuffer probeVolumesGlobalLightListAtomic;
 
             // Output
             public ComputeBuffer tileFeatureFlags; // Deferred
@@ -2852,9 +2849,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer bigTileLightList; // Volumetrics
             public ComputeBuffer perVoxelLightLists; // Cluster
             public ComputeBuffer lightList; // ContactShadows, Deferred, Forward w/ fptl
-            public ComputeBuffer probeVolumesBigTileLightList;
-            public ComputeBuffer probeVolumesPerVoxelLightLists;
-            public ComputeBuffer probeVolumesPerVoxelOffset;
         }
 
         BuildGPULightListResources PrepareBuildGPULightListResources(TileAndClusterData tileAndClusterData, RTHandle depthBuffer, RTHandle stencilTexture, bool isGBufferNeeded)
@@ -2878,14 +2872,6 @@ namespace UnityEngine.Rendering.HighDefinition
             resources.dispatchIndirectBuffer = tileAndClusterData.dispatchIndirectBuffer;
             resources.tileList = tileAndClusterData.tileList;
 
-            resources.probeVolumesLightVolumeDataBuffer = tileAndClusterData.probeVolumesLightVolumeDataBuffer;
-            resources.probeVolumesConvexBoundsBuffer = tileAndClusterData.probeVolumesConvexBoundsBuffer;
-            resources.probeVolumesAABBBoundsBuffer = tileAndClusterData.probeVolumesAABBBoundsBuffer;
-            resources.probeVolumesGlobalLightListAtomic = tileAndClusterData.probeVolumesGlobalLightListAtomic;
-            resources.probeVolumesBigTileLightList = tileAndClusterData.probeVolumesBigTileLightList;
-            resources.probeVolumesPerVoxelLightLists = tileAndClusterData.probeVolumesPerVoxelLightLists;
-            resources.probeVolumesPerVoxelOffset = tileAndClusterData.probeVolumesPerVoxelOffset;
-
             return resources;
         }
 
@@ -2908,10 +2894,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // to changes to the inner workings of the lists.
                 // Also, we clear all the lists and to be resilient to changes in pipeline.
                 if (parameters.runBigTilePrepass)
-                    ClearLightList(parameters, cmd, resources.tileAndClusterData.bigTileLightList);
-                if (resources.tileAndClusterData.lightList != null) // This can happen for probe volume light list build where we only generate clusters.
-                    ClearLightList(parameters, cmd, resources.tileAndClusterData.lightList);
-                ClearLightList(parameters, cmd, resources.tileAndClusterData.perVoxelOffset);
+                    ClearLightList(parameters, cmd, resources.bigTileLightList);
+                if (resources.lightList != null) // This can happen for probe volume light list build where we only generate clusters.
+                    ClearLightList(parameters, cmd, resources.lightList);
+                ClearLightList(parameters, cmd, resources.perVoxelOffset);
             }
         }
 
@@ -2921,8 +2907,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.totalLightCount != 0)
             {
                 // With XR single-pass, we have one set of light bounds per view to iterate over (bounds are in view space for each view)
-                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
-                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, resources.convexBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, resources.AABBBoundsBuffer);
 
                 ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.screenSpaceAABBShader, HDShaderIDs._ShaderVariablesLightList);
 
@@ -3011,7 +2997,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (parameters.runBigTilePrepass)
                     cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vBigTileLightList, resources.bigTileLightList);
 
-                if (tileAndCluster.clusterNeedsDepth)
+                if (parameters.clusterNeedsDepth)
                 {
                     cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_logBaseBuffer, resources.perTileLogBaseTweak);
                 }
@@ -3282,6 +3268,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.buildPerVoxelLightListKernel = isProjectionOblique ? s_ClusterObliqueKernels[(int)clustPrepassSourceIdx, (int)clustDepthSourceIdx] : s_ClusterKernels[(int)clustPrepassSourceIdx, (int)clustDepthSourceIdx];
             parameters.numTilesClusterX = GetNumTileClusteredX(hdCamera);
             parameters.numTilesClusterY = GetNumTileClusteredY(hdCamera);
+            parameters.clusterNeedsDepth = tileAndClusterData.clusterNeedsDepth;
 
             // Build dispatch indirect
             parameters.buildMaterialFlagsShader = buildMaterialFlagsShader;
