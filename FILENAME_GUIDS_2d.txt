@@ -1,0 +1,48 @@
+TestProjects/UniversalGraphicsTest_2d/Assets/Scenes/011_UnlitSprites.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_2d/Assets/Scenes/056_2D_Lights-Shadows.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_2d/Assets/Scenes/056_2D_Lights.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_2d/Assets/Scenes/056_2D_Lights_Shader_Graph.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_2d/Assets/Scenes/059_2D_PixelPerfect_PostProcessing.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_2d/Assets/Scenes/069_2D_Forward_Shader_Compatibility_Forward.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_2d/Assets/Scenes/070_2D_Forward_Shader_Compatibility_2D.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_2d/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:e18141520846dcc44b725b2f74e91229",
+TestProjects/UniversalGraphicsTest_2d/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:ed05cc0a83a5a40c0a6e72098212c312",
+TestProjects/UniversalGraphicsTest_2d/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_2d/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:0acc523941302664db1f4e527237feb3",
+TestProjects/UniversalGraphicsTest_2d/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:c579267770062bf448e75eb160330b7f",
+TestProjects/UniversalGraphicsTest_2d/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:15fc0a57446b3144c949da3e2b9737a9"
+--
+TestProjects/UniversalGraphicsTest_2d/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:d60799ab2a985554ea1a39cd38695018",
+--
+TestProjects/UniversalGraphicsTest_2d/Library/CurrentLayout-default.dwlt:  m_AssetGUID: 
+--
+TestProjects/UniversalGraphicsTest_2d/Library/CurrentLayout-default.dwlt:  m_WindowGUID: 302c3de2b9dedc54b96f1e8e2a684de2
+--
+TestProjects/UniversalGraphicsTest_2d/Library/CurrentLayout-default.dwlt:  m_WindowGUID: a879df5aa07bebc4480688ced864593c
+--
+TestProjects/UniversalGraphicsTest_2d/Library/PackageCache/com.unity.ide.rider@1.1.4/Rider/Editor/com.unity.ide.rider.asmdef:        "GUID:0acc523941302664db1f4e527237feb3"
+--
+TestProjects/UniversalGraphicsTest_2d/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:c081bc530f560634bb5c21d4b323a7f1",
+TestProjects/UniversalGraphicsTest_2d/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_2d/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:0acc523941302664db1f4e527237feb3",
+TestProjects/UniversalGraphicsTest_2d/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:f9fe0089ec81f4079af78eb2287a6163",
+TestProjects/UniversalGraphicsTest_2d/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:e40ba710768534012815d3193fa296cb"
+--
+TestProjects/UniversalGraphicsTest_2d/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Runtime/UnityEngine.TestTools.Graphics.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_2d/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Runtime/UnityEngine.TestTools.Graphics.asmdef:        "GUID:0acc523941302664db1f4e527237feb3",
+TestProjects/UniversalGraphicsTest_2d/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Runtime/UnityEngine.TestTools.Graphics.asmdef:        "GUID:e40ba710768534012815d3193fa296cb"
+--
+TestProjects/UniversalGraphicsTest_2d/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Tests/Runtime/UnityEngine.TestTools.Graphics.Tests.asmdef:        "GUID:c081bc530f560634bb5c21d4b323a7f1",
+TestProjects/UniversalGraphicsTest_2d/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Tests/Runtime/UnityEngine.TestTools.Graphics.Tests.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_2d/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Tests/Runtime/UnityEngine.TestTools.Graphics.Tests.asmdef:        "GUID:0acc523941302664db1f4e527237feb3"
+--
+TestProjects/UniversalGraphicsTest_2d/ProjectSettings/ProjectSettings.asset:  productGUID: 88f26d28a6662d0498df1d61eb492e0b
+--
+TestProjects/UniversalGraphicsTest_2d/ProjectSettings/ProjectSettings.asset:  clonedFromGUID: 10ad67313f4034357812315f3c407484

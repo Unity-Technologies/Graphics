@@ -1,0 +1,79 @@
+TestProjects/UniversalGraphicsTest_lighting/Assets/InitTestScene637211643315316227.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/005_LitBakedEmission.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/006_LitShaderLightProbes.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/009_AdditionalLightsShadows.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/017_Lighting_Scene_DirectionalBaked.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/019_Lighting_Scene_PointLights.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/023_Lighting_Mixed_Indirect.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/031_Shader_GlossyEnvironmentSky.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/032_Shader_GlossyEnvironmentColor.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/033_Shader_HighlightsEnvironmentGradientSH.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/034_Shader_HighlightsEnvironmentGradientBaked.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/036_Lighting_Scene_DirectionalBakedDirectional.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/041_Lighting_BasicArea.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/042_Lighting_Scene_VertexLighting.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/043_Lighting_Mixed_ShadowMask.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/044_Lighting_ReflectionProbe.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/048_Lighting_LocalShadows.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/049_Lighting_Mixed_Subtractive.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/051_Lighting_Scene_NoLighting.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Scenes/055_Lighting_Attenuation_Spot_Point.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:e18141520846dcc44b725b2f74e91229",
+TestProjects/UniversalGraphicsTest_lighting/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:ed05cc0a83a5a40c0a6e72098212c312",
+TestProjects/UniversalGraphicsTest_lighting/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_lighting/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:0acc523941302664db1f4e527237feb3",
+TestProjects/UniversalGraphicsTest_lighting/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:c579267770062bf448e75eb160330b7f",
+TestProjects/UniversalGraphicsTest_lighting/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:15fc0a57446b3144c949da3e2b9737a9"
+--
+TestProjects/UniversalGraphicsTest_lighting/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:c081bc530f560634bb5c21d4b323a7f1",
+TestProjects/UniversalGraphicsTest_lighting/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:15fc0a57446b3144c949da3e2b9737a9",
+TestProjects/UniversalGraphicsTest_lighting/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+TestProjects/UniversalGraphicsTest_lighting/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:d60799ab2a985554ea1a39cd38695018",
+TestProjects/UniversalGraphicsTest_lighting/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_lighting/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:0acc523941302664db1f4e527237feb3"
+--
+TestProjects/UniversalGraphicsTest_lighting/Library/CurrentLayout-default.dwlt:  m_AssetGUID: 
+--
+TestProjects/UniversalGraphicsTest_lighting/Library/CurrentLayout-default.dwlt:  m_WindowGUID: 302c3de2b9dedc54b96f1e8e2a684de2
+--
+TestProjects/UniversalGraphicsTest_lighting/Library/CurrentLayout-default.dwlt:  m_WindowGUID: a879df5aa07bebc4480688ced864593c
+--
+TestProjects/UniversalGraphicsTest_lighting/Library/PackageCache/com.unity.ide.rider@1.1.4/Rider/Editor/com.unity.ide.rider.asmdef:        "GUID:0acc523941302664db1f4e527237feb3"
+--
+TestProjects/UniversalGraphicsTest_lighting/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:c081bc530f560634bb5c21d4b323a7f1",
+TestProjects/UniversalGraphicsTest_lighting/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_lighting/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:0acc523941302664db1f4e527237feb3",
+TestProjects/UniversalGraphicsTest_lighting/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:f9fe0089ec81f4079af78eb2287a6163",
+TestProjects/UniversalGraphicsTest_lighting/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:e40ba710768534012815d3193fa296cb"
+--
+TestProjects/UniversalGraphicsTest_lighting/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Runtime/UnityEngine.TestTools.Graphics.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_lighting/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Runtime/UnityEngine.TestTools.Graphics.asmdef:        "GUID:0acc523941302664db1f4e527237feb3",
+TestProjects/UniversalGraphicsTest_lighting/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Runtime/UnityEngine.TestTools.Graphics.asmdef:        "GUID:e40ba710768534012815d3193fa296cb"
+--
+TestProjects/UniversalGraphicsTest_lighting/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Tests/Runtime/UnityEngine.TestTools.Graphics.Tests.asmdef:        "GUID:c081bc530f560634bb5c21d4b323a7f1",
+TestProjects/UniversalGraphicsTest_lighting/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Tests/Runtime/UnityEngine.TestTools.Graphics.Tests.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_lighting/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Tests/Runtime/UnityEngine.TestTools.Graphics.Tests.asmdef:        "GUID:0acc523941302664db1f4e527237feb3"
+--
+TestProjects/UniversalGraphicsTest_lighting/ProjectSettings/ProjectSettings.asset:  productGUID: 6d8f7c75adf792447b89b3179ccce960
+--
+TestProjects/UniversalGraphicsTest_lighting/ProjectSettings/ProjectSettings.asset:  clonedFromGUID: c0afd0d1d80e3634a9dac47e8a0426ea

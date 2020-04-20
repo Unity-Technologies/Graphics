@@ -1,0 +1,129 @@
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/001_SimpleCube.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/002_Camera_Clip.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/003_Camera_Ortho.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/004_Camera_TargetTexture.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/007_LitShaderMaps.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/008_AdditionalLights.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/010_AdditionalLightsSorted.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/012_PBS_EnvironmentBRDF_Spheres.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/013_CameraMulti_Splitscreen.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/014_CameraMulti_MiniMap.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/015_CameraMulti_FPSCam.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/016_Lighting_Scene_Directional.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/019_Lighting_Scene_PointLights.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/020_Lighting_BasicDirectional.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/021_Lighting_BasicPoint.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/022_Lighting_BasicSpot.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/024_Shader_PBRvalidation_Specular.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/025_Shader_PBRvalidation_Metallic.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/026_Shader_PBRscene.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/029_Particles.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/037_Particles_Standard.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/040_UpgradeScene.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/045_CustomLWPipe.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/046_Camera_OpaqueTexture.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/047_Lighting_DirectionalCascades.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/050_Shader_Graphs.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/052_LWCallbacks.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/053_UnlitShader.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/054_Lighting_Attenuation.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/105_MRT.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/105_TransparentReceiveShadows.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/106_MRT_CameraClearFlag.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/107_DepthPrepass.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/108_MoveCamera.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/109_URPShadersAlphaOutput.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/119_CameraToRTWithViewportRect.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/120_RenderUICustomRendererNoPP.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/121_RenderUICustomRendererNoAA.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/122_RenderUICustomRendererFXAA.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/123_CameraStackingClear.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/124_CameraStackingClearRT.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/125_CameraStackingVolumes.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/126_RendererFeatureActive.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/126_SampleDepth.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Scenes/127_ClearRenderTexture.unity:  m_SceneGUID: 00000000000000000000000000000000
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:e18141520846dcc44b725b2f74e91229",
+TestProjects/UniversalGraphicsTest_foundation/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:ed05cc0a83a5a40c0a6e72098212c312",
+TestProjects/UniversalGraphicsTest_foundation/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_foundation/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:0acc523941302664db1f4e527237feb3",
+TestProjects/UniversalGraphicsTest_foundation/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:c579267770062bf448e75eb160330b7f",
+TestProjects/UniversalGraphicsTest_foundation/Assets/Test/Editor/Unity.Testing.SRP.Universal.Editor.asmdef:        "GUID:15fc0a57446b3144c949da3e2b9737a9"
+--
+TestProjects/UniversalGraphicsTest_foundation/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:c081bc530f560634bb5c21d4b323a7f1",
+TestProjects/UniversalGraphicsTest_foundation/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:15fc0a57446b3144c949da3e2b9737a9",
+TestProjects/UniversalGraphicsTest_foundation/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+TestProjects/UniversalGraphicsTest_foundation/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:d60799ab2a985554ea1a39cd38695018",
+TestProjects/UniversalGraphicsTest_foundation/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_foundation/Assets/Test/Runtime/Unity.Testing.SRP.Universal.Runtime.asmdef:        "GUID:0acc523941302664db1f4e527237feb3"
+--
+TestProjects/UniversalGraphicsTest_foundation/Library/CurrentLayout-default.dwlt:  m_AssetGUID: 
+--
+TestProjects/UniversalGraphicsTest_foundation/Library/CurrentLayout-default.dwlt:  m_WindowGUID: 302c3de2b9dedc54b96f1e8e2a684de2
+--
+TestProjects/UniversalGraphicsTest_foundation/Library/CurrentLayout-default.dwlt:  m_WindowGUID: a879df5aa07bebc4480688ced864593c
+--
+TestProjects/UniversalGraphicsTest_foundation/Library/PackageCache/com.unity.ide.rider@1.1.4/Rider/Editor/com.unity.ide.rider.asmdef:        "GUID:0acc523941302664db1f4e527237feb3"
+--
+TestProjects/UniversalGraphicsTest_foundation/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:c081bc530f560634bb5c21d4b323a7f1",
+TestProjects/UniversalGraphicsTest_foundation/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_foundation/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:0acc523941302664db1f4e527237feb3",
+TestProjects/UniversalGraphicsTest_foundation/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:f9fe0089ec81f4079af78eb2287a6163",
+TestProjects/UniversalGraphicsTest_foundation/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Editor/UnityEditor.TestTools.Graphics.asmdef:        "GUID:e40ba710768534012815d3193fa296cb"
+--
+TestProjects/UniversalGraphicsTest_foundation/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Runtime/UnityEngine.TestTools.Graphics.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_foundation/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Runtime/UnityEngine.TestTools.Graphics.asmdef:        "GUID:0acc523941302664db1f4e527237feb3",
+TestProjects/UniversalGraphicsTest_foundation/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Runtime/UnityEngine.TestTools.Graphics.asmdef:        "GUID:e40ba710768534012815d3193fa296cb"
+--
+TestProjects/UniversalGraphicsTest_foundation/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Tests/Runtime/UnityEngine.TestTools.Graphics.Tests.asmdef:        "GUID:c081bc530f560634bb5c21d4b323a7f1",
+TestProjects/UniversalGraphicsTest_foundation/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Tests/Runtime/UnityEngine.TestTools.Graphics.Tests.asmdef:        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+TestProjects/UniversalGraphicsTest_foundation/Library/PackageCache/com.unity.testframework.graphics@7.1.12-preview/Tests/Runtime/UnityEngine.TestTools.Graphics.Tests.asmdef:        "GUID:0acc523941302664db1f4e527237feb3"
+--
+TestProjects/UniversalGraphicsTest_foundation/ProjectSettings/ProjectSettings.asset:  productGUID: d5170675f8ae0e94d9ee40d5cf0ffe94
+--
+TestProjects/UniversalGraphicsTest_foundation/ProjectSettings/ProjectSettings.asset:  clonedFromGUID: c0afd0d1d80e3634a9dac47e8a0426ea
