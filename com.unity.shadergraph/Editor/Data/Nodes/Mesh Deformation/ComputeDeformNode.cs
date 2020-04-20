@@ -74,9 +74,12 @@ namespace UnityEditor.ShaderGraph
         {
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
+                displayName = "Compute Mesh Buffer Index Offset",
                 overrideReferenceName = "_ComputeMeshIndex",
                 gpuInstanced = true,
+#if ENABLE_HYBRID_RENDERER_V2
                 hidden = true,
+#endif
                 value = 0
             });
 
@@ -85,7 +88,9 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+#if ENABLE_HYBRID_RENDERER_V2
             sb.AppendLine("#if defined(UNITY_DOTS_INSTANCING_ENABLED)");
+#endif
             sb.AppendLine("$precision3 {0} = 0;", GetVariableNameForSlot(kPositionOutputSlotId));
             sb.AppendLine("$precision3 {0} = 0;", GetVariableNameForSlot(kNormalOutputSlotId));
             sb.AppendLine("$precision3 {0} = 0;", GetVariableNameForSlot(kTangentOutputSlotId));
@@ -97,11 +102,13 @@ namespace UnityEditor.ShaderGraph
                            $"{GetVariableNameForSlot(kNormalOutputSlotId)}, " +
                            $"{GetVariableNameForSlot(kTangentOutputSlotId)});");
             }
+#if ENABLE_HYBRID_RENDERER_V2
             sb.AppendLine("#else");
             sb.AppendLine("$precision3 {0} = IN.ObjectSpacePosition;", GetVariableNameForSlot(kPositionOutputSlotId));
             sb.AppendLine("$precision3 {0} = IN.ObjectSpaceNormal;", GetVariableNameForSlot(kNormalOutputSlotId));
             sb.AppendLine("$precision3 {0} = IN.ObjectSpaceTangent;", GetVariableNameForSlot(kTangentOutputSlotId));
             sb.AppendLine("#endif");
+#endif
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
