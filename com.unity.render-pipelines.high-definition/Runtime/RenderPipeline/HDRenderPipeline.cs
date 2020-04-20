@@ -6,7 +6,6 @@ using System.Linq;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using Utilities;
 
 namespace UnityEngine.Rendering.HighDefinition
 {

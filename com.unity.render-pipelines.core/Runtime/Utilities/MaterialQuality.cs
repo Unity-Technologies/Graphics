@@ -1,13 +1,13 @@
 using System;
-using UnityEngine;
-using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Utilities
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Material quality flags.
     /// </summary>
     [Flags]
+    [MovedFrom("Utilities")]
     public enum MaterialQuality
     {
         /// <summary>Low Material Quality.</summary>
@@ -21,6 +21,7 @@ namespace Utilities
     /// <summary>
     /// Material Quality utility class.
     /// </summary>
+    [MovedFrom("Utilities")]
     public static class MaterialQualityUtilities
     {
         /// <summary>
