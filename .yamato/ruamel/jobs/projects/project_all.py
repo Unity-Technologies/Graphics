@@ -1,8 +1,10 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import *
-from ..utils.shared import add_custom_revision_var
+from ..utils.yml_job import YMLJob
 
 def get_job_definition(project_name, editor, dependencies_in_all):
+    
+    # define dependencies
     dependencies = []
     for d in dependencies_in_all:
         for test_platform_name in d["test_platform_names"]:
@@ -17,12 +19,11 @@ def get_job_definition(project_name, editor, dependencies_in_all):
                 }
             )
 
-    job = {
-        'name' : f'All {project_name} CI - {editor["version"]}',
-        'dependencies' : dependencies
-    }
-
-    job = add_custom_revision_var(job, editor["version"])
+    # construct job
+    job = YMLJob()
+    job.set_name(f'All {project_name} CI - {editor["version"]}')
+    job.add_dependencies(dependencies)
+    job.add_var_custom_revision(editor["version"])
     return job
 
 
@@ -31,7 +32,7 @@ class Project_AllJob():
     def __init__(self, project_name, editor, dependencies_in_all):
         self.project_name = project_name
         self.job_id = project_job_id_all(project_name, editor["version"])
-        self.yml = get_job_definition(project_name, editor, dependencies_in_all)
+        self.yml = get_job_definition(project_name, editor, dependencies_in_all).yml
 
     
     

@@ -1,8 +1,10 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import *
-from ..utils.shared import add_custom_revision_var
+from ..utils.yml_job import YMLJob
 
-def get_job_definition(editor, projects, test_platforms):  # TODO only run for 2020.1 and trunk
+def get_job_definition(editor, projects, test_platforms):  # only run for 2020.1 and trunk
+    
+    # define dependencies
     dependencies = []
     for project in projects:
         if project["name"] in ['HDRP_Standalone', 'Universal_Stereo','ShaderGraph_Stereo']:
@@ -17,13 +19,13 @@ def get_job_definition(editor, projects, test_platforms):  # TODO only run for 2
                     'path' : f'{project_filepath_specific(project["name"], "Win", "DX11")}#{project_job_id_test(project["name"], "Win", "DX11", test_platform["name"], editor["version"])}',
                     'rerun': 'always'
                 })
-
-    job = {
-        'name': f'Trunk verification - {editor["version"]}',
-        'dependencies': dependencies
-    }
     
-    job = add_custom_revision_var(job, editor["version"])
+
+    # construct job
+    job = YMLJob()
+    job.set_name(f'Trunk verification - {editor["version"]}')
+    job.add_dependencies(dependencies)
+    job.add_var_custom_revision(editor["version"])
     return job
 
 
@@ -31,4 +33,4 @@ class ABV_TrunkVerificationJob():
     
     def __init__(self, editor, projects, test_platforms):
         self.job_id = abv_job_id_trunk_verification(editor["version"])
-        self.yml = get_job_definition(editor, projects, test_platforms)
+        self.yml = get_job_definition(editor, projects, test_platforms).yml

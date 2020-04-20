@@ -10,14 +10,11 @@ def get_job_definition(project, editor, platform, api, test_platform, build_job)
     job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project, platform, api, test_platform["args"]))
 
     if build_job is not None:
-        
-        job['skip_checkout'] = True
-        job['dependencies'].append(
-            {
+        job.set_skip_checkout(True)
+        job.add_dependencies([{
                 'path' : f'{project_filepath_specific(project["name"], platform["name"], api["name"])}#{build_job.job_id}',
                 'rerun' : f'{editor["rerun_strategy"]}'
-            }
-        )
+            }])
         
     return job
 
@@ -35,7 +32,7 @@ class Project_StandaloneJob():
 
         self.project_name = project["name"]
         self.job_id = project_job_id_test(project["name"],platform["name"],api["name"],test_platform["name"],editor["version"])
-        self.yml = get_job_definition(project, editor, platform, api, test_platform, self.build_job)
+        self.yml = get_job_definition(project, editor, platform, api, test_platform, self.build_job).yml
 
 
     

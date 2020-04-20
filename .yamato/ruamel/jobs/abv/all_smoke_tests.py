@@ -1,10 +1,11 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..utils.namer import *
-from ..utils.shared import add_custom_revision_var
+from ..utils.yml_job import YMLJob
 
 
 def get_job_definition(editor, test_platforms):
 
+    # define dependencies
     dependencies = []
     for test_platform in test_platforms:
         dependencies.append({
@@ -12,12 +13,11 @@ def get_job_definition(editor, test_platforms):
             'rerun': 'on-new-revision'
         })
 
-    job = {
-        'name': f'All Smoke Tests - {editor["version"]}',
-        'dependencies': dependencies
-    }
-
-    job = add_custom_revision_var(job, editor["version"])
+    # construct job
+    job = YMLJob()
+    job.set_name(f'All Smoke Tests - {editor["version"]}')
+    job.add_dependencies(dependencies)
+    job.add_var_custom_revision(editor["version"])
     return job
 
 
@@ -25,4 +25,4 @@ class ABV_AllSmokeTestsJob():
     
     def __init__(self, editor, test_platforms):
         self.job_id = abv_job_id_all_smoke_tests(editor["version"])
-        self.yml = get_job_definition(editor, test_platforms)
+        self.yml = get_job_definition(editor, test_platforms).yml
