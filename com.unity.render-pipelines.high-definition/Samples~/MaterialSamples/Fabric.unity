@@ -425,13 +425,14 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
   m_text: 'Denim
 
-    The fuzz map channel in this material is used to create color
-    variation found in denim'
+    This Material uses a fuzz map to simulate the color variation
+    found in denim.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -502,13 +503,13 @@ MonoBehaviour:
   m_firstVisibleCharacter: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: -2.2390704}
+  m_margin: {x: 0, y: 0, z: 0, w: 0.7245366}
   m_textInfo:
     textComponent: {fileID: 165984496}
-    characterCount: 92
+    characterCount: 84
     spriteCount: 0
-    spaceCount: 16
-    wordCount: 17
+    spaceCount: 14
+    wordCount: 15
     linkCount: 0
     lineCount: 4
     pageCount: 1
@@ -961,20 +962,23 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'These materials are created with a fabric shader that uses the Cotton
-    Wool material type.
+  m_text: 'These Materials use the Fabric Shader with the Material Type set to Cotton
+    Wool.
 
+    
 
-    This is a diffused shading model that can be used to
-    create materials like cotton, denim, wool, linen and velvet.
+    This is a diffused shading model which you can use to create
+    Materials like cotton, denim, wool, linen, and velvet.
 
+    
 
-    The knit or
-    weave have an influence on the appearance of the material as well as the fibers
-    that make up the fabric. Natural fibers are typically rougher and as a result
+    The type
+    of fibers that make up the fabric, as well as the fabric''s knit or weave, influence
+    the appearance of the fabric. Natural fibers are typically rougher and therefore
     diffuse light.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1049,10 +1053,10 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -2.2390704}
   m_textInfo:
     textComponent: {fileID: 315967746}
-    characterCount: 390
+    characterCount: 391
     spriteCount: 0
-    spaceCount: 70
-    wordCount: 69
+    spaceCount: 67
+    wordCount: 66
     linkCount: 0
     lineCount: 11
     pageCount: 1
@@ -1234,14 +1238,27 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "In these materials a threadmap is used for the high frequency details
-    of fabrics, much like a Detail Map in the HDRP Lit Shaders\n\nThe thread map
-    input is channel packed to optimise memory. It is arranged in a a way to optimise
-    precision for the normal map, the channel packing is as follows:\n\nAmbient Occlusion
-    (Red channel), \nNormal (Green and Alpha channels)\nSmoothness (Blue channel)"
+  m_text: 'These Materials use a threadmap for the high-frequency details that fabrics
+    include. This is similar to the Detail Map found in HDRP''s Lit Shaders.
+
+    
+
+    The
+    threadmap input is channel-packed to optimise memory and it arranged in a way
+    to optimise precision for the normal map. Its format is:
+
+
+    Red channel -
+    Ambient occlusion
+
+    Green and alpha channels - Normals
+
+    Blue channel
+    - Smoothness'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1291,7 +1308,7 @@ MonoBehaviour:
   m_enableWordWrapping: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
-  m_firstOverflowCharacterIndex: 218
+  m_firstOverflowCharacterIndex: 245
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_isTextTruncated: 0
@@ -1315,12 +1332,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 409108976}
-    characterCount: 386
+    characterCount: 385
     spriteCount: 0
-    spaceCount: 68
-    wordCount: 66
+    spaceCount: 64
+    wordCount: 63
     linkCount: 0
-    lineCount: 12
+    lineCount: 11
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
@@ -1560,6 +1577,9 @@ MonoBehaviour:
         maximumLODLevel: 0
         maximumLODLevelMode: 0
         maximumLODLevelQualityLevel: 0
+        sssQualityMode: 0
+        sssQualityLevel: 0
+        sssCustomSampleBudget: 20
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
@@ -1881,22 +1901,23 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'These materials uses the Silk material type.
+  m_text: 'These Materials use the Fabric Shader with the Material Type set to Silk.
 
+    
 
-    This can be used to
-    create fabrics like silk, satin, nylon and polyester.
+    You
+    can use the Silk Material Type to create fabrics like silk, satin, nylon, and
+    polyester.
 
+    
 
-    In general, silk
-    and synthetic fibers are smoother because they are produced as a single smooth
-    filament. This once weaved also gives an anisotropic specularity.
-
-
-'
+    In general, silk and other synthetic fibers are smoother
+    because they are produced as a single smooth filament. When this is weaved, it
+    produces a fabric with anisotropic specular highlights.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1946,7 +1967,7 @@ MonoBehaviour:
   m_enableWordWrapping: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
-  m_firstOverflowCharacterIndex: 121
+  m_firstOverflowCharacterIndex: 173
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_isTextTruncated: 0
@@ -1970,10 +1991,10 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 632544997}
-    characterCount: 284
+    characterCount: 364
     spriteCount: 0
-    spaceCount: 48
-    wordCount: 45
+    spaceCount: 60
+    wordCount: 59
     linkCount: 0
     lineCount: 10
     pageCount: 1
@@ -2078,12 +2099,13 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
   m_text: 'Silk
 
-    A smooth fabric with an anisotropic specular '
+    A smooth fabric with anisotropic specular highlights.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2157,12 +2179,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 741173482}
-    characterCount: 50
+    characterCount: 59
     spriteCount: 0
-    spaceCount: 8
+    spaceCount: 7
     wordCount: 8
     linkCount: 0
-    lineCount: 2
+    lineCount: 3
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
@@ -2347,13 +2369,14 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
   m_text: 'Shot Silk
 
-    Shot silk has a separate color for the specular color that
-    gives it the iridescent look'
+    Similar to Silk but with a separate specular color that
+    gives the Material an iridescent look.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2427,12 +2450,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 866798825}
-    characterCount: 97
+    characterCount: 105
     spriteCount: 0
     spaceCount: 17
     wordCount: 18
     linkCount: 0
-    lineCount: 3
+    lineCount: 4
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
@@ -2701,13 +2724,14 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
   m_text: 'Nylon
 
-    Nylon is a man-made material that is an extruded polymer making
-    it smoother than natural fabrics like cotton and wool'
+    Nylon is a synthetic material which is smoother than natural
+    fabrics such as cotton or wool.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2781,10 +2805,10 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 977234751}
-    characterCount: 123
+    characterCount: 99
     spriteCount: 0
-    spaceCount: 20
-    wordCount: 21
+    spaceCount: 16
+    wordCount: 17
     linkCount: 0
     lineCount: 4
     pageCount: 1
@@ -2946,16 +2970,15 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
   m_text: 'Velvet
 
-    Velvet can be made from synthetic or natural fibers, it''s
-    the tufting that gives velvet it''s unique appearance.
-
-    The fibers of velvet
-    point outwards from the surface and cause the surfaces directly facing the camera
+    Velvet can be made from synthetic or natural fibers. What
+    gives velvet its unique appearance is its tufting. This means that velvet fibers
+    point outwards from the surface which causes surfaces directly facing the viewer
     to appear darker.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3006,7 +3029,7 @@ MonoBehaviour:
   m_enableWordWrapping: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
-  m_firstOverflowCharacterIndex: 164
+  m_firstOverflowCharacterIndex: 179
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_isTextTruncated: 0
@@ -3030,7 +3053,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 1139053734}
-    characterCount: 239
+    characterCount: 245
     spriteCount: 0
     spaceCount: 38
     wordCount: 39
@@ -3361,15 +3384,14 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
   m_text: 'Linen
 
-    This linen uses a plain weave. The fuzz map channel in this
-    material is used to create color variation
-
-'
+    This Material uses a plain weave. It also uses a fuzz map
+    to simulate color variation.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3443,12 +3465,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: -0.01088585}
   m_textInfo:
     textComponent: {fileID: 1469795890}
-    characterCount: 109
+    characterCount: 93
     spriteCount: 0
-    spaceCount: 20
-    wordCount: 20
+    spaceCount: 16
+    wordCount: 17
     linkCount: 0
-    lineCount: 4
+    lineCount: 3
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
@@ -3611,8 +3633,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: bcce1d882ad78594e96df95e83512585, type: 2}
   m_StaticLightingSkyUniqueID: 3
-  m_SkySettings: {fileID: 2016592541}
-  m_SkySettingsFromProfile: {fileID: -213621468369542312, guid: bcce1d882ad78594e96df95e83512585, type: 2}
 --- !u!4 &1728193973
 Transform:
   m_ObjectHideFlags: 1
@@ -3737,17 +3757,14 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
   m_text: 'Wool
 
-    Using a ribbed knit for the threadmap
-
-    A thicker knit that
-    has a higher Ambient Occlusion and Normal strength
-
-'
+    This Material uses a ribbed knit threadmap. This is a thicker
+    knit with a higher ambient occlusion and normal strength.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3818,13 +3835,13 @@ MonoBehaviour:
   m_firstVisibleCharacter: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: -2.2390704}
+  m_margin: {x: 0, y: 0, z: 0, w: 0.5933261}
   m_textInfo:
     textComponent: {fileID: 2006083193}
-    characterCount: 114
+    characterCount: 125
     spriteCount: 0
     spaceCount: 20
-    wordCount: 20
+    wordCount: 21
     linkCount: 0
     lineCount: 5
     pageCount: 1
@@ -3876,76 +3893,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &2016592541
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a81bcacc415a1f743bfdf703afc52027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  active: 1
-  m_AdvancedMode: 0
-  rotation:
-    m_OverrideState: 0
-    m_Value: 0
-    min: 0
-    max: 360
-  skyIntensityMode:
-    m_OverrideState: 0
-    m_Value: 0
-  exposure:
-    m_OverrideState: 0
-    m_Value: 10
-  multiplier:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0
-  upperHemisphereLuxValue:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0
-  upperHemisphereLuxColor:
-    m_OverrideState: 0
-    m_Value: {x: 0, y: 0, z: 0}
-  desiredLuxValue:
-    m_OverrideState: 0
-    m_Value: 20000
-  updateMode:
-    m_OverrideState: 0
-    m_Value: 0
-  updatePeriod:
-    m_OverrideState: 0
-    m_Value: 0
-    min: 0
-  includeSunInBaking:
-    m_OverrideState: 0
-    m_Value: 0
-  top:
-    m_OverrideState: 0
-    m_Value: {r: 0.22322798, g: 0.2581829, b: 0.4341537, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
-  middle:
-    m_OverrideState: 0
-    m_Value: {r: 0.2767907, g: 0.32292244, b: 0.541, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
-  bottom:
-    m_OverrideState: 0
-    m_Value: {r: 0.6273585, g: 0.6739387, b: 1, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
-  gradientDiffusion:
-    m_OverrideState: 0
-    m_Value: 1
 --- !u!1001 &2025648721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4080,13 +4027,14 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
   m_text: 'Cotton
 
-    This material uses a jersey knit threadmap typically used
-    for clothing. With a thin diffusion profile for light transmission.'
+    This Material uses a jersey knit threadmap typically used
+    for clothing. It also includes a thin Diffusion Profile to add light transmission.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4157,13 +4105,13 @@ MonoBehaviour:
   m_firstVisibleCharacter: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: -2.2390704}
+  m_margin: {x: 0, y: 0, z: 0, w: 0.63981265}
   m_textInfo:
     textComponent: {fileID: 2041204706}
-    characterCount: 132
+    characterCount: 148
     spriteCount: 0
-    spaceCount: 19
-    wordCount: 20
+    spaceCount: 22
+    wordCount: 23
     linkCount: 0
     lineCount: 5
     pageCount: 1
