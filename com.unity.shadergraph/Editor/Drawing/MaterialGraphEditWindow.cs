@@ -513,8 +513,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (deserialized == null)
                 return;
 
-            var subGraph = new GraphData { isSubGraph = true };
-            subGraph.path = "Sub Graphs";
+            var subGraph = new GraphData {isSubGraph = true, path = "Sub Graphs"};
             var subGraphOutputNode = new SubGraphOutputNode();
             {
                 var drawState = subGraphOutputNode.drawState;
@@ -554,22 +553,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // Checking if the group guid is also being copied.
                 // If not then nullify that guid
-                // TODO: Fix up after nodes store their group as JsonRef
-                // if (node.groupGuid != Guid.Empty)
-                // {
-                //     node.groupGuid = !groupGuidMap.ContainsKey(node.groupGuid) ? Guid.Empty : groupGuidMap[node.groupGuid];
-                // }
+                if (node.group != null && !subGraph.groups.Contains(node.group))
+                {
+                    node.group = null;
+                }
 
                 subGraph.AddNode(node);
             }
 
             foreach (var note in deserialized.stickyNotes)
             {
-                // TODO: Fix up after sticky notes store their group as JsonRef
-                // if (note.groupGuid != Guid.Empty)
-                // {
-                //     note.groupGuid = !groupGuidMap.ContainsKey(note.groupGuid) ? Guid.Empty : groupGuidMap[note.groupGuid];
-                // }
+                if (note.group != null && !subGraph.groups.Contains(note.group))
+                {
+                    note.group = null;
+                }
 
                 subGraph.AddStickyNote(note);
             }

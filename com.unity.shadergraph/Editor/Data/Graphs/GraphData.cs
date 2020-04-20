@@ -1167,6 +1167,7 @@ namespace UnityEditor.ShaderGraph
         public override void OnBeforeSerialize()
         {
             m_Edges.Sort();
+            m_Version = k_CurrentVersion;
         }
 
         static JsonObject DeserializeLegacy(string typeString, string json)
@@ -1349,12 +1350,26 @@ namespace UnityEditor.ShaderGraph
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
                 m_NodeDictionary.Add(node.objectId, node);
-                m_GroupItems[node.group].Add(node);
+                if (m_GroupItems.TryGetValue(node.group, out var groupItems))
+                {
+                    groupItems.Add(node);
+                }
+                else
+                {
+                    node.group = null;
+                }
             }
 
             foreach (var stickyNote in m_StickyNoteDatas.SelectValue())
             {
-                m_GroupItems[stickyNote.group].Add(stickyNote);
+                if (m_GroupItems.TryGetValue(stickyNote.group, out var groupItems))
+                {
+                    groupItems.Add(stickyNote);
+                }
+                else
+                {
+                    stickyNote.group = null;
+                }
             }
 
             foreach (var edge in m_Edges)

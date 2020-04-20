@@ -18,13 +18,11 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<JsonData<AbstractMaterialNode>> m_Nodes = new List<JsonData<AbstractMaterialNode>>();
 
-        // TODO: Upgrade when GroupData is upgraded to JsonObject
         [SerializeField]
-        List<GroupData> m_Groups = new List<GroupData>();
+        List<JsonData<GroupData>> m_Groups = new List<JsonData<GroupData>>();
 
-        // TODO: Upgrade when StickyNoteData is upgraded to JsonObject
         [SerializeField]
-        List<StickyNoteData> m_StickyNotes = new List<StickyNoteData>();
+        List<JsonData<StickyNoteData>> m_StickyNotes = new List<JsonData<StickyNoteData>>();
 
         [SerializeField]
         List<JsonData<ShaderInput>> m_Inputs = new List<JsonData<ShaderInput>>();
@@ -150,12 +148,9 @@ namespace UnityEditor.ShaderGraph
             return m_Nodes.SelectValue().OfType<T>();
         }
 
-        public IEnumerable<GroupData> groups
-        {
-            get { return m_Groups; }
-        }
+        public DataValueEnumerable<GroupData> groups => m_Groups.SelectValue();
 
-        public IEnumerable<StickyNoteData> stickyNotes => m_StickyNotes;
+        public DataValueEnumerable<StickyNoteData> stickyNotes => m_StickyNotes.SelectValue();
 
         public IEnumerable<Edge> edges
         {
@@ -187,7 +182,7 @@ namespace UnityEditor.ShaderGraph
             try
             {
                 var graph = new CopyPasteGraph();
-                MultiJson.Deserialize(graph, copyBuffer, targetGraph);
+                MultiJson.Deserialize(graph, copyBuffer, targetGraph, true);
                 return graph;
             }
             catch
