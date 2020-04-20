@@ -455,4 +455,17 @@ bool IsMatchingLightLayer(uint lightLayers, uint renderingLayers)
     return (lightLayers & renderingLayers) != 0;
 }
 
+//ref: https://github.com/Unity-Technologies/VolumetricLighting
+// Evaluates a position's distance from a shadow plane
+half EvaluateShadowPlane(half3 positionWS, half4 shadowPlane, half shadowPlaneFeather)
+{
+	half x = shadowPlane.w - dot(positionWS, shadowPlane.xyz);
+
+	// Compiler bug workaround
+	x += 0.0001;
+
+    //Smoothstep from 0.
+	return smoothstep(0, shadowPlaneFeather, x);
+}
+
 #endif // UNITY_COMMON_LIGHTING_INCLUDED

@@ -339,6 +339,11 @@ EnvLightData FetchEnvLight(uint index)
     return _EnvLightDatas[index];
 }
 
+LightFlagData FetchLightFlag(uint index)
+{
+    return _LightFlagDatas[index];
+}
+
 // In the first 8 bits of the target we store the max fade of the contact shadows as a byte
 void UnpackContactShadowData(uint contactShadowData, out float fade, out uint mask)
 {

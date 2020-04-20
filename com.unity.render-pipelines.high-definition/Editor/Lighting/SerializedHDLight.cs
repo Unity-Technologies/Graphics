@@ -90,6 +90,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty penumbraTint;
         public SerializedProperty shadowUpdateMode;
         public SerializedScalableSettingValue shadowResolution;
+
+        // Light flags
+        public SerializedProperty lightFlags;
         
         // Bias control
         public SerializedProperty slopeBias;
@@ -366,6 +369,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
 				slopeBias = o.Find("m_SlopeBias");
                 normalBias = o.Find("m_NormalBias");
+
+                lightFlags = o.Find("m_LightFlags");
 
                 // private references for prefab handling
                 pointLightHDType = o.Find("m_PointlightHDType");

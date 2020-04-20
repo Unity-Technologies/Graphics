@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shadowHeader = new GUIContent("Shadows");
             public readonly GUIContent shadowMapSubHeader = new GUIContent("Shadow Map");
             public readonly GUIContent contactShadowsSubHeader = new GUIContent("Contact Shadows");
+            public readonly GUIContent lightFlagsSubHeader = new GUIContent("Light Flags");
             public readonly GUIContent bakedShadowsSubHeader = new GUIContent("Baked Shadows");
             public readonly GUIContent veryHighShadowQualitySubHeader = new GUIContent("Very High Quality Settings");
             public readonly GUIContent highShadowQualitySubHeader = new GUIContent("High Quality Settings");

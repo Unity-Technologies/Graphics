@@ -263,6 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxDecalsOnScreen = 512;
         internal const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxEnvLightsOnScreen;
         internal const int k_MaxEnvLightsOnScreen = 128;
+        internal const int k_MaxLightFlagsOnScreen = 512;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
         #if UNITY_SWITCH
@@ -289,6 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_MaxLightsOnScreen;
         int m_MaxEnvLightsOnScreen;
         int m_MaxPlanarReflectionOnScreen;
+        int m_MaxLightFlagsOnScreen;
 
         Texture2DArray  m_DefaultTexture2DArray;
         Cubemap         m_DefaultTextureCube;
@@ -359,13 +361,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer    lightData { get; private set; }
             public ComputeBuffer    envLightData { get; private set; }
             public ComputeBuffer    decalData { get; private set; }
+            public ComputeBuffer    lightFlagData { get; private set; }
 
-            public void Initialize(int directionalCount, int punctualCount, int areaLightCount, int envLightCount, int decalCount)
+            public void Initialize(int directionalCount, int punctualCount, int areaLightCount, int envLightCount, int decalCount, int lightFlagCount)
             {
                 directionalLightData = new ComputeBuffer(directionalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
                 lightData = new ComputeBuffer(punctualCount + areaLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
                 envLightData = new ComputeBuffer(envLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
                 decalData = new ComputeBuffer(decalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
+                lightFlagData = new ComputeBuffer(lightFlagCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightFlagData)));
             }
 
             public void Cleanup()
@@ -374,6 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SafeRelease(lightData);
                 CoreUtils.SafeRelease(envLightData);
                 CoreUtils.SafeRelease(decalData);
+                CoreUtils.SafeRelease(lightFlagData);
             }
         }
 
@@ -544,6 +549,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<DirectionalLightData> directionalLights;
             public List<LightData> lights;
             public List<EnvLightData> envLights;
+            public List<LightFlagData> lightFlags;
             public int punctualLightCount;
             public int areaLightCount;
 
@@ -562,6 +568,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 directionalLights.Clear();
                 lights.Clear();
                 envLights.Clear();
+                lightFlags.Clear();
                 punctualLightCount = 0;
                 areaLightCount = 0;
 
@@ -579,6 +586,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 directionalLights = new List<DirectionalLightData>();
                 lights = new List<LightData>();
                 envLights = new List<EnvLightData>();
+                lightFlags = new List<LightFlagData>();
 
                 lightsPerView = new List<LightsPerView>();
                 for (int i = 0; i < TextureXR.slices; ++i)
@@ -823,6 +831,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxEnvLightsOnScreen = lightLoopSettings.maxEnvLightsOnScreen;
             m_MaxLightsOnScreen = m_MaxDirectionalLightsOnScreen + m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen + m_MaxEnvLightsOnScreen;
             m_MaxPlanarReflectionOnScreen = lightLoopSettings.maxPlanarReflectionOnScreen;
+            m_MaxLightFlagsOnScreen = lightLoopSettings.maxLightFlagsOnScreen;
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
@@ -863,7 +872,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_TextureCaches.Initialize(asset, defaultResources, iBLFilterBSDFArray);
             // All the allocation of the compute buffers need to happened after the kernel finding in order to avoid the leak loop when a shader does not compile or is not available
-            m_LightLoopLightData.Initialize(m_MaxDirectionalLightsOnScreen, m_MaxPunctualLightsOnScreen, m_MaxAreaLightsOnScreen, m_MaxEnvLightsOnScreen, m_MaxDecalsOnScreen);
+            m_LightLoopLightData.Initialize(m_MaxDirectionalLightsOnScreen, m_MaxPunctualLightsOnScreen, m_MaxAreaLightsOnScreen, m_MaxEnvLightsOnScreen, m_MaxDecalsOnScreen, m_MaxLightFlagsOnScreen);
 
             m_TileAndClusterData.Initialize(allocateTileBuffers: true, clusterNeedsDepth: k_UseDepthBuffer);
             if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
@@ -1171,6 +1180,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // Populates the light list with light flags for a given light.
+        internal void FillLightFlags(ref LightData lightData, HDAdditionalLightData additionalLightData, ref int lightFlagOffset)
+        {
+            int lightFlagIndex = 0;
+
+            for (; lightFlagIndex < additionalLightData.lightFlags.Length; lightFlagIndex++)
+            {
+                if ((lightFlagOffset + lightFlagIndex) >= m_MaxLightFlagsOnScreen) 
+                    continue;
+
+                m_lightList.lightFlags.Add(additionalLightData.lightFlags[lightFlagIndex].flagData);
+            }
+
+            lightData.lightFlagIndex = lightFlagOffset;
+            lightData.lightFlagCount = lightFlagIndex;
+            lightFlagOffset += lightData.lightFlagCount;
+        }
+
         internal void GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, VisibleLight light, Light lightComponent, int lightIndex, int shadowIndex,
             int sortedIndex, bool isPhysicallyBasedSkyActive, ref int screenSpaceShadowIndex, ref int screenSpaceShadowslot)
         {
@@ -1325,7 +1352,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal void GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, VisibleLight light, Light lightComponent,
-            in ProcessedLightData processedData, int shadowIndex,  BoolScalableSetting contactShadowsScalableSetting, bool isRasterization, ref Vector3 lightDimensions, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot, ref LightData lightData)
+            in ProcessedLightData processedData, int shadowIndex,  BoolScalableSetting contactShadowsScalableSetting, bool isRasterization, ref Vector3 lightDimensions, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot, ref int lightFlagOffset, ref LightData lightData)
         {
             var additionalLightData = processedData.additionalLightData;
             var gpuLightType = processedData.gpuLightType;
@@ -1556,6 +1583,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 additionalLightData.shadowIndex = shadowIndex;
             }
 
+            // Punctual light flags
+            FillLightFlags(ref lightData, additionalLightData, ref lightFlagOffset);
 
             //Value of max smoothness is derived from Radius. Formula results from eyeballing. Radius of 0 results in 1 and radius of 2.5 results in 0.
             float maxSmoothness = Mathf.Clamp01(1.1725f / (1.01f + Mathf.Pow(1.0f * (additionalLightData.shapeRadius + 0.1f), 2f)) - 0.15f);
@@ -2231,6 +2260,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int directionalLightcount = 0;
             int punctualLightcount = 0;
             int areaLightCount = 0;
+            int lightFlagOffset = 0;
 
             // Now that all the lights have requested a shadow resolution, we can layout them in the atlas
             // And if needed rescale the whole atlas
@@ -2325,7 +2355,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     LightData lightData = new LightData();
 
                     // Punctual, area, projector lights - the rendering side.
-                    GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, in m_ProcessedLightData[lightIndex], shadowIndex, contactShadowScalableSetting, isRasterization: true, ref lightDimensions, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot, ref lightData);
+                    GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, in m_ProcessedLightData[lightIndex], shadowIndex, contactShadowScalableSetting, isRasterization: true, ref lightDimensions, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot, ref lightFlagOffset, ref lightData);
 
                     // Add the previously created light data
                     m_lightList.lights.Add(lightData);
@@ -3473,6 +3503,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightLoopLightData.lightData.SetData(m_lightList.lights);
             m_LightLoopLightData.envLightData.SetData(m_lightList.envLights);
             m_LightLoopLightData.decalData.SetData(DecalSystem.m_DecalDatas, 0, 0, Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen)); // don't add more than the size of the buffer
+            m_LightLoopLightData.lightFlagData.SetData(m_lightList.lightFlags);
 
             // These two buffers have been set in Rebuild(). At this point, view 0 contains combined data from all views
             m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].bounds);
@@ -3493,6 +3524,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, m_LightLoopLightData.envLightData);
             cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, m_LightLoopLightData.decalData);
             cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
+            cmd.SetGlobalBuffer(HDShaderIDs._LightFlagDatas, param.lightData.lightFlagData);
         }
 
         static void PushShadowGlobalParams(in ShadowGlobalParameters param, CommandBuffer cmd)
