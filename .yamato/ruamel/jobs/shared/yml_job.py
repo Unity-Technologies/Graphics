@@ -19,50 +19,49 @@ class YMLJob():
     def set_trigger_on_expression(self, expression):
         self.yml['triggers'] = {'expression':expression}
 
-    def set_trigger_recurrent(self, branch, cron_expression): # TODO append
+    def set_trigger_recurrent(self, branch, cron_expression): # TODO this is exclusive, one trigger cancelles another atm
         self.yml['triggers'] = {'recurring': [{
                     'branch' : branch,
                     'frequency' : cron_expression}]}
     
     def add_dependencies(self, dependencies):
-        if 'dependencies' in self.yml.keys():
-            self.yml['dependencies'].extend(dependencies)
-        else:
-            self.yml['dependencies'] = dependencies
+        self._populate_list('dependencies', dependencies)
     
     def add_commands(self, commands):
-        if 'commands' in self.yml.keys():
-            self.yml['commands'].extend(commands)
-        else:
-            self.yml['commands'] = commands
-    
+        self._populate_list('commands', commands)
 
     def add_var_custom_revision(self, editor_version):
         if editor_version == 'CUSTOM-REVISION':
-            self._create_or_append_child('variables', 'CUSTOM_REVISION', 'custom_revision_not_set')
+            self._populate_child_key('variables', 'CUSTOM_REVISION', 'custom_revision_not_set')
     
     def add_var_upm_registry(self):
-        self._create_or_append_child('variables', 'UPM_REGISTRY', VAR_UPM_REGISTRY)
+        self._populate_child_key('variables', 'UPM_REGISTRY', VAR_UPM_REGISTRY)
 
     def add_var_custom(self, var_key, var_value): # used by editor. allows to set other variables without cluttering this class
-        self._create_or_append_child('variables', var_key, var_value)
+        self._populate_child_key('variables', var_key, var_value)
 
 
     def add_artifacts_test_results(self):
-        self._create_or_append_child('artifacts', 'logs', { 'paths' : [dss(PATH_TEST_RESULTS_padded)]})
+        self._populate_child_key('artifacts', 'logs', { 'paths' : [dss(PATH_TEST_RESULTS_padded)]})
 
     def add_artifacts_players(self):
-        self._create_or_append_child('artifacts', 'players', { 'paths' : [dss(PATH_PLAYERS)]})
+        self._populate_child_key('artifacts', 'players', { 'paths' : [dss(PATH_PLAYERS)]})
 
     def add_artifacts_packages(self):
-        self._create_or_append_child('artifacts', 'packages', { 'paths' : [dss(PATH_PACKAGES)]})
+        self._populate_child_key('artifacts', 'packages', { 'paths' : [dss(PATH_PACKAGES)]})
 
     def add_artifacts_unity_revision(self): # used by editor
-        self._create_or_append_child('artifacts', 'unity_revision.zip', { 'paths': [dss(PATH_UNITY_REVISION)]})
+        self._populate_child_key('artifacts', 'unity_revision.zip', { 'paths': [dss(PATH_UNITY_REVISION)]})
 
 
-    def _create_or_append_child(self, parent_key, key, value): # adds a child_key under parent_key, without overwriting the entire parent by accident
+    def _populate_child_key(self, parent_key, child_key, child_value): # adds a child_key under parent_key, without overwriting the entire parent by accident
         if parent_key in self.yml.keys():
-            self.yml[parent_key][key] = value
+            self.yml[parent_key][child_key] = child_value
         else:
-            self.yml[parent_key] = {key:value}
+            self.yml[parent_key] = {child_key:child_value}
+
+    def _populate_list(self, key, values): # creates new list or appends to existing one under the key
+        if key in self.yml.keys():
+            self.yml[key].extend(values)
+        else:
+            self.yml[key] = values
