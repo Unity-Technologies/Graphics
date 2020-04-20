@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
         }
 
-        // Computes the transform from unormilezed viewport/pixel coordinates to normalized device coordinates
+        // Computes the transform from unnormalized viewport/pixel coordinates to normalized device coordinates
         internal static Matrix4x4 ComputeInverseViewportMatrix(HDCamera hdCamera)
         {
             float verticalFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
