@@ -16,7 +16,7 @@ class YMLJob():
     def set_skip_checkout(self, value):
         self.yml['skip_checkout'] = value
 
-    def set_trigger_on_expression(self, expression):
+    def set_trigger_on_expression(self, expression): # TODO this is exclusive, one trigger cancelles another atm
         self.yml['triggers'] = {'expression':expression}
 
     def set_trigger_recurrent(self, branch, cron_expression): # TODO this is exclusive, one trigger cancelles another atm
