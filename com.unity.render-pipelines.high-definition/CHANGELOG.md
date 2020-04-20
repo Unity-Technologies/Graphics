@@ -552,6 +552,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
 
 ### Changed
+- Improve MIP selection for decals on Transparents
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
 - Rename Emission Radius to Radius in UI in Point, Spot
 - Angular Diameter parameter for directional light is no longuer an advanced property
