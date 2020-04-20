@@ -18642,7 +18642,7 @@ MonoBehaviour:
   m_UseCustomSpotLightShadowCone: 0
   m_CustomSpotLightShadowCone: 2.7
   m_MaxSmoothness: 0.99
-  m_ApplyRangeAttenuation: 1
+  m_ApplyRangeAttenuation: 0
   m_DisplayAreaLightEmissiveMesh: 0
   m_AreaLightCookie: {fileID: 0}
   m_AreaLightShadowCone: 120
