@@ -238,6 +238,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
         bool m_XRRenderTargetNeedsClear = false;
+        private bool m_CameraTargetWasOverriden = false;
 
         const string k_SetCameraRenderStateTag = "Set Camera Data";
         const string k_SetRenderTarget = "Set RenderTarget";
@@ -613,6 +614,12 @@ namespace UnityEngine.Rendering.Universal
                         // Run through all ScriptableRenderPasses once to get all the attachments at the beginning of the block
                         // TODO: add some validation here (compare with previous/next rp descriptors)
                         CommandBuffer cmd = CommandBufferPool.Get(k_ConfigureNativeRenderPass);
+                        if (m_CameraTargetWasOverriden)
+                        {
+                            m_CameraTargetWasOverriden = false;
+                            SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, ClearFlag.None, Color.black);
+                        }
+
                         for (int rpIdx = blockRanges[blockIndex]; rpIdx < endIndex; ++rpIdx)
                         {
                             var rp = m_ActiveRenderPassQueue[rpIdx];
@@ -622,9 +629,6 @@ namespace UnityEngine.Rendering.Universal
                             rp.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
                             for (int i = 0; i < rp.colorAttachmentDescriptors.Length; i++)
                             {
-                                if (rp.colorAttachmentDescriptors[i] == m_CameraColorTargetAttachment)
-                                    m_FirstTimeCameraColorTargetIsBound = false;
-
                                 if (rp.colorAttachmentDescriptors[i].loadStoreTarget == BuiltinRenderTextureType.None //First invalid means we are done with the attachments
                                     && rp.colorAttachmentDescriptors[i].storeAction != RenderBufferStoreAction.DontCare //This also checks whether it's a transient texture
                                     && rp.colorAttachmentDescriptors[i].loadAction != RenderBufferLoadAction.DontCare)
@@ -637,6 +641,8 @@ namespace UnityEngine.Rendering.Universal
                                     if (rp.colorAttachmentDescriptors[i].format == RenderTextureFormat.Depth)
                                         depthAttachmentIdx = attachmentList.Count - 1;
                                 }
+                                if (rp.colorAttachmentDescriptors[i] == m_CameraColorTargetAttachment)
+                                    m_FirstTimeCameraColorTargetIsBound = false;
                             }
 
                             if (rp.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None)
@@ -651,6 +657,7 @@ namespace UnityEngine.Rendering.Universal
                                     m_FirstTimeCameraDepthTargetIsBound = false;
                             }
                         }
+
                         context.ExecuteCommandBuffer(cmd);
                         CommandBufferPool.Release(cmd);
                     }
@@ -851,6 +858,7 @@ namespace UnityEngine.Rendering.Universal
                         for (int i = 0; i < rtCount; ++i)
                             trimmedAttachments[i] = renderPass.colorAttachments[i];
                         SetRenderTarget(cmd, trimmedAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
+                        m_CameraTargetWasOverriden = true;
                     }
                 }
             }
@@ -915,8 +923,12 @@ namespace UnityEngine.Rendering.Universal
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
                 // Only setup render target if current render pass attachments are different from the active ones
-                if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
+                if (passColorAttachment != m_ActiveColorAttachments[0] ||
+                    passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
+                {
+                    m_CameraTargetWasOverriden = true;
                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+                }
             }
 
             // We must execute the commands recorded at this point because potential call to context.StartMultiEye(cameraData.camera) below will alter internal renderer states

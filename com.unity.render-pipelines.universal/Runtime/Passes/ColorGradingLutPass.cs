@@ -165,8 +165,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Render the lut
             cmd.Blit(m_InternalLut.id, m_InternalLut.id, material);
 
-            //TODO: if RenderPass is used after this pass we need to restore the RenderTarget; find a better way to do this
-            cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
