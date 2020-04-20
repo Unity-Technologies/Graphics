@@ -379,6 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class TileAndClusterData
         {
+            // Internal to light list building
             public ComputeBuffer lightVolumeDataBuffer { get; private set; }
             public ComputeBuffer convexBoundsBuffer { get; private set; }
             public ComputeBuffer AABBBoundsBuffer { get; private set; }
@@ -3108,11 +3109,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return frameSettings.IsEnabled(FrameSettingsField.DeferredTile) && (!frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) || k_PreferFragment);
         }
 
-        unsafe BuildGPULightListParameters PrepareBuildGPULightListParameters(HDCamera hdCamera, bool buildForProbeVolumes)
+        unsafe BuildGPULightListParameters PrepareBuildGPULightListParameters(  HDCamera                        hdCamera,
+                                                                                TileAndClusterData              tileAndClusterData,
+                                                                                ref ShaderVariablesLightList    constantBuffer,
+                                                                                int                             totalLightCount)
         {
             BuildGPULightListParameters parameters = new BuildGPULightListParameters();
 
-            var tileAndClusterData = buildForProbeVolumes ? m_ProbeVolumeClusterData : m_TileAndClusterData;
             var camera = hdCamera.camera;
 
             var w = (int)hdCamera.screenSize.x;
@@ -3120,7 +3123,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Fill the shared constant buffer.
             // We don't fill directly the one in the parameter struct because we will need those parameters for volumetric lighting as well.
-            ref var cb = ref (buildForProbeVolumes ? ref m_ShaderVariablesProbeVolumeLightListCB : ref m_ShaderVariablesLightListCB);
+            ref var cb = ref constantBuffer;
             var temp = new Matrix4x4();
             temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
             temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
@@ -3160,7 +3163,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             var decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
-            int totalLightCount = buildForProbeVolumes ? m_ProbeVolumeCount : m_TotalLightCount;
 
             cb.g_iNrVisibLights = totalLightCount;
             cb.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
@@ -3180,7 +3182,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Copy the constant buffer into the parameter struct.
             parameters.lightListCB = cb;
 
-            parameters.totalLightCount = buildForProbeVolumes ? m_ProbeVolumeCount : m_TotalLightCount;
+            parameters.totalLightCount = totalLightCount;
             parameters.runLightList = parameters.totalLightCount > 0;
             parameters.clearLightLists = false;
 
@@ -3196,9 +3198,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 tileAndClusterData.listsAreClear = true;
             }
             else if (parameters.runLightList)
-            {
-                m_TileAndClusterData.listsAreClear = false;
-            }
             {
                 tileAndClusterData.listsAreClear = false;
             }
@@ -3325,7 +3324,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildGPULightListProbeVolumes)))
             {
-                var parameters = PrepareBuildGPULightListParameters(hdCamera, buildForProbeVolumes: true);
+                var parameters = PrepareBuildGPULightListParameters(hdCamera, m_ProbeVolumeClusterData, ref m_ShaderVariablesProbeVolumeLightListCB, m_ProbeVolumeCount);
                 var resources = PrepareBuildGPULightListResources(
                     m_ProbeVolumeClusterData,
                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
@@ -3344,7 +3343,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildLightList)))
             {
-                var parameters = PrepareBuildGPULightListParameters(hdCamera, buildForProbeVolumes: false);
+                var parameters = PrepareBuildGPULightListParameters(hdCamera, m_TileAndClusterData, ref m_ShaderVariablesLightListCB, m_TotalLightCount);
                 var resources = PrepareBuildGPULightListResources(
                     m_TileAndClusterData,
                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
@@ -3758,8 +3757,10 @@ namespace UnityEngine.Rendering.HighDefinition
         struct DeferredLightingResources
         {
             public RenderTargetIdentifier[] colorBuffers;
+
             public RTHandle depthStencilBuffer;
             public RTHandle depthTexture;
+
             public ComputeBuffer lightListBuffer;
             public ComputeBuffer tileFeatureFlagsBuffer;
             public ComputeBuffer tileListBuffer;

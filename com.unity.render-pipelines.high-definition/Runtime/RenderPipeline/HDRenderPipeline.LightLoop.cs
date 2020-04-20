@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.shadowGlobalParameters = PrepareShadowGlobalParameters(hdCamera);
                 passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera, m_TileAndClusterData);
-                passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, buildForProbeVolumes: false);
+                passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, m_TileAndClusterData, ref m_ShaderVariablesLightListCB, m_TotalLightCount);
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.stencilTexture = builder.ReadTexture(stencilBufferCopy);
                 if (passData.buildGPULightListParameters.computeMaterialVariants && passData.buildGPULightListParameters.enableFeatureVariants)
@@ -190,7 +190,6 @@ namespace UnityEngine.Rendering.HighDefinition
         class DeferredLightingPassData
         {
             public DeferredLightingParameters   parameters;
-            public DeferredLightingResources    resources;
 
             public TextureHandle                colorBuffer;
             public TextureHandle                sssDiffuseLightingBuffer;
@@ -200,6 +199,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                          gbufferCount;
             public int                          lightLayersTextureIndex;
             public TextureHandle[]              gbuffer = new TextureHandle[8];
+
+            public ComputeBufferHandle          lightListBuffer;
+            public ComputeBufferHandle          tileFeatureFlagsBuffer;
+            public ComputeBufferHandle          tileListBuffer;
+            public ComputeBufferHandle          dispatchIndirectBuffer;
         }
 
         struct LightingOutput
@@ -209,12 +213,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         LightingOutput RenderDeferredLighting(  RenderGraph                 renderGraph,
                                                 HDCamera                    hdCamera,
-                                                TextureHandle       colorBuffer,
-                                                TextureHandle       depthStencilBuffer,
-                                                TextureHandle       depthPyramidTexture,
+                                                TextureHandle               colorBuffer,
+                                                TextureHandle               depthStencilBuffer,
+                                                TextureHandle               depthPyramidTexture,
                                                 in LightingBuffers          lightingBuffers,
                                                 in GBufferOutput            gbuffer,
-                                                in ShadowResult             shadowResult)
+                                                in ShadowResult             shadowResult,
+                                                in BuildGPULightListOutput  lightLists)
         {
             if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
                 return new LightingOutput();
@@ -222,13 +227,6 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<DeferredLightingPassData>("Deferred Lighting", out var passData))
             {
                 passData.parameters = PrepareDeferredLightingParameters(hdCamera, m_CurrentDebugDisplaySettings);
-
-                // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
-                passData.resources = new  DeferredLightingResources();
-                passData.resources.lightListBuffer = m_TileAndClusterData.lightList;
-                passData.resources.tileFeatureFlagsBuffer = m_TileAndClusterData.tileFeatureFlags;
-                passData.resources.tileListBuffer = m_TileAndClusterData.tileList;
-                passData.resources.dispatchIndirectBuffer = m_TileAndClusterData.dispatchIndirectBuffer;
 
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
                 if (passData.parameters.outputSplitLighting)
@@ -245,6 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthPyramidTexture);
 
+                // TODO RENDERGRAPH: Check why this is needed
                 ReadLightingBuffers(lightingBuffers, builder);
 
                 passData.lightLayersTextureIndex = gbuffer.lightLayersTextureIndex;
@@ -254,19 +253,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 HDShadowManager.ReadShadowResult(shadowResult, builder);
 
+                passData.lightListBuffer = builder.ReadComputeBuffer(lightLists.lightList);
+                passData.tileFeatureFlagsBuffer = builder.ReadComputeBuffer(lightLists.tileFeatureFlags);
+                passData.tileListBuffer = builder.ReadComputeBuffer(lightLists.tileList);
+                passData.dispatchIndirectBuffer = builder.ReadComputeBuffer(lightLists.dispatchIndirectBuffer);
+
                 var output = new LightingOutput();
                 output.colorBuffer = passData.colorBuffer;
 
                 builder.SetRenderFunc(
                 (DeferredLightingPassData data, RenderGraphContext context) =>
                 {
-                    data.resources.colorBuffers = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
-                    data.resources.colorBuffers[0] = context.resources.GetTexture(data.colorBuffer);
-                        data.resources.colorBuffers[1] = context.resources.GetTexture(data.sssDiffuseLightingBuffer);
-                    data.resources.depthStencilBuffer = context.resources.GetTexture(data.depthBuffer);
-                    data.resources.depthTexture = context.resources.GetTexture(data.depthTexture);
+                    var resources = new DeferredLightingResources();
 
-                    // TODO: try to find a better way to bind this.
+                    resources.colorBuffers = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
+                    resources.colorBuffers[0] = context.resources.GetTexture(data.colorBuffer);
+                    resources.colorBuffers[1] = context.resources.GetTexture(data.sssDiffuseLightingBuffer);
+                    resources.depthStencilBuffer = context.resources.GetTexture(data.depthBuffer);
+                    resources.depthTexture = context.resources.GetTexture(data.depthTexture);
+
+                    resources.lightListBuffer = context.resources.GetComputeBuffer(data.lightListBuffer);
+                    resources.tileFeatureFlagsBuffer = context.resources.GetComputeBuffer(data.tileFeatureFlagsBuffer);
+                    resources.tileListBuffer = context.resources.GetComputeBuffer(data.tileListBuffer);
+                    resources.dispatchIndirectBuffer = context.resources.GetComputeBuffer(data.dispatchIndirectBuffer);
+
+                    // RENDERGRAPH TODO: try to find a better way to bind this.
                     // Issue is that some GBuffers have several names (for example normal buffer is both NormalBuffer and GBuffer1)
                     // So it's not possible to use auto binding via dependency to shaderTagID
                     // Should probably get rid of auto binding and go explicit all the way (might need to wait for us to remove non rendergraph code path).
@@ -282,13 +293,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         bool useCompute = data.parameters.useComputeLightingEvaluation && !k_PreferFragment;
                         if (useCompute)
-                            RenderComputeDeferredLighting(data.parameters, data.resources, context.cmd);
+                            RenderComputeDeferredLighting(data.parameters, resources, context.cmd);
                         else
-                            RenderComputeAsPixelDeferredLighting(data.parameters, data.resources, context.cmd);
+                            RenderComputeAsPixelDeferredLighting(data.parameters, resources, context.cmd);
                     }
                     else
                     {
-                        RenderPixelDeferredLighting(data.parameters, data.resources, context.cmd);
+                        RenderPixelDeferredLighting(data.parameters, resources, context.cmd);
                     }
                 });
 
