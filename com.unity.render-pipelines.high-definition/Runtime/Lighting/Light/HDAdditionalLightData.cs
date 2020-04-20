@@ -1368,7 +1368,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ValidateLightFlags()
         {
-            List<LightFlag> flags = new List<LightFlag>();
+            var flags = new List<LightFlag>();
             GetComponentsInChildren(flags);
 
             if (flags.Count == 0)
@@ -1377,8 +1377,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             for (int i = flags.Count - 1; i >= 0; --i)
+            {
                 if (flags[i].transform.parent != transform)
                     flags.RemoveAt(i);
+            }
 
             foreach (var f in flags)
                 m_LightFlags = flags.ToArray();
@@ -2913,7 +2915,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public LightFlag AddLightFlag(LightFlag copyFrom = null)
         {
-            GameObject go = new GameObject("Flag", typeof(LightFlag));
+            var go = new GameObject("Flag", typeof(LightFlag));
 #if UNITY_EDITOR
             Undo.RegisterCreatedObjectUndo(go, "Add Light Flag");
             Undo.SetTransformParent(go.transform, transform, "Add Light Flag");

@@ -19,8 +19,8 @@
 
         Vector4 GetFlagPlane()
         {
-            Transform t = transform;
-            Vector3 v = t.forward;
+            var t = transform;
+            var v = t.forward;
             float d = Vector3.Dot(t.position, v);
             return new Vector4(v.x, v.y, v.z, d);
         }
@@ -32,8 +32,8 @@
 
         void OnDrawGizmosSelected()
         {
-            Matrix4x4 m = Matrix4x4.zero;
-            Transform t = transform;
+            var m = Matrix4x4.zero;
+            var t = transform;
             m.SetTRS(t.position, t.rotation, new Vector3(1, 1, 0));
             Gizmos.matrix = m;
             Gizmos.DrawWireSphere(Vector3.zero, 1);

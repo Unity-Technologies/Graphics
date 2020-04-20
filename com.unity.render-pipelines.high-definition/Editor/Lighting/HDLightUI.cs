@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                     CED.FoldoutGroup(s_Styles.lowShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLowShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => serialized.type != HDLightType.Area,
                                     CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent)
-                                ) 
+                                )
                             ),
                             CED.noop //will only add parameter in first sub header
                         ),
@@ -1167,10 +1167,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                Rect rect = EditorGUILayout.GetControlRect(true);
+                var rect = EditorGUILayout.GetControlRect(true);
                 float labelWidth = rect.x;
                 rect = EditorGUI.IndentedRect(rect);
                 labelWidth = EditorGUIUtility.labelWidth - (rect.x - labelWidth);
+                
                 if (GUI.Button(rect, "Add Light Flag"))
                 {
                     (serialized.serializedObject.targetObject as HDAdditionalLightData).AddLightFlag();
@@ -1179,10 +1180,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel++;
                 labelWidth = EditorGUIUtility.labelWidth;
                 EditorGUIUtility.labelWidth = 0;
-                GUIContent removeLabel = new GUIContent("Remove", "Destroy the light flag");
+                var removeLabel = new GUIContent("Remove", "Destroy the light flag");
                 float removeWidth = GUI.skin.button.CalcSize(removeLabel).x;
                 const float hSpace = 2;
                 var flags = (serialized.serializedObject.targetObject as HDAdditionalLightData).lightFlags;
+
                 foreach (var f in flags)
                 {
                     rect = EditorGUILayout.GetControlRect(true);
@@ -1192,9 +1194,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.ObjectField(rect, f, typeof(LightFlag), !EditorUtility.IsPersistent(owner.target));
                     GUI.enabled = enabled;
                     rect.x += rect.width + hSpace; rect.width = removeWidth;
+                    
                     if (GUI.Button(rect, removeLabel))
                         Undo.DestroyObjectImmediate(f.gameObject);
                 }
+
                 EditorGUIUtility.labelWidth = labelWidth;
                 EditorGUI.indentLevel--;
             }
