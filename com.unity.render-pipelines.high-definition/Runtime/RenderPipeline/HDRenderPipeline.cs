@@ -4766,6 +4766,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CommandBuffer   cmd;
             Camera          overrideCamera;
+            HDCamera        overrideHDCamera;
+            float           originalAspect;
 
             /// <summary>
             /// Overrides the current camera, changing all the matrices and view parameters for the new one.
@@ -4784,17 +4786,27 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 this.cmd = cmd;
                 this.overrideCamera = overrideCamera;
+                this.overrideHDCamera = null;
+                this.originalAspect = 0;
 
                 if (!IsContextValid(overrideCamera))
                     return;
-                
+
                 var hdrp = HDRenderPipeline.currentPipeline;
-                var hdCamera = HDCamera.GetOrCreate(overrideCamera);
+                overrideHDCamera = HDCamera.GetOrCreate(overrideCamera);
+
+                // We need to patch the pixel rect of the camera because by default the camera size is synchronized 
+                // with the game view and so it breaks in the scene view. Note that we can't use Camera.pixelRect here
+                // because when we assign it, the change is not instantaneous and is not reflected in pixelWidth/pixelHeight.
+                overrideHDCamera.OverridePixelRect(hdrp.m_CurrentHDCamera.camera.pixelRect);
+                // We also sync the aspect ratio of the camera, this time using the camera instead of HDCamera.
+                // This will update the projection matrix to match the aspect of the current rendering camera.
+                originalAspect = overrideCamera.aspect;
+                overrideCamera.aspect = (float)hdrp.m_CurrentHDCamera.camera.pixelRect.width / (float)hdrp.m_CurrentHDCamera.camera.pixelRect.height;
 
                 // Update HDCamera datas
-                hdCamera.Update(hdCamera.frameSettings, hdrp, hdrp.m_MSAASamples, hdrp.m_XRSystem.emptyPass);
-                hdCamera.UpdateAllViewConstants(false);
-                hdCamera.UpdateShaderVariablesGlobalCB(ref hdrp.m_ShaderVariablesGlobalCB, hdrp.m_FrameCount);
+                overrideHDCamera.Update(overrideHDCamera.frameSettings, hdrp, hdrp.m_MSAASamples, hdrp.m_XRSystem.emptyPass);
+                overrideHDCamera.UpdateShaderVariablesGlobalCB(ref hdrp.m_ShaderVariablesGlobalCB, hdrp.m_FrameCount);
 
                 ConstantBuffer.PushGlobal(cmd, hdrp.m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
             }
@@ -4822,6 +4834,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (!IsContextValid(overrideCamera))
                     return;
+
+                overrideHDCamera.ResetPixelRect();
+                overrideCamera.aspect = originalAspect;
 
                 var hdrp = HDRenderPipeline.currentPipeline;
                 hdrp.m_CurrentHDCamera.UpdateShaderVariablesGlobalCB(ref hdrp.m_ShaderVariablesGlobalCB, hdrp.m_FrameCount);
