@@ -2720,7 +2720,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case HDLightType.Spot:
                     // Projectors lights must always have a cookie texture.
-                    if (hdLightData.spotLightShape != SpotLightShape.Cone)
+                    if (hdLightData.spotLightShape != SpotLightShape.Cone || light?.cookie != null)
                         m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie ?? Texture2D.whiteTexture);
                     break;
                 case HDLightType.Area:
