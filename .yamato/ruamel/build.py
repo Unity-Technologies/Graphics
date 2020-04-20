@@ -1,6 +1,6 @@
 import sys, glob
 import ruamel
-from jobs.utils.namer import *
+from jobs.shared.namer import *
 from jobs.projects.project_standalone import Project_StandaloneJob
 from jobs.projects.project_standalone_build import Project_StandaloneBuildJob
 from jobs.projects.project_not_standalone import Project_NotStandaloneJob

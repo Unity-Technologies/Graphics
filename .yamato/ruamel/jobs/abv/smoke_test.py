@@ -1,7 +1,7 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..utils.namer import *
-from ..utils.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS
-from ..utils.yml_job import YMLJob
+from ..shared.namer import *
+from ..shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS
+from ..shared.yml_job import YMLJob
 
 class ABV_SmokeTestJob():
     

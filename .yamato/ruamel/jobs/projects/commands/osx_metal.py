@@ -1,6 +1,6 @@
 
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
-from ...utils.constants import REPOSITORY_NAME, TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS
+from ...shared.constants import REPOSITORY_NAME, TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS
 
 def _cmd_base(project, components):
     return [ 

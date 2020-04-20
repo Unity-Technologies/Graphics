@@ -1,6 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..utils.namer import packages_filepath, package_job_id_test_all, package_job_id_test, package_job_id_test_dependencies
-from ..utils.yml_job import YMLJob
+from ..shared.namer import packages_filepath, package_job_id_test_all, package_job_id_test, package_job_id_test_dependencies
+from ..shared.yml_job import YMLJob
 
 class Package_AllPackageCiJob():
     

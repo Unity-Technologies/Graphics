@@ -1,7 +1,7 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..utils.namer import *
-from ..utils.constants import PATH_UNITY_REVISION
-from ..utils.yml_job import YMLJob
+from ..shared.namer import *
+from ..shared.constants import PATH_UNITY_REVISION
+from ..shared.yml_job import YMLJob
 
 class Package_TestDependenciesJob():
     

@@ -1,7 +1,7 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..utils.namer import editor_job_id
-from ..utils.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION
-from ..utils.yml_job import YMLJob
+from ..shared.namer import editor_job_id
+from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION
+from ..shared.yml_job import YMLJob
 
 class Editor_PrimingJob():
     

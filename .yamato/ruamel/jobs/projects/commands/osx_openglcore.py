@@ -1,4 +1,4 @@
-from ...utils.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS
+from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS
 
 def _cmd_base(project, components):
     return [

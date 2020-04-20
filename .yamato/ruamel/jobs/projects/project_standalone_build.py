@@ -1,5 +1,5 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
-from ..utils.namer import project_job_id_build
+from ..shared.namer import project_job_id_build
 from .commands._cmd_mapper import get_cmd
 from ._project_base import _job
 

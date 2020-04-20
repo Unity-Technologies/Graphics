@@ -2,8 +2,8 @@ from ruamel import yaml
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ruamel.yaml.scalarstring import PlainScalarString as pss
 from .commands._cmd_mapper import get_cmd
-from ..utils.namer import *
-from ..utils.yml_job import YMLJob
+from ..shared.namer import *
+from ..shared.yml_job import YMLJob
 
 def _job(project_name, test_platform_name, editor, platform, api, cmd):
 
