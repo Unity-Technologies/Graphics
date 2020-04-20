@@ -2266,11 +2266,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Reserve shadow map resolutions and check if light needs to render shadows
                 if (additionalData.WillRenderShadowMap())
                 {
-                    additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light.screenRect);
+                    additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light.screenRect, lightType);
                 }
 
                 // Reserve the cookie resolution in the 2D atlas
-                ReserveCookieAtlasTexture(additionalData, light.light);
+                ReserveCookieAtlasTexture(additionalData, light.light, lightType);
 
                 if (hasDebugLightFilter
                     && !debugLightFilter.IsEnabledFor(processedData.gpuLightType, additionalData.spotLightShape))
@@ -2317,6 +2317,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
 
             BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset);
+            var shadowFilteringQuality = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality;
 
             // 2. Go through all lights, convert them to GPU format.
             // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
@@ -2345,7 +2346,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (additionalLightData.WillRenderShadowMap())
                 {
                     int shadowRequestCount;
-                    shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, m_CurrentDebugDisplaySettings.data.lightingDebugSettings, out shadowRequestCount);
+                    shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, m_CurrentDebugDisplaySettings.data.lightingDebugSettings, shadowFilteringQuality, out shadowRequestCount);
 
 #if UNITY_EDITOR
                     if ((m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
@@ -2506,15 +2507,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var probe = cullResults.visibleReflectionProbes[probeIndex];
 
+                    if (probe.reflectionProbe == null
+                        || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled
+                        || !aovRequest.IsLightEnabled(probe.reflectionProbe.gameObject))
+                        continue;
+
                     ref ProcessedProbeData processedData = ref m_ProcessedReflectionProbeData[probeIndex];
                     PreprocessReflectionProbeData(ref processedData, probe, hdCamera);
 
                     if (TrivialRejectProbe(processedData, hdCamera))
-                        continue;
-
-                    if (probe.reflectionProbe == null
-                        || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled
-                        || !aovRequest.IsLightEnabled(probe.reflectionProbe.gameObject))
                         continue;
 
                     // Work around the data issues.
@@ -2768,7 +2769,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_enableBakeShadowMask;
         }
 
-        internal void ReserveCookieAtlasTexture(HDAdditionalLightData hdLightData, Light light)
+        internal void ReserveCookieAtlasTexture(HDAdditionalLightData hdLightData, Light light, HDLightType lightType)
         {
             // Note: light component can be null if a Light is used for shuriken particle lighting.
             switch (hdLightData.ComputeLightType(light))
@@ -2920,9 +2921,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                         in BuildGPULightListResources resources,
                                         CommandBuffer cmd)
         {
-            // ClearLightLists is the first pass, we push the global parameters for light list building here.
-            ConstantBuffer.PushGlobal(cmd, parameters.lightListCB, HDShaderIDs._ShaderVariablesLightList);
-
             if (parameters.clearLightLists && !parameters.runLightList)
             {
                 // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
@@ -2952,6 +2950,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // With XR single-pass, we have one set of light bounds per view to iterate over (bounds are in view space for each view)
                 cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
+
+                ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.screenSpaceAABBShader, HDShaderIDs._ShaderVariablesLightList);
+
                 cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, (parameters.totalLightCount + 7) / 8, parameters.viewCount, 1);
             }
         }
@@ -2967,6 +2968,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs._LightVolumeData, tileAndCluster.lightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
+
+                ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.bigTilePrepassShader, HDShaderIDs._ShaderVariablesLightList);
 
                 cmd.DispatchCompute(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, parameters.numBigTilesX, parameters.numBigTilesY, parameters.viewCount);
             }
@@ -2987,6 +2990,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vLightList, tileAndCluster.lightList);
                 if (parameters.runBigTilePrepass)
                     cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBigTileLightList, tileAndCluster.bigTileLightList);
+
+                var localLightListCB = parameters.lightListCB;
 
                 if (parameters.enableFeatureVariants)
                 {
@@ -3010,13 +3015,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
                     }
 
-                    var localLightListCB = parameters.lightListCB;
                     localLightListCB.g_BaseFeatureFlags = baseFeatureFlags;
-                    ConstantBuffer.PushGlobal(cmd, localLightListCB, HDShaderIDs._ShaderVariablesLightList);
 
                     cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
                     tileFlagsWritten = true;
                 }
+
+                ConstantBuffer.Push(cmd, localLightListCB, parameters.buildPerTileLightListShader, HDShaderIDs._ShaderVariablesLightList);
 
                 cmd.DispatchCompute(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
             }
@@ -3047,6 +3052,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.AABBBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs._LightVolumeData, tileAndCluster.lightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_data, tileAndCluster.convexBoundsBuffer);
+
+                ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.buildPerVoxelLightListShader, HDShaderIDs._ShaderVariablesLightList);
 
                 cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, parameters.numTilesClusterX, parameters.numTilesClusterY, parameters.viewCount);
             }
@@ -3099,7 +3106,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var localLightListCB = parameters.lightListCB;
                     localLightListCB.g_BaseFeatureFlags = baseFeatureFlags;
-                    ConstantBuffer.PushGlobal(cmd, localLightListCB, HDShaderIDs._ShaderVariablesLightList);
 
                     cmd.SetComputeBufferParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
 
@@ -3114,6 +3120,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture, 0, RenderTextureSubElement.Stencil);
                     }
+
+                    ConstantBuffer.Push(cmd, localLightListCB, parameters.buildMaterialFlagsShader, HDShaderIDs._ShaderVariablesLightList);
 
                     cmd.DispatchCompute(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
                 }
@@ -3141,7 +3149,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
                 // Round on k_ThreadGroupOptimalSize so we have optimal thread for buildDispatchIndirectShader kernel
                 cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
-
             }
         }
 
@@ -3351,9 +3358,6 @@ namespace UnityEngine.Rendering.HighDefinition
             in BuildGPULightListResources resources,
             CommandBuffer cmd)
         {
-            // ClearLightLists is the first pass, we push the global parameters for light list building here.
-            ConstantBuffer.PushGlobal(cmd, parameters.lightListCB, HDShaderIDs._ShaderVariablesLightList);
-
             if (parameters.probeVolumesClearLightLists && !parameters.probeVolumesRunLightList)
             {
                 // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
@@ -3416,6 +3420,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, tileAndCluster.probeVolumesConvexBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.probeVolumesAABBBoundsBuffer);
 
+                ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.screenSpaceAABBShader, HDShaderIDs._ShaderVariablesLightList);
+
                 cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, (probeVolumesCount + 7) / 8, parameters.viewCount, 1);
             }
         }
@@ -3435,6 +3441,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.probeVolumesAABBBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs._LightVolumeData, tileAndCluster.probeVolumesLightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_data, tileAndCluster.probeVolumesConvexBoundsBuffer);
+
+                ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.bigTilePrepassShader, HDShaderIDs._ShaderVariablesLightList);
 
                 cmd.DispatchCompute(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, parameters.numBigTilesX, parameters.numBigTilesY, parameters.viewCount);
             }
@@ -3472,6 +3480,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs.g_vBoundsBuffer, tileAndCluster.probeVolumesAABBBoundsBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs._LightVolumeData, tileAndCluster.probeVolumesLightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, HDShaderIDs.g_data, tileAndCluster.probeVolumesConvexBoundsBuffer);
+
+                ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.buildPerVoxelLightListShader, HDShaderIDs._ShaderVariablesLightList);
 
                 cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, parameters.probeVolumesBuildPerVoxelLightListKernel, parameters.numTilesClusterX, parameters.numTilesClusterY, parameters.viewCount);
             }
