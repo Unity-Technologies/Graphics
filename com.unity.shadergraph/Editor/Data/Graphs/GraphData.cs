@@ -291,21 +291,18 @@ namespace UnityEditor.ShaderGraph
 
         #region Targets
         [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedTargets = new List<SerializationHelper.JSONSerializedElement>();
+        List<JsonData<Target>> m_ActiveTargets = new List<JsonData<Target>>();
 
         [NonSerialized]
         List<Target> m_ValidTargets = new List<Target>();
 
-        [NonSerialized]
-        List<Target> m_ActiveTargets = new List<Target>();
-
         int m_ActiveTargetBitmask;
 
         public List<Target> validTargets => m_ValidTargets;
-        public List<Target> activeTargets => m_ActiveTargets;
+        public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
 
         // TODO: Need a better way to handle this
-        public bool isVFXTarget => activeTargets.Count > 0 && activeTargets[0].GetType() == typeof(VFXTarget);
+        public bool isVFXTarget => activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
         #endregion
 
         public GraphData()
@@ -425,7 +422,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // Create foldout
-                var foldout = new UnityEngine.UIElements.Foldout() { text = target.displayName, value = foldoutActive };
+                var foldout = new UnityEngine.UIElements.Foldout() { text = target.value.displayName, value = foldoutActive };
                 element.Add(foldout);
                 foldout.RegisterValueChangedCallback(evt => 
                 {
@@ -439,7 +436,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     // Get settings for Target
                     var context = new TargetPropertyGUIContext();
-                    target.GetPropertiesGUI(ref context, onChange);
+                    target.value.GetPropertiesGUI(ref context, onChange);
 
                     foreach(var property in context.properties)
                     {
@@ -1656,8 +1653,12 @@ namespace UnityEditor.ShaderGraph
             DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
 
             // TODO: Upgrade this
-            var deserializedTargets = SerializationHelper.Deserialize<Target>(m_SerializedTargets, GraphUtil.GetLegacyTypeRemapping());
-            m_ActiveTargetBitmask = 0;
+            var deserializedTargets = new Target[m_ActiveTargets.Count];
+            for(int i = 0; i < deserializedTargets.Length; i++)
+            {
+                deserializedTargets[i] = m_ActiveTargets[i].value;
+            }
+            
             foreach(var deserializedTarget in deserializedTargets)
             {
                 var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == deserializedTarget.GetType());
@@ -1665,6 +1666,7 @@ namespace UnityEditor.ShaderGraph
                 m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
                 m_ValidTargets[targetIndex] = deserializedTarget;
             }
+
             UpdateActiveTargets();
         }
 

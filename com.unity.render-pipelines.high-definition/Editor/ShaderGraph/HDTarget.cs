@@ -8,6 +8,7 @@ using UnityEngine.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.UIElements;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -33,12 +34,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
 
-        // TODO: Remove when Peter's serialization lands
         [SerializeField]
-        SerializationHelper.JSONSerializedElement m_SerializedSubTarget;
-
-        [SerializeField]
-        SubTarget m_ActiveSubTarget;
+        JsonData<SubTarget> m_ActiveSubTarget;
 
         [SerializeField]
         string m_CustomEditorGUI;
@@ -54,11 +51,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override bool IsActive()
         {
-            if(m_ActiveSubTarget == null)
+            if(m_ActiveSubTarget.value == null)
                 return false;
 
             bool isHDRenderPipeline = GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset;
-            return isHDRenderPipeline && m_ActiveSubTarget.IsActive();
+            return isHDRenderPipeline && m_ActiveSubTarget.value.IsActive();
         }
 
         public override void Setup(ref TargetSetupContext context)
@@ -68,11 +65,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Process SubTargets
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
-            if(m_ActiveSubTarget == null)
+            if(m_ActiveSubTarget.value == null)
                 return;
 
             // Setup the active SubTarget
-            m_ActiveSubTarget.Setup(ref context);
+            m_ActiveSubTarget.value.target = this;
+            m_ActiveSubTarget.value.Setup(ref context);
 
             // Override EditorGUI
             if(!string.IsNullOrEmpty(m_CustomEditorGUI))
@@ -91,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
         {
-            if(m_ActiveSubTarget == null)
+            if(m_ActiveSubTarget.value == null)
                 return;
             
             // Core properties
@@ -106,7 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
 
             // SubTarget properties
-            m_ActiveSubTarget.GetPropertiesGUI(ref context, onChange);
+            m_ActiveSubTarget.value.GetPropertiesGUI(ref context, onChange);
 
             // Custom Editor GUI
             m_CustomGUIField = new TextField("") { value = m_CustomEditorGUI };
@@ -124,27 +122,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
         }
-
-        // TODO: Remove this
-#region Serialization
-        public void OnBeforeSerialize()
-        {
-            if(m_ActiveSubTarget == null)
-                return;
-            
-            m_SerializedSubTarget = SerializationHelper.Serialize<SubTarget>(m_ActiveSubTarget);
-        }
-
-        public void OnAfterDeserialize()
-        {
-            if(m_ActiveSubTarget == null)
-                return;
-            
-            // Deserialize the SubTarget
-            m_ActiveSubTarget = SerializationHelper.Deserialize<SubTarget>(m_SerializedSubTarget, GraphUtil.GetLegacyTypeRemapping());
-            m_ActiveSubTarget.target = this;
-        }
-#endregion
     }
 
 #region BlockMasks

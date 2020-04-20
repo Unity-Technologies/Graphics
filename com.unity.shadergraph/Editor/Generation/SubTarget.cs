@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable, GenerationAPI] // TODO: Public
-    internal abstract class SubTarget
+    internal abstract class SubTarget : JsonObject
     {
         internal abstract Type targetType { get; }
         internal Target target { get; set; }

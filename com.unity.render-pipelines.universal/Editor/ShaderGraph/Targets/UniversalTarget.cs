@@ -9,6 +9,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.Experimental.Rendering.Universal;
 using UnityEditor.Graphing;
 using UnityEditor.UIElements;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -40,7 +41,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Multiply,
     }
 
-    sealed class UniversalTarget : Target, ISerializationCallbackReceiver
+    sealed class UniversalTarget : Target
     {
         // Constants
         const string kAssetGuid = "8c72f47fdde33b14a9340e325ce56f4d";
@@ -55,12 +56,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
 
-        // TODO: Remove when Peter's serialization lands
         [SerializeField]
-        SerializationHelper.JSONSerializedElement m_SerializedSubTarget;
-
-        [SerializeField]
-        SubTarget m_ActiveSubTarget;
+        JsonData<SubTarget> m_ActiveSubTarget;
 
         [SerializeField]
         SurfaceType m_SurfaceType = SurfaceType.Opaque;
@@ -166,7 +163,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Setup the active SubTarget
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
-            m_ActiveSubTarget.Setup(ref context);
+            m_ActiveSubTarget.value.target = this;
+            m_ActiveSubTarget.value.Setup(ref context);
 
             // Override EditorGUI
             if(!string.IsNullOrEmpty(m_CustomEditorGUI))
@@ -187,7 +185,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(Fields.DoubleSided,            twoSided);
 
             // SubTarget fields
-            m_ActiveSubTarget.GetFields(ref context);
+            m_ActiveSubTarget.value.GetFields(ref context);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -199,7 +197,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
 
             // SubTarget blocks
-            m_ActiveSubTarget.GetActiveBlocks(ref context);
+            m_ActiveSubTarget.value.GetActiveBlocks(ref context);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
@@ -216,7 +214,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
 
             // SubTarget properties
-            m_ActiveSubTarget.GetPropertiesGUI(ref context, onChange);
+            m_ActiveSubTarget.value.GetPropertiesGUI(ref context, onChange);
 
             // Custom Editor GUI
             // Requires FocusOutEvent
@@ -231,21 +229,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
         }
-
-        // TODO: Remove this
-#region Serialization
-        public void OnBeforeSerialize()
-        {
-            m_SerializedSubTarget = SerializationHelper.Serialize<SubTarget>(m_ActiveSubTarget);
-        }
-
-        public void OnAfterDeserialize()
-        {
-            // Deserialize the SubTarget
-            m_ActiveSubTarget = SerializationHelper.Deserialize<SubTarget>(m_SerializedSubTarget, GraphUtil.GetLegacyTypeRemapping());
-            m_ActiveSubTarget.target = this;
-        }
-#endregion
     }
 
 #region Passes
