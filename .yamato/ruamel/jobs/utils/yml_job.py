@@ -30,8 +30,11 @@ class YMLJob():
         else:
             self.yml['dependencies'] = dependencies
     
-    def set_commands(self, commands): # TODO append
-        self.yml['commands'] = commands
+    def add_commands(self, commands):
+        if 'commands' in self.yml.keys():
+            self.yml['commands'].extend(commands)
+        else:
+            self.yml['commands'] = commands
     
 
     def add_var_custom_revision(self, editor_version):

@@ -16,7 +16,7 @@ def get_job_definition(packages, agent, platforms, editor):
     job.set_name(f'Pack and test all packages - { editor["version"] }')
     job.set_agent(agent)
     job.add_dependencies(dependencies)
-    job.set_commands([
+    job.add_commands([
             f'npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm',
             f'upm-ci package izon -t',
             f'upm-ci package izon -d'])

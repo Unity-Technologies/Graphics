@@ -18,7 +18,7 @@ def get_job_definition(platform, editor, agent):
     job.add_var_custom('DISPLAY', dss(":0"))
     job.add_var_upm_registry()
     job.add_var_custom_revision(editor["version"])
-    job.set_commands([
+    job.add_commands([
             f'pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade',
             f'unity-downloader-cli {editor["cmd"]} -o {platform_os} --wait --skip-download {"".join([f"-c {c} " for c in components])} > {PATH_UNITY_REVISION}'])
     job.add_artifacts_unity_revision()

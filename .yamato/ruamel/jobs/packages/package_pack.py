@@ -8,7 +8,7 @@ def get_job_definition(package, agent):
     job = YMLJob()
     job.set_name(f'Pack {package["name"]}')
     job.set_agent(agent)
-    job.set_commands( [
+    job.add_commands( [
             f'npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm',
             f'upm-ci package pack --package-path {package["packagename"]}'])
     job.add_artifacts_packages()

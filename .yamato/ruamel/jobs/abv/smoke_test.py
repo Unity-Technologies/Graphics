@@ -29,7 +29,7 @@ def get_job_definition(editor, test_platform, smoke_test):  # only run for 2020.
     job.set_agent(agent if test_platform["name"] == 'editmode' else agent_gpu)
     job.add_var_upm_registry()
     job.add_var_custom_revision(editor["version"])
-    job.set_commands(commands)
+    job.add_commands(commands)
     job.add_dependencies(dependencies)
     job.add_artifacts_test_results()
     return job

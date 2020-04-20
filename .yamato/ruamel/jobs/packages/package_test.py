@@ -26,7 +26,7 @@ def get_job_definition(package, platform, editor):
     job.set_name(f'Test { package["name"] } {platform["name"]} {editor["version"]}')
     job.set_agent(platform['agent'])
     job.add_dependencies(dependencies)
-    job.set_commands(commands)
+    job.add_commands(commands)
     job.add_artifacts_test_results()
     return job
 

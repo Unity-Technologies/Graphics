@@ -13,7 +13,7 @@ def get_job_definition(package, agent, platforms):
     job.set_name(f'Publish { package["name"]}')
     job.set_agent(agent)
     job.add_dependencies(dependencies)
-    job.set_commands([
+    job.add_commands([
             f'npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm',
             f'upm-ci package publish --package-path {package["packagename"]}'])
     job.add_artifacts_packages()
