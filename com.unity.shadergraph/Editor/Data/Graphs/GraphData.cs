@@ -318,7 +318,7 @@ namespace UnityEditor.ShaderGraph
                 // Need to restest Keywords against the variant limit
                 if(node is SubGraphNode subGraphNode &&
                     subGraphNode.asset != null &&
-                    subGraphNode.asset.keywords.Count > 0)
+                    subGraphNode.asset.keywords.Any())
                 {
                     OnKeywordChangedNoValidate();
                 }

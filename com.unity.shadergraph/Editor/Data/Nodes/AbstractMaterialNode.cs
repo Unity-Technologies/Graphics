@@ -582,6 +582,10 @@ namespace UnityEditor.ShaderGraph
 
         public void AddSlot(MaterialSlot slot)
         {
+            if(slot == null)
+            {
+                throw new ArgumentException($"Trying to add null slot to node {this}");
+            }
             var foundSlot = FindSlot<MaterialSlot>(slot.id);
 
             // Try to keep the existing instance to avoid unnecessary changes to file
