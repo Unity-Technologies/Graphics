@@ -9,6 +9,7 @@ using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
@@ -97,9 +98,11 @@ Shader ""Hidden/GraphErrorShader2""
             UnityEngine.Object mainObject;
 
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            GraphData graph = JsonUtility.FromJson<GraphData>(textGraph);
-            graph.messageManager = new MessageManager();
-            graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
+            var graph = new GraphData
+            {
+                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+            };
+            MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
             graph.ValidateGraph();
 
@@ -118,7 +121,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 foreach (var pair in graph.messageManager.GetNodeMessages())
                 {
-                    var node = graph.GetNodeFromGuid(pair.Key);
+                    var node = graph.GetNodeFromId(pair.Key);
                     MessageManager.Log(node, path, pair.Value.First(), shader);
                 }
             }
@@ -198,9 +201,11 @@ Shader ""Hidden/GraphErrorShader2""
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, out GraphData graph)
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            graph = JsonUtility.FromJson<GraphData>(textGraph);
-            graph.messageManager = new MessageManager();
-            graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
+            graph = new GraphData
+            {
+                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+            };
+            MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
             graph.ValidateGraph();
 
@@ -210,9 +215,11 @@ Shader ""Hidden/GraphErrorShader2""
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            GraphData graph = JsonUtility.FromJson<GraphData>(textGraph);
-            graph.messageManager = new MessageManager();
-            graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
+            GraphData graph = new GraphData
+            {
+                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+            };
+            MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
             graph.ValidateGraph();
 
@@ -305,7 +312,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var portNodeSet = portNodeSets[portIndex];
                     if (portNodeSet.Contains(node))
                     {
-                        portPropertySets[portIndex].Add(propertyNode.propertyGuid);
+                        portPropertySets[portIndex].Add(propertyNode.property.guid);
                     }
                 }
             }
@@ -352,7 +359,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var message = new StringBuilder($"Precision mismatch for function {name}:");
                     foreach (var node in source.nodes)
                     {
-                        message.AppendLine($"{node.name} ({node.guid}): {node.concretePrecision}");
+                        message.AppendLine($"{node.name} ({node.objectId}): {node.concretePrecision}");
                     }
                     throw new InvalidOperationException(message.ToString());
                 }

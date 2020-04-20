@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_ConnectorListener = connectorListener;
             node = inNode;
-            viewDataKey = node.guid.ToString();
+            viewDataKey = node.objectId;
             UpdateTitle();
 
             // Add disabled overlay
@@ -338,7 +338,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             base.BuildContextualMenu(evt);
         }
-
+        
         void CopyToClipboard(DropdownMenuAction action)
         {
             GUIUtility.systemCopyBuffer = ConvertToShader((GenerationMode) action.userData);
@@ -355,7 +355,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var mode = (GenerationMode)action.userData;
 
             string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}{3}.shader", SanitizeName(name),
-                SanitizeName(node.name), node.guid, mode == GenerationMode.Preview ? "-Preview" : "");
+                SanitizeName(node.name), node.objectId, mode == GenerationMode.Preview ? "-Preview" : "");
             if (GraphUtil.WriteToFile(path, ConvertToShader(mode)))
                 GraphUtil.OpenFile(path);
         }
@@ -717,7 +717,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // TODO: Move to new NodeView type when keyword node has unique style
             if(node is KeywordNode keywordNode)
             {
-                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keywordGuid);
+                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keyword);
                 if (keywordRow != null)
                 {
                     if (evt.eventTypeId == MouseEnterEvent.TypeId())

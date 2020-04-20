@@ -17,12 +17,12 @@ namespace UnityEditor.ShaderGraph
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNodeView"));
             this.node = node;
-            viewDataKey = node.guid.ToString();
+            viewDataKey = node.objectId.ToString();
             userData = node;
 
             // Getting the generatePropertyBlock property to see if it is exposed or not
             var graph = node.owner as GraphData;
-            var property = graph.properties.FirstOrDefault(x => x.guid == node.propertyGuid);
+            var property = node.property;
             var icon = (graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
             this.icon = icon;
 
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
                 // changing the icon to be exposed or not
                 var propNode = (PropertyNode)node;
                 var graph = node.owner as GraphData;
-                var property = graph.properties.FirstOrDefault(x => x.guid == propNode.propertyGuid);
+                var property = propNode.property;
 
                 var icon = property.generatePropertyBlock ? exposedIcon : null;
                 this.icon = icon;
@@ -141,7 +141,7 @@ namespace UnityEditor.ShaderGraph
 
             var propNode = (PropertyNode)node;
 
-            var propRow = blackboardProvider.GetBlackboardRow(propNode.propertyGuid);
+            var propRow = blackboardProvider.GetBlackboardRow(propNode.property);
             if (propRow != null)
             {
                 if (evt.eventTypeId == MouseEnterEvent.TypeId())

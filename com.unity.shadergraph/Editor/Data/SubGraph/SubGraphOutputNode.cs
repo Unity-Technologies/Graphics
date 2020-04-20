@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
         static string s_MissingOutputSlot = "A Sub Graph must have at least one output slot";
         static List<ConcreteSlotValueType> s_ValidSlotTypes = new List<ConcreteSlotValueType>()
         {
-            ConcreteSlotValueType.Vector1, 
+            ConcreteSlotValueType.Vector1,
             ConcreteSlotValueType.Vector2,
             ConcreteSlotValueType.Vector3,
             ConcreteSlotValueType.Vector4,
@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph
                 var error = NodeUtils.ValidateSlotName(slot.RawDisplayName(), out string errorMessage);
                 if (error)
                 {
-                    owner.AddValidationError(guid, errorMessage);
+                    owner.AddValidationError(objectId, errorMessage);
                     break;
                 }
             }
@@ -81,12 +81,12 @@ namespace UnityEditor.ShaderGraph
 
             if (!slots.Any())
             {
-                owner.AddValidationError(guid, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Error);
+                owner.AddValidationError(objectId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Error);
             }
             else if (!s_ValidSlotTypes.Contains(slots.FirstOrDefault().concreteValueType))
             {
                 IsFirstSlotValid = false;
-                owner.AddValidationError(guid, "Preview can only compile if the first output slot is a Vector, Matrix, or Boolean type. Please adjust slot types.", ShaderCompilerMessageSeverity.Error);
+                owner.AddValidationError(objectId, "Preview can only compile if the first output slot is a Vector, Matrix, or Boolean type. Please adjust slot types.", ShaderCompilerMessageSeverity.Error);
             }
         }
 
@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph
 
         public int AddSlot(ConcreteSlotValueType concreteValueType)
         {
-            var index = this.GetInputSlots<ISlot>().Count() + 1;
+            var index = this.GetInputSlots<MaterialSlot>().Count() + 1;
             name = NodeUtils.GetDuplicateSafeNameForSlot(this, index, "Out_" + concreteValueType.ToString());
             AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name,
                 NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));

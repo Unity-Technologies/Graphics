@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -39,10 +40,12 @@ namespace UnityEditor.ShaderGraph
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
             graphAsset.assetGuid = subGraphGuid;
             var textGraph = File.ReadAllText(subGraphPath, Encoding.UTF8);
-            var graphData = new GraphData { isSubGraph = true, assetGuid = subGraphGuid };
             var messageManager = new MessageManager();
-            graphData.messageManager = messageManager;
-            JsonUtility.FromJsonOverwrite(textGraph, graphData);
+            var graphData = new GraphData
+            {
+                isSubGraph = true, assetGuid = subGraphGuid, messageManager = messageManager
+            };
+            MultiJson.Deserialize(graphData, textGraph);
 
             try
             {
@@ -60,7 +63,7 @@ namespace UnityEditor.ShaderGraph
                     graphAsset.isValid = false;
                     foreach (var pair in messageManager.GetNodeMessages())
                     {
-                        var node = graphData.GetNodeFromGuid(pair.Key);
+                        var node = graphData.GetNodeFromId(pair.Key);
                         foreach (var message in pair.Value)
                         {
                             MessageManager.Log(node, subGraphPath, message, graphAsset);

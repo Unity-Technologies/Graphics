@@ -223,7 +223,7 @@ namespace UnityEditor.ShaderGraph
             if (edges.Any())
             {
                 var fromSocketRef = edges[0].outputSlot;
-                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(fromSocketRef.nodeGuid);
+                var fromNode = fromSocketRef.node;
                 if (fromNode == null)
                     return string.Empty;
 
@@ -275,7 +275,7 @@ namespace UnityEditor.ShaderGraph
                 var error = NodeUtils.ValidateSlotName(slot.RawDisplayName(), out string errorMessage);
                 if (error)
                 {
-                    owner.AddValidationError(guid, errorMessage);
+                    owner.AddValidationError(objectId, errorMessage);
                     break;
                 }
             }
@@ -285,7 +285,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (!this.GetOutputSlots<MaterialSlot>().Any())
             {
-                owner.AddValidationError(guid, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
+                owner.AddValidationError(objectId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
             if(sourceType == HlslSourceType.File)
             {
@@ -297,7 +297,7 @@ namespace UnityEditor.ShaderGraph
                         string extension = path.Substring(path.LastIndexOf('.'));
                         if(!s_ValidExtensions.Contains(extension))
                         {
-                            owner.AddValidationError(guid, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
+                            owner.AddValidationError(objectId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
                         }
                     }
                 }

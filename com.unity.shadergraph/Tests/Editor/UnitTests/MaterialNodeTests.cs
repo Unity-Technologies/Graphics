@@ -26,21 +26,19 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
-        class NotAMaterialSlot : ISlot
+        class NotAMaterialSlot : MaterialSlot
         {
-            public bool Equals(ISlot other)
+            public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
             {
                 throw new NotImplementedException();
             }
 
-            public int id { get; }
-            public string displayName { get; set; }
-            public bool isInputSlot { get; }
-            public bool isOutputSlot { get; }
-            public int priority { get; set; }
-            public SlotReference slotReference { get; }
-            public AbstractMaterialNode owner { get; set; }
-            public bool hidden { get; set; }
+            public override void CopyValuesFrom(MaterialSlot foundSlot)
+            {
+                throw new NotImplementedException();
+            }
+            public override SlotValueType valueType { get; }
+            public override ConcreteSlotValueType concreteValueType { get; }
         }
 
         [OneTimeSetUp]

@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             title = "";
             m_ConnectorListener = connectorListener;
 
-            viewDataKey = node.guid.ToString();
+            viewDataKey = node.objectId;
 
             // Set the VisualElement's position
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
