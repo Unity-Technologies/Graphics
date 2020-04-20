@@ -455,7 +455,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
+                    finalViewport = GetPixelRect();
                 }
 
                 actualWidth = Math.Max((int)finalViewport.size.x, 1);
@@ -769,6 +769,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
+        internal void OverridePixelRect(Rect newPixelRect) => m_OverridePixelRect = newPixelRect;
+        internal void ResetPixelRect() => m_OverridePixelRect = null;
         #endregion
 
         #region Private API
@@ -800,6 +803,7 @@ namespace UnityEngine.Rendering.HighDefinition
         IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> m_RecorderCaptureActions;
         int                     m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
         MaterialPropertyBlock   m_RecorderPropertyBlock = new MaterialPropertyBlock();
+        Rect?                   m_OverridePixelRect = null;
 
         void SetupCurrentMaterialQuality(CommandBuffer cmd)
         {
@@ -1233,6 +1237,14 @@ namespace UnityEngine.Rendering.HighDefinition
         void ReleaseHistoryBuffer()
         {
             m_HistoryRTSystem.ReleaseAll();
+        }
+
+        Rect GetPixelRect()
+        {
+            if (m_OverridePixelRect != null)
+                return m_OverridePixelRect.Value;
+            else
+                return camera.pixelRect;
         }
         #endregion
     }
