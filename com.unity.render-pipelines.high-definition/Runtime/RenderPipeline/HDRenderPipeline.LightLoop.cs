@@ -455,17 +455,17 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public VolumeVoxelizationParameters parameters;
             public TextureHandle                densityBuffer;
+            public ComputeBufferHandle          bigTileLightListBuffer;
             public ComputeBuffer                visibleVolumeBoundsBuffer;
             public ComputeBuffer                visibleVolumeDataBuffer;
-            public ComputeBuffer                bigTileLightListBuffer;
         }
 
-        TextureHandle VolumeVoxelizationPass(   RenderGraph     renderGraph,
-                                                HDCamera        hdCamera,
-                                                ComputeBuffer   visibleVolumeBoundsBuffer,
-                                                ComputeBuffer   visibleVolumeDataBuffer,
-                                                ComputeBuffer   bigTileLightListBuffer,
-                                                int             frameIndex)
+        TextureHandle VolumeVoxelizationPass(   RenderGraph         renderGraph,
+                                                HDCamera            hdCamera,
+                                                ComputeBuffer       visibleVolumeBoundsBuffer,
+                                                ComputeBuffer       visibleVolumeDataBuffer,
+                                                ComputeBufferHandle bigTileLightList,
+                                                int                 frameIndex)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -476,7 +476,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera, frameIndex);
                     passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
                     passData.visibleVolumeDataBuffer = visibleVolumeDataBuffer;
-                    passData.bigTileLightListBuffer = bigTileLightListBuffer;
+                    passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
 
                     float tileSize = 0;
                     Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
@@ -494,11 +494,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (VolumeVoxelizationPassData data, RenderGraphContext ctx) =>
                     {
-                        VolumeVoxelizationPass(data.parameters,
+                        VolumeVoxelizationPass( data.parameters,
                                                 ctx.resources.GetTexture(data.densityBuffer),
                                                 data.visibleVolumeBoundsBuffer,
                                                 data.visibleVolumeDataBuffer,
-                                                data.bigTileLightListBuffer,
+                                                ctx.resources.GetComputeBuffer(data.bigTileLightListBuffer),
                                                 ctx.cmd);
                     });
 
@@ -515,10 +515,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle                lightingBuffer;
             public TextureHandle                historyBuffer;
             public TextureHandle                feedbackBuffer;
-            public ComputeBuffer                bigTileLightListBuffer;
+            public ComputeBufferHandle          bigTileLightListBuffer;
         }
 
-        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle densityBuffer, ComputeBuffer bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
+        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle densityBuffer, ComputeBufferHandle bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -526,10 +526,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<VolumetricLightingPassData>("Volumetric Lighting", out var passData))
                 {
+                    // TODO RENDERGRAPH
                     //builder.EnableAsyncCompute(hdCamera.frameSettings.VolumetricLightingRunsAsync());
 
                     passData.parameters = parameters;
-                    passData.bigTileLightListBuffer = bigTileLightListBuffer;
+                    passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
 
                     float tileSize = 0;
@@ -566,7 +567,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 lightinBufferRT,
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.historyBuffer)  : null,
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.feedbackBuffer) : null,
-                                                data.bigTileLightListBuffer,
+                                                ctx.resources.GetComputeBuffer(data.bigTileLightListBuffer),
                                                 ctx.cmd);
 
                         if (data.parameters.filterVolume)
