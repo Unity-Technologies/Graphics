@@ -24,8 +24,8 @@ int      _RaytracingCameraSkyEnabled;
 float3   _RaytracingCameraClearColor;
 
 // DoF related parameters
-float4x4 _InvViewportTransform;
 float4   _PathTracedDoFConstants;     // x: aperture radius, y: focus distance, zw: unused
+float4   _InvViewportScaleBias;
 
 // Output(s)
 RWTexture2D<float4> _RadianceTexture;
@@ -86,7 +86,7 @@ void RayGen()
         // Compute the ray origin and direction for a lens with non-zero aperture
 
         // Apply the inverse viewport transform to go from viewport coordinates to NDC
-        jitteredPixelCoord = mul(jitteredPixelCoord, (float3x3)_InvViewportTransform);
+        jitteredPixelCoord.xy = jitteredPixelCoord.xy * _InvViewportScaleBias.xy + _InvViewportScaleBias.zw;
 
         // Sample the lens apperture using the next available dimensions (we use 40 for path tracing, 2 for sub-pixel jittering, 64 for SSS -> 106, 107)
         float r1 = GetSample(currentPixelCoord, _RaytracingSampleIndex, 106);
