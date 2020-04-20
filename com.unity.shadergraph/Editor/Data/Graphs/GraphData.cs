@@ -1089,6 +1089,7 @@ namespace UnityEditor.ShaderGraph
                 m_PastedStickyNotes.Add(pastedStickyNote);
             }
 
+            var edges = graphToPaste.edges.ToList();
             var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
             foreach (var node in nodeList)
             {
@@ -1099,14 +1100,28 @@ namespace UnityEditor.ShaderGraph
                 {
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
-                    if (!m_Properties.SelectValue().Contains(propertyNode.property))
+                    var index = graphToPaste.metaProperties.TakeWhile(x => x != propertyNode.property).Count();
+                    var originalId = graphToPaste.metaPropertyIds.ElementAt(index);
+                    var property = m_Properties.SelectValue().FirstOrDefault(x => x.objectId == originalId);
+                    if (property != null)
                     {
-                        // If the property is in the serialized paste graph, make the property node into a property node.
-                        if (graphToPaste.metaProperties.Contains(propertyNode.property))
+                        propertyNode.property = property;
+                    }
+                    else
+                    {
+                        pastedNode = propertyNode.property.ToConcreteNode();
+                        pastedNode.drawState = node.drawState;
+                        for (var i = 0; i < edges.Count; i++)
                         {
-                            pastedNode = propertyNode.property.ToConcreteNode();
-                            pastedNode.drawState = node.drawState;
-                            // TODO: Potentially some patching up of edges here??
+                            var edge = edges[i];
+                            if (edge.outputSlot.node == node)
+                            {
+                                edges[i] = new Edge(new SlotReference(pastedNode, edge.outputSlot.slotId), edge.inputSlot);
+                            }
+                            else if (edge.inputSlot.node == node)
+                            {
+                                edges[i] = new Edge(edge.outputSlot, new SlotReference(pastedNode, edge.inputSlot.slotId));
+                            }
                         }
                     }
                 }
@@ -1136,15 +1151,18 @@ namespace UnityEditor.ShaderGraph
                 // Check if the keyword nodes need to have their keywords copied.
                 if (node is KeywordNode keywordNode)
                 {
-                    // If the keyword is not in the current graph and is in the serialized paste graph copy it.
-                    if (!keywords.Contains(keywordNode.keyword))
+                    var index = graphToPaste.metaKeywords.TakeWhile(x => x != keywordNode.keyword).Count();
+                    var originalId = graphToPaste.metaKeywordIds.ElementAt(index);
+                    var keyword = m_Keywords.SelectValue().FirstOrDefault(x => x.objectId == originalId);
+                    if (keyword != null)
                     {
-                        if (graphToPaste.metaKeywords.Contains(keywordNode.keyword))
-                        {
-                            SanitizeGraphInputName(keywordNode.keyword);
-                            SanitizeGraphInputReferenceName(keywordNode.keyword, keywordNode.keyword.overrideReferenceName);
-                            AddGraphInput(keywordNode.keyword);
-                        }
+                        keywordNode.keyword = keyword;
+                    }
+                    else
+                    {
+                        SanitizeGraphInputName(keywordNode.keyword);
+                        SanitizeGraphInputReferenceName(keywordNode.keyword, keywordNode.keyword.overrideReferenceName);
+                        AddGraphInput(keywordNode.keyword);
                     }
 
                     // Always update Keyword nodes to handle any collisions resolved on the Keyword
@@ -1152,7 +1170,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            foreach (var edge in graphToPaste.edges)
+            foreach (var edge in edges)
             {
                 var newEdge = (Edge)Connect(edge.outputSlot, edge.inputSlot);
                 if (newEdge != null)

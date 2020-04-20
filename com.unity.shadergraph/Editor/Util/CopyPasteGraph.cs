@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         List<JsonData<StickyNoteData>> m_StickyNotes = new List<JsonData<StickyNoteData>>();
 
         [SerializeField]
-        List<JsonData<ShaderInput>> m_Inputs = new List<JsonData<ShaderInput>>();
+        List<JsonRef<ShaderInput>> m_Inputs = new List<JsonRef<ShaderInput>>();
 
         // The meta properties are properties that are not copied into the target graph
         // but sent along to allow property nodes to still hvae the data from the original
@@ -33,21 +33,22 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<JsonData<AbstractShaderProperty>> m_MetaProperties = new List<JsonData<AbstractShaderProperty>>();
 
+        [SerializeField]
+        List<string> m_MetaPropertyIds = new List<string>();
+
         // The meta keywords are keywords that are required by keyword nodes
         // These are copied into the target graph when there is no collision
         [SerializeField]
         List<JsonData<ShaderKeyword>> m_MetaKeywords = new List<JsonData<ShaderKeyword>>();
 
         [SerializeField]
-        string m_SourceGraphGuid;
+        List<string> m_MetaKeywordIds = new List<string>();
 
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<Edge> edges,
+        public CopyPasteGraph(IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<Edge> edges,
             IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes, bool keepOutputEdges = false)
         {
-            m_SourceGraphGuid = sourceGraphGuid;
-
             if (groups != null)
             {
                 foreach (var groupData in groups)
@@ -136,11 +137,13 @@ namespace UnityEditor.ShaderGraph
         void AddMetaProperty(AbstractShaderProperty metaProperty)
         {
             m_MetaProperties.Add(metaProperty);
+            m_MetaPropertyIds.Add(metaProperty.objectId);
         }
 
         void AddMetaKeyword(ShaderKeyword metaKeyword)
         {
             m_MetaKeywords.Add(metaKeyword);
+            m_MetaKeywordIds.Add(metaKeyword.objectId);
         }
 
         public IEnumerable<T> GetNodes<T>()
@@ -157,7 +160,7 @@ namespace UnityEditor.ShaderGraph
             get { return m_Edges; }
         }
 
-        public DataValueEnumerable<ShaderInput> inputs
+        public RefValueEnumerable<ShaderInput> inputs
         {
             get { return m_Inputs.SelectValue(); }
         }
@@ -172,10 +175,9 @@ namespace UnityEditor.ShaderGraph
             get { return m_MetaKeywords.SelectValue(); }
         }
 
-        public string sourceGraphGuid
-        {
-            get { return m_SourceGraphGuid; }
-        }
+        public IEnumerable<string> metaPropertyIds => m_MetaPropertyIds;
+
+        public IEnumerable<string> metaKeywordIds => m_MetaKeywordIds;
 
         internal static CopyPasteGraph FromJson(string copyBuffer, GraphData targetGraph)
         {

@@ -154,7 +154,6 @@ namespace UnityEditor.ShaderGraph.Serialization
                     {
                         // External code could throw exceptions, but we don't want that to fail the whole thing.
                         // Potentially, the fallback type should also be used here.
-                        // TODO: Allow custom logging function
                         Debug.LogException(e);
                     }
                 }

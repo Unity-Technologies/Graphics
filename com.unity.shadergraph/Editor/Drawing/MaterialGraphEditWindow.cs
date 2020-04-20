@@ -498,9 +498,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var keywordNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is KeywordNode)).Select(x => ((KeywordNode)x.node).keyword);
             var metaKeywords = graphView.graph.keywords.Where(x => keywordNodes.Contains(x));
 
-            var copyPasteGraph = new CopyPasteGraph(
-                    graphView.graph.assetGuid,
-                    graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
+            var copyPasteGraph = new CopyPasteGraph(graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
                     graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as Graphing.Edge),
                     graphInputs,
