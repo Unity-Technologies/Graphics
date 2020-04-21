@@ -18,16 +18,6 @@ Additional Post-Processing Data gives you access to Textures you can use with po
 - Spectral Look-up Textures (designed for use in [Chromatic Aberrations](Post-Processing-Chromatic-Aberration.html)).
 - Look-Up Textures.
 
-## Shader Graph Samples
-
-This Sample includes example Shader Graphs that show you how to use the following Master Nodes: 
-
-* [Fabric Master Node](Master-Node-Fabric.html).
-* [Hair Master Node](Master-Node-Hair.html).
-* [Decal Master Node](Master-Node-Decal.html).
-
-The Fabric and Hair Master Nodes usually require various work from artists inside the Shader Graph and the Samples are a good head start.
-
 ## Procedural Sky
 
 The [Procedural Sky](Override-Procedural-Sky.html) is a deprecated sky type from older versions of HDRP which you can use for compatibility. This Sample also includes an example of how to create a custom sky in your Project that is compatible with HDRP's [Volume framework](Volumes.html). HDRP will remove the Procedural Sky in a future version because it behaves incorrectly with HDRP's physically based light units.
@@ -40,5 +30,5 @@ This Sample includes various examples of lit and unlit particle effects.
 
 ![Material Samples](Images/MaterialSamples.png)
 
-This Sample includes various examples of Materials that use the [Lit Shader](Lit-Shader.html). The included Materials use effects such as subsurface scattering, displacement, and anisotropy. The **MaterialSamples** Scene requires Text Mesh Pro to display the text explanations.
-
+This Sample includes various examples of Materials. It includes Materials that use the [Lit Shader](Lit-Shader.html), [Fabric Master Node](Master-Node-Fabric.html), [Hair Master Node](Master-Node-Hair.html), and [Decal Master Node](Master-Node-Decal.html). The included Materials use effects such as subsurface scattering, displacement, and anisotropy. The **MaterialSamples** Scene requires Text Mesh Pro to display the text explanations.
+The Fabric and Hair Master Nodes usually require various work from artists inside the Shader Graph and the Samples are a good head start.
