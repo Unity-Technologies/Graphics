@@ -7,6 +7,6 @@ This node lets you pass compute deformed vertex data to a vertex shader, and onl
 ## Ports
 | Name      | Direction  | Type    | Stage  | Description |
 |:--------- |:-----------|:--------|:-------|:------------|
-| Position  | Output     | Vector3 | Vertex | Outputs the deformed vertex position |
-| Normal    | Output     | Vector3 | Vertex | Outputs the deformed vertex normal |
-| Tangent   | Output     | Vector3 | Vertex | Outputs the deformed vertex tangent |
+| Position  | Output     | Vector3 | Vertex | Outputs the deformed vertex position. |
+| Normal    | Output     | Vector3 | Vertex | Outputs the deformed vertex normal. |
+| Tangent   | Output     | Vector3 | Vertex | Outputs the deformed vertex tangent. |
