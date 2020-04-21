@@ -1636,6 +1636,26 @@ namespace UnityEditor.ShaderGraph
                             // To avoid having to go around the following deserialization code
                             // We simply run OnBeforeSerialization here to ensure m_SerializedDescriptor is set
                             block.OnBeforeSerialize();
+
+                            // Now remap the incoming edges to blocks
+                            var slotId = blockMapping.Value;
+                            if(m_OutputNode.value.FindSlot<MaterialSlot>(slotId) == null)
+                                continue;
+                            
+                            var oldInputSlot = m_OutputNode.value.GetSlotReference(slotId);
+                            for(int i = 0; i < m_Edges.Count; i++)
+                            {
+                                // Find all edges connected to the master node using slot ID from the block map
+                                // Remove them and replace them with new edges connected to the block nodes
+                                var edge = m_Edges[i];
+                                if(edge.inputSlot.Equals(oldInputSlot))
+                                {
+                                    var outputSlot = edge.outputSlot;
+                                    var newInputSlot = block.GetSlotReference(0);
+                                    m_Edges.Remove(edge);
+                                    m_Edges.Add(new Edge(outputSlot, newInputSlot));
+                                }
+                            }
                         }
 
                         // We need to call AddBlockNoValidate but this adds to m_AddedNodes resulting in duplicates
