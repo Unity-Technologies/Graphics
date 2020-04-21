@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [8.1.0] - 2020-04-21
 
 - renamed soft particle fade distance, made attributes adding text, add in tooltip not label
 - Fix for nesting of VFXSubgraphContexts
@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix various bugs in Position (Cone) block [Case 1111053](https://issuetracker.unity3d.com/product/unity/issues/guid/1111053/)
 - Fix space issues with blocks and operators taking a camera as input
 - Generated shaderName are now consistent with displayed system names
+
+## [8.0.1] - 2020-05-25
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [8.0.0] - 2020-05-25
 
