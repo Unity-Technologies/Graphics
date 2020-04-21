@@ -1,6 +1,6 @@
-﻿namespace UnityEditor.ShaderGraph
+﻿namespace UnityEditor.ShaderGraph.Legacy
 {
-    interface IMasterNode
+    public interface IMasterNode
     {
     }
 }

@@ -6,10 +6,11 @@ using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalLitSubTarget : SubTarget<UniversalTarget>
+    sealed class UniversalLitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
     {
         const string kAssetGuid = "d6c78107b64145745805d963de80cc17";
 
@@ -142,6 +143,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
                 onChange();
             });
+        }
+
+        public bool TryUpgradeFromMasterNode(IMasterNode masterNode)
+        {
+            if(!(masterNode is PBRMasterNode1 pbrMasterNode))
+                return false;
+            
+            m_WorkflowMode = (WorkflowMode)pbrMasterNode.m_Model;
+            m_NormalDropOffSpace = (NormalDropOffSpace)pbrMasterNode.m_NormalDropOffSpace;
+            return true;
         }
 
 #region SubShader

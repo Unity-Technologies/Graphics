@@ -6,10 +6,11 @@ using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalUnlitSubTarget : SubTarget<UniversalTarget>
+    sealed class UniversalUnlitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
     {
         const string kAssetGuid = "97c3f7dcb477ec842aa878573640313a";
 
@@ -92,6 +93,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 target.twoSided = evt.newValue;
                 onChange();
             });
+        }
+
+        public bool TryUpgradeFromMasterNode(IMasterNode masterNode)
+        {
+            return (masterNode is UnlitMasterNode1 unlitMasterNode);
         }
 
 #region SubShader

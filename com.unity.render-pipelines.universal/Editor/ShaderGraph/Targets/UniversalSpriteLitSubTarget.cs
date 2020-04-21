@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEditor.Experimental.Rendering.Universal;
+using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalSpriteLitSubTarget : SubTarget<UniversalTarget>
+    sealed class UniversalSpriteLitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
     {
         const string kAssetGuid = "ea1514729d7120344b27dcd67fbf34de";
 
@@ -40,6 +41,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
         {
+        }
+
+        public bool TryUpgradeFromMasterNode(IMasterNode masterNode)
+        {
+            return (masterNode is SpriteLitMasterNode1 spriteLitMasterNode);
         }
         
 #region SubShader

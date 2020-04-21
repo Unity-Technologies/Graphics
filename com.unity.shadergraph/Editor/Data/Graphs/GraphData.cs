@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
     sealed partial class GraphData : JsonObject
     {
-        const int k_CurrentVersion = 1;
+        const int k_CurrentVersion = 2;
 
         [SerializeField]
         int m_Version;
@@ -1583,8 +1583,63 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            if(m_Version == 1)
+            if(m_Version < 2)
             {
+                // var idField = typeof(JsonRef<AbstractMaterialNode>).GetField("m_Id", BindingFlags.Instance | BindingFlags.NonPublic);
+                // Get the raw Json for the output node
+                // var id = (string)idField.GetValue(m_OutputNode);
+                // MultiJsonInternal.valueMap.TryGetValue(id, out var jsonObject);
+
+                // Lookup table for master node upgrades
+                // All master nodes and their FormerName attributes must exist here
+                Dictionary<string, Type> s_MasterNodeUpgrades = new Dictionary<string, Type>()
+                {
+                    { "UnityEditor.ShaderGraph.PBRMasterNode", typeof(PBRMasterNode1) },
+                    { "UnityEditor.ShaderGraph.UnlitMasterNode", typeof(UnlitMasterNode1) },
+                    { "UnityEditor.Experimental.Rendering.Universal.SpriteLitMasterNode", typeof(SpriteLitMasterNode1) },
+                    { "UnityEditor.Experimental.Rendering.LWRP.SpriteLitMasterNode", typeof(SpriteLitMasterNode1) },
+                    { "UnityEditor.Experimental.Rendering.Universal.SpriteUnlitMasterNode", typeof(SpriteUnlitMasterNode1) },
+                    { "UnityEditor.Experimental.Rendering.LWRP.SpriteUnlitMasterNode", typeof(SpriteUnlitMasterNode1) },
+                };
+
+                IMasterNode DeserializeMasterNodeV0(GraphData0 graphData0)
+                {
+                    foreach (var serializedNode in graphData0.m_SerializableNodes)
+                    {
+                        if(!(s_MasterNodeUpgrades.TryGetValue(serializedNode.typeInfo.fullName, out var masterNodeType)))
+                            continue;
+                        
+                        // If type exists in dictionary we assume it can be deserialized and upgraded
+                        return (IMasterNode)JsonUtility.FromJson(serializedNode.JSONnodeData, masterNodeType);
+                    }
+                    return null;
+                }
+
+                // HAve to handle V0 and V1 upgrades
+                IMasterNode masterNode = null;
+                if(m_Version == 0)
+                {
+                    var graphData0 = JsonUtility.FromJson<GraphData0>(json);
+                    masterNode = DeserializeMasterNodeV0(graphData0);
+                }
+
+                // Try to upgrade all valid targets from master node
+                // On ShaderGraph side we dont know what Targets exist so make no assumptions
+                if(masterNode != null)
+                {
+                    foreach(var target in m_ValidTargets)
+                    {
+                        if(!(target is ILegacyTarget legacyTarget))
+                            continue;
+                        
+                        if(!legacyTarget.TryUpgradeFromMasterNode(masterNode))
+                            continue;
+                        
+                        m_ActiveTargets.Add(target);
+                    }
+                }
+
+                // Fix up output node
                 var subgraphOuput = GetNodes<SubGraphOutputNode>();
                 isSubGraph = subgraphOuput.Any();
                 if (!isSubGraph)
@@ -1652,7 +1707,7 @@ namespace UnityEditor.ShaderGraph
             DeserializeContextData(m_VertexContext, ShaderStage.Vertex);
             DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
 
-            // TODO: Upgrade this
+            // TODO: Improve this?
             var deserializedTargets = new Target[m_ActiveTargets.Count];
             for(int i = 0; i < deserializedTargets.Length; i++)
             {

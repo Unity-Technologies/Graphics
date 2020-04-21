@@ -10,6 +10,7 @@ using UnityEditor.Experimental.Rendering.Universal;
 using UnityEditor.Graphing;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -41,7 +42,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Multiply,
     }
 
-    sealed class UniversalTarget : Target
+    sealed class UniversalTarget : Target, ILegacyTarget
     {
         // Constants
         const string kAssetGuid = "8c72f47fdde33b14a9340e325ce56f4d";
@@ -228,6 +229,51 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+        }
+
+        public bool TryUpgradeFromMasterNode(IMasterNode masterNode)
+        {
+            // Upgrade Target
+            switch(masterNode)
+            {
+                case PBRMasterNode1 pbrMasterNode:
+                    m_SurfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
+                    m_AlphaMode = (AlphaMode)pbrMasterNode.m_AlphaMode;
+                    m_TwoSided = pbrMasterNode.m_TwoSided;
+                    // m_AlphaClip = ???
+                    m_AddPrecomputedVelocity = false;
+                    m_CustomEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
+                    break;
+                case UnlitMasterNode1 unlitMasterNode:
+                    m_SurfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
+                    m_AlphaMode = (AlphaMode)unlitMasterNode.m_AlphaMode;
+                    m_TwoSided = unlitMasterNode.m_TwoSided;
+                    // m_AlphaClip = ???
+                    m_AddPrecomputedVelocity = unlitMasterNode.m_AddPrecomputedVelocity;
+                    m_CustomEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
+                    break;
+                case SpriteLitMasterNode1 spriteLitMasterNode:
+                    m_CustomEditorGUI = spriteLitMasterNode.m_OverrideEnabled ? spriteLitMasterNode.m_ShaderGUIOverride : "";
+                    break;
+                case SpriteUnlitMasterNode1 spriteUnlitMasterNode:
+                    m_CustomEditorGUI = spriteUnlitMasterNode.m_OverrideEnabled ? spriteUnlitMasterNode.m_ShaderGUIOverride : "";
+                    break;
+            }
+
+            // Upgrade SubTarget
+            foreach(var subTarget in m_SubTargets)
+            {
+                if(!(subTarget is ILegacyTarget legacySubTarget))
+                    continue;
+                
+                if(legacySubTarget.TryUpgradeFromMasterNode(masterNode))
+                {
+                    m_ActiveSubTarget = subTarget;
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 
