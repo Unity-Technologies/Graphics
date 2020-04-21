@@ -11,28 +11,28 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>Enable fog.</summary>
         [Tooltip("Enables the fog.")]
-        public BoolParameter         enabled = new BoolParameter(false);
+        public BoolParameter enabled = new BoolParameter(false);
 
         /// <summary>Fog color mode.</summary>
-        public FogColorParameter     colorMode = new FogColorParameter(FogColorMode.SkyColor);
+        public FogColorParameter colorMode = new FogColorParameter(FogColorMode.SkyColor);
         /// <summary>Fog color.</summary>
         [Tooltip("Specifies the constant color of the fog.")]
-        public ColorParameter        color = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
+        public ColorParameter color = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
         /// <summary>Specifies the tint of the fog when using Sky Color.</summary>
         [Tooltip("Specifies the tint of the fog.")]
-        public ColorParameter        tint = new ColorParameter(Color.white, hdr: true, showAlpha: false, showEyeDropper: true);
+        public ColorParameter tint = new ColorParameter(Color.white, hdr: true, showAlpha: false, showEyeDropper: true);
         /// <summary>Maximum fog distance.</summary>
         [Tooltip("Sets the maximum fog distance HDRP uses when it shades the skybox or the Far Clipping Plane of the Camera.")]
-        public MinFloatParameter     maxFogDistance = new MinFloatParameter(5000.0f, 0.0f);
+        public MinFloatParameter maxFogDistance = new MinFloatParameter(5000.0f, 0.0f);
         /// <summary>Controls the maximum mip map HDRP uses for mip fog (0 is the lowest mip and 1 is the highest mip).</summary>
         [Tooltip("Controls the maximum mip map HDRP uses for mip fog (0 is the lowest mip and 1 is the highest mip).")]
         public ClampedFloatParameter mipFogMaxMip = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
         /// <summary>Sets the distance at which HDRP uses the minimum mip image of the blurred sky texture as the fog color.</summary>
         [Tooltip("Sets the distance at which HDRP uses the minimum mip image of the blurred sky texture as the fog color.")]
-        public MinFloatParameter     mipFogNear = new MinFloatParameter(0.0f, 0.0f);
+        public MinFloatParameter mipFogNear = new MinFloatParameter(0.0f, 0.0f);
         /// <summary>Sets the distance at which HDRP uses the maximum mip image of the blurred sky texture as the fog color.</summary>
         [Tooltip("Sets the distance at which HDRP uses the maximum mip image of the blurred sky texture as the fog color.")]
-        public MinFloatParameter     mipFogFar = new MinFloatParameter(1000.0f, 0.0f);
+        public MinFloatParameter mipFogFar = new MinFloatParameter(1000.0f, 0.0f);
 
         // Height Fog
         /// <summary>Height fog base height.</summary>
@@ -44,14 +44,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Fog albedo.</summary>
         public ColorParameter albedo = new ColorParameter(Color.white);
         /// <summary>Fog mean free path.</summary>
+        [DisplayInfo(name = "Fog Attenuation Distance")]
         public MinFloatParameter meanFreePath = new MinFloatParameter(400.0f, 1.0f);
 
         // Optional Volumetric Fog
         /// <summary>Enable volumetric fog.</summary>
+        [DisplayInfo(name = "Volumetric Fog")]
         public BoolParameter enableVolumetricFog = new BoolParameter(false);
         /// <summary>Volumetric fog anisotropy.</summary>
         public ClampedFloatParameter anisotropy = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
         /// <summary>Multiplier for ambient probe contribution.</summary>
+        [DisplayInfo(name = "Ambient Light Probe Dimmer")]
         public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         /// <summary>Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer.</summary>
