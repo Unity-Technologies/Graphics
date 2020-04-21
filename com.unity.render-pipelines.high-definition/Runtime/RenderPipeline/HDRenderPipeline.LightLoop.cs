@@ -27,7 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class BuildGPULightListPassData
         {
-            public LightDataGlobalParameters lightDataGlobalParameters;
             public ShadowGlobalParameters shadowGlobalParameters;
             public LightLoopGlobalParameters lightLoopGlobalParameters;
 
@@ -45,10 +44,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
-                passData.lightDataGlobalParameters = PrepareLightDataGlobalParameters(hdCamera);
                 passData.shadowGlobalParameters = PrepareShadowGlobalParameters(hdCamera);
                 passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera);
-                passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera);
+                passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, buildForProbeVolumes: false);
                 // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
                 passData.buildGPULightListResources = PrepareBuildGPULightListResources(m_TileAndClusterData, null, null, isGBufferNeeded: true);
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
@@ -83,7 +81,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     BuildDispatchIndirectArguments(data.buildGPULightListParameters, data.buildGPULightListResources, tileFlagsWritten, context.cmd);
 
                     // TODO RENDERGRAPH WARNING: Note that the three sets of variables are bound here, but it should be handled differently.
-                    PushLightDataGlobalParams(data.lightDataGlobalParameters, context.cmd);
                     PushShadowGlobalParams(data.shadowGlobalParameters, context.cmd);
                     PushLightLoopGlobalParams(data.lightLoopGlobalParameters, context.cmd);
                 });
@@ -96,6 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDCamera                 hdCamera;
             public int                      frameCount;
             public ShaderVariablesGlobal    globalCB;
+            public ShaderVariablesXR        xrCB;
 
         }
 
@@ -106,13 +104,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.hdCamera = hdCamera;
                 passData.frameCount = m_FrameCount;
                 passData.globalCB = m_ShaderVariablesGlobalCB;
+                passData.xrCB = m_ShaderVariablesXRCB;
 
                 builder.SetRenderFunc(
                 (PushGlobalCameraParamPassData data, RenderGraphContext context) =>
                 {
-                    data.hdCamera.UpdateShaderVariableGlobalCB(ref data.globalCB, data.frameCount);
-                    data.hdCamera.SetupGlobalParams(context.cmd, data.frameCount);
+                    data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB, data.frameCount);
                     ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                    data.hdCamera.UpdateShaderVariablesXRCB(ref data.xrCB);
+                    ConstantBuffer.PushGlobal(context.cmd, data.xrCB, HDShaderIDs._ShaderVariablesXR);
                 });
             }
         }
@@ -254,7 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderSSR(    RenderGraph     renderGraph,
-                                        HDCamera            hdCamera,
+                                    HDCamera        hdCamera,
                                     TextureHandle   normalBuffer,
                                     TextureHandle   motionVectorsBuffer,
                                     TextureHandle   depthPyramid,
@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
 
-                    passData.parameters = PrepareSSRParameters(hdCamera);
+                    passData.parameters = PrepareSSRParameters(hdCamera, m_DepthBufferMipChainInfo);
                     passData.depthPyramid = builder.ReadTexture(depthPyramid);
                     passData.colorPyramid = builder.ReadTexture(colorPyramid);
                     passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
