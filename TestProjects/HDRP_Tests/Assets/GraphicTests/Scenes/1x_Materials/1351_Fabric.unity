@@ -1082,7 +1082,7 @@ MonoBehaviour:
   aspectRatio: 0.4
   shapeRadius: 0
   maxSmoothness: 1
-  applyRangeAttenuation: 1
+  applyRangeAttenuation: 0
   useOldInspector: 0
   useVolumetric: 1
   featuresFoldout: 1
