@@ -116,6 +116,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added fabric materials and textures
 - Added information for fabric materials in fabric scene
 - Added a DisplayInfo attribute to specify a name override and a display order for Volume Component fields (used only in default inspector for now).
+- Added Min distance to contact shadows.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -557,6 +558,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix MaterialBalls having same guid issue
 - Fix spelling and grammatical errors in material samples
 - Fixed unneeded cookie texture allocation for cone stop lights.
+- Fixed scalarization code for contact shadows.
 
 ### Changed
 - Improve MIP selection for decals on Transparents

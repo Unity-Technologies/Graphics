@@ -3626,8 +3626,12 @@ namespace UnityEngine.Rendering.HighDefinition
             float contactShadowRange = Mathf.Clamp(m_ContactShadows.fadeDistance.value, 0.0f, m_ContactShadows.maxDistance.value);
             float contactShadowFadeEnd = m_ContactShadows.maxDistance.value;
             float contactShadowOneOverFadeRange = 1.0f / Math.Max(1e-6f, contactShadowRange);
+
+            float contactShadowMinDist = Mathf.Min(m_ContactShadows.minDistance.value, contactShadowFadeEnd);
+            float contactShadowFadeIn = Mathf.Clamp(m_ContactShadows.fadeInDistance.value, 1e-6f, contactShadowFadeEnd);
+
             parameters.params1 = new Vector4(m_ContactShadows.length.value, m_ContactShadows.distanceScaleFactor.value, contactShadowFadeEnd, contactShadowOneOverFadeRange);
-            parameters.params2 = new Vector4(firstMipOffsetY, 0.0f, 0.0f, 0.0f);
+            parameters.params2 = new Vector4(firstMipOffsetY, contactShadowMinDist, contactShadowFadeIn, 0.0f);
             parameters.sampleCount = m_ContactShadows.sampleCount;
 
             int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
