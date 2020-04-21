@@ -10,6 +10,7 @@ class OverrideCamera : CustomPass
     public Camera       customCamera1 = null;
     public Camera       customCamera2 = null;
     public Camera       customCamera3 = null;
+    public Camera       customCamera4 = null;
 
     RTHandle            temp;
     RTHandle            halfResColor;
@@ -35,9 +36,12 @@ class OverrideCamera : CustomPass
 
     // In a real application we should override the culling params and aggregate all the cameras
 
+    protected override void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera)
+        => cullingParameters.cullingMask = ~0u;
+
     protected override void Execute(CustomPassContext ctx)
     {
-        if (customCamera0 == null || customCamera1 == null || customCamera2 == null || customCamera3 == null)
+        if (customCamera0 == null || customCamera1 == null || customCamera2 == null || customCamera3 == null || customCamera4 == null)
             return;
 
         // Render from camera 0
@@ -65,13 +69,14 @@ class OverrideCamera : CustomPass
             new Vector4(.5f, .5f, .5f, 0f)
         );
 
-        // Render from camera 2 in an half res buffer
-        CustomPassUtils.RenderFromCamera(ctx, customCamera2, halfResColor, halfResDepth, ClearFlag.All, -1, overrideRenderState: overrideDepth);
-        CustomPassUtils.Copy(
-            ctx, temp, ctx.cameraColorBuffer,
-            CustomPassUtils.fullScreenScaleBias,
-            new Vector4(.5f, .5f, 0f, .5f)
-        );
+        // Render from camera 4 (at same position than the test camera but uses a different FoV)
+        // And with the camera depth buffer (which already contains opaque objects)
+        CustomPassUtils.RenderFromCamera(ctx, customCamera4, ctx.cameraColorBuffer, ctx.cameraDepthBuffer, ClearFlag.None, customCamera4.cullingMask, overrideRenderState: overrideDepth);
+        // CustomPassUtils.Copy(
+        //     ctx, temp, ctx.cameraColorBuffer,
+        //     CustomPassUtils.fullScreenScaleBias,
+        //     new Vector4(.5f, .5f, 0f, .5f)
+        // );
 
         // Render from camera 3 using different buffers
         CustomPassUtils.RenderDepthFromCamera(ctx, customCamera3, temp, ctx.customDepthBuffer.Value, ClearFlag.All, -1);
@@ -95,12 +100,13 @@ class OverrideCamera : CustomPass
             new Vector4(.25f, .25f, .5f, .75f)
         );
 
-        // CustomPassUtils.RenderDepthFromCamera(ctx, customCamera3, temp, ctx.customDepthBuffer.Value, ClearFlag.All, -1);
-        // CustomPassUtils.Copy(
-        //     ctx, temp, ctx.cameraColorBuffer,
-        //     CustomPassUtils.fullScreenScaleBias,
-        //     new Vector4(.25f, .25f, .5f, .5f)
-        // );
+        // Render from camera 2 in an half res buffer
+        CustomPassUtils.RenderFromCamera(ctx, customCamera2, halfResColor, halfResDepth, ClearFlag.All, -1, overrideRenderState: overrideDepth);
+        CustomPassUtils.Copy(
+            ctx, halfResColor, ctx.cameraColorBuffer,
+            CustomPassUtils.fullScreenScaleBias,
+            new Vector4(.25f, .25f, .75f, .75f)
+        );
     }
 
     protected override void Cleanup()

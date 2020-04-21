@@ -398,23 +398,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// 
         /// </summary>
-        public struct DisableMultiEyeRendering : IDisposable
+        public struct DisableMultiPassRendering : IDisposable
         {
-            CustomPassContext m_Ctx;
+            CustomPassContext m_Context;
 
             /// <summary>
             /// 
             /// </summary>
             /// <param name="ctx"></param>
-            public DisableMultiEyeRendering(in CustomPassContext ctx)
+            public DisableMultiPassRendering(in CustomPassContext ctx)
             {
-                m_Ctx = ctx;
+                m_Context = ctx;
                 if (ctx.hdCamera.xr.enabled)
-                {
-                    ctx.renderContext.ExecuteCommandBuffer(ctx.cmd);
-                    ctx.cmd.Clear();
-                    ctx.renderContext.StopMultiEye(ctx.hdCamera.camera);
-                }
+                    m_Context.hdCamera.xr.StartSinglePass(ctx.cmd);
             }
 
             /// <summary>
@@ -422,12 +418,8 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             void IDisposable.Dispose()
             {
-                if (m_Ctx.hdCamera.xr.enabled)
-                {
-                    m_Ctx.renderContext.StartMultiEye(m_Ctx.hdCamera.camera);
-                    m_Ctx.renderContext.ExecuteCommandBuffer(m_Ctx.cmd);
-                    m_Ctx.cmd.Clear();
-                }
+                if (m_Context.hdCamera.xr.enabled)
+                    m_Context.hdCamera.xr.StopSinglePass(m_Context.cmd);
             }
         }
 
@@ -461,7 +453,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (targetDepth != null)
                 CoreUtils.SetRenderTarget(ctx.cmd, targetDepth, clearFlag);
 
-            using (new DisableMultiEyeRendering(ctx))
+            using (new DisableMultiPassRendering(ctx))
             {
                 using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, view))
                 {
