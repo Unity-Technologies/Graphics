@@ -1628,6 +1628,11 @@ namespace UnityEditor.ShaderGraph
                     // Ensure correct initialization of Contexts
                     AddContexts();
 
+                    // Position Contexts to the match master node
+                    var oldPosition = m_OutputNode.value.drawState.position.position;
+                    m_VertexContext.position = oldPosition;
+                    m_FragmentContext.position = new Vector2(oldPosition.x, oldPosition.y + 200);
+
                     // Map master node ports to blocks
                     if(blockMap != null)
                     {
