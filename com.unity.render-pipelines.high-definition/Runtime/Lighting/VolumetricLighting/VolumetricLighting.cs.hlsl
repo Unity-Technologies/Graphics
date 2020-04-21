@@ -27,14 +27,19 @@ CBUFFER_START(ShaderVariablesVolumetric)
     float _VBufferUnitDepthTexelSpacing;
     uint _NumVisibleDensityVolumes;
     float _CornetteShanksConstant;
-    uint _VBufferLightingHistoryIsValid;
+    uint _VBufferHistoryIsValid;
     float4 _VBufferSampleOffset;
     float4 _VolumeMaskDimensions;
     float4 _AmbientProbeCoeffs[7];
+    float _VBufferVoxelSize;
+    float _HaveToPad;
+    float _OtherwiseTheBuffer;
+    float _IsFilledWithGarbage;
     float4 _VBufferPrevViewportSize;
-    float4 _VBufferHistoryPrevUvScaleAndLimit;
-    float4 _VBufferPrevDepthEncodingParams;
-    float4 _VBufferPrevDepthDecodingParams;
+    float4 _VBufferHistoryViewportScale;
+    float4 _VBufferHistoryViewportLimit;
+    float4 _VBufferPrevDistanceEncodingParams;
+    float4 _VBufferPrevDistanceDecodingParams;
     uint _NumTileBigTileX;
     uint _NumTileBigTileY;
 CBUFFER_END
