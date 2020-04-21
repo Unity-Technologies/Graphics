@@ -787,14 +787,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.affectSpecular, s_Styles.affectSpecular);
                 if (lightType != HDLightType.Directional)
                 {
-                    if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() != SpotLightShape.Box)
-                        EditorGUILayout.PropertyField(serialized.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
+                    EditorGUILayout.PropertyField(serialized.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
                     EditorGUILayout.PropertyField(serialized.fadeDistance, s_Styles.fadeDistance);
                 }
                 EditorGUILayout.PropertyField(serialized.lightDimmer, s_Styles.lightDimmer);
             }
-            else if (lightType == HDLightType.Point
-                    || lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() != SpotLightShape.Box)
+            else if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
                 EditorGUILayout.PropertyField(serialized.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
 
             // Emissive mesh for area light only (and not supported on Disc currently)
