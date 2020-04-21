@@ -1045,7 +1045,11 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
                 {
                     var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-                    if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)
+#if UNITY_2020_2_OR_NEWER
+                    if (sv.camera == camera && sv.sceneViewState.alwaysRefreshEnabled)
+#else
+                    if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)                    
+#endif
                     {
                         animateMaterials = true;
                         break;
@@ -1075,9 +1079,9 @@ namespace UnityEngine.Rendering
             // which simply amounts to a recursive call, and then the story repeats itself.
             //
             // TLDR: we need to know the caller and its status/properties to make decisions.
-        #endif
+#endif
 
-            return animateMaterials;
+                    return animateMaterials;
         }
 
         /// <summary>
