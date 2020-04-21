@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public static Color cameraBackgroundColor
+        public static Color previewBackgroundColor
         {
             get => s_PreviewCameraBackgroundColor;
             set
@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering
                         Load();
                     EditorGUIUtility.labelWidth = 170;
                     volumeGizmoColor = EditorGUILayout.ColorField("Volume Gizmo Color", volumeGizmoColor);
-                    cameraBackgroundColor = EditorGUILayout.ColorField("Preview Background Color", cameraBackgroundColor);
+                    previewBackgroundColor = EditorGUILayout.ColorField("Preview Background Color", previewBackgroundColor);
                 }
             };
         }
