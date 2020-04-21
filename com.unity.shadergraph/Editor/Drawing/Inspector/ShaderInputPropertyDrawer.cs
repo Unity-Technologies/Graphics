@@ -233,20 +233,20 @@ namespace Drawing.Inspector
             switch (vector1ShaderProperty.floatType)
             {
                 case FloatType.Slider:
-                    var sliderFloatPropertyDrawer = new FloatPropertyDrawer();
+                    var floatPropertyDrawer = new FloatPropertyDrawer();
                     // Default field
-                    propertySheet.Add(sliderFloatPropertyDrawer.CreateGUI(
+                    propertySheet.Add(floatPropertyDrawer.CreateGUI(
                         newValue => _changeValueCallback(newValue),
                         vector1ShaderProperty.value,
                         "Default",
                         out var propertyFloatField));
 
                     // Min field
-                    propertySheet.Add(sliderFloatPropertyDrawer.CreateGUI(
+                    propertySheet.Add(floatPropertyDrawer.CreateGUI(
                         newValue =>
                         {
                             _preChangeValueCallback("Change Range Property Minimum");
-                            vector1ShaderProperty.rangeValues = new Vector2((float)newValue, vector1ShaderProperty.rangeValues.x);
+                            vector1ShaderProperty.rangeValues = new Vector2((float)newValue, vector1ShaderProperty.rangeValues.y);
                             _postChangeValueCallback();
                         },
                         vector1ShaderProperty.rangeValues.x,
@@ -254,7 +254,7 @@ namespace Drawing.Inspector
                         out var minFloatField));
 
                     // Max field
-                    propertySheet.Add(sliderFloatPropertyDrawer.CreateGUI(
+                    propertySheet.Add(floatPropertyDrawer.CreateGUI(
                         newValue =>
                         {
                             this._preChangeValueCallback("Change Range Property Maximum");
@@ -269,7 +269,7 @@ namespace Drawing.Inspector
                     var minField = (FloatField) minFloatField;
                     var maxField = (FloatField) maxFloatField;
 
-                    propertyFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+                    defaultField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                     {
                         _preChangeValueCallback("Change Property Value");
                         float minValue = Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.x);
@@ -280,24 +280,24 @@ namespace Drawing.Inspector
                         _postChangeValueCallback();
                     });
 
-                    minFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+                    minField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                     {
                         vector1ShaderProperty.value = Mathf.Clamp(vector1ShaderProperty.value,
-                                                                Mathf.Min(vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y),
-                                                                Mathf.Max(vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y));
+                                        Mathf.Min(vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y),
+                                        Mathf.Max(vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y));
 
                         defaultField.value = vector1ShaderProperty.value;
                         _postChangeValueCallback();
                     });
 
-                    maxFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+                    maxField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                     {
                         vector1ShaderProperty.value = Mathf.Clamp(vector1ShaderProperty.value,
                             Mathf.Min(vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y),
                             Mathf.Max(vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y));
 
                         defaultField.value = vector1ShaderProperty.value;
-                        this._postChangeValueCallback();
+                        _postChangeValueCallback();
                     });
                     break;
 
