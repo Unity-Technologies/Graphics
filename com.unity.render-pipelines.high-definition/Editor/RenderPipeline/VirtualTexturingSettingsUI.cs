@@ -27,8 +27,6 @@ namespace UnityEditor.Rendering.HighDefinition
             serializedObject = serialized.serializedObject;
             serializedRPAsset = serialized;
 
-            serializedObject.Update();
-
             EditorGUILayout.Space();
 
             using (var scope = new EditorGUI.ChangeCheckScope())

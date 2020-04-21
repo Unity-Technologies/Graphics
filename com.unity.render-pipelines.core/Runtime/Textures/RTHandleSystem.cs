@@ -767,6 +767,23 @@ namespace UnityEngine.Rendering
             return rth;
         }
 
+        /// <summary>
+        /// Allocate a RTHandle from a regular render target identifier.
+        /// </summary>
+        /// <param name="texture">Input render target identifier.</param>
+        /// <returns>A new RTHandle referencing the input render target identifier.</returns>
+        public RTHandle Alloc(RenderTargetIdentifier texture)
+        {
+            var rth = new RTHandle(this);
+            rth.SetTexture(texture);
+            rth.m_EnableMSAA = false;
+            rth.m_EnableRandomWrite = false;
+            rth.useScaling = false;
+            rth.m_EnableHWDynamicScale = false;
+            rth.m_Name = "";
+            return rth;
+        }
+
         private static RTHandle Alloc(RTHandle tex)
         {
             Debug.LogError("Allocation a RTHandle from another one is forbidden.");

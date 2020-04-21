@@ -10,9 +10,6 @@
 #endif
 #include "VirtualTexturing.hlsl"
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-
-
 /*
     This header adds the following pseudo definitions. Actual types etc may vary depending
     on vt- being on or off.
@@ -157,33 +154,23 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
 	return output;\
 }
 
-#define DECLARE_STACK_RESOLVE(stackName)\
-float4 ResolveVT_##stackName(float2 uv)\
-{\
-    return float4(0.0f,0.0f, 0.0f, 0.0f);\
-}
-
 #define DECLARE_STACK(stackName, layer0SamplerName)\
 	DECLARE_STACK_BASE(stackName)\
-    DECLARE_STACK_RESOLVE(stackName)\
 	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)
 
 #define DECLARE_STACK2(stackName, layer0SamplerName, layer1SamplerName)\
 	DECLARE_STACK_BASE(stackName)\
-    DECLARE_STACK_RESOLVE(stackName)\
 	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)\
 	DECLARE_STACK_LAYER(stackName, layer1SamplerName,1)
 
 #define DECLARE_STACK3(stackName, layer0SamplerName, layer1SamplerName, layer2SamplerName)\
 	DECLARE_STACK_BASE(stackName)\
-    DECLARE_STACK_RESOLVE(stackName)\
 	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)\
 	DECLARE_STACK_LAYER(stackName, layer1SamplerName,1)\
 	DECLARE_STACK_LAYER(stackName, layer2SamplerName,2)
 
 #define DECLARE_STACK4(stackName, layer0SamplerName, layer1SamplerName, layer2SamplerName, layer3SamplerName)\
 	DECLARE_STACK_BASE(stackName)\
-    DECLARE_STACK_RESOLVE(stackName)\
 	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)\
 	DECLARE_STACK_LAYER(stackName, layer1SamplerName,1)\
 	DECLARE_STACK_LAYER(stackName, layer2SamplerName,2)\
@@ -193,7 +180,6 @@ float4 ResolveVT_##stackName(float2 uv)\
 #define SampleStack(info, lodMode, quality, textureName) SampleVT_##textureName(info, lodMode, quality)
 #define GetResolveOutput(info) info.resolveOutput
 #define PackResolveOutput(output) Granite_PackTileId(output)
-#define ResolveStack(uv, stackName) ResolveVT_##stackName(uv)
 
 float4 GetPackedVTFeedback(float4 feedback)
 {
@@ -243,7 +229,6 @@ StackInfo MakeStackInfo(VtInputParameters vt)
 
 // Resolve does nothing
 #define GetResolveOutput(info) float4(1,1,1,1)
-#define ResolveStack(uv, stackName) float4(1,1,1,1)
 #define PackResolveOutput(output) output
 #define GetPackedVTFeedback(feedback) feedback
 

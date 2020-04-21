@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.Test
             {
                 try
                 {
-                    UnityEngine.Object.DestroyImmediate(gameObject);
+                    UnityEngine.Object.DestroyImmediate(gameObject, true);
                 }
                 catch (System.Exception)
                 {
@@ -56,6 +56,8 @@ namespace UnityEditor.VFX.Test
                 {
                 }
             }
+
+            VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
         static readonly string k_tempFileFormat = "Assets/TmpTests/vfx_prefab_{0}.{1}";
@@ -67,22 +69,6 @@ namespace UnityEditor.VFX.Test
             var tempFilePath = string.Format(k_tempFileFormat, m_TempFileCounter, extension);
             m_assetToDelete.Add(tempFilePath);
             return tempFilePath;
-        }
-
-        VFXGraph MakeTemporaryGraph()
-        {
-            if (!Directory.Exists("Assets/TmpTests/"))
-            {
-                Directory.CreateDirectory("Assets/TmpTests/");
-            }
-
-            var tempFilePath = MakeTempFilePath("vfx");
-            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
-            var resource = asset.GetResource(); // force resource creation
-            var graph = ScriptableObject.CreateInstance<VFXGraph>();
-            graph.visualEffectResource = resource;
-
-            return graph;
         }
 
         void MakeTemporaryPrebab(GameObject gameObject, out GameObject newGameObject, out GameObject prefabInstanceObject)
@@ -106,7 +92,7 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator Create_Prefab_Several_Override()
         {
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
             var parametersIntDesc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(int)).First();
 
             Func<VisualEffect, string> dumpPropertySheetInteger = delegate(VisualEffect target)
@@ -120,7 +106,7 @@ namespace UnityEditor.VFX.Test
                 var fieldName = VisualEffectSerializationUtility.GetTypeField(VFXExpression.TypeToType(VFXValueType.Int32)) + ".m_Array";
                 var vfxField = propertySheet.FindPropertyRelative(fieldName);
 
-                for(int i = 0; i < vfxField.arraySize; ++i)
+                for (int i = 0; i < vfxField.arraySize; ++i)
                 {
                     var itField = vfxField.GetArrayElementAtIndex(i);
                     var name = itField.FindPropertyRelative("m_Name").stringValue;
@@ -262,7 +248,7 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator Create_Prefab_Switch_To_Empty_VisualEffectAsset()
         {
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
             const int systemCount = 3;
             for (int i = 0; i < systemCount; ++i)
             {
@@ -338,7 +324,7 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator Create_Prefab_Modify_And_Expect_No_Override()
         {
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
             var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector3)).First();
 
             var exposedName = "ghjkl";

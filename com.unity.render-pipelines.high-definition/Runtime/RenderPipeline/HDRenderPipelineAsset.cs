@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
-using Utilities;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -20,11 +19,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
 
         HDRenderPipelineAsset()
-        {
-            
-        }
-
-        public void OnEnable()
         {
 
         }
@@ -258,6 +252,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
         [SerializeField]
         internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
+        [SerializeField]
+        public VirtualTexturingSettingsSRP virtualTexturingSettings = new VirtualTexturingSettingsSRP();
 
         [SerializeField]
         public VirtualTexturingSettingsSRP virtualTexturingSettings;

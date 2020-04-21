@@ -66,8 +66,8 @@ namespace  UnityEngine.Rendering.HighDefinition
             Debug.Assert(lowResWidth <= m_Resolver.CurrentWidth && lowResHeight <= m_Resolver.CurrentHeight);
             Debug.Assert(lowResWidth <= lowresResolver.referenceSize.x && lowResHeight <= lowresResolver.referenceSize.y);
 
-            string mainFunction = (buffer.enableMSAA) ? "KMainMSAA" : "KMain";
-            int inputID = (buffer.enableMSAA) ? HDShaderIDs._InputTextureMSAA : HDShaderIDs._InputTexture;
+            string mainFunction = (buffer.isMSAAEnabled) ? "KMainMSAA" : "KMain";
+            int inputID = (buffer.isMSAAEnabled) ? HDShaderIDs._InputTextureMSAA : HDShaderIDs._InputTexture;
 
             int kernel = downSampleCS.FindKernel(mainFunction);
             cmd.SetComputeTextureParam(downSampleCS, kernel, inputID, buffer.nameID);

@@ -2,6 +2,6 @@ namespace UnityEditor.ShaderGraph
 {
     interface IGeneratesInclude
     {
-        void GenerateNodeInclude(IncludeRegistry registry, GenerationMode generationMode);
+        void GenerateNodeInclude(IncludeCollection registry, GenerationMode generationMode);
     }
 }

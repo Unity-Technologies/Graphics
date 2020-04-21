@@ -1,15 +1,14 @@
-using System.Linq;
-using UnityEngine;
-using UnityEditor.Graphing;
-using System.Collections.Generic;
 using System;
-using System.Globalization;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
+using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.Rendering;
-using UnityEngine.UIElements;
-using UnityEditor.Graphing.Util;
+using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -257,7 +256,7 @@ namespace UnityEditor.ShaderGraph
             get
             {
                 var masterNode = owner?.GetNodes<IMasterNode>().FirstOrDefault();
-                return masterNode?.SupportsVirtualTexturing() ?? false;
+                return masterNode?.virtualTexturingEnabled ?? false;
             }
         }
 
@@ -533,13 +532,11 @@ namespace UnityEditor.ShaderGraph
             return result;
         }
 
-        public static void ValidatNodes(GraphData d)
+        // Texture stacks have some additional 'global' validation to do on the whole graph. This validates this.
+        public static void ValidateTextureStacks(GraphData d)
         {
-            ValidatNodes(d.GetNodes<SampleTextureStackNode>(), d.GetNodes<SubGraphNode>());
-        }
-
-        public static void ValidatNodes(IEnumerable<SampleTextureStackNode> nodes, IEnumerable<SubGraphNode> subNodes)
-        {
+            var nodes = d.GetNodes<SampleTextureStackNode>();
+            var subNodes = d.GetNodes<SubGraphNode>();
             var valueNameLookup = new Dictionary<string, string>();
             var nodeNames = new HashSet<string>();
 
@@ -548,7 +545,7 @@ namespace UnityEditor.ShaderGraph
                 if (nodeNames.Contains(node.GetStackName()) && !node.isProcedural)
                 {
                     // Add a validation error, values need to be unique
-                    node.owner.AddValidationError(node.tempId, $"Some stack nodes have the same name '{node.GetStackName()}', please ensure all stack nodes have unique names.", ShaderCompilerMessageSeverity.Error);
+                    node.owner.AddValidationError(node.guid, $"Some stack nodes have the same name '{node.GetStackName()}', please ensure all stack nodes have unique names.", ShaderCompilerMessageSeverity.Error);
                 }
                 else
                 {
@@ -568,7 +565,7 @@ namespace UnityEditor.ShaderGraph
                         if (valueNameLookup.TryGetValue(value, out displayName))
                         {
                             // Add a validation error, values need to be unique
-                            node.owner.AddValidationError(node.tempId, $"Input slot '{name}' shares it's value '{value}' with another stack '{displayName}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
+                            node.owner.AddValidationError(node.guid, $"Input slot '{name}' shares it's value '{value}' with another stack '{displayName}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
                         }
                         else
                         {
@@ -587,7 +584,7 @@ namespace UnityEditor.ShaderGraph
                     // Todo how to exclude procedurals in subgraphs?
                     if (nodeNames.Contains(subStack))
                     {
-                        node.owner.AddValidationError(node.tempId, $"A stack node in a subgraph which is exposed through a texture argument has the same name '{subStack}', please ensure all stack nodes have unique names across the whole shader using them.", ShaderCompilerMessageSeverity.Error);
+                        node.owner.AddValidationError(node.guid, $"A stack node in a subgraph which is exposed through a texture argument has the same name '{subStack}', please ensure all stack nodes have unique names across the whole shader using them.", ShaderCompilerMessageSeverity.Error);
                     }
                     else
                     {
@@ -603,7 +600,7 @@ namespace UnityEditor.ShaderGraph
                     if (valueNameLookup.TryGetValue(kvp.Key, out stackName))
                     {
                         // Add a validation error, values need to be unique
-                        node.owner.AddValidationError(node.tempId, $"Stack '{kvp.Value}' shares it's value '{kvp.Key}' with another stack '{stackName}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
+                        node.owner.AddValidationError(node.guid, $"Stack '{kvp.Value}' shares it's value '{kvp.Key}' with another stack '{stackName}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
                     }
                     else
                     {
@@ -653,6 +650,11 @@ namespace UnityEditor.ShaderGraph
             return ProcessStackName(m_StackName);
         }
 
+        public string GetFeedbackVariableName()
+        {
+            return GetVariableNameForNode() + "_fb";
+        }
+
         private string GetTextureName(int layerIndex, GenerationMode generationMode)
         {
             if (isProcedural)
@@ -678,6 +680,13 @@ namespace UnityEditor.ShaderGraph
                         {0}.levelMode = {7};
                         {0}.uvMode = {8};
                         {0}.sampleQuality = {9};
+#if defined(SHADER_STAGE_RAY_TRACING)
+                        if ({0}.levelMode == VtLevel_Automatic || {0}.levelMode == VtLevel_Bias)
+                        {{
+                            {0}.levelMode = VtLevel_Lod;
+                            {0}.lodOrOffset = 0.0f;
+                        }}
+#endif
             ";
 
             return string.Format(VTParametersInputTemplate,
@@ -782,23 +791,23 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            if (!noFeedback && feedbackConnected)
+            if (!noFeedback)
             {
                 //TODO: Investigate if the feedback pass can use halfs
                 string feedBackCode = string.Format("float4 {0} = GetResolveOutput({1});",
-                        GetVariableNameForSlot(FeedbackSlotId),
+                        GetFeedbackVariableName(),
                         infoVariableName);
                 sb.AppendLine(feedBackCode);
             }
         }
 
-        public void GenerateNodeInclude(IncludeRegistry registry, GenerationMode generationMode)
+        public void GenerateNodeInclude(IncludeCollection registry, GenerationMode generationMode)
         {
             // This is not in templates or headers so this error only gets checked in shaders actually using the VT node
             // as vt headers get included even if there are no vt nodes yet.
             IVirtualTexturingEnabledRenderPipeline vtRp = GraphicsSettings.currentRenderPipeline as IVirtualTexturingEnabledRenderPipeline;
 
-            if (!supportedByMasterNode)
+            /*if (!supportedByMasterNode)
             {
                 // The master node is not white listed for VT just use regular textures even if vt is on for this project.
                 registry.ProvideIncludeBlock("disable-vt-if-unsupported-node", "#define FORCE_VIRTUAL_TEXTURING_OFF 1");
@@ -815,10 +824,10 @@ namespace UnityEditor.ShaderGraph
 #define FORCE_VIRTUAL_TEXTURING_OFF 1
 #error VT cannot be used on transparent surfaces.
 #endif");
-            }
+            }*/
 
             // Always include the header even if vt is off this ensures the macros providing fallbacks are existing.
-            registry.ProvideInclude("Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl");
+            registry.Add("Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl", IncludeLocation.Pregraph);
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
@@ -892,256 +901,192 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    class TextureStackAggregateFeedbackNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireRequirePixelCoordinate
+    static class VirtualTexturingFeedbackUtils
     {
-        public const int AggregateOutputId = 0;
-        const string AggregateOutputName = "FeedbackAggregateOut";
+        public const string FeedbackSurfaceDescriptionVariableName = "VTPackedFeedback";
 
-        public const int AggregateInputFirstId = 1;
-
-        public override bool hasPreview { get { return false; } }
-
-        public TextureStackAggregateFeedbackNode()
+        public static int  CountFeedbackVariables(
+            List<AbstractMaterialNode> activeNodesForPass)
         {
-            name = "Feedback Aggregate";
-            UpdateNodeAfterDeserialization();
-        }
+            int result = 0;
 
-
-        public override void UpdateNodeAfterDeserialization()
-        {
-            AddSlot(new Vector4MaterialSlot(AggregateOutputId, AggregateOutputName, AggregateOutputName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
-            RemoveSlotsNameNotMatching(new int[] { AggregateOutputId });
-        }
-
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview3D; }
-        }
-
-        // Node generations
-        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
-        {
-            var slots = this.GetInputSlots<ISlot>();
-            int numSlots = slots.Count();
-            if (numSlots == 0)
+            foreach (var node in activeNodesForPass)
             {
-                return;
-            }
-
-            if (numSlots == 1)
-            {
-                string feedBackCode = $"float4 {GetVariableNameForSlot(AggregateOutputId)} = GetPackedVTFeedback({GetSlotValue(AggregateInputFirstId, generationMode)});";
-                sb.AppendLine(feedBackCode);
-            }
-            else if (numSlots > 1)
-            {
-                string arrayName = $"{GetVariableNameForSlot(AggregateOutputId)}_array";
-                sb.AppendLine($"float4 {arrayName}[{numSlots}];");
-
-                int arrayIndex = 0;
-                foreach (var slot in slots)
+                if (node is SampleTextureStackNode stNode)
                 {
-                    string code = $"{arrayName}[{arrayIndex}] = {GetSlotValue(AggregateInputFirstId + arrayIndex, generationMode)};";
-                    sb.AppendLine(code);
-                    arrayIndex++;
+                    result += (stNode.noFeedback) ? 0 : 1;
                 }
 
-                string feedBackCode = $"float4 {GetVariableNameForSlot(AggregateOutputId)} = GetPackedVTFeedback({arrayName}[ (IN.{ShaderGeneratorNames.PixelCoordinate}.x  + _FrameCount )% (uint){numSlots}]);";
-
-                sb.AppendLine(feedBackCode);
-            }
-        }
-
-        public bool RequiresPixelCoordinate(ShaderStageCapability stageCapability)
-        {
-            var slots = this.GetInputSlots<ISlot>();
-            int numSlots = slots.Count();
-            return numSlots > 1;
-        }
-
-    }
-
-    static class VirtualTexturingFeedback
-    {
-        public const int OutputSlotID = 22021982;
-        public const string subgraphOutputFrefix = "VTFeedbackIn_";
-
-        // Automatically add a  streaming feedback node and correctly connect it to stack samples are connected to it and it is connected to the master node output
-        public static IMasterNode AutoInject(IMasterNode iMasterNode)
-        {
-            Debug.Log("Inject vt feedback");
-            var masterNode = iMasterNode as AbstractMaterialNode;
-            var stackNodes = GraphUtil.FindDownStreamNodesOfType<SampleTextureStackNode>(masterNode);
-            var subgraphNodes = GraphUtil.FindDownStreamNodesOfType<SubGraphNode>(masterNode);
-            Debug.Log("SubgraphNodes: " + subgraphNodes.Count);
-
-
-            // Try to find out early if there are no nodes doing VT feedback in the graph
-            // this avoids unnecessary work of copying the graph and patching it.
-            if (stackNodes.Count <= 0 && subgraphNodes.Count <= 0)
-            {
-                return iMasterNode;
-            }
-
-            bool hasFeedback = false;
-            foreach (var node in stackNodes)
-            {
-                if (!node.noFeedback)
+                if (node is SubGraphNode sgNode)
                 {
-                    hasFeedback = true;
-                    break;
+                    if (sgNode.asset == null) continue;
+                    result += sgNode.asset.vtFeedbackVariables.Count;
                 }
             }
 
-            if (!hasFeedback) foreach (var node in subgraphNodes)
+            return result;
+        }
+
+        public static void GenerateVirtualTextureFeedback(
+            List<AbstractMaterialNode> downstreamNodesIncludingRoot,
+            List<int>[] keywordPermutationsPerNode,
+            ShaderStringBuilder surfaceDescriptionFunction,
+            KeywordCollector shaderKeywords)
+        {
+            // A note on how we handle vt feedback in combination with keywords:
+            // We essentially generate a fully separate feedback path for each permutation of keywords
+            // so per permutation we gather variables contribution to feedback and we generate
+            // feedback gathering for each permutation individually.
+
+            var feedbackVariablesPerPermutation = PooledList<PooledList<string>>.Get();
+            try
+            {
+                if (shaderKeywords.permutations.Count >= 1)
                 {
-                    foreach (var slot in node.GetOutputSlots<Vector4MaterialSlot>())
+                    for (int i = 0; i < shaderKeywords.permutations.Count; i++)
                     {
-                        if (slot.shaderOutputName.StartsWith(subgraphOutputFrefix))
-                        {
-                            hasFeedback = true;
-                            break;
-                        }
+                        feedbackVariablesPerPermutation.Add(PooledList<string>.Get());
                     }
                 }
-
-            if (!hasFeedback)
-            {
-                Debug.Log("No vt feedback early out");
-                return iMasterNode;
-            }
-
-            // Duplicate the Graph so we can modify it
-            var workingMasterNode = masterNode.owner.ScratchCopy().GetNodeFromGuid(masterNode.guid);
-
-            // inject VTFeedback output slot
-            var vtFeedbackSlot = new Vector4MaterialSlot(OutputSlotID, "VTPackedFeedback", "VTPackedFeedback", SlotType.Input, Vector4.one, ShaderStageCapability.Fragment);
-            vtFeedbackSlot.hidden = true;
-            workingMasterNode.AddSlot(vtFeedbackSlot);
-
-            // Inject Aggregate node
-            var feedbackNode = new TextureStackAggregateFeedbackNode();
-            workingMasterNode.owner.AddNode(feedbackNode);
-
-            // Add inputs to feedback node
-            int i = 0;
-            foreach (var node in stackNodes)
-            {
-                // Find feedback output slot on the vt node
-                var stackFeedbackOutputSlot = (node.FindOutputSlot<ISlot>(SampleTextureStackNode.FeedbackSlotId)) as Vector4MaterialSlot;
-                if (stackFeedbackOutputSlot == null)
+                else
                 {
-                    // Nodes which are noResolve don't have a resolve slot so just skip them 
-                    continue;
+                    // Create a dummy single permutation
+                    feedbackVariablesPerPermutation.Add(PooledList<string>.Get());
                 }
 
-                // Create a new slot on the aggregate that is similar to the uv input slot
-                string name = "FeedIn_" + i;
-                var newSlot = new Vector4MaterialSlot(TextureStackAggregateFeedbackNode.AggregateInputFirstId + i, name, name, SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment);
-                newSlot.owner = feedbackNode;
-                feedbackNode.AddSlot(newSlot);
-
-                feedbackNode.owner.Connect(stackFeedbackOutputSlot.slotReference, newSlot.slotReference);
-                i++;
-            }
-
-            foreach (var node in subgraphNodes)
-            {
-                foreach (var slot in node.GetOutputSlots<Vector4MaterialSlot>())
+                int index = 0; //for keywordPermutationsPerNode
+                foreach (var node in downstreamNodesIncludingRoot)
                 {
-                    if (!slot.shaderOutputName.StartsWith(subgraphOutputFrefix)) continue;
+                    if (node is SampleTextureStackNode stNode)
+                    {
+                        if (stNode.noFeedback) continue;
+                        if (keywordPermutationsPerNode[index] == null)
+                        {
+                            Debug.Assert(shaderKeywords.permutations.Count == 0, $"Shader has {shaderKeywords.permutations.Count} permutations but keywordPermutationsPerNode of some nodes are null." );
+                            feedbackVariablesPerPermutation[0].Add(stNode.GetFeedbackVariableName());
+                        }
+                        else
+                        {
+                            foreach (int perm in keywordPermutationsPerNode[index])
+                            {
+                                feedbackVariablesPerPermutation[perm].Add(stNode.GetFeedbackVariableName());
+                            }
+                        }
+                    }
 
-                    // Create a new slot on the aggregate that is similar to the uv input slot
-                    string name = "FeedIn_" + i;
-                    var newSlot = new Vector4MaterialSlot(TextureStackAggregateFeedbackNode.AggregateInputFirstId + i, name, name, SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment);
-                    newSlot.owner = feedbackNode;
-                    feedbackNode.AddSlot(newSlot);
+                    if (node is SubGraphNode sgNode)
+                    {
+                        if (sgNode.asset == null) continue;
+                        if (keywordPermutationsPerNode[index] == null)
+                        {
+                            Debug.Assert(shaderKeywords.permutations.Count == 0, $"Shader has {shaderKeywords.permutations.Count} permutations but keywordPermutationsPerNode of some nodes are null.");
+                            foreach (var feedbackSlot in sgNode.asset.vtFeedbackVariables)
+                            {
 
-                    feedbackNode.owner.Connect(slot.slotReference, newSlot.slotReference);
-                    i++;
+                                feedbackVariablesPerPermutation[0].Add(node.GetVariableNameForNode() + "_" + feedbackSlot);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var feedbackSlot in sgNode.asset.vtFeedbackVariables)
+                            {
+                                foreach (int perm in keywordPermutationsPerNode[index])
+                                {
+                                    feedbackVariablesPerPermutation[perm].Add(node.GetVariableNameForNode() + "_" + feedbackSlot);
+                                }
+                            }
+                        }
+                    }
+
+                    index++;
+                }
+
+                index = 0;
+                foreach (var feedbackVariables in feedbackVariablesPerPermutation)
+                {
+                    // If it's a dummy single always-on permutation don't put an ifdef around the code
+                    if (shaderKeywords.permutations.Count >= 1)
+                    {
+                        surfaceDescriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationConditional(index));
+                    }
+
+                    if (feedbackVariables.Count == 0)
+                    {
+                        string feedBackCode = $"surface.VTPackedFeedback = float4(1.0f,1.0f,1.0f,.0f);";
+                        surfaceDescriptionFunction.AppendLine(feedBackCode);
+                    }
+                    else if (feedbackVariables.Count == 1)
+                    {
+                        string feedBackCode = $"surface.VTPackedFeedback = GetPackedVTFeedback({feedbackVariables[0]});";
+                        surfaceDescriptionFunction.AppendLine(feedBackCode);
+                    }
+                    else if (feedbackVariables.Count > 1)
+                    {
+                        string arrayName = $"VTFeedback_array";
+                        surfaceDescriptionFunction.AppendLine($"float4 {arrayName}[{feedbackVariables.Count}];");
+
+                        int arrayIndex = 0;
+                        foreach (var variable in feedbackVariables)
+                        {
+                            string code = $"{arrayName}[{arrayIndex}] = {variable};";
+                            surfaceDescriptionFunction.AppendLine(code);
+                            arrayIndex++;
+                        }
+
+                        string feedBackCode = $"surface.{FeedbackSurfaceDescriptionVariableName} = GetPackedVTFeedback({arrayName}[ (IN.{ShaderGeneratorNames.ScreenPosition}.x  + _FrameCount )% (uint){feedbackVariables.Count}]);";
+
+                        surfaceDescriptionFunction.AppendLine(feedBackCode);
+                    }
+
+                    if (shaderKeywords.permutations.Count >= 1)
+                    {
+                        surfaceDescriptionFunction.AppendLine("#endif");
+                    }
+
+                    index++;
                 }
             }
-
-            // Add input to master node
-            var feedbackInputSlot = workingMasterNode.FindInputSlot<ISlot>(OutputSlotID);
-            if (feedbackInputSlot == null)
+            finally
             {
-                Debug.LogWarning("Could not find the VT feedback input slot on the master node.");
-                return iMasterNode;
+                foreach (var list in feedbackVariablesPerPermutation)
+                {
+                    list.Dispose();
+                }
+                feedbackVariablesPerPermutation.Dispose();
             }
-
-            var feedbackOutputSlot = feedbackNode.FindOutputSlot<ISlot>(TextureStackAggregateFeedbackNode.AggregateOutputId);
-            if (feedbackOutputSlot == null)
-            {
-                Debug.LogWarning("Could not find the VT feedback output slot on the aggregate node.");
-                return iMasterNode;
-            }
-
-            workingMasterNode.owner.Connect(feedbackOutputSlot.slotReference, feedbackInputSlot.slotReference);
-            workingMasterNode.owner.ClearChanges();
-
-            return workingMasterNode as IMasterNode;
         }
 
         // Automatically add a  streaming feedback node and correctly connect it to stack samples are connected to it and it is connected to the master node output
-        public static SubGraphOutputNode AutoInjectSubgraph(SubGraphOutputNode masterNode)
+        public static List<string> GetFeedbackVariables(SubGraphOutputNode masterNode)
         {
             var stackNodes = GraphUtil.FindDownStreamNodesOfType<SampleTextureStackNode>(masterNode);
+            var subGraphNodes = GraphUtil.FindDownStreamNodesOfType<SubGraphNode>(masterNode);
+            List<string> result = new List<string>();
 
             // Early out if there are no VT nodes in the graph
-            if (stackNodes.Count <= 0)
+            if (stackNodes.Count <= 0 && subGraphNodes.Count <= 0)
             {
                 Debug.Log("No vt in subgr");
-                return masterNode;
+                return result;
             }
-
-            bool hasFeedback = false;
-            foreach (var node in stackNodes)
-            {
-                if (!node.noFeedback)
-                {
-                    hasFeedback = true;
-                }
-            }
-            if (!hasFeedback)
-            {
-                Debug.Log("No feedback in subgr");
-                return masterNode;
-            }
-
-            // Duplicate the Graph so we can modify it
-            Debug.Log("clonign graph");
-            var workingMasterNode = masterNode.owner.ScratchCopy().GetNodeFromGuid(masterNode.guid);
 
             // Add inputs to feedback node
-            int i = 0;
             foreach (var node in stackNodes)
             {
-                // Find feedback output slot on the vt node
-                var stackFeedbackOutputSlot = (node.FindOutputSlot<ISlot>(SampleTextureStackNode.FeedbackSlotId)) as Vector4MaterialSlot;
-                if (stackFeedbackOutputSlot == null)
-                {
-                    // Nodes which are noResolve don't have a resolve slot so just skip them
-                    Debug.Log("No feedback slot on node, skipping");
-                    continue;
-                }
-
-                // Create a new slot on the master node for each vt feedback
-                string name = subgraphOutputFrefix + i;
-                var newSlot = new Vector4MaterialSlot(OutputSlotID + i, name, name, SlotType.Input, Vector4.zero, ShaderStageCapability.Fragment);
-                newSlot.owner = workingMasterNode;
-                newSlot.hidden = true;
-                workingMasterNode.AddSlot(newSlot);
-
-                workingMasterNode.owner.Connect(stackFeedbackOutputSlot.slotReference, newSlot.slotReference);
-                i++;
-
-                Debug.Log("Added feedback " + name);
+                if (node.noFeedback) continue;
+                result.Add(node.GetFeedbackVariableName());
             }
 
-            workingMasterNode.owner.ClearChanges();
-            return workingMasterNode as SubGraphOutputNode;
+            foreach (var node in subGraphNodes)
+            {
+                if (node.asset == null) continue;
+                foreach (var feedbackSlot in node.asset.vtFeedbackVariables)
+                {
+                    result.Add(node.GetVariableNameForNode() + "_" + feedbackSlot);
+                }
+            }
+
+            return result;
         }
     }
 

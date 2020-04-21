@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static Material[] s_ShadowMaterials;
         static Material[] s_RemoveSelfShadowMaterials;
 
-        static RenderTextureFormat s_RenderTextureFormatToUse = RenderTextureFormat.ARGB32;
+        static GraphicsFormat s_RenderTextureFormatToUse = GraphicsFormat.R8G8B8A8_UNorm;
         static bool s_HasSetupRenderTextureFormatToUse;
 
         static public void Setup(RenderingData renderingData, Renderer2DData renderer2DData)
@@ -93,17 +93,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             if (!s_HasSetupRenderTextureFormatToUse)
             {
-                if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
-                    s_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
-                else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
-                    s_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                    s_RenderTextureFormatToUse = GraphicsFormat.B10G11R11_UFloatPack32;
+                else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                    s_RenderTextureFormatToUse = GraphicsFormat.R16G16B16A16_SFloat;
 
                 s_HasSetupRenderTextureFormatToUse = true;
             }
 
             RenderTextureDescriptor descriptor = new RenderTextureDescriptor(s_RenderingData.cameraData.cameraTargetDescriptor.width, s_RenderingData.cameraData.cameraTargetDescriptor.height);
-            descriptor.colorFormat = s_RenderTextureFormatToUse;
-            descriptor.sRGB = false;
+            descriptor.graphicsFormat = s_RenderTextureFormatToUse;
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
             descriptor.depthBufferBits = 0;
@@ -117,10 +116,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             if (!s_HasSetupRenderTextureFormatToUse)
             {
-                if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
-                    s_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
-                else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
-                    s_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                    s_RenderTextureFormatToUse = GraphicsFormat.B10G11R11_UFloatPack32;
+                else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                    s_RenderTextureFormatToUse = GraphicsFormat.R16G16B16A16_SFloat;
 
                 s_HasSetupRenderTextureFormatToUse = true;
             }
@@ -130,8 +129,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             int height = (int)(s_RenderingData.cameraData.cameraTargetDescriptor.height * renderTextureScale);
 
             RenderTextureDescriptor descriptor = new RenderTextureDescriptor(width, height);
-            descriptor.colorFormat = s_RenderTextureFormatToUse;
-            descriptor.sRGB = false;
+            descriptor.graphicsFormat = s_RenderTextureFormatToUse;
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
             descriptor.depthBufferBits = 0;
@@ -139,9 +137,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.dimension = TextureDimension.Tex2D;
 
             cmd.GetTemporaryRT(s_LightRenderTargets[blendStyleIndex].id, descriptor, FilterMode.Bilinear);
-
-            cmd.EnableShaderKeyword(k_UseBlendStyleKeywords[blendStyleIndex]);
             s_LightRenderTargetsDirty[blendStyleIndex] = true;
+        }
+
+        static public void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
+        {
+            string keyword = k_UseBlendStyleKeywords[blendStyleIndex];
+
+            if (enabled)
+                cmd.EnableShaderKeyword(keyword);
+            else
+                cmd.DisableShaderKeyword(keyword);
         }
 
         static public void CreateShadowRenderTexture(CommandBuffer cmd, int blendStyleIndex)
@@ -151,8 +157,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             int height = (int)(s_RenderingData.cameraData.cameraTargetDescriptor.height * renderTextureScale);
 
             RenderTextureDescriptor descriptor = new RenderTextureDescriptor(width, height);
-            descriptor.colorFormat = RenderTextureFormat.ARGB32;
-            descriptor.sRGB = false;
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
             descriptor.depthBufferBits = 24;
@@ -376,11 +380,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
 
-                if (i >= k_UseBlendStyleKeywords.Length)
+                if (i >= k_BlendFactorsPropNames.Length)
                     break;
 
-                string keyword = k_UseBlendStyleKeywords[i];
-                cmdBuffer.DisableShaderKeyword(keyword);
                 cmdBuffer.SetGlobalVector(k_BlendFactorsPropNames[i], s_BlendStyles[i].blendFactors);
                 cmdBuffer.SetGlobalVector(k_MaskFilterPropNames[i], s_BlendStyles[i].maskTextureChannelFilter.mask);
                 cmdBuffer.SetGlobalVector(k_InvertedFilterPropNames[i], s_BlendStyles[i].maskTextureChannelFilter.inverted);
@@ -462,10 +464,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmdBuffer.SetGlobalTexture("_PointLightCookieTex", light.lightCookieSprite.texture);
         }
 
-        static public void ClearDirtyLighting(CommandBuffer cmdBuffer)
+        static public void ClearDirtyLighting(CommandBuffer cmdBuffer, uint blendStylesUsed)
         {
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
+                if ((blendStylesUsed & (uint)(1 << i)) == 0)
+                    continue;
+
                 if (s_LightRenderTargetsDirty[i])
                 {
                     cmdBuffer.SetRenderTarget(s_LightRenderTargets[i].Identifier());

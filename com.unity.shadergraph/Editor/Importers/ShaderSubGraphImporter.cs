@@ -12,7 +12,8 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(10, Extension)]
+    [ExcludeFromPreset]
+    [ScriptedImporter(11, Extension)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -59,7 +60,7 @@ namespace UnityEditor.ShaderGraph
                     graphAsset.isValid = false;
                     foreach (var pair in messageManager.GetNodeMessages())
                     {
-                        var node = graphData.GetNodeFromTempId(pair.Key);
+                        var node = graphData.GetNodeFromGuid(pair.Key);
                         foreach (var message in pair.Value)
                         {
                             MessageManager.Log(node, subGraphPath, message, graphAsset);
@@ -76,7 +77,7 @@ namespace UnityEditor.ShaderGraph
 
         static void ProcessSubGraph(SubGraphAsset asset, GraphData graph)
         {
-            var includes = new IncludeRegistry(new ShaderStringBuilder());
+            var includes = new IncludeCollection();
             var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
             registry.names.Clear();
             asset.includes.Clear();
@@ -95,7 +96,6 @@ namespace UnityEditor.ShaderGraph
             asset.path = graph.path;
 
             var outputNode = (SubGraphOutputNode)graph.outputNode;
-            outputNode = VirtualTexturingFeedback.AutoInjectSubgraph(outputNode);
 
             asset.outputs.Clear();
             outputNode.GetInputSlots(asset.outputs);
@@ -114,15 +114,17 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
+            asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode);
+
+            asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false, asset.vtFeedbackVariables.Count > 1);
             asset.inputs = graph.properties.ToList();
             asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
-            
+
             GatherFromGraph(assetPath, out var containsCircularDependency, out var descendents);
             asset.descendents.AddRange(descendents);
-            
+
             var childrenSet = new HashSet<string>();
             var anyErrors = false;
             foreach (var node in nodes)
@@ -135,7 +137,7 @@ namespace UnityEditor.ShaderGraph
                         asset.children.Add(subGraphGuid);
                     }
                 }
-                
+
                 if (node.hasError)
                 {
                     anyErrors = true;
@@ -165,14 +167,13 @@ namespace UnityEditor.ShaderGraph
                 }
                 if (node is IGeneratesInclude generatesInclude)
                 {
-                    includes.builder.currentNode = node;
                     generatesInclude.GenerateNodeInclude(includes, GenerationMode.ForReals);
                 }
             }
 
             registry.ProvideFunction(asset.functionName, sb =>
             {
-                SubShaderGenerator.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
+                GenerationUtils.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
                 sb.AppendNewLine();
 
                 // Generate arguments... first INPUTS
@@ -189,6 +190,10 @@ namespace UnityEditor.ShaderGraph
                 // Now generate outputs
                 foreach (var output in asset.outputs)
                     arguments.Add($"out {output.concreteValueType.ToShaderString(asset.outputPrecision)} {output.shaderOutputName}_{output.id}");
+
+                // Vt Feedback arguments
+                foreach (var output in asset.vtFeedbackVariables)
+                    arguments.Add($"out {ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float)} {output}_out");
 
                 // Create the function prototype from the arguments
                 sb.AppendLine("void {0}({1})"
@@ -213,10 +218,15 @@ namespace UnityEditor.ShaderGraph
                     {
                         sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals, asset.outputPrecision)};");
                     }
+
+                    foreach (var slot in asset.vtFeedbackVariables)
+                    {
+                        sb.AppendLine($"{slot}_out = {slot};");
+                    }
                 }
             });
 
-            asset.includes.AddRange(includes.names.Select(x => new FunctionPair(x, includes.includes[x].code)));
+            asset.includes.AddRange(includes.Select(x => new SubGraphInclude(x.descriptor.value, "" + x.descriptor.location)));
             asset.functions.AddRange(registry.names.Select(x => new FunctionPair(x, registry.sources[x].code)));
 
             var collector = new PropertyCollector();
@@ -228,27 +238,27 @@ namespace UnityEditor.ShaderGraph
 
             asset.OnBeforeSerialize();
         }
-        
+
         static void GatherFromGraph(string assetPath, out bool containsCircularDependency, out HashSet<string> descendentGuids)
         {
             var dependencyMap = new Dictionary<string, string[]>();
             using (var tempList = ListPool<string>.GetDisposable())
             {
                 GatherDependencies(assetPath, dependencyMap, tempList.value);
-                containsCircularDependency = ContainsCircularDependency(assetPath, dependencyMap, tempList.value);    
+                containsCircularDependency = ContainsCircularDependency(assetPath, dependencyMap, tempList.value);
             }
-            
+
             descendentGuids = new HashSet<string>();
             GatherDescendents(assetPath, descendentGuids, dependencyMap);
         }
-        
+
         static void GatherDependencies(string assetPath, Dictionary<string, string[]> dependencyMap, List<string> dependencies)
         {
             if (!dependencyMap.ContainsKey(assetPath))
             {
                 if(assetPath.EndsWith(Extension))
                     MinimalGraphData.GetDependencyPaths(assetPath, dependencies);
-                
+
                 var dependencyPaths = dependencyMap[assetPath] = dependencies.ToArray();
                 dependencies.Clear();
                 foreach (var dependencyPath in dependencyPaths)
@@ -276,7 +286,7 @@ namespace UnityEditor.ShaderGraph
             {
                 return true;
             }
-            
+
             ancestors.Add(assetPath);
             foreach (var dependencyPath in dependencyMap[assetPath])
             {

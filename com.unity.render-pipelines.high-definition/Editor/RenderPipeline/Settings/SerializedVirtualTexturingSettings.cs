@@ -9,7 +9,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty streamingCpuCacheSizeInMegaBytes;
         public SerializedProperty streamingGpuCacheSettings;
-
         public SerializedVirtualTexturingSettings(SerializedProperty root)
         {
             this.root = root;

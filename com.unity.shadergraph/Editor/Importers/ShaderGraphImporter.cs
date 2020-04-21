@@ -13,7 +13,17 @@ using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(31, Extension, 3)]
+    [ExcludeFromPreset]
+#if ENABLE_HYBRID_RENDERER_V2
+    // Bump the version number when Hybrid Renderer V2 is enabled, to make
+    // sure that all shader graphs get re-imported. Re-importing is required,
+    // because the shader graph codegen is different for V2.
+    // This ifdef can be removed once V2 is the only option.
+    [ScriptedImporter(100, Extension, 3)]
+#else
+    [ScriptedImporter(32, Extension, 3)]
+#endif
+
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -59,7 +69,7 @@ Shader ""Hidden/GraphErrorShader2""
     }
     Fallback Off
 }";
-        
+
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
@@ -96,7 +106,7 @@ Shader ""Hidden/GraphErrorShader2""
             if (graph.outputNode is VfxMasterNode vfxMasterNode)
             {
                 var vfxAsset = GenerateVfxShaderGraphAsset(vfxMasterNode);
-                
+
                 mainObject = vfxAsset;
             }
             else
@@ -108,7 +118,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 foreach (var pair in graph.messageManager.GetNodeMessages())
                 {
-                    var node = graph.GetNodeFromTempId(pair.Key);
+                    var node = graph.GetNodeFromGuid(pair.Key);
                     MessageManager.Log(node, path, pair.Value.First(), shader);
                 }
             }
@@ -157,7 +167,10 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
-                shaderString = ((IMasterNode)graph.outputNode).GetShader(GenerationMode.ForReals, shaderName, out configuredTextures, sourceAssetDependencyPaths);
+                var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, shaderName);
+                shaderString = generator.generatedShader;
+                configuredTextures = generator.configuredTextures;
+                sourceAssetDependencyPaths = generator.assetDependencyPaths;
 
                 if (graph.messageManager.nodeMessagesChanged)
                 {

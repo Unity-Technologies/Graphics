@@ -1,8 +1,6 @@
 using System;
-using UnityEngine;
-using UnityEngine.Rendering;
 
-namespace Utilities
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Material quality flags.

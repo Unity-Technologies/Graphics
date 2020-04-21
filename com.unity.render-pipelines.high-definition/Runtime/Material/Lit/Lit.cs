@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1000)]
         public struct SurfaceData
         {
-            [SurfaceDataAttributes("MaterialFeatures")]
+            [SurfaceDataAttributes("Material Features")]
             public uint materialFeatures;
 
             // Standard
@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 transmittanceColor;
             [SurfaceDataAttributes("Transmittance Absorption Distance", precision = FieldPrecision.Real)]
             public float atDistance;
-            [SurfaceDataAttributes("Transmittance mask", precision = FieldPrecision.Real)]
+            [SurfaceDataAttributes("Transmittance Mask", precision = FieldPrecision.Real)]
             public float transmittanceMask;
         };
 
