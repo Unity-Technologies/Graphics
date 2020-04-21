@@ -307,7 +307,7 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only'
 
     - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'curl -s https://artifactory.prd.cds.internal.unity3d.com:443/artifactory/slough-generic/anka/screenresolution-1.7dev.tar.gz --output screenresolution-1.7dev.tar.gz'
-    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'tar xvzf screenresolution-1.7dev.tar.gz && ./screenresolution 1280x720x32'
+    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'tar xvzf screenresolution-1.7dev.tar.gz && ./screenresolution set 1280x720x32@60'
     #- ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd screenresolution && make dmg'
     #- ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'screenresolution set 1920x1080x72'
 
