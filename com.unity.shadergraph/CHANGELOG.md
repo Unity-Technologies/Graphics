@@ -23,12 +23,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where you could not select a custom mesh for the master preview [1205791](https://issuetracker.unity3d.com/product/unity/issues/guid/1205791/)
 - Fixed NaN issue in triplanar SG node when blend goes to 0.
 
-## [8.0.1] - 2020-05-25
+## [8.0.1] - 2020-02-25
 
 ### Fixed
 - Fixed a bug where fog density node always returns 0 in the shader preview window when connected to an Unlit Master node. 
 
-## [8.0.0] - 2020-05-25
+## [8.0.0] - 2020-02-25
 
 ### Added
 - Added samples for Procedural Patterns to the package.

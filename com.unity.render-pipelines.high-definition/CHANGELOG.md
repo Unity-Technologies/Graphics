@@ -72,12 +72,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
 - Cookie are now supported in lightmaper. All lights casting cookie and baked will now include cookie influence.
 
-## [8.0.1] - 2020-05-25
+## [8.0.1] - 2020-02-25
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
-## [8.0.0] - 2020-05-25
+## [8.0.0] - 2020-02-25
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
