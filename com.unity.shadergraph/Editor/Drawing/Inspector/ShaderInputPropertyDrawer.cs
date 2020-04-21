@@ -282,15 +282,6 @@ namespace Drawing.Inspector
 
                     minFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                     {
-                        // If the min is set to greater than max, swap the values before clamping
-                        if (vector1ShaderProperty.rangeValues.x > vector1ShaderProperty.rangeValues.y)
-                        {
-                            vector1ShaderProperty.rangeValues = new Vector2(vector1ShaderProperty.rangeValues.y,
-                                vector1ShaderProperty.rangeValues.x);
-                            double temp = minField.value;
-                            minField.value = maxField.value;
-                            maxField.value = temp;
-                        }
                         vector1ShaderProperty.value = Mathf.Clamp(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y);
                         defaultField.value = vector1ShaderProperty.value;
                         _postChangeValueCallback();
@@ -298,15 +289,6 @@ namespace Drawing.Inspector
 
                     maxFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                     {
-                        // If the max is set to lesser than min, swap the values before clamping
-                        if (vector1ShaderProperty.rangeValues.y < vector1ShaderProperty.rangeValues.x)
-                        {
-                            vector1ShaderProperty.rangeValues = new Vector2(vector1ShaderProperty.rangeValues.y,
-                                vector1ShaderProperty.rangeValues.x);
-                            double temp = minField.value;
-                            minField.value = maxField.value;
-                            maxField.value = temp;
-                        }
                         vector1ShaderProperty.value = Mathf.Clamp(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y);
                         defaultField.value = vector1ShaderProperty.value;
                         this._postChangeValueCallback();
