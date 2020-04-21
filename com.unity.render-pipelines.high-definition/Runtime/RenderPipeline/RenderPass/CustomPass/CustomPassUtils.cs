@@ -24,6 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition
         static ProfilingSampler horizontalBlurSampler = new ProfilingSampler("Horizontal Blur");
         static ProfilingSampler gaussianblurSampler = new ProfilingSampler("Gaussian Blur");
         static ProfilingSampler copySampler = new ProfilingSampler("Copy");
+        static ProfilingSampler renderFromCameraSampler = new ProfilingSampler("Render From Camera");
+        static ProfilingSampler renderDepthFromCameraSampler = new ProfilingSampler("Render Depth");
+        static ProfilingSampler renderNormalFromCameraSampler = new ProfilingSampler("Render Normal");
+        static ProfilingSampler renderTangentFromCameraSampler = new ProfilingSampler("Render Tangent");
 
         static MaterialPropertyBlock    propertyBlock = new MaterialPropertyBlock();
         static Material                 customPassUtilsMaterial;
@@ -36,6 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static int horizontalBlurPassIndex;
         static int copyPassIndex;
         static int depthToColorPassIndex;
+        static int depthPassIndex;
         static int normalToColorPassIndex;
         static int tangentToColorPassIndex;
 
@@ -49,6 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             customPassRenderersUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassRenderersUtils);
             depthToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthToColorPass");
+            depthPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthPass");
             normalToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("NormalToColorPass");
             tangentToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("TangentToColorPass");
         }
@@ -127,6 +133,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
                 propertyBlock.SetVector(HDShaderIDs._SourceSize, new Vector4(sourceSize.x, sourceSize.y, 1.0f / sourceSize.x, 1.0f / sourceSize.y));
                 ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+            }
+        }
+
+        public static void Copy(in CustomPassContext ctx, RenderTexture source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sourceMip = 0, int destMip = 0)
+        {
+            using (new ProfilingScope(ctx.cmd, copySampler))
+            {
+                //TODO
+            }
+        }
+
+        public static void Copy(in CustomPassContext ctx, RTHandle source, RenderTexture destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sourceMip = 0, int destMip = 0)
+        {
+            using (new ProfilingScope(ctx.cmd, copySampler))
+            {
+                //TODO
             }
         }
 
@@ -287,8 +309,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="layerMask"></param>
         /// <param name="renderQueueFilter"></param>
         /// <param name="overrideMaterial"></param>
-        /// <param name="overideMaterialIndex"></param>
-        public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overideMaterialIndex = 0)
+        /// <param name="overrideMaterialIndex"></param>
+        public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock renderStateBlock = default(RenderStateBlock))
         {
             PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
 
@@ -297,9 +319,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 rendererConfiguration = renderConfig,
                 renderQueueRange = GetRenderQueueRangeFromRenderQueueType(renderQueueFilter),
                 sortingCriteria = SortingCriteria.BackToFront,
+                overrideMaterial = overrideMaterial,
+                overrideMaterialPassIndex = overrideMaterialIndex,
                 excludeObjectMotionVectors = false,
                 layerMask = layerMask,
-                stateBlock = new RenderStateBlock(RenderStateMask.Depth){ depthState = new DepthState(true, CompareFunction.LessEqual)},
+                stateBlock = renderStateBlock,
             };
 
             HDUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
@@ -374,29 +398,162 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// 
         /// </summary>
+        public struct DisableMultiEyeRendering : IDisposable
+        {
+            CustomPassContext m_Ctx;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="ctx"></param>
+            public DisableMultiEyeRendering(in CustomPassContext ctx)
+            {
+                m_Ctx = ctx;
+                if (ctx.hdCamera.xr.enabled)
+                {
+                    ctx.renderContext.ExecuteCommandBuffer(ctx.cmd);
+                    ctx.cmd.Clear();
+                    ctx.renderContext.StopMultiEye(ctx.hdCamera.camera);
+                }
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            void IDisposable.Dispose()
+            {
+                if (m_Ctx.hdCamera.xr.enabled)
+                {
+                    m_Ctx.renderContext.StartMultiEye(m_Ctx.hdCamera.camera);
+                    m_Ctx.renderContext.ExecuteCommandBuffer(m_Ctx.cmd);
+                    m_Ctx.cmd.Clear();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="ctx"></param>
         /// <param name="view"></param>
         /// <param name="layerMask"></param>
         /// <param name="renderQueueFilter"></param>
         /// <param name="overrideMaterial"></param>
         /// <param name="overrideMaterialIndex"></param>
-        public static void RenderFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask = default(LayerMask), CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0)
-            => RenderFromCamera(ctx, view, null, null, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex);
+        public static void RenderFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+            => RenderFromCamera(ctx, view, null, null, ClearFlag.None, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex, overrideRenderState);
 
-        public static void RenderFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetColor, RTHandle targetDepth, LayerMask layerMask = default(LayerMask), CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="view"></param>
+        /// <param name="targetColor"></param>
+        /// <param name="targetDepth"></param>
+        /// <param name="clearFlag"></param>
+        /// <param name="layerMask"></param>
+        public static void RenderFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetColor, RTHandle targetDepth, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock))
         {
-            // if (targetColor != null)
-            // CoreUtils.SetRenderTarget(ctx.cmd, targetColor, )
-            using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, view))
+            if (targetColor != null && targetDepth != null)
+                CoreUtils.SetRenderTarget(ctx.cmd, targetColor, targetDepth, clearFlag);
+            else if (targetColor != null)
+                CoreUtils.SetRenderTarget(ctx.cmd, targetColor, clearFlag);
+            else if (targetDepth != null)
+                CoreUtils.SetRenderTarget(ctx.cmd, targetDepth, clearFlag);
+
+            using (new DisableMultiEyeRendering(ctx))
             {
-                DrawRenderers(ctx, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex);
+                using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, view))
+                {
+                    using (new ProfilingScope(ctx.cmd, renderFromCameraSampler))
+                        DrawRenderers(ctx, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex, overrideRenderState);
+                }
             }
         }
 
-        public static void RenderDepthFromCamera(in CustomPassContext ctx, Camera view, RTHandle target, LayerMask layerMask = default(LayerMask), CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="view"></param>
+        /// <param name="layerMask"></param>
+        public static void RenderDepthFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask = default(LayerMask), CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+            => RenderDepthFromCamera(ctx, view, null, null, ClearFlag.None, layerMask, renderQueueFilter, overrideRenderState);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="view"></param>
+        /// <param name="targetColor"></param>
+        /// <param name="targetDepth"></param>
+        /// <param name="clearFlag"></param>
+        /// <param name="layerMask"></param>
+        public static void RenderDepthFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetColor, RTHandle targetDepth, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
         {
-            // if (target.rt.dep)
-            RenderFromCamera(ctx, view, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, depthToColorPassIndex);
+            using (new ProfilingScope(ctx.cmd, renderDepthFromCameraSampler))
+            {
+                if (targetColor == null && targetDepth != null)
+                    RenderFromCamera(ctx, view, targetColor, targetDepth, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, depthPassIndex, overrideRenderState);
+                else
+                    RenderFromCamera(ctx, view, targetColor, targetDepth, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, depthToColorPassIndex, overrideRenderState);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="view"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="renderQueueFilter"></param>
+        /// <param name="overrideRenderState"></param>
+        public static void RenderNormalFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+            => RenderNormalFromCamera(ctx, view, null, null, ClearFlag.None, layerMask, renderQueueFilter, overrideRenderState);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="view"></param>
+        /// <param name="targetColor"></param>
+        /// <param name="targetDepth"></param>
+        /// <param name="clearFlag"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="renderQueueFilter"></param>
+        /// <param name="overrideRenderState"></param>
+        public static void RenderNormalFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetColor, RTHandle targetDepth, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+        {
+            using (new ProfilingScope(ctx.cmd, renderNormalFromCameraSampler))
+                RenderFromCamera(ctx, view, targetColor, targetDepth, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, normalToColorPassIndex, overrideRenderState);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="view"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="renderQueueFilter"></param>
+        /// <param name="overrideRenderState"></param>
+        public static void RenderTangentFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+            => RenderTangentFromCamera(ctx, view, null, null, ClearFlag.None, layerMask, renderQueueFilter, overrideRenderState);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="view"></param>
+        /// <param name="targetColor"></param>
+        /// <param name="targetDepth"></param>
+        /// <param name="clearFlag"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="renderQueueFilter"></param>
+        /// <param name="overrideRenderState"></param>
+        public static void RenderTangentFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetColor, RTHandle targetDepth, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+        {
+            using (new ProfilingScope(ctx.cmd, renderTangentFromCameraSampler))
+                RenderFromCamera(ctx, view, targetColor, targetDepth, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, tangentToColorPassIndex, overrideRenderState);
         }
 
         // TODO when rendergraph is available: a PostProcess pass which does the copy with a temp target

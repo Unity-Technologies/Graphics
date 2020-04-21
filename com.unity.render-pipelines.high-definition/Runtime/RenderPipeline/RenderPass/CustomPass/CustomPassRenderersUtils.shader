@@ -36,8 +36,8 @@
     {
         Pass
         {
-            Name "DepthPass"
-            Tags { "LightMode" = "DepthPass" }
+            Name "DepthToColorPass"
+            Tags { "LightMode" = "DepthToColorPass" }
 
             Blend Off
             ZWrite Off
@@ -50,13 +50,98 @@
             // Put the code to render the objects in your custom pass in this function
             void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
             {
-                float depth = fragInputs.positionRWS.z;
-
                 // Write back the data to the output structures
                 ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
-                builtinData.opacity = opacity;
-                builtinData.emissiveColor = float3(0, 0, 0);
-                surfaceData.color = depth;
+                builtinData.opacity = 1;
+                builtinData.emissiveColor = 0;
+
+                // Outline linear eye depth to the color
+                surfaceData.color = LinearEyeDepth(fragInputs.positionSS.z, _ZBufferParams);
+            }
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "DepthPass"
+            Tags { "LightMode" = "DepthPass" }
+
+            Blend Off
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+
+            Cull Back
+
+            HLSLPROGRAM
+
+            // Put the code to render the objects in your custom pass in this function
+            void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+            {
+                // Write back the data to the output structures
+                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+                builtinData.opacity = 1;
+                builtinData.emissiveColor = 0;
+                surfaceData.color = 0;
+            }
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "NormalToColorPass"
+            Tags { "LightMode" = "NormalToColorPass" }
+
+            Blend Off
+            ZWrite Off
+            ZTest LEqual
+
+            Cull Back
+
+            HLSLPROGRAM
+
+            // Put the code to render the objects in your custom pass in this function
+            void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+            {
+                // Write back the data to the output structures
+                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+                builtinData.opacity = 1;
+                builtinData.emissiveColor = 0;
+                surfaceData.color = fragInputs.tangentToWorld[2].xyz;
+            }
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "TangentToColorPass"
+            Tags { "LightMode" = "TangentToColorPass" }
+
+            Blend Off
+            ZWrite Off
+            ZTest LEqual
+
+            Cull Back
+
+            HLSLPROGRAM
+
+            // Put the code to render the objects in your custom pass in this function
+            void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+            {
+                // Write back the data to the output structures
+                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+                builtinData.opacity = 1;
+                builtinData.emissiveColor = 0;
+                surfaceData.color = fragInputs.tangentToWorld[0].xyz;
             }
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"

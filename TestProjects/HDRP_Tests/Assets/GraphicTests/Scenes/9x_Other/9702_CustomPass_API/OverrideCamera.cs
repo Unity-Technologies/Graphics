@@ -2,6 +2,7 @@
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
+using System.Linq;
 
 class OverrideCamera : CustomPass
 {
@@ -11,6 +12,8 @@ class OverrideCamera : CustomPass
     public Camera       customCamera3 = null;
 
     RTHandle            temp;
+    RTHandle            halfResColor;
+    RTHandle            halfResDepth;
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
@@ -18,6 +21,15 @@ class OverrideCamera : CustomPass
             Vector2.one, TextureXR.slices, dimension: TextureXR.dimension,
             colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, // We don't need alpha for this effect
             useDynamicScale: true, name: "Override Camera Temp"
+        );
+        halfResColor = RTHandles.Alloc(
+            Vector2.one * 0.5f, TextureXR.slices, dimension: TextureXR.dimension,
+            colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, // We don't need alpha for this effect
+            useDynamicScale: true, name: "Override Camera Temp"
+        );
+        halfResDepth = RTHandles.Alloc(
+            Vector2.one * 0.5f, TextureXR.slices, DepthBits.Depth16, // 16Bits for half res target is enough
+            dimension: TextureXR.dimension, useDynamicScale: true, name: "Override Camera Temp"
         );
     }
 
@@ -40,18 +52,61 @@ class OverrideCamera : CustomPass
             new Vector4(.5f, .5f, 0f, 0f)
         );
 
-        // Render from camera 1
-        using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, customCamera1))
+        RenderStateBlock overrideDepth = new RenderStateBlock(RenderStateMask.Depth)
         {
-            CoreUtils.SetRenderTarget(ctx.cmd, temp, ClearFlag.Color);
-            CustomPassUtils.DrawRenderers(ctx, -1);
-        }
+            depthState = new DepthState(true, CompareFunction.LessEqual)
+        };
+
+        // Render from camera 1 
+        CustomPassUtils.RenderFromCamera(ctx, customCamera1, temp, ctx.customDepthBuffer.Value, ClearFlag.All, -1, overrideRenderState: overrideDepth);
         CustomPassUtils.Copy(
             ctx, temp, ctx.cameraColorBuffer,
             CustomPassUtils.fullScreenScaleBias,
             new Vector4(.5f, .5f, .5f, 0f)
         );
+
+        // Render from camera 2 in an half res buffer
+        CustomPassUtils.RenderFromCamera(ctx, customCamera2, halfResColor, halfResDepth, ClearFlag.All, -1, overrideRenderState: overrideDepth);
+        CustomPassUtils.Copy(
+            ctx, temp, ctx.cameraColorBuffer,
+            CustomPassUtils.fullScreenScaleBias,
+            new Vector4(.5f, .5f, 0f, .5f)
+        );
+
+        // Render from camera 3 using different buffers
+        CustomPassUtils.RenderDepthFromCamera(ctx, customCamera3, temp, ctx.customDepthBuffer.Value, ClearFlag.All, -1);
+        CustomPassUtils.Copy(
+            ctx, temp, ctx.cameraColorBuffer,
+            CustomPassUtils.fullScreenScaleBias,
+            new Vector4(.25f, .25f, .5f, .5f)
+        );
+
+        CustomPassUtils.RenderNormalFromCamera(ctx, customCamera3, temp, ctx.customDepthBuffer.Value, ClearFlag.All, -1);
+        CustomPassUtils.Copy(
+            ctx, temp, ctx.cameraColorBuffer,
+            CustomPassUtils.fullScreenScaleBias,
+            new Vector4(.25f, .25f, .75f, .5f)
+        );
+
+        CustomPassUtils.RenderTangentFromCamera(ctx, customCamera3, temp, ctx.customDepthBuffer.Value, ClearFlag.All, -1);
+        CustomPassUtils.Copy(
+            ctx, temp, ctx.cameraColorBuffer,
+            CustomPassUtils.fullScreenScaleBias,
+            new Vector4(.25f, .25f, .5f, .75f)
+        );
+
+        // CustomPassUtils.RenderDepthFromCamera(ctx, customCamera3, temp, ctx.customDepthBuffer.Value, ClearFlag.All, -1);
+        // CustomPassUtils.Copy(
+        //     ctx, temp, ctx.cameraColorBuffer,
+        //     CustomPassUtils.fullScreenScaleBias,
+        //     new Vector4(.25f, .25f, .5f, .5f)
+        // );
     }
 
-    protected override void Cleanup() => temp.Release();
+    protected override void Cleanup()
+    {
+        temp.Release();
+        halfResColor.Release();
+        halfResDepth.Release();
+    }
 }
