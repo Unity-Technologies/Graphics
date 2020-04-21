@@ -112,6 +112,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a ray tracing mode option in the HDRP asset that allows to override and shader stripping.
 - Added support for arbitrary resolution scaling of Volumetric Lighting to the Fog volume component.
 - Added range attenuation for box-shaped spotlights.
+- Added scenes for hair and fabric and decals with material samples
+- Added fabric materials and textures
+- Added information for fabric materials in fabric scene
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -550,6 +553,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed PBR shader ZTest rendering in deferred.
 - Replaced commands incompatible with async compute in light list build process.
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
+- Fix MaterialBalls having same guid issue
+- Fix spelling and grammatical errors in material samples
 - Fixed unneeded cookie texture allocation for cone stop lights.
 
 ### Changed
@@ -670,6 +675,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Avoid building the mip chain a second time for SSR for transparent objects.
 - Replaced "High Quality" Subsurface Scattering with a set of Quality Levels.
 - Replaced "High Quality" Volumetric Lighting with "Screen Resolution Percentage" and "Volume Slice Count" on the Fog volume component.
+- Merged material samples and shader samples
+- Update material samples scene visuals
 
 ## [7.1.1] - 2019-09-05
 
