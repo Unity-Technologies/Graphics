@@ -555,6 +555,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
 - Fix MaterialBalls having same guid issue
 - Fix spelling and grammatical errors in material samples
+- Fixed unneeded cookie texture allocation for cone stop lights.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
