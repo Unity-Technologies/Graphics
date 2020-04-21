@@ -4,8 +4,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph.Legacy
 {
-    [Serializable, FormerName("UnityEditor.ShaderGraph.UnlitMasterNode")]
-    class UnlitMasterNode1 : AbstractMaterialNode, IMasterNode
+    class UnlitMasterNode1 : MasterNode1
     {
         public enum SurfaceType
         {

@@ -1561,14 +1561,19 @@ namespace UnityEditor.ShaderGraph
                 {
                     m_OutputNode = subgraphOuput.FirstOrDefault();
                 }
-                else if (!string.IsNullOrEmpty(graphData0.m_ActiveOutputNodeGuidSerialized))
-                {
-                    m_OutputNode = nodeGuidMap[graphData0.m_ActiveOutputNodeGuidSerialized];
-                }
                 else
                 {
-                    m_OutputNode = (AbstractMaterialNode)GetNodes<IMasterNode>().FirstOrDefault();
+                    // Version2 doesnt support Output node for Shader Graphs
+                    m_OutputNode = null;
                 }
+                // else if (!string.IsNullOrEmpty(graphData0.m_ActiveOutputNodeGuidSerialized))
+                // {
+                //     m_OutputNode = nodeGuidMap[graphData0.m_ActiveOutputNodeGuidSerialized];
+                // }
+                // else
+                // {
+                //     m_OutputNode = (AbstractMaterialNode)GetNodes<MasterNode1>().FirstOrDefault();
+                // }
 
                 foreach (var serializedElement in graphData0.m_SerializableEdges)
                 {
@@ -1602,21 +1607,28 @@ namespace UnityEditor.ShaderGraph
                     { "UnityEditor.Experimental.Rendering.LWRP.SpriteUnlitMasterNode", typeof(SpriteUnlitMasterNode1) },
                 };
 
-                IMasterNode DeserializeMasterNodeV0(GraphData0 graphData0)
+                MasterNode1 DeserializeMasterNodeV0(GraphData0 graphData0)
                 {
+                    var outputGuid = graphData0.m_ActiveOutputNodeGuidSerialized;
                     foreach (var serializedNode in graphData0.m_SerializableNodes)
                     {
                         if(!(s_MasterNodeUpgrades.TryGetValue(serializedNode.typeInfo.fullName, out var masterNodeType)))
                             continue;
                         
                         // If type exists in dictionary we assume it can be deserialized and upgraded
-                        return (IMasterNode)JsonUtility.FromJson(serializedNode.JSONnodeData, masterNodeType);
+                        var mn = (MasterNode1)JsonUtility.FromJson(serializedNode.JSONnodeData, masterNodeType);
+
+                        // Finally test for active master node
+                        if(!string.IsNullOrEmpty(outputGuid) && outputGuid != mn.m_GuidSerialized)
+                            continue;
+
+                        return mn;
                     }
                     return null;
                 }
 
                 // HAve to handle V0 and V1 upgrades
-                IMasterNode masterNode = null;
+                MasterNode1 masterNode = null;
                 if(m_Version == 0)
                 {
                     var graphData0 = JsonUtility.FromJson<GraphData0>(json);
@@ -1637,14 +1649,6 @@ namespace UnityEditor.ShaderGraph
                         
                         m_ActiveTargets.Add(target);
                     }
-                }
-
-                // Fix up output node
-                var subgraphOuput = GetNodes<SubGraphOutputNode>();
-                isSubGraph = subgraphOuput.Any();
-                if (!isSubGraph)
-                {
-                    m_OutputNode = null;
                 }
             }
 

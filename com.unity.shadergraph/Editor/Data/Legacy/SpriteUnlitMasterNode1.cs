@@ -4,8 +4,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph.Legacy
 {
-    [Serializable, FormerName("UnityEditor.Experimental.Rendering.Universal.SpriteUnlitMasterNode ")]
-    class SpriteUnlitMasterNode1 : AbstractMaterialNode, IMasterNode
+    class SpriteUnlitMasterNode1 : MasterNode1
     {
         public string m_ShaderGUIOverride;
         public bool m_OverrideEnabled;

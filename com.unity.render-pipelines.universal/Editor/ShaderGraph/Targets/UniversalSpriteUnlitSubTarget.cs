@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
         }
 
-        public bool TryUpgradeFromMasterNode(IMasterNode masterNode)
+        public bool TryUpgradeFromMasterNode(MasterNode1 masterNode)
         {
             return (masterNode is SpriteUnlitMasterNode1 spriteUnlitMasterNode);
         }
