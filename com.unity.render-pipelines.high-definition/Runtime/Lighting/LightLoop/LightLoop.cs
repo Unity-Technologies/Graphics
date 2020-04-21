@@ -3816,6 +3816,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, resources.lightListBuffer);
                 parameters.deferredComputeShader.shaderKeywords = null;
 
+                switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
+                {
+                    case HDShadowFilteringQuality.Low:
+                        parameters.deferredComputeShader.EnableKeyword("SHADOW_LOW");
+                        break;
+                    case HDShadowFilteringQuality.Medium:
+                        parameters.deferredComputeShader.EnableKeyword("SHADOW_MEDIUM");
+                        break;
+                    case HDShadowFilteringQuality.High:
+                        parameters.deferredComputeShader.EnableKeyword("SHADOW_HIGH");
+                        break;
+                    default:
+                        parameters.deferredComputeShader.EnableKeyword("SHADOW_MEDIUM");
+                        break;
+                }
+
                 if (parameters.enableShadowMasks)
                 {
                     parameters.deferredComputeShader.EnableKeyword("SHADOWS_SHADOWMASK");

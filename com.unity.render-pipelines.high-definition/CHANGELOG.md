@@ -680,6 +680,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replaced "High Quality" Volumetric Lighting with "Screen Resolution Percentage" and "Volume Slice Count" on the Fog volume component.
 - Merged material samples and shader samples
 - Update material samples scene visuals
+- Use multi_compile API for deferred compute shader with shadow mask.
 
 ## [7.1.1] - 2019-09-05
 
