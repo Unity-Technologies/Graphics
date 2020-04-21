@@ -239,10 +239,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // We handle the other light sources
                     RenderLightScreenSpaceShadows(hdCamera, cmd);
-
-                    // We do render the debug view
-                    EvaluateShadowDebugView(cmd, hdCamera);
                 }
+
+                // We do render the debug view
+                EvaluateShadowDebugView(cmd, hdCamera);
+
                 // Bind the right texture
                 cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, m_ScreenSpaceShadowTextureArray);
             }
@@ -889,38 +890,47 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void EvaluateShadowDebugView(CommandBuffer cmd, HDCamera hdCamera)
         {
-            ComputeShader shadowFilter = m_Asset.renderPipelineRayTracingResources.shadowFilterCS;
-
             // If this is the right debug mode and the index we are asking for is in the range
             HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
             if (FullScreenDebugMode.ScreenSpaceShadows == hdrp.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
-                // Texture dimensions
-                int texWidth = hdCamera.actualWidth;
-                int texHeight = hdCamera.actualHeight;
-
-                // Evaluate the dispatch parameters
-                int areaTileSize = 8;
-                int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
-                int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
-
-                RTHandle intermediateBuffer0 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
-
-                // Clear the output texture
-                CoreUtils.SetRenderTarget(cmd, intermediateBuffer0, clearFlag: ClearFlag.Color);
-
-                // If the screen space shadows we are asked to deliver is available output it to the intermediate texture
-                if (m_ScreenSpaceShadowChannelSlot > hdrp.m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex)
+                if (m_Asset.renderPipelineRayTracingResources)
                 {
-                    int targetKernel = shadowFilter.FindKernel("WriteShadowTextureDebug");
-                    cmd.SetComputeIntParam(shadowFilter, HDShaderIDs._DenoisingHistorySlot, (int)hdrp.m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex);
-                    cmd.SetComputeTextureParam(shadowFilter, targetKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, m_ScreenSpaceShadowTextureArray);
-                    cmd.SetComputeTextureParam(shadowFilter, targetKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBuffer0);
-                    cmd.DispatchCompute(shadowFilter, targetKernel, numTilesX, numTilesY, hdCamera.viewCount);
-                }
+                    ComputeShader shadowFilter = m_Asset.renderPipelineRayTracingResources.shadowFilterCS;
 
-                // Push the full screen debug texture
-                hdrp.PushFullScreenDebugTexture(hdCamera, cmd, intermediateBuffer0, FullScreenDebugMode.ScreenSpaceShadows);
+                    // Texture dimensions
+                    int texWidth = hdCamera.actualWidth;
+                    int texHeight = hdCamera.actualHeight;
+
+                    // Evaluate the dispatch parameters
+                    int areaTileSize = 8;
+                    int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
+                    int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
+
+                    RTHandle intermediateBuffer0 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
+
+                    // Clear the output texture
+                    CoreUtils.SetRenderTarget(cmd, intermediateBuffer0, clearFlag: ClearFlag.Color);
+
+                    // If the screen space shadows we are asked to deliver is available output it to the intermediate texture
+                    if (m_ScreenSpaceShadowChannelSlot > hdrp.m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex)
+                    {
+                        int targetKernel = shadowFilter.FindKernel("WriteShadowTextureDebug");
+                        cmd.SetComputeIntParam(shadowFilter, HDShaderIDs._DenoisingHistorySlot, (int)hdrp.m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex);
+                        cmd.SetComputeTextureParam(shadowFilter, targetKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, m_ScreenSpaceShadowTextureArray);
+                        cmd.SetComputeTextureParam(shadowFilter, targetKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBuffer0);
+                        cmd.DispatchCompute(shadowFilter, targetKernel, numTilesX, numTilesY, hdCamera.viewCount);
+                    }
+
+                    // Push the full screen debug texture
+                    hdrp.PushFullScreenDebugTexture(hdCamera, cmd, intermediateBuffer0, FullScreenDebugMode.ScreenSpaceShadows);
+                }
+                else
+                {
+                    // In this case we have not rendered any screenspace shadows, so push a black texture on the debug display
+                    hdrp.PushFullScreenDebugTexture(hdCamera, cmd, TextureXR.GetBlackTextureArray(), FullScreenDebugMode.ScreenSpaceShadows);
+
+                }
             }
         }
     }
