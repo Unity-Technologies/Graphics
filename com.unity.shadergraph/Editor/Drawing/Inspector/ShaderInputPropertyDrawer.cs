@@ -282,14 +282,20 @@ namespace Drawing.Inspector
 
                     minFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                     {
-                        vector1ShaderProperty.value = Mathf.Clamp(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y);
+                        vector1ShaderProperty.value = Mathf.Clamp(vector1ShaderProperty.value,
+                                                                Mathf.Min(vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y),
+                                                                Mathf.Max(vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y));
+
                         defaultField.value = vector1ShaderProperty.value;
                         _postChangeValueCallback();
                     });
 
                     maxFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                     {
-                        vector1ShaderProperty.value = Mathf.Clamp(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y);
+                        vector1ShaderProperty.value = Mathf.Clamp(vector1ShaderProperty.value,
+                            Mathf.Min(vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y),
+                            Mathf.Max(vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y));
+
                         defaultField.value = vector1ShaderProperty.value;
                         this._postChangeValueCallback();
                     });
