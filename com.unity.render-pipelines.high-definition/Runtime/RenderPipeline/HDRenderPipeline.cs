@@ -3352,9 +3352,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // clear decal property mask buffer
             cmd.SetComputeBufferParam(parameters.clearPropertyMaskBufferCS, parameters.clearPropertyMaskBufferKernel, HDShaderIDs._DecalPropertyMaskBuffer, parameters.propertyMaskBuffer);
             cmd.DispatchCompute(parameters.clearPropertyMaskBufferCS, parameters.clearPropertyMaskBufferKernel, parameters.propertyMaskBufferSize / 64, 1, 1);
-           // We explicitly force the register index here for decal for UAV otherwise this doesn't works.
-           // Need to match with HLSL
-            cmd.SetRandomWriteTarget(4, parameters.propertyMaskBuffer);
+            cmd.SetRandomWriteTarget(parameters.use4RTs ? 4 : 3, parameters.propertyMaskBuffer);
 
             HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
             DecalSystem.instance.RenderIntoDBuffer(cmd);
