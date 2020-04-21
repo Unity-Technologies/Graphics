@@ -456,7 +456,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if (shaderData.passesCompiling != renderData.shaderData.mat.passCount)
                     {
-                        // attempt to re-kick the compilation a few times
+                        // sometimes when the SRP is swapped we can get a compile coming back with the wrong number of passes
+                        // in that situation, attempt to re-kick the compilation a few times
                         compileFailRekicks++;
                         if (compileFailRekicks <= 3)
                         {
@@ -517,8 +518,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // master node compile is first in the priority list, as it takes longer than the other previews
                 if ((m_NodesCompiling.Count + nodesToCompile.Count < m_MaxNodesCompiling) &&
                     m_NodesNeedsRecompile.Contains(m_MasterRenderData.shaderData.node) &&
-                    !m_NodesCompiling.Contains(m_MasterRenderData.shaderData.node) &&
-                    ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0)))    // master node requires an SRP
+                    !m_NodesCompiling.Contains(m_MasterRenderData.shaderData.node))
                 {
                     var renderData = GetPreviewRenderData(m_MasterRenderData.shaderData.node);
                     Assert.IsTrue(renderData != null);
@@ -716,12 +716,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+
+        private int srpInitAttempts = 0;
         void InitializeSRPIfNeeded()
         {
             if ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0))
             {
                 return;
             }
+
+            // this keeps it from spamming renders in the "no SRP assigned" case
+            // if an SRP is assigned, the entire PreviewManager gets re-constructed
+            // so the srpInitAttempts is reset to zero
+            srpInitAttempts++;
+            if (srpInitAttempts >= 5)
+                return;
 
             // issue a dummy SRP render to force SRP initialization, use the master node texture
             PreviewRenderData renderData = m_MasterRenderData;
