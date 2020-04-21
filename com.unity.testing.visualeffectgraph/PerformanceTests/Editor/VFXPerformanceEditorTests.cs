@@ -62,16 +62,26 @@ namespace UnityEditor.VFX.PerformanceTest
             var vfxAssetsGuid = vfxAssetsGuids.First();
             fullPath = AssetDatabase.GUIDToAssetPath(vfxAssetsGuid);
 
-            AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
-            var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(fullPath);
-
-            var resource = k_fnGetResource.Invoke(null, new object[] { vfxAsset });
-            if (resource == null)
+            using (Measure.Scope("VFXGraphLoad.ImportAsset"))
             {
-                graph = null;
+                AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
             }
 
-            graph = k_fnGetOrCreateGraph.Invoke(null, new object[] { resource }) as VFXGraph;
+            VisualEffectAsset vfxAsset = null;
+            using (Measure.Scope("VFXGraphLoad.LoadAsset"))
+            {
+                vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(fullPath);
+            }
+
+            using (Measure.Scope("VFXGraphLoad.GetResource"))
+            {
+                var resource = k_fnGetResource.Invoke(null, new object[] { vfxAsset });
+                if (resource == null)
+                {
+                    graph = null;
+                }
+                graph = k_fnGetOrCreateGraph.Invoke(null, new object[] { resource }) as VFXGraph;
+            }
         }
 
         static readonly string[] allForceShaderValidation = { "ShaderValidation_On", "ShaderValidation_Off" };
@@ -80,8 +90,14 @@ namespace UnityEditor.VFX.PerformanceTest
         public void Load_VFXLibrary()
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
-            VFXLibrary.ClearLibrary();
-            VFXLibrary.Load();
+            for (int i = 0; i < 8; i++) //Doing this multiple time to have an average result
+            {
+                VFXLibrary.ClearLibrary();
+                using (Measure.Scope("VFXLibrary.Load"))
+                {
+                    VFXLibrary.Load();
+                }
+            }
             UnityEngine.Debug.unityLogger.logEnabled = true;
         }
 
@@ -94,25 +110,38 @@ namespace UnityEditor.VFX.PerformanceTest
             string fullPath;
             LoadVFXGraph(vfxAssetPath, out fullPath, out graph);
 
-            var window = EditorWindow.GetWindow<VFXViewWindow>();
-            window.Show();
-            window.maximized = true;
-            window.autoCompile = false;
-            window.Repaint();
-
+            VFXViewWindow window = null;
+            using (Measure.Scope("VFXViewWindow.Show"))
+            {
+                window = EditorWindow.GetWindow<VFXViewWindow>();
+                window.Show();
+                window.position = new UnityEngine.Rect(0, 0, 1600, 900);
+                window.autoCompile = false;
+                window.Repaint();
+            }
             yield return null;
-            var asset = k_fnGetAsset.Invoke(graph.visualEffectResource, new object[] { }) as VisualEffectAsset;
-            window.LoadAsset(asset, null);
-            window.graphView.FrameAll();
+
+            using (Measure.Scope("VFXViewWindow.LoadAsset"))
+            {
+                var asset = k_fnGetAsset.Invoke(graph.visualEffectResource, new object[] { }) as VisualEffectAsset;
+                window.LoadAsset(asset, null);
+                window.graphView.FrameAll();
+            }
 
             for (int i = 0; i < 16; ++i) //Render n frames
             {
+                var position = window.graphView.viewTransform.position;
+                position.x += i%2 == 1 ? 3.0f : -3.0f;
+                window.graphView.viewTransform.position = position;
                 window.Repaint();
-                yield return null;
+                yield return Measure.Frames().SampleGroup("VFXViewWindow.Render").MeasurementCount(4).Run();
             }
 
-            window.Close();
-            yield return null; //Ensure window is closed for next test
+            using (Measure.Scope("VFXViewWindow.Close"))
+            {
+                window.Close();
+                yield return null; //Ensure window is closed for next test
+            }
 
             UnityEngine.Debug.unityLogger.logEnabled = true;
         }
@@ -129,9 +158,22 @@ namespace UnityEditor.VFX.PerformanceTest
 
             if (graph)
             {
-                var backup = graph.Backup();
-                graph.Restore(backup);
-                AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                for (int i = 0; i < 16; ++i)
+                {
+                    Object backup = null;
+                    using (Measure.Scope("VFXGraph.Backup"))
+                    {
+                        backup = graph.Backup();
+                    }
+                    using (Measure.Scope("VFXGraph.Restore"))
+                    {
+                        graph.Restore(backup);
+                    }
+                    using (Measure.Scope("VFXGraph.Reimport"))
+                    {
+                        AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                    }
+                }
             }
 
             UnityEngine.Debug.unityLogger.logEnabled = true;
@@ -152,11 +194,17 @@ namespace UnityEditor.VFX.PerformanceTest
             LoadVFXGraph(vfxAssetPath, out fullPath, out graph);
             if (graph)
             {
-                VFXExpression.ClearCache();
-                graph.SetExpressionGraphDirty();
-                graph.SetForceShaderValidation(forceShaderValidationMode, false);
-                graph.SetCompilationMode(compilationMode, false);
-                AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                for (int i = 0; i < 4; ++i)
+                {
+                    using (Measure.Scope("VFXGraph.Compile"))
+                    {
+                        VFXExpression.ClearCache();
+                        graph.SetExpressionGraphDirty();
+                        graph.SetForceShaderValidation(forceShaderValidationMode, false);
+                        graph.SetCompilationMode(compilationMode, false);
+                        AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                    }
+                }
             }
 
             UnityEngine.Debug.unityLogger.logEnabled = true;
