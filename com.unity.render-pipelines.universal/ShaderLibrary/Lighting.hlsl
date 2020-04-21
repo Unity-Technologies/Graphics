@@ -9,6 +9,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
+// 2^-7 == sqrt(HALF_MIN), Ensure HALF_MIN after (var * var) like roughness
+#define HALF_MIN_SQRT  0.0078125
+
 //#define CC_DEBUG
 #if defined(CC_DEBUG)
 half3 debugColor;
@@ -379,13 +382,12 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     outBRDFData.specular = lerp(kDielectricSpec.rgb, albedo, metallic);
 #endif
 
-    outBRDFData.grazingTerm = saturate(smoothness + reflectivity);
+    outBRDFData.grazingTerm         = saturate(smoothness + reflectivity);
     outBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(smoothness);
-    outBRDFData.roughness = max(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness), HALF_MIN);
-    outBRDFData.roughness2 = outBRDFData.roughness * outBRDFData.roughness;
-
-    outBRDFData.normalizationTerm = outBRDFData.roughness * 4.0h + 2.0h;
-    outBRDFData.roughness2MinusOne = outBRDFData.roughness2 - 1.0h;
+    outBRDFData.roughness           = max(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness), HALF_MIN_SQRT);
+    outBRDFData.roughness2          = max(outBRDFData.roughness * outBRDFData.roughness, HALF_MIN);
+    outBRDFData.normalizationTerm   = outBRDFData.roughness * 4.0h + 2.0h;
+    outBRDFData.roughness2MinusOne  = outBRDFData.roughness2 - 1.0h;
 
 #ifdef _ALPHAPREMULTIPLY_ON
     outBRDFData.diffuse *= alpha;
@@ -396,8 +398,8 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     // Calculate Roughness of Clear Coat layer
     outBRDFData.clearCoatStrength            = clearCoatStrength;
     outBRDFData.clearCoatPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(clearCoatSmoothness);
-    outBRDFData.clearCoatRoughness           = max(PerceptualRoughnessToRoughness(outBRDFData.clearCoatPerceptualRoughness), HALF_MIN);
-    outBRDFData.clearCoatRoughness2          = outBRDFData.clearCoatRoughness * outBRDFData.clearCoatRoughness;
+    outBRDFData.clearCoatRoughness           = max(PerceptualRoughnessToRoughness(outBRDFData.clearCoatPerceptualRoughness), HALF_MIN_SQRT);
+    outBRDFData.clearCoatRoughness2          = max(outBRDFData.clearCoatRoughness * outBRDFData.clearCoatRoughness, HALF_MIN);
     outBRDFData.clearCoatNormalizationTerm   = outBRDFData.clearCoatRoughness * 4.0h + 2.0h;
     outBRDFData.clearCoatRoughness2MinusOne  = outBRDFData.clearCoatRoughness2 - 1.0h;
     outBRDFData.clearCoatGrazingTerm         = saturate(clearCoatSmoothness + kDielectricSpec.x);
@@ -411,8 +413,8 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     outBRDFData.perceptualRoughness = RoughnessToPerceptualRoughness(VarianceToRoughness(sigma * coatRoughnessScale));
 
     // Recompute based on new roughness, previous computation should be eliminated by the compiler
-    outBRDFData.roughness          = max(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness), HALF_MIN);
-    outBRDFData.roughness2         = outBRDFData.roughness * outBRDFData.roughness;
+    outBRDFData.roughness          = max(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness), HALF_MIN_SQRT);
+    outBRDFData.roughness2         = max(outBRDFData.roughness * outBRDFData.roughness, HALF_MIN);
     outBRDFData.normalizationTerm  = outBRDFData.roughness * 4.0h + 2.0h;
     outBRDFData.roughness2MinusOne = outBRDFData.roughness2 - 1.0h;
 #endif
