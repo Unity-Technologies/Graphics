@@ -18,7 +18,7 @@
     "versionDefines": [
         {
             "name": "com.unity.rendering.hybrid",
-            "expression": "0.5.0",
+            "expression": "0.5.0-preview.4",
             "define": "HYBRID_RENDERER_0_5_0_OR_NEWER"
         }
     ],
