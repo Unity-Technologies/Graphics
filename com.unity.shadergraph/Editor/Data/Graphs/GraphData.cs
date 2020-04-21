@@ -1420,8 +1420,24 @@ namespace UnityEditor.ShaderGraph
             m_Edges.Sort();
         }
 
+        // Lookup table for master node upgrades
+        // All master nodes and their FormerName attributes must exist here
+        static Dictionary<string, Type> s_MasterNodeUpgrades = new Dictionary<string, Type>()
+        {
+            { "UnityEditor.ShaderGraph.PBRMasterNode", typeof(PBRMasterNode1) },
+            { "UnityEditor.ShaderGraph.UnlitMasterNode", typeof(UnlitMasterNode1) },
+            { "UnityEditor.Experimental.Rendering.Universal.SpriteLitMasterNode", typeof(SpriteLitMasterNode1) },
+            { "UnityEditor.Experimental.Rendering.LWRP.SpriteLitMasterNode", typeof(SpriteLitMasterNode1) },
+            { "UnityEditor.Experimental.Rendering.Universal.SpriteUnlitMasterNode", typeof(SpriteUnlitMasterNode1) },
+            { "UnityEditor.Experimental.Rendering.LWRP.SpriteUnlitMasterNode", typeof(SpriteUnlitMasterNode1) },
+        };
+
         static JsonObject DeserializeLegacy(string typeString, string json)
         {
+            // Ignore master nodes, we handle them manually on upgrade
+            if(s_MasterNodeUpgrades.TryGetValue(typeString, out _))
+                return null;
+
             var value = MultiJsonInternal.CreateInstance(typeString);
             if (value == null)
             {
@@ -1594,18 +1610,6 @@ namespace UnityEditor.ShaderGraph
                 // Get the raw Json for the output node
                 // var id = (string)idField.GetValue(m_OutputNode);
                 // MultiJsonInternal.valueMap.TryGetValue(id, out var jsonObject);
-
-                // Lookup table for master node upgrades
-                // All master nodes and their FormerName attributes must exist here
-                Dictionary<string, Type> s_MasterNodeUpgrades = new Dictionary<string, Type>()
-                {
-                    { "UnityEditor.ShaderGraph.PBRMasterNode", typeof(PBRMasterNode1) },
-                    { "UnityEditor.ShaderGraph.UnlitMasterNode", typeof(UnlitMasterNode1) },
-                    { "UnityEditor.Experimental.Rendering.Universal.SpriteLitMasterNode", typeof(SpriteLitMasterNode1) },
-                    { "UnityEditor.Experimental.Rendering.LWRP.SpriteLitMasterNode", typeof(SpriteLitMasterNode1) },
-                    { "UnityEditor.Experimental.Rendering.Universal.SpriteUnlitMasterNode", typeof(SpriteUnlitMasterNode1) },
-                    { "UnityEditor.Experimental.Rendering.LWRP.SpriteUnlitMasterNode", typeof(SpriteUnlitMasterNode1) },
-                };
 
                 MasterNode1 DeserializeMasterNodeV0(GraphData0 graphData0)
                 {
