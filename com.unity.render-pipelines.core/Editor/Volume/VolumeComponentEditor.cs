@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         protected Editor m_Inspector;
 
-        List<(GUIContent, int, SerializedDataParameter)> m_Parameters;
+        List<(GUIContent displayName, int displayOrder, SerializedDataParameter param)> m_Parameters;
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;
 
@@ -180,13 +180,13 @@ namespace UnityEditor.Rendering
         }
 
 
-        class ParameterSorter : Comparer<(GUIContent, int, SerializedDataParameter)>
+        class ParameterSorter : Comparer<(GUIContent displayName, int displayOrder, SerializedDataParameter param)>
         {
-            public override int Compare((GUIContent, int, SerializedDataParameter) x, (GUIContent, int, SerializedDataParameter) y)
+            public override int Compare((GUIContent displayName, int displayOrder, SerializedDataParameter param) x, (GUIContent displayName, int displayOrder, SerializedDataParameter param) y)
             {
-                if (x.Item2 < y.Item2)
+                if (x.displayOrder < y.displayOrder)
                     return -1;
-                else if (x.Item2 == y.Item2)
+                else if (x.displayOrder == y.displayOrder)
                     return 0;
                 else
                     return 1;
@@ -264,10 +264,10 @@ namespace UnityEditor.Rendering
             // Display every field as-is
             foreach (var parameter in m_Parameters)
             {
-                if (parameter.Item1.text != "")
-                    PropertyField(parameter.Item3, parameter.Item1);
+                if (parameter.displayName.text != "")
+                    PropertyField(parameter.param, parameter.displayName);
                 else
-                    PropertyField(parameter.Item3);
+                    PropertyField(parameter.param);
             }
         }
 
