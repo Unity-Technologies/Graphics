@@ -1650,6 +1650,9 @@ namespace UnityEditor.ShaderGraph
                         m_ActiveTargets.Add(target);
                     }
                 }
+
+                // Ensure correct initialization of Contexts
+                AddContexts();
             }
 
             m_Version = k_CurrentVersion;
