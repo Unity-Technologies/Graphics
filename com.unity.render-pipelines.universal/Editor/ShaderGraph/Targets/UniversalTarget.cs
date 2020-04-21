@@ -231,7 +231,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
         }
 
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode)
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             // Upgrade Target
             switch(masterNode)
@@ -266,13 +266,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if(!(subTarget is ILegacyTarget legacySubTarget))
                     continue;
                 
-                if(legacySubTarget.TryUpgradeFromMasterNode(masterNode))
+                if(legacySubTarget.TryUpgradeFromMasterNode(masterNode, out blockMap))
                 {
                     m_ActiveSubTarget = subTarget;
                     return true;
                 }
             }
 
+            blockMap = null;
             return false;
         }
     }

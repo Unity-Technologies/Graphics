@@ -1,7 +1,9 @@
-﻿namespace UnityEditor.ShaderGraph.Legacy
+﻿using System.Collections.Generic;
+
+namespace UnityEditor.ShaderGraph.Legacy
 {
-    public interface ILegacyTarget
+    internal interface ILegacyTarget
     {
-        bool TryUpgradeFromMasterNode(IMasterNode1 masterNode);
+        bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap);
     }
 }

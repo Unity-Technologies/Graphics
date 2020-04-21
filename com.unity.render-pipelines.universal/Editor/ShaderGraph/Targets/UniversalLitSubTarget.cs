@@ -145,13 +145,48 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
         }
 
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode)
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
+            blockMap = null;
             if(!(masterNode is PBRMasterNode1 pbrMasterNode))
                 return false;
             
+            // Set data
             m_WorkflowMode = (WorkflowMode)pbrMasterNode.m_Model;
             m_NormalDropOffSpace = (NormalDropOffSpace)pbrMasterNode.m_NormalDropOffSpace;
+
+            // Handle mapping of Normal block specifically
+            BlockFieldDescriptor normalBlock;
+            switch(m_NormalDropOffSpace)
+            {
+                case NormalDropOffSpace.Object:
+                    normalBlock = BlockFields.SurfaceDescription.NormalOS;
+                    break;
+                case NormalDropOffSpace.World:
+                    normalBlock = BlockFields.SurfaceDescription.NormalWS;
+                    break;
+                default:
+                    normalBlock = BlockFields.SurfaceDescription.NormalTS;
+                    break;
+            }
+
+            // Set blockmap
+            blockMap = new Dictionary<BlockFieldDescriptor, int>()
+            {
+                { BlockFields.VertexDescription.Position, 9 },
+                { BlockFields.VertexDescription.Normal, 10 },
+                { BlockFields.VertexDescription.Tangent, 11 },
+                { BlockFields.SurfaceDescription.BaseColor, 0 },
+                { normalBlock, 1 },
+                { BlockFields.SurfaceDescription.Metallic, 2 },
+                { BlockFields.SurfaceDescription.Specular, 3 },
+                { BlockFields.SurfaceDescription.Emission, 4 },
+                { BlockFields.SurfaceDescription.Smoothness, 5 },
+                { BlockFields.SurfaceDescription.Occlusion, 6 },
+                { BlockFields.SurfaceDescription.Alpha, 7 },
+                { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
+            };
+
             return true;
         }
 

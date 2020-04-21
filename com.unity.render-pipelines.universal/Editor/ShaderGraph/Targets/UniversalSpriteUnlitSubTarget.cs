@@ -42,6 +42,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
         }
 
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            blockMap = null;
+            if(!(masterNode is SpriteUnlitMasterNode1 spriteUnlitMasterNode))
+                return false;
+
+            // Set blockmap
+            blockMap = new Dictionary<BlockFieldDescriptor, int>()
+            {
+                { BlockFields.VertexDescription.Position, 9 },
+                { BlockFields.VertexDescription.Normal, 10 },
+                { BlockFields.VertexDescription.Tangent, 11 },
+                { BlockFields.SurfaceDescription.BaseColor, 0 },
+            };
+
+            return true;
+        }
+
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode)
         {
             return (masterNode is SpriteUnlitMasterNode1 spriteUnlitMasterNode);

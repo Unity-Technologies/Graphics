@@ -613,6 +613,7 @@ namespace UnityEditor.ShaderGraph
         {
             AddBlockNoValidate(blockNode, contextData, index);
             ValidateGraph();
+            UpdateActiveBlocks();
         }
 
         void AddBlockNoValidate(BlockNode blockNode, ContextData contextData, int index)
@@ -633,9 +634,6 @@ namespace UnityEditor.ShaderGraph
             {
                 contextData.blocks.Insert(index, blockNode);
             }
-
-            // Update support Blocks
-            UpdateActiveBlocks();
         }
 
         public void UpdateActiveBlocks()
@@ -1299,6 +1297,7 @@ namespace UnityEditor.ShaderGraph
             outputNode = other.outputNode;
 
             ValidateGraph();
+            UpdateActiveBlocks();
         }
 
         internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes,
@@ -1604,6 +1603,7 @@ namespace UnityEditor.ShaderGraph
 
                     // Try to upgrade all valid targets from master node
                     // On ShaderGraph side we dont know what Targets exist so make no assumptions
+                    Dictionary<BlockFieldDescriptor, int> blockMap = null;
                     if(masterNode != null)
                     {
                         foreach(var target in m_ValidTargets)
@@ -1611,11 +1611,36 @@ namespace UnityEditor.ShaderGraph
                             if(!(target is ILegacyTarget legacyTarget))
                                 continue;
                             
-                            if(!legacyTarget.TryUpgradeFromMasterNode(masterNode))
+                            if(!legacyTarget.TryUpgradeFromMasterNode(masterNode, out blockMap))
                                 continue;
                             
                             m_ActiveTargets.Add(target);
                         }
+                    }
+
+                    // Ensure correct initialization of Contexts
+                    AddContexts();
+
+                    // Map master node ports to blocks
+                    if(blockMap != null)
+                    {
+                        foreach(var blockMapping in blockMap)
+                        {
+                            // Create a new BlockNode for each map entry
+                            var descriptor = blockMapping.Key;
+                            var contextData = descriptor.shaderStage == ShaderStage.Fragment ? m_FragmentContext : m_VertexContext;
+                            var block = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                            block.Init(descriptor);
+                            AddBlockNoValidate(block, contextData, contextData.blocks.Count);
+
+                            // To avoid having to go around the following deserialization code
+                            // We simply run OnBeforeSerialization here to ensure m_SerializedDescriptor is set
+                            block.OnBeforeSerialize();
+                        }
+
+                        // We need to call AddBlockNoValidate but this adds to m_AddedNodes resulting in duplicates
+                        // Therefore we need to clear this list before the view is created
+                        m_AddedNodes.Clear();
                     }
 
                     // Clean up after upgrade
@@ -1630,9 +1655,6 @@ namespace UnityEditor.ShaderGraph
                         var node = masterNodes.ElementAt(i) as AbstractMaterialNode;
                         m_Nodes.Remove(node);
                     }
-
-                    // Ensure correct initialization of Contexts
-                    AddContexts();
                 }
 
                 m_Version = k_CurrentVersion;
@@ -1674,12 +1696,6 @@ namespace UnityEditor.ShaderGraph
                 var blockCount = blocks.Count;
                 for(int i = 0; i < blockCount; i++)
                 {
-                    // Deserialize the BlockNode guids on the ContextData
-                    // This needs to be done here as BlockNodes are deserialized before GraphData
-                    // var blockGuid = new Guid(contextData.serializeableBlockGuids[i]);
-                    // var block = GetNodeFromGuid<BlockNode>(blockGuid);
-                    // contextData.blocks.Add(block);
-
                     // Update NonSerialized data on the BlockNode
                     var block = blocks[i];
                     block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);

@@ -95,9 +95,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
         }
 
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode)
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
-            return (masterNode is UnlitMasterNode1 unlitMasterNode);
+            blockMap = null;
+            if(!(masterNode is UnlitMasterNode1 unlitMasterNode))
+                return false;
+
+            // Set blockmap
+            blockMap = new Dictionary<BlockFieldDescriptor, int>()
+            {
+                { BlockFields.VertexDescription.Position, 9 },
+                { BlockFields.VertexDescription.Normal, 10 },
+                { BlockFields.VertexDescription.Tangent, 11 },
+                { BlockFields.SurfaceDescription.BaseColor, 0 },
+                { BlockFields.SurfaceDescription.Alpha, 7 },
+                { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
+            };
+
+            return true;
         }
 
 #region SubShader
