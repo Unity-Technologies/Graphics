@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: GreyFloor
+  m_Name: GreyFloor 2
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
@@ -211,7 +211,7 @@ Material:
     - _SSSAndTransmissionType: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
-    - _Smoothness: 0.823
+    - _Smoothness: 0.205
     - _SmoothnessRemapMax: 0.8636441
     - _SmoothnessRemapMin: 0.23889849
     - _SpecularAAScreenSpaceVariance: 0.1
@@ -258,9 +258,9 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+    - _BaseColor: {r: 0.496, g: 0.496, b: 0.496, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+    - _Color: {r: 0.496, g: 0.496, b: 0.496, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
