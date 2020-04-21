@@ -19,6 +19,15 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
+        [OneTimeSetUp]
+        public void Setup()
+        {
+            if(!AssetDatabase.IsValidFolder("Assets/Testing/ImportTests"))
+            {
+                AssetDatabase.CreateFolder("Assets/Testing", "ImportTests");
+            }
+        }
+
         [TestCaseSource(typeof(ImportCases))]
         public void CopyOverAndImport(string assetPath)
         {
