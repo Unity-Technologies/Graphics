@@ -1,5 +1,5 @@
-### **Please read**
-**PR workflow guidelines**
+# Please read
+## PR workflow guidelines
 * SRP ABV will start automatically on Yamato when you open your PR
 * Changes to docs and md files will **not** trigger ABV jobs 
 * Consider making use of **draft PRs** if you are not 100% sure that your PR is ready for review
@@ -8,35 +8,26 @@
 * You can also add [skip ci] to commit messages to prevent CI from running on that push
 * Add [cancel old ci] to your commit message if you've made changes you want to test and no longer need the previous jobs
 
-### Checklist for PR maker
-- [ ] Have you added a backport label (if needed)? For example, the `need-backport-*` label. After you backport the PR, the label changes to `backported-*`.
-- [ ] Have you updated the changelog? Each package has a `CHANGELOG.md` file.
-- [ ] Have you updated or added the documentation for your PR? When you add a new feature, change a property name, or change the behavior of a feature, it's best practice to include related documentation changes in the same PR.
-- [ ] Have you added a graphic test for your PR (if needed)? When you add a new feature, or discover a bug that tests don't cover, please add a graphic test.
+## Reminders
+- Have you added a backport label (if needed)? For example, the `need-backport-*` label. After you backport the PR, the label changes to `backported-*`.
+- Have you updated the changelog? Each package has a `CHANGELOG.md` file.
+- Have you updated or added the documentation for your PR? When you add a new feature, change a property name, or change the behavior of a feature, it's best practice to include related documentation changes in the same PR.
+- Have you added a graphic test for your PR (if needed)? When you add a new feature, or discover a bug that tests don't cover, please add a graphic test.
 
----
-### Purpose of this PR
+# Purpose of this PR
 Why is this PR needed, what hard problem is it solving/fixing?
 
----
-### Testing status
+# Testing status
+## Manual Tests
+What have you tested?
 
-**Manual Tests**: What did you do?
-- [ ] Opened test project + Run graphic tests locally
-- [ ] Built a player
-- [ ] Checked new UI names with UX convention
-- [ ] Tested UI multi-edition + Undo/Redo + Prefab overrides + Alignment in Preset
-- [ ] C# and shader warnings (supress shader cache to see them)
-- [ ] Checked new resources path for the reloader (in developer mode, you have a button at end of resources that check the paths)
-- Other: 
+## Automated Tests
+What did you setup? (Add a screenshot or the reference image of the test please)
 
-**Automated Tests**: What did you setup? (Add a screenshot or the reference image of the test please)
+**Yamato**: (Select your branch) https://yamato.prd.cds.internal.unity3d.com/jobs/902-Graphics
 
-**Yamato**: (Select your branch):
-https://yamato.prd.cds.internal.unity3d.com/jobs/902-Graphics
+## Links
+Any test projects or documents to go with this to help reviewers?
 
-Any test projects to go with this to help reviewers?
-
----
-### Comments to reviewers
+# Comments to reviewers
 Notes for the reviewers you have assigned.
