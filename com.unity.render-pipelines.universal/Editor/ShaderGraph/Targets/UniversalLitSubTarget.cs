@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
         }
 
-        public bool TryUpgradeFromMasterNode(MasterNode1 masterNode)
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode)
         {
             if(!(masterNode is PBRMasterNode1 pbrMasterNode))
                 return false;

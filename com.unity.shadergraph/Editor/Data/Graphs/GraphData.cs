@@ -1420,24 +1420,8 @@ namespace UnityEditor.ShaderGraph
             m_Edges.Sort();
         }
 
-        // Lookup table for master node upgrades
-        // All master nodes and their FormerName attributes must exist here
-        static Dictionary<string, Type> s_MasterNodeUpgrades = new Dictionary<string, Type>()
-        {
-            { "UnityEditor.ShaderGraph.PBRMasterNode", typeof(PBRMasterNode1) },
-            { "UnityEditor.ShaderGraph.UnlitMasterNode", typeof(UnlitMasterNode1) },
-            { "UnityEditor.Experimental.Rendering.Universal.SpriteLitMasterNode", typeof(SpriteLitMasterNode1) },
-            { "UnityEditor.Experimental.Rendering.LWRP.SpriteLitMasterNode", typeof(SpriteLitMasterNode1) },
-            { "UnityEditor.Experimental.Rendering.Universal.SpriteUnlitMasterNode", typeof(SpriteUnlitMasterNode1) },
-            { "UnityEditor.Experimental.Rendering.LWRP.SpriteUnlitMasterNode", typeof(SpriteUnlitMasterNode1) },
-        };
-
         static JsonObject DeserializeLegacy(string typeString, string json)
         {
-            // Ignore master nodes, we handle them manually on upgrade
-            if(s_MasterNodeUpgrades.TryGetValue(typeString, out _))
-                return null;
-
             var value = MultiJsonInternal.CreateInstance(typeString);
             if (value == null)
             {
@@ -1577,19 +1561,14 @@ namespace UnityEditor.ShaderGraph
                 {
                     m_OutputNode = subgraphOuput.FirstOrDefault();
                 }
+                else if (!string.IsNullOrEmpty(graphData0.m_ActiveOutputNodeGuidSerialized))
+                {
+                    m_OutputNode = nodeGuidMap[graphData0.m_ActiveOutputNodeGuidSerialized];
+                }
                 else
                 {
-                    // Version2 doesnt support Output node for Shader Graphs
-                    m_OutputNode = null;
+                    m_OutputNode = (AbstractMaterialNode)GetNodes<IMasterNode1>().FirstOrDefault();
                 }
-                // else if (!string.IsNullOrEmpty(graphData0.m_ActiveOutputNodeGuidSerialized))
-                // {
-                //     m_OutputNode = nodeGuidMap[graphData0.m_ActiveOutputNodeGuidSerialized];
-                // }
-                // else
-                // {
-                //     m_OutputNode = (AbstractMaterialNode)GetNodes<MasterNode1>().FirstOrDefault();
-                // }
 
                 foreach (var serializedElement in graphData0.m_SerializableEdges)
                 {
@@ -1604,66 +1583,61 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            if(m_Version < 2)
+            // In V2 we need to defer version set to in OnAfterMultiDeserialize
+            // This is because we need access to m_OutputNode to convert it to Targets and Stacks
+            // The JsonObject will not be fully deserialized until OnAfterMultiDeserialize
+            bool deferredUpgrades = m_Version < 2;
+            if(!deferredUpgrades)
             {
-                // var idField = typeof(JsonRef<AbstractMaterialNode>).GetField("m_Id", BindingFlags.Instance | BindingFlags.NonPublic);
-                // Get the raw Json for the output node
-                // var id = (string)idField.GetValue(m_OutputNode);
-                // MultiJsonInternal.valueMap.TryGetValue(id, out var jsonObject);
-
-                MasterNode1 DeserializeMasterNodeV0(GraphData0 graphData0)
-                {
-                    var outputGuid = graphData0.m_ActiveOutputNodeGuidSerialized;
-                    foreach (var serializedNode in graphData0.m_SerializableNodes)
-                    {
-                        if(!(s_MasterNodeUpgrades.TryGetValue(serializedNode.typeInfo.fullName, out var masterNodeType)))
-                            continue;
-                        
-                        // If type exists in dictionary we assume it can be deserialized and upgraded
-                        var mn = (MasterNode1)JsonUtility.FromJson(serializedNode.JSONnodeData, masterNodeType);
-
-                        // Finally test for active master node
-                        if(!string.IsNullOrEmpty(outputGuid) && outputGuid != mn.m_GuidSerialized)
-                            continue;
-
-                        return mn;
-                    }
-                    return null;
-                }
-
-                // HAve to handle V0 and V1 upgrades
-                MasterNode1 masterNode = null;
-                if(m_Version == 0)
-                {
-                    var graphData0 = JsonUtility.FromJson<GraphData0>(json);
-                    masterNode = DeserializeMasterNodeV0(graphData0);
-                }
-
-                // Try to upgrade all valid targets from master node
-                // On ShaderGraph side we dont know what Targets exist so make no assumptions
-                if(masterNode != null)
-                {
-                    foreach(var target in m_ValidTargets)
-                    {
-                        if(!(target is ILegacyTarget legacyTarget))
-                            continue;
-                        
-                        if(!legacyTarget.TryUpgradeFromMasterNode(masterNode))
-                            continue;
-                        
-                        m_ActiveTargets.Add(target);
-                    }
-                }
-
-                // Ensure correct initialization of Contexts
-                AddContexts();
+                m_Version = k_CurrentVersion;
             }
-
-            m_Version = k_CurrentVersion;
         }
 
         public override void OnAfterMultiDeserialize(string json)
         {
+            // Deferred upgrades
+            if(m_Version != k_CurrentVersion)
+            {
+                if(m_Version < 2)
+                {
+                    var masterNode = m_OutputNode.value as IMasterNode1;
+
+                    // Try to upgrade all valid targets from master node
+                    // On ShaderGraph side we dont know what Targets exist so make no assumptions
+                    if(masterNode != null)
+                    {
+                        foreach(var target in m_ValidTargets)
+                        {
+                            if(!(target is ILegacyTarget legacyTarget))
+                                continue;
+                            
+                            if(!legacyTarget.TryUpgradeFromMasterNode(masterNode))
+                                continue;
+                            
+                            m_ActiveTargets.Add(target);
+                        }
+                    }
+
+                    // Clean up after upgrade
+                    if(!isSubGraph)
+                    {
+                        m_OutputNode = null;
+                    }
+
+                    var masterNodes = GetNodes<IMasterNode1>().ToArray();
+                    for(int i = 0; i < masterNodes.Length; i++)
+                    {
+                        var node = masterNodes.ElementAt(i) as AbstractMaterialNode;
+                        m_Nodes.Remove(node);
+                    }
+
+                    // Ensure correct initialization of Contexts
+                    AddContexts();
+                }
+
+                m_Version = k_CurrentVersion;
+            }
+
             m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>(m_Nodes.Count);
 
             foreach (var group in m_GroupDatas.SelectValue())

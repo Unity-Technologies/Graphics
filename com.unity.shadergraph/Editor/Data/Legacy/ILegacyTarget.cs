@@ -2,6 +2,6 @@
 {
     public interface ILegacyTarget
     {
-        bool TryUpgradeFromMasterNode(MasterNode1 masterNode);
+        bool TryUpgradeFromMasterNode(IMasterNode1 masterNode);
     }
 }

@@ -231,7 +231,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
         }
 
-        public bool TryUpgradeFromMasterNode(MasterNode1 masterNode)
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode)
         {
             // Upgrade Target
             switch(masterNode)

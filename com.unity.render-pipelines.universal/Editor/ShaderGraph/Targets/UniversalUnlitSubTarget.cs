@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
         }
 
-        public bool TryUpgradeFromMasterNode(MasterNode1 masterNode)
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode)
         {
             return (masterNode is UnlitMasterNode1 unlitMasterNode);
         }
