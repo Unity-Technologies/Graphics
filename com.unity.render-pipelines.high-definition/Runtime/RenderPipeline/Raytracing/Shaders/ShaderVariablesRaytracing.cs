@@ -30,5 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Path tracing parameters
         public int _RaytracingMinRecursion;
         public int _RaytracingMaxRecursion;
+        // Ray traced indirect diffuse data
+        public int _RayTracingDiffuseLightingOnly;
     }
 }

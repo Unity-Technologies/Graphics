@@ -76,25 +76,38 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_LayerMask);
                     PropertyField(m_RayLength);
                     PropertyField(m_ClampValue);
-                    PropertyField(m_Mode);
 
-                    EditorGUI.indentLevel++;
-                    switch (m_Mode.value.GetEnumValue<RayTracingMode>())
+                    if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
                     {
-                        case RayTracingMode.Performance:
-                            {
-                                PropertyField(m_FullResolution);
-                                PropertyField(m_UpscaleRadius);
-                            }
-                            break;
-                        case RayTracingMode.Quality:
-                            {
-                                PropertyField(m_SampleCount);
-                                PropertyField(m_BounceCount);
-                            }
-                            break;
+                        PropertyField(m_Mode);
+                        EditorGUI.indentLevel++;
+                        switch (m_Mode.value.GetEnumValue<RayTracingMode>())
+                        {
+                            case RayTracingMode.Performance:
+                                {
+                                    PropertyField(m_FullResolution);
+                                    PropertyField(m_UpscaleRadius);
+                                }
+                                break;
+                            case RayTracingMode.Quality:
+                                {
+                                    PropertyField(m_SampleCount);
+                                    PropertyField(m_BounceCount);
+                                }
+                                break;
+                        }
+                        EditorGUI.indentLevel--;
                     }
-                    EditorGUI.indentLevel--;
+                    else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality)
+                    {
+                        PropertyField(m_SampleCount);
+                        PropertyField(m_BounceCount);
+                    }
+                    else
+                    {
+                        PropertyField(m_FullResolution);
+                        PropertyField(m_UpscaleRadius);
+                    }
 
                     PropertyField(m_Denoise);
                     {
