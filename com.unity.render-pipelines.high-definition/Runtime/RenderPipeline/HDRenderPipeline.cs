@@ -4795,6 +4795,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hdrp = HDRenderPipeline.currentPipeline;
                 overrideHDCamera = HDCamera.GetOrCreate(overrideCamera);
 
+                // Mark the HDCamera as persistant so it's not deleted because it's camera is disabled.
+                overrideHDCamera.isPersistent = true;
+
                 // We need to patch the pixel rect of the camera because by default the camera size is synchronized 
                 // with the game view and so it breaks in the scene view. Note that we can't use Camera.pixelRect here
                 // because when we assign it, the change is not instantaneous and is not reflected in pixelWidth/pixelHeight.
@@ -4805,7 +4808,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 overrideCamera.aspect = (float)hdrp.m_CurrentHDCamera.camera.pixelRect.width / (float)hdrp.m_CurrentHDCamera.camera.pixelRect.height;
 
                 // Update HDCamera datas
-                overrideHDCamera.Update(overrideHDCamera.frameSettings, hdrp, hdrp.m_MSAASamples, hdrp.m_XRSystem.emptyPass);
+                overrideHDCamera.Update(overrideHDCamera.frameSettings, hdrp, hdrp.m_MSAASamples, hdrp.m_XRSystem.emptyPass, allocateHistoryBuffers: false);
                 overrideHDCamera.UpdateShaderVariablesGlobalCB(ref hdrp.m_ShaderVariablesGlobalCB, hdrp.m_FrameCount);
 
                 ConstantBuffer.PushGlobal(cmd, hdrp.m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
