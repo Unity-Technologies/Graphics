@@ -1215,6 +1215,7 @@ namespace UnityEditor.ShaderGraph
                 var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
                 var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
                 var keywordField = typeof(KeywordNode).GetField("m_Keyword", BindingFlags.Instance | BindingFlags.NonPublic);
+                var defaultReferenceNameField = typeof(ShaderInput).GetField("m_DefaultReferenceName", BindingFlags.Instance | BindingFlags.NonPublic);
 
                 m_GroupDatas.Clear();
                 m_StickyNoteDatas.Clear();
@@ -1245,6 +1246,22 @@ namespace UnityEditor.ShaderGraph
 
                     var input0 = JsonUtility.FromJson<ShaderInput0>(serializedProperty.JSONnodeData);
                     propertyGuidMap[input0.m_Guid.m_GuidSerialized] = property;
+
+                    // Fix up missing reference names
+                    // Properties on Sub Graphs in V0 never have reference names serialized
+                    // To maintain Sub Graph node property mapping we force guid based reference names on upgrade
+                    if ((string)defaultReferenceNameField.GetValue(property) == string.Empty)
+                    {
+                        // ColorShaderProperty is the only Property case where `GetDefaultReferenceName` was overriden
+                        if(serializedProperty.typeInfo.fullName.Equals(typeof(ColorShaderProperty).FullName))
+                        {
+                            defaultReferenceNameField.SetValue(property, $"Color_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
+                        }
+                        else
+                        {
+                            defaultReferenceNameField.SetValue(property, $"{property.concreteShaderValueType}_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
+                        }
+                    }
                 }
 
                 foreach (var serializedKeyword in graphData0.m_SerializedKeywords)

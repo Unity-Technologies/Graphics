@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override string GetDefaultReferenceName()
         {
-            return $"Color_{GuidEncoder.Encode(guid)}";
+            return $"Color_{objectId}";
         }
         
         [SerializeField]
