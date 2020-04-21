@@ -72,6 +72,10 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return "VFX.NotifyDeletedAsset";
                 yield return "VFX.DefaultCommandBuffer";
                 yield return "VFX.RegisterGizmos";
+                yield return "VFXEditor.VisualEffectImporter.GenerateAssetData";
+                yield return "VFXEditor.VisualEffectImporter.GenerateAssetDataOneShader";
+                yield return "VFXEditor.VisualEffectResource.GetResourceAtPath";
+                yield return "VFXEditor.VisualEffectResource.GetResourceAtPath_Depoint";
             }
         }
 
