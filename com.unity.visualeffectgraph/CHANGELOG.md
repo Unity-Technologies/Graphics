@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix various bugs in Position (Cone) block [Case 1111053](https://issuetracker.unity3d.com/product/unity/issues/guid/1111053/)
 - Fix space issues with blocks and operators taking a camera as input
 - Generated shaderName are now consistent with displayed system names
+- Don't lose SRP output specific data when SRP package is not present
 
 ## [8.0.1] - 2020-02-25
 
