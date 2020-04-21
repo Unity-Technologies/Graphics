@@ -517,7 +517,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
 
-                    // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the phgysical camera mode)
+                    // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
                     bool isDoFPathTraced = (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
                          camera.volumeStack.GetComponent<PathTracing>().enable.value &&
                          camera.camera.cameraType != CameraType.Preview &&
