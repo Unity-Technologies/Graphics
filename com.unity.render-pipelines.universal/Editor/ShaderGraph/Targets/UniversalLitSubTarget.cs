@@ -170,6 +170,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     break;
             }
 
+            // PBRMasterNode adds/removes Metallic/Specular based on settings
+            BlockFieldDescriptor specularMetallicBlock;
+            int specularMetallicId;
+            if(m_WorkflowMode == WorkflowMode.Specular)
+            {
+                specularMetallicBlock = BlockFields.SurfaceDescription.Specular;
+                specularMetallicId = 3;
+            }
+            else
+            {
+                specularMetallicBlock = BlockFields.SurfaceDescription.Metallic;
+                specularMetallicId = 2;
+            }
+
             // Set blockmap
             blockMap = new Dictionary<BlockFieldDescriptor, int>()
             {
@@ -178,8 +192,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { BlockFields.VertexDescription.Tangent, 11 },
                 { BlockFields.SurfaceDescription.BaseColor, 0 },
                 { normalBlock, 1 },
-                { BlockFields.SurfaceDescription.Metallic, 2 },
-                { BlockFields.SurfaceDescription.Specular, 3 },
+                { specularMetallicBlock, specularMetallicId },
                 { BlockFields.SurfaceDescription.Emission, 4 },
                 { BlockFields.SurfaceDescription.Smoothness, 5 },
                 { BlockFields.SurfaceDescription.Occlusion, 6 },

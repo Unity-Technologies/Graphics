@@ -1601,6 +1601,13 @@ namespace UnityEditor.ShaderGraph
                 {
                     var masterNode = m_OutputNode.value as IMasterNode1;
 
+                    // This is required for edge lookup during Target upgrade
+                    m_OutputNode.value.owner = this;
+                    foreach (var edge in m_Edges)
+                    {
+                        AddEdgeToNodeEdges(edge);
+                    }
+
                     // Try to upgrade all valid targets from master node
                     // On ShaderGraph side we dont know what Targets exist so make no assumptions
                     Dictionary<BlockFieldDescriptor, int> blockMap = null;
@@ -1681,6 +1688,8 @@ namespace UnityEditor.ShaderGraph
                         var node = masterNodes.ElementAt(i) as AbstractMaterialNode;
                         m_Nodes.Remove(node);
                     }
+
+                    m_NodeEdges.Clear();
                 }
 
                 m_Version = k_CurrentVersion;
