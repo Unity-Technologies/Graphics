@@ -185,12 +185,6 @@ namespace UnityEditor.ShaderGraph
             get { return m_Id; }
         }
 
-        public int priority
-        {
-            get { return m_Priority; }
-            set { m_Priority = value; }
-        }
-
         public bool isInputSlot
         {
             get { return m_SlotType == SlotType.Input; }

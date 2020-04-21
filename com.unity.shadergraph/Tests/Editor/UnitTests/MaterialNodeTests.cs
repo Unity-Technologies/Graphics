@@ -62,12 +62,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [Test]
-        public void AddingNonMaterialSlotToNodeThrows()
-        {
-            Assert.Throws<ArgumentException>(() => m_NodeA.AddSlot(new NotAMaterialSlot()));
-        }
-
-        [Test]
         public void ReplacingMaterialSlotPreservesTheOldCurrentValue()
         {
             m_NodeA.AddSlot(new Vector1MaterialSlot(TestNode.V1In, "V1In", "V1In", SlotType.Input, 1));

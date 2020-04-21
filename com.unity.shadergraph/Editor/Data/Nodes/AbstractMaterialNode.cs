@@ -591,6 +591,7 @@ namespace UnityEditor.ShaderGraph
             // Try to keep the existing instance to avoid unnecessary changes to file
             if (foundSlot != null && slot.GetType() == foundSlot.GetType())
             {
+                foundSlot.displayName = slot.RawDisplayName();
                 return;
             }
 
