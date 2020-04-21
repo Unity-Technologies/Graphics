@@ -80,12 +80,15 @@ namespace UnityEditor.ShaderGraph
 #endif
                 value = 0
             });
+
 #else
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
                 overrideReferenceName = "_SkinMatricesOffset",
                 gpuInstanced = true,
+#if ENABLE_HYBRID_RENDERER_V2
                 hidden = true,
+#endif
                 value = 0
             });
 #endif
