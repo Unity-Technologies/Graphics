@@ -255,9 +255,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         public VirtualTexturingSettingsSRP virtualTexturingSettings = new VirtualTexturingSettingsSRP();
 
-        [SerializeField]
-        public VirtualTexturingSettingsSRP virtualTexturingSettings;
-
 #if UNITY_EDITOR
         /// <summary>HDRP default material.</summary>
         public override Material defaultMaterial
