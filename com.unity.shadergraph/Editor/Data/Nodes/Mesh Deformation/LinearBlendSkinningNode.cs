@@ -69,6 +69,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
+#if HYBRID_RENDERER_0_5_0_OR_NEWER
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
                 displayName = "Skin Matrix Index Offset",
@@ -79,6 +80,16 @@ namespace UnityEditor.ShaderGraph
 #endif
                 value = 0
             });
+#else
+            properties.AddShaderProperty(new Vector1ShaderProperty()
+            {
+                overrideReferenceName = "_SkinMatricesOffset",
+                gpuInstanced = true,
+                hidden = true,
+                value = 0
+            });
+#endif
+
 
             base.CollectShaderProperties(properties, generationMode);
         }
@@ -136,8 +147,12 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("for (int i = 0; i < 4; ++i)");
                     sb.AppendLine("{");
                     using (sb.IndentScope())
-                    {
+                {
+#if HYBRID_RENDERER_0_5_0_OR_NEWER
                         sb.AppendLine("$precision3x4 skinMatrix = _SkinMatrices[indices[i] + asint(_SkinMatrixIndex)];");
+#else
+                        sb.AppendLine("$precision3x4 skinMatrix = _SkinMatrices[indices[i] + (int)_SkinMatricesOffset];");
+#endif
                         sb.AppendLine("$precision3 vtransformed = mul(skinMatrix, $precision4(positionIn, 1));");
                         sb.AppendLine("$precision3 ntransformed = mul(skinMatrix, $precision4(normalIn, 0));");
                         sb.AppendLine("$precision3 ttransformed = mul(skinMatrix, $precision4(tangentIn, 0));");
@@ -155,13 +170,6 @@ namespace UnityEditor.ShaderGraph
         string GetFunctionName()
         {
             return $"Unity_LinearBlendSkinning_{concretePrecision.ToShaderString()}";
-        }
-        protected override void CalculateNodeHasError()
-        {
-#if !HYBRID_RENDERER_0_4_0_OR_NEWER
-            owner.AddSetupError(guid, "Could not find 0.4.0 version or newer of Hybrid Renderer installed");
-            hasError = true;
-#endif
         }
     }
 }
