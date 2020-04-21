@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering
         static bool m_Loaded = false;
 
         static Color s_VolumeGizmoColor = new Color(0.2f, 0.8f, 0.1f, 0.5f);
+        static Color s_PreviewCameraBackgroundColor = new Color(49.0f / 255.0f, 49.0f / 255.0f, 49.0f / 255.0f, 0.0f);
         public static Color volumeGizmoColor
         {
             get => s_VolumeGizmoColor;
@@ -27,9 +28,21 @@ namespace UnityEngine.Rendering
             }
         }
 
+        public static Color cameraBackgroundColor
+        {
+            get => s_PreviewCameraBackgroundColor;
+            set
+            {
+                if (s_PreviewCameraBackgroundColor == value) return;
+                s_PreviewCameraBackgroundColor = value;
+                EditorPrefs.SetInt(Keys.cameraBackgroundColor, (int)ColorUtils.ToHex(value));
+            }
+        }
+
         static class Keys
         {
             internal const string volumeGizmoColor = "CoreRP.Volume.GizmoColor";
+            internal const string cameraBackgroundColor = "CoreRP.PreviewCamera.BackgroundColor";
         }
 
         [SettingsProvider]
@@ -41,8 +54,9 @@ namespace UnityEngine.Rendering
                 {
                     if (!m_Loaded)
                         Load();
-
+                    EditorGUIUtility.labelWidth = 170;
                     volumeGizmoColor = EditorGUILayout.ColorField("Volume Gizmo Color", volumeGizmoColor);
+                    cameraBackgroundColor = EditorGUILayout.ColorField("Preview Background Color", cameraBackgroundColor);
                 }
             };
         }
@@ -55,6 +69,7 @@ namespace UnityEngine.Rendering
         static void Load()
         {
             s_VolumeGizmoColor = GetColor(Keys.volumeGizmoColor, new Color(0.2f, 0.8f, 0.1f, 0.5f));
+            s_PreviewCameraBackgroundColor = GetColor(Keys.cameraBackgroundColor, new Color(49.0f / 255.0f, 49.0f / 255.0f, 49.0f / 255.0f, 0.0f));
 
             m_Loaded = true;
         }
