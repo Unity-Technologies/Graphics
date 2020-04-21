@@ -827,9 +827,15 @@ namespace Drawing.Inspector
         }
         public MatrixDimensions dimension { get; set; }
 
+        public delegate Vector4 GetMatrixRowDelegate(int rowNumber);
+
         internal Action PreValueChangeCallback;
         internal delegate void ValueChangedCallback(Matrix4x4 newValue);
         internal Action PostValueChangeCallback;
+        // Matrix4x4, Matrix3x3, Matrix2x2 are all value types,
+        // hence the local value doesn't stay up to date after modified
+        // Need a callback to fetch the row data directly from the source
+        internal GetMatrixRowDelegate MatrixRowFetchCallback;
 
         private void HandleMatrix2Property(
             ValueChangedCallback valueChangedCallback,
@@ -844,7 +850,7 @@ namespace Drawing.Inspector
             propertySheet.Add(vector2PropertyDrawer.CreateGUI(
                 newValue =>
                 {
-                    Vector2 row1 = matrix2Property.GetRow(1);
+                    Vector2 row1 = MatrixRowFetchCallback(1);
                     valueChangedCallback(new Matrix4x4()
                     {
                         m00 = newValue.x,
@@ -873,7 +879,7 @@ namespace Drawing.Inspector
             propertySheet.Add(vector2PropertyDrawer.CreateGUI(
                 newValue =>
                 {
-                    Vector2 row0 = matrix2Property.GetRow(0);
+                    Vector2 row0 = MatrixRowFetchCallback(0);
                     valueChangedCallback(new Matrix4x4()
                     {
                         m00 = row0.x,
@@ -913,8 +919,8 @@ namespace Drawing.Inspector
             propertySheet.Add(vector3PropertyDrawer.CreateGUI(
                 newValue =>
                 {
-                    Vector3 row1 = matrix3Property.GetRow(1);
-                    Vector3 row2 = matrix3Property.GetRow(2);
+                    Vector3 row1 = MatrixRowFetchCallback(1);
+                    Vector3 row2 = MatrixRowFetchCallback(2);
                     valueChangedCallback(new Matrix4x4()
                     {
                         m00 = newValue.x,
@@ -943,8 +949,8 @@ namespace Drawing.Inspector
             propertySheet.Add(vector3PropertyDrawer.CreateGUI(
                 newValue =>
                 {
-                    Vector3 row0 = matrix3Property.GetRow(0);
-                    Vector3 row2 = matrix3Property.GetRow(2);
+                    Vector3 row0 = MatrixRowFetchCallback(0);
+                    Vector3 row2 = MatrixRowFetchCallback(2);
                     valueChangedCallback(new Matrix4x4()
                     {
                         m00 = row0.x,
@@ -973,8 +979,8 @@ namespace Drawing.Inspector
             propertySheet.Add(vector3PropertyDrawer.CreateGUI(
                 newValue =>
                 {
-                    Vector3 row0 = matrix3Property.GetRow(0);
-                    Vector3 row1 = matrix3Property.GetRow(1);
+                    Vector3 row0 = MatrixRowFetchCallback(0);
+                    Vector3 row1 = MatrixRowFetchCallback(1);
                     valueChangedCallback(new Matrix4x4()
                     {
                         m00 = row0.x,
@@ -1014,9 +1020,9 @@ namespace Drawing.Inspector
             propertySheet.Add(vector4PropertyDrawer.CreateGUI(
                 newValue =>
                 {
-                    Vector4 row1 = matrix4Property.GetRow(1);
-                    Vector4 row2 = matrix4Property.GetRow(2);
-                    Vector4 row3 = matrix4Property.GetRow(3);
+                    Vector4 row1 = MatrixRowFetchCallback(1);
+                    Vector4 row2 = MatrixRowFetchCallback(2);
+                    Vector4 row3 = MatrixRowFetchCallback(3);
                     valueChangedCallback(new Matrix4x4()
                     {
                         m00 = newValue.x,
@@ -1045,9 +1051,9 @@ namespace Drawing.Inspector
             propertySheet.Add(vector4PropertyDrawer.CreateGUI(
                 newValue =>
                 {
-                    Vector4 row0 = matrix4Property.GetRow(0);
-                    Vector4 row2 = matrix4Property.GetRow(2);
-                    Vector4 row3 = matrix4Property.GetRow(3);
+                    Vector4 row0 = MatrixRowFetchCallback(0);
+                    Vector4 row2 = MatrixRowFetchCallback(2);
+                    Vector4 row3 = MatrixRowFetchCallback(3);
                     valueChangedCallback(new Matrix4x4()
                     {
                         m00 = row0.x,
@@ -1076,9 +1082,9 @@ namespace Drawing.Inspector
             propertySheet.Add(vector4PropertyDrawer.CreateGUI(
                 newValue =>
                 {
-                    Vector4 row0 = matrix4Property.GetRow(0);
-                    Vector4 row1 = matrix4Property.GetRow(1);
-                    Vector4 row3 = matrix4Property.GetRow(3);
+                    Vector4 row0 = MatrixRowFetchCallback(0);
+                    Vector4 row1 = MatrixRowFetchCallback(1);
+                    Vector4 row3 = MatrixRowFetchCallback(3);
                     valueChangedCallback(new Matrix4x4()
                     {
                         m00 = row0.x,
@@ -1106,9 +1112,9 @@ namespace Drawing.Inspector
             propertySheet.Add(vector4PropertyDrawer.CreateGUI(
                 newValue =>
                 {
-                    Vector4 row0 = matrix4Property.GetRow(0);
-                    Vector4 row1 = matrix4Property.GetRow(1);
-                    Vector4 row2 = matrix4Property.GetRow(2);
+                    Vector4 row0 = MatrixRowFetchCallback(0);
+                    Vector4 row1 = MatrixRowFetchCallback(1);
+                    Vector4 row2 = MatrixRowFetchCallback(2);
                     valueChangedCallback(new Matrix4x4()
                     {
                         m00 = row0.x,

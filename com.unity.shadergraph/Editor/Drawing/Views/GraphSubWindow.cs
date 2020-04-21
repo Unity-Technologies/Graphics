@@ -238,7 +238,7 @@ namespace Drawing.Views
 
         void OnWindowResize(MouseUpEvent upEvent)
         {
-            SerializeLayout();
+            // SerializeLayout();
         }
 
         void SerializeLayout()

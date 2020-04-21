@@ -14,6 +14,7 @@ using UnityEditor.UIElements;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;
+using FloatField = UnityEditor.ShaderGraph.Drawing.FloatField;
 
 namespace Drawing.Inspector
 {
@@ -40,6 +41,7 @@ namespace Drawing.Inspector
         private bool isSubGraph { get ; set;  }
         private ChangeExposedFieldCallback _exposedFieldChangedCallback;
         private ChangeReferenceNameCallback _referenceNameChangedCallback;
+        private Action _precisionChangedCallback;
         private Action _keywordChangedCallback;
         private ChangeValueCallback _changeValueCallback;
         private PreChangeValueCallback _preChangeValueCallback;
@@ -48,6 +50,7 @@ namespace Drawing.Inspector
         public void GetPropertyData(bool isSubGraph,
             ChangeExposedFieldCallback exposedFieldCallback,
             ChangeReferenceNameCallback referenceNameCallback,
+            Action precisionChangedCallback,
             Action keywordChangedCallback,
             ChangeValueCallback changeValueCallback,
             PreChangeValueCallback preChangeValueCallback,
@@ -56,6 +59,7 @@ namespace Drawing.Inspector
             this.isSubGraph = isSubGraph;
             this._exposedFieldChangedCallback = exposedFieldCallback;
             this._referenceNameChangedCallback = referenceNameCallback;
+            this._precisionChangedCallback = precisionChangedCallback;
             this._changeValueCallback = changeValueCallback;
             this._keywordChangedCallback = keywordChangedCallback;
             this._preChangeValueCallback = preChangeValueCallback;
@@ -120,7 +124,7 @@ namespace Drawing.Inspector
                         else
                             m_ReferenceNameField.AddToClassList("modified");
 
-                        this._postChangeValueCallback(false, ModificationScope.Graph);
+                        this._postChangeValueCallback(true, ModificationScope.Graph);
                     });
 
                 _resetReferenceNameCallback = newValue =>
@@ -205,6 +209,7 @@ namespace Drawing.Inspector
                     if (property.precision == (Precision) newValue)
                         return;
                     property.precision = (Precision)newValue;
+                    this._precisionChangedCallback();
                     this._postChangeValueCallback();
                 }, property.precision, "Precision", Precision.Inherit, out var precisionField));
         }
@@ -235,48 +240,75 @@ namespace Drawing.Inspector
                         vector1ShaderProperty.value,
                         "Default",
                         out var propertyFloatField));
-                    propertyFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
-                        {
-                            _preChangeValueCallback("Change Property Value");
-                            float minValue = Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.x);
-                            float maxValue = Mathf.Max(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y);
-                            vector1ShaderProperty.rangeValues = new Vector2(minValue, maxValue);
-                            _postChangeValueCallback();
-                        });
 
                     // Min field
-                    var minFieldChangedCallback = new ChangeValueCallback(newValue =>
+                    propertySheet.Add(sliderFloatPropertyDrawer.CreateGUI(
+                        newValue =>
                         {
                             _preChangeValueCallback("Change Range Property Minimum");
                             vector1ShaderProperty.rangeValues = new Vector2((float)newValue, vector1ShaderProperty.rangeValues.x);
                             _postChangeValueCallback();
-                        });
-                    propertySheet.Add(sliderFloatPropertyDrawer.CreateGUI(
-                        newValue => minFieldChangedCallback(newValue),
+                        },
                         vector1ShaderProperty.rangeValues.x,
                         "Min",
                         out var minFloatField));
-                    minFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
-                    {
-                        vector1ShaderProperty.value = Mathf.Max(Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y), vector1ShaderProperty.rangeValues.x);
-                        _postChangeValueCallback();
-                    });
 
                     // Max field
-                    var maxFieldChangedCallback = new ChangeValueCallback(newValue =>
-                    {
-                        this._preChangeValueCallback("Change Range Property Maximum");
-                        vector1ShaderProperty.rangeValues = new Vector2(vector1ShaderProperty.rangeValues.x, (float)newValue);
-                        this._postChangeValueCallback();
-                    });
                     propertySheet.Add(sliderFloatPropertyDrawer.CreateGUI(
-                        newValue => maxFieldChangedCallback(newValue),
+                        newValue =>
+                        {
+                            this._preChangeValueCallback("Change Range Property Maximum");
+                            vector1ShaderProperty.rangeValues = new Vector2(vector1ShaderProperty.rangeValues.x, (float)newValue);
+                            this._postChangeValueCallback();
+                        },
                         vector1ShaderProperty.rangeValues.y,
                         "Max",
                         out var maxFloatField));
+
+                    var defaultField = (FloatField) propertyFloatField;
+                    var minField = (FloatField) minFloatField;
+                    var maxField = (FloatField) maxFloatField;
+
+                    propertyFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+                    {
+                        _preChangeValueCallback("Change Property Value");
+                        float minValue = Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.x);
+                        float maxValue = Mathf.Max(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y);
+                        vector1ShaderProperty.rangeValues = new Vector2(minValue, maxValue);
+                        minField.value = minValue;
+                        maxField.value = maxValue;
+                        _postChangeValueCallback();
+                    });
+
+                    minFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+                    {
+                        // If the min is set to greater than max, swap the values before clamping
+                        if (vector1ShaderProperty.rangeValues.x > vector1ShaderProperty.rangeValues.y)
+                        {
+                            vector1ShaderProperty.rangeValues = new Vector2(vector1ShaderProperty.rangeValues.y,
+                                vector1ShaderProperty.rangeValues.x);
+                            double temp = minField.value;
+                            minField.value = maxField.value;
+                            maxField.value = temp;
+                        }
+                        vector1ShaderProperty.value = Mathf.Clamp(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y);
+                        defaultField.value = vector1ShaderProperty.value;
+                        _postChangeValueCallback();
+                    });
+
                     maxFloatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                     {
-                        vector1ShaderProperty.value = Mathf.Max(Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y), vector1ShaderProperty.rangeValues.x);
+                        // If the max is set to lesser than min, swap the values before clamping
+                        if (vector1ShaderProperty.rangeValues.y < vector1ShaderProperty.rangeValues.x)
+                        {
+                            vector1ShaderProperty.rangeValues = new Vector2(vector1ShaderProperty.rangeValues.y,
+                                vector1ShaderProperty.rangeValues.x);
+                            double temp = minField.value;
+                            minField.value = maxField.value;
+                            maxField.value = temp;
+                        }
+                        vector1ShaderProperty.value = Mathf.Clamp(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.x, vector1ShaderProperty.rangeValues.y);
+                        defaultField.value = vector1ShaderProperty.value;
                         this._postChangeValueCallback();
                     });
                     break;
@@ -504,7 +536,8 @@ namespace Drawing.Inspector
             {
                 dimension = MatrixPropertyDrawer.MatrixDimensions.Two,
                 PreValueChangeCallback = () => this._preChangeValueCallback("Change property value"),
-                PostValueChangeCallback = () => this._postChangeValueCallback()
+                PostValueChangeCallback = () => this._postChangeValueCallback(),
+                MatrixRowFetchCallback = (rowNumber) => matrix2Property.value.GetRow(rowNumber)
             };
 
             propertySheet.Add(matrixPropertyDrawer.CreateGUI(
@@ -520,7 +553,8 @@ namespace Drawing.Inspector
             {
                 dimension = MatrixPropertyDrawer.MatrixDimensions.Three,
                 PreValueChangeCallback = () => this._preChangeValueCallback("Change property value"),
-                PostValueChangeCallback = () => this._postChangeValueCallback()
+                PostValueChangeCallback = () => this._postChangeValueCallback(),
+                MatrixRowFetchCallback = (rowNumber) => matrix3Property.value.GetRow(rowNumber)
             };
 
             propertySheet.Add(matrixPropertyDrawer.CreateGUI(
@@ -536,7 +570,8 @@ namespace Drawing.Inspector
             {
                 dimension = MatrixPropertyDrawer.MatrixDimensions.Four,
                 PreValueChangeCallback = () => this._preChangeValueCallback("Change property value"),
-                PostValueChangeCallback = () => this._postChangeValueCallback()
+                PostValueChangeCallback = () => this._postChangeValueCallback(),
+                MatrixRowFetchCallback = (rowNumber) => matrix4Property.value.GetRow(rowNumber)
             };
 
             propertySheet.Add(matrixPropertyDrawer.CreateGUI(

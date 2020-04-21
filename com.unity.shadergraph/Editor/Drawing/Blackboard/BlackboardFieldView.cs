@@ -129,7 +129,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 shaderInputPropertyDrawer.GetPropertyData(m_Graph.isSubGraph,
                     this.ChangeExposedField,
                     this.ChangeReferenceNameField,
-                    () => { m_Graph.OnKeywordChanged(); },
+                    () => m_Graph.ValidateGraph(),
+                    () => m_Graph.OnKeywordChanged(),
                     this.ChangePropertyValue,
                     this.RegisterPropertyChangeUndo,
                     this.MarkNodesAsDirty);
