@@ -95,5 +95,12 @@ namespace UnityEditor.ShaderGraph
             if (slot != null)
                 value = slot.value;
         }
+        public override void CopyDefaultValue(MaterialSlot other)
+        {
+            if (other is IMaterialSlotHasValue<float> ms)
+            {
+                m_DefaultValue = ms.defaultValue;
+            }
+        }
     }
 }

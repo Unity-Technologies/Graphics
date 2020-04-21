@@ -304,5 +304,7 @@ namespace UnityEditor.ShaderGraph
                 return (m_Id * 397) ^ (owner != null ? owner.GetHashCode() : 0);
             }
         }
+
+        public abstract void CopyDefaultValue(MaterialSlot other);
     }
 }

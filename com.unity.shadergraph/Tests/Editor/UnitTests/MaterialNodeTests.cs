@@ -37,6 +37,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 throw new NotImplementedException();
             }
+
+            public override void CopyDefaultValue(MaterialSlot other)
+            {
+            }
+
             public override SlotValueType valueType { get; }
             public override ConcreteSlotValueType concreteValueType { get; }
         }

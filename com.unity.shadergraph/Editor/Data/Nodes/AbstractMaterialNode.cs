@@ -592,6 +592,7 @@ namespace UnityEditor.ShaderGraph
             if (foundSlot != null && slot.GetType() == foundSlot.GetType())
             {
                 foundSlot.displayName = slot.RawDisplayName();
+                foundSlot.CopyDefaultValue(slot);
                 return;
             }
 
