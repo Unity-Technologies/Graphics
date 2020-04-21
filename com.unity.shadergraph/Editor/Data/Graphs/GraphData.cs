@@ -1639,21 +1639,27 @@ namespace UnityEditor.ShaderGraph
 
                             // Now remap the incoming edges to blocks
                             var slotId = blockMapping.Value;
-                            if(m_OutputNode.value.FindSlot<MaterialSlot>(slotId) == null)
+                            var oldSlot = m_OutputNode.value.FindSlot<MaterialSlot>(slotId);
+                            var newSlot = block.FindSlot<MaterialSlot>(0);
+                            if(oldSlot == null)
                                 continue;
                             
-                            var oldInputSlot = m_OutputNode.value.GetSlotReference(slotId);
+                            var oldInputSlotRef = m_OutputNode.value.GetSlotReference(slotId);
+                            var newInputSlotRef = block.GetSlotReference(0);
+
+                            // Always copy the value over for convenience
+                            newSlot.CopyValuesFrom(oldSlot);
+
                             for(int i = 0; i < m_Edges.Count; i++)
                             {
                                 // Find all edges connected to the master node using slot ID from the block map
                                 // Remove them and replace them with new edges connected to the block nodes
                                 var edge = m_Edges[i];
-                                if(edge.inputSlot.Equals(oldInputSlot))
+                                if(edge.inputSlot.Equals(oldInputSlotRef))
                                 {
                                     var outputSlot = edge.outputSlot;
-                                    var newInputSlot = block.GetSlotReference(0);
                                     m_Edges.Remove(edge);
-                                    m_Edges.Add(new Edge(outputSlot, newInputSlot));
+                                    m_Edges.Add(new Edge(outputSlot, newInputSlotRef));
                                 }
                             }
                         }
