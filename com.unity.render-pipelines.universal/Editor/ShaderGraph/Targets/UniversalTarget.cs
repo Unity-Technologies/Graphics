@@ -233,6 +233,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
+            void UpgradeAlphaClip()
+            {
+                var clipThresholdId = 8;
+                var node = masterNode as AbstractMaterialNode;
+                var clipThresholdSlot = node.FindSlot<Vector1MaterialSlot>(clipThresholdId);
+                if(clipThresholdSlot == null)
+                    return;
+
+                if(clipThresholdSlot.isConnected || clipThresholdSlot.value != clipThresholdSlot.defaultValue)
+                {
+                    m_AlphaClip = true;
+                }
+            }
+
             // Upgrade Target
             switch(masterNode)
             {
@@ -240,7 +254,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     m_SurfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
                     m_AlphaMode = (AlphaMode)pbrMasterNode.m_AlphaMode;
                     m_TwoSided = pbrMasterNode.m_TwoSided;
-                    // m_AlphaClip = ???
+                    UpgradeAlphaClip();
                     m_AddPrecomputedVelocity = false;
                     m_CustomEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
                     break;
@@ -248,7 +262,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     m_SurfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
                     m_AlphaMode = (AlphaMode)unlitMasterNode.m_AlphaMode;
                     m_TwoSided = unlitMasterNode.m_TwoSided;
-                    // m_AlphaClip = ???
+                    UpgradeAlphaClip();
                     m_AddPrecomputedVelocity = unlitMasterNode.m_AddPrecomputedVelocity;
                     m_CustomEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
                     break;
