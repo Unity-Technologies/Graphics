@@ -115,6 +115,7 @@ namespace UnityEditor.ShaderGraph
             graph.AddNode(node);
             graph.outputNode = node;
             graph.path = "Shader Graphs";
+            graph.outputNode = node;
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
 
