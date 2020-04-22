@@ -3177,7 +3177,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1796147642}
   - component: {fileID: 1796147645}
-  - component: {fileID: 1796147644}
   - component: {fileID: 1796147643}
   m_Layer: 0
   m_Name: DrawFromCameraCustomPass
@@ -3313,14 +3312,6 @@ MonoBehaviour:
       data1: 0
       data2: 0
   defaultFrameSettings: 0
---- !u!81 &1796147644
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1796147641}
-  m_Enabled: 1
 --- !u!20 &1796147645
 Camera:
   m_ObjectHideFlags: 0

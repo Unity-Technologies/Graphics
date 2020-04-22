@@ -130,34 +130,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(ctx.cmd, copySampler))
             {
-                SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.Color, destMip);
+                SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
 
                 Vector2 sourceSize = source.GetScaledSize(source.rtHandleProperties.currentViewportSize);
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
                 propertyBlock.SetVector(HDShaderIDs._SourceSize, new Vector4(sourceSize.x, sourceSize.y, 1.0f / sourceSize.x, 1.0f / sourceSize.y));
                 ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
-            }
-        }
-
-        public static void Copy(in CustomPassContext ctx, RenderTexture source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sourceMip = 0, int destMip = 0)
-        {
-            using (new ProfilingScope(ctx.cmd, copySampler))
-            {
-                //TODO
-            }
-        }
-
-        public static void Copy(in CustomPassContext ctx, RTHandle source, RenderTexture destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sourceMip = 0, int destMip = 0)
-        {
-            Vector2Int scaledViewport = source.GetScaledSize(source.rtHandleProperties.currentViewportSize);
-            if (scaledViewport.x < destination.width || scaledViewport.y < destination.height)
-                Debug.LogError($"Can't copy to {destination}, RenderTexture is too small.");
-
-            using (new ProfilingScope(ctx.cmd, copySampler))
-            {
-                //TODO
-                CoreUtils.SetRenderTarget(ctx.cmd, destination, ClearFlag.Color);
             }
         }
 

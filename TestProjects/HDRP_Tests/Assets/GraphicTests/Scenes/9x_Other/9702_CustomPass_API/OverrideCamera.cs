@@ -45,16 +45,17 @@ class OverrideCamera : CustomPass
             return;
 
         // Render from camera 0
-        using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, customCamera0))
-        {
-            CoreUtils.SetRenderTarget(ctx.cmd, temp, ClearFlag.Color);
-            CustomPassUtils.DrawRenderers(ctx, -1);
-        }
-        CustomPassUtils.Copy(
-            ctx, temp, ctx.cameraColorBuffer,
-            CustomPassUtils.fullScreenScaleBias,
-            new Vector4(.5f, .5f, 0f, 0f)
-        );
+        // Internal API, can't be tested right now
+        // using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, customCamera0))
+        // {
+        //     CoreUtils.SetRenderTarget(ctx.cmd, temp, ClearFlag.Color);
+        //     CustomPassUtils.DrawRenderers(ctx, -1);
+        // }
+        // CustomPassUtils.Copy(
+        //     ctx, temp, ctx.cameraColorBuffer,
+        //     CustomPassUtils.fullScreenScaleBias,
+        //     new Vector4(.5f, .5f, 0f, 0f)
+        // );
 
         RenderStateBlock overrideDepth = new RenderStateBlock(RenderStateMask.Depth)
         {
@@ -72,11 +73,6 @@ class OverrideCamera : CustomPass
         // Render from camera 4 (at same position than the test camera but uses a different FoV)
         // And with the camera depth buffer (which already contains opaque objects)
         CustomPassUtils.RenderFromCamera(ctx, customCamera4, ctx.cameraColorBuffer, ctx.cameraDepthBuffer, ClearFlag.None, customCamera4.cullingMask, overrideRenderState: overrideDepth);
-        // CustomPassUtils.Copy(
-        //     ctx, temp, ctx.cameraColorBuffer,
-        //     CustomPassUtils.fullScreenScaleBias,
-        //     new Vector4(.5f, .5f, 0f, .5f)
-        // );
 
         // Render from camera 3 using different buffers
         CustomPassUtils.RenderDepthFromCamera(ctx, customCamera3, temp, ctx.customDepthBuffer.Value, ClearFlag.All, -1);
