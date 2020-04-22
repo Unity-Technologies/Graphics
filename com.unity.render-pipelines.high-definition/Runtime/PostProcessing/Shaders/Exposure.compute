@@ -14,6 +14,9 @@
 TEXTURE2D(_ExposureCurveTexture);
 TEXTURE2D(_PreviousExposureTexture);
 TEXTURE2D(_InputTexture);
+
+TEXTURE2D(_ExposureWeightMask);
+
 TEXTURE2D_X(_SourceTexture);
 
 RW_TEXTURE2D(float2, _OutputTexture);
@@ -42,6 +45,9 @@ CBUFFER_END
 #define ParamAdaptationMode         _Variants.z
 #define ParamEvaluateMode           _Variants.w
 
+#define PREPASS_TEX_SIZE 1024.0
+#define PREPASS_TEX_HALF_SIZE 512.0
+
 float WeightSample(uint2 pixel)
 {
     UNITY_BRANCH
@@ -50,17 +56,23 @@ float WeightSample(uint2 pixel)
         case 1u:
         {
             // Spot metering
-            const float kRadius = 0.075 * 1024.0;
-            const float2 kCenter = (512.0).xx;
+            const float kRadius = 0.075 * PREPASS_TEX_SIZE;
+            const float2 kCenter = (PREPASS_TEX_HALF_SIZE).xx;
             float d = length(kCenter - pixel) - kRadius;
             return 1.0 - saturate(d);
         }
         case 2u:
         {
             // Center-weighted
-            const float2 kCenter = (512.0).xx;
-            return 1.0 - saturate(pow(length(kCenter - pixel) / 512.0, 1.0));
+            const float2 kCenter = (PREPASS_TEX_HALF_SIZE).xx;
+            return 1.0 - saturate(pow(length(kCenter - pixel) / PREPASS_TEX_HALF_SIZE, 1.0));
         }
+        case 3u:
+        {
+            // Mask weigthing
+            return SAMPLE_TEXTURE2D_LOD(_ExposureWeightMask, sampler_LinearClamp, pixel * rcp(PREPASS_TEX_SIZE), 0.0).x;
+        }
+
         default:
         {
             // Global average
@@ -126,7 +138,7 @@ void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
     // For XR, interleave single-pass views in a checkerboard pattern
     UNITY_XR_ASSIGN_VIEW_INDEX((dispatchThreadId.x + dispatchThreadId.y) % _XRViewCount)
 
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), 1.0 / 1024.0, uint2(8u, 8u));
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), rcp(PREPASS_TEX_SIZE), uint2(8u, 8u));
     float2 uv = ClampAndScaleUVForBilinear(posInputs.positionNDC);
     float luma;
 
