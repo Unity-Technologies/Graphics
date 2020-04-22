@@ -386,6 +386,24 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateTitle();
         }
 
+        void OnSaveGraph(string path)
+        {
+            if(GraphData.onSaveGraph == null)
+                return;
+
+            if(graphObject.graph.isSubGraph)
+                return;
+
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+            if(shader == null)
+                return;
+
+            foreach(var target in graphObject.graph.activeTargets)
+            {
+                GraphData.onSaveGraph(shader, target.saveContext);
+            }
+        }
+
         public void SaveAs()
         {
             SaveAsImplementation();

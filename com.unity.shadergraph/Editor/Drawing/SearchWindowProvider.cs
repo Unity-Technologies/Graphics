@@ -63,13 +63,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void GenerateNodeEntries()
         {
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
-            var nodeEntries = new List<NodeEntry>();
+            List<NodeEntry> nodeEntries = new List<NodeEntry>();
             
             if(target is ContextView contextView)
             {                
                 // Iterate all BlockFieldDescriptors currently cached on GraphData
                 foreach(var field in m_Graph.blockFieldDescriptors)
                 {
+                    if(field.isHidden)
+                        continue;
+
                     // Test stage
                     if(field.shaderStage != contextView.contextData.shaderStage)
                         continue;
@@ -83,7 +86,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 currentNodeEntries = nodeEntries;
                 return;
             }
-
+            
             foreach (var type in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
             {
                 if ((!type.IsClass || type.IsAbstract)

@@ -4,12 +4,14 @@
     {
         public IControl control { get; }
         public ShaderStage shaderStage { get; }
+        public bool isHidden { get; }
 
-        public BlockFieldDescriptor(string tag, string name, string define, IControl control, ShaderStage shaderStage)
+        public BlockFieldDescriptor(string tag, string name, string define, IControl control, ShaderStage shaderStage, bool isHidden = false)
             : base (tag, name, define)
         {
             this.control = control;
             this.shaderStage = shaderStage;
+            this.isHidden = isHidden;
         }
     }
 

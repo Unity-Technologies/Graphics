@@ -68,6 +68,6 @@ namespace UnityEditor.ShaderGraph
 
             var propertyRow = new PropertyRow(new Label(labelText));
             properties.Add(propertyRow);
-        }     
+        }
     }
 }

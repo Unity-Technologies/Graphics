@@ -148,7 +148,7 @@ namespace UnityEditor.ShaderGraph
                 // TODO: Find a way to only require this once 
                 TargetSetupContext context = new TargetSetupContext();
                 target.Setup(ref context);
-
+                
                 target.CollectShaderProperties(shaderProperties, m_Mode);
             }
 
