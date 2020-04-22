@@ -13,7 +13,7 @@ This [Node](Node.md) is useful for sampling a **Texture** in the vertex [Shader 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | Texture |	Input |	Texture 2D  | None | Texture 2D to sample |
-| UV      | Input |	Vector 2    | 	UV	| Mesh's normal vector |
+| UV      | Input |	Vector 2    | 	UV	| UV coordinates |
 | Sampler | Input |	Sampler State | Default sampler state | Sampler for the texture |
 | LOD   |	Input |	Vector 1  | None | Level of detail to sample |
 | RGBA	| Output	| Vector 4	| None	| Output value as RGBA |
