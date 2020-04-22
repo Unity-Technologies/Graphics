@@ -800,22 +800,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if (usePrebuiltVisualGroupMap)
+            if (materialNode.group != null)
             {
-                // cheaper way to add the node to groups it is in
-                ShaderGroup groupView;
-                visualGroupMap.TryGetValue(materialNode.group, out groupView);
-                if (groupView != null)
-                    groupView.AddElement(nodeView);
-            }
-            else
-            {
-                // This should also work for sticky notes
-                m_GraphElementsTemp.Clear();
-                m_GraphView.graphElements.ToList(m_GraphElementsTemp);
-
-                if (materialNode.group != null)
+                if (usePrebuiltVisualGroupMap)
                 {
+                    // cheaper way to add the node to groups it is in
+                    ShaderGroup groupView;
+                    visualGroupMap.TryGetValue(materialNode.group, out groupView);
+                    if (groupView != null)
+                        groupView.AddElement(nodeView);
+                }
+                else
+                {
+                    // This should also work for sticky notes
+                    m_GraphElementsTemp.Clear();
+                    m_GraphView.graphElements.ToList(m_GraphElementsTemp);
+
                     foreach (var element in m_GraphElementsTemp)
                     {
                         if (element is ShaderGroup groupView && groupView.userData == materialNode.group)
