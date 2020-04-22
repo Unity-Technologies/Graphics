@@ -7,7 +7,7 @@ class Editor_PrimingJob():
     
     def __init__(self, platform, editor, agent):
         self.job_id = editor_job_id(editor["version"], platform["os"])
-        self.yml = self.get_job_definition(platform, editor, agent).yml
+        self.yml = self.get_job_definition(platform, editor, agent).get_yml()
 
 
     def get_job_definition(self, platform, editor, agent):

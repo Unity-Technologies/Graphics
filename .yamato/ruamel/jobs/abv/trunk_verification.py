@@ -6,7 +6,7 @@ class ABV_TrunkVerificationJob():
     
     def __init__(self, editor, projects, test_platforms):
         self.job_id = abv_job_id_trunk_verification(editor["version"])
-        self.yml = self.get_job_definition(editor, projects, test_platforms).yml
+        self.yml = self.get_job_definition(editor, projects, test_platforms).get_yml()
 
     
     def get_job_definition(self, editor, projects, test_platforms):  # only run for 2020.1 and trunk

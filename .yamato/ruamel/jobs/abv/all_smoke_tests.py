@@ -6,7 +6,7 @@ class ABV_AllSmokeTestsJob():
     
     def __init__(self, editor, test_platforms):
         self.job_id = abv_job_id_all_smoke_tests(editor["version"])
-        self.yml = self.get_job_definition(editor, test_platforms).yml
+        self.yml = self.get_job_definition(editor, test_platforms).get_yml()
 
 
     def get_job_definition(self,editor, test_platforms):

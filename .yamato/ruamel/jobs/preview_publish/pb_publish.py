@@ -1,12 +1,13 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import *
 from ..shared.yml_job import YMLJob
+from ..shared.constants import NPM_UPMCI_INSTALL_URL
 
 class PreviewPublish_PublishJob():
     
     def __init__(self, agent, package, integration_branch, auto_publish, editors, platforms):
         self.job_id = pb_job_id_publish(package["name"])
-        self.yml = self.get_job_definition(agent, package, integration_branch, auto_publish, editors, platforms).yml
+        self.yml = self.get_job_definition(agent, package, integration_branch, auto_publish, editors, platforms).get_yml()
 
 
     def get_job_definition(self, agent, package, integration_branch, auto_publish, editors, platforms):

@@ -11,7 +11,7 @@ class Project_StandaloneJob():
 
         self.project_name = project["name"]
         self.job_id = project_job_id_test(project["name"],platform["name"],api["name"],test_platform["name"],editor["version"])
-        self.yml = self.get_job_definition(project, editor, platform, api, test_platform, self.build_job).yml
+        self.yml = self.get_job_definition(project, editor, platform, api, test_platform, self.build_job).get_yml()
 
     
     def get_StandaloneBuildJob(self, project, editor, platform, api, test_platform):

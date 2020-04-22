@@ -1,13 +1,13 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import *
-from ..shared.constants import PATH_UNITY_REVISION
+from ..shared.constants import PATH_UNITY_REVISION, NPM_UPMCI_INSTALL_URL
 from ..shared.yml_job import YMLJob
 
 class Template_TestDependenciesJob():
     
     def __init__(self, template, platform, editor):
         self.job_id = template_job_id_test_dependencies(template["id"],platform["name"],editor["version"])
-        self.yml = self.get_job_definition(template,platform, editor).yml
+        self.yml = self.get_job_definition(template,platform, editor).get_yml()
 
 
     def get_job_definition(yml, template, platform, editor):

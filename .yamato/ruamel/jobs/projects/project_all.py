@@ -7,7 +7,7 @@ class Project_AllJob():
     def __init__(self, project_name, editor, dependencies_in_all):
         self.project_name = project_name
         self.job_id = project_job_id_all(project_name, editor["version"])
-        self.yml = self.get_job_definition(project_name, editor, dependencies_in_all).yml
+        self.yml = self.get_job_definition(project_name, editor, dependencies_in_all).get_yml()
 
     
     def get_job_definition(self, project_name, editor, dependencies_in_all):

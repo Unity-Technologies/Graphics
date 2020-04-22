@@ -7,7 +7,7 @@ class ABV_SmokeTestJob():
     
     def __init__(self, editor, test_platform, smoke_test):
         self.job_id = abv_job_id_smoke_test(editor["version"], test_platform["name"])
-        self.yml = self.get_job_definition(editor, test_platform, smoke_test).yml
+        self.yml = self.get_job_definition(editor, test_platform, smoke_test).get_yml()
 
 
     def get_job_definition(self, editor, test_platform, smoke_test):  # only run for 2020.1 and trunk

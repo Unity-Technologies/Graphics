@@ -1,12 +1,13 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import template_job_id_pack
 from ..shared.yml_job import YMLJob
+from ..shared.constants import NPM_UPMCI_INSTALL_URL
 
 class Template_PackJob():
     
     def __init__(self, template, agent):
         self.job_id = template_job_id_pack(template["id"])
-        self.yml = self.get_job_definition(template, agent).yml
+        self.yml = self.get_job_definition(template, agent).get_yml()
 
 
     def get_job_definition(self, template, agent):

@@ -6,7 +6,7 @@ class Package_PublishAllJob():
     
     def __init__(self, packages, agent):
         self.job_id = package_job_id_publish_all()
-        self.yml = self.get_job_definition(packages, agent).yml
+        self.yml = self.get_job_definition(packages, agent).get_yml()
 
 
     def get_job_definition(self, packages, agent):

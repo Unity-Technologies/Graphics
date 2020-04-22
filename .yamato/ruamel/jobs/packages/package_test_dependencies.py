@@ -1,6 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import *
-from ..shared.constants import PATH_UNITY_REVISION
+from ..shared.constants import PATH_UNITY_REVISION, NPM_UPMCI_INSTALL_URL
 from ..shared.yml_job import YMLJob
 
 class Package_TestDependenciesJob():
@@ -8,7 +8,7 @@ class Package_TestDependenciesJob():
     def __init__(self, package, platform, editor):
         self.package_id = package["id"]
         self.job_id = package_job_id_test_dependencies(package["id"],platform["name"],editor["version"])
-        self.yml = self.get_job_definition(package,platform, editor).yml
+        self.yml = self.get_job_definition(package,platform, editor).get_yml()
 
 
     def get_job_definition(yml, package, platform, editor):

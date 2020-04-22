@@ -1,12 +1,14 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import packages_filepath, package_job_id_test_all, package_job_id_test, package_job_id_test_dependencies
 from ..shared.yml_job import YMLJob
+from ..shared.constants import NPM_UPMCI_INSTALL_URL
+
 
 class Package_AllPackageCiJob():
     
     def __init__(self, packages, agent, platforms, editor):
         self.job_id = package_job_id_test_all(editor["version"])
-        self.yml = self.get_job_definition(packages, agent, platforms, editor).yml
+        self.yml = self.get_job_definition(packages, agent, platforms, editor).get_yml()
 
 
     def get_job_definition(self, packages, agent, platforms, editor):

@@ -25,7 +25,6 @@ from jobs.templates.template_test import Template_TestJob
 from jobs.templates.template_test_dependencies import Template_TestDependenciesJob
 from jobs.templates.test_all import Template_AllTemplateCiJob
 
-
 def load_yml(filepath):
     with open(filepath) as f:
         return yaml.load(f)
@@ -223,6 +222,5 @@ if __name__== "__main__":
         print(f'Running: {project_metafile}')
         create_project_specific_jobs(project_metafile) # create jobs for testplatforms
         create_project_all_jobs(project_metafile) # create All_ job
-
 
 

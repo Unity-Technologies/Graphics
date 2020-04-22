@@ -6,7 +6,7 @@ class ABV_AllProjectCiJob():
     
     def __init__(self, editor, projects, abv_trigger_editor):
         self.job_id = abv_job_id_all_project_ci(editor["version"])
-        self.yml = self.get_job_definition(editor, projects, abv_trigger_editor).yml
+        self.yml = self.get_job_definition(editor, projects, abv_trigger_editor).get_yml()
 
     
     def get_job_definition(self, editor, projects, abv_trigger_editor): 
