@@ -636,11 +636,26 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public List<BlockNode> GetBlocks()
+        {
+            var blocks = Graphing.ListPool<BlockNode>.Get();
+            foreach(var vertexBlock in vertexContext.blocks)
+            {
+                blocks.Add(vertexBlock);
+            }
+            foreach(var fragmentBlock in fragmentContext.blocks)
+            {
+                blocks.Add(fragmentBlock);
+            }
+            return blocks;
+        }
+
         public void UpdateActiveBlocks()
         {
             // Get list of active Block types
+            var currentBlocks = GetBlocks();
             var activeBlocks = ListPool<BlockFieldDescriptor>.Get();
-            var context = new TargetActiveBlockContext();
+            var context = new TargetActiveBlockContext(currentBlocks.Select(x => x.descriptor).ToList());
             foreach(var target in activeTargets)
             {
                 target.GetActiveBlocks(ref context);
@@ -649,11 +664,11 @@ namespace UnityEditor.ShaderGraph
             // Set Blocks as active based on supported Block list
             foreach(var vertexBlock in vertexContext.blocks)
             {
-                vertexBlock.value.isActive = context.blocks.Contains(vertexBlock.value.descriptor);
+                vertexBlock.value.isActive = context.activeBlocks.Contains(vertexBlock.value.descriptor);
             }
             foreach(var fragmentBlock in fragmentContext.blocks)
             {
-                fragmentBlock.value.isActive = context.blocks.Contains(fragmentBlock.value.descriptor);
+                fragmentBlock.value.isActive = context.activeBlocks.Contains(fragmentBlock.value.descriptor);
             }
         }
 

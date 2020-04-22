@@ -5,18 +5,20 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal class TargetActiveBlockContext
     {
-        public List<BlockFieldDescriptor> blocks { get; private set; }
+        public List<BlockFieldDescriptor> activeBlocks { get; private set; }
+        public List<BlockFieldDescriptor> currentBlocks { get; private set; }
 
-        public TargetActiveBlockContext()
+        public TargetActiveBlockContext(List<BlockFieldDescriptor> currentBlocks)
         {
-            blocks = new List<BlockFieldDescriptor>();
+            activeBlocks = new List<BlockFieldDescriptor>();
+            this.currentBlocks = currentBlocks;
         }
 
         public void AddBlock(BlockFieldDescriptor block, bool conditional = true)
         {
             if(conditional == true)
             {
-                blocks.Add(block);
+                activeBlocks.Add(block);
             }
         }
     }

@@ -42,8 +42,8 @@ namespace UnityEditor.ShaderGraph
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
             m_AssetDependencyPaths = new List<string>();
 
+            m_Blocks = graphData.GetBlocks();
             GetTargetImplementations();
-            GetBlocksFromStack();
             BuildShader();
         }
 
@@ -56,19 +56,6 @@ namespace UnityEditor.ShaderGraph
             else
             {
                 m_Targets = new Target[] { new PreviewTarget() };
-            }
-        }
-
-        void GetBlocksFromStack()
-        {
-            m_Blocks = Graphing.ListPool<BlockNode>.Get();
-            foreach(var vertexBlock in m_GraphData.vertexContext.blocks)
-            {
-                m_Blocks.Add(vertexBlock);
-            }
-            foreach(var fragmentBlock in m_GraphData.fragmentContext.blocks)
-            {
-                m_Blocks.Add(fragmentBlock);
             }
         }
 
@@ -201,11 +188,11 @@ namespace UnityEditor.ShaderGraph
                 GenerationUtils.GenerateSubShaderTags(m_Targets[targetIndex], descriptor, m_Builder);
 
                 // Get block descriptor list here as we will add temporary blocks to m_Blocks during pass evaluations
-                var blockFieldDescriptors = m_Blocks.Select(x => x.descriptor).ToList();
+                var currentBlockDescriptors = m_Blocks.Select(x => x.descriptor).ToList();
 
                 foreach(PassCollection.Item pass in descriptor.passes)
                 {
-                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, blockFieldDescriptors, m_Targets[targetIndex]);
+                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, currentBlockDescriptors, m_Targets[targetIndex]);
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
                     if(m_Mode == GenerationMode.Preview)
@@ -213,12 +200,12 @@ namespace UnityEditor.ShaderGraph
 
                     // Check masternode fields for valid passes
                     if(pass.TestActive(activeFields))
-                        GenerateShaderPass(targetIndex, pass.descriptor, activeFields);
+                        GenerateShaderPass(targetIndex, pass.descriptor, activeFields, currentBlockDescriptors);
                 }
             }
         }
 
-        void GenerateShaderPass(int targetIndex, PassDescriptor pass, ActiveFields activeFields)
+        void GenerateShaderPass(int targetIndex, PassDescriptor pass, ActiveFields activeFields, List<BlockFieldDescriptor> currentBlockDescriptors)
         {
             // Early exit if pass is not used in preview
             if(m_Mode == GenerationMode.Preview && !pass.useInPreview)
@@ -252,7 +239,7 @@ namespace UnityEditor.ShaderGraph
             if(m_OutputNode == null)
             {
                 // Update supported block list for current target implementation
-                var activeBlockContext = new TargetActiveBlockContext();
+                var activeBlockContext = new TargetActiveBlockContext(currentBlockDescriptors);
                 m_Targets[targetIndex].GetActiveBlocks(ref activeBlockContext);
 
                 void ProcessStackForPass(ContextData contextData, BlockFieldDescriptor[] passBlockMask,
@@ -265,7 +252,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         // Mask blocks on active state
                         // TODO: Can we merge these?
-                        if(!activeBlockContext.blocks.Contains(blockFieldDescriptor))
+                        if(!activeBlockContext.activeBlocks.Contains(blockFieldDescriptor))
                             continue;
                         
                         // Attempt to get BlockNode from the stack
