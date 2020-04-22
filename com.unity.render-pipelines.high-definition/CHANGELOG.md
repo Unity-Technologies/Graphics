@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [8.1.0] - 2020-04-21
 
 ### Added
 - Add XR setting to control camera jitter for temporal effects #6259
@@ -58,6 +58,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that was collapsing the volume components in the HDRP default settings
 - Fixed warning about missing bound decal buffer
 - Fixed the debug exposure mode for display sky reflection and debug view baked lighting
+- Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
+- Fixed unneeded cookie texture allocation for cone stop lights.
+- Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
 
 ### Changed
@@ -70,6 +73,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
 - Cookie are now supported in lightmaper. All lights casting cookie and baked will now include cookie influence.
+
+## [8.0.1] - 2020-02-25
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [8.0.0] - 2020-02-25
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [7.3.0] - 2020-03-11
 

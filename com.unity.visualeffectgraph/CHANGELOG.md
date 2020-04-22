@@ -4,8 +4,9 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [8.1.0] - 2020-04-21
 
+### Fixed
 - renamed soft particle fade distance, made attributes adding text, add in tooltip not label
 - Fix for nesting of VFXSubgraphContexts
 - Runtime compilation now compiles correctly when constant folding several texture ports that reference the same texture [Case 1193602](https://issuetracker.unity3d.com/issues/output-shader-errors-when-compiling-the-runtime-shader-of-a-lit-output-with-exposed-but-unassigned-additional-maps)
@@ -18,8 +19,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix various bugs in Position (Cone) block [Case 1111053](https://issuetracker.unity3d.com/product/unity/issues/guid/1111053/)
 - Fix space issues with blocks and operators taking a camera as input
 - Generated shaderName are now consistent with displayed system names
+- Don't lose SRP output specific data when SRP package is not present
 
-## [8.0.0] - 2020-05-25
+## [8.0.1] - 2020-02-25
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [8.0.0] - 2020-02-25
 
 ### Added
 - Tooltips for Attributes

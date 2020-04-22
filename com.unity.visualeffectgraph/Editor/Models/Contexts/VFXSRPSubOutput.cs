@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using static UnityEditor.VFX.VFXAbstractRenderedOutput;
 
 namespace UnityEditor.VFX
@@ -23,6 +24,9 @@ namespace UnityEditor.VFX
         // Caps
         public virtual bool supportsExposure { get { return false; } }
         public virtual bool supportsMotionVector { get { return false; } }
+
+        // Sealed override as SRP suboutputs cannot have dependencies
+        public sealed override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true) {}
 
         public virtual string GetBlendModeStr()
         {

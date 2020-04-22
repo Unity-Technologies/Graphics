@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [8.1.0] - 2020-04-21
 
 ### Added
 - Add tooltips in LookDev's toolbar.
@@ -15,7 +15,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev's camera button layout.
 - Fix LookDev's layout vanishing on domain reload.
 
-## [8.0.0] - 2020-05-25
+## [8.0.1] - 2020-02-25
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [8.0.0] - 2020-02-25
 
 ### Added
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
