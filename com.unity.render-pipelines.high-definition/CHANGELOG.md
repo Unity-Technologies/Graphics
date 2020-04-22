@@ -559,6 +559,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix spelling and grammatical errors in material samples
 - Fixed unneeded cookie texture allocation for cone stop lights.
 - Fixed scalarization code for contact shadows.
+- Fixed decal that aren't working without Metal and Ambient Occlusion option enabled.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
