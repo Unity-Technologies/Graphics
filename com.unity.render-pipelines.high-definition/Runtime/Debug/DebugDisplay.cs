@@ -1239,10 +1239,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         displayName = "Volume Info",
                         children = { new DebugUI.Value() { displayName = "Interpolated Value",
                             getter = () => {
-                                timer += Time.deltaTime;
-                                if (timer < refreshRate)
+                                // This getter is called first at each render
+                                // It is used to update the volumes
+                                if (Time.time - timer < refreshRate)
                                     return "";
-                                timer -= refreshRate;
+                                timer = Time.deltaTime;
                                 if (data.volumeDebugSettings.selectedCameraIndex != 0)
                                 {
                                     var newVolumes = data.volumeDebugSettings.GetVolumes();

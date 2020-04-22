@@ -44,6 +44,38 @@ namespace UnityEngine.Rendering.UI
                         toggle.UpdateValueLabel();
                 }
             }
+
+            // Update previous and next ui handlers to pass over hidden volumes
+            var item = gameObject.transform.GetChild(1).GetChild(0).gameObject;
+            var itemWidget = item.GetComponent<DebugUIHandlerWidget>();
+            DebugUIHandlerWidget previous = null;
+            for (int i = 0; i < row.children.Count; i++)
+            {
+                itemWidget.previousUIHandler = previous;
+                if (table.GetColumnVisibility(i))
+                    previous = itemWidget;
+
+                bool found = false;
+                for (int j = i + 1; j < row.children.Count; j++)
+                {
+                    if (table.GetColumnVisibility(j))
+                    {
+                        var child = gameObject.transform.GetChild(1).GetChild(j).gameObject;
+                        var childWidget = child.GetComponent<DebugUIHandlerWidget>();
+                        itemWidget.nextUIHandler = childWidget;
+                        item = child;
+                        itemWidget = childWidget;
+                        i = j - 1;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    itemWidget.nextUIHandler = null;
+                    break;
+                }
+            }
         }
     }
 }
