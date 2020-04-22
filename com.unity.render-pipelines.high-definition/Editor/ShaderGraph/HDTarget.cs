@@ -13,7 +13,7 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     [Serializable]
-    abstract class HDTargetData
+    abstract class HDTargetData : JsonObject
     {
     }
 
@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         Custom
     }
 
-    sealed class HDTarget : Target, IHasMetadata, ISerializationCallbackReceiver
+    sealed class HDTarget : Target, IHasMetadata
     {
         // Constants
         const string kAssetGuid = "61d9843d4027e3e4a924953135f76f3c";
@@ -62,12 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
 
-        // TODO: Remove when Peter's serialization lands
         [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedDatas;
-
-        [SerializeField]
-        List<HDTargetData> m_Datas = new List<HDTargetData>();
+        List<JsonData<HDTargetData>> m_Datas = new List<JsonData<HDTargetData>>();
 
         [SerializeField]
         string m_CustomEditorGUI;
@@ -124,16 +120,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(Fields.GraphPixel);
 
             // SubTarget
-            m_ActiveSubTarget.GetFields(ref context);
+            m_ActiveSubTarget.value.GetFields(ref context);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            if(m_ActiveSubTarget == null)
+            if(m_ActiveSubTarget.value == null)
                 return;
 
             // SubTarget
-            m_ActiveSubTarget.GetActiveBlocks(ref context);
+            m_ActiveSubTarget.value.GetActiveBlocks(ref context);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
@@ -148,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(activeSubTargetIndex, m_SubTargetField.index))
                     return;
 
-                var systemData = m_Datas.FirstOrDefault(x => x is HDSystemData) as HDSystemData;
+                var systemData = m_Datas.SelectValue().FirstOrDefault(x => x is HDSystemData) as HDSystemData;
                 if(systemData != null)
                 {
                     // Force material update hash
@@ -179,23 +175,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             // SubTarget
-            m_ActiveSubTarget.CollectShaderProperties(collector, generationMode);
+            m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
         }
 
         public override void ProcessPreviewMaterial(Material material)
         {
             // SubTarget
-            m_ActiveSubTarget.ProcessPreviewMaterial(material);
+            m_ActiveSubTarget.value.ProcessPreviewMaterial(material);
         }
 
-        public override object saveContext => m_ActiveSubTarget?.saveContext;
+        public override object saveContext => m_ActiveSubTarget.value?.saveContext;
         
         // IHasMetaData
         public string identifier
         {
             get
             {
-                if(m_ActiveSubTarget is IHasMetadata subTargetHasMetaData)
+                if(m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
                     return subTargetHasMetaData.identifier;
 
                 return null;
@@ -204,7 +200,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public ScriptableObject GetMetadataObject()
         {
-            if(m_ActiveSubTarget is IHasMetadata subTargetHasMetaData)
+            if(m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
                 return subTargetHasMetaData.GetMetadataObject();
 
             return null;
@@ -219,7 +215,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Therefore we need to use reflections to call the method
                 var methodInfo = typeof(HDTarget).GetMethod("SetDataOnSubTarget");
                 var genericMethodInfo = methodInfo.MakeGenericMethod(type);
-                genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget });
+                genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget.value });
             }
         }
 
@@ -228,13 +224,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             for(int i = 0; i < m_Datas.Count; i++)
             {
                 var data = m_Datas[i];
-                var type = data.GetType();
+                var type = data.value.GetType();
 
                 // Data requirement interfaces need generic type arguments
                 // Therefore we need to use reflections to call the method
                 var methodInfo = typeof(HDTarget).GetMethod("ValidateDataForSubTarget");
                 var genericMethodInfo = methodInfo.MakeGenericMethod(type);
-                genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget, data });
+                genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget.value, data.value });
             }
         }
 
@@ -244,7 +240,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return;
             
             // Ensure data object exists in list
-            var data = m_Datas.FirstOrDefault(x => x.GetType().Equals(typeof(T))) as T;
+            var data = m_Datas.SelectValue().FirstOrDefault(x => x.GetType().Equals(typeof(T))) as T;
             if(data == null)
             {
                 data = Activator.CreateInstance(typeof(T)) as T;
@@ -263,19 +259,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        // TODO: Remove this
-#region Serialization
-        public void OnBeforeSerialize()
+        public override void OnBeforeSerialize()
         {
             ClearUnusedData();
-            m_SerializedDatas = SerializationHelper.Serialize<HDTargetData>(m_Datas);
         }
-
-        public void OnAfterDeserialize()
-        {
-            m_Datas = SerializationHelper.Deserialize<HDTargetData>(m_SerializedDatas, GraphUtil.GetLegacyTypeRemapping());
-        }
-#endregion
     }
 
 #region BlockMasks
