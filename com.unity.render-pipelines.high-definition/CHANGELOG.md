@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added exposure compensation to Fixed exposure mode
 - Added range attenuation for box-shaped spotlights.
 - Added Min distance to contact shadows.
+- Added scenes for hair and fabric and decals with material samples
+- Added fabric materials and textures
+- Added information for fabric materials in fabric scene
 
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
@@ -64,6 +67,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unneeded cookie texture allocation for cone stop lights.
 - Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
 - Fixed scalarization code for contact shadows
+- Fix MaterialBalls having same guid issue
+- Fix spelling and grammatical errors in material samples
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
