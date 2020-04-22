@@ -10,11 +10,18 @@ SAMPLER(_trilinear_clamp_sampler_DecalAtlas2D);
 // To be compatible on all platform (with Unity), we need to have the UAV following the
 // last RT bind. Which maybe vary if we use 3 or 4 Render target
 #if (defined(DECALS_3RT) || defined(DECALS_4RT))
-#ifdef DECALS_4RT
-RWStructuredBuffer<uint> _DecalPropertyMaskBuffer : register(u4);
-#else
-RWStructuredBuffer<uint> _DecalPropertyMaskBuffer : register(u3);
+    #ifdef SHADER_API_PSSL
+    RWStructuredBuffer<uint> _DecalPropertyMaskBuffer;
+    #else
+    // DX11 spec say that we must setup an index for UAV that is following the number of Render Target bind (starting from 0)
+    // So here for 4RT we have index 0 + 4 mean u4
+    #ifdef DECALS_4RT
+    RWStructuredBuffer<uint> _DecalPropertyMaskBuffer : register(u4);
+    #else
+    RWStructuredBuffer<uint> _DecalPropertyMaskBuffer : register(u3);
+    #endif
 #endif
+
 #endif
 
 StructuredBuffer<uint> _DecalPropertyMaskBufferSRV;
