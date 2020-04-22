@@ -85,6 +85,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Check if the texture provided is at least half of the size of source.
             if (destination.rt.width < source.rt.width / 2 || destination.rt.height < source.rt.height / 2)
                 Debug.LogError("Destination for DownSample is too small, it needs to be at least half as big as source.");
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1) 
+                Debug.LogError($"DownSample is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, downSampleSampler))
             {
@@ -123,10 +125,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (source == destination)
                 Debug.LogError("Can't copy the buffer. Source has to be different from the destination.");
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1) 
+                Debug.LogError($"Copy is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, copySampler))
             {
-                SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
+                SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.Color, destMip);
 
                 Vector2 sourceSize = source.GetScaledSize(source.rtHandleProperties.currentViewportSize);
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
@@ -146,9 +150,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static void Copy(in CustomPassContext ctx, RTHandle source, RenderTexture destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sourceMip = 0, int destMip = 0)
         {
+            Vector2Int scaledViewport = source.GetScaledSize(source.rtHandleProperties.currentViewportSize);
+            if (scaledViewport.x < destination.width || scaledViewport.y < destination.height)
+                Debug.LogError($"Can't copy to {destination}, RenderTexture is too small.");
+
             using (new ProfilingScope(ctx.cmd, copySampler))
             {
                 //TODO
+                CoreUtils.SetRenderTarget(ctx.cmd, destination, ClearFlag.Color);
             }
         }
 
@@ -181,6 +190,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (source == destination)
                 Debug.LogError("Can't blur the buffer. Source has to be different from the destination.");
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
+                Debug.LogError($"GaussianBlur is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, verticalBlurSampler))
             {
@@ -224,6 +235,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (source == destination)
                 Debug.LogError("Can't blur the buffer. Source has to be different from the destination.");
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1) 
+                Debug.LogError($"GaussianBlur is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, horizontalBlurSampler))
             {
@@ -273,6 +286,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogError("Can't blur the buffer. tempTarget has to be different from both source or destination.");
             if (tempTarget.scaleFactor.x != tempTarget.scaleFactor.y || (tempTarget.scaleFactor.x != 0.5f && tempTarget.scaleFactor.x != 1.0f))
                 Debug.LogError($"Can't blur the buffer. Only a scaleFactor of 0.5 or 1.0 is supported on tempTarget. Current scaleFactor: {tempTarget.scaleFactor}");
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1 || tempTarget.rt.antiAliasing > 1)
+                Debug.LogError($"GaussianBlur is not supported with MSAA buffers");
 
             // Gaussian blur doesn't like even numbers
             if (sampleCount % 2 == 0)

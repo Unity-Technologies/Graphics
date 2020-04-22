@@ -223,7 +223,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // if MSAA is enabled and the current injection point is before transparent.
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            msaa &= injectionPoint == CustomPassInjectionPoint.BeforeTransparent || injectionPoint == CustomPassInjectionPoint.AfterOpaqueDepthAndNormal;
+            msaa &= injectionPoint == CustomPassInjectionPoint.BeforePreRefraction
+                 || injectionPoint == CustomPassInjectionPoint.BeforeTransparent
+                 || injectionPoint == CustomPassInjectionPoint.AfterOpaqueDepthAndNormal;
 
             return msaa;
         }
@@ -348,6 +350,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Resolve the camera color buffer only if the MSAA is enabled and the pass is executed in before transparent.
+        /// </summary>
+        /// <param name="ctx">Custom Pass Context from the Execute() method</param>
+        protected void ResolveMSAAColorBuffer(CustomPassContext ctx) => ResolveMSAAColorBuffer(ctx.cmd, ctx.hdCamera);
+
+        /// <summary>
         /// Get the current camera buffers (can be MSAA)
         /// </summary>
         /// <param name="colorBuffer">outputs the camera color buffer</param>
@@ -413,7 +421,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="targetColorBuffer"></param>
         /// <param name="targetDepthBuffer"></param>
         /// <returns></returns>
-        public static CustomPass CreateFullScreenPass(Material fullScreenMaterial, TargetBuffer targetColorBuffer = TargetBuffer.Camera,
+        public static FullScreenCustomPass CreateFullScreenPass(Material fullScreenMaterial, TargetBuffer targetColorBuffer = TargetBuffer.Camera,
             TargetBuffer targetDepthBuffer = TargetBuffer.Camera)
         {
             return new FullScreenCustomPass()
@@ -437,7 +445,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="targetColorBuffer">Target Color buffer</param>
         /// <param name="targetDepthBuffer">Target Depth buffer. Note: It's also the buffer which will do the Depth Test</param>
         /// <returns></returns>
-        public static CustomPass CreateDrawRenderersPass(RenderQueueType queue, LayerMask mask,
+        public static DrawRenderersCustomPass CreateDrawRenderersPass(RenderQueueType queue, LayerMask mask,
             Material overrideMaterial, string overrideMaterialPassName = "Forward", SortingCriteria sorting = SortingCriteria.CommonOpaque,
             ClearFlag clearFlags = ClearFlag.None, TargetBuffer targetColorBuffer = TargetBuffer.Camera,
             TargetBuffer targetDepthBuffer = TargetBuffer.Camera)
