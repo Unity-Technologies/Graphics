@@ -141,7 +141,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     formatGroups[format].Add(channelTransform);
                 }
 
-                GraphicsFormatToFormatAndChannelTransformString((GraphicsFormat)cacheSizeOverrideProperty.FindPropertyRelative("format").intValue, out string formatString, out string channelTransformString);
+                GraphicsFormat serializedFormat = (GraphicsFormat) cacheSizeOverrideProperty.FindPropertyRelative("format").intValue;
+                GraphicsFormatToFormatAndChannelTransformString(serializedFormat, out string formatString, out string channelTransformString);
 
                 // GUI Drawing
 
@@ -191,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Channel transform
                 rect.position += new Vector2(formatWidth, 0);
                 rect.width = channelTransformWidth;
-                if (EditorGUI.DropdownButton(rect, new GUIContent(channelTransformString), FocusType.Keyboard))
+                if (serializedFormat != GraphicsFormat.None && EditorGUI.DropdownButton(rect, new GUIContent(channelTransformString), FocusType.Keyboard))
                 {
                     GenericMenu menu = new GenericMenu();
                     if (formatGroups.ContainsKey(formatString))
