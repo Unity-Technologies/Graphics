@@ -37,7 +37,12 @@ namespace UnityEditor.ShaderGraph.Internal
             m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
         }
 
+        // the simple interface for simple properties
         internal abstract bool isBatchable { get; }
+
+        // the more complex interface for complex properties (defaulted for simple properties)
+        internal virtual bool hasBatchableProperties { get { return isBatchable; } }
+        internal virtual bool hasNonBatchableProperties { get { return !isBatchable; } }
 
         [SerializeField]
         bool m_Hidden = false;
@@ -55,10 +60,25 @@ namespace UnityEditor.ShaderGraph.Internal
             return string.Empty;
         }
 
+        // the simple interface for simple properties
         internal virtual string GetPropertyDeclarationString(string delimiter = ";")
         {
             SlotValueType type = ConcreteSlotValueType.Vector4.ToSlotValueType();
             return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}{delimiter}";
+        }
+
+        // the more complex interface for complex properties (defaulted for simple properties)
+        internal virtual void AppendBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
+        {
+            if (isBatchable)
+                builder.AppendLine(GetPropertyDeclarationString(delimiter));
+        }
+
+        // the more complex interface for complex properties (defaulted for simple properties)
+        internal virtual void AppendNonBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
+        {
+            if (!isBatchable)
+                builder.AppendLine(GetPropertyDeclarationString(delimiter));
         }
 
         internal virtual string GetPropertyAsArgumentString()

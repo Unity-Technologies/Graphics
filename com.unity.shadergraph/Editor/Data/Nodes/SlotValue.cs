@@ -41,7 +41,8 @@ namespace UnityEditor.ShaderGraph
         Vector3,
         Vector2,
         Vector1,
-        Boolean
+        Boolean,
+        VirtualTexture
     }
 
     static class SlotValueHelper

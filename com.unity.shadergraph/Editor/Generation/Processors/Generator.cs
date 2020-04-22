@@ -593,10 +593,10 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 
-            int instancedPropCount = propertyCollector.GetDotsInstancingPropertiesCount(m_Mode);
+            bool hasDotsInstancedProps = propertyCollector.DotsInstancingProperties(m_Mode).Any();
             using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
             {
-                if (instancedPropCount > 0)
+                if (hasDotsInstancedProps)
                     dotsInstancedPropertyBuilder.AppendLines(propertyCollector.GetDotsInstancingPropertiesDeclaration(m_Mode));
                 else
                     dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
@@ -612,7 +612,7 @@ namespace UnityEditor.ShaderGraph
                 // if the shader graph has a nonzero amount of DOTS instanced properties.
                 // This can be removed once Hybrid V1 is removed.
                 #if !ENABLE_HYBRID_RENDERER_V2
-                if (instancedPropCount > 0)
+                if (hasDotsInstancedProps)
                 {
                     dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
                     dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");

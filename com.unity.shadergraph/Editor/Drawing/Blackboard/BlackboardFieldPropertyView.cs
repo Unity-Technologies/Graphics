@@ -72,6 +72,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case GradientShaderProperty gradientProperty:
                     BuildGradientPropertyField(gradientProperty);
                     break;
+                case VirtualTextureShaderProperty virtualTextureProperty:
+                    BuildVirtualTexturePropertyField(virtualTextureProperty);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -329,6 +332,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                         DirtyNodes(ModificationScope.Graph);
                     });
             AddRow("Mode", defaultModeField, !graph.isSubGraph && property.generatePropertyBlock);
+        }
+
+        void BuildVirtualTexturePropertyField(VirtualTextureShaderProperty property)
+        {
+            Toggle proceduralToggle = new Toggle { value = property.value.procedural };
+            proceduralToggle.OnToggleChanged(evt =>
+            {
+                graph.owner.RegisterCompleteObjectUndo("Change VT Procedural Toggle");
+                property.value.procedural = evt.newValue;
+                DirtyNodes(ModificationScope.Graph);
+            });
+            AddRow("Procedural", proceduralToggle);
+            // TODO: add layer names and texture assignments view here (could we re-use the TextureShaderProperty custom builder?)
         }
 
         void BuildTexture2DArrayPropertyField(Texture2DArrayShaderProperty property)

@@ -111,6 +111,13 @@ namespace UnityEditor.ShaderGraph
                 AddSlot(new GradientMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                 RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
+                case ConcreteSlotValueType.VirtualTexture:
+                    // TODO: implement VT slot type
+                    AddSlot(new Texture2DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                    // AddSlot(new VirtualTextureSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    // RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
