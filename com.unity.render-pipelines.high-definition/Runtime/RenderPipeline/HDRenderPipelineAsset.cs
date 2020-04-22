@@ -45,9 +45,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (GraphicsSettings.currentRenderPipeline == this)
                 base.OnValidate();
 
-            isInOnValidateCall = false;
-
             UpdateRenderingLayerNames();
+
+            isInOnValidateCall = false;
         }
 
         [SerializeField]
