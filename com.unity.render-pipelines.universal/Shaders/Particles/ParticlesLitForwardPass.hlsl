@@ -2,6 +2,7 @@
 #define UNIVERSAL_PARTICLES_FORWARD_LIT_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
 
 struct AttributesParticle
 {
@@ -169,7 +170,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a);
-    
+
     return color;
 }
 
