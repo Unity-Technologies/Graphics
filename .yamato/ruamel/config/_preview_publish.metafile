@@ -1,0 +1,53 @@
+integration_branch: master
+editors:
+  - version: trunk
+publishing:
+  auto_publish: true
+  auto_version: true
+platforms:
+  - os: mac
+  - os: win
+packages:
+  - name: core
+    path: com.unity.render-pipelines.core
+    type: package
+    publish_source: true
+    standalone: true
+  - name: universal
+    path: com.unity.render-pipelines.universal
+    type: package
+    publish_source: true
+    standalone: true
+  - name: hdrp
+    path: com.unity.render-pipelines.high-definition
+    type: package
+    publish_source: true
+    standalone: true
+  - name: shadergraph
+    path: com.unity.shadergraph
+    type: package
+    publish_source: true
+    standalone: true
+  - name: vfx
+    path: com.unity.visualeffectgraph
+    type: package
+    publish_source: true
+    standalone: true
+  - name: config
+    path: com.unity.render-pipelines.high-definition-config
+    type: package
+    publish_source: true
+    standalone: true
+  - name: lwrp
+    path: com.unity.render-pipelines.lightweight
+    type: package
+    publish_source: true
+    standalone: false
+agent_win: 
+  type: Unity::VM
+  image: package-ci/win10:stable
+  flavor: b1.large
+agent_ubuntu:
+  type: Unity::VM
+  image: package-ci/ubuntu:stable
+  flavor: b1.large

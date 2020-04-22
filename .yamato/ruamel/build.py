@@ -17,7 +17,9 @@ from jobs.abv.all_project_ci_nightly import ABV_AllProjectCiNightlyJob
 from jobs.abv.all_smoke_tests import ABV_AllSmokeTestsJob
 from jobs.abv.smoke_test import ABV_SmokeTestJob
 from jobs.abv.trunk_verification import ABV_TrunkVerificationJob
-
+from jobs.preview_publish.pb_publish import PreviewPublish_PublishJob
+from jobs.preview_publish.pb_promote import PreviewPublish_PromoteJob
+from jobs.preview_publish.pb_auto_version import PreviewPublish_AutoVersionJob
 
 
 def load_yml(filepath):
@@ -139,6 +141,23 @@ def create_abv_jobs(metafile_name):
     dump_yml(abv_filepath(), yml)
 
 
+def create_preview_publish_jobs(metafile_name):
+    metafile = load_yml(metafile_name)
+    yml = {}
+
+    job = PreviewPublish_AutoVersionJob(metafile["agent_ubuntu"], metafile["packages"],  metafile["integration_branch"], metafile["publishing"]["auto_version"])
+    yml[job.job_id] = job.yml
+
+    for package in metafile["packages"]:
+        if package["publish_source"] == True:
+            job = PreviewPublish_PublishJob(metafile["agent_win"], package, metafile["integration_branch"], metafile["publishing"]["auto_publish"], metafile["editors"], metafile["platforms"])
+            yml[job.job_id] = job.yml
+
+            job = PreviewPublish_PromoteJob(metafile["agent_win"], package)
+            yml[job.job_id] = job.yml
+
+    dump_yml(pb_filepath(), yml)
+
 # TODO clean up the code, make filenames more readable/reuse, split things appropriately (eg editor, files, etc), fix scrip arguments, fix testplatforms (xr), ...
 if __name__== "__main__":
 
@@ -159,6 +178,10 @@ if __name__== "__main__":
     # create abv
     print(f'Running: abv')
     create_abv_jobs('config/_abv.metafile')
+
+    # create preview publish
+    print(f'Running: preview_publish')
+    create_preview_publish_jobs('config/_preview_publish.metafile')
 
     # create yml jobs for each specified project (universal, shadergraph, vfx_lwrp, ...)
     args = sys.argv

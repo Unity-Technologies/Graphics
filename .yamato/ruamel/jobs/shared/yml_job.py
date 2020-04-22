@@ -19,10 +19,13 @@ class YMLJob():
     def set_trigger_on_expression(self, expression): # TODO this is exclusive, one trigger cancelles another atm
         self.yml['triggers'] = {'expression':expression}
 
-    def set_trigger_recurrent(self, branch, cron_expression): # TODO this is exclusive, one trigger cancelles another atm
+    def set_trigger_recurrent(self, branch, frequency): # TODO this is exclusive, one trigger cancelles another atm
         self.yml['triggers'] = {'recurring': [{
                     'branch' : branch,
-                    'frequency' : cron_expression}]}
+                    'frequency' : frequency}]}
+    
+    def set_trigger_integration_branch(self, integration_branch): # TODO this is exclusive, one trigger cancelles another atm
+        self.yml['triggers'] = {'branches': {'only' : [integration_branch]}}
     
     def add_dependencies(self, dependencies):
         self._populate_list('dependencies', dependencies)

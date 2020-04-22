@@ -66,3 +66,17 @@ def abv_job_id_all_smoke_tests(editor_version):
 
 def abv_job_id_trunk_verification(editor_version):
     return f'trunk_verification_{editor_version}'
+
+
+# preview publish specified
+def pb_filepath():
+    return f'{parent_dir}/_preview_publish.yml'.lower()
+
+def pb_job_id_auto_version():
+    return 'auto-version'
+
+def pb_job_id_publish(package_name):
+    return f'publish_{package_name}'
+
+def pb_job_id_promote(package_name):
+    return f'promote_{package_name}'
