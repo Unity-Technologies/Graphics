@@ -154,8 +154,18 @@ namespace UnityEditor.Rendering.HighDefinition
                         Undo.RecordObjects(new UnityEngine.Object[] { material, m_MaterialImporter }, "Change layer material");
                         LayeredLitGUI.SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, true);
                         layersChanged = true;
+
+                        // Update external reference.
+                        foreach (var target in materialEditor.targets)
+                        {
+                            MaterialExternalReferences matExternalRefs = MaterialExternalReferences.GetMaterialExternalReferences(target as Material);
+                            if (matExternalRefs != null)
+                            {
+                                matExternalRefs.SetMaterialReference(layerIndex, m_MaterialLayers[layerIndex]);
+                            }
+                        }
                     }
-                    
+
                     EditorGUI.DrawRect(colorRect, kLayerColors[layerIndex]);
 
                     m_WithUV[layerIndex] = EditorGUI.Toggle(uvRect, m_WithUV[layerIndex]);

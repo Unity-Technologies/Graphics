@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for rasterized area light shadows in StackLit
 - Added Light decomposition lighting debugging modes and support in AOV
 - Added exposure compensation to Fixed exposure mode
+- Added range attenuation for box-shaped spotlights.
+- Added Min distance to contact shadows.
+- Added scenes for hair and fabric and decals with material samples
+- Added fabric materials and textures
+- Added information for fabric materials in fabric scene
 
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
@@ -61,6 +66,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
 - Fixed unneeded cookie texture allocation for cone stop lights.
 - Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
+- Fixed scalarization code for contact shadows
+- Fix MaterialBalls having same guid issue
+- Fix spelling and grammatical errors in material samples
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
@@ -72,6 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
 - Cookie are now supported in lightmaper. All lights casting cookie and baked will now include cookie influence.
+- Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
 
 ## [8.0.1] - 2020-02-25
 
