@@ -24,6 +24,9 @@ public class UniversalGraphicsTests
 
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        if (XRSystem.testModeEnabled)
+            Assume.That((Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer), "Universal XR tests do not run on macOS.");
+
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Always wait one frame for scene load
@@ -35,15 +38,8 @@ public class UniversalGraphicsTests
 
         if (XRSystem.testModeEnabled)
         {
-            if (settings.XRCompatible)
-            {
-                XRSystem.automatedTestRunning = true;
-            }
-            else
-            {
-                // Skip incompatible XR tests
-                yield break;
-            }
+            Assume.That(settings.XRCompatible, "Test scene is not compatible with XR and will be skipped.");
+            XRSystem.automatedTestRunning = true;
         }
 
         Scene scene = SceneManager.GetActiveScene();
