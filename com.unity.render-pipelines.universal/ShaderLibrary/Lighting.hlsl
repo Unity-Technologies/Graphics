@@ -12,57 +12,6 @@
 // 2^-7 == sqrt(HALF_MIN), Ensure HALF_MIN after (var * var) like roughness
 #define HALF_MIN_SQRT  0.0078125
 
-//#define CC_DEBUG
-#if defined(CC_DEBUG)
-half3 debugColor;
-half3 DebugColorValue(float value, float start, float end)
-{
-    float edge0 = 0.1;
-    float edge1 = 0.5;
-
-    float t = (value - start) / (end - start);
-    if( isnan(t) || isinf(t))
-    {
-        return half3(0.3, 0.075, 0); // Invalid == Brown
-    }
-    else if( t == 0)                 // Zero == Gray
-    {
-        return half3(0.25,0.25,0.25);
-    }
-    else if(t < 0) // MYCK (i.e. CMYK) for negatives
-    {
-        if( t >= -edge0)
-            return half3(1,0,1);
-        else if( t >= -edge1)
-            return half3(1,1,0);
-        else if( t > -1.0)
-            return half3(0,1,1);
-        else if( t == -1.0)         // Exact -1 == Dark cyan
-            return half3(0,0.25,0.25);
-        else
-            return half3(0,0,0);    // Under -1 == Black
-    }
-    else // RGBW for positives
-    {
-        if( t <= edge0 )
-            return half3(1,0,0);
-        else if( t <= edge1)
-            return half3(0,1,0);
-        else if( t < 1.0)
-            return half3(0,0,1);
-        else if( t == 1.0)
-            return half3(0,0,0.25);  // Exact 1 == Dark blue
-        else
-            return half3(1,1,1);    // Over 1 == White
-    }
-}
-
-half3 DebugColorValue(float value)
-{
-    return DebugColorValue( value, 0.0, 1.0 );
-}
-#endif
-
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
@@ -354,7 +303,7 @@ half3 ConvertF0ForAirInterfaceToF0ForClearCoat15Half(half3 f0)
 #if defined(SHADER_API_MOBILE)
     return saturate(f0 * (f0 * 0.526868h + 0.529324h) - 0.0482256h);
 #else
-    return saturate(f0 * (f0 * (0.941892h - 0.263008h * f0) + 0.346479h) - 0.0285998h);
+    return ConvertF0ForAirInterfaceToF0ForClearCoat15(f0);
 #endif
 }
 
@@ -432,7 +381,7 @@ half ClearCoatBRDF(BRDFData brdfData, half3 halfDir, half NoH, half LoH, half Lo
     half d = NoH * NoH * brdfData.clearCoatRoughness2MinusOne + 1.0001h;
     half specularTerm = brdfData.clearCoatRoughness2 / ((d * d) * max(0.1h, LoH2) * brdfData.clearCoatNormalizationTerm) * brdfData.clearCoatStrength;
 
-#if defined (SHADER_API_MOBILE)
+#if defined (SHADER_API_MOBILE) || defined (SHADER_API_SWITCH)
     specularTerm = result - HALF_MIN;
     specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
 #endif
@@ -780,9 +729,6 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 
     color += emission;
 
-#if defined(CC_DEBUG)
-    color = debugColor;
-#endif
     return half4(color, alpha);
 }
 
