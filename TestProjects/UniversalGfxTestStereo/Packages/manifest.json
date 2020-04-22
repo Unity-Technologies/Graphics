@@ -1,4 +1,5 @@
 {
+  "registry": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
   "dependencies": {
     "com.unity.ext.nunit": "1.0.0",
     "com.unity.ide.rider": "1.1.4",
@@ -8,7 +9,7 @@
     "com.unity.render-pipelines.universal": "file:../../../com.unity.render-pipelines.universal",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
     "com.unity.test-framework": "1.1.5",
-    "com.unity.testframework.graphics": "7.1.7-preview",
+    "com.unity.testframework.graphics": "7.1.14-preview.1",
     "com.unity.ugui": "1.0.0",
     "com.unity.xr.legacyinputhelpers": "2.0.6",
     "com.unity.modules.ai": "1.0.0",
