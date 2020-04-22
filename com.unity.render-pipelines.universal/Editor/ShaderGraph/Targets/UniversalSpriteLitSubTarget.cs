@@ -27,6 +27,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            // Only support SpriteColor legacy block if BaseColor/Alpha are not active
+            bool useLegacyBlocks = !context.blocks.Contains(BlockFields.SurfaceDescription.BaseColor) && !context.blocks.Contains(BlockFields.SurfaceDescription.Alpha);
+            context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
+
             // Surface Type & Blend Mode
             context.AddField(Fields.SurfaceTransparent);
             context.AddField(Fields.BlendAlpha);
@@ -34,6 +38,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            // Only support SpriteColor legacy block if BaseColor/Alpha are not active
+            bool useLegacyBlocks = !context.currentBlocks.Contains(BlockFields.SurfaceDescription.BaseColor) && !context.currentBlocks.Contains(BlockFields.SurfaceDescription.Alpha);
+            context.AddBlock(BlockFields.SurfaceDescriptionLegacy.SpriteColor, useLegacyBlocks);
+
             context.AddBlock(BlockFields.SurfaceDescription.SpriteMask);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
@@ -55,7 +63,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { BlockFields.VertexDescription.Position, 9 },
                 { BlockFields.VertexDescription.Normal, 10 },
                 { BlockFields.VertexDescription.Tangent, 11 },
-                { BlockFields.SurfaceDescription.BaseColor, 0 },
+                { BlockFields.SurfaceDescriptionLegacy.SpriteColor, 0 },
                 { BlockFields.SurfaceDescription.SpriteMask, 1 },
                 { BlockFields.SurfaceDescription.NormalTS, 2 },
             };
@@ -176,6 +184,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescriptionLegacy.SpriteColor,
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.SpriteMask,
             };
@@ -183,6 +192,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static BlockFieldDescriptor[] FragmentForwardNormal = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescriptionLegacy.SpriteColor,
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.NormalTS,
             };

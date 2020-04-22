@@ -25,7 +25,12 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     surfaceDescription.Alpha = lerp (surfaceDescription.Alpha, alpha.r, _EnableAlphaTexture);
 #endif
 
+#ifdef UNIVERSAL_USELEGACYSPRITEBLOCKS
+    half4 color = surfaceDescription.SpriteColor;
+#else
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
+#endif
+
     color *= unpacked.color;
     return color;
 }

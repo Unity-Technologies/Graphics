@@ -584,7 +584,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         };
     } 
 #endregion
-    
+
+#region Defines
+        static class CoreDefines
+        {
+            public static DefineCollection UseLegacySpriteBlocks = new DefineCollection
+            {
+                { CoreKeywordDescriptors.UseLegacySpriteBlocks, 1, new FieldCondition(CoreFields.UseLegacySpriteBlocks, true) },
+            };
+        }
+#endregion
+
 #region KeywordDescriptors
     static class CoreKeywordDescriptors
     {
@@ -728,6 +738,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
+
+        public static KeywordDescriptor UseLegacySpriteBlocks = new KeywordDescriptor()
+        {
+            displayName = "UseLegacySpriteBlocks",
+            referenceName = "USELEGACYSPRITEBLOCKS",
+            type = KeywordType.Boolean,
+        };
+    }
+#endregion
+
+#region FieldDescriptors
+    static class CoreFields
+    {
+        public static FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("Universal", "UseLegacySpriteBlocks", "UNIVERSAL_USELEGACYSPRITEBLOCKS"); 
     }
 #endregion
 }

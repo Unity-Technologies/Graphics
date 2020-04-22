@@ -17,6 +17,12 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     float crossSign = (unpacked.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
     float3 bitangent = crossSign * cross(unpacked.normalWS.xyz, unpacked.tangentWS.xyz);
+
+#ifdef UNIVERSAL_USELEGACYSPRITEBLOCKS
+    half4 color = surfaceDescription.SpriteColor;
+#else
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
+#endif
+
     return NormalsRenderingShared(color, surfaceDescription.Normal, unpacked.tangentWS.xyz, bitangent, unpacked.normalWS);
 }
