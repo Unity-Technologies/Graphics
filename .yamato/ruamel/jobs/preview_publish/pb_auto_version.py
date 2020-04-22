@@ -19,7 +19,7 @@ class PreviewPublish_AutoVersionJob():
         job.add_var_custom('PATH', '/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin')
         job.add_var_custom('DISPLAY', dss(":0"))
         job.add_commands([
-                f'npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm',
+                f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci utils auto-version bump {bump_packages_args}',
                 f'upm-ci utils auto-version commit --push'])
         job.add_artifacts_packages()

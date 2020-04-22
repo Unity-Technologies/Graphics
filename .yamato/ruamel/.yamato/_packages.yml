@@ -5,7 +5,7 @@ pack_core:
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package pack --package-path com.unity.render-pipelines.core
     artifacts:
         packages:
@@ -22,7 +22,7 @@ publish_core:
       -  .yamato/_packages.yml#test_core_win_trunk
       -  .yamato/_packages.yml#test_core_mac_trunk
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.core
     artifacts:
         packages:
@@ -35,7 +35,7 @@ pack_lwrp:
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package pack --package-path com.unity.render-pipelines.lightweight
     artifacts:
         packages:
@@ -52,7 +52,7 @@ publish_lwrp:
       -  .yamato/_packages.yml#test_lwrp_win_trunk
       -  .yamato/_packages.yml#test_lwrp_mac_trunk
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight
     artifacts:
         packages:
@@ -65,7 +65,7 @@ pack_shadergraph:
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package pack --package-path com.unity.shadergraph
     artifacts:
         packages:
@@ -82,7 +82,7 @@ publish_shadergraph:
       -  .yamato/_packages.yml#test_shadergraph_win_trunk
       -  .yamato/_packages.yml#test_shadergraph_mac_trunk
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.shadergraph
     artifacts:
         packages:
@@ -95,7 +95,7 @@ pack_hdrp:
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package pack --package-path com.unity.render-pipelines.high-definition
     artifacts:
         packages:
@@ -112,7 +112,7 @@ publish_hdrp:
       -  .yamato/_packages.yml#test_hdrp_win_trunk
       -  .yamato/_packages.yml#test_hdrp_mac_trunk
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition
     artifacts:
         packages:
@@ -125,7 +125,7 @@ pack_universal:
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package pack --package-path com.unity.render-pipelines.universal
     artifacts:
         packages:
@@ -142,7 +142,7 @@ publish_universal:
       -  .yamato/_packages.yml#test_universal_win_trunk
       -  .yamato/_packages.yml#test_universal_mac_trunk
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.universal
     artifacts:
         packages:
@@ -155,7 +155,7 @@ pack_vfx:
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package pack --package-path com.unity.visualeffectgraph
     artifacts:
         packages:
@@ -172,7 +172,7 @@ publish_vfx:
       -  .yamato/_packages.yml#test_vfx_win_trunk
       -  .yamato/_packages.yml#test_vfx_mac_trunk
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.visualeffectgraph
     artifacts:
         packages:
@@ -185,7 +185,7 @@ pack_config:
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package pack --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         packages:
@@ -202,7 +202,7 @@ publish_config:
       -  .yamato/_packages.yml#test_config_win_trunk
       -  .yamato/_packages.yml#test_config_mac_trunk
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         packages:
@@ -218,7 +218,7 @@ test_core_win_trunk:
       -  .yamato/_editor.yml#editor:priming:trunk:windows
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.core
@@ -237,7 +237,7 @@ test_core_win_trunk_dependencies:
       -  .yamato/_packages.yml#test_core_win_trunk
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
@@ -258,7 +258,7 @@ test_lwrp_win_trunk:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -281,7 +281,7 @@ test_lwrp_win_trunk_dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -301,7 +301,7 @@ test_shadergraph_win_trunk:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -322,7 +322,7 @@ test_shadergraph_win_trunk_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -345,7 +345,7 @@ test_hdrp_win_trunk:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -369,7 +369,7 @@ test_hdrp_win_trunk_dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -390,7 +390,7 @@ test_universal_win_trunk:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -412,7 +412,7 @@ test_universal_win_trunk_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -433,7 +433,7 @@ test_vfx_win_trunk:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -455,7 +455,7 @@ test_vfx_win_trunk_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -475,7 +475,7 @@ test_config_win_trunk:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -496,7 +496,7 @@ test_config_win_trunk_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -515,7 +515,7 @@ test_core_mac_trunk:
       -  .yamato/_editor.yml#editor:priming:trunk:macos
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.core
@@ -534,7 +534,7 @@ test_core_mac_trunk_dependencies:
       -  .yamato/_packages.yml#test_core_mac_trunk
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
@@ -555,7 +555,7 @@ test_lwrp_mac_trunk:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -578,7 +578,7 @@ test_lwrp_mac_trunk_dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -598,7 +598,7 @@ test_shadergraph_mac_trunk:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -619,7 +619,7 @@ test_shadergraph_mac_trunk_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -642,7 +642,7 @@ test_hdrp_mac_trunk:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -666,7 +666,7 @@ test_hdrp_mac_trunk_dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -687,7 +687,7 @@ test_universal_mac_trunk:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -709,7 +709,7 @@ test_universal_mac_trunk_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -730,7 +730,7 @@ test_vfx_mac_trunk:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -752,7 +752,7 @@ test_vfx_mac_trunk_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -772,7 +772,7 @@ test_config_mac_trunk:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -793,7 +793,7 @@ test_config_mac_trunk_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -812,7 +812,7 @@ test_core_win_2020.1:
       -  .yamato/_editor.yml#editor:priming:2020.1:windows
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.core
@@ -831,7 +831,7 @@ test_core_win_2020.1_dependencies:
       -  .yamato/_packages.yml#test_core_win_2020.1
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
@@ -852,7 +852,7 @@ test_lwrp_win_2020.1:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -875,7 +875,7 @@ test_lwrp_win_2020.1_dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -895,7 +895,7 @@ test_shadergraph_win_2020.1:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -916,7 +916,7 @@ test_shadergraph_win_2020.1_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -939,7 +939,7 @@ test_hdrp_win_2020.1:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -963,7 +963,7 @@ test_hdrp_win_2020.1_dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -984,7 +984,7 @@ test_universal_win_2020.1:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1006,7 +1006,7 @@ test_universal_win_2020.1_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1027,7 +1027,7 @@ test_vfx_win_2020.1:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1049,7 +1049,7 @@ test_vfx_win_2020.1_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1069,7 +1069,7 @@ test_config_win_2020.1:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1090,7 +1090,7 @@ test_config_win_2020.1_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1109,7 +1109,7 @@ test_core_mac_2020.1:
       -  .yamato/_editor.yml#editor:priming:2020.1:macos
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.core
@@ -1128,7 +1128,7 @@ test_core_mac_2020.1_dependencies:
       -  .yamato/_packages.yml#test_core_mac_2020.1
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
@@ -1149,7 +1149,7 @@ test_lwrp_mac_2020.1:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1172,7 +1172,7 @@ test_lwrp_mac_2020.1_dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1192,7 +1192,7 @@ test_shadergraph_mac_2020.1:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1213,7 +1213,7 @@ test_shadergraph_mac_2020.1_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1236,7 +1236,7 @@ test_hdrp_mac_2020.1:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1260,7 +1260,7 @@ test_hdrp_mac_2020.1_dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1281,7 +1281,7 @@ test_universal_mac_2020.1:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1303,7 +1303,7 @@ test_universal_mac_2020.1_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1324,7 +1324,7 @@ test_vfx_mac_2020.1:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1346,7 +1346,7 @@ test_vfx_mac_2020.1_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1366,7 +1366,7 @@ test_config_mac_2020.1:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1387,7 +1387,7 @@ test_config_mac_2020.1_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1406,7 +1406,7 @@ test_core_win_fast-trunk:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.core
@@ -1425,7 +1425,7 @@ test_core_win_fast-trunk_dependencies:
       -  .yamato/_packages.yml#test_core_win_fast-trunk
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
@@ -1446,7 +1446,7 @@ test_lwrp_win_fast-trunk:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1469,7 +1469,7 @@ test_lwrp_win_fast-trunk_dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1489,7 +1489,7 @@ test_shadergraph_win_fast-trunk:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1510,7 +1510,7 @@ test_shadergraph_win_fast-trunk_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1533,7 +1533,7 @@ test_hdrp_win_fast-trunk:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1557,7 +1557,7 @@ test_hdrp_win_fast-trunk_dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1578,7 +1578,7 @@ test_universal_win_fast-trunk:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1600,7 +1600,7 @@ test_universal_win_fast-trunk_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1621,7 +1621,7 @@ test_vfx_win_fast-trunk:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1643,7 +1643,7 @@ test_vfx_win_fast-trunk_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1663,7 +1663,7 @@ test_config_win_fast-trunk:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1684,7 +1684,7 @@ test_config_win_fast-trunk_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -1703,7 +1703,7 @@ test_core_mac_fast-trunk:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.core
@@ -1722,7 +1722,7 @@ test_core_mac_fast-trunk_dependencies:
       -  .yamato/_packages.yml#test_core_mac_fast-trunk
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
@@ -1743,7 +1743,7 @@ test_lwrp_mac_fast-trunk:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1766,7 +1766,7 @@ test_lwrp_mac_fast-trunk_dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1786,7 +1786,7 @@ test_shadergraph_mac_fast-trunk:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1807,7 +1807,7 @@ test_shadergraph_mac_fast-trunk_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1830,7 +1830,7 @@ test_hdrp_mac_fast-trunk:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1854,7 +1854,7 @@ test_hdrp_mac_fast-trunk_dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1875,7 +1875,7 @@ test_universal_mac_fast-trunk:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1897,7 +1897,7 @@ test_universal_mac_fast-trunk_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1918,7 +1918,7 @@ test_vfx_mac_fast-trunk:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1940,7 +1940,7 @@ test_vfx_mac_fast-trunk_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1960,7 +1960,7 @@ test_config_mac_fast-trunk:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -1981,7 +1981,7 @@ test_config_mac_fast-trunk_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2000,7 +2000,7 @@ test_core_win_fast-2020.1:
       -  .yamato/_editor.yml#editor:priming:fast-2020.1:windows
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.core
@@ -2019,7 +2019,7 @@ test_core_win_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#test_core_win_fast-2020.1
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
@@ -2040,7 +2040,7 @@ test_lwrp_win_fast-2020.1:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -2063,7 +2063,7 @@ test_lwrp_win_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -2083,7 +2083,7 @@ test_shadergraph_win_fast-2020.1:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -2104,7 +2104,7 @@ test_shadergraph_win_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -2127,7 +2127,7 @@ test_hdrp_win_fast-2020.1:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -2151,7 +2151,7 @@ test_hdrp_win_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -2172,7 +2172,7 @@ test_universal_win_fast-2020.1:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -2194,7 +2194,7 @@ test_universal_win_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -2215,7 +2215,7 @@ test_vfx_win_fast-2020.1:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -2237,7 +2237,7 @@ test_vfx_win_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -2257,7 +2257,7 @@ test_config_win_fast-2020.1:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -2278,7 +2278,7 @@ test_config_win_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
@@ -2297,7 +2297,7 @@ test_core_mac_fast-2020.1:
       -  .yamato/_editor.yml#editor:priming:fast-2020.1:macos
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.core
@@ -2316,7 +2316,7 @@ test_core_mac_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#test_core_mac_fast-2020.1
       -  .yamato/_packages.yml#pack_core
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
@@ -2337,7 +2337,7 @@ test_lwrp_mac_fast-2020.1:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2360,7 +2360,7 @@ test_lwrp_mac_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2380,7 +2380,7 @@ test_shadergraph_mac_fast-2020.1:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2401,7 +2401,7 @@ test_shadergraph_mac_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2424,7 +2424,7 @@ test_hdrp_mac_fast-2020.1:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2448,7 +2448,7 @@ test_hdrp_mac_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2469,7 +2469,7 @@ test_universal_mac_fast-2020.1:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2491,7 +2491,7 @@ test_universal_mac_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2512,7 +2512,7 @@ test_vfx_mac_fast-2020.1:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2534,7 +2534,7 @@ test_vfx_mac_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2554,7 +2554,7 @@ test_config_mac_fast-2020.1:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2575,7 +2575,7 @@ test_config_mac_fast-2020.1_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -2606,7 +2606,7 @@ all_package_ci_trunk:
       -  .yamato/_packages.yml#test_vfx_mac_trunk
       -  .yamato/_packages.yml#test_config_mac_trunk
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
 all_package_ci_2020.1:
@@ -2631,7 +2631,7 @@ all_package_ci_2020.1:
       -  .yamato/_packages.yml#test_vfx_mac_2020.1
       -  .yamato/_packages.yml#test_config_mac_2020.1
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
 all_package_ci_fast-trunk:
@@ -2656,7 +2656,7 @@ all_package_ci_fast-trunk:
       -  .yamato/_packages.yml#test_vfx_mac_fast-trunk
       -  .yamato/_packages.yml#test_config_mac_fast-trunk
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
 all_package_ci_fast-2020.1:
@@ -2681,7 +2681,7 @@ all_package_ci_fast-2020.1:
       -  .yamato/_packages.yml#test_vfx_mac_fast-2020.1
       -  .yamato/_packages.yml#test_config_mac_fast-2020.1
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
 publish_all:

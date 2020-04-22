@@ -21,7 +21,7 @@ class PreviewPublish_PromoteJob():
         job.add_var_custom('UPMCI_PROMOTION', 1)
         job.add_dependencies([f'{packages_filepath()}#{package_job_id_pack(package["name"])}'])
         job.add_commands([
-                f'npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm',
+                f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci {package["type"]} promote --{package["type"]}-path {package["path"]}'])
         job.add_artifacts_packages()
         return job

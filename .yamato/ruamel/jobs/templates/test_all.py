@@ -24,7 +24,7 @@ class Template_AllTemplateCiJob():
         job.set_agent(agent)
         job.add_dependencies(dependencies)
         job.add_commands([
-                f'npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm',
+                f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci package izon -t',
                 f'upm-ci package izon -d'])
         return job

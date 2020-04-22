@@ -24,7 +24,7 @@ class Package_AllPackageCiJob():
         job.set_agent(agent)
         job.add_dependencies(dependencies)
         job.add_commands([
-                f'npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm',
+                f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci package izon -t',
                 f'upm-ci package izon -d'])
         return job

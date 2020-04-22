@@ -16,7 +16,7 @@ class Template_PackJob():
         job.set_name(f'Pack {template["id"]}')
         job.set_agent(agent)
         job.add_commands( [
-                f'npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm',
+                f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci template pack --project-path {template["packagename"]}'])
         job.add_artifacts_packages() # TODO add templates path
         return job
