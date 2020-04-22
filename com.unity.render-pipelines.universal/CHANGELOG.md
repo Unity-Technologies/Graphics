@@ -169,6 +169,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with shadows not being correctly calculated in some shaders.
 - Fixed invalid implementation of one function in LWRP -> URP backward compatibility support.
 - Fixed OpenGL ES 3.0 support for URP ShaderGraph. [case 1230890](https://issuetracker.unity3d.com/issues/urptemplate-gles3-android-custom-shader-fails-to-compile-on-adreno-306-gpu)
+- Fixed issue that caused unity_AmbientSky, unity_AmbientEquator and unity_AmbientGround variables to be unintialized.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
