@@ -2,7 +2,7 @@
 
 ## Description
 
-Creates a sphere mask originating from input **Center**. The sphere is calculated using [Distance](Distance-Node.md) and modified using the **Radius** and **Hardness** inputs. Sphere mask functionality works in both 2D and 3D spaces, and is based on the vector coordinates in the **Coords** input.
+Creates a sphere mask originating from input **Center**. The sphere is calculated using [Distance](Distance-Node.md) and modified using the **Radius** and **Hardness** inputs. Sphere mask functionality works in both 2D and 3D spaces, and is based on the vector coordinates in the **Coords** input. These vector coordinates can either be 3D like world space position, or 2D like UV coordinates.
 
 ## Ports
 
