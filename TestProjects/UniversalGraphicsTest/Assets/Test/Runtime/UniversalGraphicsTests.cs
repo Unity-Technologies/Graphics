@@ -73,9 +73,7 @@ public class UniversalGraphicsTests
         var additionalCameraData = mainCamera.GetUniversalAdditionalCameraData();
         bool is2DRenderer = additionalCameraData.scriptableRenderer is Renderer2D;
         
-        // Post-processing is allocating memory. Case https://fogbugz.unity3d.com/f/cases/1227490/
-        bool isPostProcessingEnabled = additionalCameraData.renderPostProcessing;
-        if (!is2DRenderer && !isPostProcessingEnabled)
+        if (!is2DRenderer)
         {
             try
             {
