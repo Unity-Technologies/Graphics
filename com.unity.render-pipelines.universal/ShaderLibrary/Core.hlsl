@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
+#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
 
 #if !defined(SHADER_HINT_NICE_QUALITY)
 #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
@@ -122,39 +123,6 @@ half OutputAlpha(half outputAlpha)
     return saturate(outputAlpha + _DrawObjectPassData.a);
 }
 
-// Returns the forward (central) direction of the current view in the world space.
-float3 GetViewForwardDir()
-{
-    float4x4 viewMat = GetWorldToViewMatrix();
-    return -viewMat[2].xyz;
-}
-
-// Returns 'true' if the current view performs a perspective projection.
-bool IsPerspectiveProjection()
-{
-    return (unity_OrthoParams.w == 0);
-}
-
-// Computes the world space view direction (pointing towards the viewer).
-float3 GetWorldSpaceViewDir(float3 positionWS)
-{
-    if (IsPerspectiveProjection())
-    {
-        // Perspective
-        return GetCameraPositionWS() - positionWS;
-    }
-    else
-    {
-        // Orthographic
-        return -GetViewForwardDir();
-    }
-}
-
-float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
-{
-    return normalize(GetWorldSpaceViewDir(positionWS));
-}
-
 // A word on normalization of normals:
 // For better quality normals should be normalized before and after
 // interpolation.
@@ -266,7 +234,7 @@ half3 MixFog(real3 fragColor, real fogFactor)
 #else
 
     #define SLICE_ARRAY_INDEX       0
-    
+
     #define TEXTURE2D_X(textureName)                                        TEXTURE2D(textureName)
     #define TEXTURE2D_X_PARAM(textureName, samplerName)                     TEXTURE2D_PARAM(textureName, samplerName)
     #define TEXTURE2D_X_ARGS(textureName, samplerName)                      TEXTURE2D_ARGS(textureName, samplerName)
