@@ -1185,13 +1185,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 1280
-    TargetHeight: 720
+    TargetWidth: 640
+    TargetHeight: 360
     PerPixelCorrectnessThreshold: 0.001
     AverageCorrectnessThreshold: 0.005
     UseHDR: 0
     UseBackBuffer: 1
-    ImageResolution: 2
+    ImageResolution: 4
   WaitFrames: 2
 --- !u!20 &1203454921
 Camera:
