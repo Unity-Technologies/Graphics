@@ -1,0 +1,207 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ExposureCommon.hlsl"
+
+// TODO List to investigate
+//  - Number of bins:
+//      - Worth considering multiple histograms per lane in the thread. (i.e. sharedHisto[BINS][NUMB_HIST] )
+//      - Worth checking the optimal group size.
+//      - At the moment the dispatch is at half res, but the buffer sampled is full res,
+//        causing fairly bad cache behaviour. Can we use the mip chain realistically without issues? [The one we have is blurred and might be incomplete?] 
+
+// NOTE: fairly naive for now.
+
+// TODO: If we keep 128, we should have a group that is 128 threads. We can dispatch 128, 1, 1 and remap to get pixel. 
+
+// TODO: IMPORTANT TODO_FCC [1] Do the bin calculations in ev100 instead of log2? Or work in luminance and convert later (As it is now)? 
+
+#pragma kernel KHistogramGen        GEN_PASS
+#pragma kernel KHistogramReduce     REDUCE_PASS
+
+#define _HistogramRangeScale _HistogramExposureParams.x
+#define _HistogramRangeBias  _HistogramExposureParams.y
+#define _HistogramMinPercentage  _HistogramExposureParams.z
+#define _HistogramMaxPercentage  _HistogramExposureParams.w
+
+
+#define HISTOGRAM_BINS 256          // IMPORTANT: If this number is changed, the code needs adapting, I tried to add relevant comments to indicate where.
+#define GROUP_SIZE 16
+
+#ifdef GEN_PASS
+RWStructuredBuffer<uint> _HistogramBuffer;
+#else
+StructuredBuffer<uint> _HistogramBuffer;
+#endif
+
+// Because atomics are only on uint and we need a weighted value, we need to convert.
+// Note that using 9bit per weight (allowing [0 ... 2] for weights), we can store up to 8388608
+// values per bin which is a bit more than all pixels of a 4K input image.
+uint PackWeight(float weight)
+{
+    const uint numBits = 9;
+
+    float processedWeight = clamp(weight, 0.0, 2.0) * 0.5f;
+    uint maxInt = (1u << numBits) - 1u;
+    return (uint)(processedWeight * maxInt + 0.5);
+}
+
+float UnpackWeight(uint val)
+{
+    const uint numBits = 9;
+    uint maxInt = (1u << numBits) - 1u;
+    return saturate(val * rcp(maxInt)) * 2.0f;
+}
+
+uint GetHistogramBinLocation(float value)
+{
+    float scaledLogLuma = log2(value) * _HistogramRangeScale + _HistogramRangeBias;
+    return uint(saturate(scaledLogLuma) * (HISTOGRAM_BINS - 1));
+}
+
+float BinLocationToLogLuma(uint binIdx)
+{
+    return (float(binIdx) - _HistogramRangeBias) / _HistogramRangeScale;
+}
+
+groupshared uint gs_localHistogram[HISTOGRAM_BINS];
+
+
+// TODO_FCC: IMPORTANT TODO BEFORE PR:
+//      It is a bit awkward that we have more lanes than bins...
+//      If we keep this it is IMPERATIVE to have some guarantee on the coherency of the branch.
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void KHistogramGen(uint groupIndex : SV_GroupIndex,
+                   uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    // Groupshared memory is not guaranteed to be 0 initialized. 
+    if (groupIndex < HISTOGRAM_BINS)
+    {
+        gs_localHistogram[groupIndex] = 0u;
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // IMPORTANT TODO: This leads to poor cache behaviour, verify if we can use lower mip of the color pyramid.
+    uint2 fullResCoords = dispatchThreadId.xy << 1u;
+
+    if (all(fullResCoords < uint2(_ScreenSize.xy)))
+    {
+        float2 uv = ClampAndScaleUVForBilinear((fullResCoords + 0.5) * _ScreenSize.zw);
+        float luminance = SampleLuminance(uv);
+        float weight = WeightSample(uv);
+
+        uint  bin = GetHistogramBinLocation(luminance);
+
+        InterlockedAdd(gs_localHistogram[bin], PackWeight(weight));
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < HISTOGRAM_BINS)
+    {
+        InterlockedAdd(_HistogramBuffer[groupIndex], gs_localHistogram[groupIndex]);
+    }
+}
+
+#define USE_WAVE_INTRINSICS     defined(PLATFORM_LANE_COUNT) && defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
+
+
+#if USE_WAVE_INTRINSICS
+
+#define WAVE_SIZE   PLATFORM_LANE_COUNT
+#define SUM_SCRATCH_SIZE  HISTOGRAM_BINS / WAVE_SIZE 
+
+#else
+
+#define SUM_SCRATCH_SIZE  HISTOGRAM_BINS 
+
+#endif
+
+groupshared float gs_partialSums[SUM_SCRATCH_SIZE];
+groupshared float gs_values[HISTOGRAM_BINS];
+
+[numthreads(HISTOGRAM_BINS, 1, 1)]
+void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint threadID = dispatchThreadId.x;
+    uint sum = 0;
+    float histogramVal = UnpackWeight(_HistogramBuffer[threadID]);
+
+#if USE_WAVE_INTRINSICS
+
+    uint waveCount = (HISTOGRAM_BINS / WAVE_SIZE);
+    uint waveSum = WaveActiveSum(histogramVal);
+
+    uint waveIDInGroup = threadID / WAVE_SIZE;
+    if (WaveIsFirstLane())
+    {
+        gs_partialSums[waveIDInGroup] = waveSum;
+    }
+
+    gs_values[threadID] = histogramVal;
+
+    // We have values for all the waves, let's sync. 
+    GroupMemoryBarrierWithGroupSync();
+
+    sum = gs_partialSums[0];
+    for (uint i = 1u; i < waveCount; ++i)
+    {
+        sum += gs_partialSums[i];
+    }
+
+#else // !USE_WAVE_INTRINSICS
+
+    gs_values[threadID] = histogramVal;
+    gs_partialSums[threadID] = histogramVal;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Sum all values
+    for (uint i = (HISTOGRAM_BINS >> 1u); i > 0; i >>= 1u)
+    {
+        if (threadID < i)
+        {
+            gs_partialSums[threadID] += gs_partialSums[threadID + i];
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    sum = gs_partialSums[0];
+
+#endif
+
+    float2 extremesSums = float2(_HistogramMinPercentage, _HistogramMaxPercentage) * sum;
+
+    // TODO: This can probably done more efficiently. Also verify that all but the first wave
+    // actually skip this or if we need to enforce it somehow.
+    if (threadID == 0)
+    {
+        float logProcessedSum = 0;
+        float w = 0;
+
+        for (int i = 0; i < HISTOGRAM_BINS; ++i)
+        {
+            float histVal = gs_values[i];
+            float binLogLuma = BinLocationToLogLuma(i);
+
+            float off = min(extremesSums.x, histVal);
+            extremesSums -= off;
+            histVal -= off;
+
+            histVal = min(extremesSums.y, histVal);
+            extremesSums.y -= histVal;
+
+            logProcessedSum += histVal * binLogLuma;
+            w += histVal;
+        }
+
+        w = max(w, 1e-4f);
+        float avgLuminance = logProcessedSum * rcp(w);
+        avgLuminance = exp2(avgLuminance);
+
+        // TODO
+
+    }
+
+    
+}
