@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    [System.Serializable]
     public class IESReader
     {
         string m_FileFormatVersion;

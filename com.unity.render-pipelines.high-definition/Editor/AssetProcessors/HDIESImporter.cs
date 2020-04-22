@@ -7,24 +7,32 @@ using UnityEditor.Experimental.AssetImporters;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [ScriptedImporter(1, "ies")]
-    public class HDIESImporter : UnityEditor.Rendering.IESImporter
+    public partial class HDIESImporter : ScriptedImporter
     {
-        public override void SetupIesEngineForRenderPipeline(IESEngine engine)
-        {
-            engine.TextureGenerationType = TextureImporterType.Default;
-        }
+        public UnityEditor.Rendering.IESImporter commonIESImporter = new UnityEditor.Rendering.IESImporter();
 
-        public override void SetupRenderPipelinePrefabLight(IESEngine engine, Light light)
+        internal void SetupRenderPipelinePrefabLight(IESEngine engine, Light light)
         {
             HDLightTypeAndShape hdLightTypeAndShape = (light.type == LightType.Point) ? HDLightTypeAndShape.Point : HDLightTypeAndShape.ConeSpot;
 
             HDAdditionalLightData hdLight = GameObjectExtension.AddHDLight(light.gameObject, hdLightTypeAndShape);
 
-            if (UseIesMaximumIntensity)
+            if (commonIESImporter.iesMetaData.UseIESMaximumIntensity)
             {
-                LightUnit lightUnit = (IesMaximumIntensityUnit == "Lumens") ? LightUnit.Lumen : LightUnit.Candela;
-                hdLight.SetIntensity(IesMaximumIntensity, lightUnit);
+                LightUnit lightUnit = (commonIESImporter.iesMetaData.IESMaximumIntensityUnit == "Lumens") ? LightUnit.Lumen : LightUnit.Candela;
+                hdLight.SetIntensity(commonIESImporter.iesMetaData.IESMaximumIntensity, lightUnit);
             }
+        }
+
+        public override void OnImportAsset(AssetImportContext ctx)
+        {
+            commonIESImporter.engine.TextureGenerationType = TextureImporterType.Default;
+
+            commonIESImporter.CommonOnImportAsset(ctx,
+                delegate (IESEngine engine, Light light)
+                {
+                    SetupRenderPipelinePrefabLight(engine, light);
+                } );
         }
     }
 }

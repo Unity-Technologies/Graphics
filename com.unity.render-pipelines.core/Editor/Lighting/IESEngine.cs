@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering
     // https://www.ies.org/product/approved-method-guide-to-goniometer-measurements-and-types-and-photometric-coordinate-systems/
     // https://support.agi32.com/support/solutions/articles/22000209748-type-a-type-b-and-type-c-photometry
 
+    [System.Serializable]
     public class IESEngine
     {
         const float k_HalfPi = 0.5f * Mathf.PI;

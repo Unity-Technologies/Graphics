@@ -6,14 +6,14 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    public abstract class IESImporterEditor : ScriptedImporterEditor
+    public class IESImporterEditor
     {
         GUIStyle m_WordWrapStyle = new GUIStyle();
 
         SerializedProperty m_FileFormatVersionProp;
-        SerializedProperty m_IesPhotometricTypeProp;
-        SerializedProperty m_IesMaximumIntensityProp;
-        SerializedProperty m_IesMaximumIntensityUnitProp;
+        SerializedProperty m_IESPhotometricTypeProp;
+        SerializedProperty m_IESMaximumIntensityProp;
+        SerializedProperty m_IESMaximumIntensityUnitProp;
 
         SerializedProperty m_ManufacturerProp;
         SerializedProperty m_LuminaireCatalogNumberProp;
@@ -25,8 +25,11 @@ namespace UnityEditor.Rendering
         SerializedProperty m_SpotAngleProp;
         SerializedProperty m_SpotCookieSizeProp;
         SerializedProperty m_ApplyLightAttenuationProp;
-        SerializedProperty m_UseIesMaximumIntensityProp;
+        SerializedProperty m_UseIESMaximumIntensityProp;
         SerializedProperty m_CookieCompressionProp;
+
+        //IESMetaData iesMetaData;
+
         protected SerializedProperty m_LightAimAxisRotationProp;
 
         bool m_ShowLuminaireProductInformation = true;
@@ -34,39 +37,82 @@ namespace UnityEditor.Rendering
 
         protected PreviewRenderUtility m_PreviewRenderUtility = null;
 
-        public override void OnEnable()
-        {
-            base.OnEnable();
+        public delegate void LayoutRenderPipelineUseIesMaximumIntensity();
+        public delegate void SetupRenderPipelinePreviewCamera(Camera camera);
+        public delegate void SetupRenderPipelinePreviewLight(Light light);
+        public delegate void SetupRenderPipelinePreviewWallRenderer(MeshRenderer wallRenderer);
+        public delegate void SetupRenderPipelinePreviewFloorRenderer(MeshRenderer floorRenderer);
+        public delegate void SetupRenderPipelinePreviewLightIntensity(Light light);
 
+        public void CommonOnEnable(SerializedProperty serializedObject)
+        {
             m_WordWrapStyle.wordWrap = true;
 
-            m_FileFormatVersionProp       = serializedObject.FindProperty("FileFormatVersion");
-            m_IesPhotometricTypeProp      = serializedObject.FindProperty("IesPhotometricType");
-            m_IesMaximumIntensityProp     = serializedObject.FindProperty("IesMaximumIntensity");
-            m_IesMaximumIntensityUnitProp = serializedObject.FindProperty("IesMaximumIntensityUnit");
+            m_FileFormatVersionProp       = serializedObject.FindPropertyRelative("FileFormatVersion");
+            m_IESPhotometricTypeProp      = serializedObject.FindPropertyRelative("IESPhotometricType");
+            m_IESMaximumIntensityProp     = serializedObject.FindPropertyRelative("IESMaximumIntensity");
+            m_IESMaximumIntensityUnitProp = serializedObject.FindPropertyRelative("IESMaximumIntensityUnit");
 
-            m_ManufacturerProp            = serializedObject.FindProperty("Manufacturer");
-            m_LuminaireCatalogNumberProp  = serializedObject.FindProperty("LuminaireCatalogNumber");
-            m_LuminaireDescriptionProp    = serializedObject.FindProperty("LuminaireDescription");
-            m_LampCatalogNumberProp       = serializedObject.FindProperty("LampCatalogNumber");
-            m_LampDescriptionProp         = serializedObject.FindProperty("LampDescription");
+            m_ManufacturerProp            = serializedObject.FindPropertyRelative("Manufacturer");
+            m_LuminaireCatalogNumberProp  = serializedObject.FindPropertyRelative("LuminaireCatalogNumber");
+            m_LuminaireDescriptionProp    = serializedObject.FindPropertyRelative("LuminaireDescription");
+            m_LampCatalogNumberProp       = serializedObject.FindPropertyRelative("LampCatalogNumber");
+            m_LampDescriptionProp         = serializedObject.FindPropertyRelative("LampDescription");
 
-            m_PrefabLightTypeProp         = serializedObject.FindProperty("PrefabLightType");
-            m_SpotAngleProp               = serializedObject.FindProperty("SpotAngle");
-            m_SpotCookieSizeProp          = serializedObject.FindProperty("SpotCookieSize");
-            m_ApplyLightAttenuationProp   = serializedObject.FindProperty("ApplyLightAttenuation");
-            m_UseIesMaximumIntensityProp  = serializedObject.FindProperty("UseIesMaximumIntensity");
-            m_CookieCompressionProp       = serializedObject.FindProperty("CookieCompression");
-            m_LightAimAxisRotationProp    = serializedObject.FindProperty("LightAimAxisRotation");
+            m_PrefabLightTypeProp         = serializedObject.FindPropertyRelative("PrefabLightType");
+            m_SpotAngleProp               = serializedObject.FindPropertyRelative("SpotAngle");
+            m_SpotCookieSizeProp          = serializedObject.FindPropertyRelative("SpotCookieSize");
+            m_ApplyLightAttenuationProp   = serializedObject.FindPropertyRelative("ApplyLightAttenuation");
+            m_UseIESMaximumIntensityProp  = serializedObject.FindPropertyRelative("UseIESMaximumIntensity");
+            m_CookieCompressionProp       = serializedObject.FindPropertyRelative("CookieCompression");
+            m_LightAimAxisRotationProp    = serializedObject.FindPropertyRelative("LightAimAxisRotation");
         }
 
-        public override void OnInspectorGUI()
+        public void CommonOnInspectorGUI(ScriptedImporterEditor scriptedImporter, LayoutRenderPipelineUseIesMaximumIntensity layoutRenderPipelineUseIesMaximumIntensity)
         {
-            serializedObject.Update();
+            scriptedImporter.serializedObject.Update();
 
             EditorGUILayout.LabelField("File Format Version", m_FileFormatVersionProp.stringValue);
-            EditorGUILayout.LabelField("Photometric Type",    m_IesPhotometricTypeProp.stringValue);
-            EditorGUILayout.LabelField("Maximum Intensity",   $"{m_IesMaximumIntensityProp.floatValue} {m_IesMaximumIntensityUnitProp.stringValue}");
+            EditorGUILayout.LabelField("Photometric Type",    m_IESPhotometricTypeProp.stringValue);
+            EditorGUILayout.LabelField("Maximum Intensity",   $"{m_IESMaximumIntensityProp.floatValue} {m_IESMaximumIntensityUnitProp.stringValue}");
+
+            if (m_ShowLuminaireProductInformation = EditorGUILayout.Foldout(m_ShowLuminaireProductInformation, "Luminaire Product Information"))
+            {
+                EditorGUILayout.LabelField(m_ManufacturerProp.displayName,           m_ManufacturerProp.stringValue, m_WordWrapStyle);
+                EditorGUILayout.LabelField(m_LuminaireCatalogNumberProp.displayName, m_LuminaireCatalogNumberProp.stringValue, m_WordWrapStyle);
+                EditorGUILayout.LabelField(m_LuminaireDescriptionProp.displayName,   m_LuminaireDescriptionProp.stringValue,   m_WordWrapStyle);
+                EditorGUILayout.LabelField(m_LampCatalogNumberProp.displayName,      m_LampCatalogNumberProp.stringValue,      m_WordWrapStyle);
+                EditorGUILayout.LabelField(m_LampDescriptionProp.displayName,        m_LampDescriptionProp.stringValue,        m_WordWrapStyle);
+            }
+
+            if (m_ShowLightProperties = EditorGUILayout.Foldout(m_ShowLightProperties, "Light and Cookie Properties"))
+            {
+                EditorGUILayout.PropertyField(m_PrefabLightTypeProp, new GUIContent("Light Type"));
+
+                EditorGUILayout.PropertyField(m_SpotAngleProp);
+                EditorGUILayout.PropertyField(m_SpotCookieSizeProp, new GUIContent("IES Size"));
+                EditorGUILayout.PropertyField(m_ApplyLightAttenuationProp);
+
+                EditorGUILayout.PropertyField(m_CookieCompressionProp);
+
+                layoutRenderPipelineUseIesMaximumIntensity();
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.PropertyField(m_LightAimAxisRotationProp, new GUIContent("Aim Axis Rotation"));
+
+                    if (GUILayout.Button("Reset", GUILayout.Width(44)))
+                    {
+                        m_LightAimAxisRotationProp.floatValue = -90f;
+                    }
+                }
+            }
+
+            scriptedImporter.serializedObject.ApplyModifiedProperties();
+
+            EditorGUILayout.LabelField("File Format Version", m_FileFormatVersionProp.stringValue);
+            EditorGUILayout.LabelField("Photometric Type",    m_IESPhotometricTypeProp.stringValue);
+            EditorGUILayout.LabelField("Maximum Intensity",   $"{m_IESMaximumIntensityProp.floatValue} {m_IESMaximumIntensityUnitProp.stringValue}");
 
             if (m_ShowLuminaireProductInformation = EditorGUILayout.Foldout(m_ShowLuminaireProductInformation, "Luminaire Product Information"))
             {
@@ -82,12 +128,12 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.PropertyField(m_PrefabLightTypeProp, new GUIContent("Light Type"));
 
                 EditorGUILayout.PropertyField(m_SpotAngleProp);
-                EditorGUILayout.PropertyField(m_SpotCookieSizeProp, new GUIContent("Cookie Size"));
+                EditorGUILayout.PropertyField(m_SpotCookieSizeProp, new GUIContent("IES Size"));
                 EditorGUILayout.PropertyField(m_ApplyLightAttenuationProp);
 
                 EditorGUILayout.PropertyField(m_CookieCompressionProp);
 
-                LayoutRenderPipelineUseIesMaximumIntensity();
+                layoutRenderPipelineUseIesMaximumIntensity();
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
@@ -100,15 +146,11 @@ namespace UnityEditor.Rendering
                 }
             }
 
-            serializedObject.ApplyModifiedProperties();
-
-            ApplyRevertGUI();
+            scriptedImporter.serializedObject.ApplyModifiedProperties();
         }
 
-        protected override void Apply()
+        public void CommonApply()
         {
-            base.Apply();
-
             if (m_PreviewRenderUtility != null)
             {
                 m_PreviewRenderUtility.Cleanup();
@@ -116,7 +158,10 @@ namespace UnityEditor.Rendering
             }
         }
 
-        public override bool HasPreviewGUI()
+        public bool CommonHasPreviewGUI(SetupRenderPipelinePreviewCamera        setupRenderPipelinePreviewCamera,
+                                        SetupRenderPipelinePreviewLight         setupRenderPipelinePreviewLight,
+                                        SetupRenderPipelinePreviewWallRenderer  setupRenderPipelinePreviewWallRenderer,
+                                        SetupRenderPipelinePreviewFloorRenderer setupRenderPipelinePreviewFloorRenderer)
         {
             if (m_PreviewRenderUtility == null)
             {
@@ -130,7 +175,7 @@ namespace UnityEditor.Rendering
                 m_PreviewRenderUtility.camera.transform.localPosition    = new Vector3(1.85f, 0.71f, 0f);
                 m_PreviewRenderUtility.camera.transform.localEulerAngles = new Vector3(15f, -90f, 0f);
 
-               SetupRenderPipelinePreviewCamera(m_PreviewRenderUtility.camera);
+                setupRenderPipelinePreviewCamera(m_PreviewRenderUtility.camera);
 
                 m_PreviewRenderUtility.lights[0].type                       = (m_PrefabLightTypeProp.enumValueIndex == (int)IESLightType.Point) ? LightType.Point : LightType.Spot;
                 m_PreviewRenderUtility.lights[0].color                      = Color.white;
@@ -140,7 +185,7 @@ namespace UnityEditor.Rendering
                 m_PreviewRenderUtility.lights[0].transform.localPosition    = new Vector3(0.14f, 1f, 0f);
                 m_PreviewRenderUtility.lights[0].transform.localEulerAngles = new Vector3(90f, 0f, -90f);
 
-                SetupRenderPipelinePreviewLight(m_PreviewRenderUtility.lights[0]);
+                setupRenderPipelinePreviewLight(m_PreviewRenderUtility.lights[0]);
 
                 m_PreviewRenderUtility.lights[1].intensity = 0f;
 
@@ -155,7 +200,7 @@ namespace UnityEditor.Rendering
                 previewWallRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
                 previewWallRenderer.material             = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Material.mat");
 
-                SetupRenderPipelinePreviewWallRenderer(previewWallRenderer);
+                setupRenderPipelinePreviewWallRenderer(previewWallRenderer);
 
                 m_PreviewRenderUtility.AddSingleGO(previewWall);
 
@@ -170,7 +215,7 @@ namespace UnityEditor.Rendering
                 previewFloorRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
                 previewFloorRenderer.material             = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
 
-                SetupRenderPipelinePreviewFloorRenderer(previewFloorRenderer);
+                setupRenderPipelinePreviewFloorRenderer(previewFloorRenderer);
 
                 m_PreviewRenderUtility.AddSingleGO(previewFloor);
             }
@@ -178,14 +223,58 @@ namespace UnityEditor.Rendering
             return true;
         }
 
-        public abstract void LayoutRenderPipelineUseIesMaximumIntensity();
-        public abstract void SetupRenderPipelinePreviewCamera(Camera camera);
-        public abstract void SetupRenderPipelinePreviewLight(Light light);
-        public abstract void SetupRenderPipelinePreviewWallRenderer(MeshRenderer wallRenderer);
-        public abstract void SetupRenderPipelinePreviewFloorRenderer(MeshRenderer floorRenderer);
-        public abstract void SetupRenderPipelinePreviewLightIntensity(Light light);
+        public GUIContent CommonGetPreviewTitle()
+        {
+            return new GUIContent("IES Luminaire Profile");
+        }
 
-        void OnDestroy()
+        public void CommonOnPreviewGUI(Rect r, GUIStyle background, ScriptedImporter target,
+                                        SetupRenderPipelinePreviewLightIntensity setupRenderPipelinePreviewLightIntensity)
+        {
+            if (Event.current.type == EventType.Repaint)
+            {
+                Texture cookieTexture  = null;
+                Texture previewTexture = null;
+
+                foreach (var subAsset in AssetDatabase.LoadAllAssetRepresentationsAtPath(target.assetPath))
+                {
+                    if (subAsset.name.EndsWith("-Cube-IES"))
+                    {
+                        cookieTexture = subAsset as Texture;
+                        break;
+                    }
+                }
+
+                if (cookieTexture != null)
+                {
+                    m_PreviewRenderUtility.lights[0].transform.localEulerAngles = new Vector3(90f, 0f, m_LightAimAxisRotationProp.floatValue);
+                    setupRenderPipelinePreviewLightIntensity(m_PreviewRenderUtility.lights[0]);
+                    m_PreviewRenderUtility.lights[0].cookie = cookieTexture;
+
+                    m_PreviewRenderUtility.BeginPreview(r, background);
+
+                    bool fog = RenderSettings.fog;
+                    Unsupported.SetRenderSettingsUseFogNoDirty(false);
+
+                    m_PreviewRenderUtility.camera.Render();
+
+                    Unsupported.SetRenderSettingsUseFogNoDirty(fog);
+
+                    previewTexture = m_PreviewRenderUtility.EndPreview();
+                }
+
+                if (previewTexture == null)
+                {
+                    GUI.DrawTexture(r, Texture2D.blackTexture, ScaleMode.StretchToFill, false);
+                }
+                else
+                {
+                    GUI.DrawTexture(r, previewTexture, ScaleMode.ScaleToFit, false);
+                }
+            }
+        }
+
+        public void CommonOnDisable()
         {
             if (m_PreviewRenderUtility != null)
             {

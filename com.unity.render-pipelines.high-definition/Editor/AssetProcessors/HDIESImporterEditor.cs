@@ -3,20 +3,23 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.Experimental.AssetImporters;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CustomEditor(typeof(IESImporter))]
-    public class HDIESImporterEditor : UnityEditor.Rendering.IESImporterEditor
+    [CustomEditor(typeof(HDIESImporter))]
+    public partial class HDIESImporterEditor : ScriptedImporterEditor
     {
-        public override void LayoutRenderPipelineUseIesMaximumIntensity()
+        public UnityEditor.Rendering.IESImporterEditor iesImporterEditor = new UnityEditor.Rendering.IESImporterEditor();
+
+        internal void LayoutRenderPipelineUseIesMaximumIntensity()
         {
             // Before enabling this feature, more experimentation is needed with the addition of a Volume in the PreviewRenderUtility scene.
 
-            // EditorGUILayout.PropertyField(m_UseIesMaximumIntensityProp, new GUIContent("Use IES Maximum Intensity"));
+            // EditorGUILayout.PropertyField(m_UseIESMaximumIntensityProp, new GUIContent("Use IES Maximum Intensity"));
         }
 
-        public override void SetupRenderPipelinePreviewCamera(Camera camera)
+        internal void SetupRenderPipelinePreviewCamera(Camera camera)
         {
             HDAdditionalCameraData hdCamera = camera.gameObject.AddComponent<HDAdditionalCameraData>();
 
@@ -26,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
             hdCamera.GetType().GetProperty("isEditorCameraPreview", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(hdCamera, true, null);
         }
 
-        public override void SetupRenderPipelinePreviewLight(Light light)
+        internal void SetupRenderPipelinePreviewLight(Light light)
         {
             HDLightTypeAndShape hdLightTypeAndShape = (light.type == LightType.Point) ? HDLightTypeAndShape.Point : HDLightTypeAndShape.ConeSpot;
 
@@ -39,17 +42,17 @@ namespace UnityEditor.Rendering.HighDefinition
             hdLight.affectsVolumetric = false;
         }
 
-        public override void SetupRenderPipelinePreviewWallRenderer(MeshRenderer wallRenderer)
+        internal void SetupRenderPipelinePreviewWallRenderer(MeshRenderer wallRenderer)
         {
             wallRenderer.material = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDMaterial.mat");
         }
 
-        public override void SetupRenderPipelinePreviewFloorRenderer(MeshRenderer floorRenderer)
+        internal void SetupRenderPipelinePreviewFloorRenderer(MeshRenderer floorRenderer)
         {
             floorRenderer.material = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDMaterial.mat");
         }
 
-        public override void SetupRenderPipelinePreviewLightIntensity(Light light)
+        internal void SetupRenderPipelinePreviewLightIntensity(Light light)
         {
             // Before enabling this feature, more experimentation is needed with the addition of a Volume in the PreviewRenderUtility scene.
 
@@ -66,54 +69,77 @@ namespace UnityEditor.Rendering.HighDefinition
             // }
         }
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+
+            var entryPoint0 = new PropertyFetcher<HDIESImporter>(serializedObject);
+            SerializedProperty entryPoint1 = entryPoint0.Find<IESImporter>(x => x.commonIESImporter);
+            Debug.Log("001");
+            SerializedProperty entryPoint = entryPoint1.FindPropertyRelative("iesMetaData");
+
+            iesImporterEditor.CommonOnEnable(entryPoint);
+        }
+
+        public override void OnInspectorGUI()
+        {
+            iesImporterEditor.CommonOnInspectorGUI(this as ScriptedImporterEditor,
+                delegate ()
+                {
+                    LayoutRenderPipelineUseIesMaximumIntensity();
+                });
+
+            base.ApplyRevertGUI();
+        }
+
+        protected override void Apply()
+        {
+            base.Apply();
+
+            iesImporterEditor.CommonApply();
+        }
+
+        public override bool HasPreviewGUI()
+        {
+            return iesImporterEditor.CommonHasPreviewGUI(
+                    delegate (Camera camera)
+                    {
+                        SetupRenderPipelinePreviewCamera(camera);
+                    },
+                    delegate (Light light)
+                    {
+                        SetupRenderPipelinePreviewLight(light);
+                    },
+                    delegate (MeshRenderer wallRenderer)
+                    {
+                        SetupRenderPipelinePreviewWallRenderer(wallRenderer);
+                    },
+                    delegate (MeshRenderer floorRenderer)
+                    {
+                        SetupRenderPipelinePreviewFloorRenderer(floorRenderer);
+                    }
+                );
+        }
+
         public override GUIContent GetPreviewTitle()
         {
-            return new GUIContent("IES Luminaire Profile");
+            return iesImporterEditor.CommonGetPreviewTitle();
         }
 
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
-            if (Event.current.type == EventType.Repaint)
-            {
-                Texture cookieTexture  = null;
-                Texture previewTexture = null;
+            iesImporterEditor.CommonOnPreviewGUI(r, background, target as HDIESImporter,
+                                    delegate (Light light)
+                                    {
+                                        SetupRenderPipelinePreviewLightIntensity(light);
+                                    });
+        }
 
-                foreach (var subAsset in AssetDatabase.LoadAllAssetRepresentationsAtPath((target as IESImporter).assetPath))
-                {
-                    if (subAsset.name.EndsWith("-Cookie"))
-                    {
-                        cookieTexture = subAsset as Texture;
-                        break;
-                    }
-                }
+        public override void OnDisable()
+        {
+            base.OnDisable();
 
-                if (cookieTexture != null)
-                {
-                    m_PreviewRenderUtility.lights[0].transform.localEulerAngles = new Vector3(90f, 0f, m_LightAimAxisRotationProp.floatValue);
-                    SetupRenderPipelinePreviewLightIntensity(m_PreviewRenderUtility.lights[0]);
-                    m_PreviewRenderUtility.lights[0].cookie = cookieTexture;
-
-                    m_PreviewRenderUtility.BeginPreview(r, background);
-
-                    bool fog = RenderSettings.fog;
-                    Unsupported.SetRenderSettingsUseFogNoDirty(false);
-
-                    m_PreviewRenderUtility.camera.Render();
-
-                    Unsupported.SetRenderSettingsUseFogNoDirty(fog);
-
-                    previewTexture = m_PreviewRenderUtility.EndPreview();
-                }
-
-                if (previewTexture == null)
-                {
-                    GUI.DrawTexture(r, Texture2D.blackTexture, ScaleMode.StretchToFill, false);
-                }
-                else
-                {
-                    GUI.DrawTexture(r, previewTexture, ScaleMode.ScaleToFit, false);
-                }
-            }
+            iesImporterEditor.CommonOnDisable();
         }
     }
 }
