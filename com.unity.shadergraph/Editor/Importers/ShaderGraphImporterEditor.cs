@@ -6,6 +6,7 @@ using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEditor.Graphing;
 using System.Text;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -22,7 +23,25 @@ namespace UnityEditor.ShaderGraph
                 var textGraph = File.ReadAllText(importer.assetPath, Encoding.UTF8);
                 var graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
-                graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
+                bool isSubGraph;
+                var extension = Path.GetExtension(importer.assetPath).Replace(".", "");
+                switch (extension)
+                {
+                    case ShaderGraphImporter.Extension:
+                        isSubGraph = false;
+                        break;
+                    case ShaderSubGraphImporter.Extension:
+                        isSubGraph = true;
+                        break;
+                    default:
+                        throw new Exception($"Invalid file extension {extension}");
+                }
+                var assetGuid = AssetDatabase.AssetPathToGUID(importer.assetPath);
+                graphObject.graph = new GraphData
+                {
+                    assetGuid = assetGuid, isSubGraph = isSubGraph, messageManager = null
+                };
+                MultiJson.Deserialize(graphObject.graph, textGraph);
                 graphObject.graph.OnEnable();
                 graphObject.graph.ValidateGraph();
                 return graphObject.graph;
