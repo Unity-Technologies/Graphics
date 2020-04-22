@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Editor.Tests")]
@@ -15,6 +16,8 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Current version of the documentation.
         /// </summary>
+        ///
+        [Obsolete("Can not be used anymore, use Documentation.releaseVersion", false)]
         public const string version = "7.3";
     }
 
@@ -30,6 +33,9 @@ namespace UnityEngine.Rendering
         internal const string baseURL = "https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@";
         internal const string subURL = "/manual/";
         internal const string endURL = ".html";
+
+
+        internal const string releaseVersion = "7.4";
 
         //Temporary for now, there is several part of the Core documentation that are misplaced in HDRP documentation.
         //use this base url for them:

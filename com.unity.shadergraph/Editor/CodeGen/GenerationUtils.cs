@@ -647,5 +647,24 @@ namespace UnityEditor.ShaderGraph
 
             throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
         }
+
+        // Returns null if no 'CustomEditor "___"' line should be added, otherwise the name of the ShaderGUI class.
+        // Note that it's okay to add an "invalid" ShaderGUI (no class found) as Unity will simply take no action if that's the case, unless if its BaseShaderGUI.
+        public static string FinalCustomEditorString(ICanChangeShaderGUI canChangeShaderGUI)
+        {
+            if (!canChangeShaderGUI.OverrideEnabled)
+                return null;
+
+            string finalOverrideName = canChangeShaderGUI.ShaderGUIOverride;
+
+            if (string.IsNullOrEmpty(finalOverrideName))
+                return null;
+
+            // Do not add to the final shader if the base ShaderGUI is wanted, as errors will occur.
+            if (finalOverrideName.Equals("BaseShaderGUI") || finalOverrideName.Equals("UnityEditor.BaseShaderGUI"))
+                return null;
+
+            return finalOverrideName;
+        }
     }
 }

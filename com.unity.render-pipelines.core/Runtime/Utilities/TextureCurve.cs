@@ -78,23 +78,19 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Finalizer.
         /// </summary>
-        ~TextureCurve()
-        {
-            ReleaseUnityResources();
-        }
+        ~TextureCurve() {}
 
         /// <summary>
         /// Cleans up the internal texture resource.
         /// </summary>
-        public void Dispose()
-        {
-            ReleaseUnityResources();
-            GC.SuppressFinalize(this);
-        }
+        [Obsolete("Please use Release() instead.")]
+        public void Dispose() {}
 
-        void ReleaseUnityResources()
+        /// <summary>
+        /// Releases the internal texture resource.
+        /// </summary>
+        public void Release()
         {
             CoreUtils.Destroy(m_Texture);
             m_Texture = null;
@@ -127,17 +123,18 @@ namespace UnityEngine.Rendering
         /// <returns>A 128x1 texture.</returns>
         public Texture2D GetTexture()
         {
+            if (m_Texture == null)
+            {
+                m_Texture = new Texture2D(k_Precision, 1, GetTextureFormat(), false, true);
+                m_Texture.name = "CurveTexture";
+                m_Texture.hideFlags = HideFlags.HideAndDontSave;
+                m_Texture.filterMode = FilterMode.Bilinear;
+                m_Texture.wrapMode = TextureWrapMode.Clamp;
+                m_IsTextureDirty = true;
+            }
+
             if (m_IsTextureDirty)
             {
-                if (m_Texture == null)
-                {
-                    m_Texture = new Texture2D(k_Precision, 1, GetTextureFormat(), false, true);
-                    m_Texture.name = "CurveTexture";
-                    m_Texture.hideFlags = HideFlags.HideAndDontSave;
-                    m_Texture.filterMode = FilterMode.Bilinear;
-                    m_Texture.wrapMode = TextureWrapMode.Clamp;
-                }
-
                 var pixels = new Color[k_Precision];
 
                 for (int i = 0; i < pixels.Length; i++)
@@ -253,6 +250,8 @@ namespace UnityEngine.Rendering
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public TextureCurveParameter(TextureCurve value, bool overrideState = false)
             : base(value, overrideState) { }
+
+        public override void Release() => m_Value.Release();
 
         // TODO: TextureCurve interpolation
     }
