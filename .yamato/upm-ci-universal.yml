@@ -478,7 +478,7 @@ Build_{{ project.name }}_Linux_{{ linux_api.name }}_Player_{{ editor.version }}:
   name : Build {{ project.name }} on Linux_{{ linux_api.name }}_Player on version {{ editor.version }}
   agent:
     flavor: b1.xlarge
-    type: Unity::VM
+    type: Unity::VM::GPU
     image: {{ platform.image }} 
   {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
