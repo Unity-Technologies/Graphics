@@ -7,9 +7,9 @@ SAMPLER(_trilinear_clamp_sampler_DecalAtlas2D);
 
 #if defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
 
-#ifndef SHADERPASS
-RWStructuredBuffer<uint> _DecalPropertyMaskBuffer : register(u0);
-#elif !(SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR || SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_MESH)
+// To be compatible on all platform (with Unity), we need to have the UAV following the
+// last RT bind. Which maybe vary if we use 3 or 4 Render target
+#if (defined(DECALS_3RT) || defined(DECALS_4RT))
 #ifdef DECALS_4RT
 RWStructuredBuffer<uint> _DecalPropertyMaskBuffer : register(u4);
 #else
