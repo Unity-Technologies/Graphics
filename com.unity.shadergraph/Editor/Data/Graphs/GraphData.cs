@@ -717,6 +717,7 @@ namespace UnityEditor.ShaderGraph
                 // Remove from ContextData
                 blockNode.contextData.blocks.Remove(blockNode);
                 blockNode.Dirty(ModificationScope.Graph);
+                UpdateActiveBlocks();
             }
         }
 
