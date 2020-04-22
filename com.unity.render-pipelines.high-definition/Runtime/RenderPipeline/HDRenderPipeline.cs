@@ -976,7 +976,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CameraCaptureBridge.enabled = false;
 
-            HDUtils.ReleaseComponentSingletons();
+            if (!m_Asset.isInOnValidateCall)
+                HDUtils.ReleaseComponentSingletons();
         }
 
 
