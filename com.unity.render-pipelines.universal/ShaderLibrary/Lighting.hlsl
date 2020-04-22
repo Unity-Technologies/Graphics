@@ -9,8 +9,8 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
-// 2^-7 == sqrt(HALF_MIN), Ensure HALF_MIN after (var * var) like roughness
-#define HALF_MIN_SQRT  0.0078125
+// 2^-7 == sqrt(HALF_MIN), Ensure HALF_MIN after x^2 (e.g. roughness computation)
+#define HALF_MIN_SQRT 0.0078125
 
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
@@ -378,7 +378,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
 half ClearCoatBRDF(BRDFData brdfData, half3 halfDir, half NoH, half LoH, half LoH2)
 {
-    half d = NoH * NoH * brdfData.clearCoatRoughness2MinusOne + 1.0001h;
+    float d = NoH * NoH * brdfData.clearCoatRoughness2MinusOne + 1.00001f;
     half specularTerm = brdfData.clearCoatRoughness2 / ((d * d) * max(0.1h, LoH2) * brdfData.clearCoatNormalizationTerm) * brdfData.clearCoatStrength;
 
 #if defined (SHADER_API_MOBILE) || defined (SHADER_API_SWITCH)
