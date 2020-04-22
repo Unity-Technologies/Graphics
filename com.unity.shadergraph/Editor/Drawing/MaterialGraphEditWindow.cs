@@ -409,24 +409,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             SaveAsImplementation();
         }
 
-        void OnSaveGraph(string path)
-        {
-            if(GraphData.onSaveGraph == null)
-                return;
-
-            if(graphObject.graph.isSubGraph)
-                return;
-            
-            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
-            if(shader == null)
-                return;
-
-            foreach(var target in graphObject.graph.activeTargets)
-            {
-                GraphData.onSaveGraph(shader, target.saveContext);
-            }
-        }
-
         // Returns true if the same file as replaced, false if a new file was created or an error occured
         bool SaveAsImplementation()
         {
