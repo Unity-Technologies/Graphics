@@ -56,18 +56,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
 
-            switch (giSettings.mode.value)
+            // Based on what the asset supports, follow the volume or force the right mode.
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
             {
-                case RayTracingMode.Performance:
+                switch (giSettings.mode.value)
                 {
-                    RenderIndirectDiffusePerformance(hdCamera, cmd, renderContext, frameCount);
+                    case RayTracingMode.Performance:
+                    {
+                        RenderIndirectDiffusePerformance(hdCamera, cmd, renderContext, frameCount);
+                    }
+                    break;
+                    case RayTracingMode.Quality:
+                    {
+                        RenderIndirectDiffuseQuality(hdCamera, cmd, renderContext, frameCount);
+                    }
+                    break;
                 }
-                break;
-                case RayTracingMode.Quality:
-                {
-                    RenderIndirectDiffuseQuality(hdCamera, cmd, renderContext, frameCount);
-                }
-                break;
+            }
+            else if (m_Asset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality)
+            {
+                RenderIndirectDiffuseQuality(hdCamera, cmd, renderContext, frameCount);
+            }
+            else
+            {
+                RenderIndirectDiffusePerformance(hdCamera, cmd, renderContext, frameCount);
             }
 
             // Bind the indirect diffuse texture (for forward materials)
@@ -317,13 +329,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Only use the shader variant that has multi bounce if the bounce count > 1
             CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", giSettings.bounceCount.value > 1);
-            // Run the computation
-            CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", true);
 
+            // Run the computation
+            cmd.SetGlobalInt(HDShaderIDs._RayTracingDiffuseLightingOnly, 1);
             cmd.DispatchRays(indirectDiffuseRT, m_RayGenIndirectDiffuseIntegrationName, (uint)widthResolution, (uint)heightResolution, (uint)hdCamera.viewCount);
 
             // Disable the keywords we do not need anymore
-            CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", false);
             CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterIndirectDiffuse)))

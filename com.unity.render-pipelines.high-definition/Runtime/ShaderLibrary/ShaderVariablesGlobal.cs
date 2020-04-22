@@ -4,6 +4,8 @@ namespace UnityEngine.Rendering.HighDefinition
     enum ConstantRegister
     {
         Global = 0,
+        XR = 1,
+        PBRSky = 2,
     }
 
     // We need to keep the number of different constant buffers low.
@@ -124,7 +126,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // VBuffer
         public Vector4  _VBufferViewportSize;           // { w, h, 1/w, 1/h }
-        public Vector4  _VBufferSharedUvScaleAndLimit;  // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+        public Vector4  _VBufferLightingViewportScale;  // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+        public Vector4  _VBufferLightingViewportLimit;  // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
         public Vector4  _VBufferDistanceEncodingParams; // See the call site for description
         public Vector4  _VBufferDistanceDecodingParams; // See the call site for description
         public uint     _VBufferSliceCount;
