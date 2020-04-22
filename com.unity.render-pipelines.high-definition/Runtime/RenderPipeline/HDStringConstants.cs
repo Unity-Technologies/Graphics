@@ -80,8 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HDShadowDatas = Shader.PropertyToID("_HDShadowDatas");
         public static readonly int _HDDirectionalShadowData = Shader.PropertyToID("_HDDirectionalShadowData");
         public static readonly int _ShadowmapAtlas = Shader.PropertyToID("_ShadowmapAtlas");
-        public static readonly int _AreaLightShadowmapAtlas = Shader.PropertyToID("_AreaShadowmapAtlas");
-        public static readonly int _AreaShadowmapMomentAtlas = Shader.PropertyToID("_AreaShadowmapMomentAtlas");
+        public static readonly int _ShadowmapAreaAtlas = Shader.PropertyToID("_ShadowmapAreaAtlas");
         public static readonly int _ShadowmapCascadeAtlas = Shader.PropertyToID("_ShadowmapCascadeAtlas");
 
         // Moment shadow map data
@@ -343,7 +342,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
-        public static readonly int _ApplyExposure = Shader.PropertyToID("_ApplyExposure");        
+        public static readonly int _ApplyExposure = Shader.PropertyToID("_ApplyExposure");
 
         public static readonly int _DiffusionProfileHash = Shader.PropertyToID("_DiffusionProfileHash");
         public static readonly int _MaxRadius = Shader.PropertyToID("_MaxRadius");

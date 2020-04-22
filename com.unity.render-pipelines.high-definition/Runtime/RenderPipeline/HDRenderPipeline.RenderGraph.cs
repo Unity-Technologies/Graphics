@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenDebugTexture(m_RenderGraph, lightingBuffers.ambientOcclusionBuffer, FullScreenDebugMode.SSAO);
 
                 // Evaluate the clear coat mask texture based on the lit shader mode
-                var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.ImportTexture(TextureXR.GetBlackTexture());
+                var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
                 lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph,
                                                               hdCamera,
                                                               prepassOutput.resolvedNormalBuffer,

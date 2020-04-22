@@ -1436,6 +1436,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 widgetList.Add(new DebugUI.BoolField { displayName = "XR single-pass test mode", getter = () => data.xrSinglePassTestMode, setter = value => data.xrSinglePassTestMode = value });
             }
 
+            //widgetList.Add(new DebugUI.BoolField { displayName = "Enable Render Graph", getter = () => HDRenderPipeline.currentPipeline.IsRenderGraphEnabled(), setter = value => HDRenderPipeline.currentPipeline.EnableRenderGraph(value) });
+
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);
             panel.children.Add(m_DebugRenderingItems);

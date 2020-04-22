@@ -2703,6 +2703,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 PushLightDataGlobalParams(cmd);
+                PushShadowGlobalParams(cmd);
             }
 
             m_EnableBakeShadowMask = m_EnableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
@@ -3387,20 +3388,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return add;
         }
 
-        struct ShadowGlobalParameters
-        {
-            public HDCamera hdCamera;
-            public HDShadowManager shadowManager;
-        }
-
-        ShadowGlobalParameters PrepareShadowGlobalParameters(HDCamera hdCamera)
-        {
-            ShadowGlobalParameters parameters = new ShadowGlobalParameters();
-            parameters.hdCamera = hdCamera;
-            parameters.shadowManager = m_ShadowManager;
-            return parameters;
-        }
-
         struct LightLoopGlobalParameters
         {
             public HDCamera                 hdCamera;
@@ -3495,16 +3482,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
         }
 
-        static void PushShadowGlobalParams(in ShadowGlobalParameters param, CommandBuffer cmd)
+        void PushShadowGlobalParams(CommandBuffer cmd)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushShadowGlobalParameters)))
-            {
-                Camera camera = param.hdCamera.camera;
-
-                // Shadows
-                param.shadowManager.SyncData();
-                param.shadowManager.BindResources(cmd);
-            }
+            m_ShadowManager.PushGlobalParameters(cmd);
         }
 
         static void PushLightLoopGlobalParams(in LightLoopGlobalParameters param, CommandBuffer cmd)
@@ -3535,8 +3515,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowManager.RenderShadows(renderContext, cmd, globalCB, cullResults, hdCamera);
 
             // Bind the shadow data
-            var globalParams = PrepareShadowGlobalParameters(hdCamera);
-            PushShadowGlobalParams(globalParams, cmd);
+            m_ShadowManager.BindResources(cmd);
         }
 
         bool WillRenderContactShadow()

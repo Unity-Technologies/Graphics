@@ -319,7 +319,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // RENDER GRAPH
-        RenderGraph             m_RenderGraph;
+        RenderGraph m_RenderGraph;
+        bool        m_EnableRenderGraph;
 
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
@@ -506,10 +507,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CameraCaptureBridge.enabled = true;
 
-            // Render Graph
-            m_RenderGraph = new RenderGraph(m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_MSAASamples);
-            m_RenderGraph.RegisterDebug();
-
             InitializePrepass(m_Asset);
             m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.colorResolvePS);
 
@@ -625,6 +622,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void GetOrCreateDebugTextures()
         {
+            if (m_EnableRenderGraph)
+                return;
+
             //Debug.isDebugBuild can be changed during DoBuildPlayer, these allocation has to be check on every frames
             //TODO : Clean this with the RenderGraph system
             if (Debug.isDebugBuild && m_DebugColorPickerBuffer == null && m_DebugFullScreenTempBuffer == null)
@@ -645,15 +645,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_GbufferManager.DestroyBuffers();
             m_DbufferManager.DestroyBuffers();
-            m_MipGenerator.Release();
+
+            DestroySSSBuffers();
+            m_SharedRTManager.Cleanup();
 
             RTHandles.Release(m_CameraColorBuffer);
+            RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
+            RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
+
             if (m_CustomPassColorBuffer.IsValueCreated)
                 RTHandles.Release(m_CustomPassColorBuffer.Value);
             if (m_CustomPassDepthBuffer.IsValueCreated)
                 RTHandles.Release(m_CustomPassDepthBuffer.Value);
-            RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
-            RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
 
             RTHandles.Release(m_DistortionBuffer);
             RTHandles.Release(m_ContactShadowBuffer);
@@ -664,13 +667,17 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_SsrHitPointTexture);
             RTHandles.Release(m_SsrLightingTexture);
 
-            RTHandles.Release(m_DebugColorPickerBuffer);
-            RTHandles.Release(m_DebugFullScreenTempBuffer);
-            RTHandles.Release(m_IntermediateAfterPostProcessBuffer);
-
             RTHandles.Release(m_CameraColorMSAABuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringMSAABuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
+
+            // Those buffer are initialized lazily so we need to null them for this to work after deallocation.
+            RTHandles.Release(m_DebugColorPickerBuffer);
+            RTHandles.Release(m_DebugFullScreenTempBuffer);
+            RTHandles.Release(m_IntermediateAfterPostProcessBuffer);
+            m_DebugColorPickerBuffer = null;
+            m_DebugFullScreenTempBuffer = null;
+            m_IntermediateAfterPostProcessBuffer = null;
         }
 
         void SetRenderingFeatures()
@@ -828,6 +835,59 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+        void InitializeRenderGraph()
+        {
+            m_RenderGraph = new RenderGraph(m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_MSAASamples);
+            m_RenderGraph.RegisterDebug();
+        }
+
+        void CleanupRenderGraph()
+        {
+            if (m_EnableRenderGraph)
+            {
+                m_RenderGraph.Cleanup();
+                m_RenderGraph.UnRegisterDebug();
+                m_RenderGraph = null;
+            }
+        }
+
+        internal bool IsRenderGraphEnabled()
+        {
+            return m_EnableRenderGraph;
+        }
+
+        internal void EnableRenderGraph(bool value)
+        {
+            bool changed = value != m_EnableRenderGraph;
+            if (changed)
+            {
+                if (value)
+                {
+                    CleanupNonRenderGraphResources();
+                    InitializeRenderGraph();
+                    m_EnableRenderGraph = true;
+                }
+                else
+                {
+                    CleanupRenderGraph();
+                    InitializeNonRenderGraphResources();
+                    m_EnableRenderGraph = false;
+                }
+            }
+        }
+
+        void InitializeNonRenderGraphResources()
+        {
+            InitializeRenderTextures();
+            m_ShadowManager.InitializeNonRenderGraphResources();
+        }
+
+        void CleanupNonRenderGraphResources()
+        {
+            DestroyRenderTextures();
+            m_ShadowManager.CleanupNonRenderGraphResources();
+        }
+
         void InitializeDebugMaterials()
         {
             m_DebugViewMaterialGBuffer = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewMaterialGBufferPS);
@@ -930,8 +990,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
 
-            CleanupSubsurfaceScattering();
-            m_SharedRTManager.Cleanup();
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
@@ -948,16 +1006,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDCamera.ClearAll();
 
+            m_MipGenerator.Release();
+
             DestroyRenderTextures();
             CullingGroupManager.instance.Cleanup();
+
+            m_DbufferManager.ReleaseResolutionDependentBuffers();
+            m_SharedRTManager.DisposeCoarseStencilBuffer();
 
             CoreUtils.SafeRelease(m_DepthPyramidMipLevelOffsetsBuffer);
 
             CustomPassVolume.Cleanup();
 
-            // RenderGraph
-            m_RenderGraph.Cleanup();
-            m_RenderGraph.UnRegisterDebug();
             CleanupPrepass();
             CoreUtils.Destroy(m_ColorResolveMaterial);
 
@@ -2069,7 +2129,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            if (m_RenderGraph.enabled)
+            if (m_EnableRenderGraph)
             {
                 ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, renderContext, cmd);
                 return;
@@ -3215,7 +3275,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // We still bind black textures to make sure that something is bound (can be a problem on some platforms)
                 m_DbufferManager.BindBlackTextures(cmd);
-                
+
                 // Bind buffer to make sure that something is bound .
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_DbufferManager.propertyMaskBuffer);
 
