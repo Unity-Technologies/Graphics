@@ -158,7 +158,7 @@ linux_apis:
   name : {{ project.name }} on Linux_Vulkan_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" %}
-    type: Unity::VM:GPU
+    type: Unity::VM::GPU
     {% else %}
     type: {{ platform.type }}
     {% endif %} 
