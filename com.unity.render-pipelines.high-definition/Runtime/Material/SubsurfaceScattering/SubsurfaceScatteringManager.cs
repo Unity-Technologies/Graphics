@@ -80,6 +80,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSSetDiffusionProfiles = new DiffusionProfileSettings[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
         }
 
+        void DestroySSSBuffers()
+        {
+            RTHandles.Release(m_SSSColorMSAA);
+            RTHandles.Release(m_SSSCameraFilteringBuffer);
+        }
+
         RTHandle GetSSSBuffer()
         {
             return m_SSSColor;
@@ -115,8 +121,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 RTHandles.Release(m_SSSColor);
             }
-            RTHandles.Release(m_SSSColorMSAA);
-            RTHandles.Release(m_SSSCameraFilteringBuffer);
+
+            DestroySSSBuffers();
         }
 
         void UpdateCurrentDiffusionProfileSettings(HDCamera hdCamera)

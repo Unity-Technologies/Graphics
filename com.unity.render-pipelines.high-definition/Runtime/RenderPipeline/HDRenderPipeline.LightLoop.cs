@@ -27,7 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class BuildGPULightListPassData
         {
-            public ShadowGlobalParameters       shadowGlobalParameters;
             public LightLoopGlobalParameters    lightLoopGlobalParameters;
 
             public BuildGPULightListParameters  buildGPULightListParameters;
@@ -93,7 +92,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
-                passData.shadowGlobalParameters = PrepareShadowGlobalParameters(hdCamera);
                 passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera, m_TileAndClusterData);
                 passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, m_TileAndClusterData, ref m_ShaderVariablesLightListCB, m_TotalLightCount);
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
@@ -135,7 +133,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     BuildDispatchIndirectArguments(data.buildGPULightListParameters, buildLightListResources, tileFlagsWritten, context.cmd);
 
                     // TODO RENDERGRAPH WARNING: Note that the three sets of variables are bound here, but it should be handled differently.
-                    PushShadowGlobalParams(data.shadowGlobalParameters, context.cmd);
                     PushLightLoopGlobalParams(data.lightLoopGlobalParameters, context.cmd);
                 });
 
@@ -431,7 +428,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightLoopLightData = m_LightLoopLightData;
                 passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
-                passData.shadowManager = m_ShadowManager;
                 passData.contactShadowsTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, clearBuffer = clearBuffer, clearColor = Color.clear, name = "ContactShadowsBuffer" }, HDShaderIDs._ContactShadowTexture));
 
@@ -441,8 +437,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 (RenderContactShadowPassData data, RenderGraphContext context) =>
                 {
                     var res = context.resources;
-                    data.shadowManager.PushGlobalParameters(context.cmd);
-
                     RenderContactShadows(data.parameters, res.GetTexture(data.contactShadowsTexture), res.GetTexture(data.depthTexture), data.lightLoopLightData, res.GetComputeBuffer(data.lightList), context.cmd);
                 });
             }
