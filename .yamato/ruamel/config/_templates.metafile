@@ -1,0 +1,55 @@
+editors:
+  - version: trunk
+  - version: 2020.1
+  - version: fast-trunk
+  - version: fast-2020.1
+templates:
+  - name: HDRP Template
+    id: hdrp_template
+    packagename: com.unity.template-hd
+    dependencies:
+      - core
+      - shadergraph
+      - vfx
+      - config
+      - hdrp
+    hascodependencies: 1
+  - name: Universal Template
+    id: universal_template
+    packagename: com.unity.template-universal
+    dependencies:
+      - core
+      - shadergraph
+      - pack_universal
+    hascodependencies: 1
+platforms:
+    - name: win
+      os: windows
+      components:
+      - editor
+      - il2cpp
+      agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+      copycmd: copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      editorpath: .\.Editor
+    - name: mac
+      os: macos
+      components:
+      - editor
+      - il2cpp
+      agent:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+      copycmd: cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
+      editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
+agent_win: 
+  type: Unity::VM
+  image: package-ci/win10:stable
+  flavor: b1.large
+agent_ubuntu: 
+  type: Unity::VM
+  image: package-ci/ubuntu:stable
+  flavor: b1.large

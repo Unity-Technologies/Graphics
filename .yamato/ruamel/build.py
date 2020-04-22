@@ -20,6 +20,10 @@ from jobs.abv.trunk_verification import ABV_TrunkVerificationJob
 from jobs.preview_publish.pb_publish import PreviewPublish_PublishJob
 from jobs.preview_publish.pb_promote import PreviewPublish_PromoteJob
 from jobs.preview_publish.pb_auto_version import PreviewPublish_AutoVersionJob
+from jobs.templates.template_pack import Template_PackJob
+from jobs.templates.template_test import Template_TestJob
+from jobs.templates.template_test_dependencies import Template_TestDependenciesJob
+from jobs.templates.test_all import Template_AllTemplateCiJob
 
 
 def load_yml(filepath):
@@ -158,6 +162,31 @@ def create_preview_publish_jobs(metafile_name):
 
     dump_yml(pb_filepath(), yml)
 
+def create_template_jobs(metafile_name):
+    metafile = load_yml(metafile_name)
+    yml = {}
+
+    for template in metafile["templates"]:
+        job = Template_PackJob(template, metafile["agent_win"])
+        yml[job.job_id] = job.yml
+
+
+    for editor in metafile["editors"]:
+        for platform in metafile["platforms"]:
+            for template in metafile["templates"]:
+                job = Template_TestJob(template, platform, editor)
+                yml[job.job_id] = job.yml
+
+                job = Template_TestDependenciesJob(template, platform, editor)
+                yml[job.job_id] = job.yml
+
+    for editor in metafile["editors"]:
+        job = Template_AllTemplateCiJob(metafile["templates"], metafile["agent_win"], metafile["platforms"], editor)
+        yml[job.job_id] = job.yml
+    
+
+    dump_yml(templates_filepath(), yml)
+
 # TODO clean up the code, make filenames more readable/reuse, split things appropriately (eg editor, files, etc), fix scrip arguments, fix testplatforms (xr), ...
 if __name__== "__main__":
 
@@ -182,6 +211,10 @@ if __name__== "__main__":
     # create preview publish
     print(f'Running: preview_publish')
     create_preview_publish_jobs('config/_preview_publish.metafile')
+
+     # create template jobs
+    print(f'Running: templates')
+    create_template_jobs('config/_templates.metafile')
 
     # create yml jobs for each specified project (universal, shadergraph, vfx_lwrp, ...)
     args = sys.argv

@@ -31,6 +31,22 @@ def package_job_id_test_all(editor_version):
     return f'all_package_ci_{editor_version}'
 
 
+# template specific
+def templates_filepath():
+    return f'{parent_dir}/_templates.yml'.lower()
+
+def template_job_id_test(template_id, platform_name, editor_version):
+    return f'test_{ template_id }_{ platform_name }_{editor_version}'
+
+def template_job_id_test_dependencies(template_id, platform_name, editor_version):
+    return f'test_{ template_id }_{ platform_name }_{editor_version}_dependencies'
+
+def template_job_id_pack(template_id):
+    return f'pack_{template_id}'
+
+def template_job_id_test_all(editor_version):
+    return f'all_template_ci_{editor_version}'
+
 # project specific
 def project_filepath_specific(project_name, platform_name, api_name):
     return f'{parent_dir}/{project_name}/{project_name}-{platform_name}-{api_name}.yml'.lower().replace('-.','.')
@@ -68,7 +84,7 @@ def abv_job_id_trunk_verification(editor_version):
     return f'trunk_verification_{editor_version}'
 
 
-# preview publish specified
+# preview publish specific
 def pb_filepath():
     return f'{parent_dir}/_preview_publish.yml'.lower()
 
