@@ -12,6 +12,23 @@ using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
+    [Serializable]
+    abstract class HDTargetData
+    {
+    }
+
+    interface IRequiresData<T> where T : HDTargetData
+    {
+        T data { get; set; }
+    }
+
+    enum DistortionMode
+    {
+        Add,
+        Multiply,
+        Replace
+    }
+
     enum DoubleSidedMode
     {
         Disabled,
@@ -20,7 +37,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         MirroredNormals,
     }
 
-    sealed class HDTarget : Target
+    enum SpecularOcclusionMode
+    {
+        Off,
+        FromAO,
+        FromAOAndBentNormal,
+        Custom
+    }
+
+    sealed class HDTarget : Target, IHasMetadata, ISerializationCallbackReceiver
     {
         // Constants
         const string kAssetGuid = "61d9843d4027e3e4a924953135f76f3c";
@@ -37,6 +62,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
 
+        // TODO: Remove when Peter's serialization lands
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializedDatas;
+
+        [SerializeField]
+        List<HDTargetData> m_Datas = new List<HDTargetData>();
+
         [SerializeField]
         string m_CustomEditorGUI;
 
@@ -45,6 +77,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             displayName = "HDRP";
             m_SubTargets = TargetUtils.GetSubTargets(this);
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
+
+            TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+            ProcessSubTargetDatas();
         }
 
         public static string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates";
@@ -69,6 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return;
 
             // Setup the active SubTarget
+            ProcessSubTargetDatas();
             m_ActiveSubTarget.value.target = this;
             m_ActiveSubTarget.value.Setup(ref context);
 
@@ -81,10 +117,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            // Stages
+            context.AddField(Fields.GraphVertex,                    context.blocks.Contains(BlockFields.VertexDescription.Position) ||
+                                                                    context.blocks.Contains(BlockFields.VertexDescription.Normal) ||
+                                                                    context.blocks.Contains(BlockFields.VertexDescription.Tangent));
+            context.AddField(Fields.GraphPixel);
+
+            // SubTarget
+            m_ActiveSubTarget.GetFields(ref context);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            if(m_ActiveSubTarget == null)
+                return;
+
+            // SubTarget
+            m_ActiveSubTarget.GetActiveBlocks(ref context);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
@@ -99,7 +148,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(activeSubTargetIndex, m_SubTargetField.index))
                     return;
 
+                var systemData = m_Datas.FirstOrDefault(x => x is HDSystemData) as HDSystemData;
+                if(systemData != null)
+                {
+                    // Force material update hash
+                    systemData.materialNeedsUpdateHash = -1;
+                }
+
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
+                ProcessSubTargetDatas();
                 onChange();
             });
 
@@ -121,7 +178,104 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
+            // SubTarget
+            m_ActiveSubTarget.CollectShaderProperties(collector, generationMode);
         }
+
+        public override void ProcessPreviewMaterial(Material material)
+        {
+            // SubTarget
+            m_ActiveSubTarget.ProcessPreviewMaterial(material);
+        }
+
+        public override object saveContext => m_ActiveSubTarget?.saveContext;
+        
+        // IHasMetaData
+        public string identifier
+        {
+            get
+            {
+                if(m_ActiveSubTarget is IHasMetadata subTargetHasMetaData)
+                    return subTargetHasMetaData.identifier;
+
+                return null;
+            }
+        }
+
+        public ScriptableObject GetMetadataObject()
+        {
+            if(m_ActiveSubTarget is IHasMetadata subTargetHasMetaData)
+                return subTargetHasMetaData.GetMetadataObject();
+
+            return null;
+        }
+
+        void ProcessSubTargetDatas()
+        {
+            var typeCollection = TypeCache.GetTypesDerivedFrom<HDTargetData>();
+            foreach(var type in typeCollection)
+            {
+                // Data requirement interfaces need generic type arguments
+                // Therefore we need to use reflections to call the method
+                var methodInfo = typeof(HDTarget).GetMethod("SetDataOnSubTarget");
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type);
+                genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget });
+            }
+        }
+
+        void ClearUnusedData()
+        {
+            for(int i = 0; i < m_Datas.Count; i++)
+            {
+                var data = m_Datas[i];
+                var type = data.GetType();
+
+                // Data requirement interfaces need generic type arguments
+                // Therefore we need to use reflections to call the method
+                var methodInfo = typeof(HDTarget).GetMethod("ValidateDataForSubTarget");
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type);
+                genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget, data });
+            }
+        }
+
+        public void SetDataOnSubTarget<T>(SubTarget subTarget) where T : HDTargetData
+        {
+            if(!(subTarget is IRequiresData<T> requiresData))
+                return;
+            
+            // Ensure data object exists in list
+            var data = m_Datas.FirstOrDefault(x => x.GetType().Equals(typeof(T))) as T;
+            if(data == null)
+            {
+                data = Activator.CreateInstance(typeof(T)) as T;
+                m_Datas.Add(data);
+            }
+
+            // Apply data object to SubTarget
+            requiresData.data = data;
+        }
+
+        public void ValidateDataForSubTarget<T>(SubTarget subTarget, T data) where T : HDTargetData
+        {
+            if(!(subTarget is IRequiresData<T> requiresData))
+            {
+                m_Datas.Remove(data);
+            }
+        }
+
+        // TODO: Remove this
+#region Serialization
+        public void OnBeforeSerialize()
+        {
+            ClearUnusedData();
+            m_SerializedDatas = SerializationHelper.Serialize<HDTargetData>(m_Datas);
+        }
+
+        public void OnAfterDeserialize()
+        {
+            m_Datas = SerializationHelper.Deserialize<HDTargetData>(m_SerializedDatas, GraphUtil.GetLegacyTypeRemapping());
+        }
+#endregion
     }
 
 #region BlockMasks

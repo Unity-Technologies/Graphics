@@ -66,6 +66,86 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new ColorControl(Color.white, false), ShaderStage.Fragment);
             public static BlockFieldDescriptor RefractionDistance = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionDistance", "SURFACEDESCRIPTION_REFRACTIONDISTANCE", 
                 new FloatControl(1.0f), ShaderStage.Fragment);
+
+            // --------------------------------------------------
+            // Decal
+
+            public static BlockFieldDescriptor NormalAlpha = new BlockFieldDescriptor(SurfaceDescription.name, "NormalAlpha", "SURFACEDESCRIPTION_NORMALALPHA", 
+                new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor MAOSAlpha = new BlockFieldDescriptor(SurfaceDescription.name, "MAOSAlpha", "SURFACEDESCRIPTION_MAOSALPHA", 
+                new FloatControl(1.0f), ShaderStage.Fragment);
+
+            // --------------------------------------------------
+            // Eye
+
+            public static BlockFieldDescriptor IrisNormal = new BlockFieldDescriptor(SurfaceDescription.name, "IrisNormal", "SURFACEDESCRIPTION_IRISNORMAL",
+                new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
+            public static BlockFieldDescriptor IOR = new BlockFieldDescriptor(SurfaceDescription.name, "IOR", "SURFACEDESCRIPTION_IOR", 
+                new FloatControl(1.4f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Mask = new BlockFieldDescriptor(SurfaceDescription.name, "Mask", "SURFACEDESCRIPTION_MASK", 
+                new Vector2Control(new Vector2(1.0f, 0.0f)), ShaderStage.Fragment);
+
+            // --------------------------------------------------
+            // Hair
+
+            public static BlockFieldDescriptor Transmittance = new BlockFieldDescriptor(SurfaceDescription.name, "Transmittance", "SURFACEDESCRIPTION_TRANSMITTANCE", 
+                new Vector3Control(0.3f * new Vector3(1.0f, 0.65f, 0.3f)), ShaderStage.Fragment);
+            public static BlockFieldDescriptor RimTransmissionIntensity = new BlockFieldDescriptor(SurfaceDescription.name, "RimTransmissionIntensity", "SURFACEDESCRIPTION_RIMTRANSMISSIONINTENSITY", 
+                new FloatControl(0.2f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor HairStrandDirection = new BlockFieldDescriptor(SurfaceDescription.name, "HairStrandDirection", "SURFACEDESCRIPTION_HAIRSTRANDDIRECTION", 
+                new Vector3Control(new Vector3(0, -1, 0)), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SpecularTint = new BlockFieldDescriptor(SurfaceDescription.name, "SpecularTint", "SURFACEDESCRIPTION_SPECULARTINT",
+                new ColorControl(Color.white, false), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SpecularShift = new BlockFieldDescriptor(SurfaceDescription.name, "SpecularShift", "SURFACEDESCRIPTION_SPECULARSHIFT", 
+                new FloatControl(0.1f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SecondarySpecularTint = new BlockFieldDescriptor(SurfaceDescription.name, "SecondarySpecularTint", "SURFACEDESCRIPTION_SECONDARYSPECULARTINT",
+                new ColorControl(Color.grey, false), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SecondarySmoothness = new BlockFieldDescriptor(SurfaceDescription.name, "SecondarySmoothness", "SURFACEDESCRIPTION_SECONDARYSMOOTHNESS", 
+                new FloatControl(0.5f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SecondarySpecularShift = new BlockFieldDescriptor(SurfaceDescription.name, "SecondarySpecularShift", "SURFACEDESCRIPTION_SECONDARYSPECULARSHIFT", 
+                new FloatControl(-0.1f), ShaderStage.Fragment);
+
+            // --------------------------------------------------
+            // StackLit
+
+            public static BlockFieldDescriptor CoatNormal = new BlockFieldDescriptor(SurfaceDescription.name, "CoatNormal", "SURFACEDESCRIPTION_COATNORMAL",
+                new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
+            public static BlockFieldDescriptor DielectricIor = new BlockFieldDescriptor(SurfaceDescription.name, "DielectricIor", "SURFACEDESCRIPTION_DIELECTRICIOR", 
+                new FloatControl(1.5f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SmoothnessA = new BlockFieldDescriptor(SurfaceDescription.name, "SmoothnessA", "SURFACEDESCRIPTION_SMOOTHNESSA", 
+                new FloatControl(0.5f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SmoothnessB = new BlockFieldDescriptor(SurfaceDescription.name, "SmoothnessB", "SURFACEDESCRIPTION_SMOOTHNESSB", 
+                new FloatControl(0.5f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor LobeMix = new BlockFieldDescriptor(SurfaceDescription.name, "LobeMix", "SURFACEDESCRIPTION_LOBEMIX", 
+                new FloatControl(0.3f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor AnisotropyA = new BlockFieldDescriptor(SurfaceDescription.name, "AnisotropyA", "SURFACEDESCRIPTION_ANISOTROPYA", 
+                new FloatControl(0.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor AnisotropyB = new BlockFieldDescriptor(SurfaceDescription.name, "AnisotropyB", "SURFACEDESCRIPTION_ANISOTROPYB", 
+                new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SOFixupVisibilityRatioThreshold = new BlockFieldDescriptor(SurfaceDescription.name, "SOFixupVisibilityRatioThreshold", "SURFACEDESCRIPTION_SOFIXUPVISIBILITYRATIOTHRESHOLD", 
+                new FloatControl(0.2f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SOFixupStrengthFactor = new BlockFieldDescriptor(SurfaceDescription.name, "SOFixupStrengthFactor", "SURFACEDESCRIPTION_SOFIXUPSTRENGTHFACTOR", 
+                new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor SOFixupMaxAddedRoughness = new BlockFieldDescriptor(SurfaceDescription.name, "SOFixupMaxAddedRoughness", "SURFACEDESCRIPTION_SOFIXUPMAXADDEDROUGHNESS", 
+                new FloatControl(0.2f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CoatSmoothness = new BlockFieldDescriptor(SurfaceDescription.name, "CoatSmoothness", "SURFACEDESCRIPTION_COATSMOOTHNESS", 
+                new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CoatIor = new BlockFieldDescriptor(SurfaceDescription.name, "CoatIor", "SURFACEDESCRIPTION_COATIOR", 
+                new FloatControl(1.4f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CoatThickness = new BlockFieldDescriptor(SurfaceDescription.name, "CoatThickness", "SURFACEDESCRIPTION_COATTHICKNESS", 
+                new FloatControl(0.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CoatExtinction = new BlockFieldDescriptor(SurfaceDescription.name, "CoatExtinction", "SURFACEDESCRIPTION_COATEXTINCTION", 
+                new ColorControl(Color.white, true), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Haziness = new BlockFieldDescriptor(SurfaceDescription.name, "Haziness", "SURFACEDESCRIPTION_HAZINESS", 
+                new FloatControl(0.2f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor HazeExtent = new BlockFieldDescriptor(SurfaceDescription.name, "HazeExtent", "SURFACEDESCRIPTION_HAZEEXTENT", 
+                new FloatControl(3.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor HazyGlossMaxDielectricF0 = new BlockFieldDescriptor(SurfaceDescription.name, "HazyGlossMaxDielectricF0", "SURFACEDESCRIPTION_HAZYGLOSSMAXDIELECTRICF0", 
+                new FloatControl(0.25f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor IridescenceCoatFixupTIR = new BlockFieldDescriptor(SurfaceDescription.name, "IridescenceCoatFixupTIR", "SURFACEDESCRIPTION_IRIDESCENCECOATFIXUPTIR", 
+                new FloatControl(0.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor IridescenceCoatFixupTIRClamp = new BlockFieldDescriptor(SurfaceDescription.name, "IridescenceCoatFixupTIRClamp", "SURFACEDESCRIPTION_IRIDESCENCECOATFIXUPTIRCLAMP", 
+                new FloatControl(0.0f), ShaderStage.Fragment);
         }
     }
 }

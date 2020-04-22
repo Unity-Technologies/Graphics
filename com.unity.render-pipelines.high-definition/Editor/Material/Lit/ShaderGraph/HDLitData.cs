@@ -1,0 +1,80 @@
+﻿using System;
+using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
+
+namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
+{
+    class HDLitData : HDTargetData
+    {
+        public enum MaterialType
+        {
+            Standard,
+            SubsurfaceScattering,
+            Anisotropy,
+            Iridescence,
+            SpecularColor,
+            Translucent
+        }
+
+        [SerializeField]
+        bool m_RayTracing;
+        public bool rayTracing
+        {
+            get => m_RayTracing;
+            set => m_RayTracing = value;
+        }
+
+        [SerializeField]
+        MaterialType m_MaterialType;
+        public MaterialType materialType
+        {
+            get => m_MaterialType;
+            set => m_MaterialType = value;
+        }
+
+        [SerializeField, Obsolete("Kept for data migration")]
+        bool m_DrawBeforeRefraction;
+        #pragma warning disable CS0618 // Type or member is obsolete
+        public bool drawBeforeRefraction
+        {
+            get => m_DrawBeforeRefraction;
+            set => m_DrawBeforeRefraction = value;
+        }
+        #pragma warning restore CS0618 // Type or member is obsolete
+
+        [SerializeField]
+        ScreenSpaceRefraction.RefractionModel m_RefractionModel;
+        public ScreenSpaceRefraction.RefractionModel refractionModel
+        {
+            get => m_RefractionModel;
+            set => m_RefractionModel = value;
+        }
+
+        // TODO: Can this use m_Transmission from HDLightingData?
+        // TODO: These have different defaults
+        [SerializeField]
+        bool m_SSSTransmission = true;
+        public bool sssTransmission
+        {
+            get => m_SSSTransmission;
+            set => m_SSSTransmission = value;
+        }
+
+        [SerializeField]
+        bool m_ReceivesSSRTransparent = true;
+        public bool receiveSSRTransparent
+        {
+            get => m_ReceivesSSRTransparent;
+            set => m_ReceivesSSRTransparent = value;
+        }
+
+        // TODO: This seems to have been replaced by a Port?
+        // [SerializeField]
+        // int m_DiffusionProfile;
+        // public int diffusionProfile
+        // {
+        //     get => m_DiffusionProfile;
+        //     set => m_DiffusionProfile = value;
+        // }
+    }
+}

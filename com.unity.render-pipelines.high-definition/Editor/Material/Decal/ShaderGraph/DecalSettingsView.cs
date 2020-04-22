@@ -1,136 +1,80 @@
-// using UnityEngine.UIElements;
-// using UnityEditor.Graphing.Util;
-// using UnityEditor.ShaderGraph.Drawing;
-// using UnityEditor.ShaderGraph.Drawing.Controls;
+using System;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.ShaderGraph;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 
-// namespace UnityEditor.Rendering.HighDefinition.Drawing
-// {
-//     class DecalSettingsView : MasterNodeSettingsView
-//     {
-//         DecalMasterNode m_Node;
+namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
+{
+    class DecalSettingsView
+    {
+        HDSystemData systemData;
+        DecalData decalData;
 
-//         Label CreateLabel(string text, int indentLevel)
-//         {
-//             string label = "";
-//             for (var i = 0; i < indentLevel; i++)
-//             {
-//                 label += "    ";
-//             }
-//             return new Label(label + text);
-//         }
+        public DecalSettingsView(HDDecalSubTarget subTarget)
+        {
+            systemData = subTarget.systemData;
+            decalData = subTarget.decalData;
+        }
 
-//         public DecalSettingsView(DecalMasterNode node) : base(node)
-//         {
-//             m_Node = node;
-//             PropertySheet ps = new PropertySheet();
+        public void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        {
+            // TODO: Register Undo actions...
 
-//             int indentLevel = 0;
+            context.AddProperty("Affects BaseColor", 0, new Toggle() { value = decalData.affectsAlbedo }, (evt) =>
+            {
+                if (Equals(decalData.affectsAlbedo, evt.newValue))
+                    return;
 
-//             ps.Add(new PropertyRow(CreateLabel("Affect BaseColor", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.affectsAlbedo.isOn;
-//                     toggle.RegisterValueChangedCallback(ChangeAffectsAlbedo);
-//                 });
-//             });
+                decalData.affectsAlbedo = evt.newValue;
+                onChange();
+            });
 
-//             ps.Add(new PropertyRow(CreateLabel("Affects Normal", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.affectsNormal.isOn;
-//                     toggle.RegisterValueChangedCallback(ChangeAffectsNormal);
-//                 });
-//             });
+            context.AddProperty("Affects Normal", 0, new Toggle() { value = decalData.affectsNormal }, (evt) =>
+            {
+                if (Equals(decalData.affectsNormal, evt.newValue))
+                    return;
 
-//             ps.Add(new PropertyRow(CreateLabel("Affects Metal", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.affectsMetal.isOn;
-//                     toggle.RegisterValueChangedCallback(ChangeAffectsMetal);
-//                 });
-//             });
+                decalData.affectsNormal = evt.newValue;
+                onChange();
+            });
 
-//             ps.Add(new PropertyRow(CreateLabel("Affects AO", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.affectsAO.isOn;
-//                     toggle.RegisterValueChangedCallback(ChangeAffectsAO);
-//                 });
-//             });
+            context.AddProperty("Affects Metal", 0, new Toggle() { value = decalData.affectsMetal }, (evt) =>
+            {
+                if (Equals(decalData.affectsMetal, evt.newValue))
+                    return;
 
-//             ps.Add(new PropertyRow(CreateLabel("Affects Smoothness", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.affectsSmoothness.isOn;
-//                     toggle.RegisterValueChangedCallback(ChangeAffectsSmoothness);
-//                 });
-//             });
+                decalData.affectsMetal = evt.newValue;
+                onChange();
+            });
 
-//             ps.Add(new PropertyRow(CreateLabel("Affects Emission", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.affectsEmission.isOn;
-//                     toggle.RegisterValueChangedCallback(ChangeAffectsEmission);
-//                 });
-//             });
+            context.AddProperty("Affects AO", 0, new Toggle() { value = decalData.affectsAO }, (evt) =>
+            {
+                if (Equals(decalData.affectsAO, evt.newValue))
+                    return;
 
-//             Add(ps);
-//             Add(GetShaderGUIOverridePropertySheet());
-//         }
+                decalData.affectsAO = evt.newValue;
+                onChange();
+            });
 
-//         void ChangeAffectsAlbedo(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Affects Albedo Change");
-//             ToggleData td = m_Node.affectsAlbedo;
-//             td.isOn = evt.newValue;
-//             m_Node.affectsAlbedo = td;
-//         }
+            context.AddProperty("Affects Smoothness", 0, new Toggle() { value = decalData.affectsSmoothness }, (evt) =>
+            {
+                if (Equals(decalData.affectsSmoothness, evt.newValue))
+                    return;
 
-//         void ChangeAffectsNormal(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Affects Normal Change");
-//             ToggleData td = m_Node.affectsNormal;
-//             td.isOn = evt.newValue;
-//             m_Node.affectsNormal = td;
-//         }
+                decalData.affectsSmoothness = evt.newValue;
+                onChange();
+            });
 
-//         void ChangeAffectsMetal(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Affects Metal Change");
-//             ToggleData td = m_Node.affectsMetal;
-//             td.isOn = evt.newValue;
-//             m_Node.affectsMetal = td;
-//         }
+            context.AddProperty("Affects Emission", 0, new Toggle() { value = decalData.affectsEmission }, (evt) =>
+            {
+                if (Equals(decalData.affectsEmission, evt.newValue))
+                    return;
 
-//         void ChangeAffectsAO(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Affects AO Change");
-//             ToggleData td = m_Node.affectsAO;
-//             td.isOn = evt.newValue;
-//             m_Node.affectsAO = td;
-//         }
-
-//         void ChangeAffectsSmoothness(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Affects Smoothness Change");
-//             ToggleData td = m_Node.affectsSmoothness;
-//             td.isOn = evt.newValue;
-//             m_Node.affectsSmoothness = td;
-//         }
-
-//         void ChangeAffectsEmission(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Affects Emission Change");
-//             ToggleData td = m_Node.affectsEmission;
-//             td.isOn = evt.newValue;
-//             m_Node.affectsEmission = td;
-//         }
-
-//     }
-// }
+                decalData.affectsEmission = evt.newValue;
+                onChange();
+            });
+        }
+    }
+}

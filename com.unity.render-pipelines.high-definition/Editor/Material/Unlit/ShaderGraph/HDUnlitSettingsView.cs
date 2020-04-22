@@ -1,461 +1,204 @@
-// using System;
-// using UnityEditor.UIElements;
-// using UnityEngine;
-// using UnityEngine.UIElements;
-// using UnityEditor.Graphing.Util;
-// using UnityEditor.ShaderGraph;
-// using UnityEditor.ShaderGraph.Drawing;
-// using UnityEditor.ShaderGraph.Drawing.Controls;
-// using UnityEditor.Rendering.HighDefinition;
-// using UnityEngine.Rendering.HighDefinition;
-// using UnityEngine.Rendering;
+using System;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.ShaderGraph;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 
-// namespace UnityEditor.Rendering.HighDefinition.Drawing
-// {
-//     class HDUnlitSettingsView : MasterNodeSettingsView
-//     {
-//         HDUnlitMasterNode m_Node;
+namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
+{
+    class HDUnlitSettingsView
+    {
+        HDSystemData systemData;
+        HDBuiltinData builtinData;
+        HDUnlitData unlitData;
 
-//         IntegerField m_SortPiorityField;
+        public HDUnlitSettingsView(HDUnlitSubTarget subTarget)
+        {
+            systemData = subTarget.systemData;
+            builtinData = subTarget.builtinData;
+            unlitData = subTarget.unlitData;
+        }
 
-//         Label CreateLabel(string text, int indentLevel)
-//         {
-//             string label = "";
-//             for (var i = 0; i < indentLevel; i++)
-//             {
-//                 label += "    ";
-//             }
-//             return new Label(label + text);
-//         }
+        public void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        {
+            // TODO: Register Undo actions...
 
-//         public HDUnlitSettingsView(HDUnlitMasterNode node) : base(node)
-//         {
-//             m_Node = node;
-//             PropertySheet ps = new PropertySheet();
+            // Render State
+            DoRenderStateArea(ref context, systemData, 0, onChange);
+            
+            // Transparent
+            context.AddProperty("Receive Fog", 1, new Toggle() { value = builtinData.transparencyFog }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(builtinData.transparencyFog, evt.newValue))
+                    return;
 
-//             int indentLevel = 0;
-//             ps.Add(new PropertyRow(CreateLabel("Surface Type", indentLevel)), (row) =>
-//             {
-//                 row.Add(new EnumField(SurfaceType.Opaque), (field) =>
-//                 {
-//                     field.value = m_Node.surfaceType;
-//                     field.RegisterValueChangedCallback(ChangeSurfaceType);
-//                 });
-//             });
+                builtinData.transparencyFog = evt.newValue;
+                onChange();
+            });
 
-//             ++indentLevel;
-//             switch (m_Node.surfaceType)
-//             {
-//                 case SurfaceType.Opaque:
-//                     ps.Add(new PropertyRow(CreateLabel("Rendering Pass", indentLevel)), (row) =>
-//                     {
-//                         var valueList = HDSubShaderUtilities.GetRenderingPassList(true, true);
+            // Distortion
+            if(systemData.surfaceType == SurfaceType.Transparent)
+            {
+                DoDistortionArea(ref context, builtinData, 1, onChange);
+            }
 
-//                         row.Add(new PopupField<HDRenderQueue.RenderQueueType>(valueList, HDRenderQueue.RenderQueueType.Opaque, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName), (field) =>
-//                         {
-//                             field.value = HDRenderQueue.GetOpaqueEquivalent(m_Node.renderingPass);
-//                             field.RegisterValueChangedCallback(ChangeRenderingPass);
-//                         });
-//                     });
-//                     break;
-//                 case SurfaceType.Transparent:
-//                     ps.Add(new PropertyRow(CreateLabel("Rendering Pass", indentLevel)), (row) =>
-//                     {
-//                         Enum defaultValue;
-//                         switch (m_Node.renderingPass) // Migration
-//                         {
-//                             default: //when deserializing without issue, we still need to init the default to something even if not used.
-//                             case HDRenderQueue.RenderQueueType.Transparent:
-//                                 defaultValue = HDRenderQueue.TransparentRenderQueue.Default;
-//                                 break;
-//                             case HDRenderQueue.RenderQueueType.PreRefraction:
-//                                 defaultValue = HDRenderQueue.TransparentRenderQueue.BeforeRefraction;
-//                                 break;
-//                         }
+            // Alpha Test
+            // TODO: AlphaTest is in SystemData but Alpha to Mask is in BuiltinData?
+            context.AddProperty("Alpha Clipping", 0, new Toggle() { value = systemData.alphaTest }, (evt) =>
+            {
+                if (Equals(systemData.alphaTest, evt.newValue))
+                    return;
 
-//                         var valueList = HDSubShaderUtilities.GetRenderingPassList(false, true);
+                systemData.alphaTest = evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Alpha to Mask", 1, new Toggle() { value = builtinData.alphaToMask }, systemData.alphaTest, (evt) =>
+            {
+                if (Equals(builtinData.alphaToMask, evt.newValue))
+                    return;
 
-//                         row.Add(new PopupField<HDRenderQueue.RenderQueueType>(valueList, HDRenderQueue.RenderQueueType.Transparent, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName), (field) =>
-//                         {
-//                             field.value = HDRenderQueue.GetTransparentEquivalent(m_Node.renderingPass);
-//                             field.RegisterValueChangedCallback(ChangeRenderingPass);
-//                         });
-//                     });
-//                     break;
-//                 default:
-//                     throw new ArgumentException("Unknown SurfaceType");
-//             }
-//             --indentLevel;
+                builtinData.alphaToMask = evt.newValue;
+                onChange();
+            });
 
-//             if (m_Node.surfaceType == SurfaceType.Transparent)
-//             {
-//                 ++indentLevel;
-//                 ps.Add(new PropertyRow(CreateLabel("Blending Mode", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new EnumField(HDUnlitMasterNode.AlphaModeLit.Additive), (field) =>
-//                     {
-//                         field.value = GetAlphaModeLit(m_Node.alphaMode);
-//                         field.RegisterValueChangedCallback(ChangeBlendMode);
-//                     });
-//                 });
+            // Misc
+            context.AddProperty("Double-Sided Mode", 0, new EnumField(DoubleSidedMode.Disabled) { value = systemData.doubleSidedMode }, (evt) =>
+            {
+                if (Equals(systemData.doubleSidedMode, evt.newValue))
+                    return;
 
-//                 m_SortPiorityField = new IntegerField();
-//                 ps.Add(new PropertyRow(CreateLabel("Sorting Priority", indentLevel)), (row) =>
-//                 {
-//                     row.Add(m_SortPiorityField, (field) =>
-//                     {
-//                         field.value = m_Node.sortPriority;
-//                         field.RegisterValueChangedCallback(ChangeSortPriority);
-//                     });
-//                 });
+                systemData.doubleSidedMode = (DoubleSidedMode)evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Add Precomputed Velocity", 0, new Toggle() { value = builtinData.addPrecomputedVelocity }, (evt) =>
+            {
+                if (Equals(builtinData.addPrecomputedVelocity, evt.newValue))
+                    return;
 
-//                 ps.Add(new PropertyRow(CreateLabel("Receive Fog", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.transparencyFog.isOn;
-//                         toggle.OnToggleChanged(ChangeTransparencyFog);
-//                     });
-//                 });
+                builtinData.addPrecomputedVelocity = evt.newValue;
+                onChange();
+            });
+            context.AddProperty("Shadow Matte", 0, new Toggle() { value = unlitData.enableShadowMatte }, (evt) =>
+            {
+                if (Equals(unlitData.enableShadowMatte, evt.newValue))
+                    return;
 
-//                 ps.Add(new PropertyRow(CreateLabel("Distortion", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.distortion.isOn;
-//                         toggle.OnToggleChanged(ChangeDistortion);
-//                     });
-//                 });
+                unlitData.enableShadowMatte = evt.newValue;
+                onChange();
+            });
+        }
 
-//                 if (m_Node.distortion.isOn)
-//                 {
-//                     ++indentLevel;
-//                     ps.Add(new PropertyRow(CreateLabel("Distortion Blend Mode", indentLevel)), (row) =>
-//                     {
-//                         row.Add(new EnumField(DistortionMode.Add), (field) =>
-//                         {
-//                             field.value = m_Node.distortionMode;
-//                             field.RegisterValueChangedCallback(ChangeDistortionMode);
-//                         });
-//                     });
-//                     ps.Add(new PropertyRow(CreateLabel("Distortion Only", indentLevel)), (row) =>
-//                     {
-//                         row.Add(new Toggle(), (toggle) =>
-//                         {
-//                             toggle.value = m_Node.distortionOnly.isOn;
-//                             toggle.OnToggleChanged(ChangeDistortionOnly);
-//                         });
-//                     });
-//                     ps.Add(new PropertyRow(CreateLabel("Distortion Depth Test", indentLevel)), (row) =>
-//                     {
-//                         row.Add(new Toggle(), (toggle) =>
-//                         {
-//                             toggle.value = m_Node.distortionDepthTest.isOn;
-//                             toggle.OnToggleChanged(ChangeDistortionDepthTest);
-//                         });
-//                     });
-//                     --indentLevel;
-//                 }
+        // TODO: Can we make this static and use it for all SubTargets?
+        void DoRenderStateArea(ref TargetPropertyGUIContext context, HDSystemData systemData, int indentLevel, Action onChange)
+        {
+            context.AddProperty("Surface Type", indentLevel, new EnumField(SurfaceType.Opaque) { value = systemData.surfaceType }, (evt) =>
+            {
+                if (Equals(systemData.surfaceType, evt.newValue))
+                    return;
 
-//                 ps.Add(new PropertyRow(CreateLabel("Depth Write", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.zWrite.isOn;
-//                         toggle.OnToggleChanged(ChangeZWrite);
-//                     });
-//                 });
+                systemData.surfaceType = (SurfaceType)evt.newValue;
+                systemData.TryChangeRenderingPass(systemData.renderingPass);
+                onChange();
+            });
 
-//                 if (!m_Node.doubleSided.isOn)
-//                 {
-//                     ps.Add(new PropertyRow(CreateLabel("Cull Mode", indentLevel)), (row) =>
-//                     {
-//                         row.Add(new EnumField(m_Node.transparentCullMode), (e) =>
-//                         {
-//                             e.value = m_Node.transparentCullMode;
-//                             e.RegisterValueChangedCallback(ChangeTransparentCullMode);
-//                         });
-//                     });
-//                 }
+            var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(systemData.surfaceType == SurfaceType.Opaque, true);
+            var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderingPass) : HDRenderQueue.GetTransparentEquivalent(systemData.renderingPass);
+            var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            context.AddProperty("Rendering Pass", indentLevel + 1, new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue }, (evt) =>
+            {
+                if(systemData.TryChangeRenderingPass(evt.newValue))
+                {
+                    onChange();
+                }
+            });
 
-//                 ps.Add(new PropertyRow(CreateLabel("Depth Test", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new EnumField(m_Node.zTest), (e) =>
-//                     {
-//                         e.value = m_Node.zTest;
-//                         e.RegisterValueChangedCallback(ChangeZTest);
-//                     });
-//                 });
+            context.AddProperty("Blending Mode", indentLevel + 1, new EnumField(BlendMode.Alpha) { value = systemData.blendMode }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(systemData.blendMode, evt.newValue))
+                    return;
 
-//                 --indentLevel;
-//             }
+                systemData.blendMode = (BlendMode)evt.newValue;
+                onChange();
+            });
 
-//             ps.Add(new PropertyRow(new Label("Double-Sided")), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.doubleSided.isOn;
-//                     toggle.OnToggleChanged(ChangeDoubleSided);
-//                 });
-//             });
+            context.AddProperty("Depth Test", indentLevel + 1, new EnumField(systemData.zTest) { value = systemData.zTest }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(systemData.zTest, evt.newValue))
+                    return;
 
-//             ps.Add(new PropertyRow(CreateLabel("Alpha Clipping", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.alphaTest.isOn;
-//                     toggle.OnToggleChanged(ChangeAlphaTest);
-//                 });
-//             });
+                systemData.zTest = (CompareFunction)evt.newValue;
+                onChange();
+            });
 
-//             if (m_Node.alphaTest.isOn)
-//             {
-//                 ++indentLevel;
-//                 ps.Add(new PropertyRow(CreateLabel("Alpha to Mask", indentLevel)), (row) =>
-//                 {
-//                     row.Add(new Toggle(), (toggle) =>
-//                     {
-//                         toggle.value = m_Node.alphaToMask.isOn;
-//                         toggle.OnToggleChanged(ChangeAlphaToMask);
-//                     });
-//                 });
-//                 --indentLevel;
-//             }
+            context.AddProperty("Depth Write", indentLevel + 1, new Toggle() { value = systemData.zWrite }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(systemData.zWrite, evt.newValue))
+                    return;
 
-//             ps.Add(new PropertyRow(CreateLabel("Add Precomputed Velocity", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.addPrecomputedVelocity.isOn;
-//                     toggle.OnToggleChanged(ChangeAddPrecomputedVelocity);
-//                 });
-//             });
+                systemData.zWrite = evt.newValue;
+                onChange();
+            });
 
-//             ps.Add(new PropertyRow(CreateLabel("Shadow Matte", indentLevel)), (row) =>
-//             {
-//                 row.Add(new Toggle(), (toggle) =>
-//                 {
-//                     toggle.value = m_Node.enableShadowMatte.isOn;
-//                     toggle.OnToggleChanged(ChangeEnableShadowMatte);
-//                 });
-//             });
+            context.AddProperty("Cull Mode", indentLevel + 1, new EnumField(systemData.transparentCullMode) { value = systemData.transparentCullMode }, systemData.surfaceType == SurfaceType.Transparent && systemData.doubleSidedMode != DoubleSidedMode.Disabled, (evt) =>
+            {
+                if (Equals(systemData.transparentCullMode, evt.newValue))
+                    return;
 
-//             Add(ps);
-//             Add(GetShaderGUIOverridePropertySheet());
-//         }
+                systemData.transparentCullMode = (TransparentCullMode)evt.newValue;
+                onChange();
+            });
 
-//         void ChangeSurfaceType(ChangeEvent<Enum> evt)
-//         {
-//             if (Equals(m_Node.surfaceType, evt.newValue))
-//                 return;
+            context.AddProperty("Sorting Priority", indentLevel + 1, new IntegerField() { value = systemData.sortPriority }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(systemData.sortPriority, evt.newValue))
+                    return;
 
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Surface Type Change");
-//             m_Node.surfaceType = (SurfaceType)evt.newValue;
+                systemData.sortPriority = evt.newValue;
+                onChange();
+            });
+        }
 
-//             UpdateRenderingPassValue(m_Node.renderingPass);
-//         }
+        // TODO: Can we make this static and use it for all SubTargets?
+        void DoDistortionArea(ref TargetPropertyGUIContext context, HDBuiltinData builtinData, int indentLevel, Action onChange)
+        {
+            context.AddProperty("Distortion", 1, new Toggle() { value = builtinData.distortion }, (evt) =>
+            {
+                if (Equals(builtinData.distortion, evt.newValue))
+                    return;
 
-//         void ChangeDoubleSided(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Double-Sided Change");
-//             ToggleData td = m_Node.doubleSided;
-//             td.isOn = evt.newValue;
-//             m_Node.doubleSided = td;
-//         }
+                builtinData.distortion = evt.newValue;
+                onChange();
+            });
 
-//         void ChangeBlendMode(ChangeEvent<Enum> evt)
-//         {
-//             // Make sure the mapping is correct by handling each case.
+            context.AddProperty("Distortion Blend Mode", 2, new EnumField(DistortionMode.Add) { value = builtinData.distortionMode }, builtinData.distortion, (evt) =>
+            {
+                if (Equals(builtinData.distortionMode, evt.newValue))
+                    return;
 
-//             AlphaMode alphaMode = GetAlphaMode((HDUnlitMasterNode.AlphaModeLit)evt.newValue);
+                builtinData.distortionMode = (DistortionMode)evt.newValue;
+                onChange();
+            });
 
-//             if (Equals(m_Node.alphaMode, alphaMode))
-//                 return;
+            // TODO: This was on HDUnlitMaster but not used anywhere
+            // TODO: Can this be removed (See HDBuiltinData)?
+            // context.AddProperty("Distortion Only", 2, new Toggle() { value = builtinData.distortionOnly }, builtinData.distortion, (evt) =>
+            // {
+            //     if (Equals(builtinData.distortionOnly, evt.newValue))
+            //         return;
 
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Mode Change");
-//             m_Node.alphaMode = alphaMode;
-//         }
+            //     builtinData.distortionOnly = evt.newValue;
+            //     onChange();
+            // });
 
-//         void ChangeTransparencyFog(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Transparency Fog Change");
-//             ToggleData td = m_Node.transparencyFog;
-//             td.isOn = evt.newValue;
-//             m_Node.transparencyFog = td;
-//         }
+            context.AddProperty("Distortion Depth Test", 2, new Toggle() { value = builtinData.distortionDepthTest }, builtinData.distortion, (evt) =>
+            {
+                if (Equals(builtinData.distortionDepthTest, evt.newValue))
+                    return;
 
-//         void ChangeRenderingPass(ChangeEvent<HDRenderQueue.RenderQueueType> evt)
-//         {
-//             switch (evt.newValue)
-//             {
-//                 case HDRenderQueue.RenderQueueType.Overlay:
-//                 case HDRenderQueue.RenderQueueType.Unknown:
-//                 case HDRenderQueue.RenderQueueType.Background:
-//                     throw new ArgumentException("Unexpected kind of RenderQueue, was " + evt.newValue);
-//                 default:
-//                     break;
-//             };
-//             UpdateRenderingPassValue(evt.newValue);
-//         }
-
-//         void UpdateRenderingPassValue(HDRenderQueue.RenderQueueType newValue)
-//         {
-//             HDRenderQueue.RenderQueueType renderingPass;
-//             switch (m_Node.surfaceType)
-//             {
-//                 case SurfaceType.Opaque:
-//                     renderingPass = HDRenderQueue.GetOpaqueEquivalent(newValue);
-//                     break;
-//                 case SurfaceType.Transparent:
-//                     renderingPass = HDRenderQueue.GetTransparentEquivalent(newValue);
-//                     break;
-//                 default:
-//                     throw new ArgumentException("Unknown SurfaceType");
-//             }
-
-//             if (Equals(m_Node.renderingPass, renderingPass))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Rendering Pass Change");
-//             m_Node.renderingPass = renderingPass;
-//         }
-
-//         void ChangeDistortion(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Distortion Change");
-//             ToggleData td = m_Node.distortion;
-//             td.isOn = evt.newValue;
-//             m_Node.distortion = td;
-//         }
-
-//         void ChangeDistortionMode(ChangeEvent<Enum> evt)
-//         {
-//             if (Equals(m_Node.distortionMode, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Distortion Mode Change");
-//             m_Node.distortionMode = (DistortionMode)evt.newValue;
-//         }
-
-//         void ChangeDistortionOnly(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Distortion Only Change");
-//             ToggleData td = m_Node.distortionOnly;
-//             td.isOn = evt.newValue;
-//             m_Node.distortionDepthTest = td;
-//         }
-
-//         void ChangeDistortionDepthTest(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Distortion Depth Test Change");
-//             ToggleData td = m_Node.distortionDepthTest;
-//             td.isOn = evt.newValue;
-//             m_Node.distortionDepthTest = td;
-//         }
-
-//         void ChangeSortPriority(ChangeEvent<int> evt)
-//         {
-//             m_Node.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(evt.newValue);
-//             // Force the text to match.
-//             m_SortPiorityField.value = m_Node.sortPriority;
-//             if (Equals(m_Node.sortPriority, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Sort Priority Change");
-//         }
-
-//         void ChangeAlphaTest(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Change");
-//             ToggleData td = m_Node.alphaTest;
-//             td.isOn = evt.newValue;
-//             m_Node.alphaTest = td;
-//         }
-
-//         void ChangeAlphaToMask(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha to Mask Change");
-//             ToggleData td = m_Node.alphaToMask;
-//             td.isOn = evt.newValue;
-//             m_Node.alphaToMask = td;
-//         }
-
-//         void ChangeAddPrecomputedVelocity(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Add Precomputed Velocity");
-//             ToggleData td = m_Node.addPrecomputedVelocity;
-//             td.isOn = evt.newValue;
-//             m_Node.addPrecomputedVelocity = td;
-//         }
-
-//         void ChangeEnableShadowMatte(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Shadow Matte");
-//             ToggleData td = m_Node.enableShadowMatte;
-//             td.isOn = evt.newValue;
-//             m_Node.enableShadowMatte = td;
-//         }
-
-//         void ChangeZWrite(ChangeEvent<bool> evt)
-//         {
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("ZWrite Change");
-//             ToggleData td = m_Node.zWrite;
-//             td.isOn = evt.newValue;
-//             m_Node.zWrite = td;
-//         }
-
-//         void ChangeTransparentCullMode(ChangeEvent<Enum> evt)
-//         {
-//             if (Equals(m_Node.transparentCullMode, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("Transparent Cull Mode Change");
-//             m_Node.transparentCullMode = (TransparentCullMode)evt.newValue;
-//         }
-
-//         void ChangeZTest(ChangeEvent<Enum> evt)
-//         {
-//             if (Equals(m_Node.zTest, evt.newValue))
-//                 return;
-
-//             m_Node.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
-//             m_Node.zTest = (CompareFunction)evt.newValue;
-//         }
-
-//         public AlphaMode GetAlphaMode(HDUnlitMasterNode.AlphaModeLit alphaModeLit)
-//         {
-//             switch (alphaModeLit)
-//             {
-//                 case HDUnlitMasterNode.AlphaModeLit.Alpha:
-//                     return AlphaMode.Alpha;
-//                 case HDUnlitMasterNode.AlphaModeLit.Premultiply:
-//                     return AlphaMode.Premultiply;
-//                 case HDUnlitMasterNode.AlphaModeLit.Additive:
-//                     return AlphaMode.Additive;
-//                 default:
-//                     {
-//                         Debug.LogWarning("Not supported: " + alphaModeLit);
-//                         return AlphaMode.Alpha;
-//                     }
-//             }
-//         }
-
-//         public HDUnlitMasterNode.AlphaModeLit GetAlphaModeLit(AlphaMode alphaMode)
-//         {
-//             switch (alphaMode)
-//             {
-//                 case AlphaMode.Alpha:
-//                     return HDUnlitMasterNode.AlphaModeLit.Alpha;
-//                 case AlphaMode.Premultiply:
-//                     return HDUnlitMasterNode.AlphaModeLit.Premultiply;
-//                 case AlphaMode.Additive:
-//                     return HDUnlitMasterNode.AlphaModeLit.Additive;
-//                 default:
-//                     {
-//                         Debug.LogWarning("Not supported: " + alphaMode);
-//                         return HDUnlitMasterNode.AlphaModeLit.Alpha;
-//                     }
-//             }
-//         }
-//     }
-// }
+                builtinData.distortionDepthTest = evt.newValue;
+                onChange();
+            });
+        }
+    }
+}
